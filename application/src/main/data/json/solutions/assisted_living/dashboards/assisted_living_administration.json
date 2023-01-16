@@ -40,8 +40,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -157,8 +157,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -225,8 +225,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -456,8 +456,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -537,8 +537,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -973,8 +973,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1030,7 +1030,7 @@
             "color": "#fe7569",
             "useColorFunction": false,
             "useMarkerImageFunction": true,
-            "markerImageFunction": "var zone = dsData[dsIndex]['zone'];\nvar photo = dsData[dsIndex]['photo'];\nvar currentZone = '';\nvar zoneData = dsData.filter((data) => data.aliasName === 'Zone');\nif (zoneData && zoneData.length) {\n    currentZone = zoneData[0].zoneName;\n}\nif (photo && zone && zone === currentZone) {\n    var avatarSize = 48;\n    var avatarOffsetX = 0;\n    var avatarOffsetY = 6;\n    var svgWidth = avatarSize + 4;\n    var svgHeight = avatarSize + avatarOffsetY;\n    \n    var svgStr = '<svg width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">';\n    \n    svgStr += getPhotoCircleSvg(avatarSize, photo, avatarOffsetX, avatarOffsetY);\n    svgStr += getHealthStatusSvg(avatarSize, true);\n    \n    svgStr += '</svg>';\n\n    var encodedSvg = encodeURIComponent(svgStr);\n    \n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    \n    return {\n\t    url: svgUrl,\n\t    size: svgHeight\n\t};\n} else {\n    return {\n        url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',\n        size: 0\n    };\n}\n\nfunction getPhotoCircleSvg(avatarSize, photo, offsetX, offsetY) {\n    var cx = avatarSize / 2;\n    var cy = avatarSize / 2;\n    var r = avatarSize / 2;\n    return '<defs>' +\n        '<clipPath id=\"circleView\">' +\n            '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+r+'\" fill=\"#FFFFFF\" />' +\n        '</clipPath>' +\n    '</defs>' +\n    '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n        '<image ' +\n          'width=\"'+avatarSize+'\" ' +\n          'height=\"'+avatarSize+'\" ' +\n          'href=\"'+photo+'\" ' +\n          'clip-path=\"url(#circleView)\"' +\n        '/>' +\n    '</g>';\n}\n\nfunction getHealthStatusSvg(width, status) {\n    var offsetX = width - 12;\n    var offsetY = 0;\n    var statusOK = '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n                     '<circle cx=\"8\" cy=\"8\" r=\"8\" fill=\"#3AA94D\" />' + \n                     '<path d=\"M13.2415 5.4413C13.1801 5.20186 13.0852 4.97217 12.9596 4.75893C12.8391 4.53711 12.6849 4.33509 12.5025 4.15996C12.2381 3.89773 11.9251 3.68915 11.5807 3.54583C10.8875 3.26272 10.1102 3.26272 9.41701 3.54583C9.09152 3.68294 8.79248 3.87536 8.53326 4.11447L8.49516 4.15996L7.99996 4.65279L7.50475 4.15996L7.46666 4.11447C7.20744 3.87536 6.90839 3.68294 6.5829 3.54583C5.88973 3.26272 5.1124 3.26272 4.41923 3.54583C4.07486 3.68915 3.76177 3.89773 3.49738 4.15996C3.13578 4.51012 2.8798 4.95395 2.75838 5.4413C2.69379 5.68879 2.66304 5.94382 2.66696 6.19949C2.66696 6.44059 2.69743 6.68018 2.75838 6.91219C2.82225 7.14726 2.91434 7.37382 3.03265 7.58697C3.16043 7.80609 3.31668 8.00749 3.49738 8.18594L7.99996 12.6668L12.5025 8.18594C12.6831 8.01004 12.8377 7.80836 12.9596 7.58697C13.2071 7.16626 13.336 6.68696 13.333 6.19949C13.3369 5.94382 13.3062 5.68878 13.2415 5.4413Z\" fill=\"white\"/>' + \n                     '</g>';\n    return statusOK;                     \n}\n",
+            "markerImageFunction": "var zone = dsData[dsIndex]['zone'];\nvar photo = dsData[dsIndex]['photo'];\nvar currentZone = '';\nvar zoneData = dsData.filter((data) => data.aliasName === 'Zone');\nif (zoneData && zoneData.length) {\n    currentZone = zoneData[0].zoneName;\n}\nif (photo && zone && zone === currentZone) {\n    var avatarSize = 48;\n    var avatarOffsetX = 0;\n    var avatarOffsetY = 6;\n    var svgWidth = avatarSize + 4;\n    var svgHeight = avatarSize + avatarOffsetY;\n    \n    var svgStr = '<svg width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">';\n    \n    svgStr += getPhotoCircleSvg(avatarSize, photo, avatarOffsetX, avatarOffsetY);\n    svgStr += getHealthStatusSvg(avatarSize, true);\n    \n    svgStr += '</svg>';\n\n    var encodedSvg = encodeURIComponent(svgStr);\n    \n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    \n    return {\n\t    url: svgUrl,\n\t    size: svgHeight,\n\t    markerOffset: [avatarSize / 2, avatarOffsetY + avatarSize / 2],\n        tooltipOffset: [0, - (avatarOffsetY + avatarSize / 2)]\n\t};\n} else {\n    return {\n        url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',\n        size: 0\n    };\n}\n\nfunction getPhotoCircleSvg(avatarSize, photo, offsetX, offsetY) {\n    var cx = avatarSize / 2;\n    var cy = avatarSize / 2;\n    var r = avatarSize / 2;\n    return '<defs>' +\n        '<clipPath id=\"circleView\">' +\n            '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+r+'\" fill=\"#FFFFFF\" />' +\n        '</clipPath>' +\n    '</defs>' +\n    '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n        '<image ' +\n          'width=\"'+avatarSize+'\" ' +\n          'height=\"'+avatarSize+'\" ' +\n          'href=\"'+photo+'\" ' +\n          'clip-path=\"url(#circleView)\"' +\n        '/>' +\n    '</g>';\n}\n\nfunction getHealthStatusSvg(width, status) {\n    var offsetX = width - 12;\n    var offsetY = 0;\n    var statusOK = '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n                     '<circle cx=\"8\" cy=\"8\" r=\"8\" fill=\"#3AA94D\" />' + \n                     '<path d=\"M13.2415 5.4413C13.1801 5.20186 13.0852 4.97217 12.9596 4.75893C12.8391 4.53711 12.6849 4.33509 12.5025 4.15996C12.2381 3.89773 11.9251 3.68915 11.5807 3.54583C10.8875 3.26272 10.1102 3.26272 9.41701 3.54583C9.09152 3.68294 8.79248 3.87536 8.53326 4.11447L8.49516 4.15996L7.99996 4.65279L7.50475 4.15996L7.46666 4.11447C7.20744 3.87536 6.90839 3.68294 6.5829 3.54583C5.88973 3.26272 5.1124 3.26272 4.41923 3.54583C4.07486 3.68915 3.76177 3.89773 3.49738 4.15996C3.13578 4.51012 2.8798 4.95395 2.75838 5.4413C2.69379 5.68879 2.66304 5.94382 2.66696 6.19949C2.66696 6.44059 2.69743 6.68018 2.75838 6.91219C2.82225 7.14726 2.91434 7.37382 3.03265 7.58697C3.16043 7.80609 3.31668 8.00749 3.49738 8.18594L7.99996 12.6668L12.5025 8.18594C12.6831 8.01004 12.8377 7.80836 12.9596 7.58697C13.2071 7.16626 13.336 6.68696 13.333 6.19949C13.3369 5.94382 13.3062 5.68878 13.2415 5.4413Z\" fill=\"white\"/>' + \n                     '</g>';\n    return statusOK;                     \n}\n",
             "markerImages": [],
             "showPolygon": false,
             "polygonKeyName": "perimeter",
@@ -1127,8 +1127,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1223,8 +1223,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1283,14 +1283,14 @@
           "actions": {
             "actionCellButton": [
               {
-                "name": "Edit zone",
+                "name": "Edit room",
                 "icon": "edit",
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "customPretty",
-                "customHtml": "<form #editZoneForm=\"ngForm\" [formGroup]=\"editZoneFormGroup\"\n      (ngSubmit)=\"save()\" class=\"al-form\">\n    <mat-toolbar fxLayout=\"row\" color=\"primary\">\n        <h2>Edit zone '{{ entityName }}'</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\n    </mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <mat-form-field fxFlex class=\"mat-block\">\n            <mat-label>Zone Name</mat-label>\n            <input matInput formControlName=\"name\" required>\n            <mat-error *ngIf=\"editZoneFormGroup.get('name').hasError('required')\">\n                Zone name is required.\n            </mat-error>\n        </mat-form-field>\n        <tb-image-input formControlName=\"plan\" label=\"Zone plan\" noImageText=\"No plan selected\" required></tb-image-input>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                [disabled]=\"(isLoading$ | async)\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button mat-raised-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || editZoneFormGroup.invalid || !editZoneFormGroup.dirty\">\n            Save\n        </button>\n    </div>\n</form>\n",
+                "customHtml": "<form #editSensorForm=\"ngForm\" [formGroup]=\"editRoomFormGroup\"\n      (ngSubmit)=\"save()\" class=\"al-form\">\n    <mat-toolbar fxLayout=\"row\" color=\"primary\">\n        <h2>Edit room '{{ entityName }}'</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\">\n    </mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <section fxLayout=\"column\">\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\"  fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Room Name</mat-label>\n                    <input matInput formControlName=\"name\" required>\n                    <mat-error *ngIf=\"editRoomFormGroup.get('name').hasError('required')\">\n                        Room name is required.\n                    </mat-error>\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Label</mat-label>\n                    <input matInput formControlName=\"label\">\n                </mat-form-field>\n            </div>\n        </section>\n        <section fxLayout=\"column\">\n            <tb-dashboard-state \n                style=\"height: 400px; width: 100%;\"\n                [ctx]=\"widgetContext\"\n                stateId=\"setup_room_location\"\n                [entityId]=\"entityId\">\n            </tb-dashboard-state>\n        </section>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                [disabled]=\"(isLoading$ | async)\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button mat-raised-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || editRoomFormGroup.invalid || !(editRoomFormGroup.dirty || locationChanged) || !hasLocation\">\n            Save\n        </button>\n    </div>\n</form>\n",
                 "customCss": ".al-form {\n    width: 600px;\n}\n\n.al-form .mat-toolbar.mat-primary {\n    background: #fff;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n.al-form .mat-button.mat-primary, .al-form .mat-icon-button.mat-primary, .al-form .mat-stroked-button.mat-primary {\n    color: #4B535B;\n}\n\n.al-form .mat-fab.mat-primary, .al-form .mat-flat-button.mat-primary, .al-form .mat-mini-fab.mat-primary, .al-form .mat-raised-button.mat-primary {\n    color: #fff;\n}\n\n.al-form .mat-fab.mat-primary, .al-form .mat-flat-button.mat-primary, .al-form .mat-mini-fab.mat-primary, .al-form .mat-raised-button.mat-primary {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-button.mat-primary .mat-button-focus-overlay, .al-form .mat-icon-button.mat-primary .mat-button-focus-overlay, .al-form .mat-stroked-button.mat-primary .mat-button-focus-overlay {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-form-field.mat-focused .mat-form-field-label {\n    color: #4B535B;\n}\n\n.al-form .mat-form-field.mat-focused .mat-form-field-ripple {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-slide-toggle.mat-checked .mat-ripple-element, .al-form .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {\n    background-color: rgba(111, 116, 242, 0.54);\n}\n\n.al-form .mat-icon {\n    color: #9FA6B4;\n}\n\n.al-form .title-modal {\n    font-weight: 500;\n    font-size: 16px;\n    line-height: 130%;\n    color: #9FA6B4;\n    padding-bottom: 8px;\n}\n\n.al-form .mat-button-toggle-group-appearance-standard, .al-form .mat-button-toggle-standalone.mat-button-toggle-appearance-standard {\n    border: none;\n}\n\n.al-form .mat-button-toggle {\n    background: rgba(0, 0, 0, 0.06);\n    height: 32px;\n    align-items: center;\n    display: flex;\n}\n\n.al-form .mat-button-toggle-checked .mat-button-toggle-button {\n    background-color: #fff;\n    border-radius: 4px;\n    margin-left: 2px;\n    margin-right: 2px;\n}\n\n.al-form .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {\n    line-height: 28px;\n    font-size: 14px;\n}\n\n.al-form .mat-button-toggle-group-appearance-standard .mat-button-toggle+.mat-button-toggle {\n    border-left: none;\n}\n\n.al-form .mat-button-toggle-checked.mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {\n    opacity: .01;\n}\n\n.al-form .mat-slider {\n    padding: 8px 0;\n}\n\n.al-form .mat-primary .mat-slider-thumb, .al-form .mat-primary .mat-slider-thumb-label, .al-form .mat-primary .mat-slider-track-fill {\n    background-color: #3E3AE3;\n}\n",
-                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenEditZoneDialog();\n\nfunction openEditZoneDialog() {\n    customDialog.customDialog(htmlTemplate, EditZoneDialogController).subscribe();\n}\n\nfunction EditZoneDialogController(instance) {\n    let vm = instance;\n    \n    vm.entityName = entityName;\n    vm.entityId = entityId;\n\n    vm.widgetContext = widgetContext;\n    vm.zone = null;\n    \n    vm.editZoneFormGroup = vm.fb.group({\n      name: ['', [vm.validators.required]],\n      plan: [null, [vm.validators.required]]\n    });\n\n    vm.cancel = function() {\n        vm.dialogRef.close(null);\n    };\n\n    vm.save = function() {\n        vm.editZoneFormGroup.markAsPristine();\n        widgetContext.rxjs.forkJoin([\n            saveAttributes(entityId),\n            saveZone()\n        ]).subscribe(\n            function () {\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n            }\n        );\n    };\n    \n    loadZone();\n\n    function saveZone() {\n        const formValues = vm.editZoneFormGroup.value;\n        vm.zone.name = formValues.name;\n        return assetService.saveAsset(vm.zone);\n    }\n\n    function saveAttributes(entityId) {\n        let plan = vm.editZoneFormGroup.get('plan').value;\n        let attributesArray = [\n            {key: 'plan', value: plan}\n        ];\n        return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n    }\n    \n    function loadZone() {\n        widgetContext.rxjs.forkJoin([\n            attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['plan']),\n            assetService.getAsset(entityId.id)\n        ]).subscribe(\n            function (data) {\n                var attributes = data[0];\n                for (var i = 0; i < attributes.length; i ++) {\n                    if (attributes[i].key === 'plan') {\n                        var plan = attributes[i].value;\n                        vm.editZoneFormGroup.get('plan').patchValue(plan, {emitEvent: false});\n                    }\n                }\n                vm.zone = data[1];\n                vm.editZoneFormGroup.get('name').patchValue(vm.zone.name, {emitEvent: false});\n            }\n        );\n    }\n\n}\n",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenEditRoomDialog();\n\nfunction openEditRoomDialog() {\n    customDialog.customDialog(htmlTemplate, EditRoomDialogController).subscribe();\n}\n\nfunction EditRoomDialogController(instance) {\n    let vm = instance;\n    \n    vm.entityName = entityName;\n    vm.entityId = entityId;\n\n    vm.widgetContext = widgetContext;\n    vm.room = null;\n    \n    vm.location = null;\n    vm.hasLocation = false;\n    vm.locationChanged = false;\n    vm.locationSubscription = null;\n\n\n    vm.editRoomFormGroup = vm.fb.group({\n      name: ['', [vm.validators.required]],\n      label: [null],\n    });\n\n    vm.cancel = function() {\n        cancelLocationSubscription();\n        restoreLocation().subscribe(\n            function () {\n                vm.dialogRef.close(null);\n            }\n        );\n    };\n\n    vm.save = function() {\n        vm.editRoomFormGroup.markAsPristine();\n        widgetContext.rxjs.forkJoin([\n            saveRoom()\n        ]).subscribe(\n            function () {\n                cancelLocationSubscription();\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n            }\n        );\n    };\n    \n    loadRoom();\n    \n    function createLocationSubscription() {\n        var subscriptionInfo = {\n            type: 'entity',\n            entityType: vm.room.id.entityType,\n            entityId: vm.room.id.id,\n            attributes: [{ name: 'xPos' }, {name: 'yPos'}]\n        };\n        var options = {\n            callbacks: {\n                onDataUpdated: function(subscription) {\n                    checkLocation(subscription.data);\n                }\n            }\n        };\n        return widgetContext.subscriptionApi.createSubscriptionFromInfo(\n                            'latest', [ subscriptionInfo ], options, false, true).pipe(\n            widgetContext.rxjs.tap(function(locationSubscription) {\n                vm.locationSubscription = locationSubscription;\n            })\n        );\n        \n    }\n    \n    function checkLocation(data) {\n        var hasLocation = false;\n        var xPos, yPos;\n        if (data.length === 2) {\n            for (var i = 0; i < data.length; i ++) {\n                var datasourceData = data[i];\n                if (datasourceData.dataKey.name === 'xPos') {\n                    xPos = datasourceData.data[0][1];\n                } else if (datasourceData.dataKey.name === 'yPos') {\n                    yPos = datasourceData.data[0][1];\n                }\n            }\n            if (isNumeric(xPos) && isNumeric(yPos)) {\n                hasLocation = true;\n            }\n        }\n        var locationChanged = false;\n        if (hasLocation && !vm.location || !hasLocation && vm.location || \n            vm.location[0] !== xPos || vm.location[1] !== yPos) {\n            locationChanged = true;\n        }\n        vm.hasLocation = hasLocation;\n        vm.locationChanged = locationChanged;\n    }\n    \n    function isNumeric(val) {\n        if (typeof val === \"number\") {\n            return true;\n        } else if (typeof val === \"string\") {\n            return !isNaN(val) && \n                !isNaN(parseFloat(val));\n        } else {\n            return false;\n        }\n    }\n    \n    function cancelLocationSubscription() {\n        if (vm.locationSubscription) {\n            widgetContext.subscriptionApi.removeSubscription(vm.locationSubscription.id);\n            vm.locationSubscription = null;\n        }\n    }\n\n    function saveRoom() {\n        const formValues = vm.editRoomFormGroup.value;\n        vm.room.name = formValues.name;\n        vm.room.label = formValues.label;\n        return assetService.saveAsset(vm.room);\n    }\n\n    function restoreLocation() {\n        if (vm.locationChanged) {\n            var xPos = null;\n            var yPos = null;\n            if (vm.location && vm.location.length === 2) {\n                xPos = vm.location[0];\n                yPos = vm.location[1];\n            }\n            return attributeService.saveEntityAttributes(vm.room.id, \"SERVER_SCOPE\",\n                [\n                    { key: 'xPos', value: xPos },\n                    { key: 'yPos', value: yPos }\n                ]\n            );\n        } else {\n            return widgetContext.rxjs.of(null);\n        }\n    }\n    \n    function loadRoom() {\n        widgetContext.rxjs.forkJoin([\n            attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['xPos', 'yPos']),\n            assetService.getAsset(entityId.id)\n        ]).subscribe(\n            function (data) {\n                var attributes = data[0];\n                for (var i = 0; i < attributes.length; i ++) {\n                    if (attributes[i].key === 'xPos' || attributes[i].key === 'yPos') {\n                        if (!vm.location) {\n                            vm.location = [];\n                        }\n                        vm.location[attributes[i].key === 'xPos' ? 0 : 1] = attributes[i].value;\n                    }\n                }\n                vm.room = data[1];\n                vm.editRoomFormGroup.get('name').patchValue(vm.room.name, {emitEvent: false});\n                vm.editRoomFormGroup.get('label').patchValue(vm.room.label, {emitEvent: false});\n                createLocationSubscription();\n            }\n        );\n    }\n\n}\n",
                 "customResources": [],
                 "openInSeparateDialog": false,
                 "openInPopover": false,
@@ -1311,22 +1311,7 @@
                 "id": "840592b9-aebf-7652-1d55-6f413d213329"
               }
             ],
-            "rowClick": [
-              {
-                "name": "Navigate to zone items",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "zone_items",
-                "setEntityId": true,
-                "stateEntityParamName": "zone",
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "c508dccc-13aa-e5ba-1176-7af8ded9a312"
-              }
-            ],
+            "rowClick": [],
             "headerButton": [
               {
                 "name": "Add room",
@@ -1382,6 +1367,34 @@
                   "color": "#f44336",
                   "settings": {},
                   "_hash": 0.28616128027608445
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.3221131288257828,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "name",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.8521299865325693,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 }
               ]
             }
@@ -1400,8 +1413,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1457,7 +1470,7 @@
             "color": "#fe7569",
             "useColorFunction": false,
             "useMarkerImageFunction": true,
-            "markerImageFunction": "var zone = dsData[dsIndex]['zone'];\nvar photo = dsData[dsIndex]['photo'];\nvar currentZone = '';\nvar zoneData = dsData.filter((data) => data.aliasName === 'Zone');\nif (zoneData && zoneData.length) {\n    currentZone = zoneData[0].zoneName;\n}\nif (photo && zone && zone === currentZone) {\n    var avatarSize = 48;\n    var avatarOffsetX = 0;\n    var avatarOffsetY = 6;\n    var svgWidth = avatarSize + 4;\n    var svgHeight = avatarSize + avatarOffsetY;\n    \n    var svgStr = '<svg width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">';\n    \n    svgStr += getPhotoCircleSvg(avatarSize, photo, avatarOffsetX, avatarOffsetY);\n    svgStr += getHealthStatusSvg(avatarSize, true);\n    \n    svgStr += '</svg>';\n\n    var encodedSvg = encodeURIComponent(svgStr);\n    \n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    \n    return {\n\t    url: svgUrl,\n\t    size: svgHeight\n\t};\n} else {\n    return {\n        url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',\n        size: 0\n    };\n}\n\nfunction getPhotoCircleSvg(avatarSize, photo, offsetX, offsetY) {\n    var cx = avatarSize / 2;\n    var cy = avatarSize / 2;\n    var r = avatarSize / 2;\n    return '<defs>' +\n        '<clipPath id=\"circleView\">' +\n            '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+r+'\" fill=\"#FFFFFF\" />' +\n        '</clipPath>' +\n    '</defs>' +\n    '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n        '<image ' +\n          'width=\"'+avatarSize+'\" ' +\n          'height=\"'+avatarSize+'\" ' +\n          'href=\"'+photo+'\" ' +\n          'clip-path=\"url(#circleView)\"' +\n        '/>' +\n    '</g>';\n}\n\nfunction getHealthStatusSvg(width, status) {\n    var offsetX = width - 12;\n    var offsetY = 0;\n    var statusOK = '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n                     '<circle cx=\"8\" cy=\"8\" r=\"8\" fill=\"#3AA94D\" />' + \n                     '<path d=\"M13.2415 5.4413C13.1801 5.20186 13.0852 4.97217 12.9596 4.75893C12.8391 4.53711 12.6849 4.33509 12.5025 4.15996C12.2381 3.89773 11.9251 3.68915 11.5807 3.54583C10.8875 3.26272 10.1102 3.26272 9.41701 3.54583C9.09152 3.68294 8.79248 3.87536 8.53326 4.11447L8.49516 4.15996L7.99996 4.65279L7.50475 4.15996L7.46666 4.11447C7.20744 3.87536 6.90839 3.68294 6.5829 3.54583C5.88973 3.26272 5.1124 3.26272 4.41923 3.54583C4.07486 3.68915 3.76177 3.89773 3.49738 4.15996C3.13578 4.51012 2.8798 4.95395 2.75838 5.4413C2.69379 5.68879 2.66304 5.94382 2.66696 6.19949C2.66696 6.44059 2.69743 6.68018 2.75838 6.91219C2.82225 7.14726 2.91434 7.37382 3.03265 7.58697C3.16043 7.80609 3.31668 8.00749 3.49738 8.18594L7.99996 12.6668L12.5025 8.18594C12.6831 8.01004 12.8377 7.80836 12.9596 7.58697C13.2071 7.16626 13.336 6.68696 13.333 6.19949C13.3369 5.94382 13.3062 5.68878 13.2415 5.4413Z\" fill=\"white\"/>' + \n                     '</g>';\n    return statusOK;                     \n}\n",
+            "markerImageFunction": "var type = data['type'];\n\nif (type) {\n    switch(type) {\n        case 'AL_Room':\n            return getRoomMarker();\n    }\n}\n\nreturn {\n    url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',\n    size: 0\n};\n\nfunction getRoomMarker() {\n    var text = getRoomText();\n    var defaultMarkerWidth = 24;\n    var textWidth = getTextWidth(text);\n    var width = defaultMarkerWidth + textWidth;\n    var svgStr = getRoomSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [width / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [0, - (defaultMarkerWidth / 2)]\n    };\n}\n\n\nfunction getRoomSvg(width, text) {\n    var color = '#344082';\n    var backgroundOpacity = 0.1;\n    var background = getRoomBackground(color, backgroundOpacity, width);\n    var svgWidth = width;\n    var svgHeight = 24;\n    var opacity = 1;\n    var roomSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        roomSvg += '<text x=\"50%\" y=\"55%\" dominant-baseline=\"middle\" text-anchor=\"middle\" fill=\"'+color+'\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"14\" font-weight=\"500\" letter-spacing=\"0em\">' + text + '</text>';\n    }\n    roomSvg += '</svg>';\n    return roomSvg;    \n}\n\nfunction getRoomBackground(color, opacity, width) {\n     if (width === 24) {\n         return '<circle cx=\"12\" cy=\"12\" r=\"12\" opacity=\"'+opacity+'\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<g opacity=\"'+opacity+'\"><circle cx=\"12\" cy=\"12\" r=\"12\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 12) + '\" cy=\"12\" r=\"12\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"12\" y=\"0\" width=\"'   + (width - 24) + '\" height=\"24\" rx=\"1\" fill=\"'+ color +'\"/></g>';\n     }\n}\n\nfunction getRoomText() {\n    if (typeof data['name'] !== 'undefined') {\n        return data['name'] + '';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 8;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 9;\n            // Lower case    \n            } else {\n                charWidth = 7;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
             "markerImages": [],
             "showPolygon": false,
             "polygonKeyName": "perimeter",
@@ -1543,8 +1556,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673542682308,
-                "endTimeMs": 1673629082308
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1631,22 +1644,7 @@
                 "id": "840592b9-aebf-7652-1d55-6f413d213329"
               }
             ],
-            "rowClick": [
-              {
-                "name": "Navigate to zone items",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "zone_items",
-                "setEntityId": true,
-                "stateEntityParamName": "zone",
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "c508dccc-13aa-e5ba-1176-7af8ded9a312"
-              }
-            ]
+            "rowClick": []
           }
         },
         "row": 0,
@@ -1686,6 +1684,20 @@
                   "color": "#f44336",
                   "settings": {},
                   "_hash": 0.28616128027608445
+                },
+                {
+                  "name": "name",
+                  "type": "entityField",
+                  "label": "name",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.9238338137482067,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 }
               ]
             }
@@ -1704,8 +1716,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1673541854157,
-                "endTimeMs": 1673628254157
+                "startTimeMs": 1673797325528,
+                "endTimeMs": 1673883725528
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1760,8 +1772,9 @@
             "tooltipOffsetY": -1,
             "color": "#fe7569",
             "useColorFunction": false,
-            "useMarkerImageFunction": false,
-            "markerImageSize": 34,
+            "useMarkerImageFunction": true,
+            "markerImageFunction": "var text = getRoomText();\nvar defaultMarkerWidth = 24;\nvar textWidth = getTextWidth(text);\nvar width = defaultMarkerWidth + textWidth;\nvar svgStr = getRoomSvg(width, text);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, defaultMarkerWidth / 2],\n    tooltipOffset: [0, - (defaultMarkerWidth / 2)]\n};\n\nfunction getRoomSvg(width, text) {\n    var color = '#344082';\n    var backgroundOpacity = 0.1;\n    var background = getRoomBackground(color, backgroundOpacity, width);\n    var svgWidth = width;\n    var svgHeight = 24;\n    var opacity = 1;\n    var roomSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        roomSvg += '<text x=\"50%\" y=\"55%\" dominant-baseline=\"middle\" text-anchor=\"middle\" fill=\"'+color+'\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"14\" font-weight=\"500\" letter-spacing=\"0em\">' + text + '</text>';\n    }\n    roomSvg += '</svg>';\n    return roomSvg;    \n}\n\nfunction getRoomBackground(color, opacity, width) {\n     if (width === 24) {\n         return '<circle cx=\"12\" cy=\"12\" r=\"12\" opacity=\"'+opacity+'\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<g opacity=\"'+opacity+'\"><circle cx=\"12\" cy=\"12\" r=\"12\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 12) + '\" cy=\"12\" r=\"12\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"12\" y=\"0\" width=\"'   + (width - 24) + '\" height=\"24\" rx=\"1\" fill=\"'+ color +'\"/></g>';\n     }\n}\n\nfunction getRoomText() {\n    if (typeof data['name'] !== 'undefined') {\n        return data['name'] + '';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 8;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 9;\n            // Lower case    \n            } else {\n                charWidth = 7;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
+            "markerImages": [],
             "showPolygon": false,
             "polygonKeyName": "perimeter",
             "editablePolygon": false,
