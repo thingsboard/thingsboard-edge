@@ -1,0 +1,525 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Water Metering Solution Main (Remote Facility)",
+    "type": "EDGE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 5,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 635,
+          "layoutY": 146
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1394,
+          "layoutY": 214
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 906,
+          "layoutY": 145
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1394,
+          "layoutY": 69
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 1392,
+          "layoutY": 142
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 304,
+          "layoutY": 148
+        },
+        "type": "org.thingsboard.rule.engine.metadata.CalculateDeltaNode",
+        "name": "Calculate Consumption Based on Pulse Counter",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "pulseCounter",
+          "outputValueKey": "meterReadingDelta",
+          "useCache": true,
+          "addPeriodBetweenMsgs": false,
+          "periodValueKey": "periodInMs",
+          "round": 2,
+          "tellFailureIfInputValueKeyIsAbsent": false,
+          "tellFailureIfDeltaIsNegative": true
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1050,
+          "layoutY": 592
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Calculate Weekly Consumption",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "meterReadingDelta",
+          "outputValueKey": "weeklyConsumption",
+          "mathFunction": "SUM",
+          "aggIntervalType": "WEEK",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "autoCreateIntervals": false,
+          "periodValue": 1,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "single",
+            "entityId": {
+              "entityType": "TENANT",
+              "id": "e47343f0-5a68-11eb-a280-b979e84eaa51"
+            }
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1045,
+          "layoutY": 459
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Calculate Weekly Consumption",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "meterReadingDelta",
+          "outputValueKey": "weeklyConsumption",
+          "mathFunction": "SUM",
+          "aggIntervalType": "WEEK",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": {
+              "entityType": "ENTITY_GROUP",
+              "id": "e479ac90-5a68-11eb-a280-b979e84eaa51"
+            }
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1049,
+          "layoutY": 532
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Calculate Daily Consumption",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "meterReadingDelta",
+          "outputValueKey": "dailyConsumption",
+          "mathFunction": "SUM",
+          "aggIntervalType": "DAY",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "single",
+            "entityId": {
+              "entityType": "TENANT",
+              "id": "e47343f0-5a68-11eb-a280-b979e84eaa51"
+            }
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1046,
+          "layoutY": 397
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Calculate Daily Consumption",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "meterReadingDelta",
+          "outputValueKey": "dailyConsumption",
+          "mathFunction": "SUM",
+          "aggIntervalType": "DAY",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": {
+              "entityType": "ENTITY_GROUP",
+              "id": "e479ac90-5a68-11eb-a280-b979e84eaa51"
+            }
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 742,
+          "layoutY": 508
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "To Tenant",
+        "debugMode": false,
+        "configuration": {
+          "originatorSource": "TENANT",
+          "relationsQuery": {
+            "direction": "FROM",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "Contains",
+                "entityTypes": []
+              }
+            ],
+            "fetchLastLevelOnly": false
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 740,
+          "layoutY": 431
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "To Customer",
+        "debugMode": false,
+        "configuration": {
+          "originatorSource": "CUSTOMER",
+          "relationsQuery": {
+            "direction": "FROM",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "Contains",
+                "entityTypes": []
+              }
+            ],
+            "fetchLastLevelOnly": false
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 158,
+          "layoutY": 431
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Calculate Daily Consumption",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "meterReadingDelta",
+          "outputValueKey": "dailyConsumption",
+          "mathFunction": "SUM",
+          "aggIntervalType": "DAY",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 160,
+          "layoutY": 509
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Calculate Weekly Consumption",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "meterReadingDelta",
+          "outputValueKey": "weeklyConsumption",
+          "mathFunction": "SUM",
+          "aggIntervalType": "WEEK",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1677,
+          "layoutY": 104
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "Push To Cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 910,
+          "layoutY": 277
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "Push To Cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Attributes Deleted"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Attributes Updated"
+      },
+      {
+        "fromIndex": 3,
+        "toIndex": 14,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 4,
+        "toIndex": 14,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 0,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 11,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 4,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 4,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 4,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 4,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 0,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}
