@@ -11,12 +11,12 @@
     "userGroups": [],
     "assetGroups": [
       {
-        "name": "Air Quality Monitoring"
+        "name": "AQI City"
       }
     ],
     "deviceGroups": [
       {
-        "name": "Air Quality Monitoring"
+        "name": "AQI Sensor"
       }
     ],
     "dashboardGroups": [
