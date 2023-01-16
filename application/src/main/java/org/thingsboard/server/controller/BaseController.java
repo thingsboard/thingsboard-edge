@@ -1296,6 +1296,9 @@ public abstract class BaseController {
     }
 
     protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, EntityId previousOwnerId) {
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            tbClusterService.broadcastEntityStateChangeEvent(tenantId, new EdgeId(entityId.getId()), ComponentLifecycleEvent.UPDATED);
+        }
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
                 String body = null;

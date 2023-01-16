@@ -32,13 +32,13 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -49,34 +49,23 @@ import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
-public class CustomerEdgeEventFetcher extends BasePageableEdgeEventFetcher<Customer> {
+public class PublicCustomerUserGroupEdgeEventFetcher implements EdgeEventFetcher {
 
     private final CustomerService customerService;
-    private final CustomerId ownerId;
+    private final EntityId ownerId;
 
     @Override
-    PageData<Customer> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
-        List<Customer> customersHierarchy = getCustomersHierarchy(tenantId, ownerId);
-        return new PageData<>(customersHierarchy, 1, customersHierarchy.size(), false);
-    }
-
-    List<Customer> getCustomersHierarchy(TenantId tenantId, CustomerId customerId) {
-        List<Customer> result = new ArrayList<>();
-        Customer customerById = customerService.findCustomerById(tenantId, customerId);
-        result.add(customerById);
-        if (customerById != null && customerById.isPublic()) {
-            return result;
-        }
-        result.add(customerService.findOrCreatePublicCustomer(tenantId, customerId));
-        if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
-            result.addAll(getCustomersHierarchy(tenantId, customerById.getParentCustomerId()));
-        }
-        return result;
+    public PageLink getPageLink(int pageSize) {
+        return new PageLink(pageSize);
     }
 
     @Override
-    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, Customer customer) {
-        return EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER,
-                EdgeEventActionType.ADDED, customer.getId(), null);
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
+        List<EdgeEvent> result = new ArrayList<>();
+        EntityGroup publicUserGroup = customerService.findOrCreatePublicUserGroup(tenantId, ownerId);
+        result.add(EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_GROUP,
+                EdgeEventActionType.ADDED, publicUserGroup.getId(), null));
+        // @voba - returns PageData object to be in sync with other fetchers
+        return new PageData<>(result, 1, result.size(), false);
     }
 }
