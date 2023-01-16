@@ -168,7 +168,7 @@
                   (click)="openDashboardSettings($event)">
             <mat-icon>settings</mat-icon>
           </button>
-          <tb-dashboard-select [fxShow]="!isEdit && !widgetEditMode && !stateSelectView && !embedded && displayDashboardsSelect()"
+          <tb-dashboard-select *ngIf="!isEdit && !widgetEditMode && !stateSelectView && !embedded && displayDashboardsSelect()"
                                [(ngModel)]="currentDashboardId"
                                (ngModelChange)="currentDashboardIdChanged(currentDashboardId)"
                                [groupId]="entityGroupId"
@@ -201,9 +201,9 @@
                               [ngClass]="{ 'tb-shrinked' : isEditingWidget }">
           <mat-drawer *ngIf="layouts.right.show"
                       id="tb-right-layout"
-                      [ngStyle]="{minWidth: rightLayoutWidth(),
-                                  maxWidth: rightLayoutWidth(),
-                                  height: rightLayoutHeight(),
+                      [ngStyle]="{minWidth: rightLayoutSize.width,
+                                  maxWidth: rightLayoutSize.width,
+                                  height: rightLayoutSize.height,
                                   borderLeft: 'none'}"
               disableClose="true"
               [@.disabled]="!isMobile"
@@ -224,8 +224,8 @@
           </mat-drawer>
           <mat-drawer-content [fxShow]="layouts.main.show"
                               id="tb-main-layout"
-                              [ngStyle]="{width: mainLayoutWidth(),
-                              height: mainLayoutHeight()}">
+                              [ngStyle]="{width: mainLayoutSize.width,
+                                          height: mainLayoutSize.height}">
             <tb-dashboard-layout
               [dashboardCheatSheet]="cheatSheetComponent"
               [layoutCtx]="layouts.main.layoutCtx"

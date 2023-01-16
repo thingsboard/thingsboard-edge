@@ -66,13 +66,10 @@ import { ReportService } from '@core/http/report.service';
 
 const tinycolor = tinycolor_;
 
-// @dynamic
 @Injectable()
 export class WidgetComponentService {
 
   private cssParser = new cssjs();
-
-  private widgetsInfoInMemoryCache = new Map<string, WidgetInfo>();
 
   private widgetsInfoFetchQueue = new Map<string, Array<Subject<WidgetInfo>>>();
 
@@ -93,14 +90,6 @@ export class WidgetComponentService {
               private reportService: ReportService) {
 
     this.cssParser.testMode = false;
-
-    this.widgetService.onWidgetTypeUpdated().subscribe((widgetType) => {
-      this.deleteWidgetInfoFromCache(widgetType.bundleAlias, widgetType.alias, widgetType.tenantId.id === NULL_UUID);
-    });
-
-    this.widgetService.onWidgetBundleDeleted().subscribe((widgetsBundle) => {
-      this.deleteWidgetsBundleFromCache(widgetsBundle.alias, widgetsBundle.tenantId.id === NULL_UUID);
-    });
 
     this.init();
   }
@@ -209,7 +198,7 @@ export class WidgetComponentService {
           forkJoin(loadDefaultWidgetInfoTasks).subscribe(
             () => {
               if (this.reportService.reportView) {
-                this.reportService.openReportSubject.subscribe(() => this.clearWidgetInfoInMemoryCache());
+                this.reportService.openReportSubject.subscribe(() => this.widgetService.clearWidgetInfoInMemoryCache());
               }
               initSubject.next();
             },
@@ -243,7 +232,7 @@ export class WidgetComponentService {
   }
 
   public getInstantWidgetInfo(widget: Widget): WidgetInfo {
-    const widgetInfo = this.getWidgetInfoFromCache(widget.bundleAlias, widget.typeAlias, widget.isSystemType);
+    const widgetInfo = this.widgetService.getWidgetInfoFromCache(widget.bundleAlias, widget.typeAlias, widget.isSystemType);
     if (widgetInfo) {
       return widgetInfo;
     } else {
@@ -259,7 +248,7 @@ export class WidgetComponentService {
 
   private getWidgetInfoInternal(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): Observable<WidgetInfo> {
     const widgetInfoSubject = new ReplaySubject<WidgetInfo>();
-    const widgetInfo = this.getWidgetInfoFromCache(bundleAlias, widgetTypeAlias, isSystem);
+    const widgetInfo = this.widgetService.getWidgetInfoFromCache(bundleAlias, widgetTypeAlias, isSystem);
     if (widgetInfo) {
       widgetInfoSubject.next(widgetInfo);
       widgetInfoSubject.complete();
@@ -267,7 +256,7 @@ export class WidgetComponentService {
       if (this.utils.widgetEditMode) {
         this.loadWidget(this.editingWidgetType, bundleAlias, isSystem, widgetInfoSubject);
       } else {
-        const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
+        const key = this.widgetService.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
         let fetchQueue = this.widgetsInfoFetchQueue.get(key);
         if (fetchQueue) {
           fetchQueue.push(widgetInfoSubject);
@@ -292,7 +281,7 @@ export class WidgetComponentService {
 
   private loadWidget(widgetType: WidgetType, bundleAlias: string, isSystem: boolean, widgetInfoSubject: Subject<WidgetInfo>) {
     const widgetInfo = toWidgetInfo(widgetType);
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetInfo.alias, isSystem);
+    const key = this.widgetService.createWidgetInfoCacheKey(bundleAlias, widgetInfo.alias, isSystem);
     let widgetControllerDescriptor: WidgetControllerDescriptor = null;
     try {
       widgetControllerDescriptor = this.createWidgetControllerDescriptor(widgetInfo, key);
@@ -317,7 +306,7 @@ export class WidgetComponentService {
           widgetInfo.typeParameters = widgetControllerDescriptor.typeParameters;
           widgetInfo.actionSources = widgetControllerDescriptor.actionSources;
           widgetInfo.widgetTypeFunction = widgetControllerDescriptor.widgetTypeFunction;
-          this.putWidgetInfoToCache(widgetInfo, bundleAlias, widgetInfo.alias, isSystem);
+          this.widgetService.putWidgetInfoToCache(widgetInfo, bundleAlias, widgetInfo.alias, isSystem);
           if (widgetInfoSubject) {
             widgetInfoSubject.next(widgetInfo);
             widgetInfoSubject.complete();
@@ -351,7 +340,7 @@ export class WidgetComponentService {
       (resource) => {
         resourceTasks.push(
           this.resources.loadResource(resource.url).pipe(
-            catchError(e => of(`Failed to load widget resource: '${resource.url}'`))
+            catchError(() => of(`Failed to load widget resource: '${resource.url}'`))
           )
         );
       }
@@ -605,39 +594,5 @@ export class WidgetComponentService {
       });
       this.widgetsInfoFetchQueue.delete(key);
     }
-  }
-
-  // Cache functions
-
-  private clearWidgetInfoInMemoryCache() {
-    this.widgetsInfoInMemoryCache.clear();
-  }
-
-  private createWidgetInfoCacheKey(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): string {
-    return `${isSystem ? 'sys_' : ''}${bundleAlias}_${widgetTypeAlias}`;
-  }
-
-  private getWidgetInfoFromCache(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): WidgetInfo | undefined {
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
-    return this.widgetsInfoInMemoryCache.get(key);
-  }
-
-  private putWidgetInfoToCache(widgetInfo: WidgetInfo, bundleAlias: string, widgetTypeAlias: string, isSystem: boolean) {
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
-    this.widgetsInfoInMemoryCache.set(key, widgetInfo);
-  }
-
-  private deleteWidgetInfoFromCache(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean) {
-    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
-    this.widgetsInfoInMemoryCache.delete(key);
-  }
-
-  private deleteWidgetsBundleFromCache(bundleAlias: string, isSystem: boolean) {
-    const key = (isSystem ? 'sys_' : '') + bundleAlias;
-    this.widgetsInfoInMemoryCache.forEach((widgetInfo, cacheKey) => {
-      if (cacheKey.startsWith(key)) {
-        this.widgetsInfoInMemoryCache.delete(cacheKey);
-      }
-    });
   }
 }
