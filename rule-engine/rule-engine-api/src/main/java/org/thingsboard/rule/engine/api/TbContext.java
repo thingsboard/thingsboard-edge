@@ -85,6 +85,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -216,6 +217,8 @@ public interface TbContext {
      *  METHODS TO PROCESS THE MESSAGES
      *
      */
+
+    void schedule(Runnable runnable, long delay, TimeUnit timeUnit);
 
     void checkTenantEntity(EntityId entityId);
 
