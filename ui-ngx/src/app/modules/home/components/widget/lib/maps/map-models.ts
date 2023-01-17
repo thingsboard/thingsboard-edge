@@ -63,8 +63,10 @@ export interface CircleData {
 }
 
 export type GenericFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => string;
-export type MarkerImageFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => MarkerImageInfo;
-export type PosFuncton = (origXPos, origYPos) => { x, y };
+export type MarkerImageFunction = (data: FormattedData, markerImages: string[],
+                                   dsData: FormattedData[], dsIndex: number) => MarkerImageInfo;
+export type PosFunction = (origXPos, origYPos, data: FormattedData,
+                           dsData: FormattedData[], dsIndex: number, aspect: number) => { x: number, y: number };
 export type MarkerIconReadyFunction = (icon: MarkerIconInfo) => void;
 
 export enum GoogleMapType {
