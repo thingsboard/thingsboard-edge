@@ -140,6 +140,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -979,6 +980,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ruleNodeId", ruleNodeId.toString());
         return metaData;
+    }
+
+
+    @Override
+    public void schedule(Runnable runnable, long delay, TimeUnit timeUnit) {
+        mainCtx.getScheduler().schedule(runnable, delay, timeUnit);
     }
 
     @Override
