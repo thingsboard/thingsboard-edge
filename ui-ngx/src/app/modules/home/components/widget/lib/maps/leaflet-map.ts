@@ -927,6 +927,9 @@ export default abstract class LeafletMap {
       this.markers.set(key, newMarker);
       if (!this.options.useClusterMarkers) {
         this.map.addLayer(newMarker.leafletMarker);
+        if (this.map.pm.globalDragModeEnabled() && newMarker.leafletMarker.pm) {
+          newMarker.leafletMarker.pm.enableLayerDrag();
+        }
       }
       return newMarker;
     }
@@ -1121,6 +1124,9 @@ export default abstract class LeafletMap {
         const bounds = polygon.leafletPoly.getBounds();
         this.fitBounds(bounds);
       }
+      if (this.map.pm.globalDragModeEnabled() && polygon.leafletPoly.pm) {
+        polygon.leafletPoly.pm.enableLayerDrag();
+      }
       this.polygons.set(polyData.entityName, polygon);
     }
 
@@ -1220,6 +1226,9 @@ export default abstract class LeafletMap {
       if (updateBounds) {
         const bounds = circle.leafletCircle.getBounds();
         this.fitBounds(bounds);
+      }
+      if (this.map.pm.globalDragModeEnabled() && circle.leafletCircle.pm) {
+        circle.leafletCircle.pm.enableLayerDrag();
       }
       this.circles.set(data.entityName, circle);
     }
