@@ -26,6 +26,12 @@
       {
         "name": "Smart Irrigation"
       }
+    ],
+    "schedulerEventIds": [
+      "18dd3f10-967b-11ed-b5e1-392bb934190c",
+      "18dcc9e0-967b-11ed-b5e1-392bb934190c",
+      "18dd8d30-967b-11ed-b5e1-392bb934190c",
+      "18dd1800-967b-11ed-b5e1-392bb934190c"
     ]
   }
 ]

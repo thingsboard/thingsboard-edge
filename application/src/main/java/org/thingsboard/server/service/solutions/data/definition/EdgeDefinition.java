@@ -53,6 +53,7 @@ public class EdgeDefinition extends CustomerEntityDefinition {
     private List<EdgeEntityGroupDefinition> assetGroups = Collections.emptyList();
     private List<EdgeEntityGroupDefinition> deviceGroups = Collections.emptyList();
     private List<EdgeEntityGroupDefinition> dashboardGroups = Collections.emptyList();
+    private List<String> schedulerEventIds = Collections.emptyList();
 
     @Override
     public EntityType getEntityType() {

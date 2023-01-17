@@ -803,9 +803,9 @@ public class DefaultSolutionService implements SolutionService {
             if (entityDef.getOriginatorId() != null) {
                 String newId = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
                 if (newId != null) {
-                    schedulerEvent.setOriginatorId(new RuleChainId(UUID.fromString(newId)));
+                    schedulerEvent.setOriginatorId(EntityIdFactory.getByTypeAndUuid(entityDef.getOriginatorId().getEntityType(), newId));
                 } else {
-                    log.error("[{}][{}] Scheduler event: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
+                    log.error("[{}][{}] Scheduler event: {} references non existing originator.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
                     throw new ThingsboardRuntimeException();
                 }
             }
@@ -817,6 +817,7 @@ public class DefaultSolutionService implements SolutionService {
             } else {
                 schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
             }
+            ctx.register(entityDef, savedSchedulerEvent);
             log.info("[{}] Saved scheduler event: {}", schedulerEvent.getId(), schedulerEvent);
             ctx.register(savedSchedulerEvent.getId());
         });
@@ -1177,6 +1178,7 @@ public class DefaultSolutionService implements SolutionService {
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.USER, entityDef.getUserGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DASHBOARD, entityDef.getDashboardGroups(), entity);
+            assignSchedulerEventsToEdge(ctx, entityDef.getSchedulerEventIds(), entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved edge: {}", entity.getId(), entity);
             EdgeId entityId = entity.getId();
@@ -1222,6 +1224,22 @@ public class DefaultSolutionService implements SolutionService {
             }
             Optional<EntityGroup> entityGroupOptional = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), parentEntityId, entityType, entityGroupDefinition.getName());
             entityGroupOptional.ifPresent(entityGroup -> entityGroupService.assignEntityGroupToEdge(ctx.getTenantId(), entityGroup.getId(), edge.getId(), entityType));
+        }
+    }
+
+    private void assignSchedulerEventsToEdge(SolutionInstallContext ctx, List<String> schedulerEventIds, Edge entity) {
+        if (schedulerEventIds == null || schedulerEventIds.isEmpty()) {
+            return;
+        }
+        for (String strSchedulerEventId : schedulerEventIds) {
+            String newId = ctx.getRealIds().get(strSchedulerEventId);
+            if (newId != null) {
+                SchedulerEventId schedulerEventId = new SchedulerEventId(UUID.fromString(newId));
+                schedulerEventService.assignSchedulerEventToEdge(ctx.getTenantId(), schedulerEventId, entity.getId());
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing scheduler event.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
         }
     }
 

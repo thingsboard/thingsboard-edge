@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
 import org.thingsboard.server.service.solutions.data.definition.CustomerDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
@@ -53,6 +54,7 @@ import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EntitySearchKey;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
+import org.thingsboard.server.service.solutions.data.definition.SchedulerEventDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 
@@ -153,6 +155,10 @@ public class SolutionInstallContext {
     public void register(EdgeDefinition definition, Edge edge) {
         register(definition.getJsonId(), edge.getId());
         createdEntities.put(edge.getName(), new CreatedEntityInfo(edge.getName(), "Edge", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
+    }
+
+    public void register(SchedulerEventDefinition definition, SchedulerEvent schedulerEvent) {
+        register(definition.getJsonId(), schedulerEvent.getId());
     }
 
     public void put(EntitySearchKey entitySearchKey, EntityId entityId) {
