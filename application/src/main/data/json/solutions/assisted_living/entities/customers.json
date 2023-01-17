@@ -10,7 +10,21 @@
     "zip": "94103",
     "address": "18 10th St",
     "attributes": {
-      "address": "18 10th St, San Francisco, CA 94103, United States"
+      "address": "18 10th St, San Francisco, CA 94103, United States",
+      "majorPanicButtonThreshold": 1,
+      "criticalPanicButtonThreshold": 2,
+      "minMajorHeartRateThreshold": 60,
+      "maxMajorHeartRateThreshold": 120,
+      "minCriticalHeartRateThreshold": 50,
+      "maxCriticalHeartRateThreshold": 140,
+      "minMajorBodyTemperatureThreshold": 36,
+      "maxMajorBodyTemperatureThreshold": 37,
+      "minCriticalBodyTemperatureThreshold": 35.5,
+      "maxCriticalBodyTemperatureThreshold": 38,
+      "noiceLevelMajorThreshold":80,
+      "noiceLevelCriticalThreshold": 100,
+      "fallingCriticalThreshold": 20,
+      "wristBandConnectionThreshold": 60
     },
     "relations": [],
     "assetGroups": [],

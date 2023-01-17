@@ -1,8 +1,8 @@
 [
   {
-    "name": "Wrist Band 457",
+    "name": "Wristband 457",
     "label": "Andrei Piontkovsky",
-    "type": "Wrist Band",
+    "type": "AL_Wristband",
     "group": "Assisted Living Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",
