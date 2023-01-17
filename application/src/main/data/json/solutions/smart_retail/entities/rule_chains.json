@@ -3,5 +3,10 @@
     "name": "Supermarket Devices",
     "file": "main.json",
     "jsonId": "99be82a0-6239-11ec-ac93-e50d8a3a5be2"
+  },
+  {
+    "name": "Supermarket Devices (Remote)",
+    "file": "edge_main.json",
+    "jsonId": "58a81180-7acc-11ed-a77b-1befcb651669"
   }
 ]
