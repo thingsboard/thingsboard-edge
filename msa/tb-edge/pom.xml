@@ -206,7 +206,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${tb.docker.name}:latest</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
@@ -227,7 +227,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${tb.docker.name}:${project.version}</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
