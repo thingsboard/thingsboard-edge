@@ -28,56 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.rule.engine.deduplication;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-import java.util.Iterator;
+@Data
+public class TbMsgDeduplicationNodeConfiguration implements NodeConfiguration<TbMsgDeduplicationNodeConfiguration> {
 
-public class JacksonUtils {
+    private int interval;
+    private DeduplicationId id;
+    private DeduplicationStrategy strategy;
 
-    private JacksonUtils() {
-    }
+    // Advanced settings:
+    private int maxPendingMsgs;
+    private int maxRetries;
 
-    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
+    // only for DeduplicationStrategy.ALL:
+    private String outMsgType;
+    private String queueName;
 
-        while (fieldNames.hasNext()) {
-
-            String fieldName = fieldNames.next();
-            JsonNode jsonNode = mainNode.get(fieldName);
-
-            if (jsonNode != null) {
-                if (jsonNode.isObject()) {
-                    merge(jsonNode, updateNode.get(fieldName));
-                } else if (jsonNode.isArray()) {
-                    for (int i = 0; i < jsonNode.size(); i++) {
-                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
-                    }
-                }
-            } else {
-                if (mainNode instanceof ObjectNode) {
-                    // Overwrite field
-                    JsonNode value = updateNode.get(fieldName);
-
-                    if (value.isNull()) {
-                        continue;
-                    }
-
-                    if (value.isIntegralNumber() && value.toString().equals("0")) {
-                        continue;
-                    }
-
-                    if (value.isFloatingPointNumber() && value.toString().equals("0.0")) {
-                        continue;
-                    }
-
-                    ((ObjectNode) mainNode).set(fieldName, value);
-                }
-            }
-        }
-
-        return mainNode;
+    @Override
+    public TbMsgDeduplicationNodeConfiguration defaultConfiguration() {
+        TbMsgDeduplicationNodeConfiguration configuration = new TbMsgDeduplicationNodeConfiguration();
+        configuration.setInterval(60);
+        configuration.setId(DeduplicationId.ORIGINATOR);
+        configuration.setStrategy(DeduplicationStrategy.FIRST);
+        configuration.setMaxPendingMsgs(100);
+        configuration.setMaxRetries(3);
+        return configuration;
     }
 }
