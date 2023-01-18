@@ -45,6 +45,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -75,6 +76,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -82,6 +84,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -89,6 +92,7 @@ import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -100,7 +104,6 @@ import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
@@ -178,7 +181,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(14);
+        edgeImitator.expectMessageAmount(17);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -284,11 +287,18 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 1 message from queue fetcher
         validateQueues();
 
-        // 2 messages - 2 messages from fetcher
+        // 3 messages
+        // - 2 messages from fetcher
+        // - 1 message from public customer user group
         validateEntityGroups();
 
-        // 2 messages - 2 messages from fetcher
+        // 3 messages
+        // - 2 messages from fetcher
+        // - 1 message from public customer role
         validateRoles();
+
+        // 1 message from public customer fetcher
+        validatePublicCustomer();
     }
 
     private void validateEdgeConfiguration() throws Exception {
@@ -406,12 +416,23 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateEntityGroups() {
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(2, entityGroupUpdateMsgList.size());
+        Assert.assertEquals(3, entityGroupUpdateMsgList.size());
     }
 
     private void validateRoles() {
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
-        Assert.assertEquals(2, roleProtoList.size());
+        Assert.assertEquals(3, roleProtoList.size());
+    }
+
+    private void validatePublicCustomer() throws Exception {
+        Optional<CustomerUpdateMsg> customerUpdateMsgOpt = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
+        Assert.assertTrue(customerUpdateMsgOpt.isPresent());
+        CustomerUpdateMsg customerUpdateMsg = customerUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
+        UUID customerUUID = new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB());
+        Customer customer = doGet("/api/customer/" + customerUUID, Customer.class);
+        Assert.assertNotNull(customer);
+        Assert.assertTrue(customer.isPublic());
     }
 
     protected Device saveDeviceOnCloudAndVerifyDeliveryToEdge() throws Exception {
@@ -491,13 +512,13 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         }
     }
 
-    protected OtaPackageInfo saveOtaPackageInfo(DeviceProfileId deviceProfileId) {
+    protected OtaPackageInfo saveOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType type) {
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
         firmwareInfo.setDeviceProfileId(deviceProfileId);
-        firmwareInfo.setType(FIRMWARE);
-        firmwareInfo.setTitle("Firmware Edge " + StringUtils.randomAlphanumeric(3));
+        firmwareInfo.setType(type);
+        firmwareInfo.setTitle(type.name() + " Edge " + StringUtils.randomAlphanumeric(3));
         firmwareInfo.setVersion("v1.0");
-        firmwareInfo.setTag("My firmware #1 v1.0");
+        firmwareInfo.setTag("My " + type.name() + " #1 v1.0");
         firmwareInfo.setUsesUrl(true);
         firmwareInfo.setUrl("http://localhost:8080/v1/package");
         firmwareInfo.setAdditionalInfo(JacksonUtil.newObjectNode());
@@ -598,6 +619,39 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         Optional<EdgeConfiguration> edgeConfigurationOpt = edgeImitator.findMessageByType(EdgeConfiguration.class);
         Assert.assertTrue(edgeConfigurationOpt.isPresent());
+    }
+
+    protected RuleChainId createEdgeRuleChainAndAssignToEdge(String ruleChainName) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName(ruleChainName);
+        ruleChain.setType(RuleChainType.EDGE);
+        RuleChain savedRuleChain = doPost("/api/ruleChain", ruleChain, RuleChain.class);
+        doPost("/api/edge/" + edge.getUuidId()
+                + "/ruleChain/" + savedRuleChain.getUuidId(), RuleChain.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        return savedRuleChain.getId();
+    }
+
+    protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        doDelete("/api/edge/" + edge.getUuidId()
+                + "/ruleChain/" + ruleChainId.getId(), RuleChain.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        // delete rule chain
+        doDelete("/api/ruleChain/" + ruleChainId.getId())
+                .andExpect(status().isOk());
+    }
+
+    protected Dashboard saveDashboard(String dashboardTitle, EntityGroupId entityGroupId) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(dashboardTitle);
+        if (entityGroupId != null) {
+            return doPost("/api/dashboard?entityGroupId={entityGroupId}", dashboard, Dashboard.class, entityGroupId.getId().toString());
+        } else {
+            return doPost("/api/dashboard", dashboard, Dashboard.class);
+        }
     }
 
     protected void changeEdgeOwnerFromCustomerToCustomer(Customer previousCustomer, Customer newCustomer) throws Exception {
