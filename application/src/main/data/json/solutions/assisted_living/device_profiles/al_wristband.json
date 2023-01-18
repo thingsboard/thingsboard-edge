@@ -1,0 +1,455 @@
+{
+  "name": "AL_Wristband",
+  "description": null,
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "c91744c0-8767-11ed-ace0-2b013f453ca4"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "ce647821-c3cd-a829-6d34-d56d517fe216",
+        "alarmType": "Panic Button",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "panicButton"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "REPEATING",
+                "predicate": {
+                  "defaultValue": 2,
+                  "userValue": null,
+                  "dynamicValue": {
+                    "sourceType": "CURRENT_CUSTOMER",
+                    "sourceAttribute": "criticalPanicButtonThreshold",
+                    "inherit": false
+                  }
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "panicButton"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "REPEATING",
+                "predicate": {
+                  "defaultValue": 1,
+                  "userValue": null,
+                  "dynamicValue": {
+                    "sourceType": "CURRENT_CUSTOMER",
+                    "sourceAttribute": "majorPanicButtonThreshold",
+                    "inherit": false
+                  }
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": null,
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "b7105c9c-cf35-fa14-7fa3-4433fe5e6559",
+        "alarmType": "Heart Rate",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "pulse"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 140,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "maxCriticalHeartRateThreshold",
+                            "inherit": false
+                          }
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 50,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "minCriticalHeartRateThreshold",
+                            "inherit": false
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "pulse"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 120,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "maxMajorHeartRateThreshold",
+                            "inherit": false
+                          }
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 60,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "minMajorHeartRateThreshold",
+                            "inherit": false
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "pulse"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 120,
+                        "userValue": null,
+                        "dynamicValue": {
+                          "sourceType": "CURRENT_CUSTOMER",
+                          "sourceAttribute": "maxMajorHeartRateThreshold",
+                          "inherit": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER",
+                      "value": {
+                        "defaultValue": 60,
+                        "userValue": null,
+                        "dynamicValue": {
+                          "sourceType": "CURRENT_CUSTOMER",
+                          "sourceAttribute": "minMajorHeartRateThreshold",
+                          "inherit": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "b7105c9c-cf35-fa14-7fa3-4433fe5e6560",
+        "alarmType": "Body Temperature",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 38,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "maxCriticalBodyTemperatureThreshold",
+                            "inherit": false
+                          }
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 35.5,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "minCriticalBodyTemperatureThreshold",
+                            "inherit": false
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "OR",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 37,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "maxMajorBodyTemperatureThreshold",
+                            "inherit": false
+                          }
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 36,
+                          "userValue": null,
+                          "dynamicValue": {
+                            "sourceType": "CURRENT_CUSTOMER",
+                            "sourceAttribute": "minMajorBodyTemperatureThreshold",
+                            "inherit": false
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "temperature"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "COMPLEX",
+                  "operation": "AND",
+                  "predicates": [
+                    {
+                      "type": "NUMERIC",
+                      "operation": "LESS",
+                      "value": {
+                        "defaultValue": 37,
+                        "userValue": null,
+                        "dynamicValue": {
+                          "sourceType": "CURRENT_CUSTOMER",
+                          "sourceAttribute": "maxMajorBodyTemperatureThreshold",
+                          "inherit": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
+                      "operation": "GREATER",
+                      "value": {
+                        "defaultValue": 36,
+                        "userValue": null,
+                        "dynamicValue": {
+                          "sourceType": "CURRENT_CUSTOMER",
+                          "sourceAttribute": "minMajorBodyTemperatureThreshold",
+                          "inherit": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      }
+    ]
+  },
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "externalId": null,
+  "default": false
+}
