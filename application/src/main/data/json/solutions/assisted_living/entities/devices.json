@@ -3,7 +3,7 @@
     "name": "Wristband 457",
     "label": "Andrei Piontkovsky",
     "type": "AL_Wristband",
-    "group": "Assisted Living Devices",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",
     "attributes": {},
@@ -15,5 +15,14 @@
         "type": "Use"
       }
     ]
+  },
+  {
+    "name": "Wristband 458",
+    "type": "AL_Wristband",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {},
+    "relations": []
   }
 ]
