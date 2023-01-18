@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -78,6 +79,14 @@ public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
                     schedulerEvent.setSchedule(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getSchedule()));
                     schedulerEvent.setConfiguration(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getConfiguration()));
                     safeSetCustomerId(schedulerEventUpdateMsg, schedulerEvent);
+                    schedulerEvent.setAdditionalInfo(schedulerEventUpdateMsg.hasAdditionalInfo()
+                            ? JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getAdditionalInfo()) : null);
+                    EntityId originatorId = null;
+                    if (schedulerEventUpdateMsg.hasOriginatorType() && schedulerEventUpdateMsg.hasOriginatorIdMSB() && schedulerEventUpdateMsg.hasOriginatorIdLSB()) {
+                        originatorId = constructEntityId(schedulerEventUpdateMsg.getOriginatorType(),
+                                schedulerEventUpdateMsg.getOriginatorIdMSB(), schedulerEventUpdateMsg.getOriginatorIdLSB());
+                    }
+                    schedulerEvent.setOriginatorId(originatorId);
                     schedulerEventService.saveSchedulerEvent(schedulerEvent);
 
                     if (created) {

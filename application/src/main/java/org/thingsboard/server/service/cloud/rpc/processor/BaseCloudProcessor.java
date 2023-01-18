@@ -47,6 +47,8 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -54,6 +56,9 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -376,6 +381,16 @@ public abstract class BaseCloudProcessor {
                 return new EdgeId(new UUID(entityIdMSB, entityIdLSB));
             case ENTITY_GROUP:
                 return new EntityGroupId(new UUID(entityIdMSB, entityIdLSB));
+            case CONVERTER:
+                return new ConverterId(new UUID(entityIdMSB, entityIdLSB));
+            case INTEGRATION:
+                return new IntegrationId(new UUID(entityIdMSB, entityIdLSB));
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(new UUID(entityIdMSB, entityIdLSB));
+            case BLOB_ENTITY:
+                return new BlobEntityId(new UUID(entityIdMSB, entityIdLSB));
+            case ROLE:
+                return new RoleId(new UUID(entityIdMSB, entityIdLSB));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
                         entityTypeStr, entityIdMSB, entityIdLSB);
