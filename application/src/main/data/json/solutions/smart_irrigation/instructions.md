@@ -109,7 +109,7 @@ Optionally, this solution can be deployed to the edge.
 <a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
 At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
 
-In the scope of this solution, new edge entity <a href="${Remote Field R1EDGE_DETAILS_URL}" target="_blank">Remote Field R1</a> was created.
+In the scope of this solution, new edge entity <a href="${Remote Farm R1EDGE_DETAILS_URL}" target="_blank">Remote Farm R1</a> was created.
 
 Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
 
@@ -121,13 +121,13 @@ ThingsBoard Edge is a separate service that must be installed, configured and co
 The easiest way to install ThingsBoard Edge is to use <a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a>.
 
 Docker compose installation instructions are available on the edge details page.
-Please navigate to <a href="${Remote Field R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
+Please navigate to <a href="${Remote Farm R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
 
 Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials.
 
 #### Push data to device on edge
 
-**"Smart Irrigation"** *DEVICE* group was assigned to the edge entity "Remote Field R1".
+**"Smart Irrigation"** *DEVICE* group was assigned to the edge entity "Remote Farm R1".
 This means that all devices from this group will be automatically provisioned to the edge.
 
 You can see devices from this group once you log in into edge and navigate to the **Device groups** page.
