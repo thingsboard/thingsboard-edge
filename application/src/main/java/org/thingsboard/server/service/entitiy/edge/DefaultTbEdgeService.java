@@ -68,7 +68,9 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                     oldEdgeName = edgeById.getName();
                 }
             }
-
+            if (actionType == ActionType.ADDED && edge.getRootRuleChainId() == null) {
+                edge.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
+            }
             Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
             EdgeId edgeId = savedEdge.getId();
 
