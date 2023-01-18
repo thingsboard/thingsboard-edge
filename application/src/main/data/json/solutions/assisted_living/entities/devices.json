@@ -1,8 +1,9 @@
 [
   {
-    "name": "Room Gateway 101",
+    "name": "D00000010001",
+    "label": "Room 101 Gateway",
     "type": "AL_Gateway",
-    "group": "Unassigned",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",
     "attributes": {
@@ -24,9 +25,10 @@
     "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca4"
   },
   {
-    "name": "Room Gateway 102",
+    "name": "D00000020002",
+    "label": "Room 102 Gateway",
     "type": "AL_Gateway",
-    "group": "Unassigned",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",
     "attributes": {
@@ -47,9 +49,8 @@
     ],
     "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca5"
   },
-
   {
-    "name": "282C02415FE2",
+    "name": "C00000015FE1",
     "label": "Andrei Piontkovsky",
     "type": "AL_Wristband",
     "group": "Assigned Devices",
@@ -66,8 +67,17 @@
     ]
   },
   {
-    "name": "Wristband 458",
+    "name": "C00000025FE2",
     "type": "AL_Wristband",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "D00000020003",
+    "type": "AL_Gateway",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",
