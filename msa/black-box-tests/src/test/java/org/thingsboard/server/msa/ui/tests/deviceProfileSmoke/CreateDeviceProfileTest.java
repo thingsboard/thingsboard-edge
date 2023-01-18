@@ -77,8 +77,8 @@ public class CreateDeviceProfileTest extends AbstractDriverBaseTest {
         profilesPage.openCreateDeviceProfileView();
         profilesPage.createDeviceProfileEnterName(name);
         profilesPage.addDeviceProfileAddBtn().click();
-        this.name = name;
         profilesPage.refreshBtn().click();
+        this.name = name;
 
         Assert.assertNotNull(profilesPage.entity(name));
         Assert.assertTrue(profilesPage.entity(name).isDisplayed());
@@ -101,8 +101,8 @@ public class CreateDeviceProfileTest extends AbstractDriverBaseTest {
         profilesPage.addDeviceProfileViewChooseQueue(queue);
         profilesPage.addDeviceProfileViewEnterDescription(description);
         profilesPage.addDeviceProfileAddBtn().click();
-        this.name = name;
         profilesPage.refreshBtn().click();
+        this.name = name;
         profilesPage.entity(name).click();
         profilesPage.setName();
         profilesPage.setRuleChain();
