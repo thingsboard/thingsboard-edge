@@ -817,9 +817,8 @@ public class DefaultSolutionService implements SolutionService {
             } else {
                 schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
             }
-            ctx.register(entityDef, savedSchedulerEvent);
             log.info("[{}] Saved scheduler event: {}", schedulerEvent.getId(), schedulerEvent);
-            ctx.register(savedSchedulerEvent.getId());
+            ctx.register(entityDef, savedSchedulerEvent);
         });
     }
 
