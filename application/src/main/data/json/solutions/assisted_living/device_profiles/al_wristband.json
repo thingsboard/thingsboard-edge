@@ -106,9 +106,9 @@
         },
         "clearRule": null,
         "propagate": false,
-        "propagateToOwner": false,
+        "propagateToOwner": true,
         "propagateToOwnerHierarchy": false,
-        "propagateToTenant": false,
+        "propagateToTenant": true,
         "propagateRelationTypes": null
       },
       {
@@ -440,9 +440,9 @@
           "dashboardId": null
         },
         "propagate": false,
-        "propagateToOwner": false,
+        "propagateToOwner": true,
         "propagateToOwnerHierarchy": false,
-        "propagateToTenant": false,
+        "propagateToTenant": true,
         "propagateRelationTypes": null
       }
     ]

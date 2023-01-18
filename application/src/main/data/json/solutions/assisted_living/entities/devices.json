@@ -1,6 +1,55 @@
 [
   {
-    "name": "Wristband 457",
+    "name": "Room Gateway 101",
+    "type": "AL_Gateway",
+    "group": "Unassigned",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.44044",
+      "yPos": "0.79502",
+      "roomXPos": "0.44044",
+      "roomYPos": "0.79502",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 101",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ],
+    "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca4"
+  },
+  {
+    "name": "Room Gateway 102",
+    "type": "AL_Gateway",
+    "group": "Unassigned",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.34941",
+      "yPos": "0.79166",
+      "roomXPos": "0.34941",
+      "roomYPos": "0.79166",
+      "zone": "Floor 1",
+      "room": "Room 102"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 102",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ],
+    "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca5"
+  },
+
+  {
+    "name": "282C02415FE2",
     "label": "Andrei Piontkovsky",
     "type": "AL_Wristband",
     "group": "Assisted Living Devices",

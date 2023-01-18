@@ -42,8 +42,8 @@
     "group": "Assisted Living Assets",
     "customer": "Assisted Living Company",
     "attributes": {
-      "xPos": "0.44044384057971014",
-      "yPos": "0.7950268817204301"
+      "xPos": "0.44044",
+      "yPos": "0.79502"
     },
     "relations": [
       {
@@ -61,8 +61,8 @@
     "group": "Assisted Living Assets",
     "customer": "Assisted Living Company",
     "attributes": {
-      "xPos": "0.349411231884058",
-      "yPos": "0.7916666666666666"
+      "xPos": "0.34941",
+      "yPos": "0.79166"
     },
     "relations": [
       {

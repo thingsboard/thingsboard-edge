@@ -70,8 +70,8 @@
         "password": "customer",
         "group": "Residents",
         "attributes": {
-          "xPos": "0.44044384057971014",
-          "yPos": "0.7950268817204301",
+          "xPos": "0.44044",
+          "yPos": "0.79502",
           "zone": "Floor 1",
           "room": "Room 101",
           "currentZone": "Floor 1",
