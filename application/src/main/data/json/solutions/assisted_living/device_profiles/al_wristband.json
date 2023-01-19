@@ -415,7 +415,7 @@
                     "key": "enabled"
                   },
                   "valueType": "BOOLEAN",
-                  "value": null,
+                  "value": true,
                   "predicate": {
                     "type": "BOOLEAN",
                     "operation": "EQUAL",
