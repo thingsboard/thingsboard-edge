@@ -40,8 +40,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -157,8 +157,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -225,8 +225,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -456,8 +456,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -551,8 +551,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -825,7 +825,7 @@
                   "columnWidth": "0px",
                   "useCellStyleFunction": false,
                   "useCellContentFunction": true,
-                  "cellContentFunction": "\nlet duration = alarm.endTs - alarm.startTs;\nlet durationStr = durationString(duration);\n\nreturn '<button id=\"al-duration\" class=\"mat-button mat-button-base al-cell-button\">' +\n            durationStr + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n\nfunction durationString(milliseconds) {\n    \n    let translate = ctx.$scope.$injector.get(ctx.servicesMap.get('translate'));\n    \n    let seconds = Math.floor(milliseconds / 1000);\n    const days = Math.floor(seconds / 86400);\n    let hours = Math.floor((seconds % 86400) / 3600);\n    let minutes = Math.floor(((seconds % 86400) % 3600) / 60);\n    seconds = seconds % 60;\n    let timeString = '';\n    if (days > 0) {\n        timeString += days === 1 ? 'day' : days + ' days ';\n    }\n    if (hours > 0) {\n      if (timeString.length === 0 && hours === 1) {\n        hours = 0;\n      }\n      timeString += hours === 0 ? ' hour ' : hours === 1 ? '1 hour ' : hours + ' hours ';\n    }\n    if (minutes > 0) {\n      if (timeString.length === 0 && minutes === 1) {\n        minutes = 0;\n      }\n      timeString += minutes === 0 ? ' min ' : minutes + ' min ';\n    }\n    if (seconds > 0) {\n      if (timeString.length === 0 && seconds === 1) {\n        seconds = 0;\n      }\n      timeString += seconds === 0 ? ' sec ' : minutes + ' sec ';\n    }\n    return timeString;\n}",
+                  "cellContentFunction": "\nlet duration = alarm.endTs - alarm.startTs;\nlet durationStr = durationString(duration);\n\nreturn '<button id=\"al-duration\" class=\"mat-button mat-button-base al-cell-button\">' +\n            durationStr + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n\nfunction durationString(milliseconds) {\n    \n    let translate = ctx.$scope.$injector.get(ctx.servicesMap.get('translate'));\n    \n    let seconds = Math.floor(milliseconds / 1000);\n    const days = Math.floor(seconds / 86400);\n    let hours = Math.floor((seconds % 86400) / 3600);\n    let minutes = Math.floor(((seconds % 86400) % 3600) / 60);\n    seconds = seconds % 60;\n    let timeString = '';\n    if (days > 0) {\n        timeString += days === 1 ? 'day' : days + ' days ';\n    }\n    if (hours > 0) {\n      if (timeString.length === 0 && hours === 1) {\n        hours = 0;\n      }\n      timeString += hours === 0 ? ' hour ' : hours === 1 ? '1 hour ' : hours + ' hours ';\n    }\n    if (minutes > 0) {\n      if (timeString.length === 0 && minutes === 1) {\n        minutes = 0;\n      }\n      timeString += minutes === 0 ? ' min ' : minutes + ' min ';\n    }\n    if (seconds > 0) {\n      if (timeString.length === 0 && seconds === 1) {\n        seconds = 0;\n      }\n      timeString += seconds === 0 ? ' sec ' : seconds + ' sec ';\n    }\n    return timeString;\n}",
                   "defaultColumnVisibility": "visible",
                   "columnSelectionToDisplay": "enabled",
                   "columnExportOption": "onlyVisible"
@@ -1140,8 +1140,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1294,8 +1294,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1390,8 +1390,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1653,8 +1653,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1796,8 +1796,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509696,
-                "endTimeMs": 1674146909696
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2050,8 +2050,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509697,
-                "endTimeMs": 1674146909697
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2253,8 +2253,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509697,
-                "endTimeMs": 1674146909697
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2442,8 +2442,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060509697,
-                "endTimeMs": 1674146909697
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2623,8 +2623,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674060325593,
-                "endTimeMs": 1674146725593
+                "startTimeMs": 1674064255683,
+                "endTimeMs": 1674150655683
               },
               "quickInterval": "CURRENT_DAY"
             },
