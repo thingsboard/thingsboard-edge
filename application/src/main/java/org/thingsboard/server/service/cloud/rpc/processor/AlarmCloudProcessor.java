@@ -32,12 +32,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.concurrent.ExecutionException;
 
 @Component
 @Slf4j
-public class AlarmCloudProcessor extends BaseCloudProcessor {
+public class AlarmCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAlarmMsgFromCloud(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         log.trace("[{}] onAlarmUpdate [{}]", tenantId, alarmUpdateMsg);

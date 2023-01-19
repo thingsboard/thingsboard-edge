@@ -52,6 +52,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -62,7 +63,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class OtaPackageCloudProcessor extends BaseCloudProcessor {
+public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock otaPackageCreationLock = new ReentrantLock();
 

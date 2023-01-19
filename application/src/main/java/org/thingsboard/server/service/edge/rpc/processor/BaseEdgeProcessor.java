@@ -22,9 +22,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -48,6 +52,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -56,12 +61,15 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -88,18 +96,29 @@ import org.thingsboard.server.service.edge.rpc.constructor.UserMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConstructor;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class BaseEdgeProcessor {
+
+    protected static final Lock deviceCreationLock = new ReentrantLock();
+
+    protected static final Lock assetCreationLock = new ReentrantLock();
+
+    protected static final Lock widgetCreationLock = new ReentrantLock();
 
     protected static final int DEFAULT_PAGE_SIZE = 100;
 
@@ -190,6 +209,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DataValidator<Device> deviceValidator;
+
+    @Autowired
+    protected DataValidator<Asset> assetValidator;
 
     @Autowired
     protected EdgeMsgConstructor edgeMsgConstructor;
@@ -467,5 +489,63 @@ public abstract class BaseEdgeProcessor {
                         entityTypeStr, entityIdMSB, entityIdLSB);
                 return null;
         }
+    }
+
+    @Autowired
+    protected AdminSettingsService adminSettingsService;
+
+    @Autowired
+    protected ApiUsageStateService apiUsageStateService;
+
+    @Autowired
+    protected TbQueueService tbQueueService;
+
+    @Autowired
+    protected CloudEventService cloudEventService;
+
+    @Autowired
+    protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
+
+    @Autowired
+    protected OtaPackageStateService otaPackageStateService;
+
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
+                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
+            CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+
+            log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                    EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null, queueStartTs));
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                    EdgeEventActionType.RELATION_REQUEST, entityId, null, queueStartTs));
+            if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
+                futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                        EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, queueStartTs));
+            }
+        }
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
+    protected UUID safeGetUUID(long mSB, long lSB) {
+        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
+    }
+
+    protected CustomerId safeGetCustomerId(TenantId tenantId, long customerIdMSB, long customerIdLSB, CustomerId edgeCustomerId) {
+        UUID customerUUID = safeGetUUID(customerIdMSB, customerIdLSB);
+        if (customerUUID != null) {
+            CustomerId customerId = new CustomerId(customerUUID);
+            if (customerId.equals(edgeCustomerId)) {
+                return customerId;
+            }
+            try {
+                Customer publicCustomer = customerService.findOrCreatePublicCustomer(tenantId);
+                if (publicCustomer != null && publicCustomer.getId().equals(customerId)) {
+                    return customerId;
+                }
+            } catch (Exception ignored) {}
+        }
+        return new CustomerId(ModelConstants.NULL_UUID);
     }
 }

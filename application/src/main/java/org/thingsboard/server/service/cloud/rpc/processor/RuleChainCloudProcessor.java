@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleNodeProto;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class RuleChainCloudProcessor extends BaseCloudProcessor {
+public class RuleChainCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private RuleChainService ruleChainService;

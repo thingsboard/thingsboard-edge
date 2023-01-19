@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -34,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class CustomerCloudProcessor extends BaseCloudProcessor {
+public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock customerCreationLock = new ReentrantLock();
 

@@ -27,12 +27,13 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class AssetCloudProcessor extends BaseCloudProcessor {
+public class AssetCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            CustomerId edgeCustomerId,
@@ -54,7 +55,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                 return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
         }
 
-        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);
+        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutorService);
     }
 
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId) {

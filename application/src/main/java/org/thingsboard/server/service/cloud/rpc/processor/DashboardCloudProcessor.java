@@ -30,6 +30,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.Set;
 import java.util.UUID;
@@ -38,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardCloudProcessor extends BaseCloudProcessor {
+public class DashboardCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock dashboardCreationLock = new ReentrantLock();
 
@@ -96,7 +97,8 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                 return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
         }
 
-        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs), future -> null, dbCallbackExecutor);
+        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs),
+                future -> null, dbCallbackExecutorService);
     }
 
     private void unassignCustomersFromDashboard(TenantId tenantId, Dashboard dashboard) {

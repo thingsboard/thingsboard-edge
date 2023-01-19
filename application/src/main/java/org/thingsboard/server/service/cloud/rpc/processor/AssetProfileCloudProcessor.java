@@ -34,13 +34,14 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class AssetProfileCloudProcessor extends BaseCloudProcessor {
+public class AssetProfileCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private AssetProfileService assetProfileService;

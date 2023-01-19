@@ -24,13 +24,14 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class TenantCloudProcessor extends BaseCloudProcessor {
+public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void createTenantIfNotExists(TenantId tenantId) {
         Tenant tenant = tenantService.findTenantById(tenantId);
