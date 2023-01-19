@@ -460,20 +460,19 @@ public class CloudManagerService {
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
-        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-        this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
+        this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
-
-        this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
-
-        EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
-        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
-            tenantCloudProcessor.cleanUp(this.tenantId);
-            this.currentEdgeSettings = newEdgeSetting;
+        this.currentEdgeSettings = cloudEventService.findEdgeSettings(this.tenantId);
+        EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
+        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
+            tenantCloudProcessor.cleanUp();
+            this.currentEdgeSettings = newEdgeSettings;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
+
+        tenantCloudProcessor.createTenantIfNotExists(this.tenantId);
+        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
 
         // TODO: voba - should sync be executed in some other cases ???
         log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
