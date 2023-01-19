@@ -125,7 +125,7 @@
           "periodInSeconds": 1,
           "scriptLang": "TBEL",
           "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "tbelScript": "var msg = {\n  \"serial\": \"C00000015FE1\",\n  \"rssi\": -1,\n  \"data\": {\n    \"panic\": false,\n    \"pulse\": 120,\n    \"temperature\": 39.6,\n    \"noise\": 12,\n    \"battery\": 97,  \n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"C00000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"panicButton\": true,\n    \"pulse\": 120,\n    \"temperature\": 39.6,\n    \"noise\": 95,\n    \"battery\": 5,  \n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
           "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca4",
           "originatorType": "DEVICE"
         },
@@ -161,12 +161,12 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1043,
-          "layoutY": 879
+          "layoutX": 1033,
+          "layoutY": 958
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
-        "name": "To Wristband Rule Chain",
-        "debugMode": false,
+        "name": "To Device Rule Chain",
+        "debugMode": true,
         "configuration": {
           "ruleChainId": "c91744c0-8767-11ed-ace0-2b013f453ca4"
         },
@@ -180,7 +180,7 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
         "name": "Fetch Device Type",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "fieldsMapping": {
             "type": "deviceType"
@@ -197,7 +197,7 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Fetch",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "fetchToData": true,
@@ -299,7 +299,7 @@
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var bestRSSIMsg; \nfor(tbMsg : msg){\n    if(bestRSSIMsg == null || bestRSSIMsg.msg.rssi < tbMsg.msg.rssi ){\n        bestRSSIMsg = tbMsg;\n    }\n}\n\nbestRSSIMsg.msg.panic = bestRSSIMsg.msg.data.panic;\nbestRSSIMsg.msg.pulse = bestRSSIMsg.msg.data.pulse;\nbestRSSIMsg.msg.temperature = bestRSSIMsg.msg.data.temperature;\nbestRSSIMsg.msg.battery = bestRSSIMsg.msg.data.battery;\nbestRSSIMsg.msg.remove(\"data\");\n\nreturn {msg: bestRSSIMsg.msg, metadata: bestRSSIMsg.metadata, msgType: msgType};"
+          "tbelScript": "var bestRSSIData; \nfor(d : msg){\n    if(bestRSSIData == null || bestRSSIData.msg.rssi < d.msg.rssi ){\n        bestRSSIData = d;\n    }\n}\n\n\nvar bestRSSIMd = bestRSSIData.metadata;\n\nvar tmp = bestRSSIData.msg;\nvar bestRSSIMsg = tmp.data;\nbestRSSIMsg.rssi = tmp.rssi;\nbestRSSIMsg.xPos = tmp.xPos;\nbestRSSIMsg.yPos = tmp.yPos;\nbestRSSIMsg.zone = tmp.zone;\nbestRSSIMsg.room = tmp.room;\n\nreturn {msg: bestRSSIMsg, metadata: bestRSSIMd, msgType: msgType};"
         },
         "externalId": null
       },
@@ -341,7 +341,7 @@
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var attributesUpdate = {};\nattributesUpdate.xPos = msg.xPos;\nattributesUpdate.yPos = msg.yPos;\nattributesUpdate.currentZone = msg.zone;\nattributesUpdate.currentRoom = msg.room;\nreturn {msg: attributesUpdate, metadata: {}, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+          "tbelScript": "var attributesUpdate = {};\nattributesUpdate.xPos = msg.xPos;\nattributesUpdate.yPos = msg.yPos;\nattributesUpdate.currentZone = msg.zone;\nattributesUpdate.currentRoom = msg.room;\nattributesUpdate.panic = msg.panic;\nattributesUpdate.pulse = msg.pulse;\nattributesUpdate.temperature = msg.temperature;\nattributesUpdate.noise = msg.noise;\nattributesUpdate.battery = msg.battery;\nreturn {msg: attributesUpdate, metadata: {}, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
         },
         "externalId": null
       },
@@ -375,9 +375,45 @@
           "periodInSeconds": 1,
           "scriptLang": "TBEL",
           "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "tbelScript": "var msg = {\n  \"serial\": \"C00000015FE1\",\n  \"rssi\": -10,\n  \"data\": {\n    \"panic\": false,\n    \"pulse\": 120,\n    \"temperature\": 36.6,\n    \"battery\": 97,  \n  }\n};\nvar metadata = { deviceName: \"Room Gateway 102\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"C00000015FE1\",\n  \"rssi\": -20,\n  \"data\": {\n    \"panicButton\": true,\n    \"pulse\": 120,\n    \"temperature\": 39.6,\n    \"noise\": 95,\n    \"battery\": 5,  \n  }\n};\nvar metadata = { deviceName: \"Room Gateway 102\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
           "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca5",
           "originatorType": "DEVICE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 86,
+          "layoutY": 557
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "Generate Gateway 101 Message",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"E00000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"temperature\": 40,\n    \"humidity\": 100,\n    \"IAQ\": 400,\n    \"battery\": 5\n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca5",
+          "originatorType": "DEVICE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "Extracts telemetry from the \"data\" field and adds \"rssi\" readings",
+          "layoutX": 450,
+          "layoutY": 963
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Extract Data",
+        "debugMode": true,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var newMsg = msg.data;\nnewMsg.rssi = msg.rssi;\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
         },
         "externalId": null
       }
@@ -449,6 +485,11 @@
         "type": "AL_Wristband"
       },
       {
+        "fromIndex": 13,
+        "toIndex": 22,
+        "type": "AL_RoomSensor"
+      },
+      {
         "fromIndex": 14,
         "toIndex": 13,
         "type": "Success"
@@ -476,6 +517,21 @@
       {
         "fromIndex": 18,
         "toIndex": 19,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 20,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 21,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 22,
+        "toIndex": 9,
         "type": "Success"
       }
     ],

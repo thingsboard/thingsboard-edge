@@ -573,7 +573,7 @@
       },
       {
         "id": "850e1247-5a42-f357-3e9b-b90b8e99cc9d",
-        "alarmType": "noise",
+        "alarmType": "Noise",
         "createRules": {
           "MAJOR": {
             "condition": {
