@@ -25,6 +25,27 @@
     "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca4"
   },
   {
+    "name": "E00000015FE1",
+    "type": "AL_RoomSensor",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.45000",
+      "yPos": "0.80000",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 101",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
     "name": "D00000020002",
     "label": "Room 102 Gateway",
     "type": "AL_Gateway",
@@ -48,6 +69,27 @@
       }
     ],
     "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca5"
+  },
+  {
+    "name": "E00000025FE2",
+    "type": "AL_RoomSensor",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.35000",
+      "yPos": "0.80000",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 102",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
   },
   {
     "name": "C00000015FE1",
@@ -78,6 +120,15 @@
   {
     "name": "D00000020003",
     "type": "AL_Gateway",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "E00000035FE3",
+    "type": "AL_RoomSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",

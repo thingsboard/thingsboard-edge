@@ -3,7 +3,7 @@
     "additionalInfo": {
       "description": ""
     },
-    "name": "AL Wristband Rule Chain",
+    "name": "AL Device Rule Chain",
     "type": "CORE",
     "firstRuleNodeId": null,
     "root": false,
