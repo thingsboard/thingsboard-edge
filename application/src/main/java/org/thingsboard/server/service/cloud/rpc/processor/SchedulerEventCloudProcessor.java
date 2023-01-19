@@ -45,13 +45,14 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
+public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private SchedulerEventService schedulerEventService;

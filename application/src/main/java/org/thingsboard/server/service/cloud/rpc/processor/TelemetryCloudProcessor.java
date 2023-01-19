@@ -85,6 +85,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -93,7 +94,7 @@ import java.util.List;
 
 @Component
 @Slf4j
-public class TelemetryCloudProcessor extends BaseCloudProcessor {
+public class TelemetryCloudProcessor extends BaseEdgeProcessor {
 
     private final Gson gson = new Gson();
 

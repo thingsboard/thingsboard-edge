@@ -52,10 +52,11 @@ import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.PaletteProto;
 import org.thingsboard.server.gen.edge.v1.PaletteSettingsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
 @Slf4j
-public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
+public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private CustomTranslationService customTranslationService;

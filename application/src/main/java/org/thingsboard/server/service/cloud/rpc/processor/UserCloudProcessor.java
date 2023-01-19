@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -58,7 +59,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class UserCloudProcessor extends BaseCloudProcessor {
+public class UserCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 
@@ -131,7 +132,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
             } else {
                 return Futures.immediateFuture(null);
             }
-        }, dbCallbackExecutor);
+        }, dbCallbackExecutorService);
     }
 
     private void addToEntityGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, User savedUser) {
@@ -156,6 +157,6 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 userService.saveUserCredentials(tenantId, userCredentials, false);
             }
             return null;
-        }, dbCallbackExecutor);
+        }, dbCallbackExecutorService);
     }
 }

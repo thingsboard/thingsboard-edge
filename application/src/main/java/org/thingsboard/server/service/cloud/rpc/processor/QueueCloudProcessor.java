@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -50,7 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class QueueCloudProcessor extends BaseCloudProcessor {
+public class QueueCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock queueCreationLock = new ReentrantLock();
 

@@ -51,6 +51,7 @@ import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.io.IOException;
@@ -58,7 +59,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
+public class GroupPermissionCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private GroupPermissionService groupPermissionService;

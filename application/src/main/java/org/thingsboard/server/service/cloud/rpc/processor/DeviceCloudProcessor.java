@@ -66,6 +66,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -73,7 +74,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class DeviceCloudProcessor extends BaseCloudProcessor {
+public class DeviceCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
@@ -145,7 +146,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 log.error("Failed to request for additional data, deviceUpdateMsg [{}]", deviceUpdateMsg, t);
                 futureToSet.setException(t);
             }
-        }, dbCallbackExecutor);
+        }, dbCallbackExecutorService);
         return futureToSet;
     }
 

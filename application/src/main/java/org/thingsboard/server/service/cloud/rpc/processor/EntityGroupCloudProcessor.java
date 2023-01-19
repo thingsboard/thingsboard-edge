@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityGroupCloudProcessor extends BaseCloudProcessor {
+public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
@@ -116,20 +117,20 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                                                 deleteEntityById(tenantId, entityId);
                                             }
                                             return null;
-                                        }, dbCallbackExecutor));
+                                        }, dbCallbackExecutorService));
                                     }
                                 }
                                 ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
                                 return Futures.transform(allFuture, all -> {
                                     entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
                                     return null;
-                                }, dbCallbackExecutor);
-                            }, dbCallbackExecutor);
+                                }, dbCallbackExecutorService);
+                            }, dbCallbackExecutorService);
                         } else {
                             log.info("[{}] Entity group [{}] was not found!", tenantId, entityGroupId);
                             return null;
                         }
-                    }, dbCallbackExecutor);
+                    }, dbCallbackExecutorService);
                     futures.add(deleteFuture);
                     break;
                 case UNRECOGNIZED:
@@ -148,7 +149,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                         entityGroupId, body, null, queueStartTs));
             }
         }
-        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutor);
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {

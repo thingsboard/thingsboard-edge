@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class IntegrationCloudProcessor extends BaseCloudProcessor {
+public class IntegrationCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private IntegrationService integrationService;

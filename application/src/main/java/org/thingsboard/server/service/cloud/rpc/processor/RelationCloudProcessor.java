@@ -55,12 +55,13 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class RelationCloudProcessor extends BaseCloudProcessor {
+public class RelationCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processRelationMsgFromCloud(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
@@ -85,14 +86,14 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                     if (isEntityExists(tenantId, entityRelation.getTo())
                             && isEntityExists(tenantId, entityRelation.getFrom())) {
                         return Futures.transform(relationService.saveRelationAsync(tenantId, entityRelation),
-                                (result) -> null, dbCallbackExecutor);
+                                (result) -> null, dbCallbackExecutorService);
                     } else {
                         log.warn("Skipping relating update msg because from/to entity doesn't exists on edge, {}", relationUpdateMsg);
                         return Futures.immediateFuture(null);
                     }
                 case ENTITY_DELETED_RPC_MESSAGE:
                     return Futures.transform(relationService.deleteRelationAsync(tenantId, entityRelation),
-                            (result) -> null, dbCallbackExecutor);
+                            (result) -> null, dbCallbackExecutorService);
                 case UNRECOGNIZED:
                     return handleUnsupportedMsgType(relationUpdateMsg.getMsgType());
             }

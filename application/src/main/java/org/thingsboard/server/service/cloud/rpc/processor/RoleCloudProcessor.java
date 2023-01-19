@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class RoleCloudProcessor extends BaseCloudProcessor {
+public class RoleCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private RoleService roleService;

@@ -44,12 +44,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class ConverterCloudProcessor extends BaseCloudProcessor {
+public class ConverterCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private ConverterService converterService;

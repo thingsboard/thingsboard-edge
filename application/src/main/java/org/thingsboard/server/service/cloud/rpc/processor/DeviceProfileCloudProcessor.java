@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -60,7 +61,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
+public class DeviceProfileCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private DeviceProfileService deviceProfileService;

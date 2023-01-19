@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -57,7 +58,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityViewCloudProcessor extends BaseCloudProcessor {
+public class EntityViewCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 
@@ -124,7 +125,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
             case UNRECOGNIZED:
                 return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
         }
-        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs), future -> null, dbCallbackExecutor);
+        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs),
+                future -> null, dbCallbackExecutorService);
     }
 
     private void addToEntityGroup(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg, EntityViewId entityViewId) {

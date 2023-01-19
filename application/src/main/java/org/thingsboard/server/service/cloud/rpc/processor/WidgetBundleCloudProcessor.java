@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -56,7 +57,7 @@ import java.util.concurrent.ExecutionException;
 
 @Component
 @Slf4j
-public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
+public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId,
                                                                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg,

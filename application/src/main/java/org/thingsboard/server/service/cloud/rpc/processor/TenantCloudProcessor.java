@@ -43,13 +43,14 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class TenantCloudProcessor extends BaseCloudProcessor {
+public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     public void createTenantIfNotExists(TenantId tenantId) {
         Tenant tenant = tenantService.findTenantById(tenantId);
