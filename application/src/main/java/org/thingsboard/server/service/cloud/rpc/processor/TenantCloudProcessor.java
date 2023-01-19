@@ -30,13 +30,11 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -64,6 +62,7 @@ public class TenantCloudProcessor extends BaseCloudProcessor {
         // tenantValidator.validate(tenant, Tenant::getId);
         tenant.setId(tenantId);
         Tenant savedTenant = tenantService.saveTenant(tenant, false);
+        apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
 
         entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
         entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
@@ -72,8 +71,6 @@ public class TenantCloudProcessor extends BaseCloudProcessor {
         entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
         entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
         entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
-
-        apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
     }
 
     public void cleanUp() {
@@ -97,6 +94,10 @@ public class TenantCloudProcessor extends BaseCloudProcessor {
                     attributesService.findAll(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, DataConstants.SERVER_SCOPE).get();
             List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
             attributesService.removeAll(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, DataConstants.SERVER_SCOPE, attrKeys);
+            roleService.deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
+            whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
+            whiteLabelingService.saveSystemWhiteLabelingParams(new WhiteLabelingParams());
+            customTranslationService.saveSystemCustomTranslation(new CustomTranslation());
         } catch (Exception e) {
             log.error("Unable to clean up sysadmin tenant", e);
         }
