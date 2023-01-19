@@ -120,6 +120,8 @@ public abstract class BaseEdgeProcessor {
 
     protected static final Lock widgetCreationLock = new ReentrantLock();
 
+    protected static final Lock customerCreationLock = new ReentrantLock();
+
     protected static final int DEFAULT_PAGE_SIZE = 100;
 
     @Autowired
