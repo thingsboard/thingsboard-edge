@@ -75,7 +75,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
                     user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
                     user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
-                    user.setCustomerId(safeGetCustomerId(tenantId, userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
+                    user.setCustomerId(safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
                         UserCredentials userCredentials = new UserCredentials();

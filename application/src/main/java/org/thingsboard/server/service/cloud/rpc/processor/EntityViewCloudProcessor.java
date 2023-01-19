@@ -80,7 +80,7 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                     entityView.setEntityId(entityId);
                     entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo()
                             ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
-                    entityView.setCustomerId(safeGetCustomerId(tenantId, entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
+                    entityView.setCustomerId(safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
                     EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
 
                     tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),

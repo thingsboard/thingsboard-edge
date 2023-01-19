@@ -180,7 +180,7 @@ public class DeviceCloudProcessor extends BaseEdgeProcessor {
             UUID deviceProfileUUID = safeGetUUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB());
             device.setDeviceProfileId(deviceProfileUUID != null ? new DeviceProfileId(deviceProfileUUID) : null);
 
-            device.setCustomerId(safeGetCustomerId(tenantId, deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
+            device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
 
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());

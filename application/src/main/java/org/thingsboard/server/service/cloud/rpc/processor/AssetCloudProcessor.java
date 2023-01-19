@@ -73,7 +73,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             asset.setType(assetUpdateMsg.getType());
             asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
             asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-            asset.setCustomerId(safeGetCustomerId(tenantId, assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
+            asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
             UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
             asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
             assetValidator.validate(asset, Asset::getTenantId);

@@ -493,6 +493,27 @@ public abstract class BaseEdgeProcessor {
         }
     }
 
+    protected UUID safeGetUUID(long mSB, long lSB) {
+        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
+    }
+
+    protected CustomerId safeGetCustomerId(long customerIdMSB, long customerIdLSB, TenantId tenantId, CustomerId edgeCustomerId) {
+        UUID customerUUID = safeGetUUID(customerIdMSB, customerIdLSB);
+        if (customerUUID != null) {
+            CustomerId customerId = new CustomerId(customerUUID);
+            if (customerId.equals(edgeCustomerId)) {
+                return customerId;
+            }
+            try {
+                Customer publicCustomer = customerService.findOrCreatePublicCustomer(tenantId);
+                if (publicCustomer != null && publicCustomer.getId().equals(customerId)) {
+                    return customerId;
+                }
+            } catch (Exception ignored) {}
+        }
+        return new CustomerId(ModelConstants.NULL_UUID);
+    }
+
     @Autowired
     protected AdminSettingsService adminSettingsService;
 
@@ -528,26 +549,5 @@ public abstract class BaseEdgeProcessor {
             }
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
-    }
-
-    protected UUID safeGetUUID(long mSB, long lSB) {
-        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
-    }
-
-    protected CustomerId safeGetCustomerId(TenantId tenantId, long customerIdMSB, long customerIdLSB, CustomerId edgeCustomerId) {
-        UUID customerUUID = safeGetUUID(customerIdMSB, customerIdLSB);
-        if (customerUUID != null) {
-            CustomerId customerId = new CustomerId(customerUUID);
-            if (customerId.equals(edgeCustomerId)) {
-                return customerId;
-            }
-            try {
-                Customer publicCustomer = customerService.findOrCreatePublicCustomer(tenantId);
-                if (publicCustomer != null && publicCustomer.getId().equals(customerId)) {
-                    return customerId;
-                }
-            } catch (Exception ignored) {}
-        }
-        return new CustomerId(ModelConstants.NULL_UUID);
     }
 }
