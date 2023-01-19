@@ -648,6 +648,19 @@ public abstract class BaseEdgeProcessor {
         }
     }
 
+    protected UUID safeGetUUID(long mSB, long lSB) {
+        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
+    }
+
+    protected CustomerId safeGetCustomerId(long mSB, long lSB) {
+        CustomerId customerId = null;
+        UUID customerUUID = safeGetUUID(mSB, lSB);
+        if (customerUUID != null) {
+            customerId = new CustomerId(customerUUID);
+        }
+        return customerId;
+    }
+
     @Autowired
     protected AdminSettingsService adminSettingsService;
 
@@ -683,19 +696,6 @@ public abstract class BaseEdgeProcessor {
             }
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
-    }
-
-    protected UUID safeGetUUID(long mSB, long lSB) {
-        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
-    }
-
-    protected CustomerId safeGetCustomerId(long mSB, long lSB) {
-        CustomerId customerId = null;
-        UUID customerUUID = safeGetUUID(mSB, lSB);
-        if (customerUUID != null) {
-            customerId = new CustomerId(customerUUID);
-        }
-        return customerId;
     }
 
     protected EntityId safeGetOwnerId(TenantId tenantId, String ownerEntityTypeStr, long mSB, long lSB) {
