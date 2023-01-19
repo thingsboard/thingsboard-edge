@@ -166,7 +166,7 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Device Rule Chain",
-        "debugMode": false,
+        "debugMode": true,
         "configuration": {
           "ruleChainId": "c91744c0-8767-11ed-ace0-2b013f453ca4"
         },
@@ -299,7 +299,7 @@
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var bestRSSIMsg; \nfor(tbMsg : msg){\n    if(bestRSSIMsg == null || bestRSSIMsg.msg.rssi < tbMsg.msg.rssi ){\n        bestRSSIMsg = tbMsg;\n    }\n}\n\nforeach(e : bestRSSIMsg.msg.data.entrySet()){\n    bestRSSIMsg.msg[e.key]=e.value;\n}\nbestRSSIMsg.msg.remove(\"data\");\n\nreturn {msg: bestRSSIMsg.msg, metadata: bestRSSIMsg.metadata, msgType: msgType};"
+          "tbelScript": "var bestRSSIData; \nfor(d : msg){\n    if(bestRSSIData == null || bestRSSIData.msg.rssi < d.msg.rssi ){\n        bestRSSIData = d;\n    }\n}\n\n\nvar bestRSSIMd = bestRSSIData.metadata;\n\nvar tmp = bestRSSIData.msg;\nvar bestRSSIMsg = tmp.data;\nbestRSSIMsg.rssi = tmp.rssi;\nbestRSSIMsg.xPos = tmp.xPos;\nbestRSSIMsg.yPos = tmp.yPos;\nbestRSSIMsg.zone = tmp.zone;\nbestRSSIMsg.room = tmp.room;\n\nreturn {msg: bestRSSIMsg, metadata: bestRSSIMd, msgType: msgType};"
         },
         "externalId": null
       },
@@ -380,6 +380,42 @@
           "originatorType": "DEVICE"
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 86,
+          "layoutY": 557
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "Generate Gateway 101 Message",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"E00000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"temperature\": 40,\n    \"humidity\": 100,\n    \"IAQ\": 400,\n    \"battery\": 5\n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca5",
+          "originatorType": "DEVICE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "Extracts telemetry from the \"data\" field and adds \"rssi\" readings",
+          "layoutX": 450,
+          "layoutY": 963
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Extract Data",
+        "debugMode": true,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var newMsg = msg.data;\nnewMsg.rssi = msg.rssi;\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -445,13 +481,13 @@
       },
       {
         "fromIndex": 13,
-        "toIndex": 9,
-        "type": "AL_RoomSensor"
+        "toIndex": 15,
+        "type": "AL_Wristband"
       },
       {
         "fromIndex": 13,
-        "toIndex": 15,
-        "type": "AL_Wristband"
+        "toIndex": 22,
+        "type": "AL_RoomSensor"
       },
       {
         "fromIndex": 14,
@@ -486,6 +522,16 @@
       {
         "fromIndex": 20,
         "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 21,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 22,
+        "toIndex": 9,
         "type": "Success"
       }
     ],
