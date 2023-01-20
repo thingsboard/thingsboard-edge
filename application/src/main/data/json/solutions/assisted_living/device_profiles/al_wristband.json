@@ -722,6 +722,160 @@
         "propagateToOwnerHierarchy": false,
         "propagateToTenant": true,
         "propagateRelationTypes": ["Use"]
+      },
+      {
+        "id": "6ca2bf03-5fb1-6e4e-19d2-a736829226b6",
+        "alarmType": "Battery",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "CONSTANT",
+                    "key": "enabled"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": true,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": false,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "batteryLevelAlarmEnabled",
+                        "inherit": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "battery"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 15,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "minCriticalBatteryLevelThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "CONSTANT",
+                    "key": "enabled"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": true,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": false,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "batteryLevelAlarmEnabled",
+                        "inherit": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "battery"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 25,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "minMajorBatteryLevelThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "battery"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 25,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_CUSTOMER",
+                      "sourceAttribute": "minMajorBatteryLevelThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": true,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": [
+          "Use"
+        ]
       }
     ]
   },
