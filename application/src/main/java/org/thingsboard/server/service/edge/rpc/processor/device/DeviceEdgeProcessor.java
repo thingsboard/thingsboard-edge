@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -263,8 +264,11 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
         }
     }
 
-    private ListenableFuture<Void> updateDevice(TenantId tenantId, Edge edge, DeviceUpdateMsg deviceUpdateMsg) {
+    private ListenableFuture<Void> updateDevice(TenantId tenantId, Edge edge, DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
+        CustomerId customerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
+        changeOwnerIfRequired(tenantId, customerId, deviceId);
+
         Device device = deviceService.findDeviceById(tenantId, deviceId);
         device.setName(deviceUpdateMsg.getName());
         device.setType(deviceUpdateMsg.getType());
@@ -275,7 +279,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
         UUID deviceProfileUUID = safeGetUUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB());
         device.setDeviceProfileId(deviceProfileUUID != null ? new DeviceProfileId(deviceProfileUUID) : null);
 
-        device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
+        device.setCustomerId(customerId);
 
         Optional<DeviceData> deviceDataOpt =
                 dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());

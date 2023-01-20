@@ -39,11 +39,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
-import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -51,6 +53,7 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -79,8 +82,8 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -145,8 +148,9 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -383,6 +387,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
+
+    @Autowired
+    protected OwnersCacheService ownersCacheService;
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
                                EdgeId edgeId,
@@ -659,6 +666,52 @@ public abstract class BaseEdgeProcessor {
             customerId = new CustomerId(customerUUID);
         }
         return customerId;
+    }
+
+    protected void changeOwnerIfRequired(TenantId tenantId, CustomerId customerId, EntityId entityId) throws ThingsboardException {
+        EntityId newOwnerId = getOwnerId(tenantId, customerId);
+        EntityId currentOwnerId;
+        switch (entityId.getEntityType()) {
+            case DEVICE:
+                Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                currentOwnerId = device.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeDeviceOwner(tenantId, newOwnerId, device);
+                }
+                break;
+            case ASSET:
+                Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+                currentOwnerId = asset.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeAssetOwner(tenantId, newOwnerId, asset);
+                }
+                break;
+            case ENTITY_VIEW:
+                EntityView entityView = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                currentOwnerId = entityView.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeEntityViewOwner(tenantId, newOwnerId, entityView);
+                }
+                break;
+            case USER:
+                User user = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                currentOwnerId = user.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeUserOwner(tenantId, newOwnerId, user);
+                }
+                break;
+            case DASHBOARD:
+                Dashboard dashboard = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+                currentOwnerId = dashboard.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeDashboardOwner(tenantId, newOwnerId, dashboard);
+                }
+                break;
+        }
+    }
+
+    private EntityId getOwnerId(TenantId tenantId, CustomerId customerId) {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     @Autowired
