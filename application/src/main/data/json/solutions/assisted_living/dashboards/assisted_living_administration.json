@@ -40,8 +40,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365487,
+                "endTimeMs": 1674214765487
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -157,8 +157,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365487,
+                "endTimeMs": 1674214765487
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -225,8 +225,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365487,
+                "endTimeMs": 1674214765487
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365487,
+                "endTimeMs": 1674214765487
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -456,8 +456,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365487,
+                "endTimeMs": 1674214765487
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -551,8 +551,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365487,
+                "endTimeMs": 1674214765487
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -825,7 +825,7 @@
                   "columnWidth": "0px",
                   "useCellStyleFunction": false,
                   "useCellContentFunction": true,
-                  "cellContentFunction": "\nlet duration = alarm.endTs - alarm.startTs;\nlet durationStr = durationString(duration);\n\nreturn '<button id=\"al-duration\" class=\"mat-button mat-button-base al-cell-button\">' +\n            durationStr + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n\nfunction durationString(milliseconds) {\n    \n    let translate = ctx.$scope.$injector.get(ctx.servicesMap.get('translate'));\n    \n    let seconds = Math.floor(milliseconds / 1000);\n    const days = Math.floor(seconds / 86400);\n    let hours = Math.floor((seconds % 86400) / 3600);\n    let minutes = Math.floor(((seconds % 86400) % 3600) / 60);\n    seconds = seconds % 60;\n    let timeString = '';\n    if (days > 0) {\n        timeString += days === 1 ? '1 day' : days + ' days ';\n    }\n    if (hours > 0) {\n      timeString += hours === 1 ? '1 hour ' : hours + ' hours ';\n    }\n    if (minutes > 0) {\n      timeString += minutes + ' min ';\n    }\n    if (seconds > 0) {\n      timeString += seconds + ' sec ';\n    }\n    return timeString;\n}",
+                  "cellContentFunction": "let duration = alarm.endTs - alarm.startTs;\nlet durationStr = ctx.milliSecondsToTimeString.transform(duration, true);\n\nreturn '<button id=\"al-duration\" class=\"mat-button mat-button-base al-cell-button\">' +\n            durationStr + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n",
                   "defaultColumnVisibility": "visible",
                   "columnSelectionToDisplay": "enabled",
                   "columnExportOption": "onlyVisible"
@@ -887,7 +887,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\n\nlet alarm = additionalParams.alarm;\nlet targetEntityId = alarm.entityId;\n\nlet target = $event.target;\n\nlet id = target.id;\nif (id) {\n    switch (id) {\n        case 'al-location':\n            findRoom(alarm.Location).subscribe(\n                (room) => {\n                    if (room) {\n                        openStateInPopover(target, 'room_location_details', room.id, room.name, '500px', '400px');\n                    }\n                }\n            );\n            break;\n    }\n}\n\nfunction openStateInPopover(target, stateId, entityId, entityName, width, height) {\n    let descriptor = {\n        type: 'openDashboardState',\n        targetDashboardStateId: stateId,\n        openInPopover: true,\n        popoverHideDashboardToolbar: true,\n        popoverPreferredPlacement: 'bottom',\n        popoverHideOnClickOutside: true,\n        popoverWidth: width,\n        popoverHeight: height,\n        setEntityId: true\n    };\n    let popoverTrigger = getPopoverTrigger(target);\n    widgetContext.actionsApi.handleWidgetAction({target: popoverTrigger}, descriptor, entityId, entityName);\n}\n\nfunction getPopoverTrigger(target) {\n    let id = target.id;\n    let triggerId = id + '-trigger-'+alarm.id.id;\n    let parentTable = $(target).parents('.table-container');\n    let popoverTrigger = $('#'+triggerId, parentTable);\n    if (!popoverTrigger.length) {\n        let parentRow = $(target).parents('mat-row');\n        let top = parentRow.position().top + $(target).position().top + parentTable.scrollTop();\n        let left = $(target).position().left;\n        let width = $(target).width();\n        let height = $(target).height();\n        popoverTrigger = $('<div id=\"'+triggerId+'\" style=\"width: '+width+'px; height: '+height+'px; position: absolute; top: '+top+'px; left: '+left+'px; pointer-events: none;\"></div>');\n        parentTable.append(popoverTrigger);\n    }\n    return popoverTrigger[0];\n}\n\nfunction findRoom(name) {\n    return assetService.getUserAssets(widgetContext.pageLink(10, 0, name), 'AL_Room').pipe(\n        widgetContext.rxjs.map((pageData) => {\n            let found =  pageData.data.filter((asset) => asset.name === name);\n            if (found.length) {\n                return found[0]\n            } else {\n                return null;\n            }\n        })\n    );\n}\n",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet utils = $injector.get(widgetContext.servicesMap.get('utils'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nlet alarm = additionalParams.alarm;\nlet targetEntityId = alarm.entityId;\nlet target = $event.target;\n\nlet id = target.id;\nif (id) {\n    switch (id) {\n        case 'al-location':\n            findLocationData(alarm.entityId).subscribe(\n                (locationData) => {\n                    if (locationData) {\n                        const room = locationData.room;\n                        const locationLastUpdateTs = locationData.locationAttribute.lastUpdateTs;\n                        let stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                        stateParams.entityId = room.id;\n                        stateParams.entityName = room.name;\n                        stateParams.locationLastUpdateTs = locationLastUpdateTs;\n                        openStateInPopover(target, 'room_location_details', stateParams, '500px', '400px');\n                    }\n                }\n            );\n            break;\n    }\n}\n\nfunction openStateInPopover(target, stateId, stateParams, width, height) {\n    let popoverTrigger = getPopoverTrigger(target);\n    widgetContext.actionsApi.openDashboardStateInPopover({target: popoverTrigger}, stateId, stateParams, true, 'bottom', true, width, height);\n}\n\nfunction getPopoverTrigger(target) {\n    let id = target.id;\n    let triggerId = id + '-trigger-'+alarm.id.id;\n    let parentTable = $(target).parents('.table-container');\n    let popoverTrigger = $('#'+triggerId, parentTable);\n    if (!popoverTrigger.length) {\n        let parentRow = $(target).parents('mat-row');\n        let top = parentRow.position().top + $(target).position().top + parentTable.scrollTop();\n        let left = $(target).position().left;\n        let width = $(target).width();\n        let height = $(target).height();\n        popoverTrigger = $('<div id=\"'+triggerId+'\" style=\"width: '+width+'px; height: '+height+'px; position: absolute; top: '+top+'px; left: '+left+'px; pointer-events: none;\"></div>');\n        parentTable.append(popoverTrigger);\n    }\n    return popoverTrigger[0];\n}\n\nfunction findLocationData(entityId) {\n    return getLocationAttribute(entityId).pipe(\n        widgetContext.rxjs.switchMap((locationAttribute) => {\n            if (locationAttribute) {\n                const roomName = locationAttribute.value;\n                return assetService.getUserAssets(widgetContext.pageLink(10, 0, roomName), 'AL_Room').pipe(\n                    widgetContext.rxjs.map((pageData) => {\n                        let found =  pageData.data.filter((asset) => asset.name === roomName);\n                        if (found.length) {\n                            return {room: found[0], locationAttribute: locationAttribute};\n                        } else {\n                            return null;\n                        }\n                    })\n                );\n            } else {\n                return widgetContext.rxjs.of(null);\n            }\n        })\n    );\n}\n\nfunction getLocationAttribute(entityId) {\n    return attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['currentRoom']).pipe(\n        widgetContext.rxjs.map((attributes) => {\n            if (attributes.length) {\n                return attributes[0];\n            } else {\n                return null;\n            }\n        })\n    );\n}\n",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "0f0c21e7-06a8-f560-acfe-f022aa0b4a57"
@@ -1140,8 +1140,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1294,8 +1294,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1390,8 +1390,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1653,8 +1653,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1796,8 +1796,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2050,8 +2050,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2253,8 +2253,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2442,8 +2442,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2623,8 +2623,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674064488319,
-                "endTimeMs": 1674150888319
+                "startTimeMs": 1674128365488,
+                "endTimeMs": 1674214765488
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2639,8 +2639,8 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": true,
-            "markdownTextFunction": "if (data[0] && data[1]) {\n    let roomName = data[0]['entityName'];\n    let zoneName = data[1]['entityName'];\n    let html = '<section style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n              '<section class=\"location-title\" fxLayout=\"row\" fxLayoutAlign=\"start center\">' +\n                roomName + '. ' + zoneName +\n              '</section>' +\n              '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [entityId]=\"{ id: \\'' + data[0].entityId + '\\', entityType: \\'' + data[0].entityType + '\\'  }\" stateId=\"room_location\"></tb-dashboard-state>' +\n           '</section>';\n    return html;\n} else {\n    return '';\n}",
-            "markdownCss": ".location-title {\n    color: #29313C;\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    padding: 20px 10px;\n}"
+            "markdownTextFunction": "if (data[0] && data[1]) {\n    let roomName = data[0]['entityName'];\n    let zoneName = data[1]['entityName'];\n    let html = '<section style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n              '<section class=\"location-title\" fxLayout=\"row\" fxLayoutAlign=\"start center\">' +\n                roomName + '. ' + zoneName +\n              '</section>' +\n              '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [entityId]=\"{ id: \\'' + data[0].entityId + '\\', entityType: \\'' + data[0].entityType + '\\'  }\" stateId=\"room_location\"></tb-dashboard-state>';\n    let stateParams = ctx.dashboard.stateController.getStateParams();\n    if (stateParams.locationLastUpdateTs) {\n        let elapsed = Date.now() - stateParams.locationLastUpdateTs;\n        let measureUpdateStr = ctx.milliSecondsToTimeString.transform(elapsed, true) + ' ago';\n        html += '<section class=\"location-footer\" fxLayout=\"row\" fxLayoutAlign=\"start center\">' +\n                    '<span class=\"measure-update-label\">Measure update</span><span class=\"measure-update-value\">' + measureUpdateStr + '</span>' +\n                '</section>';\n    }\n    html += '</section>';\n    return html;\n} else {\n    return '';\n}",
+            "markdownCss": ".location-title {\n    color: #29313C;\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    padding: 20px 10px;\n}\n\n.location-footer {\n    padding: 20px 10px;\n    line-height: 18px;\n}\n\n.measure-update-label {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n    padding-right: 16px;\n}\n\n.measure-update-value {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n}\n"
           },
           "title": "Main toolbar",
           "showTitleIcon": false,
@@ -2662,36 +2662,7 @@
           "pageSize": 1024,
           "noDataDisplayMessage": "",
           "actions": {
-            "elementClick": [
-              {
-                "name": "zones",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "zones",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "3b233e51-d5e6-d05d-3f66-1d6532ee2aae"
-              },
-              {
-                "name": "residents",
-                "icon": "more_horiz",
-                "useShowWidgetActionFunction": null,
-                "showWidgetActionFunction": "return true;",
-                "type": "openDashboardState",
-                "targetDashboardStateId": "residents",
-                "setEntityId": true,
-                "stateEntityParamName": null,
-                "openRightLayout": false,
-                "openInSeparateDialog": false,
-                "openInPopover": false,
-                "id": "6e7c4e5f-8157-bef0-fb2b-eb45a437ffdf"
-              }
-            ]
+            "elementClick": []
           },
           "useDashboardTimewindow": true
         },
