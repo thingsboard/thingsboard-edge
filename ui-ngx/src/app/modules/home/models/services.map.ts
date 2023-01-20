@@ -61,6 +61,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { ResourceService } from '@core/http/resource.service';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
+import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -81,6 +82,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['dialogs', DialogService],
    ['customDialog', CustomDialogService],
    ['date', DatePipe],
+   ['milliSecondsToTimeString', MillisecondsToTimeStringPipe],
    ['utils', UtilsService],
    ['translate', TranslateService],
    ['http', HttpClient],

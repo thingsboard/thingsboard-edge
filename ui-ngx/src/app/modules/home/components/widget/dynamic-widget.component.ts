@@ -63,6 +63,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { TbInject } from '@shared/decorators/tb-inject';
 import { ReportService } from '@core/http/report.service';
+import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -101,6 +102,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.resourceService = $injector.get(ResourceService);
     this.ctx.telemetryWsService = $injector.get(TelemetryWebsocketService);
     this.ctx.date = $injector.get(DatePipe);
+    this.ctx.milliSecondsToTimeString = $injector.get(MillisecondsToTimeStringPipe);
     this.ctx.translate = $injector.get(TranslateService);
     this.ctx.http = $injector.get(HttpClient);
     this.ctx.sanitizer = $injector.get(DomSanitizer);
