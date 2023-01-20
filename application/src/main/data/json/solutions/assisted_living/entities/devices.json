@@ -46,6 +46,90 @@
     ]
   },
   {
+    "name": "500000015FE1",
+    "type": "AL_DoorSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.46000",
+      "yPos": "0.81000",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 101",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "600000015FE1",
+    "type": "AL_LeakSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.47000",
+      "yPos": "0.82000",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 101",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "700000015FE1",
+    "type": "AL_SmokeSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.48000",
+      "yPos": "0.83000",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 101",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "800000015FE1",
+    "type": "AL_WindowSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {
+      "xPos": "0.49000",
+      "yPos": "0.84000",
+      "zone": "Floor 1",
+      "room": "Room 101"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 101",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
     "name": "D00000020002",
     "label": "Room 102 Gateway",
     "type": "AL_Gateway",

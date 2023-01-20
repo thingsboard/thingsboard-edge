@@ -29,8 +29,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 221
+          "layoutX": 1176,
+          "layoutY": 217
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
@@ -42,8 +42,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 494,
-          "layoutY": 309
+          "layoutX": 846,
+          "layoutY": 305
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
@@ -55,8 +55,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 383
+          "layoutX": 1176,
+          "layoutY": 379
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
@@ -70,8 +70,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 823,
-          "layoutY": 444
+          "layoutX": 1175,
+          "layoutY": 440
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -85,8 +85,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 822,
-          "layoutY": 507
+          "layoutX": 1174,
+          "layoutY": 503
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
@@ -99,8 +99,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 209,
-          "layoutY": 307
+          "layoutX": 561,
+          "layoutY": 303
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
@@ -114,11 +114,11 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 84,
-          "layoutY": 430
+          "layoutX": 275,
+          "layoutY": 31
         },
         "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Generate Gateway 101 Message",
+        "name": "WristBand Message",
         "debugMode": false,
         "configuration": {
           "msgCount": 0,
@@ -166,7 +166,7 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Device Rule Chain",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "ruleChainId": "c91744c0-8767-11ed-ace0-2b013f453ca4"
         },
@@ -295,7 +295,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Use msg with Max RSSI",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
@@ -364,11 +364,11 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 84,
-          "layoutY": 493
+          "layoutX": 275,
+          "layoutY": 94
         },
         "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Generate Gateway 102 Message",
+        "name": "WristBand Message from other Gateway",
         "debugMode": false,
         "configuration": {
           "msgCount": 1,
@@ -384,11 +384,11 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 86,
-          "layoutY": 557
+          "layoutX": 275,
+          "layoutY": 158
         },
         "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Generate Gateway 101 Message",
+        "name": "RoomSensor 101 Message",
         "debugMode": false,
         "configuration": {
           "msgCount": 0,
@@ -409,11 +409,91 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Extract Data",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
           "tbelScript": "var newMsg = msg.data;\nnewMsg.rssi = msg.rssi;\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 100,
+          "layoutY": 245
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "DoorSensor 101 Message",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"500000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"open\": true\n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca4",
+          "originatorType": "DEVICE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 99,
+          "layoutY": 305
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "WindowSensor 101 Message",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"800000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"open\": true\n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca4",
+          "originatorType": "DEVICE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 98,
+          "layoutY": 367
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "LeakSensor 101 Message",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"600000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"leak\": true\n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca4",
+          "originatorType": "DEVICE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 100,
+          "layoutY": 422
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "SmokeSensor 101 Message",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { temp: 42, humidity: 77 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {\n  \"serial\": \"700000015FE1\",\n  \"rssi\": -15,\n  \"data\": {\n    \"smoke\": true\n  }\n};\nvar metadata = { deviceName: \"Room Gateway 101\"};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "fdfa6460-8767-11ed-ace0-2b013f453ca4",
+          "originatorType": "DEVICE"
         },
         "externalId": null
       }
@@ -487,7 +567,27 @@
       {
         "fromIndex": 13,
         "toIndex": 22,
+        "type": "AL_DoorSensor"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 22,
+        "type": "AL_LeakSensor"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 22,
         "type": "AL_RoomSensor"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 22,
+        "type": "AL_SmokeSensor"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 22,
+        "type": "AL_WindowSensor"
       },
       {
         "fromIndex": 14,
@@ -532,6 +632,26 @@
       {
         "fromIndex": 22,
         "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 23,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 25,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 26,
+        "toIndex": 6,
         "type": "Success"
       }
     ],
