@@ -117,6 +117,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
+import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -208,6 +209,7 @@ public class DefaultSolutionService implements SolutionService {
     private final DashboardService dashboardService;
     private final TbEntityRelationService relationService;
     private final DeviceService deviceService;
+    private final TbNotificationEntityService notificationEntityService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
     private final CustomerService customerService;
@@ -345,7 +347,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     @Override
-    public void deleteSolution(TenantId tenantId, String solutionId) throws ThingsboardException {
+    public void deleteSolution(TenantId tenantId, String solutionId, User user) throws ThingsboardException {
         try {
             Optional<AttributeKvEntry> entitiesOpt = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toCreatedEntitiesKey(solutionId)).get();
             if (entitiesOpt.isPresent()) {
@@ -356,7 +358,7 @@ public class DefaultSolutionService implements SolutionService {
                 Collections.reverse(entityIds);
                 for (EntityId entityId : entityIds) {
                     try {
-                        deleteEntity(tenantId, entityId);
+                        deleteEntity(tenantId, entityId, user);
                     } catch (RuntimeException e) {
                         log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, e);
                     }
@@ -518,7 +520,7 @@ public class DefaultSolutionService implements SolutionService {
         Collections.reverse(createdEntities);
         for (EntityId entityId : createdEntities) {
             try {
-                deleteEntity(tenantId, entityId);
+                deleteEntity(tenantId, entityId, ctx.getUser());
             } catch (RuntimeException re) {
                 log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, re);
             }
@@ -1273,7 +1275,7 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void deleteEntity(TenantId tenantId, EntityId entityId) {
+    private void deleteEntity(TenantId tenantId, EntityId entityId, User user) {
         try {
             List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, false))
                     .get().getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
@@ -1308,7 +1310,11 @@ public class DefaultSolutionService implements SolutionService {
                 assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
                 break;
             case DEVICE:
-                deviceService.deleteDevice(tenantId, new DeviceId(entityId.getId()));
+                DeviceId deviceId = new DeviceId(entityId.getId());
+                Device device = deviceService.findDeviceById(tenantId, deviceId);
+                deviceService.deleteDevice(tenantId, deviceId);
+                notificationEntityService.notifyDeleteDevice(tenantId, deviceId, device.getCustomerId(), device,
+                        List.of(), user, deviceId.toString());
                 break;
             case CUSTOMER:
                 customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));
