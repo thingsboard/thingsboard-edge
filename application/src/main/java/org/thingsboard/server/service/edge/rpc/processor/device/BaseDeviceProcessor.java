@@ -99,7 +99,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 deviceCredentials.setCredentialsId(StringUtils.randomAlphanumeric(20));
                 deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
             }
-            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false);
+            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false, false);
         } finally {
             deviceCreationLock.unlock();
         }

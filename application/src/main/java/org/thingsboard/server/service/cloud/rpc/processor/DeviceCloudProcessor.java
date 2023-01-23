@@ -15,12 +15,11 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -28,18 +27,13 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
@@ -84,65 +78,11 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     }
 
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
-        deviceCreationLock.lock();
-        try {
-            Device device = deviceService.findDeviceById(tenantId, deviceId);
-            boolean created = false;
-            boolean deviceNameUpdated = false;
-            String deviceName = deviceUpdateMsg.getName();
-            if (device == null) {
-                created = true;
-                device = new Device();
-                device.setTenantId(tenantId);
-                device.setCreatedTime(Uuids.unixTimestamp(deviceId.getId()));
-                Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
-                if (deviceByName != null) {
-                    deviceName = deviceName + "_" + RandomStringUtils.randomAlphabetic(15);
-                    log.warn("Device with name {} already exists on the edge. Renaming device name to {}",
-                            deviceUpdateMsg.getName(), deviceName);
-                    deviceNameUpdated = true;
-                }
-            }
-            device.setName(deviceName);
-            device.setType(deviceUpdateMsg.getType());
-            device.setLabel(deviceUpdateMsg.hasLabel() ? deviceUpdateMsg.getLabel() : null);
-            device.setAdditionalInfo(deviceUpdateMsg.hasAdditionalInfo()
-                    ? JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()) : null);
-
-            UUID deviceProfileUUID = safeGetUUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB());
-            device.setDeviceProfileId(deviceProfileUUID != null ? new DeviceProfileId(deviceProfileUUID) : null);
-
-            device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
-
-            Optional<DeviceData> deviceDataOpt =
-                    dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
-            device.setDeviceData(deviceDataOpt.orElse(null));
-
-            UUID firmwareUUID = safeGetUUID(deviceUpdateMsg.getFirmwareIdMSB(), deviceUpdateMsg.getFirmwareIdLSB());
-            device.setFirmwareId(firmwareUUID != null ? new OtaPackageId(firmwareUUID) : null);
-
-            UUID softwareUUID = safeGetUUID(deviceUpdateMsg.getSoftwareIdMSB(), deviceUpdateMsg.getSoftwareIdLSB());
-            device.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
-
-            deviceValidator.validate(device, Device::getTenantId);
-            if (created) {
-                device.setId(deviceId);
-            }
-            Device savedDevice = deviceService.saveDevice(device, false);
-            if (created) {
-                DeviceCredentials deviceCredentials = new DeviceCredentials();
-                deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
-                deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
-                deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
-                deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
-            }
-            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false, false);
-
-            if (deviceNameUpdated) {
-                cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, queueStartTs);
-            }
-        } finally {
-            deviceCreationLock.unlock();
+        CustomerId customerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, customerId);
+        Boolean deviceNameUpdated = resultPair.getSecond();
+        if (deviceNameUpdated) {
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, queueStartTs);
         }
     }
 
