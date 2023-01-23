@@ -274,7 +274,7 @@ public class DeviceCloudProcessor extends BaseEdgeProcessor {
                 if (device != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     DeviceUpdateMsg deviceUpdateMsg =
-                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null);
+                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg).build();

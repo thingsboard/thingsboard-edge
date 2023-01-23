@@ -497,6 +497,15 @@ public abstract class BaseEdgeProcessor {
         return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
     }
 
+    protected CustomerId safeGetCustomerId(long mSB, long lSB) {
+        CustomerId customerId = null;
+        UUID customerUUID = safeGetUUID(mSB, lSB);
+        if (customerUUID != null) {
+            customerId = new CustomerId(customerUUID);
+        }
+        return customerId;
+    }
+
     protected CustomerId safeGetCustomerId(long customerIdMSB, long customerIdLSB, TenantId tenantId, CustomerId edgeCustomerId) {
         UUID customerUUID = safeGetUUID(customerIdMSB, customerIdLSB);
         if (customerUUID != null) {
