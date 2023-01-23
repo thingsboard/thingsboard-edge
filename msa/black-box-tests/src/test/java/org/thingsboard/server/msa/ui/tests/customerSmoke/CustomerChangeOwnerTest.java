@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
-import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -90,7 +89,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         customerPage.checkBox(title).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().click();
-        customerPage.changeOwnerViewField().sendKeys(Keys.ESCAPE);
+        customerPage.changeOwnerViewChangeOwnerBtnVisible().click();
 
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
         Assert.assertNotNull(customerPage.errorMessage());
