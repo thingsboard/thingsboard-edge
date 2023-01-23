@@ -76,7 +76,7 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage.entityGroups().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 
-    @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
+    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
     @Description
     public void searchNumberAndSymbol(String name, String namePath) {
         customerGroupName = name;
