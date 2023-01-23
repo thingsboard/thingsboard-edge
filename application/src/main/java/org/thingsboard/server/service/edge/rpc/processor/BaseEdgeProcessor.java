@@ -714,6 +714,25 @@ public abstract class BaseEdgeProcessor {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
+    protected void safeAddEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        if (entityGroupId != null && !ModelConstants.NULL_UUID.equals(entityGroupId.getId())) {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+            Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
+                @Override
+                public void onSuccess(EntityGroup entityGroup) {
+                    if (entityGroup != null) {
+                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
+                }
+            }, dbCallbackExecutorService);
+        }
+    }
+
     @Autowired
     protected AdminSettingsService adminSettingsService;
 
@@ -757,25 +776,6 @@ public abstract class BaseEdgeProcessor {
             return new CustomerId(new UUID(mSB, lSB));
         } else {
             return tenantId;
-        }
-    }
-
-    protected void addEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        if (entityGroupId != null && !ModelConstants.NULL_UUID.equals(entityGroupId.getId())) {
-            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
-            Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
-                @Override
-                public void onSuccess(EntityGroup entityGroup) {
-                    if (entityGroup != null) {
-                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
-                }
-            }, dbCallbackExecutorService);
         }
     }
 }
