@@ -381,14 +381,13 @@ public class CloudManagerService {
         return result;
     }
 
-    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent)
-            throws ExecutionException, InterruptedException {
+    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
         switch (cloudEvent.getType()) {
             case DEVICE:
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
             case ALARM:
-                return alarmProcessor.convertAlarmEventToUplink(tenantId, cloudEvent);
+                return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
             default:
