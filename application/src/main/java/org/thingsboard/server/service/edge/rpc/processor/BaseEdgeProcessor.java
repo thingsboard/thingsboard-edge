@@ -31,13 +31,13 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -83,6 +83,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -663,5 +664,24 @@ public abstract class BaseEdgeProcessor {
 
     private EntityId getOwnerId(TenantId tenantId, CustomerId customerId) {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+    }
+
+    protected void safeAddEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        if (entityGroupId != null && !ModelConstants.NULL_UUID.equals(entityGroupId.getId())) {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+            Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
+                @Override
+                public void onSuccess(EntityGroup entityGroup) {
+                    if (entityGroup != null) {
+                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
+                }
+            }, dbCallbackExecutorService);
+        }
     }
 }
