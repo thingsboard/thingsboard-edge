@@ -40,8 +40,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -157,8 +157,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -225,8 +225,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -456,8 +456,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -551,8 +551,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -745,8 +745,8 @@
             "alarmsTitle": "Resident alarms",
             "enableSelection": false,
             "enableSearch": true,
-            "enableSelectColumnDisplay": true,
-            "enableFilter": true,
+            "enableSelectColumnDisplay": false,
+            "enableFilter": false,
             "enableStickyHeader": true,
             "enableStickyAction": false,
             "reserveSpaceForHiddenAction": "true",
@@ -754,12 +754,12 @@
             "allowAcknowledgment": true,
             "allowClear": false,
             "displayPagination": false,
-            "defaultSortOrder": "-createdTime",
+            "defaultSortOrder": "-startTime",
             "useRowStyleFunction": false
           },
           "title": "New Alarms table",
           "dropShadow": true,
-          "enableFullscreen": true,
+          "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
@@ -779,12 +779,21 @@
                 "label": "Type",
                 "color": "#f44336",
                 "settings": {
+                  "columnWidth": "50%",
                   "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "return '<span class=\"al-cell\">' + value + '</span>';",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
                 },
-                "_hash": 0.7323586880398418
+                "_hash": 0.7323586880398418,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
               },
               {
                 "name": "name",
@@ -792,7 +801,7 @@
                 "label": "Name",
                 "color": "#8bc34a",
                 "settings": {
-                  "columnWidth": "100px",
+                  "columnWidth": "50%",
                   "useCellStyleFunction": false,
                   "useCellContentFunction": true,
                   "cellContentFunction": "var photo = alarm.photo;\nreturn '<button id=\"al-resident\" class=\"mat-button mat-button-base al-cell-button\" style=\"overflow: hidden; white-space: nowrap; text-overflow: ellipsis;\">' +\n            '<span><img width=\"36px\" height=\"36px\" style=\"border-radius: 18px; border: 1px solid rgba(111, 116, 242, 0.54); vertical-align: middle; margin-right: 8px;\" src=\"'+photo+'\"/>'+value+'</span>' + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n",
@@ -814,7 +823,7 @@
                 "label": "Location",
                 "color": "#9c27b0",
                 "settings": {
-                  "columnWidth": "0px",
+                  "columnWidth": "120px",
                   "useCellStyleFunction": false,
                   "useCellContentFunction": true,
                   "cellContentFunction": "return '<button id=\"al-location\" class=\"mat-button mat-button-base al-cell-button\">' +\n            value + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';",
@@ -836,7 +845,7 @@
                 "label": "Duration",
                 "color": "#9c27b0",
                 "settings": {
-                  "columnWidth": "100px",
+                  "columnWidth": "140px",
                   "useCellStyleFunction": false,
                   "useCellContentFunction": true,
                   "cellContentFunction": "let duration = alarm.endTs - alarm.startTs;\nlet durationStr = ctx.milliSecondsToTimeString.transform(duration, true);\n\nreturn '<button id=\"al-duration\" class=\"mat-button mat-button-base al-cell-button\">' +\n            durationStr + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n",
@@ -858,7 +867,7 @@
                 "label": "Severity",
                 "color": "#ffc107",
                 "settings": {
-                  "columnWidth": "30px",
+                  "columnWidth": "40px",
                   "useCellStyleFunction": false,
                   "useCellContentFunction": true,
                   "cellContentFunction": "var severityText = '';\nvar severityImage = '';\nswitch (value) {\n    case 'CRITICAL':\n        severityText = 'Critical alarm';\n        severityImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAxNiAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTguNjYyOTcgMC4zOTkxMjVDOC40MDM0NyAtMC4wOTEzNzUgNy41OTY0NyAtMC4wOTEzNzUgNy4zMzY5NyAwLjM5OTEyNUwwLjU4Njk2OSAxMy4xNDkxQzAuNTI2MjA3IDEzLjI2MzQgMC40OTYwODMgMTMuMzkxNSAwLjQ5OTUzNCAxMy41MjA5QzAuNTAyOTg1IDEzLjY1MDIgMC41Mzk4OTIgMTMuNzc2NSAwLjYwNjY1OSAxMy44ODc0QzAuNjczNDI2IDEzLjk5ODMgMC43Njc3NzcgMTQuMDkgMC44ODA1MTcgMTQuMTUzNUMwLjk5MzI1NyAxNC4yMTcxIDEuMTIwNTQgMTQuMjUwNCAxLjI0OTk3IDE0LjI1MDFIMTQuNzVDMTQuODc5MyAxNC4yNTA0IDE1LjAwNjUgMTQuMjE3MSAxNS4xMTkyIDE0LjE1MzZDMTUuMjMxOCAxNC4wOTAxIDE1LjMyNjEgMTMuOTk4NCAxNS4zOTI4IDEzLjg4NzZDMTUuNDU5NSAxMy43NzY4IDE1LjQ5NjQgMTMuNjUwNiAxNS40OTk4IDEzLjUyMTNDMTUuNTAzMiAxMy4zOTIgMTUuNDczIDEzLjI2NCAxNS40MTIyIDEzLjE0OTlMOC42NjI5NyAwLjM5OTEyNVpNOC43NDk5NyAxMi4wMDAxSDcuMjQ5OTdWMTAuNTAwMUg4Ljc0OTk3VjEyLjAwMDFaTTcuMjQ5OTcgOS4wMDAxMlY1LjI1MDEySDguNzQ5OTdMOC43NTA3MiA5LjAwMDEySDcuMjQ5OTdaIiBmaWxsPSIjRjMxQjFCIi8+Cjwvc3ZnPgo=';\n        break;\n    case 'MAJOR':\n        severityText = 'Major alarm';\n        severityImage = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTUiIGZpbGw9Im5vbmUiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDE2IDE1IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogPHBhdGggZD0ibTggMC4xNjk5MmE3LjMzMDEgNy4zMzAxIDAgMCAwLTcuMzMwMSA3LjMzMDEgNy4zMzAxIDcuMzMwMSAwIDAgMCA3LjMzMDEgNy4zMzAxIDcuMzMwMSA3LjMzMDEgMCAwIDAgNy4zMzAxLTcuMzMwMSA3LjMzMDEgNy4zMzAxIDAgMCAwLTcuMzMwMS03LjMzMDF6bS0wLjc1MTk1IDMuOTU1MWgxLjVsMC4wMDE5NSAzLjc1aC0xLjUwMnptMCA1LjI1aDEuNXYxLjVoLTEuNXoiIGZpbGw9IiNmZmE1MDAiIHN0cm9rZS13aWR0aD0iLjk2ODM3Ii8+Cjwvc3ZnPgo=';\n        break;\n    case 'WARNING':\n        severityText = 'Warning alarm';\n        break;\n    case 'MINOR':\n        severityText = 'Minor alarm';\n        break;\n}\n\nif (severityText) {\n    return '<div style=\"width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;\"><img style=\"cursor: pointer; width: 15px; height: 15px;\" src=\"' + severityImage + '\"' +\n            'onmouseover=\"$(this).hasClass(\\'tooltipstered\\') ? $(this).tooltipster(\\'show\\') : ($(this).tooltipster({theme: \\'tooltipster-tb\\', speed: 0, delay: 0, arrow: false, content: \\''+severityText+'\\'}) && $(this).tooltipster(\\'show\\'));\"/>' + \n           '</div>';\n} else {\n    return '';\n}\n",
@@ -880,10 +889,13 @@
                 "label": "Action",
                 "color": "#607d8b",
                 "settings": {
+                  "columnWidth": "135px",
                   "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "return  '<div style=\"display: flex; flex-direction: row;\">' + \n            '<div onmouseover=\"$(this).hasClass(\\'tooltipstered\\') ? $(this).tooltipster(\\'show\\') : ($(this).tooltipster({theme: \\'tooltipster-tb\\', speed: 0, delay: 0, arrow: false, content: \\'Call Emergency\\'}) && $(this).tooltipster(\\'show\\'));\">'+\n                '<button id=\"al-emergency\" class=\"mat-button mat-button-base al-cell-button al-emergency\" style=\"margin-right: 8px;\">' + \n                    'Emergency' + \n                    '<span class=\"mat-button-focus-overlay\"></span>' + \n                '</button>'+\n            '</div>' + \n            '<div onmouseover=\"$(this).hasClass(\\'tooltipstered\\') ? $(this).tooltipster(\\'show\\') : ($(this).tooltipster({theme: \\'tooltipster-tb\\', speed: 0, delay: 0, arrow: false, content: \\'Call Nurse\\'}) && $(this).tooltipster(\\'show\\'));\">' +\n                '<button id=\"al-phone\" class=\"mat-button mat-button-base mat-icon-button al-phone\">' + \n                    '<mat-icon class=\"mat-icon material-icons\">phone</mat-icon>' +\n                    '<span class=\"mat-button-focus-overlay\"></span>' +\n                '</button>' +\n            '</div>' +\n        '</div>';",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "never"
                 },
                 "_hash": 0.6588418951443418,
                 "aggregationType": null,
@@ -933,7 +945,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet utils = $injector.get(widgetContext.servicesMap.get('utils'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nlet alarm = additionalParams.alarm;\nlet targetEntityId = alarm.entityId;\nlet target = $event.target;\nif (target.tagName !== 'BUTTON') {\n    target = $(target).parents('button')[0];\n}\nif (target) {\n    let id = target.id;\n    if (id) {\n        let popoverTrigger;\n        let stateParams;\n        switch (id) {\n            case 'al-location':\n                popoverTrigger = getPopoverTrigger(target);\n                findLocationData(alarm.entityId).subscribe(\n                    (locationData) => {\n                        if (locationData) {\n                            const room = locationData.room;\n                            const locationLastUpdateTs = locationData.locationAttribute.lastUpdateTs;\n                            stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                            stateParams.entityId = room.id;\n                            stateParams.entityName = room.name;\n                            stateParams.locationLastUpdateTs = locationLastUpdateTs;\n                            openStateInPopover(popoverTrigger, 'room_location_details', stateParams, 'bottomLeft', '500px', '400px');\n                        }\n                    }\n                );\n                break;\n            case 'al-duration':    \n                popoverTrigger = getPopoverTrigger(target);\n                stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                stateParams.alarm = alarm;\n                openStateInPopover(popoverTrigger, 'alarm_duration', stateParams, 'bottomLeft', '250px', '120px');\n                break;\n            case 'al-resident': \n                popoverTrigger = getPopoverTrigger(target);\n                stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                stateParams.entityId = alarm.entityId;\n                stateParams.entityName = alarm.Name;\n                openStateInPopover(popoverTrigger, 'resident_brief', stateParams, 'bottomLeft', '300px', '200px');\n                break;\n        }\n    }\n}\n\nfunction openStateInPopover(popoverTrigger, stateId, stateParams, preferredPlacement, width, height) {\n    widgetContext.actionsApi.openDashboardStateInPopover({target: popoverTrigger}, stateId, stateParams, true, preferredPlacement, true, width, height);\n}\n\nfunction getPopoverTrigger(target) {\n    let id = target.id;\n    let triggerId = id + '-trigger-'+alarm.id.id;\n    let parentTable = $(target).parents('.table-container');\n    let popoverTrigger = $('#'+triggerId, parentTable);\n    if (!popoverTrigger.length) {\n        let parentRow = $(target).parents('mat-row');\n        let top = parentRow.position().top + $(target).position().top + parentTable.scrollTop();\n        let left = $(target).position().left;\n        let width = $(target).width();\n        let height = $(target).height();\n        popoverTrigger = $('<div id=\"'+triggerId+'\" style=\"width: '+width+'px; height: '+height+'px; position: absolute; top: '+top+'px; left: '+left+'px; pointer-events: none;\"></div>');\n        parentTable.append(popoverTrigger);\n    }\n    return popoverTrigger[0];\n}\n\nfunction findLocationData(entityId) {\n    return getLocationAttribute(entityId).pipe(\n        widgetContext.rxjs.switchMap((locationAttribute) => {\n            if (locationAttribute) {\n                const roomName = locationAttribute.value;\n                return assetService.getUserAssets(widgetContext.pageLink(10, 0, roomName), 'AL_Room').pipe(\n                    widgetContext.rxjs.map((pageData) => {\n                        let found =  pageData.data.filter((asset) => asset.name === roomName);\n                        if (found.length) {\n                            return {room: found[0], locationAttribute: locationAttribute};\n                        } else {\n                            return null;\n                        }\n                    })\n                );\n            } else {\n                return widgetContext.rxjs.of(null);\n            }\n        })\n    );\n}\n\nfunction getLocationAttribute(entityId) {\n    return attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['currentRoom']).pipe(\n        widgetContext.rxjs.map((attributes) => {\n            if (attributes.length) {\n                return attributes[0];\n            } else {\n                return null;\n            }\n        })\n    );\n}\n",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet utils = $injector.get(widgetContext.servicesMap.get('utils'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nlet alarm = additionalParams.alarm;\nlet targetEntityId = alarm.entityId;\nlet target = $event.target;\nif (target.tagName !== 'BUTTON') {\n    target = $(target).parents('button')[0];\n}\nif (target) {\n    let id = target.id;\n    if (id) {\n        let popoverTrigger;\n        let stateParams;\n        switch (id) {\n            case 'al-location':\n                popoverTrigger = getPopoverTrigger(target);\n                findLocationData(alarm.entityId).subscribe(\n                    (locationData) => {\n                        if (locationData) {\n                            const room = locationData.room;\n                            const locationLastUpdateTs = locationData.locationAttribute.lastUpdateTs;\n                            stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                            stateParams.entityId = room.id;\n                            stateParams.entityName = room.name;\n                            stateParams.locationLastUpdateTs = locationLastUpdateTs;\n                            openStateInPopover(popoverTrigger, 'room_location_details', stateParams, 'bottomLeft', '500px', '400px');\n                        }\n                    }\n                );\n                break;\n            case 'al-duration':    \n                popoverTrigger = getPopoverTrigger(target);\n                stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                stateParams.alarm = alarm;\n                openStateInPopover(popoverTrigger, 'alarm_duration', stateParams, 'bottomLeft', '250px', '120px');\n                break;\n            case 'al-resident': \n                popoverTrigger = getPopoverTrigger(target);\n                stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                stateParams.entityId = alarm.entityId;\n                stateParams.entityName = alarm.Name;\n                openStateInPopover(popoverTrigger, 'resident_brief', stateParams, 'bottomLeft', '300px', '200px');\n                break;\n            case 'al-emergency':\n                const emergencyPhone = '+123456789';\n                window.open('tel:' + emergencyPhone, '_self');\n                break;\n            case 'al-phone':\n                const nursePhone = '+123456789';\n                window.open('tel:' + nursePhone, '_self');\n                break;\n        }\n    }\n}\n\nfunction openStateInPopover(popoverTrigger, stateId, stateParams, preferredPlacement, width, height) {\n    widgetContext.actionsApi.openDashboardStateInPopover({target: popoverTrigger}, stateId, stateParams, true, preferredPlacement, true, width, height);\n}\n\nfunction getPopoverTrigger(target) {\n    let id = target.id;\n    let triggerId = id + '-trigger-'+alarm.id.id;\n    let parentTable = $(target).parents('.table-container');\n    let popoverTrigger = $('#'+triggerId, parentTable);\n    if (!popoverTrigger.length) {\n        let parentRow = $(target).parents('mat-row');\n        let top = parentRow.position().top + $(target).position().top + parentTable.scrollTop();\n        let left = $(target).position().left;\n        let width = $(target).width();\n        let height = $(target).height();\n        popoverTrigger = $('<div id=\"'+triggerId+'\" style=\"width: '+width+'px; height: '+height+'px; position: absolute; top: '+top+'px; left: '+left+'px; pointer-events: none;\"></div>');\n        parentTable.append(popoverTrigger);\n    }\n    return popoverTrigger[0];\n}\n\nfunction findLocationData(entityId) {\n    return getLocationAttribute(entityId).pipe(\n        widgetContext.rxjs.switchMap((locationAttribute) => {\n            if (locationAttribute) {\n                const roomName = locationAttribute.value;\n                return assetService.getUserAssets(widgetContext.pageLink(10, 0, roomName), 'AL_Room').pipe(\n                    widgetContext.rxjs.map((pageData) => {\n                        let found =  pageData.data.filter((asset) => asset.name === roomName);\n                        if (found.length) {\n                            return {room: found[0], locationAttribute: locationAttribute};\n                        } else {\n                            return null;\n                        }\n                    })\n                );\n            } else {\n                return widgetContext.rxjs.of(null);\n            }\n        })\n    );\n}\n\nfunction getLocationAttribute(entityId) {\n    return attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['currentRoom']).pipe(\n        widgetContext.rxjs.map((attributes) => {\n            if (attributes.length) {\n                return attributes[0];\n            } else {\n                return null;\n            }\n        })\n    );\n}\n",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "0f0c21e7-06a8-f560-acfe-f022aa0b4a57"
@@ -945,8 +957,8 @@
           "alarmTypeList": [],
           "searchPropagatedAlarms": true,
           "datasources": [],
-          "enableDataExport": true,
-          "widgetCss": "\n.mat-button.al-cell-button {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n    padding: 0 6px;\n}\n\n.mat-table .mat-row:hover:not(.tb-current-entity) {\n    background-color: transparent !important;\n}\n\n.mat-table .mat-row.tb-current-entity {\n    background-color: transparent !important;\n}\n\n.mat-table .mat-row {\n    position: relative;\n}",
+          "enableDataExport": false,
+          "widgetCss": ".mat-table .mat-header-cell .mat-sort-header-content {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n}\n\n.mat-table .mat-cell .al-cell {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n}\n\n.mat-table .mat-cell .mat-button.al-cell-button {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n    padding: 0 6px;\n}\n\n.mat-table .mat-cell .mat-button.al-cell-button.al-emergency {\n    color: #C42F37;\n    background: rgba(196, 47, 55, 0.06);\n    border-radius: 6px;\n    font-weight: 500;\n    padding: 8px 12px;\n    line-height: 16px;\n}\n\n.mat-table .mat-cell .mat-button.mat-icon-button.al-phone {\n    color: #868D9C;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 6px;\n    padding: 7px;\n    line-height: 16px;\n    width: 32px;\n    height: 32px\n}\n\n.mat-table .mat-cell .mat-button.mat-icon-button.al-phone .mat-icon {\n    line-height: 18px;\n    height: 18px;\n    width: 18px;\n    font-size: 18px;\n}\n\n.mat-table .mat-row:hover:not(.tb-current-entity) {\n    background-color: transparent !important;\n}\n\n.mat-table .mat-row.tb-current-entity {\n    background-color: transparent !important;\n}\n\n.mat-table .mat-row {\n    position: relative;\n}\n\n.mat-table .mat-row .mat-cell {\n    border-bottom: none;\n}",
           "pageSize": 1024,
           "noDataDisplayMessage": ""
         },
@@ -981,24 +993,23 @@
           "padding": "4px",
           "settings": {
             "alarmsTitle": "Room alarms",
-            "enableSelection": true,
+            "enableSelection": false,
             "enableSearch": true,
-            "enableSelectColumnDisplay": true,
-            "enableFilter": true,
+            "enableSelectColumnDisplay": false,
+            "enableFilter": false,
             "enableStickyHeader": true,
             "enableStickyAction": false,
             "reserveSpaceForHiddenAction": "true",
-            "displayDetails": true,
+            "displayDetails": false,
             "allowAcknowledgment": true,
-            "allowClear": true,
-            "displayPagination": true,
-            "defaultPageSize": 10,
-            "defaultSortOrder": "-createdTime",
+            "allowClear": false,
+            "displayPagination": false,
+            "defaultSortOrder": "-startTime",
             "useRowStyleFunction": false
           },
           "title": "New Alarms table",
           "dropShadow": true,
-          "enableFullscreen": true,
+          "enableFullscreen": false,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400,
@@ -1013,43 +1024,70 @@
             "filterId": null,
             "dataKeys": [
               {
-                "name": "createdTime",
-                "type": "alarm",
-                "label": "Created time",
-                "color": "#2196f3",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
-                },
-                "_hash": 0.021092237451093787
-              },
-              {
-                "name": "originator",
-                "type": "alarm",
-                "label": "Originator",
-                "color": "#4caf50",
-                "settings": {
-                  "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
-                },
-                "_hash": 0.2780007688856758
-              },
-              {
                 "name": "type",
                 "type": "alarm",
                 "label": "Type",
                 "color": "#f44336",
                 "settings": {
+                  "columnWidth": "33%",
                   "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "return '<span class=\"al-cell\">' + value + '</span>';",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
                 },
-                "_hash": 0.7323586880398418
+                "_hash": 0.7323586880398418,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
+              },
+              {
+                "name": "name",
+                "type": "entityField",
+                "label": "Location",
+                "color": "#607d8b",
+                "settings": {
+                  "columnWidth": "33%",
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "return '<button id=\"al-location\" class=\"mat-button mat-button-base al-cell-button\">' +\n            value + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
+                },
+                "_hash": 0.14613848263400464,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
+              },
+              {
+                "name": "startTime",
+                "type": "alarm",
+                "label": "Duration",
+                "color": "#9c27b0",
+                "settings": {
+                  "columnWidth": "33%",
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "let duration = alarm.endTs - alarm.startTs;\nlet durationStr = ctx.milliSecondsToTimeString.transform(duration, true);\n\nreturn '<button id=\"al-duration\" class=\"mat-button mat-button-base al-cell-button\">' +\n            durationStr + \n            '<span class=\"mat-button-focus-overlay\"></span>' +\n        '</button>';\n",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
+                },
+                "_hash": 0.46642227548179394,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
               },
               {
                 "name": "severity",
@@ -1057,23 +1095,43 @@
                 "label": "Severity",
                 "color": "#ffc107",
                 "settings": {
+                  "columnWidth": "80px",
                   "useCellStyleFunction": false,
-                  "useCellContentFunction": false
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "var severityText = '';\nvar severityImage = '';\nswitch (value) {\n    case 'CRITICAL':\n        severityText = 'Critical alarm';\n        severityImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTUiIHZpZXdCb3g9IjAgMCAxNiAxNSIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTguNjYyOTcgMC4zOTkxMjVDOC40MDM0NyAtMC4wOTEzNzUgNy41OTY0NyAtMC4wOTEzNzUgNy4zMzY5NyAwLjM5OTEyNUwwLjU4Njk2OSAxMy4xNDkxQzAuNTI2MjA3IDEzLjI2MzQgMC40OTYwODMgMTMuMzkxNSAwLjQ5OTUzNCAxMy41MjA5QzAuNTAyOTg1IDEzLjY1MDIgMC41Mzk4OTIgMTMuNzc2NSAwLjYwNjY1OSAxMy44ODc0QzAuNjczNDI2IDEzLjk5ODMgMC43Njc3NzcgMTQuMDkgMC44ODA1MTcgMTQuMTUzNUMwLjk5MzI1NyAxNC4yMTcxIDEuMTIwNTQgMTQuMjUwNCAxLjI0OTk3IDE0LjI1MDFIMTQuNzVDMTQuODc5MyAxNC4yNTA0IDE1LjAwNjUgMTQuMjE3MSAxNS4xMTkyIDE0LjE1MzZDMTUuMjMxOCAxNC4wOTAxIDE1LjMyNjEgMTMuOTk4NCAxNS4zOTI4IDEzLjg4NzZDMTUuNDU5NSAxMy43NzY4IDE1LjQ5NjQgMTMuNjUwNiAxNS40OTk4IDEzLjUyMTNDMTUuNTAzMiAxMy4zOTIgMTUuNDczIDEzLjI2NCAxNS40MTIyIDEzLjE0OTlMOC42NjI5NyAwLjM5OTEyNVpNOC43NDk5NyAxMi4wMDAxSDcuMjQ5OTdWMTAuNTAwMUg4Ljc0OTk3VjEyLjAwMDFaTTcuMjQ5OTcgOS4wMDAxMlY1LjI1MDEySDguNzQ5OTdMOC43NTA3MiA5LjAwMDEySDcuMjQ5OTdaIiBmaWxsPSIjRjMxQjFCIi8+Cjwvc3ZnPgo=';\n        break;\n    case 'MAJOR':\n        severityText = 'Major alarm';\n        severityImage = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTUiIGZpbGw9Im5vbmUiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDE2IDE1IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogPHBhdGggZD0ibTggMC4xNjk5MmE3LjMzMDEgNy4zMzAxIDAgMCAwLTcuMzMwMSA3LjMzMDEgNy4zMzAxIDcuMzMwMSAwIDAgMCA3LjMzMDEgNy4zMzAxIDcuMzMwMSA3LjMzMDEgMCAwIDAgNy4zMzAxLTcuMzMwMSA3LjMzMDEgNy4zMzAxIDAgMCAwLTcuMzMwMS03LjMzMDF6bS0wLjc1MTk1IDMuOTU1MWgxLjVsMC4wMDE5NSAzLjc1aC0xLjUwMnptMCA1LjI1aDEuNXYxLjVoLTEuNXoiIGZpbGw9IiNmZmE1MDAiIHN0cm9rZS13aWR0aD0iLjk2ODM3Ii8+Cjwvc3ZnPgo=';\n        break;\n    case 'WARNING':\n        severityText = 'Warning alarm';\n        break;\n    case 'MINOR':\n        severityText = 'Minor alarm';\n        break;\n}\n\nif (severityText) {\n    return '<div style=\"width: 100%; height: 100%; display: flex; justify-content: start; align-items: center; margin-left: 15px;\"><img style=\"cursor: pointer; width: 15px; height: 15px;\" src=\"' + severityImage + '\"' +\n            'onmouseover=\"$(this).hasClass(\\'tooltipstered\\') ? $(this).tooltipster(\\'show\\') : ($(this).tooltipster({theme: \\'tooltipster-tb\\', speed: 0, delay: 0, arrow: false, content: \\''+severityText+'\\'}) && $(this).tooltipster(\\'show\\'));\"/>' + \n           '</div>';\n} else {\n    return '';\n}\n",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
                 },
-                "_hash": 0.09927019860088193
+                "_hash": 0.09927019860088193,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
               },
               {
                 "name": "status",
                 "type": "alarm",
-                "label": "Status",
+                "label": "Action",
                 "color": "#607d8b",
                 "settings": {
+                  "columnWidth": "32px",
                   "useCellStyleFunction": false,
-                  "cellStyleFunction": "",
-                  "useCellContentFunction": false,
-                  "cellContentFunction": ""
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "return  '<div style=\"display: flex; flex-direction: row;\">' + \n            '<div onmouseover=\"$(this).hasClass(\\'tooltipstered\\') ? $(this).tooltipster(\\'show\\') : ($(this).tooltipster({theme: \\'tooltipster-tb\\', speed: 0, delay: 0, arrow: false, content: \\'Call Attendant\\'}) && $(this).tooltipster(\\'show\\'));\">' +\n                '<button id=\"al-phone\" class=\"mat-button mat-button-base mat-icon-button al-phone\">' + \n                    '<mat-icon class=\"mat-icon material-icons\">phone</mat-icon>' +\n                    '<span class=\"mat-button-focus-overlay\"></span>' +\n                '</button>' +\n            '</div>' +\n        '</div>';",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "never"
                 },
-                "_hash": 0.6588418951443418
+                "_hash": 0.6588418951443418,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
               }
             ]
           },
@@ -1086,12 +1144,30 @@
           "titleTooltip": "",
           "widgetStyle": {},
           "displayTimewindow": true,
-          "actions": {},
+          "actions": {
+            "rowClick": [
+              {
+                "name": "details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nlet utils = $injector.get(widgetContext.servicesMap.get('utils'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nlet alarm = additionalParams.alarm;\nlet targetEntityId = alarm.entityId;\nlet target = $event.target;\nif (target.tagName !== 'BUTTON') {\n    target = $(target).parents('button')[0];\n}\nif (target) {\n    let id = target.id;\n    if (id) {\n        let popoverTrigger;\n        let stateParams;\n        switch (id) {\n            case 'al-location':\n                popoverTrigger = getPopoverTrigger(target);\n                stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                stateParams.entityId = alarm.entityId;\n                stateParams.entityName = alarm.Name;\n                openStateInPopover(popoverTrigger, 'room_location_details', stateParams, 'bottomLeft', '500px', '400px');\n                break;\n            case 'al-duration':    \n                popoverTrigger = getPopoverTrigger(target);\n                stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n                stateParams.alarm = alarm;\n                openStateInPopover(popoverTrigger, 'alarm_duration', stateParams, 'bottomLeft', '250px', '120px');\n                break;\n            case 'al-phone':\n                const nursePhone = '+123456789';\n                window.open('tel:' + nursePhone, '_self');\n                break;\n        }\n    }\n}\n\nfunction openStateInPopover(popoverTrigger, stateId, stateParams, preferredPlacement, width, height) {\n    widgetContext.actionsApi.openDashboardStateInPopover({target: popoverTrigger}, stateId, stateParams, true, preferredPlacement, true, width, height);\n}\n\nfunction getPopoverTrigger(target) {\n    let id = target.id;\n    let triggerId = id + '-trigger-'+alarm.id.id;\n    let parentTable = $(target).parents('.table-container');\n    let popoverTrigger = $('#'+triggerId, parentTable);\n    if (!popoverTrigger.length) {\n        let parentRow = $(target).parents('mat-row');\n        let top = parentRow.position().top + $(target).position().top + parentTable.scrollTop();\n        let left = $(target).position().left;\n        let width = $(target).width();\n        let height = $(target).height();\n        popoverTrigger = $('<div id=\"'+triggerId+'\" style=\"width: '+width+'px; height: '+height+'px; position: absolute; top: '+top+'px; left: '+left+'px; pointer-events: none;\"></div>');\n        parentTable.append(popoverTrigger);\n    }\n    return popoverTrigger[0];\n}\n",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "10359edd-9f68-ac02-976f-cc4a55ce0305"
+              }
+            ]
+          },
           "alarmStatusList": [],
           "alarmSeverityList": [],
           "alarmTypeList": [],
           "searchPropagatedAlarms": true,
-          "datasources": []
+          "datasources": [],
+          "enableDataExport": false,
+          "widgetCss": ".mat-table .mat-header-cell .mat-sort-header-content {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n}\n\n.mat-table .mat-cell .al-cell {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n}\n\n.mat-table .mat-cell .mat-button.al-cell-button {\n    font-size: 14px;\n    font-weight: 400;\n    color: #4B535B;\n    padding: 0 6px;\n}\n\n.mat-table .mat-cell .mat-button.al-cell-button.al-emergency {\n    color: #C42F37;\n    background: rgba(196, 47, 55, 0.06);\n    border-radius: 6px;\n    font-weight: 500;\n    padding: 8px 12px;\n    line-height: 16px;\n}\n\n.mat-table .mat-cell .mat-button.mat-icon-button.al-phone {\n    color: #868D9C;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 6px;\n    padding: 7px;\n    line-height: 16px;\n    width: 32px;\n    height: 32px\n}\n\n.mat-table .mat-cell .mat-button.mat-icon-button.al-phone .mat-icon {\n    line-height: 18px;\n    height: 18px;\n    width: 18px;\n    font-size: 18px;\n}\n\n.mat-table .mat-row:hover:not(.tb-current-entity) {\n    background-color: transparent !important;\n}\n\n.mat-table .mat-row.tb-current-entity {\n    background-color: transparent !important;\n}\n\n.mat-table .mat-row {\n    position: relative;\n}\n\n.mat-table .mat-row .mat-cell {\n    border-bottom: none;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "row": 0,
         "col": 0,
@@ -1186,8 +1262,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1233,13 +1309,7 @@
             "posFunction": "var zone = data.currentZone;\nvar xPos = data.xPos;\nvar yPos = data.yPos;\nvar locationGroup = dsData.filter((item) => item.currentZone === zone && item.xPos === xPos && item.yPos === yPos);\nif (locationGroup.length > 1) {\n    const count = locationGroup.length;\n    const index = locationGroup.indexOf(data);\n    const radius = 0.035;\n    const angle = (360 / count) * index - 45;\n    const x = xPos + radius * Math.sin(angle*Math.PI/180) / aspect;\n    const y = yPos + radius * Math.cos(angle*Math.PI/180);\n    return {x: x, y: y};\n} else {\n    return {x: xPos, y: yPos};\n}",
             "draggableMarker": false,
             "showLabel": false,
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": true,
-            "tooltipFunction": "var tooltip = '<b>' + data.entityName + '</b>';\nreturn tooltip;",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
+            "showTooltip": false,
             "color": "#fe7569",
             "useColorFunction": false,
             "useMarkerImageFunction": true,
@@ -1294,7 +1364,24 @@
           "widgetStyle": {
             "borderRadius": 0
           },
-          "actions": {},
+          "actions": {
+            "markerClick": [
+              {
+                "name": "details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "customPretty",
+                "customHtml": "<form class=\"al-form\">\n    <button class=\"al-close\" mat-icon-button (click)=\"close()\" type=\"button\">\n        <mat-icon class=\"material-icons\">close</mat-icon>\n    </button>\n    <div mat-dialog-content fxLayout=\"column\">\n        <section fxFlex fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"padding-bottom: 20px;\">\n            <img class=\"al-avatar\" [src]=\"resident.photo\"/>\n        </section>    \n        <section fxFlex fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"padding-bottom: 20px;\">\n            <div class=\"al-resident-name\">{{ resident.name }}</div>\n        </section>    \n        <section fxFlex fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"padding-bottom: 20px;\">\n            <button type=\"button\" mat-flat-button color=\"primary\" class=\"al-call-resident\">Call resident</button>\n        </section>\n        <mat-divider fxFlex style=\"padding-bottom: 20px;\"></mat-divider>\n        <section fxFlex fxLayout=\"row\" fxLayoutGap=\"8px\" style=\"padding-bottom: 20px;\">\n            <section fxFlex class=\"al-telemetry-card\" fxLayout=\"column\" fxLayoutAlign=\"space-between stretch\">\n                <section fxLayout=\"row\" fxLayoutAlign=\"space-between center\">\n                    <div class=\"al-telemetry-title\">Heart rate</div>\n                    <button type=\"button\" mat-icon-button class=\"al-mat-24\" (click)=\"toggleHeartRate()\"><mat-icon>bar_chart</mat-icon></button>\n                </section>\n                <section fxLayout=\"row\" fxLayoutAlign=\"start end\" fxLayoutGap=\"2px\">\n                    <div class=\"al-telemetry-value\">{{ resident.pulse }}</div>\n                    <div class=\"al-telemetry-unit\">BPM</div>\n                </section>    \n            </section>    \n            <section fxFlex class=\"al-telemetry-card\" fxLayout=\"column\" fxLayoutAlign=\"space-between stretch\">\n                <section fxLayout=\"row\" fxLayoutAlign=\"space-between center\">\n                    <div class=\"al-telemetry-title\">Temperature</div>\n                    <button type=\"button\" mat-icon-button class=\"al-mat-24\" (click)=\"toggleTemperature()\"><mat-icon>bar_chart</mat-icon></button>\n                </section>\n                <section fxLayout=\"row\" fxLayoutAlign=\"start end\" fxLayoutGap=\"2px\">\n                    <div class=\"al-telemetry-value\">{{ resident.temperature }}</div>\n                    <div class=\"al-telemetry-unit\">°C</div>\n                </section>\n            </section>    \n            <section fxFlex class=\"al-telemetry-card\" fxLayout=\"column\" fxLayoutAlign=\"space-between stretch\">\n                <section fxLayout=\"row\" fxLayoutAlign=\"space-between center\">\n                    <div class=\"al-telemetry-title\">Panic button</div>\n                    <button type=\"button\" mat-icon-button class=\"al-mat-24\" (click)=\"togglePanicButton()\"><mat-icon>bar_chart</mat-icon></button>\n                </section>\n                <section fxLayout=\"row\" fxLayoutAlign=\"start end\" fxLayoutGap=\"2px\">\n                    <div class=\"al-telemetry-value\">{{ resident.panicButton }}</div>\n                </section>\n            </section>    \n        </section>\n        <tb-dashboard-state *ngIf=\"wristband && chartState === 'heartRate'\" style=\"height: 210px; padding-bottom: 20px;\" stateId=\"heart_rate_chart\" [ctx]=\"widgetContext\" [entityId]=\"wristband.id\"></tb-dashboard-state>\n        <tb-dashboard-state *ngIf=\"wristband && chartState === 'temperature'\" style=\"height: 210px; padding-bottom: 20px;\" stateId=\"temperature_chart\" [ctx]=\"widgetContext\" [entityId]=\"wristband.id\"></tb-dashboard-state>\n        <tb-dashboard-state *ngIf=\"wristband && chartState === 'panicButton'\" style=\"height: 210px; padding-bottom: 20px;\" stateId=\"panic_button_chart\" [ctx]=\"widgetContext\" [entityId]=\"wristband.id\"></tb-dashboard-state>        \n        <section fxFlex fxLayout=\"row\" fxLayoutAlign=\"start start\" style=\"margin-bottom: 4px;\">\n            <section fxFlex fxLayout=\"column\" fxLayoutGap=\"12px\">\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Age</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.age }}</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Gender</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.gender }}</div>\n                </section>\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Chronic diseases</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.chronicDiseases }}</div>\n                </section>\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Allergy</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.allergy }}</div>\n                </section>\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Comments</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.comments }}</div>\n                </section>    \n            </section>    \n            <section fxFlex fxLayout=\"column\" fxLayoutGap=\"12px\">\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Room</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.room }}</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Last location</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.currentRoom }}</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Sensor battery</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.battery }}%</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Measures update</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.measureUpdate }}</div>\n                </section>    \n            </section>    \n        </section>\n        <section fxFlex fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayoutAlign=\"start center\">\n            <div class=\"al-telemetry-title\">Emergency contact</div>\n            <div class=\"al-attribute-value\">\n                <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayoutAlign=\"start center\">\n                    <button type=\"button\" mat-icon-button class=\"al-phone\"><mat-icon>phone</mat-icon></button>\n                    <div>{{ resident.emergencyContactText }}</div>\n                </div>\n            </div>\n        </section>    \n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                [disabled]=\"(isLoading$ | async)\"\n                (click)=\"close()\" cdkFocusInitial>\n            Close\n        </button>\n    </div>\n</form>\n",
+                "customCss": ".al-form {\n    width: 524px;\n    position: relative;\n}\n\n.al-form .mat-toolbar.mat-primary {\n    background: #fff;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n.al-form .mat-button.mat-primary, .al-form .mat-icon-button.mat-primary, .al-form .mat-stroked-button.mat-primary {\n    color: #4B535B;\n}\n\n.al-form .mat-fab.mat-primary, .al-form .mat-flat-button.mat-primary, .al-form .mat-mini-fab.mat-primary, .al-form .mat-raised-button.mat-primary {\n    color: #fff;\n}\n\n.al-form .mat-fab.mat-primary, .al-form .mat-flat-button.mat-primary, .al-form .mat-mini-fab.mat-primary, .al-form .mat-raised-button.mat-primary {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-button.mat-primary .mat-button-focus-overlay, .al-form .mat-icon-button.mat-primary .mat-button-focus-overlay, .al-form .mat-stroked-button.mat-primary .mat-button-focus-overlay {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-form-field.mat-focused .mat-form-field-label {\n    color: #4B535B;\n}\n\n.al-form .mat-form-field.mat-focused .mat-form-field-ripple {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-slide-toggle.mat-checked .mat-ripple-element, .al-form .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {\n    background-color: rgba(111, 116, 242, 0.54);\n}\n\n.al-form .mat-icon {\n    color: #9FA6B4;\n}\n\n.al-form .title-modal {\n    font-weight: 500;\n    font-size: 16px;\n    line-height: 130%;\n    color: #9FA6B4;\n    padding-bottom: 8px;\n}\n\n.al-form .mat-button-toggle-group-appearance-standard, .al-form .mat-button-toggle-standalone.mat-button-toggle-appearance-standard {\n    border: none;\n}\n\n.al-form .mat-button-toggle {\n    background: rgba(0, 0, 0, 0.06);\n    height: 32px;\n    align-items: center;\n    display: flex;\n}\n\n.al-form .mat-button-toggle-checked .mat-button-toggle-button {\n    background-color: #fff;\n    border-radius: 4px;\n    margin-left: 2px;\n    margin-right: 2px;\n}\n\n.al-form .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {\n    line-height: 28px;\n    font-size: 14px;\n}\n\n.al-form .mat-button-toggle-group-appearance-standard .mat-button-toggle+.mat-button-toggle {\n    border-left: none;\n}\n\n.al-form .mat-button-toggle-checked.mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {\n    opacity: .01;\n}\n\n.al-form .mat-slider {\n    padding: 8px 0;\n}\n\n.al-form .mat-primary .mat-slider-thumb, .al-form .mat-primary .mat-slider-thumb-label, .al-form .mat-primary .mat-slider-track-fill {\n    background-color: #3E3AE3;\n}\n\n.al-form .fields-group {\n    padding: 0 8px 8px;\n    margin: 10px 0;\n    border: 1px groove rgba(0, 0, 0, .25);\n    border-radius: 4px;\n}\n\n.al-form .fields-group legend {\n    color: rgba(0, 0, 0, .7);\n    width: fit-content;\n}\n\n.al-form .al-avatar {\n    width: 160px;\n    height: 160px;\n    border-radius: 80px;\n}\n\n.al-form .al-close {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n}\n\n.al-form .al-resident-name {\n    font-weight: 600;\n    font-size: 18px;\n    line-height: 24px;\n    color: #29313C;\n}\n\n.al-form .mat-button.al-call-resident {\n    background: #3E3AE3;\n    border-radius: 4px;\n}\n\n.al-form .al-telemetry-card {\n    height: 85px;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 8px;\n    padding: 16px;\n}\n\n.al-form .al-telemetry-title {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n}\n\n.al-form .mat-icon-button.al-mat-24 {\n    width: 24px;\n    height: 24px;\n    line-height: 24px;\n    padding: 0 !important;\n}\n\n.al-form .mat-icon-button.al-mat-24 .mat-icon {\n    display: block;\n    margin: auto;\n}\n\n.al-form .al-telemetry-value {\n    font-weight: 600;\n    font-size: 22px;\n    color: #29313C;\n}\n\n.al-form .al-telemetry-unit {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 130%;\n    color: #4B535B;\n}\n\n.al-form .al-attribute-value {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n}\n\n.al-form .mat-icon-button.al-phone {\n    color: #868D9C;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 6px;\n    padding: 7px;\n    line-height: 16px;\n    width: 32px;\n    height: 32px\n}\n\n.al-form .mat-icon-button.al-phone .mat-icon {\n    line-height: 18px;\n    height: 18px;\n    width: 18px;\n    font-size: 18px;\n}\n",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet deviceService = $injector.get(widgetContext.servicesMap.get('deviceService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenResidentDetailsDialog();\n\nfunction openResidentDetailsDialog() {\n    customDialog.customDialog(htmlTemplate, ResidentDetailsDialogController).subscribe();\n}\n\nfunction ResidentDetailsDialogController(instance) {\n    \n    let vm = instance;\n    vm.entityName = entityName;\n    vm.entityId = entityId;\n    \n    vm.widgetContext = widgetContext;\n    vm.resident = { name: entityName };\n    vm.wristband = null;\n    vm.chartState = null;\n    \n    vm.close = function() {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.toggleHeartRate = function() {\n        if (vm.chartState !== 'heartRate') {\n            vm.chartState = 'heartRate';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.toggleTemperature = function() {\n        if (vm.chartState !== 'temperature') {\n            vm.chartState = 'temperature';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.togglePanicButton = function() {\n        if (vm.chartState !== 'panicButton') {\n            vm.chartState = 'panicButton';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    let stateParams = widgetContext.stateController.getStateParams();\n    stateParams.onHeartRateChartClosed = function() {\n        vm.chartState = null;\n    }\n    stateParams.onTemperatureChartClosed = function() {\n        vm.chartState = null;\n    }\n    stateParams.onPanicButtonChartClosed = function() {\n        vm.chartState = null;\n    }\n    \n    loadResident();\n    \n    function loadResident() {\n        widgetContext.rxjs.forkJoin([\n            attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['photo', 'battery', 'temperature', 'pulse', 'panicButton', 'room', 'currentRoom']),\n            loadResidentWristband()\n        ]).subscribe(\n            (data) => {\n                let attributes = data[0];\n                vm.wristband = data[1];\n                let lastUpdateTs = 0;\n                for (var i = 0; i < attributes.length; i ++) {\n                    if (attributes[i].key === 'photo') {\n                        vm.resident.photo = attributes[i].value;\n                    } else if (attributes[i].key === 'battery') {\n                        vm.resident.battery = attributes[i].value;\n                    } else if (attributes[i].key === 'temperature') {\n                        vm.resident.temperature = attributes[i].value;\n                    } else if (attributes[i].key === 'pulse') {\n                        vm.resident.pulse = attributes[i].value;\n                    } else if (attributes[i].key === 'room') {\n                        vm.resident.room = attributes[i].value;\n                    } else if (attributes[i].key === 'currentRoom') {\n                        vm.resident.currentRoom = attributes[i].value;\n                    } else if (attributes[i].key === 'panicButton') {\n                        vm.resident.panicButton = attributes[i].value === true ? 'On' : 'Off';\n                    }\n                    lastUpdateTs = Math.max(lastUpdateTs, attributes[i].lastUpdateTs);\n                }\n                vm.resident.age = '—';\n                vm.resident.gender = '—';\n                vm.resident.chronicDiseases = '—';\n                vm.resident.allergy = '—';\n                vm.resident.comments = '—';\n                vm.resident.measureUpdate = widgetContext.milliSecondsToTimeString.transform(Date.now() - lastUpdateTs, true) + ' ago';\n                vm.resident.emergencyContactText = 'TODO';\n            }\n        );\n    }\n    \n    function loadResidentWristband() {\n        var wristbandQuery = {\n            parameters: {\n                rootId: entityId.id,\n                rootType: entityId.entityType,\n                direction: 'FROM',\n                maxLevel: 1\n            },\n            relationType: 'Use',\n            deviceTypes: ['AL_Wristband']\n        };\n        return deviceService.findByQuery(wristbandQuery).pipe(\n            widgetContext.rxjs.map((wristbands) => {\n                if (wristbands.length) {\n                    return wristbands[0];\n                } else {\n                    return null;\n                }\n            })\n        );\n    }\n    \n}",
+                "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "5ca38f2b-7b15-0eaa-28e0-1eb2bc7bff2c"
+              }
+            ]
+          },
           "showTitleIcon": false,
           "titleTooltip": "",
           "enableDataExport": false,
@@ -1340,8 +1427,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1436,8 +1523,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1699,8 +1786,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1842,8 +1929,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2096,8 +2183,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2299,8 +2386,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2488,8 +2575,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2669,8 +2756,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2742,8 +2829,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674147321506,
-                "endTimeMs": 1674233721506
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2854,6 +2941,14 @@
                   "funcBody": null,
                   "usePostProcessing": null,
                   "postFuncBody": null
+                },
+                {
+                  "name": "panicButton",
+                  "type": "attribute",
+                  "label": "panicButton",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.023486462103966765
                 }
               ]
             }
@@ -2872,8 +2967,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674141729730,
-                "endTimeMs": 1674228129730
+                "startTimeMs": 1674403745951,
+                "endTimeMs": 1674490145951
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2888,7 +2983,7 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": true,
-            "markdownTextFunction": "if (data[0] && data[0].firstName) {\n    let heartRate = 'N/A';\n    let bodyTemperature = 'N/A';\n    let panicButton = 'N/A';\n    let batteryLevel = 'N/A';\n    let measuresUpdate = 'N/A';\n    let lastUpdate = 0;\n    if (typeof data[0].pulse !== 'undefined') {\n        heartRate = data[0].pulse + ' bpm';\n        lastUpdate = data[0]['pulse|ts'];\n    }\n    if (typeof data[0].temperature !== 'undefined') {\n        bodyTemperature = data[0].temperature + ' °C';\n        if (data[0]['temperature|ts'] > lastUpdate) {\n            lastUpdate = data[0]['temperature|ts'];\n        }\n    }\n    if (typeof data[0].battery !== 'undefined') {\n        batteryLevel = data[0].battery + '%';\n        if (data[0]['battery|ts'] > lastUpdate) {\n            lastUpdate = data[0]['battery|ts'];\n        }\n    }\n    if (lastUpdate > 0) {\n        let measureLastDuration = Date.now() - lastUpdate;\n        measuresUpdate = ctx.milliSecondsToTimeString.transform(measureLastDuration, true) + ' ago';\n    }\n    return '<section style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n                '<section class=\"resident-title\">' + data[0].firstName + ' ' + data[0].lastName + '</section>' +\n                '<section fxFlex fxLayout=\"row\">' +\n                    '<section class=\"resident-labels\" fxFlex fxLayout=\"column\" fxLayoutAlign=\"space-around start\">' +\n                        '<section>Heart rate</section>' +\n                        '<section>Body temperature</section>' +\n                        '<section>Panic button</section>' +\n                        '<section>Battery level</section>' +\n                        '<section>Measures update</section>' +\n                    '</section>' +\n                    '<section class=\"resident-values\" fxFlex fxLayout=\"column\" fxLayoutAlign=\"space-around start\">' +\n                        '<section>' + heartRate + '</section>' +\n                        '<section>' + bodyTemperature + '</section>' +\n                        '<section>' + panicButton + '</section>' +\n                        '<section>' + batteryLevel + '</section>' +\n                        '<section>' + measuresUpdate + '</section>' +\n                    '</section>' +\n                '</section>' +\n           '</section>';\n} else {\n    return '';\n}\n",
+            "markdownTextFunction": "if (data[0] && data[0].firstName) {\n    let heartRate = 'N/A';\n    let bodyTemperature = 'N/A';\n    let panicButton = 'N/A';\n    let batteryLevel = 'N/A';\n    let measuresUpdate = 'N/A';\n    let lastUpdate = 0;\n    if (typeof data[0].pulse !== 'undefined') {\n        heartRate = data[0].pulse + ' bpm';\n        lastUpdate = data[0]['pulse|ts'];\n    }\n    if (typeof data[0].temperature !== 'undefined') {\n        bodyTemperature = data[0].temperature + ' °C';\n        if (data[0]['temperature|ts'] > lastUpdate) {\n            lastUpdate = data[0]['temperature|ts'];\n        }\n    }\n    if (typeof data[0].panicButton !== 'undefined') {\n        panicButton = data[0].panicButton === 'true' ? 'On' : 'Off';\n        if (data[0]['panicButton|ts'] > lastUpdate) {\n            lastUpdate = data[0]['panicButton|ts'];\n        }\n    }\n    if (typeof data[0].battery !== 'undefined') {\n        batteryLevel = data[0].battery + '%';\n        if (data[0]['battery|ts'] > lastUpdate) {\n            lastUpdate = data[0]['battery|ts'];\n        }\n    }\n    if (lastUpdate > 0) {\n        let measureLastDuration = Date.now() - lastUpdate;\n        measuresUpdate = ctx.milliSecondsToTimeString.transform(measureLastDuration, true) + ' ago';\n    }\n    return '<section style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n                '<section class=\"resident-title\">' + data[0].firstName + ' ' + data[0].lastName + '</section>' +\n                '<section fxFlex fxLayout=\"row\">' +\n                    '<section class=\"resident-labels\" fxFlex fxLayout=\"column\" fxLayoutAlign=\"space-around start\">' +\n                        '<section>Heart rate</section>' +\n                        '<section>Body temperature</section>' +\n                        '<section>Panic button</section>' +\n                        '<section>Battery level</section>' +\n                        '<section>Measures update</section>' +\n                    '</section>' +\n                    '<section class=\"resident-values\" fxFlex fxLayout=\"column\" fxLayoutAlign=\"space-around start\">' +\n                        '<section>' + heartRate + '</section>' +\n                        '<section>' + bodyTemperature + '</section>' +\n                        '<section>' + panicButton + '</section>' +\n                        '<section>' + batteryLevel + '</section>' +\n                        '<section>' + measuresUpdate + '</section>' +\n                    '</section>' +\n                '</section>' +\n           '</section>';\n} else {\n    return '';\n}\n",
             "markdownCss": ".resident-title {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n    padding-bottom: 12px;\n}\n\n.resident-labels {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    color: #868D9C;\n}\n\n.resident-values {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n}"
           },
           "title": "New Markdown/HTML Card",
@@ -2915,6 +3010,501 @@
         "row": 0,
         "col": 0,
         "id": "3b72632f-43fd-3a4a-5325-bb66a424811a"
+      },
+      "58fe33c2-9487-1cf7-6f93-29867a2cdfa9": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "timeseries_bars_flot",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "04aad40c-4a65-f050-33ec-6fa6532c6c5a",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "pulse",
+                  "type": "timeseries",
+                  "label": "Heart rate",
+                  "color": "#3e3ae3",
+                  "settings": {
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "excludeFromStacking": false,
+                    "showLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "comparisonSettings": {
+                      "showValuesForComparison": true,
+                      "comparisonValuesLabel": "",
+                      "color": ""
+                    },
+                    "thresholds": []
+                  },
+                  "_hash": 0.28032010945494945,
+                  "aggregationType": null,
+                  "units": "BPM",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 86400000
+            },
+            "aggregation": {
+              "type": "MAX",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "stack": true,
+            "fontSize": 10,
+            "fontColor": "#545454",
+            "showTooltip": true,
+            "tooltipIndividual": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "grid": {
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0,
+              "color": "#545454",
+              "backgroundColor": null,
+              "tickColor": "#DDDDDD"
+            },
+            "xaxis": {
+              "title": null,
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "min": null,
+              "max": null,
+              "title": null,
+              "showLabels": true,
+              "color": "#545454",
+              "tickSize": null,
+              "tickDecimals": 0,
+              "ticksFormatter": ""
+            },
+            "defaultBarWidth": 600,
+            "barAlignment": "left",
+            "comparisonEnabled": false,
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "title": null,
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Heart rate chart",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "border": "2px solid rgba(69, 75, 116, 0.08)"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "actions": {
+            "headerButton": [
+              {
+                "name": "Close",
+                "icon": "close",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "let stateParams = widgetContext.stateController.getStateParams();\nif (stateParams.onHeartRateChartClosed) {\n    stateParams.onHeartRateChartClosed();\n}",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "4a54d734-8e0d-7560-8129-deae5047562f"
+              }
+            ]
+          },
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": true,
+            "showTotal": false,
+            "showLatest": false
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "58fe33c2-9487-1cf7-6f93-29867a2cdfa9"
+      },
+      "12ce3085-7ec2-16c6-2160-6162f9f09af8": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "timeseries_bars_flot",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "d5563e08-7c63-9c75-3453-e6c4b2b322df",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "Temperature",
+                  "color": "#3e3ae3",
+                  "settings": {
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "excludeFromStacking": false,
+                    "showLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisPosition": "right",
+                    "comparisonSettings": {
+                      "showValuesForComparison": true,
+                      "comparisonValuesLabel": "",
+                      "color": ""
+                    },
+                    "thresholds": []
+                  },
+                  "_hash": 0.28032010945494945,
+                  "aggregationType": null,
+                  "units": "°C",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 86400000
+            },
+            "aggregation": {
+              "type": "MAX",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "stack": true,
+            "fontSize": 10,
+            "fontColor": "#545454",
+            "showTooltip": true,
+            "tooltipIndividual": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "grid": {
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0,
+              "color": "#545454",
+              "backgroundColor": null,
+              "tickColor": "#DDDDDD"
+            },
+            "xaxis": {
+              "title": null,
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "min": null,
+              "max": null,
+              "title": null,
+              "showLabels": true,
+              "color": "#545454",
+              "tickSize": null,
+              "tickDecimals": 0,
+              "ticksFormatter": ""
+            },
+            "defaultBarWidth": 600,
+            "barAlignment": "left",
+            "comparisonEnabled": false,
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "title": null,
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Temperature chart",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "border": "2px solid rgba(69, 75, 116, 0.08)"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "actions": {
+            "headerButton": [
+              {
+                "name": "Close",
+                "icon": "close",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "let stateParams = widgetContext.stateController.getStateParams();\nif (stateParams.onTemperatureChartClosed) {\n    stateParams.onTemperatureChartClosed();\n}",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "4a54d734-8e0d-7560-8129-deae5047562f"
+              }
+            ]
+          },
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": true,
+            "showTotal": false,
+            "showLatest": false
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "12ce3085-7ec2-16c6-2160-6162f9f09af8"
+      },
+      "5902989a-02f7-eba7-5379-5543781bf1ae": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "state_chart",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "04aad40c-4a65-f050-33ec-6fa6532c6c5a",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "panicButton",
+                  "type": "timeseries",
+                  "label": "Panic button state",
+                  "color": "#3e3ae3",
+                  "settings": {
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "excludeFromStacking": false,
+                    "showLines": true,
+                    "lineWidth": 1,
+                    "fillLines": true,
+                    "showPoints": false,
+                    "showSeparateAxis": true,
+                    "axisMin": 0,
+                    "axisMax": 1,
+                    "axisPosition": "right",
+                    "comparisonSettings": {
+                      "showValuesForComparison": true,
+                      "comparisonValuesLabel": "",
+                      "color": ""
+                    },
+                    "thresholds": []
+                  },
+                  "_hash": 0.800334512014331,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 1 : 0;"
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 50000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "stack": false,
+            "fontSize": 10,
+            "fontColor": "#545454",
+            "showTooltip": true,
+            "tooltipIndividual": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "tooltipValueFormatter": "if (value === 1) {\n    return 'On';\n} else if (value === 0) {\n    return 'Off';\n} else {\n    return '';\n}",
+            "grid": {
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0,
+              "color": "#545454",
+              "backgroundColor": null,
+              "tickColor": "#DDDDDD"
+            },
+            "xaxis": {
+              "title": null,
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "min": null,
+              "max": null,
+              "title": null,
+              "showLabels": true,
+              "color": "#545454",
+              "tickSize": null,
+              "tickDecimals": 0,
+              "ticksFormatter": "if (value === 1) {\n    return 'On';\n} else if (value === 0) {\n    return 'Off';\n} else {\n    return '';\n}"
+            },
+            "shadowSize": 4,
+            "smoothLines": false,
+            "comparisonEnabled": false,
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "title": null,
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Panic button state history",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "widgetStyle": {
+            "border": "2px solid rgba(69, 75, 116, 0.08)"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "actions": {
+            "headerButton": [
+              {
+                "name": "Close",
+                "icon": "close",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "custom",
+                "customFunction": "let stateParams = widgetContext.stateController.getStateParams();\nif (stateParams.onPanicButtonChartClosed) {\n    stateParams.onPanicButtonChartClosed();\n}",
+                "openInSeparateDialog": false,
+                "openInPopover": false,
+                "id": "44fc0cfe-8bae-3c9a-fc40-9311ec717503"
+              }
+            ]
+          },
+          "legendConfig": {
+            "direction": "column",
+            ",position": "bottom",
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false
+          },
+          "displayTimewindow": true,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "5902989a-02f7-eba7-5379-5543781bf1ae"
       }
     },
     "states": {
@@ -3313,6 +3903,84 @@
           "main": {
             "widgets": {
               "3b72632f-43fd-3a4a-5325-bb66a424811a": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "heart_rate_chart": {
+        "name": "Heart rate chart",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "58fe33c2-9487-1cf7-6f93-29867a2cdfa9": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "temperature_chart": {
+        "name": "Temperature chart",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "12ce3085-7ec2-16c6-2160-6162f9f09af8": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "panic_button_chart": {
+        "name": "Panic button chart",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "5902989a-02f7-eba7-5379-5543781bf1ae": {
                 "sizeX": 24,
                 "sizeY": 11,
                 "row": 0,
