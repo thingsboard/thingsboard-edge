@@ -31,7 +31,7 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
         AlarmUpdateMsg alarmUpdateMsg =
                 convertAlarmEventToAlarmMsg(cloudEvent.getTenantId(), cloudEvent.getEntityId(), cloudEvent.getAction(), cloudEvent.getEntityBody());
         if (alarmUpdateMsg != null) {
-            UplinkMsg.newBuilder()
+            return UplinkMsg.newBuilder()
                     .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                     .addAlarmUpdateMsg(alarmUpdateMsg)
                     .build();
