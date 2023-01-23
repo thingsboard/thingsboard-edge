@@ -49,7 +49,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProcessor;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -57,7 +57,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class DeviceCloudProcessor extends BaseEdgeProcessor {
+public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
@@ -90,30 +90,6 @@ public class DeviceCloudProcessor extends BaseEdgeProcessor {
                 return Futures.immediateFuture(null);
             }
         }, dbCallbackExecutorService);
-    }
-
-    public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
-        DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsUpdateMsg.getDeviceIdMSB(), deviceCredentialsUpdateMsg.getDeviceIdLSB()));
-        Device device = deviceService.findDeviceById(tenantId, deviceId);
-
-        if (device != null) {
-            log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
-                    device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
-            try {
-                DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
-                deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
-                deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
-                deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.hasCredentialsValue()
-                        ? deviceCredentialsUpdateMsg.getCredentialsValue() : null);
-                deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
-            } catch (Exception e) {
-                String errMsg = String.format("Can't update device credentials for device [%s], deviceCredentialsUpdateMsg [%s]",
-                        device.getName(), deviceCredentialsUpdateMsg);
-                log.error(errMsg, e);
-                return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-            }
-        }
-        return Futures.immediateFuture(null);
     }
 
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, CustomerId edgeCustomerId) {
@@ -301,8 +277,6 @@ public class DeviceCloudProcessor extends BaseEdgeProcessor {
                     log.info("Skipping event as device credentials was not found [{}]", cloudEvent);
                 }
                 break;
-            default:
-                throw new IllegalArgumentException("Unsupported edge action type [" + cloudEvent.getAction() + "]");
         }
         return msg;
     }
