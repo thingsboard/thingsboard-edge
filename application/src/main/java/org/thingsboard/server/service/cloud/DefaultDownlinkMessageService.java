@@ -160,7 +160,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    result.addAll(telemetryProcessor.processTelemetryFromCloud(tenantId, entityData));
+                    result.addAll(telemetryProcessor.processTelemetryMsg(tenantId, entityData));
                 }
             }
             if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
