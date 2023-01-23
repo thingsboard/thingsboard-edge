@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -101,11 +100,14 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                             entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
                         }
                     }
-                    addToEntityGroup(tenantId, userUpdateMsg, savedUser);
+                    safeAddEntityToGroup(tenantId, userUpdateMsg, savedUser);
                 } finally {
                     userCreationLock.unlock();
                 }
-                break;
+                return Futures.transformAsync(requestForAdditionalData(tenantId, userId, queueStartTs),
+                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                userId, null, null, queueStartTs),
+                        dbCallbackExecutorService);
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
                     UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
@@ -119,28 +121,19 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         userService.deleteUser(tenantId, userToDelete.getId());
                     }
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
         }
-
-        return Futures.transformAsync(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs), ignored -> {
-            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
-                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
-                return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
-                        userId, null, null, queueStartTs);
-            } else {
-                return Futures.immediateFuture(null);
-            }
-        }, dbCallbackExecutorService);
     }
 
-    private void addToEntityGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, User savedUser) {
+    private void safeAddEntityToGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, User savedUser) {
         if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
             UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),
                     userUpdateMsg.getEntityGroupIdLSB());
             EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-            addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+            safeAddEntityToGroup(tenantId, entityGroupId, savedUser.getId());
         }
     }
 

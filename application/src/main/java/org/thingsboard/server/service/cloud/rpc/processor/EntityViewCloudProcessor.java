@@ -101,13 +101,13 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                         entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
                     }
 
-                    addToEntityGroup(tenantId, entityViewUpdateMsg, entityViewId);
+                    safeAddToEntityGroup(tenantId, entityViewUpdateMsg, entityViewId);
                     tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                 } finally {
                     entityViewCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (entityViewUpdateMsg.hasEntityGroupIdMSB() && entityViewUpdateMsg.hasEntityGroupIdLSB()) {
                     UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(),
@@ -121,20 +121,19 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
                     }
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
         }
-        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs),
-                future -> null, dbCallbackExecutorService);
     }
 
-    private void addToEntityGroup(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg, EntityViewId entityViewId) {
+    private void safeAddToEntityGroup(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg, EntityViewId entityViewId) {
         if (entityViewUpdateMsg.hasEntityGroupIdMSB() && entityViewUpdateMsg.hasEntityGroupIdLSB()) {
             UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(),
                     entityViewUpdateMsg.getEntityGroupIdLSB());
             EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-            addEntityToGroup(tenantId, entityGroupId, entityViewId);
+            safeAddEntityToGroup(tenantId, entityGroupId, entityViewId);
         }
     }
 

@@ -215,7 +215,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    result.addAll(telemetryProcessor.processTelemetryFromCloud(tenantId, entityData));
+                    result.addAll(telemetryProcessor.processTelemetryMsg(tenantId, entityData));
                 }
             }
             if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
@@ -245,7 +245,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceCredentialsMsgFromCloud(tenantId, deviceCredentialsUpdateMsg));
+                    result.add(deviceProcessor.processDeviceCredentialsMsg(tenantId, deviceCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
@@ -275,7 +275,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(alarmProcessor.processAlarmMsgFromCloud(tenantId, alarmUpdateMsg));
+                    result.add(alarmProcessor.processAlarmMsg(tenantId, alarmUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
@@ -291,7 +291,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationProcessor.processRelationMsgFromCloud(tenantId, relationUpdateMsg));
+                    result.add(relationProcessor.processRelationMsg(tenantId, relationUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {

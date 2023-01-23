@@ -120,7 +120,7 @@ public abstract class BaseDeviceProcessor extends BaseEdgeProcessor {
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
             }
             safeAddToEntityGroup(tenantId, deviceUpdateMsg, deviceId);
-            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false);
+            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false, false);
         } finally {
             deviceCreationLock.unlock();
         }

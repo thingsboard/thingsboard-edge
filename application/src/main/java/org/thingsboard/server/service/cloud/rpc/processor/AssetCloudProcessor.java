@@ -58,7 +58,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
-                break;
+                return requestForAdditionalData(tenantId, assetId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
                     UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
@@ -71,12 +71,11 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
                         assetService.deleteAsset(tenantId, assetId);
                     }
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
         }
-
-        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutorService);
     }
 
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
@@ -105,18 +104,18 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             if (created) {
                 entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
             }
-            addToEntityGroup(tenantId, assetUpdateMsg, assetId);
+            safeAddEntityToGroup(tenantId, assetUpdateMsg, assetId);
         } finally {
             assetCreationLock.unlock();
         }
     }
 
-    private void addToEntityGroup(TenantId tenantId, AssetUpdateMsg assetUpdateMsg, AssetId assetId) {
+    private void safeAddEntityToGroup(TenantId tenantId, AssetUpdateMsg assetUpdateMsg, AssetId assetId) {
         if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
             UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(),
                     assetUpdateMsg.getEntityGroupIdLSB());
             EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-            addEntityToGroup(tenantId, entityGroupId, assetId);
+            safeAddEntityToGroup(tenantId, entityGroupId, assetId);
         }
     }
 }

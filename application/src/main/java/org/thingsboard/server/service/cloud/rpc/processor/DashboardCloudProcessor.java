@@ -84,11 +84,11 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
                     }
-                    addToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
+                    safeAddToEntityGroup(tenantId, dashboardUpdateMsg, dashboardId);
                 } finally {
                     dashboardCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
                     UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
@@ -102,21 +102,19 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                         dashboardService.deleteDashboard(tenantId, dashboardId);
                     }
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
         }
-
-        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs),
-                future -> null, dbCallbackExecutorService);
     }
 
-    private void addToEntityGroup(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg, DashboardId dashboardId) {
+    private void safeAddToEntityGroup(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg, DashboardId dashboardId) {
         if (dashboardUpdateMsg.hasEntityGroupIdMSB() && dashboardUpdateMsg.hasEntityGroupIdLSB()) {
             UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(),
                     dashboardUpdateMsg.getEntityGroupIdLSB());
             EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-            addEntityToGroup(tenantId, entityGroupId, dashboardId);
+            safeAddEntityToGroup(tenantId, entityGroupId, dashboardId);
         }
     }
 }
