@@ -64,7 +64,20 @@ public class DataProviderCredential {
     public static Object[][] nameForSearchBySymbolAndNumber() {
         return new Object[][]{
                 {NAME, ENTITY_NAME.split("`")[1]},
-                {NAME, String.valueOf(getRandomSymbol())}};
+                {NAME, "~"},
+                {NAME, "`"},
+                {NAME, "!"},
+                {NAME, "@"},
+                {NAME, "#"},
+                {NAME, "$"},
+                {NAME, "^"},
+                {NAME, "&"},
+                {NAME, "*"},
+                {NAME, "("},
+                {NAME, ")"},
+                {NAME, "+"},
+                {NAME, "="},
+                {NAME, "-"}};
     }
 
     @DataProvider
@@ -109,7 +122,20 @@ public class DataProviderCredential {
                 {DEFAULT_DEVICE_PROFILE_NAME, DEFAULT_DEVICE_PROFILE_NAME.split(" ")[0]},
                 {DEFAULT_DEVICE_PROFILE_NAME, DEFAULT_DEVICE_PROFILE_NAME.split(" ")[1]},
                 {NAME, ENTITY_NAME.split("`")[1]},
-                {NAME, String.valueOf(getRandomSymbol())}};
+                {NAME, "~"},
+                {NAME, "`"},
+                {NAME, "!"},
+                {NAME, "@"},
+                {NAME, "#"},
+                {NAME, "$"},
+                {NAME, "^"},
+                {NAME, "&"},
+                {NAME, "*"},
+                {NAME, "("},
+                {NAME, ")"},
+                {NAME, "+"},
+                {NAME, "="},
+                {NAME, "-"}};
     }
 
     @DataProvider
@@ -118,7 +144,20 @@ public class DataProviderCredential {
                 {DEFAULT_ASSET_PROFILE_NAME, DEFAULT_ASSET_PROFILE_NAME.split(" ")[0]},
                 {DEFAULT_ASSET_PROFILE_NAME, DEFAULT_ASSET_PROFILE_NAME.split(" ")[1]},
                 {NAME, ENTITY_NAME.split("`")[1]},
-                {NAME, String.valueOf(getRandomSymbol())}};
+                {NAME, "~"},
+                {NAME, "`"},
+                {NAME, "!"},
+                {NAME, "@"},
+                {NAME, "#"},
+                {NAME, "$"},
+                {NAME, "^"},
+                {NAME, "&"},
+                {NAME, "*"},
+                {NAME, "("},
+                {NAME, ")"},
+                {NAME, "+"},
+                {NAME, "="},
+                {NAME, "-"}};
     }
 
     @DataProvider
