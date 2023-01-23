@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -112,6 +113,8 @@ public abstract class BaseRelationProcessor extends BaseEdgeProcessor {
                 return dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
             case EDGE:
                 return edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId())) != null;
+            case ENTITY_GROUP:
+                return entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())) != null;
             default:
                 return false;
         }
