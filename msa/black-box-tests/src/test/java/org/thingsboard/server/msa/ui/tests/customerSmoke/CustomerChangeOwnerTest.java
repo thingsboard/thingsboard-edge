@@ -91,6 +91,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().click();
         customerPage.changeOwnerViewField().sendKeys(Keys.ESCAPE);
+        customerPage.changeOwnerViewChangeOwnerBtnVisible().click();
 
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
         Assert.assertNotNull(customerPage.errorMessage());
