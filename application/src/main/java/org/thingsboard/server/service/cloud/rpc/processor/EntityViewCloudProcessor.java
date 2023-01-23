@@ -88,19 +88,18 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                 } finally {
                     entityViewCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, entityViewId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
                 if (entityViewById != null) {
                     entityViewService.deleteEntityView(tenantId, entityViewId);
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
         }
-        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs),
-                future -> null, dbCallbackExecutorService);
     }
 
     public UplinkMsg convertEntityViewRequestEventToUplink(CloudEvent cloudEvent) {

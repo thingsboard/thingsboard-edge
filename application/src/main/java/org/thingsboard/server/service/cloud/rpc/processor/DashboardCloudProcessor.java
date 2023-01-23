@@ -86,19 +86,17 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                 } finally {
                     dashboardCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
                 if (dashboardById != null) {
                     dashboardService.deleteDashboard(tenantId, dashboardId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
         }
-
-        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs),
-                future -> null, dbCallbackExecutorService);
     }
 
     private void unassignCustomersFromDashboard(TenantId tenantId, Dashboard dashboard) {

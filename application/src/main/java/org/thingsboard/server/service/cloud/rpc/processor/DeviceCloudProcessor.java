@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -31,6 +30,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -48,7 +48,6 @@ import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.processor.device.BaseDeviceProcessor;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -59,44 +58,37 @@ import java.util.UUID;
 @Slf4j
 public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
-    @Autowired
-    private DataDecodingEncodingService dataDecodingEncodingService;
-
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             CustomerId edgeCustomerId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
                                                             Long queueStartTs) {
+        log.trace("[{}] executing processDeviceMsgFromCloud [{}]", tenantId, deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId);
-                break;
+                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId, queueStartTs);
+                return Futures.transformAsync(requestForAdditionalData(tenantId, deviceId, queueStartTs),
+                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                        deviceId, null, queueStartTs), dbCallbackExecutorService);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
                 if (deviceById != null) {
                     deviceService.deleteDevice(tenantId, deviceId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
         }
-        return Futures.transformAsync(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), unused -> {
-            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
-                        deviceId, null, queueStartTs);
-            } else {
-                return Futures.immediateFuture(null);
-            }
-        }, dbCallbackExecutorService);
     }
 
-    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, CustomerId edgeCustomerId) {
+    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, CustomerId edgeCustomerId, Long queueStartTs) {
         deviceCreationLock.lock();
         try {
             Device device = deviceService.findDeviceById(tenantId, deviceId);
             boolean created = false;
+            boolean deviceNameUpdated = false;
             String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
                 created = true;
@@ -108,6 +100,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     deviceName = deviceName + "_" + RandomStringUtils.randomAlphabetic(15);
                     log.warn("Device with name {} already exists on the edge. Renaming device name to {}",
                             deviceUpdateMsg.getName(), deviceName);
+                    deviceNameUpdated = true;
                 }
             }
             device.setName(deviceName);
@@ -144,6 +137,10 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
             }
             tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false, false);
+
+            if (deviceNameUpdated) {
+                cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, queueStartTs);
+            }
         } finally {
             deviceCreationLock.unlock();
         }

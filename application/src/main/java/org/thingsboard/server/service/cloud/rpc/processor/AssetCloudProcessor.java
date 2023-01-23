@@ -44,18 +44,17 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId);
-                break;
+                return requestForAdditionalData(tenantId, assetId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Asset assetById = assetService.findAssetById(tenantId, assetId);
                 if (assetById != null) {
                     assetService.deleteAsset(tenantId, assetId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
         }
-
-        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutorService);
     }
 
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId) {

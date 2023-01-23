@@ -33,7 +33,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -87,26 +86,20 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                 } finally {
                     userCreationLock.unlock();
                 }
-                break;
+                return Futures.transformAsync(requestForAdditionalData(tenantId, userId, queueStartTs),
+                        ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                userId, null, queueStartTs),
+                        dbCallbackExecutorService);
             case ENTITY_DELETED_RPC_MESSAGE:
                 User userToDelete = userService.findUserById(tenantId, userId);
                 if (userToDelete != null) {
                     userService.deleteUser(tenantId, userToDelete.getId());
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
         }
-
-        return Futures.transformAsync(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs), ignored -> {
-            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
-                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
-                return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
-                        userId, null, queueStartTs);
-            } else {
-                return Futures.immediateFuture(null);
-            }
-        }, dbCallbackExecutorService);
     }
 
     public ListenableFuture<Void> processUserCredentialsMsgFromCloud(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
