@@ -17,10 +17,8 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,53 +78,18 @@ public class DeviceCloudProcessor extends BaseEdgeProcessor {
                     deviceService.deleteDevice(tenantId, deviceId);
                 }
                 break;
-            case ENTITY_MERGE_RPC_MESSAGE:
-                deviceCreationLock.lock();
-                try {
-                    String deviceName = deviceUpdateMsg.getName();
-                    if (deviceUpdateMsg.hasConflictName()) {
-                        deviceName = deviceUpdateMsg.getConflictName();
-                    }
-                    Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
-                    if (deviceByName != null) {
-                        deviceByName.setName(deviceUpdateMsg.getName());
-                        deviceService.saveDevice(deviceByName);
-                    }
-                } finally {
-                    deviceCreationLock.unlock();
-                }
-                break;
             case UNRECOGNIZED:
                 return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
         }
-
-        SettableFuture<Void> futureToSet = SettableFuture.create();
-        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), new FutureCallback<>() {
-            @Override
-            public void onSuccess(Void ignored) {
-                try {
-                    if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                            UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
-                                deviceId, null, queueStartTs);
-                    } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED,
-                                deviceId, null, 0L);
-                    }
-                    futureToSet.set(null);
-                } catch (Exception e) {
-                    log.error("Failed to save credential updated cloud event, deviceUpdateMsg [{}]", deviceUpdateMsg, e);
-                    futureToSet.setException(e);
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("Failed to request for additional data, deviceUpdateMsg [{}]", deviceUpdateMsg, t);
-                futureToSet.setException(t);
+        return Futures.transformAsync(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), unused -> {
+            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
+                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+                return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                        deviceId, null, queueStartTs);
+            } else {
+                return Futures.immediateFuture(null);
             }
         }, dbCallbackExecutorService);
-        return futureToSet;
     }
 
     public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {

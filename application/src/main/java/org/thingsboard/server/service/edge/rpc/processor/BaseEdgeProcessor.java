@@ -533,9 +533,9 @@ public abstract class BaseEdgeProcessor {
     protected OtaPackageStateService otaPackageStateService;
 
     protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
-        List<ListenableFuture<Void>> futures = new ArrayList<>();
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
+            List<ListenableFuture<Void>> futures = new ArrayList<>();
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
 
             log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
@@ -547,7 +547,9 @@ public abstract class BaseEdgeProcessor {
                 futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
                         EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, queueStartTs));
             }
+            return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+        } else {
+            return Futures.immediateFuture(null);
         }
-        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 }
