@@ -61,6 +61,8 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId,
                                                               CustomerUpdateMsg customerUpdateMsg) throws ThingsboardException {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
+        EntityId ownerId = safeGetOwnerId(tenantId, customerUpdateMsg.getOwnerEntityType(),
+                customerUpdateMsg.getOwnerIdMSB(), customerUpdateMsg.getOwnerIdLSB());
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -75,7 +77,11 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                         customer.setTenantId(tenantId);
                         created = true;
                     } else {
-                        changeOwnerIfRequired(tenantId, customerId, customerId);
+                        CustomerId tmpCustomerOwnerId = new CustomerId(EntityId.NULL_UUID);
+                        if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                            tmpCustomerOwnerId = new CustomerId(ownerId.getId());
+                        }
+                        changeOwnerIfRequired(tenantId, tmpCustomerOwnerId, customerId);
                     }
                     customer.setTitle(customerUpdateMsg.getTitle());
                     customer.setCountry(customerUpdateMsg.hasCountry() ? customerUpdateMsg.getCountry() : null);
@@ -87,8 +93,6 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                     customer.setPhone(customerUpdateMsg.hasPhone() ? customerUpdateMsg.getPhone() : null);
                     customer.setEmail(customerUpdateMsg.hasEmail() ? customerUpdateMsg.getEmail() : null);
                     customer.setAdditionalInfo(customerUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()) : null);
-                    EntityId ownerId = safeGetOwnerId(tenantId, customerUpdateMsg.getOwnerEntityType(),
-                            customerUpdateMsg.getOwnerIdMSB(), customerUpdateMsg.getOwnerIdLSB());
                     customer.setOwnerId(ownerId);
                     Customer savedCustomer = customerService.saveCustomer(customer, false);
 
