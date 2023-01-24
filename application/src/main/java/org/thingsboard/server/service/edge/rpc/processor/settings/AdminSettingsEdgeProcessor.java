@@ -28,27 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.processor.settings;
 
-public enum EdgeEventActionType {
-    ADDED,
-    DELETED,
-    UPDATED,
-    POST_ATTRIBUTES,
-    ATTRIBUTES_UPDATED,
-    ATTRIBUTES_DELETED,
-    TIMESERIES_UPDATED,
-    CREDENTIALS_UPDATED,
-    RELATION_ADD_OR_UPDATE,
-    RELATION_DELETED,
-    RPC_CALL,
-    ALARM_ACK,
-    ALARM_CLEAR,
-    ASSIGNED_TO_EDGE,
-    UNASSIGNED_FROM_EDGE,
-    CREDENTIALS_REQUEST,
-    ADDED_TO_ENTITY_GROUP,
-    REMOVED_FROM_ENTITY_GROUP,
-    CHANGE_OWNER,
-    ENTITY_MERGE_REQUEST // deprecated
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+
+@Component
+@Slf4j
+@TbCoreComponent
+public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
+
+    public DownlinkMsg convertAdminSettingsEventToDownlink(EdgeEvent edgeEvent) {
+        AdminSettings adminSettings = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), AdminSettings.class);
+        AdminSettingsUpdateMsg adminSettingsUpdateMsg = adminSettingsMsgConstructor.constructAdminSettingsUpdateMsg(adminSettings);
+        return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                .addAdminSettingsUpdateMsg(adminSettingsUpdateMsg)
+                .build();
+    }
+
+
 }
