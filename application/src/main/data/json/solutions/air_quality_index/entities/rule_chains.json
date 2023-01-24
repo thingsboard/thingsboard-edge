@@ -12,12 +12,12 @@
   },
   {
     "name": "AQI City (Remote Location)",
-    "file": "aqi_city_remote_location.json",
+    "file": "remote_location_aqi_city.json",
     "jsonId": "9ae5aac7-1126-467c-8bc0-1d0d0feb3464"
   },
   {
     "name": "AQI Sensor (Remote Location)",
-    "file": "aqi_sensor_remote_location.json",
+    "file": "remote_location_aqi_sensor.json",
     "jsonId": "3bc41c36-776c-4d4f-b53f-b7ed7f9a76f3"
   }
 ]
