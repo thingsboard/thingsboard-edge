@@ -34,7 +34,6 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -87,7 +86,7 @@ public class DeviceProfileCloudProcessor extends BaseEdgeProcessor {
                         deviceProfile.setTenantId(tenantId);
                         DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceProfileName);
                         if (deviceProfileByName != null) {
-                            deviceProfileName = deviceProfileName + "_" + RandomStringUtils.randomAlphabetic(15);
+                            deviceProfileName = deviceProfileName + "_" + StringUtils.randomAlphabetic(15);
                             log.warn("Device profile with name {} already exists on the edge. Renaming device profile name to {}",
                                     deviceProfileUpdateMsg.getName(), deviceProfileName);
                         }

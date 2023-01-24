@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -69,6 +68,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -379,7 +379,7 @@ public abstract class AbstractContainerTest {
 
     protected static Edge createEdge(String name, String routingKey, String secret) {
         Edge edge = new Edge();
-        edge.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        edge.setName(name + StringUtils.randomAlphanumeric(7));
         edge.setType("DEFAULT");
         edge.setRoutingKey(routingKey);
         edge.setSecret(secret);
@@ -412,7 +412,7 @@ public abstract class AbstractContainerTest {
     }
 
     protected Asset saveAssetAndAssignEntityGroupToEdge(String assetType, EntityGroup savedAssetEntityGroup) {
-        Asset asset = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), assetType, savedAssetEntityGroup.getId());
+        Asset asset = saveAssetOnCloud(StringUtils.randomAlphanumeric(15), assetType, savedAssetEntityGroup.getId());
 
         assignEntityGroupToEdge(savedAssetEntityGroup);
 
@@ -729,7 +729,7 @@ public abstract class AbstractContainerTest {
     }
 
     protected Device saveDeviceAndAssignEntityGroupToEdge(String deviceType, EntityGroup savedDeviceEntityGroup) {
-        Device device = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), deviceType, savedDeviceEntityGroup.getId());
+        Device device = saveDeviceOnCloud(StringUtils.randomAlphanumeric(15), deviceType, savedDeviceEntityGroup.getId());
         cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
 
         Awaitility.await()
@@ -782,7 +782,7 @@ public abstract class AbstractContainerTest {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setType(entityType);
         entityGroup.setOwnerId(ownerId);
-        entityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        entityGroup.setName(StringUtils.randomAlphanumeric(15));
         return cloudRestClient.saveEntityGroup(entityGroup);
     }
 

@@ -37,8 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
@@ -52,7 +54,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            AssetUpdateMsg assetUpdateMsg,
-                                                           Long queueStartTs) {
+                                                           Long queueStartTs) throws ThingsboardException {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -78,7 +80,8 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
         }
     }
 
-    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) throws ThingsboardException {
+        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
         assetCreationLock.lock();
         try {
             Asset asset = assetService.findAssetById(tenantId, assetId);
@@ -88,12 +91,14 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
                 asset.setTenantId(tenantId);
                 asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
                 created = true;
+            } else {
+                changeOwnerIfRequired(tenantId, customerId, assetId);
             }
             asset.setName(assetUpdateMsg.getName());
             asset.setType(assetUpdateMsg.getType());
             asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
             asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-            asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB()));
+            asset.setCustomerId(customerId);
             UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
             asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
             assetValidator.validate(asset, Asset::getTenantId);

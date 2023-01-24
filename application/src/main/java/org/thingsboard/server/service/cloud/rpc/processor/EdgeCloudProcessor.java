@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -52,17 +53,20 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock edgeCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processEdgeConfigurationMsgFromCloud(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
+    public ListenableFuture<Void> processEdgeConfigurationMsgFromCloud(TenantId tenantId,
+                                                                       EdgeConfiguration edgeConfiguration) throws ThingsboardException {
         EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
         edgeCreationLock.lock();
         try {
             Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+            CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
             if (edge == null) {
                 edge = new Edge();
                 edge.setId(edgeId);
                 edge.setTenantId(tenantId);
+            } else {
+                changeOwnerIfRequired(tenantId, customerId, edgeId);
             }
-            CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
             edge.setCustomerId(customerId);
             edge.setName(edgeConfiguration.getName());
             edge.setType(edgeConfiguration.getType());

@@ -34,13 +34,15 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -67,8 +69,9 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
                                                           UserUpdateMsg userUpdateMsg,
-                                                          Long queueStartTs) {
+                                                          Long queueStartTs) throws ThingsboardException {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
+        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB());
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -82,18 +85,20 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         user.setId(userId);
                         user.setCreatedTime(Uuids.unixTimestamp(userId.getId()));
                         created = true;
+                    } else {
+                        changeOwnerIfRequired(tenantId, customerId, userId);
                     }
                     user.setEmail(userUpdateMsg.getEmail());
                     user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
                     user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
                     user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
                     user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
-                    user.setCustomerId(safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB()));
+                    user.setCustomerId(customerId);
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
                         UserCredentials userCredentials = new UserCredentials();
                         userCredentials.setEnabled(false);
-                        userCredentials.setActivateToken(RandomStringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
+                        userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
                         userCredentials.setUserId(new UserId(savedUser.getUuidId()));
                         userService.saveUserCredentialsAndPasswordHistory(user.getTenantId(), userCredentials);
                         if (!user.getTenantId().isNullUid()) {

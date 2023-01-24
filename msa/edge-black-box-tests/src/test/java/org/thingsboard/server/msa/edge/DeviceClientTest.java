@@ -39,7 +39,6 @@ import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.ClaimRequest;
@@ -51,6 +50,7 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
@@ -602,7 +602,7 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() {
-        String deviceName = RandomStringUtils.randomAlphanumeric(15);
+        String deviceName = StringUtils.randomAlphanumeric(15);
         Device savedDeviceOnCloud = saveDeviceOnCloud(deviceName, "default");
         Device savedDeviceOnEdge = saveDeviceOnEdge(deviceName, "default");
 

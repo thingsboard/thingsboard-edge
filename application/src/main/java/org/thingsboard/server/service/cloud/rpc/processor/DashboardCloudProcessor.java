@@ -38,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -60,26 +62,28 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
                                                                DashboardUpdateMsg dashboardUpdateMsg,
-                                                               Long queueStartTs) {
+                                                               Long queueStartTs) throws ThingsboardException {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
+        CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 dashboardCreationLock.lock();
                 try {
-                    boolean created = false;
                     Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+                    boolean created = false;
                     if (dashboard == null) {
                         dashboard = new Dashboard();
                         dashboard.setId(dashboardId);
                         dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
                         dashboard.setTenantId(tenantId);
                         created = true;
+                    } else {
+                        changeOwnerIfRequired(tenantId, customerId, dashboardId);
                     }
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-
-                    dashboard.setCustomerId(safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB()));
+                    dashboard.setCustomerId(customerId);
                     Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());

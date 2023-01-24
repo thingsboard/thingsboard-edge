@@ -39,11 +39,14 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
@@ -55,7 +58,8 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId,
+                                                              CustomerUpdateMsg customerUpdateMsg) throws ThingsboardException {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -70,6 +74,8 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                         customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
                         customer.setTenantId(tenantId);
                         created = true;
+                    } else {
+                        changeOwnerIfRequired(tenantId, customerId, customerId);
                     }
                     customer.setTitle(customerUpdateMsg.getTitle());
                     customer.setCountry(customerUpdateMsg.hasCountry() ? customerUpdateMsg.getCountry() : null);
@@ -87,14 +93,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                     Customer savedCustomer = customerService.saveCustomer(customer, false);
 
                     if (created) {
-                        entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.EDGE);
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
-                        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
+                        postCreateSteps(savedCustomer);
                     }
                 } finally {
                     customerCreationLock.unlock();
@@ -110,5 +109,35 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
+    }
+
+    public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
+        CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer == null) {
+            customerCreationLock.lock();
+            try {
+                customer = new Customer();
+                customer.setId(customerId);
+                customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
+                customer.setTenantId(tenantId);
+                customer.setTitle("TMP_NAME_" + StringUtils.randomAlphanumeric(10));
+                Customer savedCustomer = customerService.saveCustomer(customer, false);
+                postCreateSteps(savedCustomer);
+            } finally {
+                customerCreationLock.unlock();
+            }
+        }
+    }
+
+    private void postCreateSteps(Customer savedCustomer) {
+        entityGroupService.addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.EDGE);
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
+        entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
     }
 }

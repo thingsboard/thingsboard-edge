@@ -39,7 +39,9 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -64,8 +66,9 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
                                                                 EntityViewUpdateMsg entityViewUpdateMsg,
-                                                                Long queueStartTs) {
+                                                                Long queueStartTs) throws ThingsboardException {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
+        CustomerId customerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -79,6 +82,8 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                         entityView.setTenantId(tenantId);
                         entityView.setId(entityViewId);
                         entityView.setCreatedTime(Uuids.unixTimestamp(entityViewId.getId()));
+                    } else {
+                        changeOwnerIfRequired(tenantId, customerId, entityViewId);
                     }
                     EntityId entityId = null;
                     switch (entityViewUpdateMsg.getEntityType()) {
@@ -94,7 +99,7 @@ public class EntityViewCloudProcessor extends BaseEdgeProcessor {
                     entityView.setEntityId(entityId);
                     entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo()
                             ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
-                    entityView.setCustomerId(safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB()));
+                    entityView.setCustomerId(customerId);
                     EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
 
                     if (created) {
