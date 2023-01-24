@@ -399,7 +399,7 @@
   },
   {
     "name": "C00000015FE1",
-    "label": "Andrei Piontkovsky",
+    "label": "Olivia Smith",
     "type": "AL_Wristband",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
@@ -408,7 +408,7 @@
     "relations": [
       {
         "entityType": "USER",
-        "entityName": "andrei.piontkovsky.$random@thingsboard.org",
+        "entityName": "olivia.smith.$random@thingsboard.org",
         "direction": "FROM",
         "type": "Use"
       }
