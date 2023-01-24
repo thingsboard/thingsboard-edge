@@ -62,13 +62,8 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
                 edge.setId(edgeId);
                 edge.setTenantId(tenantId);
             }
-            if (edgeConfiguration.getCustomerIdMSB() != 0 && edgeConfiguration.getCustomerIdLSB() != 0) {
-                UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-                edge.setCustomerId(new CustomerId(customerUUID));
-                customerCreationLock.lock();
-            } else {
-                edge.setCustomerId(null);
-            }
+            CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+            edge.setCustomerId(customerId);
             edge.setName(edgeConfiguration.getName());
             edge.setType(edgeConfiguration.getType());
             edge.setRoutingKey(edgeConfiguration.getRoutingKey());
@@ -78,7 +73,6 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
             edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
             edgeService.saveEdge(edge, false);
         } finally {
-            customerCreationLock.unlock();
             edgeCreationLock.unlock();
         }
         return Futures.immediateFuture(null);
