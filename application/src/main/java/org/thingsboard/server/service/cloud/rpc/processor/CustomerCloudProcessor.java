@@ -118,7 +118,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
         CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
         Customer customer = customerService.findCustomerById(tenantId, customerId);
-        if (customer == null) {
+        if (customer == null && customerId != null && !customerId.isNullUid()) {
             customerCreationLock.lock();
             try {
                 customer = new Customer();
