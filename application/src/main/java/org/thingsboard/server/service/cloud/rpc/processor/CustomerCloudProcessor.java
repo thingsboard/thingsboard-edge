@@ -23,15 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
@@ -79,5 +79,23 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
+    }
+
+    public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
+        CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer == null) {
+            customerCreationLock.lock();
+            try {
+                customer = new Customer();
+                customer.setId(customerId);
+                customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
+                customer.setTenantId(tenantId);
+                customer.setTitle("TMP_NAME_" + StringUtils.randomAlphanumeric(10));
+                customerService.saveCustomer(customer, false);
+            } finally {
+                customerCreationLock.unlock();
+            }
+        }
     }
 }

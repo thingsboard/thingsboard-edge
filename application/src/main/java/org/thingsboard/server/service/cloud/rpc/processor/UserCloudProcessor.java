@@ -19,10 +19,10 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -79,7 +79,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     if (created) {
                         UserCredentials userCredentials = new UserCredentials();
                         userCredentials.setEnabled(false);
-                        userCredentials.setActivateToken(RandomStringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
+                        userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
                         userCredentials.setUserId(new UserId(savedUser.getUuidId()));
                         userService.saveUserCredentialsAndPasswordHistory(user.getTenantId(), userCredentials);
                     }

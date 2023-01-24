@@ -59,6 +59,7 @@ import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
@@ -160,7 +161,10 @@ public class CloudManagerService {
     private RuleChainCloudProcessor ruleChainProcessor;
 
     @Autowired
-    private TenantCloudProcessor tenantCloudProcessor;
+    private TenantCloudProcessor tenantProcessor;
+
+    @Autowired
+    private CustomerCloudProcessor customerProcessor;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -464,15 +468,17 @@ public class CloudManagerService {
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(this.tenantId);
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
-            tenantCloudProcessor.cleanUp();
+            tenantProcessor.cleanUp();
             this.currentEdgeSettings = newEdgeSettings;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
-        tenantCloudProcessor.createTenantIfNotExists(this.tenantId);
+        tenantProcessor.createTenantIfNotExists(this.tenantId);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
-
+        if (edgeCustomerIdUpdated) {
+            customerProcessor.createCustomerIfNotExists(this.tenantId, edgeConfiguration);
+        }
         // TODO: voba - should sync be executed in some other cases ???
         log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
         edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired() | edgeCustomerIdUpdated);
