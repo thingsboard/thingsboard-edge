@@ -28,27 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.processor.telemetry;
 
-public enum EdgeEventActionType {
-    ADDED,
-    DELETED,
-    UPDATED,
-    POST_ATTRIBUTES,
-    ATTRIBUTES_UPDATED,
-    ATTRIBUTES_DELETED,
-    TIMESERIES_UPDATED,
-    CREDENTIALS_UPDATED,
-    RELATION_ADD_OR_UPDATE,
-    RELATION_DELETED,
-    RPC_CALL,
-    ALARM_ACK,
-    ALARM_CLEAR,
-    ASSIGNED_TO_EDGE,
-    UNASSIGNED_FROM_EDGE,
-    CREDENTIALS_REQUEST,
-    ADDED_TO_ENTITY_GROUP,
-    REMOVED_FROM_ENTITY_GROUP,
-    CHANGE_OWNER,
-    ENTITY_MERGE_REQUEST // deprecated
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EntityDataProto;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+
+@Component
+@Slf4j
+@TbCoreComponent
+public class TelemetryEdgeProcessor extends BaseTelemetryProcessor {
+
+    @Override
+    protected String getMsgSourceKey() {
+        return DataConstants.EDGE_MSG_SOURCE;
+    }
+
+    public DownlinkMsg convertTelemetryEventToDownlink(EdgeEvent edgeEvent) throws JsonProcessingException {
+        EntityType entityType = EntityType.valueOf(edgeEvent.getType().name());
+        EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(entityType, edgeEvent.getEntityId(),
+                edgeEvent.getAction(), edgeEvent.getBody());
+        return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                .addEntityData(entityDataProto)
+                .build();
+    }
 }
