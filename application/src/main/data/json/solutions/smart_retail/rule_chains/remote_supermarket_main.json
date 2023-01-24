@@ -3,7 +3,7 @@
     "additionalInfo": {
       "description": ""
     },
-    "name": "Supermarket Devices (Remote)",
+    "name": "Supermarket Devices (Remote Supermarket)",
     "type": "EDGE",
     "firstRuleNodeId": null,
     "root": false,
