@@ -31,39 +31,39 @@
 package org.thingsboard.rule.engine.filter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
-import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.msg.TbMsg;
 
 @Slf4j
 @RuleNode(
         type = ComponentType.FILTER,
-        name = "entity type",
-        configClazz = TbOriginatorTypeFilterNodeConfiguration.class,
-        relationTypes = {"True", "False"},
-        nodeDescription = "Filter incoming messages by message Originator Type",
-        nodeDetails = "If the entity type of the incoming message originator is expected - send Message via <b>True</b> chain, otherwise <b>False</b> chain is used.",
+        name = "asset type switch",
+        customRelations = true,
+        relationTypes = {},
+        configClazz = EmptyNodeConfiguration.class,
+        nodeDescription = "Route incoming messages based on the name of the asset profile",
+        nodeDetails = "Route incoming messages based on the name of the asset profile. The asset profile name is case-sensitive",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbFilterNodeOriginatorTypeConfig")
-public class TbOriginatorTypeFilterNode implements TbNode {
-
-    TbOriginatorTypeFilterNodeConfiguration config;
+        configDirective = "tbNodeEmptyConfig")
+public class TbAssetTypeSwitchNode extends TbAbstractTypeSwitchNode {
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbOriginatorTypeFilterNodeConfiguration.class);
-    }
-
-    @Override
-    public void onMsg(TbContext ctx, TbMsg msg) {
-        EntityType originatorType = msg.getOriginator().getEntityType();
-        ctx.tellNext(msg, config.getOriginatorTypes().contains(originatorType) ? "True" : "False");
+    protected String getRelationType(TbContext ctx, EntityId originator) throws TbNodeException {
+        if (!EntityType.ASSET.equals(originator.getEntityType())) {
+            throw new TbNodeException("Unsupported originator type: " + originator.getEntityType() + "! Only 'ASSET' type is allowed.");
+        }
+        AssetProfile assetProfile = ctx.getAssetProfileCache().get(ctx.getTenantId(), (AssetId) originator);
+        if (assetProfile == null) {
+            throw new TbNodeException("Asset profile for entity id: " + originator.getId() + " wasn't found!");
+        }
+        return assetProfile.getName();
     }
 
 }
