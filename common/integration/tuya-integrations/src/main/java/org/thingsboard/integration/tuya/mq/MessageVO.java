@@ -28,52 +28,64 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.tuya.mq;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.thingsboard.common.util.JacksonUtil;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false);
+import java.io.Serializable;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+public class MessageVO implements Serializable {
+
+    private String data;
+    private Integer protocol;
+    private String pv;
+    private String sign;
+    private Long t;
+
+
+    public String getData() {
+        return data;
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
+    public void setData(String data) {
+        this.data = data;
+    }
 
-    @Getter
-    private final boolean remoteOnly;
+    public Integer getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(Integer protocol) {
+        this.protocol = protocol;
+    }
+
+    public String getPv() {
+        return pv;
+    }
+
+    public void setPv(String pv) {
+        this.pv = pv;
+    }
+
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
+    public Long getT() {
+        return t;
+    }
+
+    public void setT(Long t) {
+        this.t = t;
+    }
 
 
+    @Override
+    public String toString() {
+        return JacksonUtil.toString(this);
+    }
 }

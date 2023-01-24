@@ -28,52 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+package org.thingsboard.integration.tuya.mq;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false);
+import org.apache.pulsar.client.api.Authentication;
+import org.apache.pulsar.client.api.PulsarClientException;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+import java.io.IOException;
+import java.util.Map;
+
+public class MqAuthentication implements Authentication {
+
+    private final String accessId;
+    private final String accessKey;
+
+    public MqAuthentication(String accessId, String accessKey) {
+        this.accessId = accessId;
+        this.accessKey = accessKey;
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
+    @Override
+    public String getAuthMethodName() {
+        return "auth1";
+    }
 
-    @Getter
-    private final boolean remoteOnly;
+    @Override
+    public org.apache.pulsar.client.api.AuthenticationDataProvider getAuthData() throws PulsarClientException {
+        return new MqAuthenticationDataProvider(this.accessId, this.accessKey);
+    }
 
+    @Override
+    public void configure(Map<String, String> map) {
+    }
 
+    @Override
+    public void start() throws PulsarClientException {
+    }
+
+    @Override
+    public void close() throws IOException {
+    }
 }

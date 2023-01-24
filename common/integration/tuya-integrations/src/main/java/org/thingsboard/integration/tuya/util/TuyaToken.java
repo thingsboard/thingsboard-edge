@@ -28,52 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.tuya.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false);
+import java.io.Serializable;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
-    }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
+@Data
+@Builder
+public class TuyaToken implements Serializable {
+    private String accessToken;
+    private String refreshToken;
+    private String uid;
+    private Long expireAt;
 }

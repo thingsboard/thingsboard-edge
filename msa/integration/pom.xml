@@ -63,6 +63,7 @@
         <module>rabbitmq</module>
         <module>pubsub</module>
         <module>coap</module>
+        <module>tuya</module>
         <module>executor</module>
     </modules>
 

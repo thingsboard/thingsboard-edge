@@ -3177,8 +3177,12 @@
         "region-required": "Region is required.",
         "application-id": "Application ID",
         "application-id-required": "Application ID is required.",
+        "access-id": "Access Id",
+        "access-id-required": "Access Id is required.",
         "access-key": "Access Key",
         "access-key-required": "Access Key is required.",
+        "access-key-min-length": "Access Key is too short.",
+        "access-key-max-length": "Access Key is too long.",
         "connection-parameters": "Connection parameters",
         "service-bus-namespace-name": "Service Bus Namespace Name",
         "service-bus-namespace-name-required": "Service Bus Namespace Name is required.",
@@ -3257,6 +3261,8 @@
         "type-pubsub-description": "Service for asynchronous messaging between apps.",
         "type-apache-pulsar": "Apache Pulsar",
         "type-apache-pulsar-description": "Distributed pub-sub messaging and streaming platform.",
+        "type-tuya": "Tuya",
+        "type-tuya-description": "Cloud-hosted messaging. device platform.",
         "opc-ua-application-name": "Application name",
         "opc-ua-application-uri": "Application uri",
         "opc-ua-scan-period-in-seconds": "Scan period in seconds",
@@ -3432,7 +3438,13 @@
         "new-downlink-converter": "Create new downlink data converter",
         "connection": "Connection",
         "connected": "Connected",
-        "not-connected": "Not connected"
+        "not-connected": "Not connected",
+        "environment": "Environment",
+        "environment-required": "Environment is required.",
+        "region-cn": "China",
+        "region-us": "United States",
+        "region-eu": "Europe",
+        "region-in": "India"
     },
     "item": {
         "selected": "Selected"
