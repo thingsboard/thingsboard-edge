@@ -83,7 +83,9 @@ public class SchedulerEventCloudProcessor extends BaseEdgeProcessor {
                     schedulerEvent.setAdditionalInfo(schedulerEventUpdateMsg.hasAdditionalInfo()
                             ? JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getAdditionalInfo()) : null);
                     EntityId originatorId = null;
-                    if (schedulerEventUpdateMsg.hasOriginatorType() && schedulerEventUpdateMsg.hasOriginatorIdMSB() && schedulerEventUpdateMsg.hasOriginatorIdLSB()) {
+                    if (schedulerEventUpdateMsg.hasOriginatorType()
+                            && schedulerEventUpdateMsg.hasOriginatorIdMSB()
+                            && schedulerEventUpdateMsg.hasOriginatorIdLSB()) {
                         originatorId = constructEntityId(schedulerEventUpdateMsg.getOriginatorType(),
                                 schedulerEventUpdateMsg.getOriginatorIdMSB(), schedulerEventUpdateMsg.getOriginatorIdLSB());
                     }
