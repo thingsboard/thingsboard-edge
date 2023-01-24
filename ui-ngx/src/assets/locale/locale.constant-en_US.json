@@ -1895,7 +1895,7 @@
         "edge-license-key": "Edge License Key",
         "edge-license-key-required": "Edge License Key is required.",
         "edge-license-key-max-length": "Edge License Key should be less than 31",
-        "edge-license-key-hint": "To obtain your license please navigate to the <a href='https://thingsboard.io/pricing/?active=thingsboard-edge' target='_blank'>pricing page</a> and select the best license option for your case.",
+        "edge-license-key-hint": "<b>IMPORTANT NOTE:</b> default edge license key provided only for evaluation purposes.<br>This key is active only for <b>30</b> days after the activation. <b>White-labeling</b> feature is disabled. <br>To obtain your license key please navigate to the <a href='https://thingsboard.io/pricing/?active=thingsboard-edge' target='_blank'>pricing page</a> and select the best license option for your case.",
         "cloud-endpoint": "Cloud Endpoint",
         "cloud-endpoint-required": "Cloud Endpoint is required.",
         "cloud-endpoint-max-length": "Cloud Endpoint should be less than 256",

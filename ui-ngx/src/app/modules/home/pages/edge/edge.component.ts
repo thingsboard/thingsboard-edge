@@ -151,7 +151,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         )
       }
     );
-    this.generateRoutingKeyAndSecret(entity, form);
+    this.generateLicenseKeyRoutingKeySecret(entity, form);
     return form;
   }
 
@@ -168,11 +168,12 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         description: entity.additionalInfo ? entity.additionalInfo.description : ''
       }
     });
-    this.generateRoutingKeyAndSecret(entity, this.entityForm);
+    this.generateLicenseKeyRoutingKeySecret(entity, this.entityForm);
   }
 
   updateFormState() {
     super.updateFormState();
+    this.entityForm.get('edgeLicenseKey').disable({ emitEvent: false });
     this.entityForm.get('routingKey').disable({ emitEvent: false });
     this.entityForm.get('secret').disable({ emitEvent: false });
   }
@@ -206,8 +207,9 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     return authUser.authority === Authority.TENANT_ADMIN;
   }
 
-  private generateRoutingKeyAndSecret(entity: Edge, form: FormGroup) {
+  private generateLicenseKeyRoutingKeySecret(entity: Edge, form: FormGroup) {
     if (entity && (!entity.id || (entity.id && !entity.id.id))) {
+      form.get('edgeLicenseKey').patchValue('6qcGys6gz4M2ZuIqZ6hRDjWT', { emitEvent: false });
       form.get('routingKey').patchValue(guid(), { emitEvent: false });
       form.get('secret').patchValue(generateSecret(20), { emitEvent: false });
     }

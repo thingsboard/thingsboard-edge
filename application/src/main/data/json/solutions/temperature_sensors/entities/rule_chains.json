@@ -5,8 +5,8 @@
     "jsonId": "95c148c0-599a-11eb-940c-293b71ac913b"
   },
   {
-    "name": "Remote Facility - Temperature & Humidity Sensors",
-    "file": "remote_facility_root.json",
+    "name": "Temperature & Humidity Sensors (Remote Facility)",
+    "file": "remote_facility_main.json",
     "jsonId": "93df11df-2fef-4177-8cda-1571e94f5d18"
   }
 ]

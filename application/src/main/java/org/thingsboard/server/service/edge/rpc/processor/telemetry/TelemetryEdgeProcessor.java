@@ -28,42 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.filter;
+package org.thingsboard.server.service.edge.rpc.processor.telemetry;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.rule.engine.api.RuleNode;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
-import org.thingsboard.rule.engine.api.TbNodeConfiguration;
-import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.EntityDataProto;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
+@Component
 @Slf4j
-@RuleNode(
-        type = ComponentType.FILTER,
-        name = "entity type",
-        configClazz = TbOriginatorTypeFilterNodeConfiguration.class,
-        relationTypes = {"True", "False"},
-        nodeDescription = "Filter incoming messages by message Originator Type",
-        nodeDetails = "If the entity type of the incoming message originator is expected - send Message via <b>True</b> chain, otherwise <b>False</b> chain is used.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbFilterNodeOriginatorTypeConfig")
-public class TbOriginatorTypeFilterNode implements TbNode {
-
-    TbOriginatorTypeFilterNodeConfiguration config;
+@TbCoreComponent
+public class TelemetryEdgeProcessor extends BaseTelemetryProcessor {
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbOriginatorTypeFilterNodeConfiguration.class);
+    protected String getMsgSourceKey() {
+        return DataConstants.EDGE_MSG_SOURCE;
     }
 
-    @Override
-    public void onMsg(TbContext ctx, TbMsg msg) {
-        EntityType originatorType = msg.getOriginator().getEntityType();
-        ctx.tellNext(msg, config.getOriginatorTypes().contains(originatorType) ? "True" : "False");
+    public DownlinkMsg convertTelemetryEventToDownlink(EdgeEvent edgeEvent) throws JsonProcessingException {
+        EntityType entityType = EntityType.valueOf(edgeEvent.getType().name());
+        EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(entityType, edgeEvent.getEntityId(),
+                edgeEvent.getAction(), edgeEvent.getBody());
+        return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                .addEntityData(entityDataProto)
+                .build();
     }
-
 }

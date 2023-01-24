@@ -1521,7 +1521,7 @@ export class EntityService {
           additionalInfo: {
             description: edgeEntityData.description
           },
-          edgeLicenseKey: edgeEntityData.edgeLicenseKey,
+          edgeLicenseKey: edgeEntityData.edgeLicenseKey !== '' ? edgeEntityData.edgeLicenseKey : '6qcGys6gz4M2ZuIqZ6hRDjWT',
           cloudEndpoint: edgeEntityData.cloudEndpoint !== '' ? edgeEntityData.cloudEndpoint : window.location.origin,
           routingKey: edgeEntityData.routingKey !== '' ? edgeEntityData.routingKey : guid(),
           secret: edgeEntityData.secret !== '' ? edgeEntityData.secret : generateSecret(20)
