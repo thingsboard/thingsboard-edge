@@ -50,5 +50,5 @@ public enum EdgeEventActionType {
     ADDED_TO_ENTITY_GROUP,
     REMOVED_FROM_ENTITY_GROUP,
     CHANGE_OWNER,
-    ENTITY_MERGE_REQUEST // DEPRECATED
+    ENTITY_MERGE_REQUEST // deprecated
 }
