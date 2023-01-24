@@ -58,6 +58,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId) {
+        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
         assetCreationLock.lock();
         try {
             Asset asset = assetService.findAssetById(tenantId, assetId);
@@ -72,7 +73,7 @@ public class AssetCloudProcessor extends BaseEdgeProcessor {
             asset.setType(assetUpdateMsg.getType());
             asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
             asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-            asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
+            asset.setCustomerId(customerId);
             UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
             asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
             assetValidator.validate(asset, Asset::getTenantId);

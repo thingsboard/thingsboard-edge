@@ -66,7 +66,6 @@ public class DashboardCloudProcessor extends BaseEdgeProcessor {
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
                     dashboardService.saveDashboard(dashboard, false);
-
                     if (dashboardUpdateMsg.hasAssignedCustomers()) {
                         Set<ShortCustomerInfo> assignedCustomers =
                                 JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {

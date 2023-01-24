@@ -55,6 +55,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                                                           UserUpdateMsg userUpdateMsg,
                                                           Long queueStartTs) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
+        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -74,7 +75,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
                     user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
                     user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
-                    user.setCustomerId(safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId));
+                    user.setCustomerId(customerId);
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
                         UserCredentials userCredentials = new UserCredentials();
