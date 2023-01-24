@@ -42,8 +42,8 @@
     "group": "Assisted Living Assets",
     "customer": "Assisted Living Company",
     "attributes": {
-      "xPos": "0.44044",
-      "yPos": "0.79502"
+      "xPos": "0.1154",
+      "yPos": "0.1814"
     },
     "relations": [
       {
@@ -61,8 +61,160 @@
     "group": "Assisted Living Assets",
     "customer": "Assisted Living Company",
     "attributes": {
-      "xPos": "0.34941",
-      "yPos": "0.79166"
+      "xPos": "0.2579",
+      "yPos": "0.1814"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 103",
+    "label": "Room 103",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.4060",
+      "yPos": "0.1814"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 104",
+    "label": "Room 104",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.5332",
+      "yPos": "0.1814"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 105",
+    "label": "Room 105",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.6822",
+      "yPos": "0.1814"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 106",
+    "label": "Room 106",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.8226",
+      "yPos": "0.1814"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 107",
+    "label": "Room 107",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.0923",
+      "yPos": "0.8051"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 108",
+    "label": "Room 108",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.2386",
+      "yPos": "0.8051"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 109",
+    "label": "Room 109",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.3315",
+      "yPos": "0.8051"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Hall",
+    "label": "Hall",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "xPos": "0.6838",
+      "yPos": "0.7419"
     },
     "relations": [
       {
