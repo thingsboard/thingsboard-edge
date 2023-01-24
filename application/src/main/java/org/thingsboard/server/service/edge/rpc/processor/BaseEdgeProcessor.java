@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -657,6 +658,20 @@ public abstract class BaseEdgeProcessor {
                 currentOwnerId = dashboard.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeDashboardOwner(tenantId, newOwnerId, dashboard);
+                }
+                break;
+            case CUSTOMER:
+                Customer customer = customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
+                currentOwnerId = customer.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeCustomerOwner(tenantId, newOwnerId, customer);
+                }
+                break;
+            case EDGE:
+                Edge edge = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                currentOwnerId = edge.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeEdgeOwner(tenantId, newOwnerId, edge);
                 }
                 break;
         }
