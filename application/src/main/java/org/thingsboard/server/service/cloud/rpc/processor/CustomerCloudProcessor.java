@@ -61,13 +61,13 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId,
                                                               CustomerUpdateMsg customerUpdateMsg) throws ThingsboardException {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
-        EntityId ownerId = safeGetOwnerId(tenantId, customerUpdateMsg.getOwnerEntityType(),
-                customerUpdateMsg.getOwnerIdMSB(), customerUpdateMsg.getOwnerIdLSB());
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 customerCreationLock.lock();
                 try {
+                    EntityId ownerId = safeGetOwnerId(tenantId, customerUpdateMsg.getOwnerEntityType(),
+                            customerUpdateMsg.getOwnerIdMSB(), customerUpdateMsg.getOwnerIdLSB());
                     Customer customer = customerService.findCustomerById(tenantId, customerId);
                     boolean created = false;
                     if (customer == null) {

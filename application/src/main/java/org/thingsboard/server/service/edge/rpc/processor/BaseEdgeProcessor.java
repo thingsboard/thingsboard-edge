@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -783,6 +784,9 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected EntityId safeGetOwnerId(TenantId tenantId, String ownerEntityTypeStr, long mSB, long lSB) {
+        if (StringUtils.isEmpty(ownerEntityTypeStr)) {
+            return tenantId;
+        }
         EntityType ownerEntityType = EntityType.valueOf(ownerEntityTypeStr);
         if (EntityType.CUSTOMER.equals(ownerEntityType)) {
             return new CustomerId(new UUID(mSB, lSB));
