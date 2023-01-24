@@ -31,21 +31,18 @@
 
 package org.thingsboard.integration.tuya.mq;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.pulsar.client.api.Authentication;
 import org.apache.pulsar.client.api.PulsarClientException;
 
 import java.io.IOException;
 import java.util.Map;
 
+@RequiredArgsConstructor
 public class MqAuthentication implements Authentication {
 
     private final String accessId;
     private final String accessKey;
-
-    public MqAuthentication(String accessId, String accessKey) {
-        this.accessId = accessId;
-        this.accessKey = accessKey;
-    }
 
     @Override
     public String getAuthMethodName() {

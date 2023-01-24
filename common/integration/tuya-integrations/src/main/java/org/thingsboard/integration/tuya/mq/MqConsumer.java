@@ -32,21 +32,23 @@
 package org.thingsboard.integration.tuya.mq;
 
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.SubscriptionType;
 
 @Builder
+@Slf4j
 public class MqConsumer {
 
-    private String serviceUrl;
-    private String accessId;
-    private String accessKey;
-    private MqEnv env = MqEnv.PROD;
+    private final String serviceUrl;
+    private final String accessId;
+    private final String accessKey;
+    private final MqEnv env;
 
-    private IMessageListener messageListener;
-    private ResultHandler resultHandler;
+    private final IMessageListener messageListener;
+    private final ResultHandler resultHandler;
 
     private Consumer consumer;
     private PulsarClient client;
@@ -59,16 +61,16 @@ public class MqConsumer {
         while (!stopped) {
             try {
                 if (!connected) {
-                    connect();
+                    connect(true);
                 }
                 processMessages();
             } catch (Exception ignored) {
-                Thread.sleep(60 * 1000);
+                Thread.sleep(5 * 1000);
             }
         }
     }
 
-    public void connect() throws Exception {
+    public void connect(boolean sleep) throws Exception {
         if (stopped) return;
         try {
             if (client == null || client.isClosed()) {
@@ -78,7 +80,7 @@ public class MqConsumer {
                         .authentication(new MqAuthentication(accessId, accessKey))
                         .build();
                 consumer = client.newConsumer()
-                        .topic(String.format("%s/out/%s", accessId, env.getValue()))
+                        .topic(String.format("%s/out/%s", accessId, (env != null ? env : MqEnv.PROD).getValue()))
                         .subscriptionName(String.format("%s-sub", accessId))
                         .subscriptionType(SubscriptionType.Failover)
                         .autoUpdatePartitions(Boolean.FALSE).subscribe();
@@ -91,8 +93,10 @@ public class MqConsumer {
         } catch (Exception e) {
             connected = false;
             client.shutdown();
-            Thread.sleep(60 * 1000);
             resultHandler.onResult("CONNECT", "", e);
+            if(sleep) {
+                Thread.sleep(60 * 1000);
+            }
         }
     }
 
@@ -111,7 +115,6 @@ public class MqConsumer {
     }
 
     public interface IMessageListener {
-
         void onMessageArrived(Message message);
     }
 

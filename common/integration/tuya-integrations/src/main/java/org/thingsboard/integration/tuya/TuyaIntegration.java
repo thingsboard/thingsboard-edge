@@ -98,12 +98,12 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName() + "-loop"));
         tuyaIntegrationConfiguration = getClientConfiguration(configuration, TuyaIntegrationConfiguration.class);
         mqConsumer = createMqConsumer(tuyaIntegrationConfiguration.getAccessId(), tuyaIntegrationConfiguration.getAccessKey());
-        mqConsumer.connect();
+        mqConsumer.connect(false);
         this.executor.submit(() -> {
             try {
                 mqConsumer.start();
             } catch (Exception e) {
-                log.error("During processing Tuya integration error caught!", e);
+                log.warn("[{}] During processing Tuya integration error caught!", configuration.getId(), e);
             }
         });
     }
@@ -114,7 +114,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
             try {
                 mqConsumer.stop();
             } catch (Exception e) {
-                log.warn("Cannot stop message queue consumer!");
+                log.error("[{}] Cannot stop message queue consumer!", configuration.getId(), e);
             }
         }
         if (executor != null) {
@@ -131,14 +131,14 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 doProcess(msg);
                 integrationStatistics.incMessagesProcessed();
             } catch (Exception e) {
-                log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+                log.debug("[{}] Failed to apply data converter function: {}", configuration.getId(), e.getMessage(), e);
                 exception = e;
                 integrationStatistics.incErrorsOccurred();
             }
             try {
                 persistDebug(this.context, "Uplink", UplinkContentType.JSON, msg.toString(), exception == null ? "OK" : "ERROR", exception);
             } catch (Exception e) {
-                log.warn("Failed to persist debug message!", e);
+                log.warn("[{}] Failed to persist debug message!", configuration.getId(), e);
             }
         }
     }
@@ -149,7 +149,10 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         List<UplinkData> uplinkDataList = this.convertToUplinkDataList(this.context, data, new UplinkMetaData(UplinkContentType.JSON, metadataMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {
             for (UplinkData uplinkData : uplinkDataList) {
-                UplinkData uplinkDataResult = UplinkData.builder().deviceName(uplinkData.getDeviceName()).deviceType(uplinkData.getDeviceType()).telemetry(uplinkData.getTelemetry()).attributesUpdate(uplinkData.getAttributesUpdate()).customerName(uplinkData.getCustomerName()).build();
+                UplinkData uplinkDataResult = UplinkData.builder().deviceName(uplinkData.getDeviceName())
+                        .deviceType(uplinkData.getDeviceType()).telemetry(uplinkData.getTelemetry())
+                        .attributesUpdate(uplinkData.getAttributesUpdate()).customerName(uplinkData.getCustomerName())
+                        .build();
                 this.processUplinkData(this.context, uplinkDataResult);
             }
         }
@@ -185,7 +188,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 try {
                     mqConsumer.start();
                 } catch (Exception e) {
-                    log.error("During processing Tuya integration error caught!", e);
+                    log.debug("[{}] During processing Tuya integration error caught!", configuration.getId(), e);
                 }
             });
         }
@@ -251,7 +254,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 if (accessToken == null) {
                     throw new RuntimeException("Cannot obtain access token from the server: " + tuyaIntegrationConfiguration.getRegion().getApiServerUrl());
                 }
-                return sendCommands(deviceId, commandsNode);
+                sendCommands(deviceId, commandsNode);
             } catch (Exception e) {
                 error = e;
             }
@@ -289,7 +292,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         return null;
     }
 
-    private boolean sendCommands(String deviceId, ObjectNode commandsNode) throws Exception {
+    private void sendCommands(String deviceId, ObjectNode commandsNode) throws Exception {
         String path = POST_COMMANDS_URL_PATH.replace("{deviceId}", deviceId);
         HttpMethod httpMethod = HttpMethod.POST;
         RequestEntity<Object> requestEntity = createRequest(path, httpMethod, commandsNode, null);
@@ -308,7 +311,6 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         if (responseBody != null && !responseBody.get("success").asBoolean()) {
             throw new RuntimeException(String.format("Downlink failed! with response from Tuya: %s", responseBody.get("msg")));
         }
-        return true;
     }
 
     private RequestEntity<Object> createRequest(String path, HttpMethod httpMethod, ObjectNode body, Map<String, Object> queries) throws Exception {
