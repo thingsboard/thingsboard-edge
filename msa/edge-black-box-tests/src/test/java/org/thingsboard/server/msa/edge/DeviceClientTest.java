@@ -142,7 +142,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                 .until(() -> verifyAttributeOnEdge(savedDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
         // create device #2 inside group #1
-        Device savedDevice2 = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), "Remote Controller", savedDeviceEntityGroup1.getId());
+        Device savedDevice2 = saveDeviceOnCloud(StringUtils.randomAlphanumeric(15), "Remote Controller", savedDeviceEntityGroup1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isPresent());

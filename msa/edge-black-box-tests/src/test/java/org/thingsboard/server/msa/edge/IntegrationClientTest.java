@@ -38,11 +38,11 @@ import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -82,7 +82,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         Integration integration = new Integration();
         integration.setName("Edge integration");
         integration.setAllowCreateDevicesOrAssets(true);
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
 

@@ -32,13 +32,13 @@ package org.thingsboard.server.msa.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.msa.AbstractContainerTest;
@@ -80,7 +80,7 @@ public class DashboardClientTest extends AbstractContainerTest {
                         DataConstants.SERVER_SCOPE, "dashboardKey", "dashboardValue"));
 
         // create dashboard #2 inside group #1
-        Dashboard savedDashboard2 = saveDashboardOnCloud(RandomStringUtils.randomAlphanumeric(15), savedDashboardEntityGroup1.getId());
+        Dashboard savedDashboard2 = saveDashboardOnCloud(StringUtils.randomAlphanumeric(15), savedDashboardEntityGroup1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isPresent());

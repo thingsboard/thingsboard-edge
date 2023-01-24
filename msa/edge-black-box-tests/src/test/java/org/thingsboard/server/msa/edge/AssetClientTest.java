@@ -32,12 +32,12 @@ package org.thingsboard.server.msa.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -73,7 +73,7 @@ public class AssetClientTest extends AbstractContainerTest {
                         DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
 
         // create asset #2 inside group #1
-        Asset savedAsset2 = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), "Building", savedAssetEntityGroup1.getId());
+        Asset savedAsset2 = saveAssetOnCloud(StringUtils.randomAlphanumeric(15), "Building", savedAssetEntityGroup1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset2.getId()).isPresent());
