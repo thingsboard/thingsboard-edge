@@ -545,6 +545,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
         DeviceUpdateMsg latestDeviceUpdateMsg = deviceUpdateMsgOpt.get();
         Assert.assertNotEquals(deviceOnCloudName, latestDeviceUpdateMsg.getName());
+        Assert.assertEquals(deviceOnCloudName, latestDeviceUpdateMsg.getConflictName());
 
         UUID newDeviceId = new UUID(latestDeviceUpdateMsg.getIdMSB(), latestDeviceUpdateMsg.getIdLSB());
 
