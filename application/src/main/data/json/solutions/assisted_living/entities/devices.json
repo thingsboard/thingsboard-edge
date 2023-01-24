@@ -5,12 +5,12 @@
     "type": "AL_Gateway",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Regular WristBand",
+    "emulator": "Gateway",
     "attributes": {
-      "xPos": "0.4583294927536232",
-      "yPos": "0.8719689247311827",
-      "roomXPos": "0.44044",
-      "roomYPos": "0.79502",
+      "xPos": "0.1154",
+      "yPos": "0.1048",
+      "roomXPos": "0.1154",
+      "roomYPos": "0.1814",
       "zone": "Floor 1",
       "room": "Room 101"
     },
@@ -25,11 +25,228 @@
     "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca4"
   },
   {
+    "name": "D00000020002",
+    "label": "Room 102 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.2579",
+      "yPos": "0.1048",
+      "roomXPos": "0.2579",
+      "roomYPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 102"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 102",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ],
+    "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca5"
+  },
+  {
+    "name": "D00000030003",
+    "label": "Room 103 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.4060",
+      "yPos": "0.1048",
+      "roomXPos": "0.4060",
+      "roomYPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 103"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 103",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000040004",
+    "label": "Room 104 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.5332",
+      "yPos": "0.1048",
+      "roomXPos": "0.5332",
+      "roomYPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 104"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 104",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000050005",
+    "label": "Room 105 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.6822",
+      "yPos": "0.1048",
+      "roomXPos": "0.6822",
+      "roomYPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 105"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 105",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000060006",
+    "label": "Room 106 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.8226",
+      "yPos": "0.1048",
+      "roomXPos": "0.8226",
+      "roomYPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 106"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 106",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000070007",
+    "label": "Room 107 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.0923",
+      "yPos": "0.9000",
+      "roomXPos": "0.0923",
+      "roomYPos": "0.8051",
+      "zone": "Floor 1",
+      "room": "Room 107"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 107",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000080008",
+    "label": "Room 108 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.2386",
+      "yPos": "0.9000",
+      "roomXPos": "0.2386",
+      "roomYPos": "0.8051",
+      "zone": "Floor 1",
+      "room": "Room 108"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 108",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000090009",
+    "label": "Room 109 Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.3315",
+      "yPos": "0.9000",
+      "roomXPos": "0.3315",
+      "roomYPos": "0.8051",
+      "zone": "Floor 1",
+      "room": "Room 109"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 109",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "D00000100010",
+    "label": "Hall Gateway",
+    "type": "AL_Gateway",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Gateway",
+    "attributes": {
+      "xPos": "0.7334",
+      "yPos": "0.7419",
+      "roomXPos": "0.6838",
+      "roomYPos": "0.74 19",
+      "zone": "Floor 1",
+      "room": "Hall"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 109",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
     "name": "E00000015FE1",
     "type": "AL_RoomSensor",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Regular WristBand",
+    "emulator": "Regular RoomSensor",
     "attributes": {
       "xPos": "0.45000",
       "yPos": "0.80000",
@@ -44,6 +261,57 @@
         "type": "Contains"
       }
     ]
+  },
+  {
+    "name": "E00000025FE2",
+    "type": "AL_RoomSensor",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular RoomSensor",
+    "attributes": {
+      "xPos": "0.0900",
+      "yPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 102"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 102",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "E00000035FE3",
+    "type": "AL_RoomSensor",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular RoomSensor",
+    "attributes": {
+      "xPos": "0.2200",
+      "yPos": "0.1814",
+      "zone": "Floor 1",
+      "room": "Room 103"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Room 103",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "E00000085FE8",
+    "type": "AL_RoomSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {},
+    "relations": []
   },
   {
     "name": "500000015FE1",
@@ -130,54 +398,8 @@
     ]
   },
   {
-    "name": "D00000020002",
-    "label": "Room 102 Gateway",
-    "type": "AL_Gateway",
-    "group": "Assigned Devices",
-    "customer": "Assisted Living Company",
-    "emulator": "Regular WristBand",
-    "attributes": {
-      "xPos": "0.38722702898550726",
-      "yPos": "0.8753293548387097",
-      "roomXPos": "0.34941",
-      "roomYPos": "0.79166",
-      "zone": "Floor 1",
-      "room": "Room 102"
-    },
-    "relations": [
-      {
-        "entityType": "ASSET",
-        "entityName": "Room 102",
-        "direction": "FROM",
-        "type": "Contains"
-      }
-    ],
-    "jsonId": "fdfa6460-8767-11ed-ace0-2b013f453ca5"
-  },
-  {
-    "name": "E00000025FE2",
-    "type": "AL_RoomSensor",
-    "group": "Assigned Devices",
-    "customer": "Assisted Living Company",
-    "emulator": "Regular WristBand",
-    "attributes": {
-      "xPos": "0.35000",
-      "yPos": "0.80000",
-      "zone": "Floor 1",
-      "room": "Room 101"
-    },
-    "relations": [
-      {
-        "entityType": "ASSET",
-        "entityName": "Room 102",
-        "direction": "FROM",
-        "type": "Contains"
-      }
-    ]
-  },
-  {
     "name": "C00000015FE1",
-    "label": "Andrei Piontkovsky",
+    "label": "Olivia Smith",
     "type": "AL_Wristband",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
@@ -186,7 +408,7 @@
     "relations": [
       {
         "entityType": "USER",
-        "entityName": "andrei.piontkovsky.$random@thingsboard.org",
+        "entityName": "olivia.smith.$random@thingsboard.org",
         "direction": "FROM",
         "type": "Use"
       }
@@ -204,15 +426,6 @@
   {
     "name": "D00000020003",
     "type": "AL_Gateway",
-    "group": "Unassigned Devices",
-    "customer": "Assisted Living Company",
-    "emulator": "Regular WristBand",
-    "attributes": {},
-    "relations": []
-  },
-  {
-    "name": "E00000035FE3",
-    "type": "AL_RoomSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular WristBand",
