@@ -6,7 +6,8 @@
     "firstRuleNodeId": null,
     "root": true,
     "debugMode": false,
-    "configuration": null
+    "configuration": null,
+    "externalId": null
   },
   "metadata": {
     "firstNodeIndex": 3,
@@ -68,7 +69,8 @@
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -80,7 +82,8 @@
         "debugMode": false,
         "configuration": {
           "defaultTTL": 0
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -92,7 +95,8 @@
         "debugMode": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -104,7 +108,8 @@
         "debugMode": false,
         "configuration": {
           "version": 0
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -118,7 +123,8 @@
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -132,7 +138,8 @@
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -144,7 +151,8 @@
         "debugMode": false,
         "configuration": {
           "timeoutInSeconds": 60
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -156,7 +164,8 @@
         "debugMode": false,
         "configuration": {
           "scope": "SERVER_SCOPE"
-        }
+        },
+        "externalId": null
       }
     ],
     "connections": [
