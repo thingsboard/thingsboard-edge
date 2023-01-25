@@ -25,7 +25,8 @@
           "originatorTypes": [
             "ENTITY_GROUP"
           ]
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -41,7 +42,8 @@
             "POST_ATTRIBUTES_REQUEST",
             "RPC_CALL_FROM_SERVER_TO_DEVICE"
           ]
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -55,7 +57,8 @@
         "configuration": {
           "entityGroupId": null,
           "entityGroupIsMessageOriginator": true
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -156,8 +159,21 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1134,
-          "layoutY": 154
+          "layoutX": 1101,
+          "layoutY": 203
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "Push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 355,
+          "layoutY": 576
         },
         "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
         "name": "Push to cloud",
@@ -211,13 +227,8 @@
       },
       {
         "fromIndex": 6,
-        "toIndex": 9,
-        "type": "RPC Request to Device"
-      },
-      {
-        "fromIndex": 6,
-        "toIndex": 8,
-        "type": "Other"
+        "toIndex": 4,
+        "type": "Post telemetry"
       },
       {
         "fromIndex": 6,
@@ -226,33 +237,28 @@
       },
       {
         "fromIndex": 6,
-        "toIndex": 4,
-        "type": "Post telemetry"
-      },
-      {
-        "fromIndex": 6,
         "toIndex": 7,
         "type": "RPC Request from Device"
       },
       {
         "fromIndex": 6,
-        "toIndex": 10,
-        "type": "Attributes Updated"
+        "toIndex": 8,
+        "type": "Other"
       },
       {
         "fromIndex": 6,
-        "toIndex": 10,
+        "toIndex": 9,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 11,
         "type": "Attributes Deleted"
       },
       {
         "fromIndex": 6,
-        "toIndex": 10,
-        "type": "Timeseries Deleted"
-      },
-      {
-        "fromIndex": 6,
-        "toIndex": 10,
-        "type": "Timeseries Updated"
+        "toIndex": 11,
+        "type": "Attributes Updated"
       }
     ],
     "ruleChainConnections": null
