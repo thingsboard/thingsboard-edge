@@ -173,7 +173,6 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   updateFormState() {
     super.updateFormState();
-    this.entityForm.get('edgeLicenseKey').disable({ emitEvent: false });
     this.entityForm.get('routingKey').disable({ emitEvent: false });
     this.entityForm.get('secret').disable({ emitEvent: false });
   }
