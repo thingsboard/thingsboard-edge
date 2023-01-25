@@ -131,8 +131,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 830,
-          "layoutY": 474
+          "layoutX": 824,
+          "layoutY": 475
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -146,8 +146,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 838,
-          "layoutY": 576
+          "layoutX": 827,
+          "layoutY": 575
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
@@ -159,8 +159,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1101,
-          "layoutY": 203
+          "layoutX": 1125,
+          "layoutY": 202
         },
         "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
         "name": "Push to cloud",
@@ -172,8 +172,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 355,
-          "layoutY": 576
+          "layoutX": 651,
+          "layoutY": 676
         },
         "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
         "name": "Push to cloud",
