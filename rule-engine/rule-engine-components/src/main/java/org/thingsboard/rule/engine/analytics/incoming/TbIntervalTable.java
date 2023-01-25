@@ -37,6 +37,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.springframework.data.util.Pair;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbAvgIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountIntervalState;
@@ -139,7 +140,7 @@ class TbIntervalTable {
     }
 
     ListenableFuture<Integer> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
-        KvEntry kvEntry = new StringDataEntry("RuleNodeState_" + ctx.getSelfId(), state.toStateJson(gson));
+        KvEntry kvEntry = new StringDataEntry(DataConstants.RULE_NODE_STATE_PREFIX + ctx.getSelfId(), state.toStateJson(gson));
         TsKvEntry tsKvEntry = new BasicTsKvEntry(calculateIntervalStart(ts), kvEntry);
         return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);
     }
@@ -202,7 +203,7 @@ class TbIntervalTable {
     }
 
     private ListenableFuture<TbIntervalState> fetchIntervalState(EntityId entityId, long intervalStartTs) {
-        ListenableFuture<TsKvEntry> f = ctx.getTimeseriesService().findOne(ctx.getTenantId(), entityId, intervalStartTs, "RuleNodeState_" + ctx.getSelfId());
+        ListenableFuture<TsKvEntry> f = ctx.getTimeseriesService().findOne(ctx.getTenantId(), entityId, intervalStartTs, DataConstants.RULE_NODE_STATE_PREFIX + ctx.getSelfId());
         return Futures.transform(f, input -> {
             String value = null;
             if (input != null) {
