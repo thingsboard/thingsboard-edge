@@ -121,6 +121,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         isEnabled: (customer) => true,
         onAction: ($event, entity) => this.manageCustomerDashboards($event, entity)
       });
+    /* @voba - merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       this.config.cellActionDescriptors.push(
         {
@@ -136,6 +137,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         }
       );
     }
+    */
 
     this.config.deleteEntityTitle = customer => this.translate.instant('customer.delete-customer-title', { customerTitle: customer.title });
     this.config.deleteEntityContent = () => this.translate.instant('customer.delete-customer-text');
