@@ -28,52 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false);
+import java.util.Arrays;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+@SpringBootApplication
+@EnableAsync
+@ComponentScan({"org.thingsboard.integration", "org.thingsboard.script.api"})
+public class ThingsboardTuyaIntegrationApplication {
+
+    private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
+    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "tb-tuya-integration";
+
+    public static void main(String[] args) {
+        SpringApplication.run(ThingsboardTuyaIntegrationApplication.class, updateArguments(args));
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
+    private static String[] updateArguments(String[] args) {
+        if (Arrays.stream(args).noneMatch(arg -> arg.startsWith(SPRING_CONFIG_NAME_KEY))) {
+            String[] modifiedArgs = new String[args.length + 1];
+            System.arraycopy(args, 0, modifiedArgs, 0, args.length);
+            modifiedArgs[args.length] = DEFAULT_SPRING_CONFIG_PARAM;
+            return modifiedArgs;
+        }
+        return args;
+    }
 
 }

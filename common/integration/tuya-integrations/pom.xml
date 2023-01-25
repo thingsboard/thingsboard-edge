@@ -39,10 +39,10 @@
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.common.integration</groupId>
-    <artifactId>cluster-integration-api</artifactId>
+    <artifactId>tuya-integrations</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard Server Cluster Integration API</name>
+    <name>Thingsboard Server Tuya Integrations</name>
     <url>https://thingsboard.io</url>
 
     <properties>
@@ -56,73 +56,23 @@
             <artifactId>integration-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>http-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>mqtt-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>gcloud-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>aws-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>opcua-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>kafka-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>rabbitmq-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>apache-pulsar</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>tuya-integrations</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>coap-integrations</artifactId>
-            <scope>provided</scope>
+            <groupId>org.thingsboard.common.script</groupId>
+            <artifactId>script-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client</artifactId>
+            <version>${apache-pulsar.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>azure-integrations</artifactId>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client-api</artifactId>
+            <version>${apache-pulsar.version}</version>
         </dependency>
     </dependencies>
 
@@ -130,21 +80,9 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <configuration>
-                    <skip>false</skip>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>

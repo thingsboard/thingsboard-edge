@@ -81,6 +81,8 @@ public class IntegrationUtil {
                 return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
+            case TUYA:
+                return newInstance("org.thingsboard.integration.tuya.TuyaIntegration");
             case COAP:
                 return newInstance("org.thingsboard.integration.coap.CoapIntegration", param);
             case TCP:

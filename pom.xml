@@ -1028,6 +1028,11 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>tuya-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>remote-integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>

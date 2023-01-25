@@ -39,10 +39,10 @@
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.integration</groupId>
-    <artifactId>executor</artifactId>
+    <artifactId>tuya</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard PE Integration Executor</name>
+    <name>Thingsboard PE Tuya Integration Service</name>
     <url>https://thingsboard.io</url>
 
     <properties>
@@ -52,77 +52,21 @@
         <pkg.disabled>false</pkg.disabled>
         <pkg.process-resources.phase>process-resources</pkg.process-resources.phase>
         <pkg.package.phase>package</pkg.package.phase>
-        <pkg.name>tb-integration-executor</pkg.name>
+        <pkg.name>tb-tuya-integration</pkg.name>
         <pkg.copyInstallScripts>false</pkg.copyInstallScripts>
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
-        <pkg.implementationTitle>ThingsBoard Integration Executor</pkg.implementationTitle>
-        <pkg.mainClass>org.thingsboard.integration.ThingsboardIntegrationExecutorApplication</pkg.mainClass>
+        <pkg.implementationTitle>ThingsBoard Tuya Integration Service</pkg.implementationTitle>
+        <pkg.mainClass>org.thingsboard.integration.ThingsboardTuyaIntegrationApplication</pkg.mainClass>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>queue</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.script</groupId>
-            <artifactId>remote-js-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>cluster-integration-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
-                <artifactId>coap-server</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>http-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>mqtt-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>gcloud-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>aws-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>opcua-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>kafka-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>rabbitmq-integrations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>apache-pulsar</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.integration</groupId>
-            <artifactId>coap-integrations</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>tuya-integrations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>remote-integration-api</artifactId>
         </dependency>
     </dependencies>
 

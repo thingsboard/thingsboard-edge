@@ -220,6 +220,12 @@
                                      [allowLocalNetwork]="allowLocalNetwork">
       </tb-rabbit-mq-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TUYA">
+      <tb-tuya-integration-form formControlName="configuration"
+                                     [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                     [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-tuya-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
       Not Found!!
     </ng-container>

@@ -28,52 +28,64 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
 
-import lombok.AllArgsConstructor;
+package org.thingsboard.integration.tuya.mq;
+
 import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.codec.binary.Base64;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false);
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+
+public class TuyaMessageUtil {
+
+    private static final String AES = "AES";
+
+    @Getter
+    @Setter
+    private String ALGO;
+
+    @Getter
+    @Setter
+    private byte[] keyValue;
+
+    public String encrypt(String data) throws Exception {
+        Key key = generateKey();
+        Cipher c = Cipher.getInstance(ALGO);
+        c.init(Cipher.ENCRYPT_MODE, key);
+        byte[] encVal = c.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        return Base64.encodeBase64String(encVal);
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
+    public static String encrypt(String data, String secretKey) throws Exception {
+        TuyaMessageUtil aes = new TuyaMessageUtil();
+        aes.setALGO(AES);
+        aes.setKeyValue(secretKey.getBytes());
+        return aes.encrypt(data);
+    }
 
-    @Getter
-    private final boolean remoteOnly;
+    public String decrypt(String encryptedData) throws Exception {
+        Key key = generateKey();
+        Cipher c = Cipher.getInstance(ALGO);
+        c.init(Cipher.DECRYPT_MODE, key);
+        byte[] decodedValue = Base64.decodeBase64(encryptedData);
+        byte[] decValue = c.doFinal(decodedValue);
+        return new String(decValue, StandardCharsets.UTF_8);
+    }
 
+    public static String decrypt(String data, String secretKey) throws Exception {
+        TuyaMessageUtil aes = new TuyaMessageUtil();
+        aes.setALGO(AES);
+        aes.setKeyValue(secretKey.getBytes());
+        return aes.decrypt(data);
+    }
+
+    private Key generateKey() {
+        return new SecretKeySpec(keyValue, ALGO);
+    }
 
 }

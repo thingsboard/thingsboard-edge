@@ -28,52 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+package org.thingsboard.integration.tuya.mq;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false);
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.pulsar.client.api.AuthenticationDataProvider;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+public class MqAuthenticationDataProvider implements AuthenticationDataProvider {
+
+    private final String commandData;
+
+    public MqAuthenticationDataProvider(String accessId, String accessKey) {
+        this.commandData = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", accessId,
+                DigestUtils.md5Hex(accessId + DigestUtils.md5Hex(accessKey)).substring(8, 24));
     }
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
+    @Override
+    public String getCommandData() {
+        return commandData;
+    }
 
-    @Getter
-    private final boolean remoteOnly;
+    @Override
+    public boolean hasDataForHttp() {
+        return false;
+    }
 
+    @Override
+    public boolean hasDataFromCommand() {
+        return true;
+    }
 
 }
