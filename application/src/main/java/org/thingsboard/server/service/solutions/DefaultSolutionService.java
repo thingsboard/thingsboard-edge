@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -67,6 +68,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -104,6 +106,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -125,6 +128,7 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
 import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
 import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
+import org.thingsboard.server.service.solutions.data.EdgeLinkInfo;
 import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
 import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
 import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
@@ -133,6 +137,8 @@ import org.thingsboard.server.service.solutions.data.definition.CustomerEntityDe
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardUserDetailsDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeEntityGroupDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
@@ -212,6 +218,8 @@ public class DefaultSolutionService implements SolutionService {
     private final AssetService assetService;
     private final CustomerService customerService;
     private final UserService userService;
+
+    private final EdgeService edgeService;
     private final EntityGroupService entityGroupService;
     private final TbEntityGroupService tbEntityGroupService;
     private final GroupPermissionService groupPermissionService;
@@ -484,6 +492,8 @@ public class DefaultSolutionService implements SolutionService {
 
             updateRuleChains(ctx);
 
+            provisionEdges(ctx, request);
+
             launchEmulators(ctx, devices, assets);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
@@ -598,6 +608,17 @@ public class DefaultSolutionService implements SolutionService {
         }
 
         template = template.replace("${all_entities}", entityList.toString());
+
+        for (Map.Entry<String, EdgeLinkInfo> edgeLinkInfoEntry : ctx.getCreatedEdges().entrySet()) {
+            EdgeLinkInfo edgeLinkInfo = edgeLinkInfoEntry.getValue();
+            StringBuilder edgeDetailsUrl = new StringBuilder();
+            if (EntityType.CUSTOMER.equals(edgeLinkInfo.getOwnerId().getEntityType())) {
+                edgeDetailsUrl.append("/customerGroups/").append(edgeLinkInfo.getAllCustomerGroupId()).append("/").append(edgeLinkInfo.getOwnerId().getId());
+            }
+            edgeDetailsUrl.append("/edgeGroups/").append(edgeLinkInfo.getAllEdgeGroupId().getId()).append("/").append(edgeLinkInfo.getEdgeId().getId());
+            String edgeName = edgeLinkInfoEntry.getKey();
+            template = template.replace("${" + edgeName + "EDGE_DETAILS_URL}", edgeDetailsUrl.toString());
+        }
 
         return template;
     }
@@ -720,6 +741,15 @@ public class DefaultSolutionService implements SolutionService {
                     throw new ThingsboardRuntimeException();
                 }
             }
+            if (deviceProfile.getDefaultEdgeRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(deviceProfile.getDefaultEdgeRuleChainId().getId().toString());
+                if (newId != null) {
+                    deviceProfile.setDefaultEdgeRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Device profile: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), deviceProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
         });
 
         deviceProfiles = deviceProfiles.stream().map(deviceProfileService::saveDeviceProfile).collect(Collectors.toList());
@@ -740,6 +770,15 @@ public class DefaultSolutionService implements SolutionService {
                     assetProfile.setDefaultRuleChainId(new RuleChainId(UUID.fromString(newId)));
                 } else {
                     log.error("[{}][{}] Asset profile: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+            if (assetProfile.getDefaultEdgeRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(assetProfile.getDefaultEdgeRuleChainId().getId().toString());
+                if (newId != null) {
+                    assetProfile.setDefaultEdgeRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Asset profile: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
                     throw new ThingsboardRuntimeException();
                 }
             }
@@ -764,9 +803,9 @@ public class DefaultSolutionService implements SolutionService {
             if (entityDef.getOriginatorId() != null) {
                 String newId = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
                 if (newId != null) {
-                    schedulerEvent.setOriginatorId(new RuleChainId(UUID.fromString(newId)));
+                    schedulerEvent.setOriginatorId(EntityIdFactory.getByTypeAndUuid(entityDef.getOriginatorId().getEntityType(), newId));
                 } else {
-                    log.error("[{}][{}] Scheduler event: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
+                    log.error("[{}][{}] Scheduler event: {} references non existing originator.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
                     throw new ThingsboardRuntimeException();
                 }
             }
@@ -779,7 +818,7 @@ public class DefaultSolutionService implements SolutionService {
                 schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
             }
             log.info("[{}] Saved scheduler event: {}", schedulerEvent.getId(), schedulerEvent);
-            ctx.register(savedSchedulerEvent.getId());
+            ctx.register(entityDef, savedSchedulerEvent);
         });
     }
 
@@ -1105,6 +1144,104 @@ public class DefaultSolutionService implements SolutionService {
         throw new RuntimeException(finalE);
     }
 
+    private void provisionEdges(SolutionInstallContext ctx, HttpServletRequest request) throws ThingsboardException {
+        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
+        RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
+        for (EdgeDefinition entityDef : edges) {
+            Edge entity = new Edge();
+            entity.setTenantId(ctx.getTenantId());
+            entity.setName(entityDef.getName());
+            entity.setLabel(entityDef.getLabel());
+            entity.setType(entityDef.getType());
+            entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            entity.setRoutingKey(UUID.randomUUID().toString());
+            entity.setSecret(StringUtils.randomAlphanumeric(20));
+            entity.setEdgeLicenseKey("6qcGys6gz4M2ZuIqZ6hRDjWT");
+            entity.setCloudEndpoint(systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+            RuleChainId rootRuleChainId = edgeTemplateRootRuleChain.getId();
+            if (StringUtils.isNotBlank(entityDef.getRootRuleChainId())) {
+                String newId = ctx.getRealIds().get(entityDef.getRootRuleChainId());
+                if (newId != null) {
+                    rootRuleChainId = new RuleChainId(UUID.fromString(newId));
+                } else {
+                    log.error("[{}][{}] Edge: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+            entity.setRootRuleChainId(rootRuleChainId);
+            entity = edgeService.saveEdge(entity);
+            ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), rootRuleChainId, entity.getId());
+            edgeService.assignTenantAdministratorsAndUsersGroupToEdge(ctx.getTenantId(), entity.getId());
+            assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.USER, entityDef.getUserGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.DASHBOARD, entityDef.getDashboardGroups(), entity);
+            assignSchedulerEventsToEdge(ctx, entityDef.getSchedulerEventIds(), entity);
+            ctx.register(entityDef, entity);
+            log.info("[{}] Saved edge: {}", entity.getId(), entity);
+            EdgeId entityId = entity.getId();
+            ctx.putIdToMap(entityDef, entityId);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            ctx.put(entityId, entityDef.getRelations());
+            addEntityToGroup(ctx, entityDef, entityId);
+
+            Optional<EntityGroup> allEdgeGroup =
+                    entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entity.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
+            EntityGroupId allCustomerGroupId = null;
+            if (EntityType.CUSTOMER.equals(entity.getOwnerId().getEntityType())) {
+                Optional<EntityGroup> allCustomerGroup =
+                        entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entity.getTenantId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
+                allCustomerGroupId = allCustomerGroup.get().getId();
+            }
+            EdgeLinkInfo edgeLinkInfo = new EdgeLinkInfo(entity.getId(), entity.getOwnerId(), allEdgeGroup.get().getId(), allCustomerGroupId);
+            ctx.addEdgeLinkInfo(entity.getName(), edgeLinkInfo);
+        }
+    }
+
+    private void assignRuleChainsToEdge(SolutionInstallContext ctx, List<String> ruleChainIds, Edge entity) {
+        if (ruleChainIds == null || ruleChainIds.isEmpty()) {
+            return;
+        }
+        for (String strRuleChainId : ruleChainIds) {
+            String newId = ctx.getRealIds().get(strRuleChainId);
+            if (newId != null) {
+                RuleChainId ruleChainId = new RuleChainId(UUID.fromString(newId));
+                ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), ruleChainId, entity.getId());
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
+    private void assignEntityGroupsToEdge(SolutionInstallContext ctx, EntityType entityType, List<EdgeEntityGroupDefinition> entityGroupDefinitions, Edge edge) {
+        for (EdgeEntityGroupDefinition entityGroupDefinition : entityGroupDefinitions) {
+            EntityId parentEntityId = ctx.getTenantId();
+            if (entityGroupDefinition.getCustomer() != null) {
+                parentEntityId = ctx.getIdFromMap(EntityType.CUSTOMER, entityGroupDefinition.getCustomer());
+            }
+            Optional<EntityGroup> entityGroupOptional = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), parentEntityId, entityType, entityGroupDefinition.getName());
+            entityGroupOptional.ifPresent(entityGroup -> entityGroupService.assignEntityGroupToEdge(ctx.getTenantId(), entityGroup.getId(), edge.getId(), entityType));
+        }
+    }
+
+    private void assignSchedulerEventsToEdge(SolutionInstallContext ctx, List<String> schedulerEventIds, Edge entity) {
+        if (schedulerEventIds == null || schedulerEventIds.isEmpty()) {
+            return;
+        }
+        for (String strSchedulerEventId : schedulerEventIds) {
+            String newId = ctx.getRealIds().get(strSchedulerEventId);
+            if (newId != null) {
+                SchedulerEventId schedulerEventId = new SchedulerEventId(UUID.fromString(newId));
+                schedulerEventService.assignSchedulerEventToEdge(ctx.getTenantId(), schedulerEventId, entity.getId());
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing scheduler event.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
     private RandomNameData generateRandomName(SolutionInstallContext ctx) {
         int i = 0;
         while (i < 10) {
@@ -1318,6 +1455,9 @@ public class DefaultSolutionService implements SolutionService {
                 break;
             case SCHEDULER_EVENT:
                 schedulerEventService.deleteSchedulerEvent(tenantId, new SchedulerEventId(entityId.getId()));
+                break;
+            case EDGE:
+                edgeService.deleteEdge(tenantId, new EdgeId(entityId.getId()));
                 break;
         }
     }
