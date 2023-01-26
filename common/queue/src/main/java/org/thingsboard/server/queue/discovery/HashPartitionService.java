@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -81,6 +80,11 @@ public class HashPartitionService implements PartitionService {
     private Integer vcPartitions;
     @Value("${queue.partitions.hash_function_name:murmur3_128}")
     private String hashFunctionName;
+    private static String DOWNLOAD_TOPIC_PREFIX;
+    @Value("${queue.core.downlink-topic-prefix:tb_ie}")
+    public void setDownloadTopicPrefix(String topicName){
+        HashPartitionService.DOWNLOAD_TOPIC_PREFIX = topicName;
+    }
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final TbServiceInfoProvider serviceInfoProvider;
@@ -179,7 +183,7 @@ public class HashPartitionService implements PartitionService {
     }
 
     public static String getIntegrationDownlinkTopic(IntegrationType it) {
-        return "tb_ie." + it.name().toLowerCase();
+        return DOWNLOAD_TOPIC_PREFIX + "." + it.name().toLowerCase();
     }
 
     private boolean isTransport(String serviceType) {
