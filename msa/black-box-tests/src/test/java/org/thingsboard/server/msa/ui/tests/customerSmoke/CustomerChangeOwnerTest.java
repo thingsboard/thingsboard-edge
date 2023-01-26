@@ -41,6 +41,7 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.OWNER_NOT_SELECTED_ERROR;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
@@ -48,8 +49,8 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustom
 public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
     private SideBarMenuViewElements sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String title = ENTITY_NAME;
-    private final String title1 = ENTITY_NAME + '1';
+    private final String title = ENTITY_NAME + random();
+    private final String title1 = ENTITY_NAME + random() + '1';
 
     @BeforeMethod
     public void login() {

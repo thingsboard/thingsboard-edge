@@ -41,6 +41,7 @@ import org.thingsboard.server.msa.ui.pages.ProfilesPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
 public class MakeAssetProfileDefaultTest extends AbstractDriverBaseTest {
@@ -64,7 +65,7 @@ public class MakeAssetProfileDefaultTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void makeDeviceProfileDefaultByRightCornerBtn() {
-        String name = ENTITY_NAME;
+        String name = ENTITY_NAME + random();
         testRestClient.postAssetProfile(EntityPrototypes.defaultAssetProfile(name));
         this.name = name;
 
@@ -78,7 +79,7 @@ public class MakeAssetProfileDefaultTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void makeDeviceProfileDefaultFromView() {
-        String name = ENTITY_NAME;
+        String name = ENTITY_NAME + random();
         testRestClient.postAssetProfile(EntityPrototypes.defaultAssetProfile(name));
         this.name = name;
 

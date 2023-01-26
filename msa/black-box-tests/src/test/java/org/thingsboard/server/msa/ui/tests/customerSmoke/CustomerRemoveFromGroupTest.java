@@ -41,6 +41,7 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultEntityGroupPrototype;
@@ -49,7 +50,7 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
 
     private SideBarMenuViewElements sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String title = ENTITY_NAME;
+    private String title;
     private String groupName;
 
     @BeforeMethod
@@ -71,7 +72,8 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void removeFromGroup() {
-        String groupName = "group";
+        String groupName = "group" + random();
+        title = ENTITY_NAME + random();
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(groupName, EntityType.CUSTOMER));
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         this.groupName = groupName;
@@ -88,7 +90,8 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void cancelRemoveFromGroup() {
-        String groupName = "group";
+        String groupName = "group" + random();
+        title = ENTITY_NAME + random();
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(groupName, EntityType.CUSTOMER));
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         this.groupName = groupName;

@@ -39,6 +39,7 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.ProfilesPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultDeviceProfile;
 
@@ -56,8 +57,8 @@ public class DeleteSeveralDeviceProfilesTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void canDeleteSeveralDeviceProfilesByTopBtn() {
-        String name1 = ENTITY_NAME + "1";
-        String name2 = ENTITY_NAME + "2";
+        String name1 = ENTITY_NAME + random() + "1";
+        String name2 = ENTITY_NAME + random() + "2";
         testRestClient.postDeviceProfile(defaultDeviceProfile(name1));
         testRestClient.postDeviceProfile(defaultDeviceProfile(name2));
 
@@ -96,8 +97,8 @@ public class DeleteSeveralDeviceProfilesTest extends AbstractDriverBaseTest {
     @Test(priority = 30, groups = "smoke")
     @Description
     public void deleteSeveralDeviceProfilesByTopBtnWithoutRefresh() {
-        String name1 = ENTITY_NAME + "1";
-        String name2 = ENTITY_NAME + "2";
+        String name1 = ENTITY_NAME + random() + "1";
+        String name2 = ENTITY_NAME + random() + "2";
         testRestClient.postDeviceProfile(defaultDeviceProfile(name1));
         testRestClient.postDeviceProfile(defaultDeviceProfile(name2));
 

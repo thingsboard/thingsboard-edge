@@ -40,6 +40,7 @@ import org.thingsboard.server.msa.ui.pages.ProfilesPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
 public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
@@ -57,7 +58,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void removeDeviceProfile() {
-        String name = ENTITY_NAME;
+        String name = ENTITY_NAME + random();
         testRestClient.postDeviceProfile(EntityPrototypes.defaultDeviceProfile(name));
 
         sideBarMenuView.openDeviceProfiles();
@@ -71,7 +72,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeDeviceProfileFromView() {
-        String name = ENTITY_NAME;
+        String name = ENTITY_NAME + random();
         testRestClient.postDeviceProfile(EntityPrototypes.defaultDeviceProfile(name));
 
         sideBarMenuView.openDeviceProfiles();
@@ -86,7 +87,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeSelectedDeviceProfile() {
-        String name = ENTITY_NAME;
+        String name = ENTITY_NAME + random();
         testRestClient.postDeviceProfile(EntityPrototypes.defaultDeviceProfile(name));
 
         sideBarMenuView.openDeviceProfiles();
@@ -127,7 +128,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
     @Test(priority = 30, groups = "smoke")
     @Description
     public void removeDeviceProfileWithoutRefresh() {
-        String name = ENTITY_NAME;
+        String name = ENTITY_NAME + random();
         testRestClient.postDeviceProfile(EntityPrototypes.defaultDeviceProfile(name));
 
         sideBarMenuView.openDeviceProfiles();

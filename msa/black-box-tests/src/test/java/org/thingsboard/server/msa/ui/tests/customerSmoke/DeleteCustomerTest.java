@@ -40,6 +40,7 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 
@@ -60,7 +61,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void removeCustomerByRightSideBtn() {
-        String customer = ENTITY_NAME;
+        String customer = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -73,7 +74,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeSelectedCustomer() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -86,7 +87,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeFromCustomerView() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -101,7 +102,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeCustomerByRightSideBtnWithoutRefresh() {
-        String customer = ENTITY_NAME;
+        String customer = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
         sideBarMenuView.goToAllCustomerGroupBtn();

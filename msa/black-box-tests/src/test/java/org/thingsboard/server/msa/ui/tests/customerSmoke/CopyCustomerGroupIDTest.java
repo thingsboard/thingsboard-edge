@@ -42,6 +42,7 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.COPY_ENTITY_GROUP_ID_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
@@ -68,7 +69,7 @@ public class CopyCustomerGroupIDTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeFromCustomerView() {
-        customerGroupName = ENTITY_NAME;
+        customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();

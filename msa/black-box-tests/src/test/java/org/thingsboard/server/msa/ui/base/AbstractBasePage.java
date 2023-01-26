@@ -45,6 +45,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
@@ -56,7 +57,7 @@ abstract public class AbstractBasePage {
 
     public AbstractBasePage(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofMillis(5000));
+        this.wait = new WebDriverWait(driver, Duration.ofMillis(8000));
         this.actions = new Actions(driver);
         this.js = (JavascriptExecutor) driver;
     }
@@ -213,6 +214,15 @@ abstract public class AbstractBasePage {
             random.append(ThreadLocalRandom.current().nextInt(0, 100));
         }
         return random.toString();
+    }
+
+    public static String randomUUID() {
+        UUID randomUUID = UUID.randomUUID();
+        return randomUUID.toString().replaceAll("_", "");
+    }
+
+    public static String random() {
+        return getRandomNumber() + randomUUID().substring(0, 6);
     }
 
     public static char getRandomSymbol() {

@@ -41,6 +41,7 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_ENTITY_GROUP_MESSAGE;
@@ -50,7 +51,7 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultEntity
 public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     private SideBarMenuViewElements sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String title = ENTITY_NAME;
+    private String title;
     private String name;
 
     @BeforeMethod
@@ -72,7 +73,8 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void addGroup() {
-        name = ENTITY_NAME + '1';
+        name = ENTITY_NAME + random() + '1';
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(name, EntityType.CUSTOMER));
 
@@ -92,6 +94,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void addGroupWithoutSelect() {
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -104,6 +107,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void createNewEntityGroup() {
+        title = ENTITY_NAME + random();
         String groupName = title + '1';
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
@@ -111,7 +115,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(groupName);
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), groupName);
         customerPage.selectGroupViewSubmitBtn().click();
         name = groupName;
         sideBarMenuView.customerGroupsBtn().click();
@@ -123,6 +127,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void createNewEntityGroupWithoutName() {
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -136,13 +141,14 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void createNewEntityGroupWithSpace() {
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(" ");
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), " ");
         customerPage.selectGroupViewSubmitBtn().click();
 
         Assert.assertNotNull(customerPage.warningMessage());
@@ -155,7 +161,8 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void addGroupWithSameName() {
-        name = ENTITY_NAME + '1';
+        title = ENTITY_NAME + random();
+        name = ENTITY_NAME + random() + '1';
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(name, EntityType.CUSTOMER));
 
@@ -163,7 +170,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(name);
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), name);
         customerPage.selectGroupViewSubmitBtn().click();
 
         Assert.assertNotNull(customerPage.warningMessage());

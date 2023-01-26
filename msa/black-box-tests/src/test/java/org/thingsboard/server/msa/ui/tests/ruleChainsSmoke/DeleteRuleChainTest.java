@@ -39,6 +39,7 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.DELETE_RULE_CHAIN_WITH_PROFILE_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.ROOT_RULE_CHAIN_NAME;
@@ -58,7 +59,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void removeRuleChainByRightSideBtn() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
@@ -71,7 +72,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeSelectedRuleChain() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
@@ -84,11 +85,11 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void removeFromRuleChainView() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.detailsBtn(ENTITY_NAME).click();
+        ruleChainsPage.detailsBtn(ruleChainName).click();
         String deletedRuleChain = ruleChainsPage.deleteRuleChainFromView(ruleChainName);
         ruleChainsPage.refreshBtn().click();
 
@@ -171,7 +172,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 30, groups = "smoke")
     @Description
     public void removeRuleChainByRightSideBtnWithoutRefresh() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();

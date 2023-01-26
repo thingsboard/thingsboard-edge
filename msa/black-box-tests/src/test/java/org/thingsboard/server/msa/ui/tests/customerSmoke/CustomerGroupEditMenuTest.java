@@ -44,6 +44,7 @@ import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomNumber;
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
@@ -70,7 +71,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void changeTitle() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
         String changedName = "Changed" + getRandomNumber();
@@ -93,7 +94,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void deleteName() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
@@ -108,7 +109,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void saveOnlyWithSpace() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
@@ -128,7 +129,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
     @Description
     public void editDescription(String description, String newDescription, String finalDescription) {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER, description));
         this.customerGroupName = customerGroupName;
 
