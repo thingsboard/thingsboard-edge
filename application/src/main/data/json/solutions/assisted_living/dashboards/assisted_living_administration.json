@@ -641,6 +641,42 @@
                   "postFuncBody": null
                 },
                 {
+                  "name": "gender",
+                  "type": "attribute",
+                  "label": "Gender",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.45836573986355167,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "birthdate",
+                  "type": "attribute",
+                  "label": "Age",
+                  "color": "#9c27b0",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "if (value !== null && value !== '') {\n    let birthday = new Date(value);\n    var ageDifMs = Date.now() - birthday.getTime();\n    var ageDate = new Date(ageDifMs);\n    return Math.abs(ageDate.getUTCFullYear() - 1970);\n} else {\n    return '—';\n}",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.9277460004906284,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
                   "name": "zone",
                   "type": "attribute",
                   "label": "Zone",
