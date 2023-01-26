@@ -36,8 +36,8 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EventValueStrategyDefinition implements ValueStrategyDefinition {
-    private boolean normalValue;
-    private boolean anomalyValue;
+    private Object normalValue;
+    private Object anomalyValue;
     private double anomalyChance;
 
     @Override

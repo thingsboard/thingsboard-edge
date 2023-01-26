@@ -275,7 +275,7 @@
         },
         "type": "org.thingsboard.rule.engine.deduplication.TbMsgDeduplicationNode",
         "name": "Deduplicate From Multiple Gateways",
-        "debugMode": false,
+        "debugMode": true,
         "configuration": {
           "interval": 3,
           "id": "ORIGINATOR",
