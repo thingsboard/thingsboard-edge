@@ -110,6 +110,70 @@
           "fetchAlarmRulesStateOnStart": false
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 491,
+          "layoutY": 130
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count active alarms",
+        "debugMode": false,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "alarmsCount",
+              "typesList": [],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": true,
+          "propagationEntityTypes": [
+            "ASSET",
+            "CUSTOMER",
+            "USER"
+          ],
+          "outMsgType": "POST_ATTRIBUTES_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 827,
+          "layoutY": 132
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Alarms Count",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 492,
+          "layoutY": 41
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Extract Alarm Type and Start TS",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var newMsg = {};\nnewMsg.latestAlarmType = msg.type;\nnewMsg.latestAlarmStartTs = msg.startTs;\nreturn {msg: newMsg, metadata: {}, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -139,8 +203,48 @@
         "type": "RPC Request to Device"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "Alarm Acknowledged"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Severity Updated"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 9,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 8,
         "type": "Success"
       }
     ],
