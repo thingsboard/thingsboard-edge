@@ -7,7 +7,7 @@
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": []
   },
- {
+  {
     "name": "Healthy WristBand",
     "publishPeriodInDays": 7,
     "publishFrequencyInSeconds": 3600,
@@ -246,7 +246,7 @@
       }
     ]
   },
- {
+  {
     "name": "Cardio WristBand",
     "publishPeriodInDays": 7,
     "publishFrequencyInSeconds": 3600,
@@ -300,12 +300,12 @@
         "valueStrategy": {
           "type": "natural",
           "precision": 2,
-          "minStartValue": 80.0,
-          "maxStartValue": 109.0,
-          "minLowValue": 80.0,
-          "maxLowValue": 99.0,
-          "minHighValue": 105.0,
-          "maxHighValue": 135.0,
+          "minStartValue": 121.0,
+          "maxStartValue": 130.0,
+          "minLowValue": 121.0,
+          "maxLowValue": 125.0,
+          "minHighValue": 131.0,
+          "maxHighValue": 139.0,
           "minIncrement": 3.0,
           "maxIncrement": 10.0,
           "minDecrement": 3.0,
