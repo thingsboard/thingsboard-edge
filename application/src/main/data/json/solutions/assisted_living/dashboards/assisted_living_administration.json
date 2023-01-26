@@ -40,8 +40,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910417,
-                "endTimeMs": 1674666310417
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -157,8 +157,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910417,
-                "endTimeMs": 1674666310417
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -225,8 +225,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910417,
-                "endTimeMs": 1674666310417
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -456,8 +456,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -551,8 +551,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1004,7 +1004,9 @@
               }
             ]
           },
-          "alarmStatusList": [],
+          "alarmStatusList": [
+            "UNACK"
+          ],
           "alarmSeverityList": [],
           "alarmTypeList": [],
           "searchPropagatedAlarms": true,
@@ -1227,7 +1229,10 @@
               }
             ]
           },
-          "alarmStatusList": [],
+          "alarmStatusList": [
+            "ACTIVE",
+            "UNACK"
+          ],
           "alarmSeverityList": [],
           "alarmTypeList": [],
           "searchPropagatedAlarms": true,
@@ -1266,6 +1271,20 @@
                   "color": "#2196f3",
                   "settings": {},
                   "_hash": 0.3546324824235396,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#ffeb3b",
+                  "settings": {},
+                  "_hash": 0.8630761565441316,
                   "aggregationType": null,
                   "units": null,
                   "decimals": null,
@@ -1312,6 +1331,92 @@
                   "color": "#607d8b",
                   "settings": {},
                   "_hash": 0.43712149028064173
+                },
+                {
+                  "name": "alarmsCount",
+                  "type": "attribute",
+                  "label": "alarmsCount",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.1330115620253587
+                },
+                {
+                  "name": "type",
+                  "type": "attribute",
+                  "label": "type",
+                  "color": "#03a9f4",
+                  "settings": {},
+                  "_hash": 0.8250466439241231,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return 'resident';"
+                }
+              ]
+            },
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b42fb9f5-9b83-28d3-87d5-62cdbf427612",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "xPos",
+                  "type": "attribute",
+                  "label": "xPos",
+                  "color": "#8bc34a",
+                  "settings": {},
+                  "_hash": 0.41400297250304496,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "yPos",
+                  "type": "attribute",
+                  "label": "yPos",
+                  "color": "#3f51b5",
+                  "settings": {},
+                  "_hash": 0.16658660208776332,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#e91e63",
+                  "settings": {},
+                  "_hash": 0.4824210666822777,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "alarmsCount",
+                  "type": "attribute",
+                  "label": "alarmsCount",
+                  "color": "#ff9800",
+                  "settings": {},
+                  "_hash": 0.4189265870567367,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 }
               ]
             }
@@ -1330,8 +1435,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1374,15 +1479,22 @@
             "mapPageSize": 16384,
             "markerOffsetX": 0.5,
             "markerOffsetY": 1,
-            "posFunction": "var zone = data.currentZone;\nvar xPos = data.xPos;\nvar yPos = data.yPos;\nvar locationGroup = dsData.filter((item) => item.currentZone === zone && item.xPos === xPos && item.yPos === yPos);\nif (locationGroup.length > 1) {\n    const count = locationGroup.length;\n    const index = locationGroup.indexOf(data);\n    const radius = 0.035;\n    const angle = (360 / count) * index - 45;\n    const x = xPos + radius * Math.sin(angle*Math.PI/180) / aspect;\n    const y = yPos + radius * Math.cos(angle*Math.PI/180);\n    return {x: x, y: y};\n} else {\n    return {x: xPos, y: yPos};\n}",
+            "posFunction": "var type = data.type;\nvar zone = data.currentZone;\nvar xPos = data.xPos;\nvar yPos = data.yPos;\n\nvar location = {x: xPos, y: yPos};\n\nif (type === 'resident') {\n    var locationGroup = dsData.filter((item) => item.type === 'resident' && item.currentZone === zone && item.xPos === xPos && item.yPos === yPos);\n    if (locationGroup.length > 1) {\n        const count = locationGroup.length;\n        const index = locationGroup.indexOf(data);\n        const radius = 0.035;\n        const angle = (360 / count) * index - 45;\n        const x = xPos + radius * Math.sin(angle*Math.PI/180) / aspect;\n        const y = yPos + radius * Math.cos(angle*Math.PI/180);\n        location = {x: x, y: y};\n    }\n}\n\nreturn location;",
             "draggableMarker": false,
             "showLabel": false,
             "showTooltip": false,
             "color": "#fe7569",
             "useColorFunction": false,
             "useMarkerImageFunction": true,
-            "markerImageFunction": "var zone = data.currentZone;\nvar photo = data.photo;\nvar currentZone = '';\nvar zoneData = dsData.filter((data) => data.aliasName === 'Zone');\nif (zoneData && zoneData.length) {\n    currentZone = zoneData[0].zoneName;\n}\nif (photo && zone && zone === currentZone) {\n    var avatarSize = 48;\n    var avatarOffsetX = 0;\n    var avatarOffsetY = 6;\n    var svgWidth = avatarSize + 4;\n    var svgHeight = avatarSize + avatarOffsetY;\n    \n    var svgStr = '<svg width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">';\n    \n    svgStr += getPhotoCircleSvg(avatarSize, photo, avatarOffsetX, avatarOffsetY);\n    svgStr += getHealthStatusSvg(avatarSize, true);\n    \n    svgStr += '</svg>';\n\n    var encodedSvg = encodeURIComponent(svgStr);\n    \n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    \n    return {\n\t    url: svgUrl,\n\t    size: svgHeight,\n\t    markerOffset: [avatarSize / 2, avatarOffsetY + avatarSize / 2],\n        tooltipOffset: [0, - (avatarOffsetY + avatarSize / 2)]\n\t};\n} else {\n    return {\n        url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',\n        size: 0\n    };\n}\n\nfunction getPhotoCircleSvg(avatarSize, photo, offsetX, offsetY) {\n    var cx = avatarSize / 2;\n    var cy = avatarSize / 2;\n    var r = avatarSize / 2;\n    return '<defs>' +\n        '<clipPath id=\"circleView\">' +\n            '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+(r-1)+'\" fill=\"#FFFFFF\" />' +\n        '</clipPath>' +\n    '</defs>' +\n    '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n        '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+r+'\" fill=\"#3E3AE3\" opacity=\"0.25\"/>' +\n        '<image ' +\n          'width=\"'+avatarSize+'\" ' +\n          'height=\"'+avatarSize+'\" ' +\n          'href=\"'+photo+'\" ' +\n          'clip-path=\"url(#circleView)\"' +\n        '/>' +\n    '</g>';\n}\n\nfunction getHealthStatusSvg(width, status) {\n    var offsetX = width - 12;\n    var offsetY = 0;\n    var statusOK = '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n                     '<circle cx=\"8\" cy=\"8\" r=\"8\" fill=\"#3AA94D\" />' + \n                     '<path d=\"M13.2415 5.4413C13.1801 5.20186 13.0852 4.97217 12.9596 4.75893C12.8391 4.53711 12.6849 4.33509 12.5025 4.15996C12.2381 3.89773 11.9251 3.68915 11.5807 3.54583C10.8875 3.26272 10.1102 3.26272 9.41701 3.54583C9.09152 3.68294 8.79248 3.87536 8.53326 4.11447L8.49516 4.15996L7.99996 4.65279L7.50475 4.15996L7.46666 4.11447C7.20744 3.87536 6.90839 3.68294 6.5829 3.54583C5.88973 3.26272 5.1124 3.26272 4.41923 3.54583C4.07486 3.68915 3.76177 3.89773 3.49738 4.15996C3.13578 4.51012 2.8798 4.95395 2.75838 5.4413C2.69379 5.68879 2.66304 5.94382 2.66696 6.19949C2.66696 6.44059 2.69743 6.68018 2.75838 6.91219C2.82225 7.14726 2.91434 7.37382 3.03265 7.58697C3.16043 7.80609 3.31668 8.00749 3.49738 8.18594L7.99996 12.6668L12.5025 8.18594C12.6831 8.01004 12.8377 7.80836 12.9596 7.58697C13.2071 7.16626 13.336 6.68696 13.333 6.19949C13.3369 5.94382 13.3062 5.68878 13.2415 5.4413Z\" fill=\"white\"/>' + \n                     '</g>';\n    return statusOK;                     \n}\n",
-            "markerImages": [],
+            "markerImageFunction": "const emptyMarker = {\n    url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',\n    size: 0\n};\n\nvar type = data.type;\nvar alarmsCount = data.alarmsCount;\nvar statusOk = !alarmsCount;\n\nif (type === 'resident') {\n    return getResidentMarker(statusOk);\n} else if (!statusOk) {\n    switch (type) {\n        case 'AL_Gateway':\n            return {\n                url: images[0],\n                size: 40,\n                markerOffset: [20, 20],\n                tooltipOffset: [0, -20]\n            };\n        case 'AL_RoomSensor':\n            return {\n                url: images[1],\n                size: 40,\n                markerOffset: [20, 20],\n                tooltipOffset: [0, -20]\n            };\n        case 'AL_DoorSensor':\n            return {\n                url: images[2],\n                size: 40,\n                markerOffset: [20, 20],\n                tooltipOffset: [0, -20]\n            };\n        case 'AL_WindowSensor':\n            return {\n                url: images[3],\n                size: 40,\n                markerOffset: [20, 20],\n                tooltipOffset: [0, -20]\n            };\n        case 'AL_LeakSensor':\n            return {\n                url: images[4],\n                size: 40,\n                markerOffset: [20, 20],\n                tooltipOffset: [0, -20]\n            };\n        case 'AL_SmokeSensor':\n            return {\n                url: images[5],\n                size: 40,\n                markerOffset: [20, 20],\n                tooltipOffset: [0, -20]\n            };\n    }\n} else {\n    return emptyMarker;\n}\n\nswitch (type) {\n    case 'resident':\n        return getResidentMarker(statusOk);\n    default:\n        return emptyMarker;\n}\n\nfunction getResidentMarker(statusOk) {\n    var zone = data.currentZone;\n    var zoneData = dsData.filter((data) => data.aliasName === 'Zone');\n    var currentZone = '';\n    if (zoneData && zoneData.length) {\n        currentZone = zoneData[0].zoneName;\n    }\n    if (zone && zone === currentZone) {\n        var avatarSize = 48;\n        var statusSize = 18;\n        var statusRight = 1;\n        var statusTop = 3;\n        var avatarPadding = 3;\n    \n        var borderSize = 1;\n        var borderColor = '#3E3AE3';\n        var borderOpacity = 0.25;\n        if (!statusOk) {\n            borderSize = 3;\n            borderColor = '#F31B1B';\n            borderOpacity = 1;\n        }\n        \n        var avatarOffsetX = 0;\n        var avatarOffsetY = statusTop;\n        var svgWidth = avatarSize + avatarPadding * 2 + statusRight;\n        var svgHeight = avatarSize + avatarPadding * 2 + statusTop;\n        \n        var svgStr = '<svg width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">';\n        \n        var photo = data.photo;\n        \n        svgStr += getPhotoCircleSvg(avatarSize, avatarPadding, borderSize, borderColor, borderOpacity, photo, avatarOffsetX, avatarOffsetY);\n        svgStr += getHealthStatusSvg(statusSize, statusRight, avatarSize, avatarPadding, statusOk);\n        \n        svgStr += '</svg>';\n    \n        var encodedSvg = encodeURIComponent(svgStr);\n        \n        var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n        \n        return {\n    \t    url: svgUrl,\n    \t    size: svgHeight,\n    \t    markerOffset: [avatarPadding + avatarSize / 2, statusTop + avatarPadding + avatarSize / 2],\n            tooltipOffset: [0, - (statusTop + avatarPadding + avatarSize / 2)]\n    \t};\n    } else {\n        return emptyMarker;\n    }\n}\n\nfunction getPhotoCircleSvg(avatarSize, avatarPadding, borderSize, borderColor, borderOpacity, photo, offsetX, offsetY) {\n    var cx = avatarSize / 2;\n    var cy = avatarSize / 2;\n    var r = avatarSize / 2;\n    return '<defs>' +\n        '<clipPath id=\"circleView\">' +\n            '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+r+'\" fill=\"#FFFFFF\" />' +\n        '</clipPath>' +\n    '</defs>' +\n    '<g transform=\"translate('+(offsetX + avatarPadding)+','+(offsetY + avatarPadding)+')\">' +\n        '<circle cx=\"'+cx+'\" cy=\"'+cy+'\" r=\"'+(r+borderSize)+'\" fill=\"'+borderColor+'\" opacity=\"'+borderOpacity+'\"/>' +\n        '<image ' +\n          'width=\"'+avatarSize+'\" ' +\n          'height=\"'+avatarSize+'\" ' +\n          'href=\"'+photo+'\" ' +\n          'clip-path=\"url(#circleView)\"' +\n        '/>' +\n    '</g>';\n}\n\nfunction getHealthStatusSvg(statusSize, statusRight, avatarSize, avatarPadding, status) {\n    var offsetX = avatarSize + avatarPadding*2 - statusSize + statusRight;\n    var offsetY = 0;\n    var statusShape;\n    if (status) {\n        statusShape = '<rect width=\"18\" height=\"18\" rx=\"9\" fill=\"#3AA94D\"/>' +\n                      '<path d=\"M14.2415 6.44113C14.1801 6.20169 14.0852 5.972 13.9596 5.75876C13.8391 5.53694 13.6849 5.33492 13.5025 5.1598C13.2381 4.89756 12.9251 4.68899 12.5807 4.54566C11.8875 4.26255 11.1102 4.26255 10.417 4.54566C10.0915 4.68277 9.79248 4.87519 9.53326 5.11431L9.49516 5.1598L8.99996 5.65262L8.50475 5.1598L8.46666 5.11431C8.20744 4.87519 7.90839 4.68277 7.5829 4.54566C6.88973 4.26255 6.1124 4.26255 5.41923 4.54566C5.07486 4.68899 4.76177 4.89756 4.49738 5.1598C4.13578 5.50995 3.8798 5.95378 3.75838 6.44113C3.69379 6.68862 3.66304 6.94365 3.66696 7.19932C3.66696 7.44043 3.69743 7.68001 3.75838 7.91202C3.82225 8.14709 3.91434 8.37365 4.03265 8.5868C4.16043 8.80593 4.31668 9.00732 4.49738 9.18577L8.99996 13.6667L13.5025 9.18577C13.6831 9.00987 13.8377 8.8082 13.9596 8.5868C14.2071 8.16609 14.336 7.68679 14.333 7.19932C14.3369 6.94365 14.3062 6.68862 14.2415 6.44113Z\" fill=\"white\"/>';\n    } else {\n        statusShape = '<rect width=\"18\" height=\"18\" rx=\"9\" fill=\"#F31B1B\"/>' +\n                      '<path d=\"M9 14.625C9.62132 14.625 10.125 14.1213 10.125 13.5C10.125 12.8787 9.62132 12.375 9 12.375C8.37868 12.375 7.875 12.8787 7.875 13.5C7.875 14.1213 8.37868 14.625 9 14.625Z\" fill=\"white\"/>' +\n                      '<rect x=\"7.875\" y=\"3.375\" width=\"2.25\" height=\"7.5\" rx=\"1.125\" fill=\"white\"/>';\n    }\n    return '<g transform=\"translate('+offsetX+','+offsetY+')\">' +\n                     statusShape + \n            '</g>';\n}\n",
+            "markerImages": [
+              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGMzFCMUIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yMC4yNjI1IDEyLjk2NzlDMjIuNTM2NyAxMC4yMzg4IDI3LjE0MTYgMTAuMjM4OCAyOS40MTU4IDEyLjk2NzlDMjkuNzM0IDEzLjM0OTcgMzAuMzAxNSAxMy40MDEzIDMwLjY4MzMgMTMuMDgzMUMzMS4wNjUyIDEyLjc2NDkgMzEuMTE2OCAxMi4xOTc0IDMwLjc5ODYgMTEuODE1NUMyNy44MDQ3IDguMjIyOTQgMjEuODczNSA4LjIyMjk0IDE4Ljg3OTcgMTEuODE1NUMxOC41NjE1IDEyLjE5NzQgMTguNjEzMSAxMi43NjQ5IDE4Ljk5NDkgMTMuMDgzMUMxOS4zNzY4IDEzLjQwMTMgMTkuOTQ0MyAxMy4zNDk3IDIwLjI2MjUgMTIuOTY3OVpNMjIuMzk4MyAxNS4wMzg5QzIzLjYxODcgMTMuNDExNyAyNi4wNTk1IDEzLjQxMTcgMjcuMjc5OSAxNS4wMzg5QzI3LjU3ODIgMTUuNDM2NiAyOC4xNDIzIDE1LjUxNzIgMjguNTM5OSAxNS4yMTg5QzI4LjkzNzYgMTQuOTIwNyAyOS4wMTgyIDE0LjM1NjYgMjguNzE5OSAxMy45NTg5QzI2Ljc3OTUgMTEuMzcxNyAyMi44OTg3IDExLjM3MTcgMjAuOTU4MyAxMy45NTg5QzIwLjY2MDEgMTQuMzU2NiAyMC43NDA3IDE0LjkyMDcgMjEuMTM4MyAxNS4yMTg5QzIxLjUzNiAxNS41MTcyIDIyLjEwMDEgMTUuNDM2NiAyMi4zOTgzIDE1LjAzODlaTTI1LjkgMTUuOTk5QzI1LjkgMTUuNTAyIDI1LjQ5NzEgMTUuMDk5IDI1IDE1LjA5OUMyNC41MDI5IDE1LjA5OSAyNC4xIDE1LjUwMiAyNC4xIDE1Ljk5OVYxOC40NzczTDExLjAwMzIgMTguNDM1NUMxMC40NDk3IDE4LjQzMzcgMTAgMTguODgxOSAxMCAxOS40MzU1VjI4LjAwMjFDMTAgMjguNTUzMSAxMC40NDU4IDI5LjAwMDMgMTAuOTk2OCAyOS4wMDIxTDI5LjkyOTkgMjkuMDYyNkMzMC40ODM0IDI5LjA2NDQgMzAuOTMzMSAyOC42MTYxIDMwLjkzMzEgMjguMDYyNlYxOS40OTZDMzAuOTMzMSAxOC45NDQ5IDMwLjQ4NzMgMTguNDk3NyAyOS45MzYzIDE4LjQ5NkwyNS45IDE4LjQ4MzFWMTUuOTk5Wk0xMS44IDIwLjIzOFYyNy4yMDQ3TDI5LjEzMzEgMjcuMjZWMjAuMjkzNEwxMS44IDIwLjIzOFpNMTQuMiAyMy40OTlDMTQuMiAyMy4zMzMzIDE0LjMzNDMgMjMuMTk5IDE0LjUgMjMuMTk5QzE0LjY2NTcgMjMuMTk5IDE0LjggMjMuMzMzMyAxNC44IDIzLjQ5OUMxNC44IDIzLjY2NDcgMTQuNjY1NyAyMy43OTkgMTQuNSAyMy43OTlDMTQuMzM0MyAyMy43OTkgMTQuMiAyMy42NjQ3IDE0LjIgMjMuNDk5Wk0xNiAyMy40OTlDMTYgMjQuMzI3NCAxNS4zMjg0IDI0Ljk5OSAxNC41IDI0Ljk5OUMxMy42NzE2IDI0Ljk5OSAxMyAyNC4zMjc0IDEzIDIzLjQ5OUMxMyAyMi42NzA2IDEzLjY3MTYgMjEuOTk5IDE0LjUgMjEuOTk5QzE1LjMyODQgMjEuOTk5IDE2IDIyLjY3MDYgMTYgMjMuNDk5Wk0xOC4yIDIzLjQ5OUMxOC4yIDIzLjMzMzMgMTguMzM0MyAyMy4xOTkgMTguNSAyMy4xOTlDMTguNjY1NyAyMy4xOTkgMTguOCAyMy4zMzMzIDE4LjggMjMuNDk5QzE4LjggMjMuNjY0NyAxOC42NjU3IDIzLjc5OSAxOC41IDIzLjc5OUMxOC4zMzQzIDIzLjc5OSAxOC4yIDIzLjY2NDcgMTguMiAyMy40OTlaTTIwIDIzLjQ5OUMyMCAyNC4zMjc0IDE5LjMyODQgMjQuOTk5IDE4LjUgMjQuOTk5QzE3LjY3MTYgMjQuOTk5IDE3IDI0LjMyNzQgMTcgMjMuNDk5QzE3IDIyLjY3MDYgMTcuNjcxNiAyMS45OTkgMTguNSAyMS45OTlDMTkuMzI4NCAyMS45OTkgMjAgMjIuNjcwNiAyMCAyMy40OTlaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+              "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDQwIDQwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogPGVsbGlwc2UgY3g9IjIwIiBjeT0iMjAiIHJ4PSIxOS4yMjEiIHJ5PSIxOS4yMjEiIGZpbGw9IiNmMzFiMWIiIHN0cm9rZT0iI2YzMWIxYiIgc3Ryb2tlLXdpZHRoPSIxLjU1NzIiLz4KIDxwYXRoIGQ9Im0yMC45OTcgMTYuMzMyYzAtMC4yNjUyMi0wLjEwNTMzLTAuNTE5NTctMC4yOTI4My0wLjcwNzEtMC4xODc1LTAuMTg3NTUtMC40NDE4My0wLjI5MjktMC43MDcxNy0wLjI5MjktMC4yNjUxNyAwLTAuNTE5NSAwLjEwNTM1LTAuNzA3IDAuMjkyOS0wLjE4NzUgMC4xODc1My0wLjI5MyAwLjQ0MTg4LTAuMjkzIDAuNzA3MWwwLjAwMjcgNi41MjY3Yy0wLjU3MzcgMC4yMzItMS4wNDg3IDAuNjU2MzMtMS4zNDM5IDEuMjAwM3MtMC4zOTE4MyAxLjE3MzctMC4yNzM2NyAxLjc4MWMwLjExODE3IDAuNjA3NSAwLjQ0NCAxLjE1NSAwLjkyMTUgMS41NDg1IDAuNDc3NjcgMC4zOTM2NyAxLjA3NzIgMC42MDg4MyAxLjY5NiAwLjYwODgzIDAuNjE4ODMgMCAxLjIxODUtMC4yMTUxNyAxLjY5Ni0wLjYwODgzIDAuNDc3NjctMC4zOTM1IDAuODAzNS0wLjk0MSAwLjkyMTY3LTEuNTQ4NSAwLjExODE3LTAuNjA3MzMgMC4wMjE1LTEuMjM3LTAuMjczNjctMS43ODFzLTAuNzcwMTctMC45NjgzMy0xLjM0NC0xLjIwMDN6bS01LjY2MzktMi4zMzMzdi0wLjAwMjdjMC4wMjA2OC0xLjIyMzEgMC41MjEwOC0yLjM4OTIgMS4zOTM0LTMuMjQ2OCAwLjg3MjE3LTAuODU3NjcgMi4wNDY3LTEuMzM4MyAzLjI2OTgtMS4zMzgzIDEuMjIzMyAwIDIuMzk3NyAwLjQ4MDYzIDMuMjcgMS4zMzgzIDAuODcyMzMgMC44NTc2NyAxLjM3MjcgMi4wMjM3IDEuMzkzMyAzLjI0Njh2Ny41NTc0YzAuNzE0IDAuODgwNSAxLjE2MzggMS45NDUyIDEuMjk3NSAzLjA3MDggMC4xMzM2NyAxLjEyNTUtMC4wNTQxNyAyLjI2Ni0wLjU0MTgzIDMuMjg5Mi0wLjQ4NzY3IDEuMDIzMy0xLjI1NTMgMS44ODc1LTIuMjEzOCAyLjQ5MjVzLTIuMDY4OCAwLjkyNjE3LTMuMjAyNSAwLjkyNjE3Yy0xLjEzMzUgMC0yLjI0MzgtMC4zMjExNy0zLjIwMjMtMC45MjYxNy0wLjk1ODYtMC42MDUtMS43MjYyLTEuNDY5Mi0yLjIxMzktMi40OTI1LTAuNDg3Ny0xLjAyMzItMC42NzU1Ny0yLjE2MzctMC41NDE4My0zLjI4OTIgMC4xMzM3Mi0xLjEyNTcgMC41ODM1Ny0yLjE5MDMgMS4yOTc0LTMuMDcwOCAwLTIuMzE2LTAuMDEwNjctNS4zMDY3LTAuMDEwNjctNy41NTQ3em0xLjk5OTktMC4wMDI3Yy0wLjAwNjcgMi43NzM0IDAuMDA1MyA1LjU0OTQgMC4wMDUzIDguMzI0bC0wLjI2NjY3IDAuMjg4Yy0wLjUzMDQyIDAuNTcwMTctMC44ODI4OCAxLjI4MjgtMS4wMTQxIDIuMDUwNS0wLjEzMTIgMC43Njc4My0wLjAzNTQ1IDEuNTU3MiAwLjI3NTU1IDIuMjcxMiAwLjMxMDk4IDAuNzE0IDAuODIzNzIgMS4zMjE4IDEuNDc1IDEuNzQ4NyAwLjY1MTUgMC40MjY4MyAxLjQxMzMgMC42NTQxNyAyLjE5MjIgMC42NTQxN3MxLjU0MDgtMC4yMjczMyAyLjE5MjItMC42NTQxN2MwLjY1MTUtMC40MjY4MyAxLjE2NDItMS4wMzQ3IDEuNDc1Mi0xLjc0ODdzMC40MDY4My0xLjUwMzMgMC4yNzU1LTIuMjcxMmMtMC4xMzExNy0wLjc2NzY3LTAuNDgzNjctMS40ODAzLTEuMDE0Mi0yLjA1MDVsLTAuMjY4LTAuMjg4di04LjMyNGMwLTAuNzA2NTMtMC4yODA2Ny0xLjM4NDEtMC43ODAxNy0xLjg4MzctMC40OTk2Ny0wLjQ5OTYtMS4xNzcyLTAuNzgwMjctMS44ODM4LTAuNzgwMjctMC43MDY1IDAtMS4zODQgMC4yODA2Ny0xLjg4MzcgMC43ODAyN3MtMC43ODAzMyAxLjE3NzItMC43ODAzMyAxLjg4Mzd6IiBmaWxsPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEuNjY2NyIvPgo8L3N2Zz4K",
+              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGMzFCMUIiLz4KPHBhdGggZD0iTTExIDI5VjI3SDEzVjExSDI3VjI3SDI5VjI5SDExWk0yMyAyN0gyNVYxM0gyM1YyN1pNMTkgMjFDMTkuMjgzMyAyMSAxOS41MjEgMjAuOTA0IDE5LjcxMyAyMC43MTJDMTkuOTA0MyAyMC41MjA3IDIwIDIwLjI4MzMgMjAgMjBDMjAgMTkuNzE2NyAxOS45MDQzIDE5LjQ3OSAxOS43MTMgMTkuMjg3QzE5LjUyMSAxOS4wOTU3IDE5LjI4MzMgMTkgMTkgMTlDMTguNzE2NyAxOSAxOC40NzkzIDE5LjA5NTcgMTguMjg4IDE5LjI4N0MxOC4wOTYgMTkuNDc5IDE4IDE5LjcxNjcgMTggMjBDMTggMjAuMjgzMyAxOC4wOTYgMjAuNTIwNyAxOC4yODggMjAuNzEyQzE4LjQ3OTMgMjAuOTA0IDE4LjcxNjcgMjEgMTkgMjFaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGMzFCMUIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yNyAyN1YxMkgxM1YxNy4xMDY3QzEyLjk5MTcgMTcuMTAxOSAxMi45ODM0IDE3LjA5NzEgMTIuOTc1MSAxNy4wOTIxQzEyLjc5NjUgMTYuOTg1MSAxMi41OTQ4IDE2Ljc5ODcgMTIuMzg3IDE2LjQ2NDVDMTIuMTY4MyAxNi4xMTI3IDExLjcwNTkgMTYuMDA0OCAxMS4zNTQxIDE2LjIyMzVDMTEuMDAyMyAxNi40NDIyIDEwLjg5NDUgMTYuOTA0NyAxMS4xMTMyIDE3LjI1NjRDMTEuNDIwMSAxNy43NTAxIDExLjc4MTQgMTguMTI1NCAxMi4yMDM5IDE4LjM3ODdDMTIuNDYzMSAxOC41MzQxIDEyLjczMDcgMTguNjM0NyAxMyAxOC42OTI4VjIwLjU0NzhDMTIuOTkxNyAyMC41NDMxIDEyLjk4MzQgMjAuNTM4MyAxMi45NzUxIDIwLjUzMzNDMTIuNzk2NSAyMC40MjYzIDEyLjU5NDggMjAuMjM5OCAxMi4zODcgMTkuOTA1NkMxMi4xNjgzIDE5LjU1MzkgMTEuNzA1OSAxOS40NDYgMTEuMzU0MSAxOS42NjQ3QzExLjAwMjMgMTkuODgzNCAxMC44OTQ1IDIwLjM0NTkgMTEuMTEzMiAyMC42OTc2QzExLjQyMDEgMjEuMTkxMyAxMS43ODE0IDIxLjU2NjYgMTIuMjAzOSAyMS44MTk5QzEyLjQ2MzEgMjEuOTc1MyAxMi43MzA3IDIyLjA3NTggMTMgMjIuMTM0VjIzLjk4OUMxMi45OTE3IDIzLjk4NDMgMTIuOTgzNCAyMy45Nzk1IDEyLjk3NTEgMjMuOTc0NUMxMi43OTY1IDIzLjg2NzQgMTIuNTk0OCAyMy42ODEgMTIuMzg3IDIzLjM0NjhDMTIuMTY4MyAyMi45OTUgMTEuNzA1OSAyMi44ODcyIDExLjM1NDEgMjMuMTA1OUMxMS4wMDIzIDIzLjMyNDYgMTAuODk0NSAyMy43ODcgMTEuMTEzMiAyNC4xMzg4QzExLjQyMDEgMjQuNjMyNCAxMS43ODE0IDI1LjAwNzggMTIuMjAzOSAyNS4yNjExQzEyLjQ2MzEgMjUuNDE2NSAxMi43MzA3IDI1LjUxNyAxMyAyNS41NzUyVjI3SDExVjI5SDI5VjI3SDI3Wk0xNSAyNS40MTEzVjI3SDI1VjE0SDE1VjE2Ljk1MzNDMTUuMTMzOSAxNi45MDc2IDE1LjI3NCAxNi44NTggMTUuNDIwOCAxNi44MDUyTDE1LjUzNTQgMTYuNzYzOUMxNi4yMjAzIDE2LjUxNjcgMTcuMDQ0MyAxNi4yMTk0IDE3Ljg2NDUgMTYuMTc3OUMxOC43OTc2IDE2LjEzMDggMTkuNzMxNCAxNi40MTAxIDIwLjU0MDggMTcuMzAyOEMyMC44MTkgMTcuNjA5NyAyMC43OTU4IDE4LjA4NCAyMC40ODg5IDE4LjM2MjJDMjAuMTgyMSAxOC42NDA0IDE5LjcwNzggMTguNjE3MiAxOS40Mjk2IDE4LjMxMDNDMTguOTUyMiAxNy43ODM5IDE4LjQ3MDYgMTcuNjQ5MiAxNy45NDAxIDE3LjY3NkMxNy4zNDg1IDE3LjcwNTkgMTYuNzEzNyAxNy45MzQyIDE1Ljk1MDMgMTguMjA4OEwxNS45Mjg1IDE4LjIxNjdMMTUuOTIwMSAxOC4yMTk3QzE1LjYzNDQgMTguMzIyNCAxNS4zMjM4IDE4LjQzNDEgMTUgMTguNTI5VjIwLjM5NDVDMTUuMTMzOSAyMC4zNDg4IDE1LjI3NCAyMC4yOTkxIDE1LjQyMDggMjAuMjQ2M0wxNS41MzU0IDIwLjIwNUMxNi4yMjAzIDE5Ljk1NzkgMTcuMDQ0MyAxOS42NjA1IDE3Ljg2NDUgMTkuNjE5MUMxOC43OTc2IDE5LjU3MiAxOS43MzE0IDE5Ljg1MTMgMjAuNTQwOCAyMC43NDRDMjAuODE5IDIxLjA1MDggMjAuNzk1OCAyMS41MjUxIDIwLjQ4ODkgMjEuODAzNEMyMC4xODIxIDIyLjA4MTYgMTkuNzA3OCAyMi4wNTg0IDE5LjQyOTYgMjEuNzUxNUMxOC45NTIyIDIxLjIyNTEgMTguNDcwNiAyMS4wOTA0IDE3Ljk0MDEgMjEuMTE3MkMxNy4zNDg1IDIxLjE0NzEgMTYuNzEzNyAyMS4zNzU0IDE1Ljk1MDMgMjEuNjVMMTUuOTI4NSAyMS42NTc4TDE1LjkyMDEgMjEuNjYwOEMxNS42MzQ0IDIxLjc2MzYgMTUuMzIzOCAyMS44NzUzIDE1IDIxLjk3MDJWMjMuODM1N0MxNS4xMzM5IDIzLjc5IDE1LjI3NCAyMy43NDAzIDE1LjQyMDggMjMuNjg3NUwxNS41MzU0IDIzLjY0NjJDMTYuMjIwMyAyMy4zOTkgMTcuMDQ0MyAyMy4xMDE3IDE3Ljg2NDUgMjMuMDYwM0MxOC43OTc2IDIzLjAxMzIgMTkuNzMxNCAyMy4yOTI0IDIwLjU0MDggMjQuMTg1MkMyMC44MTkgMjQuNDkyIDIwLjc5NTggMjQuOTY2MyAyMC40ODg5IDI1LjI0NDVDMjAuMTgyMSAyNS41MjI4IDE5LjcwNzggMjUuNDk5NiAxOS40Mjk2IDI1LjE5MjdDMTguOTUyMiAyNC42NjYyIDE4LjQ3MDYgMjQuNTMxNiAxNy45NDAxIDI0LjU1ODRDMTcuMzQ4NSAyNC41ODgyIDE2LjcxMzcgMjQuODE2NiAxNS45NTAzIDI1LjA5MTFMMTUuOTUwMyAyNS4wOTEyTDE1LjkyODUgMjUuMDk5TDE1LjkyMDEgMjUuMTAyQzE1LjYzNDQgMjUuMjA0OCAxNS4zMjM4IDI1LjMxNjUgMTUgMjUuNDExM1oiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=",
+              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGMzFCMUIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yMC44NjE2IDEwLjQ5MjRMMjAgMTFMMTkuMTM4NCAxMC40OTI0QzE5LjMxODEgMTAuMTg3MyAxOS42NDU5IDEwIDIwIDEwQzIwLjM1NDEgMTAgMjAuNjgxOSAxMC4xODczIDIwLjg2MTYgMTAuNDkyNFpNMjAgMTMuMDg4M0MxOS45OTczIDEzLjA5MzUgMTkuOTk0NyAxMy4wOTg4IDE5Ljk5MiAxMy4xMDRDMTkuNzczNSAxMy41MzU0IDE5LjU2MzcgMTMuOTc5OSAxOS40MTExIDE0LjM2NTdDMTkuMzM0NyAxNC41NTg2IDE5LjI3NzkgMTQuNzIzNSAxOS4yNDE1IDE0Ljg1NTlDMTkuMjA3NSAxNC45NzkxIDE5LjIwMTMgMTUuMDM4NSAxOS4yMDAyIDE1LjA0ODhDMTkuMiAxNS4wNTA2IDE5LjIgMTUuMDUwOSAxOS4yIDE1LjA1QzE5LjIgMTUuMjYyMiAxOS4yODQzIDE1LjQ2NTcgMTkuNDM0MyAxNS42MTU3QzE5LjU4NDMgMTUuNzY1NyAxOS43ODc4IDE1Ljg1IDIwIDE1Ljg1QzIwLjIxMjIgMTUuODUgMjAuNDE1NyAxNS43NjU3IDIwLjU2NTcgMTUuNjE1N0MyMC43MTU3IDE1LjQ2NTcgMjAuOCAxNS4yNjIyIDIwLjggMTUuMDVDMjAuOCAxNS4wNTA5IDIwLjggMTUuMDUwNiAyMC43OTk4IDE1LjA0ODhDMjAuNzk4NyAxNS4wMzg1IDIwLjc5MjUgMTQuOTc5MSAyMC43NTg1IDE0Ljg1NTlDMjAuNzIyMSAxNC43MjM1IDIwLjY2NTMgMTQuNTU4NiAyMC41ODg5IDE0LjM2NTdDMjAuNDM2MyAxMy45Nzk5IDIwLjIyNjUgMTMuNTM1NCAyMC4wMDggMTMuMTA0QzIwLjAwNTMgMTMuMDk4OCAyMC4wMDI3IDEzLjA5MzUgMjAgMTMuMDg4M1pNMjAgMTFDMTkuMTM4NCAxMC40OTI0IDE5LjEzODQgMTAuNDkyMyAxOS4xMzg0IDEwLjQ5MjRMMTkuMTMyMSAxMC41MDMyTDE5LjExNTggMTAuNTMxQzE5LjEwMTggMTAuNTU1MSAxOS4wODE2IDEwLjU4OTkgMTkuMDU2IDEwLjYzNDNDMTkuMDA1IDEwLjcyMyAxOC45MzI1IDEwLjg1IDE4Ljg0NTggMTEuMDA1MkMxOC42NzI4IDExLjMxNDggMTguNDQwOSAxMS43NDAzIDE4LjIwOCAxMi4yMDAxQzE3Ljk3NjUgMTIuNjU2OSAxNy43MzYzIDEzLjE2MjcgMTcuNTUxNCAxMy42Mjk2QzE3LjM4NDggMTQuMDUwNSAxNy4yIDE0LjU4OTQgMTcuMiAxNS4wNUMxNy4yIDE1Ljc5MjYgMTcuNDk1IDE2LjUwNDggMTguMDIwMSAxNy4wMjk5QzE4LjU0NTIgMTcuNTU1IDE5LjI1NzQgMTcuODUgMjAgMTcuODVDMjAuNzQyNiAxNy44NSAyMS40NTQ4IDE3LjU1NSAyMS45Nzk5IDE3LjAyOTlDMjIuNTA1IDE2LjUwNDggMjIuOCAxNS43OTI2IDIyLjggMTUuMDVDMjIuOCAxNC41ODk0IDIyLjYxNTIgMTQuMDUwNSAyMi40NDg2IDEzLjYyOTZDMjIuMjYzNyAxMy4xNjI3IDIyLjAyMzUgMTIuNjU2OSAyMS43OTIgMTIuMjAwMUMyMS41NTkxIDExLjc0MDMgMjEuMzI3MiAxMS4zMTQ4IDIxLjE1NDIgMTEuMDA1MkMyMS4wNjc1IDEwLjg1IDIwLjk5NSAxMC43MjMgMjAuOTQ0IDEwLjYzNDNDMjAuOTE4NCAxMC41ODk5IDIwLjg5ODIgMTAuNTU1MSAyMC44ODQyIDEwLjUzMUwyMC44Njc5IDEwLjUwMzJMMjAuODYxNiAxMC40OTI0QzIwLjg2MTYgMTAuNDkyMyAyMC44NjE2IDEwLjQ5MjQgMjAgMTFaTTExIDE5QzExLjU1MjMgMTkgMTIgMTkuNDQ3NyAxMiAyMEMxMiAyMC4zMzE1IDEyLjEzMTcgMjAuNjQ5NSAxMi4zNjYxIDIwLjg4MzlDMTIuNjAwNSAyMS4xMTgzIDEyLjkxODUgMjEuMjUgMTMuMjUgMjEuMjVDMTMuNDE0MiAyMS4yNSAxMy41NzY3IDIxLjIxNzcgMTMuNzI4NCAyMS4xNTQ4QzEzLjg4IDIxLjA5MiAxNC4wMTc4IDIxIDE0LjEzMzkgMjAuODgzOUMxNC4yNSAyMC43Njc4IDE0LjM0MiAyMC42MyAxNC40MDQ4IDIwLjQ3ODRDMTQuNDY3NyAyMC4zMjY3IDE0LjUgMjAuMTY0MiAxNC41IDIwQzE0LjUgMTkuNDQ3NyAxNC45NDc3IDE5IDE1LjUgMTlDMTYuMDUyMyAxOSAxNi41IDE5LjQ0NzcgMTYuNSAyMEMxNi41IDIwLjMzMTUgMTYuNjMxNyAyMC42NDk1IDE2Ljg2NjEgMjAuODgzOUMxNy4xMDA1IDIxLjExODMgMTcuNDE4NSAyMS4yNSAxNy43NSAyMS4yNUMxOC4wODE1IDIxLjI1IDE4LjM5OTUgMjEuMTE4MyAxOC42MzM5IDIwLjg4MzlDMTguODY4MyAyMC42NDk1IDE5IDIwLjMzMTUgMTkgMjBDMTkgMTkuNDQ3NyAxOS40NDc3IDE5IDIwIDE5QzIwLjU1MjMgMTkgMjEgMTkuNDQ3NyAyMSAyMEMyMSAyMC4zMzE1IDIxLjEzMTcgMjAuNjQ5NSAyMS4zNjYxIDIwLjg4MzlDMjEuNjAwNSAyMS4xMTgzIDIxLjkxODUgMjEuMjUgMjIuMjUgMjEuMjVDMjIuNTgxNSAyMS4yNSAyMi44OTk1IDIxLjExODMgMjMuMTMzOSAyMC44ODM5QzIzLjM2ODMgMjAuNjQ5NSAyMy41IDIwLjMzMTUgMjMuNSAyMEMyMy41IDE5LjQ0NzcgMjMuOTQ3NyAxOSAyNC41IDE5QzI1LjA1MjMgMTkgMjUuNSAxOS40NDc3IDI1LjUgMjBDMjUuNSAyMC4zMzE1IDI1LjYzMTcgMjAuNjQ5NSAyNS44NjYxIDIwLjg4MzlDMjYuMTAwNSAyMS4xMTgzIDI2LjQxODUgMjEuMjUgMjYuNzUgMjEuMjVDMjcuMDgxNSAyMS4yNSAyNy4zOTk1IDIxLjExODMgMjcuNjMzOSAyMC44ODM5QzI3Ljg2ODMgMjAuNjQ5NSAyOCAyMC4zMzE1IDI4IDIwQzI4IDE5LjQ0NzcgMjguNDQ3NyAxOSAyOSAxOUMyOS41NTIzIDE5IDMwIDE5LjQ0NzcgMzAgMjBDMzAgMjUuNTIzIDI1LjUyMyAzMCAyMCAzMEMxNC40NzcgMzAgMTAgMjUuNTIzIDEwIDIwQzEwIDE5LjQ0NzcgMTAuNDQ3NyAxOSAxMSAxOVpNMTIuNjY0MiAyMy4xOTY4QzEzLjg5NzkgMjYuMDI0IDE2LjcxODEgMjggMjAgMjhDMjMuMjgxOSAyOCAyNi4xMDIxIDI2LjAyNCAyNy4zMzU4IDIzLjE5NjhDMjcuMTQzOCAyMy4yMzIgMjYuOTQ3OSAyMy4yNSAyNi43NSAyMy4yNUMyNS45MTA1IDIzLjI1IDI1LjEwNDUgMjIuOTI1MiAyNC41IDIyLjM0NTJDMjMuODk1NSAyMi45MjUyIDIzLjA4OTUgMjMuMjUgMjIuMjUgMjMuMjVDMjEuNDEwNSAyMy4yNSAyMC42MDQ1IDIyLjkyNTIgMjAgMjIuMzQ1MkMxOS4zOTU1IDIyLjkyNTIgMTguNTg5NSAyMy4yNSAxNy43NSAyMy4yNUMxNi45MTA1IDIzLjI1IDE2LjEwNDUgMjIuOTI1MiAxNS41IDIyLjM0NTJDMTUuMjA4NSAyMi42MjQ5IDE0Ljg2NzMgMjIuODQ3OSAxNC40OTM3IDIzLjAwMjZDMTQuMDk5NCAyMy4xNjU5IDEzLjY3NjggMjMuMjUgMTMuMjUgMjMuMjVDMTMuMDUyMSAyMy4yNSAxMi44NTYyIDIzLjIzMiAxMi42NjQyIDIzLjE5NjhaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K",
+              "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGMzFCMUIiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xOS41NjAzIDEwLjE5OTJDMTcuNzQ5NiAxMC4xOTkyIDE1LjcwODIgMTAuMzA3OCAxNC4wOTM2IDEwLjg3ODZDMTIuMzA1OSAxMS41MTA2IDExLjEwODMgMTMuMDM3MyAxMS4xMDgzIDE0LjYyMTRDMTEuMTA4MyAxNi43OTMzIDEyLjcwOTcgMTcuNzg4OCAxNC43NTYgMTguMTUwOEMxNC4xMzMyIDE4Ljk2NTMgMTMuNzc3NCAxOS44NzAzIDEzLjc3NzQgMjAuOTU2M0MxMy43Nzc0IDIzLjQ5MDMgMTUuNzM0NyAyNS40ODEyIDE4LjIyNTkgMjUuNDgxMkgyMC44OTQ5QzIxLjg3MzYgMjUuNDgxMiAyMi41NTE1IDI2LjI5NTcgMjIuNTUxNSAyNy4yOTEyVjMwLjAwNjJIMjQuMzMwOVYyNy4yOTEyQzI0LjMzMDkgMjUuMzAwMiAyMi44NTIzIDIzLjY3MTIgMjAuODk0OSAyMy42NzEySDE4LjIyNTlDMTYuNzEzNCAyMy42NzEyIDE1LjU1NjggMjIuNDk0OCAxNS41NTY4IDIwLjk1NjNDMTUuNTU2OCAxOS40MTc4IDE2LjcxMzQgMTguMjQxMyAxOC4yMjU5IDE4LjI0MTNWMTYuNDMxM0gxNS41NTY4QzE0LjA0NDMgMTYuNDMxMyAxMi44ODc3IDE2LjE1OTggMTIuODg3NyAxNC42MjE0QzEyLjg4NzcgMTQuMTI4NCAxMy4yMTc3IDEzLjYxNDcgMTMuNDI0NyAxMy4zNzgzQzEzLjcwMTUgMTMuMDYyMyAxNC4xMzgyIDEyLjc4NjMgMTQuNzYwMyAxMi41NjY0QzE2LjAyNTUgMTIuMTE5MSAxNy43NjU0IDEyLjAwMTQgMTkuNTYwMyAxMi4wMDE0QzIxLjI3NDMgMTIuMDAxNCAyMy4xMjQxIDEyLjA0NDYgMjQuNTkzOCAxMi40NzA2QzI2LjIyNzIgMTIuOTQ0IDI3LjEyIDE0LjAxMjIgMjcuMTIgMTQuNzUwMUMyNy4wNTY1IDE2LjE3NTEgMjUuOTIzIDE2LjQzMTMgMjQuNDUzNyAxNi40MzEzSDIzLjM4NjFDMjMuNDc1MSAxNi43MDI4IDIzLjU2NCAxNi45NzQzIDIzLjU2NCAxNy4zMzYzQzIzLjU2NCAxOC44NzQ4IDIyLjQwNzQgMjAuMDUxMyAyMC44OTQ5IDIwLjA1MTNWMjEuODYxM0MyMy4zODYxIDIxLjg2MTMgMjUuMjIwNiAyMy44NTIyIDI1LjIyMDYgMjYuMzg2MlYzMC4wMDYySDI3VjI2LjM4NjJDMjcgMjMuOTQyNyAyNS43ODgzIDIxLjg2MTMgMjMuNzQyIDIwLjc3NTNDMjQuNTQyNyAyMC4xNDE4IDI1LjA3NjUgMTkuMjM2OCAyNS4yNTQ1IDE4LjE1MDhDMjcuMzAwOCAxNy43ODg4IDI4LjkwMjIgMTYuNzkzMyAyOC45MDIyIDE0LjYyMTNDMjguNzU3OCAxMi4zNDA2IDI2LjczMjIgMTEuMjA1OSAyNS4xNTA2IDEwLjc0NzVDMjMuMzY4NCAxMC4yMzEgMjEuMjQyMyAxMC4xOTkyIDE5LjU2MDMgMTAuMTk5MloiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo="
+            ],
             "showPolygon": false,
             "polygonKeyName": "perimeter",
             "editablePolygon": false,
@@ -1442,7 +1554,7 @@
                 "type": "customPretty",
                 "customHtml": "<form class=\"al-form\">\n    <button class=\"al-close\" mat-icon-button (click)=\"close()\" type=\"button\">\n        <mat-icon class=\"material-icons\">close</mat-icon>\n    </button>\n    <div mat-dialog-content>\n        <section fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"padding-bottom: 20px;\">\n            <img class=\"al-avatar\" [src]=\"resident.photo\"/>\n        </section>    \n        <section fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"padding-bottom: 20px;\">\n            <div class=\"al-resident-name\">{{ resident.name }}</div>\n        </section>    \n        <section fxLayout=\"column\" fxLayoutAlign=\"center center\" style=\"padding-bottom: 20px;\">\n            <button type=\"button\" mat-flat-button color=\"primary\" class=\"al-call-resident\" (click)=\"callResident()\">Call resident</button>\n        </section>\n        <mat-divider style=\"padding-bottom: 20px;\"></mat-divider>\n        <section fxLayout=\"row\" fxLayoutGap=\"8px\" style=\"padding-bottom: 20px;\">\n            <section fxFlex class=\"al-telemetry-card\" fxLayout=\"column\" fxLayoutAlign=\"space-between stretch\">\n                <section fxLayout=\"row\" fxLayoutAlign=\"space-between center\">\n                    <div class=\"al-telemetry-title\">Heart rate</div>\n                    <button type=\"button\" mat-icon-button class=\"al-mat-24\" (click)=\"toggleHeartRate()\"><mat-icon>bar_chart</mat-icon></button>\n                </section>\n                <section fxLayout=\"row\" fxLayoutAlign=\"start end\" fxLayoutGap=\"2px\">\n                    <div class=\"al-telemetry-value\">{{ resident.pulse }}</div>\n                    <div class=\"al-telemetry-unit\">BPM</div>\n                </section>    \n            </section>    \n            <section fxFlex class=\"al-telemetry-card\" fxLayout=\"column\" fxLayoutAlign=\"space-between stretch\">\n                <section fxLayout=\"row\" fxLayoutAlign=\"space-between center\">\n                    <div class=\"al-telemetry-title\">Temperature</div>\n                    <button type=\"button\" mat-icon-button class=\"al-mat-24\" (click)=\"toggleTemperature()\"><mat-icon>bar_chart</mat-icon></button>\n                </section>\n                <section fxLayout=\"row\" fxLayoutAlign=\"start end\" fxLayoutGap=\"2px\">\n                    <div class=\"al-telemetry-value\">{{ resident.temperature }}</div>\n                    <div class=\"al-telemetry-unit\">°C</div>\n                </section>\n            </section>    \n            <section fxFlex class=\"al-telemetry-card\" fxLayout=\"column\" fxLayoutAlign=\"space-between stretch\">\n                <section fxLayout=\"row\" fxLayoutAlign=\"space-between center\">\n                    <div class=\"al-telemetry-title\">Panic button</div>\n                    <button type=\"button\" mat-icon-button class=\"al-mat-24\" (click)=\"togglePanicButton()\"><mat-icon>bar_chart</mat-icon></button>\n                </section>\n                <section fxLayout=\"row\" fxLayoutAlign=\"start end\" fxLayoutGap=\"2px\">\n                    <div class=\"al-telemetry-value\">{{ resident.panicButton }}</div>\n                </section>\n            </section>    \n        </section>\n        <tb-dashboard-state *ngIf=\"wristband && chartState === 'heartRate'\" style=\"height: 210px; padding-bottom: 20px;\" stateId=\"heart_rate_chart\" [ctx]=\"widgetContext\" [entityId]=\"wristband.id\"></tb-dashboard-state>\n        <tb-dashboard-state *ngIf=\"wristband && chartState === 'temperature'\" style=\"height: 210px; padding-bottom: 20px;\" stateId=\"temperature_chart\" [ctx]=\"widgetContext\" [entityId]=\"wristband.id\"></tb-dashboard-state>\n        <tb-dashboard-state *ngIf=\"wristband && chartState === 'panicButton'\" style=\"height: 210px; padding-bottom: 20px;\" stateId=\"panic_button_chart\" [ctx]=\"widgetContext\" [entityId]=\"wristband.id\"></tb-dashboard-state>        \n        <section fxLayout=\"row\" fxLayoutAlign=\"start start\" style=\"margin-bottom: 16px;\">\n            <section fxFlex fxLayout=\"column\" fxLayoutGap=\"12px\">\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Age</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.age }}</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Gender</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.gender }}</div>\n                </section>\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Chronic diseases</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.chronicDiseases }}</div>\n                </section>\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Allergy</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.allergy }}</div>\n                </section>\n            </section>    \n            <section fxFlex fxLayout=\"column\" fxLayoutGap=\"12px\">\n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Room</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.room }}</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Last location</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.currentRoom }}</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Sensor battery</div>\n                    <div fxFlex class=\"al-attribute-value\" [ngClass]=\"batteryLevelClass\">{{ resident.battery }}%</div>\n                </section>    \n                <section fxFlex fxLayout=\"row\">\n                    <div fxFlex class=\"al-telemetry-title\">Measures update</div>\n                    <div fxFlex class=\"al-attribute-value\">{{ resident.measureUpdate }}</div>\n                </section>    \n            </section>    \n        </section>\n        <section fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayoutAlign=\"start center\">\n            <div class=\"al-telemetry-title\">Emergency contact</div>\n            <div class=\"al-attribute-value\">\n                <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayoutAlign=\"start center\">\n                    <button type=\"button\" mat-icon-button class=\"al-phone\" (click)=\"callEmergency()\"><mat-icon>phone</mat-icon></button>\n                    <div>{{ resident.emergencyContactText }}</div>\n                </div>\n            </div>\n        </section>    \n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                [disabled]=\"(isLoading$ | async)\"\n                (click)=\"close()\" cdkFocusInitial>\n            Close\n        </button>\n    </div>\n</form>\n",
                 "customCss": ".al-form {\n    width: 524px;\n    position: relative;\n}\n\n.al-form .mat-dialog-content {\n    max-height: 95vh;\n}\n\n.al-form .mat-toolbar.mat-primary {\n    background: #fff;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n.al-form .mat-button.mat-primary, .al-form .mat-icon-button.mat-primary, .al-form .mat-stroked-button.mat-primary {\n    color: #4B535B;\n}\n\n.al-form .mat-fab.mat-primary, .al-form .mat-flat-button.mat-primary, .al-form .mat-mini-fab.mat-primary, .al-form .mat-raised-button.mat-primary {\n    color: #fff;\n}\n\n.al-form .mat-fab.mat-primary, .al-form .mat-flat-button.mat-primary, .al-form .mat-mini-fab.mat-primary, .al-form .mat-raised-button.mat-primary {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-button.mat-primary .mat-button-focus-overlay, .al-form .mat-icon-button.mat-primary .mat-button-focus-overlay, .al-form .mat-stroked-button.mat-primary .mat-button-focus-overlay {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-form-field.mat-focused .mat-form-field-label {\n    color: #4B535B;\n}\n\n.al-form .mat-form-field.mat-focused .mat-form-field-ripple {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-slide-toggle.mat-checked .mat-ripple-element, .al-form .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {\n    background-color: #3E3AE3;\n}\n\n.al-form .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {\n    background-color: rgba(111, 116, 242, 0.54);\n}\n\n.al-form .mat-icon {\n    color: #9FA6B4;\n}\n\n.al-form .title-modal {\n    font-weight: 500;\n    font-size: 16px;\n    line-height: 130%;\n    color: #9FA6B4;\n    padding-bottom: 8px;\n}\n\n.al-form .mat-button-toggle-group-appearance-standard, .al-form .mat-button-toggle-standalone.mat-button-toggle-appearance-standard {\n    border: none;\n}\n\n.al-form .mat-button-toggle {\n    background: rgba(0, 0, 0, 0.06);\n    height: 32px;\n    align-items: center;\n    display: flex;\n}\n\n.al-form .mat-button-toggle-checked .mat-button-toggle-button {\n    background-color: #fff;\n    border-radius: 4px;\n    margin-left: 2px;\n    margin-right: 2px;\n}\n\n.al-form .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {\n    line-height: 28px;\n    font-size: 14px;\n}\n\n.al-form .mat-button-toggle-group-appearance-standard .mat-button-toggle+.mat-button-toggle {\n    border-left: none;\n}\n\n.al-form .mat-button-toggle-checked.mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {\n    opacity: .01;\n}\n\n.al-form .mat-slider {\n    padding: 8px 0;\n}\n\n.al-form .mat-primary .mat-slider-thumb, .al-form .mat-primary .mat-slider-thumb-label, .al-form .mat-primary .mat-slider-track-fill {\n    background-color: #3E3AE3;\n}\n\n.al-form .fields-group {\n    padding: 0 8px 8px;\n    margin: 10px 0;\n    border: 1px groove rgba(0, 0, 0, .25);\n    border-radius: 4px;\n}\n\n.al-form .fields-group legend {\n    color: rgba(0, 0, 0, .7);\n    width: fit-content;\n}\n\n.al-form .al-avatar {\n    width: 160px;\n    height: 160px;\n    border-radius: 80px;\n}\n\n.al-form .al-close {\n    position: absolute;\n    top: 10px;\n    right: 10px;\n}\n\n.al-form .al-resident-name {\n    font-weight: 600;\n    font-size: 18px;\n    line-height: 24px;\n    color: #29313C;\n}\n\n.al-form .mat-button.al-call-resident {\n    background: #3E3AE3;\n    border-radius: 4px;\n}\n\n.al-form .al-telemetry-card {\n    height: 85px;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 8px;\n    padding: 16px;\n}\n\n.al-form .al-telemetry-title {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 16px;\n    color: #868D9C;\n}\n\n.al-form .mat-icon-button.al-mat-24 {\n    width: 24px;\n    height: 24px;\n    line-height: 24px;\n    padding: 0 !important;\n}\n\n.al-form .mat-icon-button.al-mat-24 .mat-icon {\n    display: block;\n    margin: auto;\n}\n\n.al-form .al-telemetry-value {\n    font-weight: 600;\n    font-size: 22px;\n    color: #29313C;\n}\n\n.al-form .al-telemetry-unit {\n    font-weight: 500;\n    font-size: 12px;\n    line-height: 130%;\n    color: #4B535B;\n}\n\n.al-form .al-attribute-value {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n}\n\n.al-form .al-attribute-value.al-critical {\n    color: #C32F37;\n}\n\n.al-form .al-attribute-value.al-major {\n    color: #F4AA1A;\n}\n\n.al-form .mat-icon-button.al-phone {\n    color: #868D9C;\n    background: linear-gradient(0deg, rgba(52, 64, 130, 0.04), rgba(52, 64, 130, 0.04)), #FFFFFF;\n    border-radius: 6px;\n    padding: 7px;\n    line-height: 16px;\n    width: 32px;\n    height: 32px\n}\n\n.al-form .mat-icon-button.al-phone .mat-icon {\n    line-height: 18px;\n    height: 18px;\n    width: 18px;\n    font-size: 18px;\n}\n",
-                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet deviceService = $injector.get(widgetContext.servicesMap.get('deviceService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\nlet userService = $injector.get(widgetContext.servicesMap.get('userService'));\n\nopenResidentDetailsDialog();\n\nfunction openResidentDetailsDialog() {\n    customDialog.customDialog(htmlTemplate, ResidentDetailsDialogController).subscribe();\n}\n\nfunction ResidentDetailsDialogController(instance) {\n    \n    let vm = instance;\n    vm.entityName = entityName;\n    vm.entityId = entityId;\n    \n    vm.widgetContext = widgetContext;\n    vm.resident = { name: entityName };\n    vm.wristband = null;\n    vm.chartState = null;\n    \n    vm.batteryLevelClass = '';\n    \n    vm.close = function() {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.toggleHeartRate = function() {\n        if (vm.chartState !== 'heartRate') {\n            vm.chartState = 'heartRate';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.toggleTemperature = function() {\n        if (vm.chartState !== 'temperature') {\n            vm.chartState = 'temperature';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.togglePanicButton = function() {\n        if (vm.chartState !== 'panicButton') {\n            vm.chartState = 'panicButton';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.callResident = function() {\n        if (vm.resident.phoneNumber) {\n            window.open('tel:' + vm.resident.phoneNumber, '_self');\n        }\n    }\n    \n    vm.callEmergency = function() {\n        if (vm.resident.emergencyPhoneNumber) {\n            window.open('tel:' + vm.resident.emergencyPhoneNumber, '_self');\n        }\n    }\n    \n    let stateParams = widgetContext.stateController.getStateParams();\n    stateParams.onHeartRateChartClosed = function() {\n        vm.chartState = null;\n    }\n    stateParams.onTemperatureChartClosed = function() {\n        vm.chartState = null;\n    }\n    stateParams.onPanicButtonChartClosed = function() {\n        vm.chartState = null;\n    }\n    \n    loadResident();\n    \n    function loadResident() {\n        widgetContext.rxjs.forkJoin([\n            userService.getUser(entityId.id),\n            attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['photo', 'battery',\n            'temperature', 'pulse', 'panicButton', 'room', 'currentRoom', 'phoneNumber', 'gender', 'birthdate',\n            'emergencyFirstname', 'emergencyLastname', 'emergencyRole', 'emergencyPhoneNumber', 'chronicDiseases', 'allergy']),\n            getCustomerAttributes(),\n            loadResidentWristband()\n        ]).subscribe(\n            (data) => {\n                let user = data[0];\n                let attributes = data[1];\n                let customerAttributes = data[2];\n                vm.wristband = data[3];\n                let lastUpdateTs = 0;\n                for (var i = 0; i < attributes.length; i ++) {\n                    lastUpdateTs = Math.max(lastUpdateTs, attributes[i].lastUpdateTs);\n                }\n                vm.resident.name = user.firstName + ' ' + user.lastName;\n                vm.resident.photo = getAttributeValue(attributes, 'photo', '');\n                vm.resident.battery = getAttributeValue(attributes, 'battery', '—');\n                vm.resident.temperature = getAttributeValue(attributes, 'temperature', '—');\n                vm.resident.pulse = getAttributeValue(attributes, 'pulse', '—');\n                vm.resident.room = getAttributeValue(attributes, 'room', '—');\n                vm.resident.currentRoom = getAttributeValue(attributes, 'currentRoom', '—');\n                let panicButton = getAttributeValue(attributes, 'panicButton', false);\n                vm.resident.panicButton = panicButton === true ? 'On' : 'Off';\n                vm.resident.gender = getAttributeValue(attributes, 'gender', '—');\n                vm.resident.chronicDiseases = getAttributeValue(attributes, 'chronicDiseases', '—');\n                vm.resident.allergy = getAttributeValue(attributes, 'allergy', '—');\n                let birthdate = getAttributeValue(attributes, 'birthdate', null);\n                if (birthdate !== null) {\n                    let birthday = new Date(birthdate);\n                    var ageDifMs = Date.now() - birthday.getTime();\n                    var ageDate = new Date(ageDifMs);\n                    vm.resident.age = Math.abs(ageDate.getUTCFullYear() - 1970);\n                } else {\n                    vm.resident.age = '—';\n                }\n                vm.resident.phoneNumber = getAttributeValue(attributes, 'phoneNumber', null);\n                vm.resident.emergencyPhoneNumber = getAttributeValue(attributes, 'emergencyPhoneNumber', null);\n                let emergencyFirstname = getAttributeValue(attributes, 'emergencyFirstname', '');\n                let emergencyLastname = getAttributeValue(attributes, 'emergencyLastname', '');\n                let emergencyRole = getAttributeValue(attributes, 'emergencyRole', '');\n                vm.resident.emergencyContactText = emergencyFirstname + ' ' + emergencyLastname;\n                if (emergencyRole) {\n                    vm.resident.emergencyContactText += ', ' + emergencyRole;\n                }\n                \n                let measureUpdateStr = widgetContext.milliSecondsToTimeString.transform(Date.now() - lastUpdateTs, true);\n                let measureUpdateParts = measureUpdateStr.split(' ');\n                if (measureUpdateParts.length > 4) {\n                    measureUpdateParts.splice(4 - measureUpdateParts.length);\n                    measureUpdateStr = measureUpdateParts.join(' ');\n                }\n                \n                vm.resident.measureUpdate = measureUpdateStr + ' ago';\n                if (vm.resident.battery !== '—') {\n                    let batteryLevelAlarmEnabled = getAttributeValue(customerAttributes, 'batteryLevelAlarmEnabled', false);\n                    if (batteryLevelAlarmEnabled) {\n                        let minCriticalBatteryLevelThreshold = getAttributeValue(customerAttributes, 'minCriticalBatteryLevelThreshold', 0);\n                        if (vm.resident.battery <= minCriticalBatteryLevelThreshold) {\n                            vm.batteryLevelClass = 'al-critical';\n                        } else {\n                            let minMajorBatteryLevelThreshold = getAttributeValue(customerAttributes, 'minMajorBatteryLevelThreshold', 0);\n                            if (vm.resident.battery <= minMajorBatteryLevelThreshold) {\n                                vm.batteryLevelClass = 'al-major';\n                            }\n                        }\n                    }\n                }\n            }\n        );\n    }\n    \n    function getAttributeValue(attributes, key, defaultValue) {\n        let value = null;\n        let found = attributes.filter((attribute) => attribute.key === key);\n        if (found.length) {\n            value = found[0].value;\n        }\n        if (value === null || value === '') {\n            value = defaultValue;\n        }\n        return value;\n    }\n    \n    function loadResidentWristband() {\n        var wristbandQuery = {\n            parameters: {\n                rootId: entityId.id,\n                rootType: entityId.entityType,\n                direction: 'FROM',\n                maxLevel: 1\n            },\n            relationType: 'Use',\n            deviceTypes: ['AL_Wristband']\n        };\n        return deviceService.findByQuery(wristbandQuery).pipe(\n            widgetContext.rxjs.map((wristbands) => {\n                if (wristbands.length) {\n                    return wristbands[0];\n                } else {\n                    return null;\n                }\n            })\n        );\n    }\n    \n    function getCustomerAttributes() {\n        return getCustomerId().pipe(\n            widgetContext.rxjs.switchMap((customerId) => {\n                return attributeService.getEntityAttributes(customerId, 'SERVER_SCOPE', ['batteryLevelAlarmEnabled', 'minMajorBatteryLevelThreshold', 'minCriticalBatteryLevelThreshold']);\n            })\n        );\n    }\n    \n    function getCustomerId() {\n        const customerAliasId = widgetContext.aliasController.getEntityAliasId('Customer');\n        return widgetContext.aliasController.getAliasInfo(customerAliasId).pipe(\n            widgetContext.rxjs.map((info) => {\n              return {id: info.currentEntity.id, entityType: info.currentEntity.entityType};  \n            })\n        );\n    }\n    \n}",
+                "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog'));\nlet deviceService = $injector.get(widgetContext.servicesMap.get('deviceService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\nlet userService = $injector.get(widgetContext.servicesMap.get('userService'));\nlet utils = $injector.get(widgetContext.servicesMap.get('utils'));\n\nif (entityId.entityType === 'USER') {\n    openResidentDetailsDialog();\n} else if (entityId.entityType === 'DEVICE') {\n    openDeviceAlarmBriefPopup();\n}\n\nfunction openDeviceAlarmBriefPopup() {\n    let popoverTrigger = $event.target;\n    let stateParams = utils.deepClone(widgetContext.stateController.getStateParams());\n    stateParams.entityId = entityId;\n    stateParams.entityName = entityName;\n    openStateInPopover(popoverTrigger, 'device_alarm_brief', stateParams, 'top', '260px', '180px');\n}\n\nfunction openStateInPopover(popoverTrigger, stateId, stateParams, preferredPlacement, width, height) {\n    widgetContext.actionsApi.openDashboardStateInPopover({target: popoverTrigger}, stateId, stateParams, true, preferredPlacement, true, width, height);\n}\n\nfunction openResidentDetailsDialog() {\n    customDialog.customDialog(htmlTemplate, ResidentDetailsDialogController).subscribe();\n}\n\nfunction ResidentDetailsDialogController(instance) {\n    \n    let vm = instance;\n    vm.entityName = entityName;\n    vm.entityId = entityId;\n    \n    vm.widgetContext = widgetContext;\n    vm.resident = { name: entityName };\n    vm.wristband = null;\n    vm.chartState = null;\n    \n    vm.batteryLevelClass = '';\n    \n    vm.close = function() {\n        vm.dialogRef.close(null);\n    };\n    \n    vm.toggleHeartRate = function() {\n        if (vm.chartState !== 'heartRate') {\n            vm.chartState = 'heartRate';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.toggleTemperature = function() {\n        if (vm.chartState !== 'temperature') {\n            vm.chartState = 'temperature';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.togglePanicButton = function() {\n        if (vm.chartState !== 'panicButton') {\n            vm.chartState = 'panicButton';\n        } else {\n            vm.chartState = null;\n        }\n    }\n    \n    vm.callResident = function() {\n        if (vm.resident.phoneNumber) {\n            window.open('tel:' + vm.resident.phoneNumber, '_self');\n        }\n    }\n    \n    vm.callEmergency = function() {\n        if (vm.resident.emergencyPhoneNumber) {\n            window.open('tel:' + vm.resident.emergencyPhoneNumber, '_self');\n        }\n    }\n    \n    let stateParams = widgetContext.stateController.getStateParams();\n    stateParams.onHeartRateChartClosed = function() {\n        vm.chartState = null;\n    }\n    stateParams.onTemperatureChartClosed = function() {\n        vm.chartState = null;\n    }\n    stateParams.onPanicButtonChartClosed = function() {\n        vm.chartState = null;\n    }\n    \n    loadResident();\n    \n    function loadResident() {\n        widgetContext.rxjs.forkJoin([\n            userService.getUser(entityId.id),\n            attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', ['photo', 'battery',\n            'temperature', 'pulse', 'panicButton', 'room', 'currentRoom', 'phoneNumber', 'gender', 'birthdate',\n            'emergencyFirstname', 'emergencyLastname', 'emergencyRole', 'emergencyPhoneNumber', 'chronicDiseases', 'allergy']),\n            getCustomerAttributes(),\n            loadResidentWristband()\n        ]).subscribe(\n            (data) => {\n                let user = data[0];\n                let attributes = data[1];\n                let customerAttributes = data[2];\n                vm.wristband = data[3];\n                let lastUpdateTs = 0;\n                for (var i = 0; i < attributes.length; i ++) {\n                    lastUpdateTs = Math.max(lastUpdateTs, attributes[i].lastUpdateTs);\n                }\n                vm.resident.name = user.firstName + ' ' + user.lastName;\n                vm.resident.photo = getAttributeValue(attributes, 'photo', '');\n                vm.resident.battery = getAttributeValue(attributes, 'battery', '—');\n                vm.resident.temperature = getAttributeValue(attributes, 'temperature', '—');\n                vm.resident.pulse = getAttributeValue(attributes, 'pulse', '—');\n                vm.resident.room = getAttributeValue(attributes, 'room', '—');\n                vm.resident.currentRoom = getAttributeValue(attributes, 'currentRoom', '—');\n                let panicButton = getAttributeValue(attributes, 'panicButton', false);\n                vm.resident.panicButton = panicButton === true ? 'On' : 'Off';\n                vm.resident.gender = getAttributeValue(attributes, 'gender', '—');\n                vm.resident.chronicDiseases = getAttributeValue(attributes, 'chronicDiseases', '—');\n                vm.resident.allergy = getAttributeValue(attributes, 'allergy', '—');\n                let birthdate = getAttributeValue(attributes, 'birthdate', null);\n                if (birthdate !== null) {\n                    let birthday = new Date(birthdate);\n                    var ageDifMs = Date.now() - birthday.getTime();\n                    var ageDate = new Date(ageDifMs);\n                    vm.resident.age = Math.abs(ageDate.getUTCFullYear() - 1970);\n                } else {\n                    vm.resident.age = '—';\n                }\n                vm.resident.phoneNumber = getAttributeValue(attributes, 'phoneNumber', null);\n                vm.resident.emergencyPhoneNumber = getAttributeValue(attributes, 'emergencyPhoneNumber', null);\n                let emergencyFirstname = getAttributeValue(attributes, 'emergencyFirstname', '');\n                let emergencyLastname = getAttributeValue(attributes, 'emergencyLastname', '');\n                let emergencyRole = getAttributeValue(attributes, 'emergencyRole', '');\n                vm.resident.emergencyContactText = emergencyFirstname + ' ' + emergencyLastname;\n                if (emergencyRole) {\n                    vm.resident.emergencyContactText += ', ' + emergencyRole;\n                }\n                \n                let measureUpdateStr = widgetContext.milliSecondsToTimeString.transform(Date.now() - lastUpdateTs, true);\n                let measureUpdateParts = measureUpdateStr.split(' ');\n                if (measureUpdateParts.length > 4) {\n                    measureUpdateParts.splice(4 - measureUpdateParts.length);\n                    measureUpdateStr = measureUpdateParts.join(' ');\n                }\n                \n                vm.resident.measureUpdate = measureUpdateStr + ' ago';\n                if (vm.resident.battery !== '—') {\n                    let batteryLevelAlarmEnabled = getAttributeValue(customerAttributes, 'batteryLevelAlarmEnabled', false);\n                    if (batteryLevelAlarmEnabled) {\n                        let minCriticalBatteryLevelThreshold = getAttributeValue(customerAttributes, 'minCriticalBatteryLevelThreshold', 0);\n                        if (vm.resident.battery <= minCriticalBatteryLevelThreshold) {\n                            vm.batteryLevelClass = 'al-critical';\n                        } else {\n                            let minMajorBatteryLevelThreshold = getAttributeValue(customerAttributes, 'minMajorBatteryLevelThreshold', 0);\n                            if (vm.resident.battery <= minMajorBatteryLevelThreshold) {\n                                vm.batteryLevelClass = 'al-major';\n                            }\n                        }\n                    }\n                }\n            }\n        );\n    }\n    \n    function getAttributeValue(attributes, key, defaultValue) {\n        let value = null;\n        let found = attributes.filter((attribute) => attribute.key === key);\n        if (found.length) {\n            value = found[0].value;\n        }\n        if (value === null || value === '') {\n            value = defaultValue;\n        }\n        return value;\n    }\n    \n    function loadResidentWristband() {\n        var wristbandQuery = {\n            parameters: {\n                rootId: entityId.id,\n                rootType: entityId.entityType,\n                direction: 'FROM',\n                maxLevel: 1\n            },\n            relationType: 'Use',\n            deviceTypes: ['AL_Wristband']\n        };\n        return deviceService.findByQuery(wristbandQuery).pipe(\n            widgetContext.rxjs.map((wristbands) => {\n                if (wristbands.length) {\n                    return wristbands[0];\n                } else {\n                    return null;\n                }\n            })\n        );\n    }\n    \n    function getCustomerAttributes() {\n        return getCustomerId().pipe(\n            widgetContext.rxjs.switchMap((customerId) => {\n                return attributeService.getEntityAttributes(customerId, 'SERVER_SCOPE', ['batteryLevelAlarmEnabled', 'minMajorBatteryLevelThreshold', 'minCriticalBatteryLevelThreshold']);\n            })\n        );\n    }\n    \n    function getCustomerId() {\n        const customerAliasId = widgetContext.aliasController.getEntityAliasId('Customer');\n        return widgetContext.aliasController.getAliasInfo(customerAliasId).pipe(\n            widgetContext.rxjs.map((info) => {\n              return {id: info.currentEntity.id, entityType: info.currentEntity.entityType};  \n            })\n        );\n    }\n    \n}",
                 "customResources": [],
                 "openInSeparateDialog": false,
                 "openInPopover": false,
@@ -1495,8 +1607,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1591,8 +1703,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1882,8 +1994,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2032,8 +2144,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916536,
+                "endTimeMs": 1674745316536
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2286,8 +2398,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2489,8 +2601,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2685,8 +2797,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2866,8 +2978,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2939,8 +3051,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -3077,8 +3189,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1674579910418,
-                "endTimeMs": 1674666310418
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -3347,7 +3459,7 @@
                   "_hash": 0.28032010945494945,
                   "aggregationType": null,
                   "units": "°C",
-                  "decimals": null,
+                  "decimals": 1,
                   "funcBody": null,
                   "usePostProcessing": null,
                   "postFuncBody": null
@@ -3635,6 +3747,142 @@
         "row": 0,
         "col": 0,
         "id": "5902989a-02f7-eba7-5379-5543781bf1ae"
+      },
+      "a89779be-b609-1b3f-1530-3b419bfe652b": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "04aad40c-4a65-f050-33ec-6fa6532c6c5a",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.955322449314564,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "battery",
+                  "type": "timeseries",
+                  "label": "battery",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.13949721814312177
+                },
+                {
+                  "name": "temperature",
+                  "type": "timeseries",
+                  "label": "temperature",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.7066971813963352
+                },
+                {
+                  "name": "room",
+                  "type": "attribute",
+                  "label": "room",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.050752220772331214
+                },
+                {
+                  "name": "latestAlarmType",
+                  "type": "attribute",
+                  "label": "latestAlarmType",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.35467413598660325
+                },
+                {
+                  "name": "latestAlarmStartTs",
+                  "type": "attribute",
+                  "label": "latestAlarmStartTs",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.6012233378524732
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1674658916537,
+                "endTimeMs": 1674745316537
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextFunction": "if (data[0] && data[0].type) {\n    let type = data[0].type;\n    let deviceTypeName = getDeviceTypeText(type);\n    let deviceLabels = [];\n    let deviceValues = [];\n\n    deviceLabels.push('Room');\n    deviceValues.push(getDataValue(data[0], 'room', 'N/A'));\n    deviceLabels.push('Alarm');\n    deviceValues.push(getDataValue(data[0], 'latestAlarmType', 'N/A'));\n    \n    let alarmStartTs = getDataValue(data[0], 'latestAlarmStartTs', 'N/A');\n    let alarmDurationStr = 'N/A';\n    if (alarmStartTs !== 'N/A') {\n        let lastAlarmDuration = Date.now() - alarmStartTs;\n        alarmDurationStr = ctx.milliSecondsToTimeString.transform(lastAlarmDuration, true);\n        let alarmDurationParts = alarmDurationStr.split(' ');\n        if (alarmDurationParts.length > 4) {\n            alarmDurationParts.splice(4 - alarmDurationParts.length);\n            alarmDurationStr = alarmDurationParts.join(' ');\n        }\n        alarmDurationStr += \" ago\";\n    }\n    \n    switch (type) {\n        case 'AL_Gateway':\n            deviceLabels.push('Alarm started');\n            deviceValues.push(alarmDurationStr);\n            break;\n        case 'AL_DoorSensor':\n            deviceLabels.push('Last opening');\n            deviceValues.push(alarmDurationStr);\n            break;\n        case 'AL_RoomSensor':\n            deviceLabels.push('Alarm started');\n            deviceValues.push(alarmDurationStr);\n            break;\n        case 'AL_WindowSensor':\n            deviceLabels.push('Last opening');\n            deviceValues.push(alarmDurationStr);\n            break;\n        case 'AL_SmokeSensor':\n            deviceLabels.push('Alarm started');\n            deviceValues.push(alarmDurationStr);\n            break;\n        case 'AL_LeakSensor':\n            deviceLabels.push('Alarm started');\n            deviceValues.push(alarmDurationStr);\n            break;\n    }\n    \n    deviceLabels.push('Sensor battery');\n    deviceValues.push(getDataValue(data[0], 'battery', 'N/A', '%'));\n    \n    let deviceLabelsHtml = deviceLabels.map((label) => '<section>' + label + '</section>').join('\\n');\n    let deviceValuesHtml = deviceValues.map((value) => '<section>' + value + '</section>').join('\\n');\n    \n    return '<section style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n                '<section class=\"device-title\">' + deviceTypeName + '</section>' +\n                '<section fxFlex fxLayout=\"row\" fxLayoutGap=\"16px\">' +\n                    '<section class=\"device-labels\" fxFlex fxLayout=\"column\" fxLayoutAlign=\"space-around start\">' +\n                        deviceLabelsHtml +\n                    '</section>' +\n                    '<section class=\"device-values\" fxFlex fxLayout=\"column\" fxLayoutAlign=\"space-around start\">' +\n                        deviceValuesHtml +\n                    '</section>' +\n                '</section>' +\n           '</section>';\n} else {\n    return '';\n}\n\nfunction getDataValue(data, key, defaultValue, unit) {\n    if (data[key] !== '') {\n        let val = data[key];\n        if (unit) {\n            val += unit;\n        }\n        return val;\n    } else {\n        return defaultValue;\n    }\n}\n\nfunction getDeviceTypeText(type) {\n    switch (type) {\n        case 'AL_Gateway':\n            return 'Gateway';\n        case 'AL_DoorSensor':\n            return 'Door';\n        case 'AL_RoomSensor':\n            return 'Room';\n        case 'AL_WindowSensor':\n            return 'Window';\n        case 'AL_SmokeSensor':\n            return 'Smoke detection';\n        case 'AL_LeakSensor':\n            return 'Leak detection';\n        default:\n            return type;\n    }\n}\n",
+            "markdownCss": ".device-title {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n    padding-bottom: 12px;\n}\n\n.device-labels {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    color: #868D9C;\n}\n\n.device-values {\n    font-weight: 500;\n    font-size: 14px;\n    line-height: 18px;\n    color: #29313C;\n}\n"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {
+            "border-radius": "0px"
+          },
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "useDashboardTimewindow": true,
+          "actions": {
+            "elementClick": []
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "a89779be-b609-1b3f-1530-3b419bfe652b"
       }
     },
     "states": {
@@ -4111,6 +4359,32 @@
           "main": {
             "widgets": {
               "5902989a-02f7-eba7-5379-5543781bf1ae": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": false,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "device_alarm_brief": {
+        "name": "Device alarm brief",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "a89779be-b609-1b3f-1530-3b419bfe652b": {
                 "sizeX": 24,
                 "sizeY": 11,
                 "row": 0,
