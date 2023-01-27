@@ -37,6 +37,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -45,6 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
@@ -71,6 +74,7 @@ public class HashPartitionServiceTest {
     private TenantRoutingInfoService routingInfoService;
     private ApplicationEventPublisher applicationEventPublisher;
     private QueueRoutingInfoService queueRoutingInfoService;
+    private TbQueueCoreSettings tbQueueCoreSettings;
 
     private String hashFunctionName = "sha256";
 
@@ -80,10 +84,14 @@ public class HashPartitionServiceTest {
         applicationEventPublisher = mock(ApplicationEventPublisher.class);
         routingInfoService = mock(TenantRoutingInfoService.class);
         queueRoutingInfoService = mock(QueueRoutingInfoService.class);
+        tbQueueCoreSettings = mock(TbQueueCoreSettings.class);
         clusterRoutingService = new HashPartitionService(discoveryService,
                 routingInfoService,
                 applicationEventPublisher,
-                queueRoutingInfoService);
+                queueRoutingInfoService,
+                tbQueueCoreSettings);
+        when(tbQueueCoreSettings.getIntegrationDownlinkTopic(Mockito.any())).thenReturn("tb_ie");
+
         ReflectionTestUtils.setField(clusterRoutingService, "coreTopic", "tb.core");
         ReflectionTestUtils.setField(clusterRoutingService, "corePartitions", 10);
         ReflectionTestUtils.setField(clusterRoutingService, "vcTopic", "tb.vc");
