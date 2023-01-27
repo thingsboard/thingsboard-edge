@@ -99,7 +99,7 @@
   },
   {
     "name": "D00000050005",
-    "label": "Room 105 Gateway",
+    "label": "Room 205 Gateway",
     "type": "AL_Gateway",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
@@ -109,13 +109,13 @@
       "yPos": "0.1048",
       "roomXPos": "0.6822",
       "roomYPos": "0.1814",
-      "zone": "Floor 1",
-      "room": "Room 105"
+      "zone": "Floor 2",
+      "room": "Room 205"
     },
     "relations": [
       {
         "entityType": "ASSET",
-        "entityName": "Room 105",
+        "entityName": "Room 205",
         "direction": "FROM",
         "type": "Contains"
       }
@@ -309,7 +309,7 @@
     "type": "AL_RoomSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {},
     "relations": []
   },
@@ -318,7 +318,7 @@
     "type": "AL_DoorSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {
       "xPos": "0.46000",
       "yPos": "0.81000",
@@ -339,7 +339,7 @@
     "type": "AL_LeakSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {
       "xPos": "0.47000",
       "yPos": "0.82000",
@@ -360,7 +360,7 @@
     "type": "AL_SmokeSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {
       "xPos": "0.48000",
       "yPos": "0.83000",
@@ -381,7 +381,7 @@
     "type": "AL_WindowSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {
       "xPos": "0.49000",
       "yPos": "0.84000",
@@ -420,7 +420,7 @@
     "type": "AL_Wristband",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {},
     "relations": [
       {
@@ -483,11 +483,62 @@
     ]
   },
   {
+    "name": "C00000065FE6",
+    "label": "Mia Garcia",
+    "type": "AL_Wristband",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "WristBand",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "USER",
+        "entityName": "mia.garcia.$random@thingsboard.org",
+        "direction": "FROM",
+        "type": "Use"
+      }
+    ]
+  },
+  {
+    "name": "C00000075FE7",
+    "label": "Theodore Moore",
+    "type": "AL_Wristband",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "WristBand",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "USER",
+        "entityName": "theodore.moore.$random@thingsboard.org",
+        "direction": "FROM",
+        "type": "Use"
+      }
+    ]
+  },
+  {
+    "name": "C00000085FE8",
+    "label": "Evelyn Clark",
+    "type": "AL_Wristband",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "WristBand",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "USER",
+        "entityName": "evelyn.clark.$random@thingsboard.org",
+        "direction": "FROM",
+        "type": "Use"
+      }
+    ]
+  },
+  {
     "name": "C00000105FE0",
     "type": "AL_Wristband",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {},
     "relations": []
   },
@@ -496,7 +547,7 @@
     "type": "AL_Gateway",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Healthy WristBand",
+    "emulator": "WristBand",
     "attributes": {},
     "relations": []
   }

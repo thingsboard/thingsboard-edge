@@ -107,7 +107,7 @@ public abstract class AbstractEmulatorLauncher<T extends GroupEntity<?>> {
         this.tbQueueProducerProvider = tbQueueProducerProvider;
         this.serviceInfoProvider = serviceInfoProvider;
         this.tsSubService = tsSubService;
-        this.publishFrequency = TimeUnit.SECONDS.toMillis(emulatorDefinition.getPublishFrequencyInSeconds());
+        this.publishFrequency = TimeUnit.SECONDS.toMillis(Math.max(emulatorDefinition.getPublishFrequencyInSeconds(), 1));
         if (StringUtils.isEmpty(emulatorDefinition.getClazz())) {
             emulator = new BasicEmulator();
         } else {

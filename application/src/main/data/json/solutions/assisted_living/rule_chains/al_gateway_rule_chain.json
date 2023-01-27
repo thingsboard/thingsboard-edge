@@ -134,8 +134,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 595,
-          "layoutY": 655
+          "layoutX": 50,
+          "layoutY": 741
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "Change Owner from Gateway to Device",
@@ -217,8 +217,8 @@
       {
         "additionalInfo": {
           "description": "Improves readability of the message in the next rule chain",
-          "layoutX": 50,
-          "layoutY": 743
+          "layoutX": 324,
+          "layoutY": 740
         },
         "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
         "name": "Rename Msg Fields",
@@ -236,25 +236,9 @@
       },
       {
         "additionalInfo": {
-          "description": "",
-          "layoutX": 53,
-          "layoutY": 881
-        },
-        "type": "org.thingsboard.rule.engine.filter.TbJsSwitchNode",
-        "name": "Switch by Device Type",
-        "debugMode": false,
-        "configuration": {
-          "scriptLang": "TBEL",
-          "jsScript": "function nextRelation(metadata, msg) {\n    return ['one','nine'];\n}\nif(msgType === 'POST_TELEMETRY_REQUEST') {\n    return ['two'];\n}\nreturn nextRelation(metadata, msg);",
-          "tbelScript": "return metadata[\"deviceType\"];"
-        },
-        "externalId": null
-      },
-      {
-        "additionalInfo": {
           "description": "Improves readability of the message in the next rule chain",
-          "layoutX": 321,
-          "layoutY": 743
+          "layoutX": 599,
+          "layoutY": 738
         },
         "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
         "name": "Rename Metadata Fields",
@@ -278,7 +262,6 @@
         "debugMode": false,
         "configuration": {
           "interval": 3,
-          "id": "ORIGINATOR",
           "strategy": "ALL",
           "maxPendingMsgs": 1000,
           "outMsgType": "POST_TELEMETRY_REQUEST",
@@ -452,6 +435,20 @@
           "ruleChainId": "54ec7690-9d9e-11ed-9390-d159ada3209f"
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 61,
+          "layoutY": 880
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode",
+        "name": "Switch by Device Type",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -492,73 +489,73 @@
       },
       {
         "fromIndex": 8,
-        "toIndex": 10,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 10,
         "toIndex": 12,
         "type": "Success"
       },
       {
-        "fromIndex": 11,
+        "fromIndex": 10,
         "toIndex": 8,
         "type": "Success"
       },
       {
-        "fromIndex": 12,
-        "toIndex": 14,
+        "fromIndex": 11,
+        "toIndex": 10,
         "type": "Success"
       },
       {
-        "fromIndex": 13,
-        "toIndex": 15,
-        "type": "AL_Wristband"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 19,
-        "type": "AL_DoorSensor"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 19,
-        "type": "AL_LeakSensor"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 19,
-        "type": "AL_RoomSensor"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 19,
-        "type": "AL_SmokeSensor"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 19,
-        "type": "AL_WindowSensor"
-      },
-      {
-        "fromIndex": 14,
+        "fromIndex": 12,
         "toIndex": 13,
         "type": "Success"
       },
       {
-        "fromIndex": 15,
-        "toIndex": 16,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 16,
+        "fromIndex": 13,
         "toIndex": 24,
         "type": "Success"
       },
       {
-        "fromIndex": 19,
+        "fromIndex": 14,
+        "toIndex": 15,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 15,
+        "toIndex": 23,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 18,
         "toIndex": 9,
         "type": "Success"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 14,
+        "type": "AL_Wristband"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 18,
+        "type": "AL_DoorSensor"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 18,
+        "type": "AL_LeakSensor"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 18,
+        "type": "AL_RoomSensor"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 18,
+        "type": "AL_SmokeSensor"
+      },
+      {
+        "fromIndex": 24,
+        "toIndex": 18,
+        "type": "AL_WindowSensor"
       }
     ],
     "ruleChainConnections": null
