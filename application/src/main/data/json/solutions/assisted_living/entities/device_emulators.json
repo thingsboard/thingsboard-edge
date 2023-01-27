@@ -8,7 +8,7 @@
     "telemetryProfiles": []
   },
   {
-    "name": "Regular WristBand",
+    "name": "Healthy WristBand",
     "publishPeriodInDays": 7,
     "publishFrequencyInSeconds": 3600,
     "publishPauseInMillis": 1,
@@ -21,8 +21,8 @@
           "precision": 2,
           "minStartValue": 75,
           "maxStartValue": 95,
-          "minLowValue": 10,
-          "maxLowValue": 10,
+          "minLowValue": 50,
+          "maxLowValue": 50,
           "minHighValue": 100,
           "maxHighValue": 100,
           "minIncrement": 0.0,
@@ -33,6 +33,136 @@
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 1.0,
           "decrementOnStart": true
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 36.6,
+          "maxStartValue": 36.6,
+          "minLowValue": 36.3,
+          "maxLowValue": 36.4,
+          "minHighValue": 36.8,
+          "maxHighValue": 36.9,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.01,
+          "minDecrement": 0.02,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80.0,
+          "maxStartValue": 109.0,
+          "minLowValue": 60.0,
+          "maxLowValue": 75.0,
+          "minHighValue": 90.0,
+          "maxHighValue": 105.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Panic WristBand",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 36.6,
+          "maxStartValue": 36.6,
+          "minLowValue": 36.3,
+          "maxLowValue": 36.4,
+          "minHighValue": 36.8,
+          "maxHighValue": 36.9,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.01,
+          "minDecrement": 0.02,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80.0,
+          "maxStartValue": 109.0,
+          "minLowValue": 60.0,
+          "maxLowValue": 75.0,
+          "minHighValue": 90.0,
+          "maxHighValue": 105.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "event",
+          "normalValue": false,
+          "anomalyValue": true,
+          "anomalyChance": 96
         }
       }
     ]
@@ -63,6 +193,220 @@
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 1.0,
           "decrementOnStart": true
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 36.6,
+          "maxStartValue": 36.6,
+          "minLowValue": 36.3,
+          "maxLowValue": 36.4,
+          "minHighValue": 36.8,
+          "maxHighValue": 36.9,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.01,
+          "minDecrement": 0.02,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80.0,
+          "maxStartValue": 109.0,
+          "minLowValue": 60.0,
+          "maxLowValue": 75.0,
+          "minHighValue": 90.0,
+          "maxHighValue": 105.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Cardio WristBand",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 36.6,
+          "maxStartValue": 36.6,
+          "minLowValue": 36.3,
+          "maxLowValue": 36.4,
+          "minHighValue": 36.8,
+          "maxHighValue": 36.9,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.01,
+          "minDecrement": 0.02,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 121.0,
+          "maxStartValue": 130.0,
+          "minLowValue": 121.0,
+          "maxLowValue": 125.0,
+          "minHighValue": 131.0,
+          "maxHighValue": 139.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+ {
+    "name": "Noise WristBand",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 36.6,
+          "maxStartValue": 36.6,
+          "minLowValue": 36.3,
+          "maxLowValue": 36.4,
+          "minHighValue": 36.8,
+          "maxHighValue": 36.9,
+          "minIncrement": 0.01,
+          "maxIncrement": 0.01,
+          "minDecrement": 0.02,
+          "maxDecrement": 0.03,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulse",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 80.0,
+          "maxStartValue": 109.0,
+          "minLowValue": 60.0,
+          "maxLowValue": 75.0,
+          "minHighValue": 90.0,
+          "maxHighValue": 105.0,
+          "minIncrement": 3.0,
+          "maxIncrement": 10.0,
+          "minDecrement": 3.0,
+          "maxDecrement": 10.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "panicButton",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      },
+      {
+        "key": "noise",
+        "valueStrategy": {
+          "type": "constant",
+           "value": 120
         }
       }
     ]
