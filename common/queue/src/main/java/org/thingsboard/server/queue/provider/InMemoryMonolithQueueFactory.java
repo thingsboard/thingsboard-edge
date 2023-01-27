@@ -195,7 +195,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return new InMemoryTbQueueConsumer<>(storage, HashPartitionService.getIntegrationDownlinkTopic(integrationType));
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getIntegrationDownlinkTopic(integrationType));
     }
 
     @Override

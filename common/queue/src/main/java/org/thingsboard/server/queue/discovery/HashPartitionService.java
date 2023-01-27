@@ -46,6 +46,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 import org.thingsboard.server.queue.discovery.event.ClusterTopologyChangeEvent;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
+import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
@@ -80,16 +81,12 @@ public class HashPartitionService implements PartitionService {
     private Integer vcPartitions;
     @Value("${queue.partitions.hash_function_name:murmur3_128}")
     private String hashFunctionName;
-    private static String DOWNLOAD_TOPIC_PREFIX;
-    @Value("${queue.core.downlink-topic-prefix:tb_ie}")
-    public void setDownloadTopicPrefix(String topicName){
-        HashPartitionService.DOWNLOAD_TOPIC_PREFIX = topicName;
-    }
 
     private final ApplicationEventPublisher applicationEventPublisher;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TenantRoutingInfoService tenantRoutingInfoService;
     private final QueueRoutingInfoService queueRoutingInfoService;
+    private final TbQueueCoreSettings tbQueueCoreSettings;
 
     private ConcurrentMap<QueueKey, List<Integer>> myPartitions = new ConcurrentHashMap<>();
 
@@ -106,11 +103,13 @@ public class HashPartitionService implements PartitionService {
     public HashPartitionService(TbServiceInfoProvider serviceInfoProvider,
                                 TenantRoutingInfoService tenantRoutingInfoService,
                                 ApplicationEventPublisher applicationEventPublisher,
-                                QueueRoutingInfoService queueRoutingInfoService) {
+                                QueueRoutingInfoService queueRoutingInfoService,
+                                TbQueueCoreSettings tbQueueCoreSettings) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.tenantRoutingInfoService = tenantRoutingInfoService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.queueRoutingInfoService = queueRoutingInfoService;
+        this.tbQueueCoreSettings = tbQueueCoreSettings;
     }
 
     @PostConstruct
@@ -125,7 +124,7 @@ public class HashPartitionService implements PartitionService {
         partitionTopicsMap.put(vcKey, vcTopic);
 
         Arrays.asList(IntegrationType.values()).forEach(it -> {
-            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), getIntegrationDownlinkTopic(it));
+            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), tbQueueCoreSettings.getIntegrationDownlinkTopic(it));
             partitionSizesMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationPartitions);
         });
 
@@ -180,10 +179,6 @@ public class HashPartitionService implements PartitionService {
             queueRoutingInfoList = queueRoutingInfoService.getAllQueuesRoutingInfo();
         }
         return queueRoutingInfoList;
-    }
-
-    public static String getIntegrationDownlinkTopic(IntegrationType it) {
-        return DOWNLOAD_TOPIC_PREFIX + "." + it.name().toLowerCase();
     }
 
     private boolean isTransport(String serviceType) {

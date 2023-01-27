@@ -34,6 +34,8 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 
 @Lazy
 @Data
@@ -54,4 +56,11 @@ public class TbQueueCoreSettings {
 
     @Value("${queue.core.partitions}")
     private int partitions;
+
+    @Value("${queue.core.downlink-topic-prefix:tb_ie}")
+    private String downloadTopicPrefix;
+
+    public  String getIntegrationDownlinkTopic(IntegrationType it) {
+        return downloadTopicPrefix + "." + it.name().toLowerCase();
+    }
 }

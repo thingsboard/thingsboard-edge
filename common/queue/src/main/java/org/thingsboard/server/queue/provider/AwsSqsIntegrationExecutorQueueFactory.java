@@ -124,7 +124,7 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings, HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+        return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings, coreSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
