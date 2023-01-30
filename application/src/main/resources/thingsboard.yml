@@ -1175,7 +1175,7 @@ queue:
     response_poll_interval: "${TB_QUEUE_TRANSPORT_RESPONSE_POLL_INTERVAL_MS:25}"
   core:
     uplink_integration_topic: "${TB_QUEUE_CORE_INTEGRATIONS_TOPIC:tb_integrations_topic}"
-    downlink_integration_topic: "${TB_QUEUE_CORE_DOWNLINK_TOPIC_PREFIX:tb_ie}"
+    downlink_integration_topic: "${TB_QUEUE_CORE_DOWNLINK_INTEGRATION_TOPIC:tb_ie}"
     topic: "${TB_QUEUE_CORE_TOPIC:tb_core}"
     poll-interval: "${TB_QUEUE_CORE_POLL_INTERVAL_MS:25}"
     partitions: "${TB_QUEUE_CORE_PARTITIONS:10}"
