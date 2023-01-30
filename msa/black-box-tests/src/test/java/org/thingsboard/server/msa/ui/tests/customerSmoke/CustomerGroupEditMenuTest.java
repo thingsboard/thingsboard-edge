@@ -39,26 +39,24 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
+import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomNumber;
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -73,7 +71,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void changeTitle() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
         String changedName = "Changed" + getRandomNumber();
@@ -96,7 +94,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void deleteName() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
@@ -111,7 +109,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void saveOnlyWithSpace() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
@@ -128,30 +126,21 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerGroupName, customerPage.getHeaderName());
     }
 
-    @Test(priority = 20, groups = "smoke")
+    @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
     @Description
-    public void editDescription() {
-        String customerGroupName = ENTITY_NAME;
-        testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
+    public void editDescription(String description, String newDescription, String finalDescription) {
+        String customerGroupName = ENTITY_NAME + random();
+        testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER, description));
         this.customerGroupName = customerGroupName;
-        String description = "Description";
 
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
-        customerPage.descriptionEntityView().sendKeys(description);
+        customerPage.descriptionEntityView().sendKeys(newDescription);
         customerPage.entityGroupDoneBtnEditView().click();
-        String description1 = customerPage.descriptionEntityView().getAttribute("value");
-        customerPage.entityGroupEditPencilBtn().click();
-        customerPage.descriptionEntityView().sendKeys(description);
-        customerPage.entityGroupDoneBtnEditView().click();
-        String description2 = customerPage.descriptionEntityView().getAttribute("value");
-        customerPage.entityGroupEditPencilBtn().click();
-        customerPage.changeDescription("");
-        customerPage.entityGroupDoneBtnEditView().click();
+        customerPage.setDescription();
 
-        Assert.assertEquals(description, description1);
-        Assert.assertEquals(description + description, description2);
-        Assert.assertTrue(customerPage.descriptionEntityView().getAttribute("value").isEmpty());
+        Assert.assertEquals(customerPage.getDescription(), finalDescription);
     }
+
 }

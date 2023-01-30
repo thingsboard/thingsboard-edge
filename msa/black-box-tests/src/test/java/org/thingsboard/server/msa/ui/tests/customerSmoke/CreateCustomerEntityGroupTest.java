@@ -42,6 +42,7 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_ENTITY_GROUP_MESSAGE;
@@ -56,9 +57,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -74,7 +73,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void createCustomerGroup() {
-        customerGroupName = ENTITY_NAME;
+        customerGroupName = ENTITY_NAME + random();
 
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.plusBtn().click();
@@ -118,7 +117,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerGroupWithSameName() {
-        customerGroupName = ENTITY_NAME;
+        customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();

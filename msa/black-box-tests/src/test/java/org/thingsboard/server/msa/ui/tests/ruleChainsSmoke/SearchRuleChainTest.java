@@ -40,8 +40,6 @@ import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultRuleChainPrototype;
 
 public class SearchRuleChainTest extends AbstractDriverBaseTest {
@@ -51,9 +49,7 @@ public class SearchRuleChainTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }

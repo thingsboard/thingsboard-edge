@@ -481,13 +481,6 @@ export class AuthService {
           this.userService.getUser(authPayload.authUser.userId).subscribe(
             (user) => {
               authPayload.userDetails = user;
-              let userLang;
-              if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
-                userLang = authPayload.userDetails.additionalInfo.lang;
-              } else {
-                userLang = null;
-              }
-              this.notifyUserLang(userLang);
               authPayload.forceFullscreen = false;
               if (this.userForceFullscreen(authPayload)) {
                 authPayload.forceFullscreen = true;
@@ -495,6 +488,13 @@ export class AuthService {
               this.loadSystemParams(authPayload).subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
+                  let userLang;
+                  if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
+                    userLang = authPayload.userDetails.additionalInfo.lang;
+                  } else {
+                    userLang = null;
+                  }
+                  this.notifyUserLang(userLang);
                   loadUserSubject.next(authPayload);
                   loadUserSubject.complete();
                 },
