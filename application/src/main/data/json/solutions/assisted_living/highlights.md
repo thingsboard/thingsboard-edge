@@ -1,23 +1,14 @@
-The Assisted Living template represents a generic field irrigation solution. 
-You may provision fields by selecting the crop type and moisture thresholds.
-You may also define the field location using a rectangle or a complex polygon on the map.
+The Assisted Living template represents a solution for monitoring and controlling residents' health, tracking their movement and environment. Alert systems allow you to timely notify service personnel about changes in conditions and respond to them promptly, which significantly facilitates monitoring as a whole and raises the service to a new level.
 
-Each Field may contain multiple moisture sensors. 
-The soil moisture thresholds are applied to each sensor reading. 
-Use receives an alarm when the threshold is violated or the sensor battery is low.
-The sensor alarms are propagated to the field level.
+The interactive map of the resident helps to keep the necessary information always at hand and to monitor its changes.
+With the help of sensors reading body metrics, the staff can monitor residents' condition in real-time, receive accurate and reliable data, document it, analyze it and keep statistics. The data, in turn, will help doctors and staff quickly identify potential problems and warn them before they occur.
 
-The sensor readings are also aggregated to the average soil moisture of the field. 
-Users may observe the history of the aggregated value or each particular sensor reading separately.
-
-Users may configure the irrigation schedule and define desired water consumption or irrigation duration for each scheduled task.
-The history of the irrigation tasks is available in the field details. 
-
-Press the "install" button, and you will have a ready-to-use generic application that covers all common requirements.
+The system analyzes telemetry from sensors and notifies supervisors about changes in the conditions of stay — for example, when someone presses the alarm button or when one of the parameters becomes critical.
 
 #### Solution structure
 
-* "Assisted Living Administration" dashboard for tenant administrators to provision the fields, sensors, and irrigation scheduling;
-* Multiple device and asset profiles with pre-configured alarm rules: "SI Water Meter", "SI Smart Valve", "SI Soil Moisture Sensor", "SI Field";
-* Rule Chains to control the irrigation logic and process data from devices and assets;
-* Each device type generates a specific alarm based on configurable thresholds.
+Admin dashboard:
+* interactive scheme of the area for monitoring the movement of residents and tracking alarms in real-time;
+* alarm display sections for rooms and residents;
+* resident management system;
+* zone management system: creating, editing, and binding rooms and devices.

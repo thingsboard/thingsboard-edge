@@ -1,7 +1,8 @@
-Template for assisted living solution with the following use cases:
+Template for assisted living demonstrating common platform capabilities:
 
-* Monitor soil moisture levels for the fields;
-* Schedule the irrigation and control water consumption;
-* Define moisture thresholds and raise alarms;
+* monitoring of the current state of residents;
+* the management system of living areas, residents, and devices;
+* interactive map for revision of location;
+* a system of alerts for quick response to changes in the status of residents, rooms.
 
 Press install button to get started!
