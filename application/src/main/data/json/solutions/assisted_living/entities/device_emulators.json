@@ -1,14 +1,118 @@
 [
   {
-    "name": "Gateway",
+    "name": "Sensor",
     "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
+    "publishFrequencyInSeconds": 14400,
     "publishPauseInMillis": 1,
     "activityPeriodInMillis": 15768000000,
-    "telemetryProfiles": []
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
   },
   {
-    "name": "Healthy WristBand",
+    "name": "Door Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "open",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Window Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "open",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smoke Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "smoke",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Leak Sensor",
+    "extendz": "Sensor",
+    "telemetryProfiles": [
+      {
+        "key": "leak",
+        "valueStrategy": {
+          "type": "constant",
+          "value": false
+        }
+      }
+    ]
+  },
+  {
+    "name": "Gateway",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 28800,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 75,
+          "maxStartValue": 95,
+          "minLowValue": 50,
+          "maxLowValue": 50,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.01,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Unassigned WristBand",
     "publishPeriodInDays": 7,
     "publishFrequencyInSeconds": 3600,
     "publishPauseInMillis": 1,
@@ -34,7 +138,13 @@
           "nightHoursMultiplier": 1.0,
           "decrementOnStart": true
         }
-      },
+      }
+    ]
+  },
+  {
+    "name": "WristBand",
+    "extendz": "Unassigned WristBand",
+    "telemetryProfiles": [
       {
         "key": "temperature",
         "valueStrategy": {
@@ -88,91 +198,20 @@
   },
   {
     "name": "Panic WristBand",
-    "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
-    "publishPauseInMillis": 1,
-    "activityPeriodInMillis": 15768000000,
+    "extendz": "WristBand",
     "telemetryProfiles": [
-      {
-        "key": "battery",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 75,
-          "maxStartValue": 95,
-          "minLowValue": 50,
-          "maxLowValue": 50,
-          "minHighValue": 100,
-          "maxHighValue": 100,
-          "minIncrement": 0.0,
-          "maxIncrement": 0.0,
-          "minDecrement": 0.01,
-          "maxDecrement": 0.05,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "temperature",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 36.6,
-          "maxStartValue": 36.6,
-          "minLowValue": 36.3,
-          "maxLowValue": 36.4,
-          "minHighValue": 36.8,
-          "maxHighValue": 36.9,
-          "minIncrement": 0.01,
-          "maxIncrement": 0.01,
-          "minDecrement": 0.02,
-          "maxDecrement": 0.03,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "pulse",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 80.0,
-          "maxStartValue": 109.0,
-          "minLowValue": 60.0,
-          "maxLowValue": 75.0,
-          "minHighValue": 90.0,
-          "maxHighValue": 105.0,
-          "minIncrement": 3.0,
-          "maxIncrement": 10.0,
-          "minDecrement": 3.0,
-          "maxDecrement": 10.0,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
       {
         "key": "panicButton",
         "valueStrategy": {
-          "type": "event",
-          "normalValue": false,
-          "anomalyValue": true,
-          "anomalyChance": 96
+          "type": "constant",
+          "value": true
         }
       }
     ]
   },
   {
     "name": "Discharged WristBand",
-    "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
-    "publishPauseInMillis": 1,
-    "activityPeriodInMillis": 15768000000,
+    "extendz": "WristBand",
     "telemetryProfiles": [
       {
         "key": "battery",
@@ -194,107 +233,13 @@
           "nightHoursMultiplier": 1.0,
           "decrementOnStart": true
         }
-      },
-      {
-        "key": "temperature",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 36.6,
-          "maxStartValue": 36.6,
-          "minLowValue": 36.3,
-          "maxLowValue": 36.4,
-          "minHighValue": 36.8,
-          "maxHighValue": 36.9,
-          "minIncrement": 0.01,
-          "maxIncrement": 0.01,
-          "minDecrement": 0.02,
-          "maxDecrement": 0.03,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "pulse",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 80.0,
-          "maxStartValue": 109.0,
-          "minLowValue": 60.0,
-          "maxLowValue": 75.0,
-          "minHighValue": 90.0,
-          "maxHighValue": 105.0,
-          "minIncrement": 3.0,
-          "maxIncrement": 10.0,
-          "minDecrement": 3.0,
-          "maxDecrement": 10.0,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "panicButton",
-        "valueStrategy": {
-          "type": "constant",
-          "value": false
-        }
       }
     ]
   },
   {
     "name": "Cardio WristBand",
-    "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
-    "publishPauseInMillis": 1,
-    "activityPeriodInMillis": 15768000000,
+    "extendz": "WristBand",
     "telemetryProfiles": [
-      {
-        "key": "battery",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 75,
-          "maxStartValue": 95,
-          "minLowValue": 50,
-          "maxLowValue": 50,
-          "minHighValue": 100,
-          "maxHighValue": 100,
-          "minIncrement": 0.0,
-          "maxIncrement": 0.0,
-          "minDecrement": 0.01,
-          "maxDecrement": 0.05,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "temperature",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 36.6,
-          "maxStartValue": 36.6,
-          "minLowValue": 36.3,
-          "maxLowValue": 36.4,
-          "minHighValue": 36.8,
-          "maxHighValue": 36.9,
-          "minIncrement": 0.01,
-          "maxIncrement": 0.01,
-          "minDecrement": 0.02,
-          "maxDecrement": 0.03,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
       {
         "key": "pulse",
         "valueStrategy": {
@@ -315,98 +260,18 @@
           "nightHoursMultiplier": 1.0,
           "decrementOnStart": true
         }
-      },
-      {
-        "key": "panicButton",
-        "valueStrategy": {
-          "type": "constant",
-          "value": false
-        }
       }
     ]
   },
- {
+  {
     "name": "Noise WristBand",
-    "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
-    "publishPauseInMillis": 1,
-    "activityPeriodInMillis": 15768000000,
+    "extendz": "WristBand",
     "telemetryProfiles": [
-      {
-        "key": "battery",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 75,
-          "maxStartValue": 95,
-          "minLowValue": 50,
-          "maxLowValue": 50,
-          "minHighValue": 100,
-          "maxHighValue": 100,
-          "minIncrement": 0.0,
-          "maxIncrement": 0.0,
-          "minDecrement": 0.01,
-          "maxDecrement": 0.05,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "temperature",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 36.6,
-          "maxStartValue": 36.6,
-          "minLowValue": 36.3,
-          "maxLowValue": 36.4,
-          "minHighValue": 36.8,
-          "maxHighValue": 36.9,
-          "minIncrement": 0.01,
-          "maxIncrement": 0.01,
-          "minDecrement": 0.02,
-          "maxDecrement": 0.03,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "pulse",
-        "valueStrategy": {
-          "type": "natural",
-          "precision": 2,
-          "minStartValue": 80.0,
-          "maxStartValue": 109.0,
-          "minLowValue": 60.0,
-          "maxLowValue": 75.0,
-          "minHighValue": 90.0,
-          "maxHighValue": 105.0,
-          "minIncrement": 3.0,
-          "maxIncrement": 10.0,
-          "minDecrement": 3.0,
-          "maxDecrement": 10.0,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0,
-          "decrementOnStart": true
-        }
-      },
-      {
-        "key": "panicButton",
-        "valueStrategy": {
-          "type": "constant",
-          "value": false
-        }
-      },
       {
         "key": "noise",
         "valueStrategy": {
           "type": "constant",
-           "value": 120
+          "value": 120
         }
       }
     ]
@@ -414,7 +279,7 @@
   {
     "name": "Regular RoomSensor",
     "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
+    "publishFrequencyInSeconds": 28800,
     "publishPauseInMillis": 1,
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
@@ -448,8 +313,8 @@
           "maxStartValue": 23,
           "minLowValue": 20,
           "maxLowValue": 20,
-          "minHighValue": 28,
-          "maxHighValue": 35,
+          "minHighValue": 23,
+          "maxHighValue": 23,
           "minIncrement": 0.1,
           "maxIncrement": 1.6,
           "minDecrement": 0.1,
@@ -468,8 +333,8 @@
           "maxStartValue": 53,
           "minLowValue": 40,
           "maxLowValue": 40,
-          "minHighValue": 62,
-          "maxHighValue": 72,
+          "minHighValue": 60,
+          "maxHighValue": 70,
           "minIncrement": 0.1,
           "maxIncrement": 1.6,
           "minDecrement": 0.1,
@@ -484,12 +349,64 @@
         "valueStrategy": {
           "type": "natural",
           "precision": 1,
-          "minStartValue": 100,
-          "maxStartValue": 300,
+          "minStartValue": 50,
+          "maxStartValue": 120,
           "minLowValue": 50,
           "maxLowValue": 50,
-          "minHighValue": 350,
-          "maxHighValue": 350,
+          "minHighValue": 120,
+          "maxHighValue": 120,
+          "minIncrement": 5.0,
+          "maxIncrement": 20.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 8.0,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
+        }
+      }
+    ]
+  },
+  {
+    "name": "Temperature RoomSensor",
+    "extendz": "Regular RoomSensor",
+    "telemetryProfiles": [
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 29,
+          "maxStartValue": 31,
+          "minLowValue": 29,
+          "maxLowValue": 29,
+          "minHighValue": 31,
+          "maxHighValue": 31,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.2,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.1,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "AIQ RoomSensor",
+    "extendz": "Regular RoomSensor",
+    "telemetryProfiles": [
+      {
+        "key": "IAQ",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 200,
+          "maxStartValue": 250,
+          "minLowValue": 200,
+          "maxLowValue": 200,
+          "minHighValue": 280,
+          "maxHighValue": 280,
           "minIncrement": 5.0,
           "maxIncrement": 20.0,
           "minDecrement": 1.0,

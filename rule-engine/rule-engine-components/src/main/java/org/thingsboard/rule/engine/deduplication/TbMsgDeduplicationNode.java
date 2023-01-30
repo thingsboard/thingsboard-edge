@@ -82,7 +82,6 @@ public class TbMsgDeduplicationNode implements TbNode {
 
     private final Map<EntityId, DeduplicationData> deduplicationMap;
     private long deduplicationInterval;
-    private DeduplicationId deduplicationId;
 
     public TbMsgDeduplicationNode() {
         this.deduplicationMap = new HashMap<>();
@@ -92,7 +91,6 @@ public class TbMsgDeduplicationNode implements TbNode {
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgDeduplicationNodeConfiguration.class);
         this.deduplicationInterval = TimeUnit.SECONDS.toMillis(config.getInterval());
-        this.deduplicationId = config.getId();
     }
 
     @Override
@@ -110,7 +108,7 @@ public class TbMsgDeduplicationNode implements TbNode {
     }
 
     private void processOnRegularMsg(TbContext ctx, TbMsg msg) {
-        EntityId id = getDeduplicationId(ctx, msg);
+        EntityId id = msg.getOriginator();
         DeduplicationData deduplicationMsgs = deduplicationMap.computeIfAbsent(id, k -> new DeduplicationData());
         if (deduplicationMsgs.size() < config.getMaxPendingMsgs()) {
             log.trace("[{}][{}] Adding msg: [{}][{}] to the pending msgs map ...", ctx.getSelfId(), id, msg.getId(), msg.getMetaDataTs());
@@ -120,19 +118,6 @@ public class TbMsgDeduplicationNode implements TbNode {
         } else {
             log.trace("[{}] Max limit of pending messages reached for deduplication id: [{}]", ctx.getSelfId(), id);
             ctx.tellFailure(msg, new RuntimeException("[" + ctx.getSelfId() + "] Max limit of pending messages reached for deduplication id: [" + id + "]"));
-        }
-    }
-
-    private EntityId getDeduplicationId(TbContext ctx, TbMsg msg) {
-        switch (deduplicationId) {
-            case ORIGINATOR:
-                return msg.getOriginator();
-            case TENANT:
-                return ctx.getTenantId();
-            case CUSTOMER:
-                return msg.getCustomerId();
-            default:
-                throw new IllegalStateException("Unsupported deduplication id: " + deduplicationId);
         }
     }
 

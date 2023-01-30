@@ -876,8 +876,17 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
-        Map<String, EmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<EmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        List<EmulatorDefinition> emulatorDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<>() {
+        });
+        Map<String, EmulatorDefinition> deviceEmulators = emulatorDefinitions.stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        emulatorDefinitions.stream().filter(ed -> StringUtils.isNotEmpty(ed.getExtendz()))
+                .forEach(ed -> {
+                    EmulatorDefinition parent = deviceEmulators.get(ed.getExtendz());
+                    if (parent != null) {
+                        ed.enrich(parent);
+                    }
+                });
+
 
         for (var entry : devicesMap.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
             DeviceEmulatorLauncher.builder()

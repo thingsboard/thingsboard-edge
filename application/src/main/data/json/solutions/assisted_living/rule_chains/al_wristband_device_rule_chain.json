@@ -175,7 +175,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Convert To User Update",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
@@ -196,6 +196,48 @@
           "scope": "SERVER_SCOPE",
           "notifyDevice": false,
           "sendAttributesUpdatedNotification": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 528,
+          "layoutY": 133
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Extract Alarm Type and Start TS",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var newMsg = {};\nnewMsg.latestAlarmType = msg.type;\nnewMsg.latestAlarmStartTs = msg.startTs;\nreturn {msg: newMsg, metadata: {}, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 820,
+          "layoutY": 73
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode",
+        "name": "To User",
+        "debugMode": false,
+        "configuration": {
+          "relationsQuery": {
+            "fetchLastLevelOnly": false,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "Use",
+                "entityTypes": [
+                  "USER"
+                ]
+              }
+            ]
+          }
         },
         "externalId": null
       }
@@ -257,6 +299,11 @@
         "type": "Alarm Created"
       },
       {
+        "fromIndex": 6,
+        "toIndex": 11,
+        "type": "Alarm Created"
+      },
+      {
         "fromIndex": 7,
         "toIndex": 10,
         "type": "Success"
@@ -268,6 +315,16 @@
       },
       {
         "fromIndex": 9,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 12,
         "toIndex": 10,
         "type": "Success"
       }

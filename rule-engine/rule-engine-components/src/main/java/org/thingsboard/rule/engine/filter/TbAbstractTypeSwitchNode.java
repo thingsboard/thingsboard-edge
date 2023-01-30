@@ -28,10 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.deduplication;
+package org.thingsboard.rule.engine.filter;
 
-public enum DeduplicationId {
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.msg.TbMsg;
 
-    ORIGINATOR, TENANT, CUSTOMER
+@Slf4j
+public abstract class TbAbstractTypeSwitchNode implements TbNode {
+
+    private EmptyNodeConfiguration config;
+
+    @Override
+    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
+    }
+
+    @Override
+    public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
+        ctx.tellNext(msg, getRelationType(ctx, msg.getOriginator()));
+    }
+
+    protected abstract String getRelationType(TbContext ctx, EntityId originator) throws TbNodeException;
 
 }
