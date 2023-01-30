@@ -114,8 +114,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 52,
-          "layoutY": 439
+          "layoutX": 628,
+          "layoutY": 354
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "Change Owner from Gateway to Device",
@@ -141,8 +141,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1067,
-          "layoutY": 654
+          "layoutX": 1178,
+          "layoutY": 502
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Room Device Rule Chain",
@@ -155,28 +155,11 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 872,
-          "layoutY": 352
-        },
-        "type": "org.thingsboard.rule.engine.metadata.TbGetOriginatorFieldsNode",
-        "name": "Fetch Device Type",
-        "debugMode": false,
-        "configuration": {
-          "fieldsMapping": {
-            "type": "deviceType"
-          },
-          "ignoreNullStrings": false
-        },
-        "externalId": null
-      },
-      {
-        "additionalInfo": {
-          "description": "",
           "layoutX": 326,
           "layoutY": 354
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
-        "name": "Fetch",
+        "name": "Fetch Room attributes",
         "debugMode": false,
         "configuration": {
           "tellFailureIfAbsent": true,
@@ -197,8 +180,8 @@
       {
         "additionalInfo": {
           "description": "Improves readability of the message in the next rule chain",
-          "layoutX": 326,
-          "layoutY": 438
+          "layoutX": 902,
+          "layoutY": 353
         },
         "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
         "name": "Rename Msg Fields",
@@ -217,8 +200,8 @@
       {
         "additionalInfo": {
           "description": "Improves readability of the message in the next rule chain",
-          "layoutX": 601,
-          "layoutY": 436
+          "layoutX": 1177,
+          "layoutY": 351
         },
         "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
         "name": "Rename Metadata Fields",
@@ -234,8 +217,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 450,
-          "layoutY": 576
+          "layoutX": 561,
+          "layoutY": 424
         },
         "type": "org.thingsboard.rule.engine.deduplication.TbMsgDeduplicationNode",
         "name": "Deduplicate From Multiple Gateways",
@@ -253,8 +236,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 748,
-          "layoutY": 577
+          "layoutX": 859,
+          "layoutY": 425
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Use msg with Max RSSI",
@@ -269,8 +252,8 @@
       {
         "additionalInfo": {
           "description": "Extracts telemetry from the \"data\" field and adds \"rssi\" readings",
-          "layoutX": 452,
-          "layoutY": 661
+          "layoutX": 563,
+          "layoutY": 509
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Extract Data",
@@ -285,8 +268,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1064,
-          "layoutY": 576
+          "layoutX": 1175,
+          "layoutY": 424
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Wristband Rule Chain",
@@ -299,8 +282,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 63,
-          "layoutY": 578
+          "layoutX": 174,
+          "layoutY": 426
         },
         "type": "org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode",
         "name": "Switch by Device Type",
@@ -314,7 +297,7 @@
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 10,
+        "toIndex": 9,
         "type": "Success"
       },
       {
@@ -349,7 +332,7 @@
       },
       {
         "fromIndex": 7,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Success"
       },
       {
@@ -359,62 +342,57 @@
       },
       {
         "fromIndex": 10,
-        "toIndex": 9,
+        "toIndex": 11,
         "type": "Success"
       },
       {
         "fromIndex": 11,
-        "toIndex": 12,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 12,
-        "toIndex": 17,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 14,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 14,
         "toIndex": 16,
         "type": "Success"
       },
       {
-        "fromIndex": 15,
+        "fromIndex": 12,
+        "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 15,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
         "toIndex": 8,
         "type": "Success"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 13,
+        "fromIndex": 16,
+        "toIndex": 12,
         "type": "AL_Wristband"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 15,
+        "fromIndex": 16,
+        "toIndex": 14,
         "type": "AL_DoorSensor"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 15,
+        "fromIndex": 16,
+        "toIndex": 14,
         "type": "AL_LeakSensor"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 15,
+        "fromIndex": 16,
+        "toIndex": 14,
         "type": "AL_RoomSensor"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 15,
+        "fromIndex": 16,
+        "toIndex": 14,
         "type": "AL_SmokeSensor"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 15,
+        "fromIndex": 16,
+        "toIndex": 14,
         "type": "AL_WindowSensor"
       }
     ],
