@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 
 @Lazy
 @Data
@@ -45,7 +44,7 @@ public class TbQueueCoreSettings {
     @Value("${queue.core.topic}")
     private String topic;
 
-    @Value("${queue.core.integrations-topic:tb_integrations_topic}")
+    @Value("${queue.core.uplink_integration_topic:tb_integrations_topic}")
     private String integrationsTopic;
 
     @Value("${queue.core.ota.topic:tb_ota_package}")
@@ -57,10 +56,10 @@ public class TbQueueCoreSettings {
     @Value("${queue.core.partitions}")
     private int partitions;
 
-    @Value("${queue.core.downlink-topic-prefix:tb_ie}")
-    private String downloadTopicPrefix;
+    @Value("${queue.core.downlink_integration_topic:tb_ie}")
+    private String downlinkIntegrationTopic;
 
     public  String getIntegrationDownlinkTopic(IntegrationType it) {
-        return downloadTopicPrefix + "." + it.name().toLowerCase();
+        return downlinkIntegrationTopic + "." + it.name().toLowerCase();
     }
 }
