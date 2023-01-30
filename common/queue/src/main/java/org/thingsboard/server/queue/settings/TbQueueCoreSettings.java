@@ -44,7 +44,7 @@ public class TbQueueCoreSettings {
     @Value("${queue.core.topic}")
     private String topic;
 
-    @Value("${queue.core.uplink_integration_topic:tb_integrations_topic}")
+    @Value("${queue.core.uplink_integrations_topic:tb_integrations_topic}")
     private String integrationsTopic;
 
     @Value("${queue.core.ota.topic:tb_ota_package}")
@@ -56,10 +56,10 @@ public class TbQueueCoreSettings {
     @Value("${queue.core.partitions}")
     private int partitions;
 
-    @Value("${queue.core.downlink_integration_topic:tb_ie}")
-    private String downlinkIntegrationTopic;
+    @Value("${queue.core.downlink_integrations_topic:tb_ie}")
+    private String downlinkIntegrationsTopic;
 
     public  String getIntegrationDownlinkTopic(IntegrationType it) {
-        return downlinkIntegrationTopic + "." + it.name().toLowerCase();
+        return downlinkIntegrationsTopic + "." + it.name().toLowerCase();
     }
 }
