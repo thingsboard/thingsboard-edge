@@ -69,6 +69,5 @@ public class EmulatorDefinition {
         var profilesMap = telemetryProfiles.stream().collect(Collectors.toMap(TelemetryProfile::getKey, Function.identity()));
         parent.getTelemetryProfiles().forEach(tp -> profilesMap.putIfAbsent(tp.getKey(), tp));
         telemetryProfiles = new ArrayList<>(profilesMap.values());
-
     }
 }

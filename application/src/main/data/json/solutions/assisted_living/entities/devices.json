@@ -228,7 +228,7 @@
       "xPos": "0.7334",
       "yPos": "0.7419",
       "roomXPos": "0.6838",
-      "roomYPos": "0.74 19",
+      "roomYPos": "0.7419",
       "zone": "Floor 1",
       "room": "Hall"
     },
@@ -304,7 +304,7 @@
   {
     "name": "500000015FE1",
     "type": "AL_DoorSensor",
-    "group": "Unassigned Devices",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Door Sensor",
     "attributes": {
@@ -325,7 +325,7 @@
   {
     "name": "600000015FE1",
     "type": "AL_LeakSensor",
-    "group": "Unassigned Devices",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Leak Sensor",
     "attributes": {
@@ -346,7 +346,7 @@
   {
     "name": "700000015FE1",
     "type": "AL_SmokeSensor",
-    "group": "Unassigned Devices",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Smoke Sensor",
     "attributes": {
@@ -367,7 +367,7 @@
   {
     "name": "800000015FE1",
     "type": "AL_WindowSensor",
-    "group": "Unassigned Devices",
+    "group": "Assigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Window Sensor",
     "attributes": {

@@ -104,7 +104,7 @@
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
@@ -119,7 +119,7 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Count active alarms",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "alarmsCountMappings": [
             {
