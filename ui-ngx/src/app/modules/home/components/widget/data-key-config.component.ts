@@ -34,7 +34,8 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
-  ComparisonResultType, comparisonResultTypeTranslationMap,
+  ComparisonResultType,
+  comparisonResultTypeTranslationMap,
   DataKey,
   dataKeyAggregationTypeHintTranslationMap,
   Widget,
@@ -65,6 +66,7 @@ import { WidgetService } from '@core/http/widget.service';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { aggregationTranslations, AggregationType, ComparisonDuration } from '@shared/models/time/time.models';
+import { genNextLabel } from '@core/utils';
 
 @Component({
   selector: 'tb-data-key-config',
@@ -216,7 +218,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
           let newLabel = this.dataKeyFormGroup.get('name').value;
           if (aggType !== AggregationType.NONE) {
             const prefix = this.translate.instant(aggregationTranslations.get(aggType));
-            newLabel = prefix + ' ' + newLabel;
+            newLabel = genNextLabel(prefix + ' ' + newLabel, this.widget.config.datasources);
           }
           this.dataKeyFormGroup.get('label').patchValue(newLabel);
         }
