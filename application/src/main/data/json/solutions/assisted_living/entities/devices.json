@@ -471,6 +471,23 @@
     ]
   },
   {
+    "name": "C00000066F66",
+    "label": "Isabella Davis",
+    "type": "AL_Wristband",
+    "group": "Assigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "WristBand",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "USER",
+        "entityName": "isabella.davis.$random@thingsboard.org",
+        "direction": "FROM",
+        "type": "Use"
+      }
+    ]
+  },
+  {
     "name": "C00000065FE6",
     "label": "Mia Garcia",
     "type": "AL_Wristband",
