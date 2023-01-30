@@ -246,10 +246,10 @@
     "type": "AL_RoomSensor",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Regular RoomSensor",
+    "emulator": "Temperature RoomSensor",
     "attributes": {
-      "xPos": "0.45000",
-      "yPos": "0.80000",
+      "xPos": "0.0419",
+      "yPos": "0.1618",
       "zone": "Floor 1",
       "room": "Room 101"
     },
@@ -267,10 +267,10 @@
     "type": "AL_RoomSensor",
     "group": "Assigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Regular RoomSensor",
+    "emulator": "AIQ RoomSensor",
     "attributes": {
-      "xPos": "0.0900",
-      "yPos": "0.1814",
+      "xPos": "0.2066",
+      "yPos": "0.1618",
       "zone": "Floor 1",
       "room": "Room 102"
     },
@@ -286,30 +286,18 @@
   {
     "name": "E00000035FE3",
     "type": "AL_RoomSensor",
-    "group": "Assigned Devices",
+    "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
     "emulator": "Regular RoomSensor",
-    "attributes": {
-      "xPos": "0.2200",
-      "yPos": "0.1814",
-      "zone": "Floor 1",
-      "room": "Room 103"
-    },
-    "relations": [
-      {
-        "entityType": "ASSET",
-        "entityName": "Room 103",
-        "direction": "FROM",
-        "type": "Contains"
-      }
-    ]
+    "attributes": {},
+    "relations": []
   },
   {
     "name": "E00000085FE8",
     "type": "AL_RoomSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Regular RoomSensor",
     "attributes": {},
     "relations": []
   },
@@ -318,10 +306,10 @@
     "type": "AL_DoorSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Door Sensor",
     "attributes": {
-      "xPos": "0.46000",
-      "yPos": "0.81000",
+      "xPos": "0.1139",
+      "yPos": "0.4202",
       "zone": "Floor 1",
       "room": "Room 101"
     },
@@ -339,10 +327,10 @@
     "type": "AL_LeakSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Leak Sensor",
     "attributes": {
-      "xPos": "0.47000",
-      "yPos": "0.82000",
+      "xPos": "0.0533",
+      "yPos": "0.3791",
       "zone": "Floor 1",
       "room": "Room 101"
     },
@@ -360,10 +348,10 @@
     "type": "AL_SmokeSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Smoke Sensor",
     "attributes": {
-      "xPos": "0.48000",
-      "yPos": "0.83000",
+      "xPos": "0.1140",
+      "yPos": "0.2493",
       "zone": "Floor 1",
       "room": "Room 101"
     },
@@ -381,10 +369,10 @@
     "type": "AL_WindowSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Window Sensor",
     "attributes": {
-      "xPos": "0.49000",
-      "yPos": "0.84000",
+      "xPos": "0.1088",
+      "yPos": "0.0382",
       "zone": "Floor 1",
       "room": "Room 101"
     },
@@ -538,7 +526,7 @@
     "type": "AL_Wristband",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Unassigned WristBand",
     "attributes": {},
     "relations": []
   },
@@ -547,7 +535,7 @@
     "type": "AL_Gateway",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "WristBand",
+    "emulator": "Gateway",
     "attributes": {},
     "relations": []
   }
