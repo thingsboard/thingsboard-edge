@@ -42,6 +42,7 @@ import { AlarmService } from '@app/core/http/alarm.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'tb-alarm-table',
@@ -78,6 +79,16 @@ export class AlarmTableComponent implements OnInit {
     }
   }
 
+  private readonlyValue: boolean;
+  get readonly(): boolean {
+    return this.readonlyValue;
+  }
+
+  @Input()
+  set readonly(value: boolean) {
+    this.readonlyValue = coerceBooleanProperty(value);
+  }
+
   @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
 
   alarmTableConfig: AlarmTableConfig;
@@ -102,7 +113,8 @@ export class AlarmTableComponent implements OnInit {
       this.dialog,
       this.entityIdValue,
       AlarmSearchStatus.ANY,
-      this.store
+      this.store,
+      this.readonly
     );
   }
 

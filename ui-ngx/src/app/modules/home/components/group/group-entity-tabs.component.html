@@ -51,7 +51,10 @@
 </mat-tab>
 <mat-tab *ngIf="entity && (resource.ALARM | hasGenericPermission: operation.READ)"
          label="{{ 'alarm.alarms' | translate }}" #alarmsTab="matTab">
-  <tb-alarm-table [active]="alarmsTab.isActive" [entityId]="entity.id"></tb-alarm-table>
+  <tb-alarm-table [active]="alarmsTab.isActive"
+                  [entityId]="entity.id"
+                  [readonly]="!(entityGroup | hasGroupEntityPermission: operation.WRITE) || !(resource.ALARM | hasGenericPermission: operation.WRITE)">
+  </tb-alarm-table>
 </mat-tab>
 <mat-tab *ngIf="entity"
          label="{{ 'device.events' | translate }}" #eventsTab="matTab">

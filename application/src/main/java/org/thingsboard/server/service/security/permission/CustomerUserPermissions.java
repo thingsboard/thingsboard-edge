@@ -37,9 +37,12 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
@@ -47,10 +50,12 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Component(value="customerUserPermissions")
@@ -64,6 +69,9 @@ public class CustomerUserPermissions extends AbstractPermissions {
 
     @Autowired
     private OwnersCacheService ownersCacheService;
+
+    @Autowired
+    private OwnerService ownerService;
 
     public CustomerUserPermissions() {
         super();
@@ -95,7 +103,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
     }
 
-    private final PermissionChecker customerAlarmPermissionChecker = new PermissionChecker() {
+    private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
@@ -103,16 +111,20 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
-            if (!user.getTenantId().equals(entity.getTenantId())) {
+        public boolean hasPermission(SecurityUser user, Operation operation, AlarmId alarmId, Alarm alarm) {
+            if (!user.getTenantId().equals(alarm.getTenantId())) {
                 return false;
             }
-            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
-            if (!(user.getUserPermissions().hasGenericPermission(resource, operation))) {
+            if (!(user.getUserPermissions().hasGenericPermission(Resource.ALARM, operation))) {
+                return false;
+            } else if (alarm.getCustomerId().equals(user.getCustomerId())) {
+                return true;
+            } else if (alarm.getCustomerId().getId().equals(CustomerId.NULL_UUID)) {
                 return false;
             } else {
-                return entity instanceof HasCustomerId &&
-                        (((HasCustomerId) entity).getCustomerId().equals(user.getCustomerId()));
+                //TODO: ybondarenko should be refactored in 3.5 (check originator permissions)
+                Set<EntityId> owners = ownerService.getOwners(alarm.getTenantId(), alarm.getCustomerId());
+                return owners.contains(user.getCustomerId());
             }
         }
     };
