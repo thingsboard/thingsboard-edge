@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,9 +62,7 @@ import java.util.concurrent.ExecutionException;
                 "to the message data. If originator type is not <b>DEVICE</b> or rule node failed to get device credentials " +
                 "- send Message via <code>Failure</code> chain, otherwise <code>Success</code> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbEnrichmentNodeFetchDeviceCredentialsConfig",
-        icon = "functions"
-)
+        configDirective = "tbEnrichmentNodeFetchDeviceCredentialsConfig")
 public class TbFetchDeviceCredentialsNode implements TbNode {
 
     private static final String CREDENTIALS = "credentials";

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -863,6 +863,23 @@ mat-label {
           }
         }
       }
+    }
+  }
+}
+
+// Tooltipster
+
+.tooltipster-sidetip.tooltipster-tb {
+  .tooltipster-box {
+    background: rgba(3, 8, 40, 0.64);
+    border: none;
+    border-radius: 4px;
+    .tooltipster-content {
+      padding: 4px 8px;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 500;
+      color: #ffffff;
     }
   }
 }

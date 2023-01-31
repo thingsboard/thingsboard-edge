@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { TbInject } from '@shared/decorators/tb-inject';
 import { ReportService } from '@core/http/report.service';
+import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -101,6 +102,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.resourceService = $injector.get(ResourceService);
     this.ctx.telemetryWsService = $injector.get(TelemetryWebsocketService);
     this.ctx.date = $injector.get(DatePipe);
+    this.ctx.milliSecondsToTimeString = $injector.get(MillisecondsToTimeStringPipe);
     this.ctx.translate = $injector.get(TranslateService);
     this.ctx.http = $injector.get(HttpClient);
     this.ctx.sanitizer = $injector.get(DomSanitizer);

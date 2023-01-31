@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,13 +40,13 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
+import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomNumber;
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_CUSTOMER_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.PHONE_NUMBER_ERROR_MESSAGE;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 
 public class CustomerEditMenuTest extends AbstractDriverBaseTest {
@@ -57,9 +57,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -76,7 +74,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Description
     public void changeTitle() {
         String newCustomerName = "Changed" + getRandomNumber();
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
@@ -98,7 +96,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void deleteTitle() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
@@ -113,7 +111,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void saveOnlyWithSpace() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
@@ -131,37 +129,27 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getCustomerName(), customerPage.getCustomerHeaderName());
     }
 
-    @Test(priority = 20, groups = "smoke")
+    @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
     @Description
-    public void editDescription() {
-        String customerName = ENTITY_NAME;
-        testRestClient.postCustomer(defaultCustomerPrototype(customerName));
-        this.customerName = customerName;
-        String description = "Description";
+    public void editDescription(String description, String newDescription, String finalDescription) {
+        String name = ENTITY_NAME + random();
+        testRestClient.postCustomer(EntityPrototypes.defaultCustomerPrototype(name, description));
+        customerName = name;
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
-        customerPage.descriptionEntityView().sendKeys(description);
+        customerPage.descriptionEntityView().sendKeys(newDescription);
         customerPage.doneBtnEditView().click();
-        String description1 = customerPage.descriptionEntityView().getAttribute("value");
-        customerPage.editPencilBtn().click();
-        customerPage.descriptionEntityView().sendKeys(description);
-        customerPage.doneBtnEditView().click();
-        String description2 = customerPage.descriptionEntityView().getAttribute("value");
-        customerPage.editPencilBtn().click();
-        customerPage.changeDescription("");
-        customerPage.doneBtnEditView().click();
+        customerPage.setDescription();
 
-        Assert.assertEquals(description, description1);
-        Assert.assertEquals(description + description, description2);
-        Assert.assertTrue(customerPage.descriptionEntityView().getAttribute("value").isEmpty());
+        Assert.assertEquals(customerPage.getDescription(), finalDescription);
     }
 
     @Test(priority = 20, groups = "smoke")
     @Description
-    public void addCountry(){
-        String customerName = ENTITY_NAME;
+    public void addCountry() {
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
@@ -177,7 +165,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void addPhoneNumber() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
         String number = "2015550123";
@@ -194,7 +182,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "incorrectPhoneNumber")
     @Description
     public void addIncorrectPhoneNumber(String number) {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
@@ -213,7 +201,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 30, groups = "smoke")
     @Description
     public void addAllInformation() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
         String text = "Text";

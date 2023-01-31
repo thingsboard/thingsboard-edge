@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -64,14 +64,13 @@ import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
+import { isUndefinedOrNull } from '@core/utils';
 
 export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink> {
 
   private authUser = getCurrentAuthUser(this.store);
 
   searchStatus: AlarmSearchStatus;
-  readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
 
   constructor(private alarmService: AlarmService,
               private dialogService: DialogService,
@@ -81,7 +80,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private dialog: MatDialog,
               public entityId: EntityId = null,
               private defaultSearchStatus: AlarmSearchStatus = AlarmSearchStatus.ANY,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              private readonly) {
     super();
     this.loadDataOnInit = false;
     this.tableTitle = '';
@@ -132,6 +132,10 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         onAction: ($event, entity) => this.showAlarmDetails(entity)
       }
     );
+
+    if (isUndefinedOrNull(this.readonly)) {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
+    }
   }
 
   fetchAlarms(pageLink: TimePageLink): Observable<PageData<AlarmInfo>> {
@@ -140,7 +144,6 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
   }
 
   showAlarmDetails(entity: AlarmInfo) {
-    const isPermissionWrite = this.authUser.authority !== Authority.CUSTOMER_USER || entity.customerId.id === this.authUser.customerId;
     this.dialog.open<AlarmDetailsDialogComponent, AlarmDetailsDialogData, boolean>
     (AlarmDetailsDialogComponent,
       {
@@ -149,8 +152,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         data: {
           alarmId: entity.id.id,
           alarm: entity,
-          allowAcknowledgment: !this.readonly && isPermissionWrite,
-          allowClear: !this.readonly && isPermissionWrite,
+          allowAcknowledgment: !this.readonly,
+          allowClear: !this.readonly,
           displayDetails: true
         }
       }).afterClosed().subscribe(

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -265,7 +265,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, AfterVie
           this.secondaryPlaceholder = '+' + this.translate.instant('datakey.latest-key-function');
         } else if (this.widgetType === widgetType.alarm) {
           this.placeholder = this.translate.instant('datakey.alarm-key-functions');
-          this.secondaryPlaceholder = '+' + this.translate.instant('alarm-key-function');
+          this.secondaryPlaceholder = '+' + this.translate.instant('datakey.alarm-key-function');
         } else {
           this.placeholder = this.translate.instant('datakey.timeseries-key-functions');
           this.secondaryPlaceholder = '+' + this.translate.instant('datakey.timeseries-key-function');

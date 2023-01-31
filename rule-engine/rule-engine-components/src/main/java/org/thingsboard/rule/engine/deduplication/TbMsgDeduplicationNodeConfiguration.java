@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,22 +37,20 @@ import org.thingsboard.rule.engine.api.NodeConfiguration;
 public class TbMsgDeduplicationNodeConfiguration implements NodeConfiguration<TbMsgDeduplicationNodeConfiguration> {
 
     private int interval;
-    private DeduplicationId id;
     private DeduplicationStrategy strategy;
-
-    // Advanced settings:
-    private int maxPendingMsgs;
-    private int maxRetries;
 
     // only for DeduplicationStrategy.ALL:
     private String outMsgType;
     private String queueName;
 
+    // Advanced settings:
+    private int maxPendingMsgs;
+    private int maxRetries;
+
     @Override
     public TbMsgDeduplicationNodeConfiguration defaultConfiguration() {
         TbMsgDeduplicationNodeConfiguration configuration = new TbMsgDeduplicationNodeConfiguration();
         configuration.setInterval(60);
-        configuration.setId(DeduplicationId.ORIGINATOR);
         configuration.setStrategy(DeduplicationStrategy.FIRST);
         configuration.setMaxPendingMsgs(100);
         configuration.setMaxRetries(3);

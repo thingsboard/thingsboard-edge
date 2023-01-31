@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.ui.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 
 public class OtherPageElementsHelper extends OtherPageElements {
@@ -82,13 +81,15 @@ public class OtherPageElementsHelper extends OtherPageElements {
         }
     }
 
-    public void changeNameEditMenu(String newName) {
-        nameFieldEditMenu().sendKeys(Keys.CONTROL + "a" + Keys.BACK_SPACE);
-        nameFieldEditMenu().sendKeys(newName);
+    public void changeNameEditMenu(CharSequence keysToSend) {
+        nameFieldEditMenu().click();
+        nameFieldEditMenu().clear();
+        nameFieldEditMenu().sendKeys(keysToSend);
     }
 
     public void changeDescription(String newDescription) {
-        descriptionEntityView().sendKeys(Keys.CONTROL + "a" + Keys.BACK_SPACE);
+        descriptionEntityView().click();
+        descriptionEntityView().clear();
         descriptionEntityView().sendKeys(newDescription);
     }
 

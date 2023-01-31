@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RuleNode(
-        type = ComponentType.EXTERNAL,
+        type = ComponentType.TRANSFORMATION,
         name = "split array msg",
         configClazz = EmptyNodeConfiguration.class,
         nodeDescription = "Split array message into several msgs",
