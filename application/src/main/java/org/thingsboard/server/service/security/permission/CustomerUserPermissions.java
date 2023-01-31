@@ -119,7 +119,10 @@ public class CustomerUserPermissions extends AbstractPermissions {
                 return false;
             } else if (alarm.getCustomerId().equals(user.getCustomerId())) {
                 return true;
+            } else if (alarm.getCustomerId().getId().equals(CustomerId.NULL_UUID)) {
+                return false;
             } else {
+                //TODO: ybondarenko should be refactored in 3.5 (check originator permissions)
                 Set<EntityId> owners = ownerService.getOwners(alarm.getTenantId(), alarm.getCustomerId());
                 return owners.contains(user.getCustomerId());
             }
