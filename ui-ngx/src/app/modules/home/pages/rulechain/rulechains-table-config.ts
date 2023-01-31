@@ -107,7 +107,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       if (this.isDetailsOpen()) {
         this.toggleEntityDetails($event, ruleChain);
       } else {
-        this.openRuleChain($event, ruleChain);
+        this.openRuleChain($event, ruleChain, this.componentsData);
       }
       return true;
     };

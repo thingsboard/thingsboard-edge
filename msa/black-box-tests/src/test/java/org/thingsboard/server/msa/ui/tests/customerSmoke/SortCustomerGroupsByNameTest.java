@@ -43,9 +43,6 @@ import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
-
 public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
 
     private SideBarMenuViewElements sideBarMenuView;
@@ -54,9 +51,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -134,7 +129,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
         String firstGroup = customerPage.getEntityGroupName();
         customerPage.setEntityGroupName(lastIndex - 1);
         String secondGroup = customerPage.getEntityGroupName();
-        customerPage.setEntityGroupName(lastIndex -2);
+        customerPage.setEntityGroupName(lastIndex - 2);
         String thirdGroup = customerPage.getEntityGroupName();
 
         testRestClient.deleteEntityGroup(getEntityGroupByName(EntityType.CUSTOMER, customer).getId());

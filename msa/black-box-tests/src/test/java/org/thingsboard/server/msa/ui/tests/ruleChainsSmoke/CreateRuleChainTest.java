@@ -43,10 +43,9 @@ import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import java.util.ArrayList;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_RULE_CHAIN_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 public class CreateRuleChainTest extends AbstractDriverBaseTest {
 
@@ -56,9 +55,7 @@ public class CreateRuleChainTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
@@ -74,7 +71,7 @@ public class CreateRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void createRuleChain() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.openCreateRuleChainView();
@@ -91,16 +88,16 @@ public class CreateRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void createRuleChainWithDescription() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.openCreateRuleChainView();
         ruleChainsPage.nameField().sendKeys(ruleChainName);
-        ruleChainsPage.descriptionAddEntityView().sendKeys(ENTITY_NAME);
+        ruleChainsPage.descriptionAddEntityView().sendKeys(ruleChainName);
         ruleChainsPage.addBtnC().click();
         ruleChainsPage.refreshBtn().click();
         this.ruleChainName = ruleChainName;
-        ruleChainsPage.detailsBtn(ENTITY_NAME).click();
+        ruleChainsPage.detailsBtn(ruleChainName).click();
         ruleChainsPage.setRuleChainHeaderName();
 
         Assert.assertEquals(ruleChainsPage.getRuleChainHeaderName(), ruleChainName);
@@ -134,7 +131,7 @@ public class CreateRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createRuleChainWithSameName() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(EntityPrototypes.defaultRuleChainPrototype(ruleChainName));
         this.ruleChainName = ruleChainName;
 
@@ -159,7 +156,7 @@ public class CreateRuleChainTest extends AbstractDriverBaseTest {
     @Test(priority = 30, groups = "smoke")
     @Description
     public void createRuleChainWithoutRefresh() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.openCreateRuleChainView();

@@ -41,9 +41,8 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
 
@@ -52,9 +51,7 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -62,8 +59,8 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void canDeleteSeveralCustomersByTopBtn() {
-        String entityGroupName1 = ENTITY_NAME + "1";
-        String entityGroupName2 = ENTITY_NAME + "2";
+        String entityGroupName1 = ENTITY_NAME + random() + "1";
+        String entityGroupName2 = ENTITY_NAME + random() + "2";
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName1, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName2, EntityType.CUSTOMER));
 
@@ -80,8 +77,8 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void selectAllCustomers() {
-        String entityGroupName1 = ENTITY_NAME + "1";
-        String entityGroupName2 = ENTITY_NAME + "2";
+        String entityGroupName1 = ENTITY_NAME + random() + "1";
+        String entityGroupName2 = ENTITY_NAME + random() + "2";
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName1, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName2, EntityType.CUSTOMER));
 
@@ -98,8 +95,8 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 30, groups = "smoke")
     @Description
     public void deleteSeveralCustomersByTopBtnWithoutRefresh() {
-        String entityGroupName1 = ENTITY_NAME + "1";
-        String entityGroupName2 = ENTITY_NAME + "2";
+        String entityGroupName1 = ENTITY_NAME + random() + "1";
+        String entityGroupName2 = ENTITY_NAME + random() + "2";
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName1, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName2, EntityType.CUSTOMER));
 
