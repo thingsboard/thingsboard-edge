@@ -70,9 +70,6 @@ public class CustomerUserPermissions extends AbstractPermissions {
     @Autowired
     private OwnersCacheService ownersCacheService;
 
-    @Autowired
-    private OwnerService ownerService;
-
     public CustomerUserPermissions() {
         super();
         put(Resource.PROFILE, TenantAdminPermissions.genericPermissionChecker);
@@ -123,8 +120,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
                 return false;
             } else {
                 //TODO: ybondarenko should be refactored in 3.5 (check originator permissions)
-                Set<EntityId> owners = ownerService.getOwners(alarm.getTenantId(), alarm.getCustomerId());
-                return owners.contains(user.getCustomerId());
+                return ownersCacheService.getOwners(alarm.getTenantId(), alarm.getCustomerId(), null).contains(user.getCustomerId());
             }
         }
     };

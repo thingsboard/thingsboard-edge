@@ -185,8 +185,9 @@ public class DefaultOwnerService implements OwnerService {
         }
         if (result == null) {
             EntityId ownerId;
-            if (fetchHasOwnerId != null) {
-                ownerId = fetchHasOwnerId.apply(entityId).getOwnerId();
+            HasOwnerId hasOwnerId = fetchHasOwnerId != null ? fetchHasOwnerId.apply(entityId) : null;
+            if (hasOwnerId != null) {
+                ownerId = hasOwnerId.getOwnerId();
                 cache.put(getOwnerCacheKey(entityId), toBytes(ownerId));
             } else {
                 ownerId = getOwner(tenantId, entityId);
