@@ -43,7 +43,6 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
-import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -134,7 +133,6 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
     private final IntegrationStatisticsService integrationStatisticsService;
-    private final TbQueueCoreSettings tbQueueCoreSettings;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Value("${integrations.reinit.enabled:false}")

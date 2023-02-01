@@ -49,12 +49,9 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkM
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 
 import java.util.UUID;
 
@@ -66,7 +63,6 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
     private final IntegrationService integrationService;
     private final RemoteIntegrationRpcService remoteRpcService;
     private final TbQueueProducerProvider producerProvider;
-    private final TbQueueCoreSettings tbQueueCoreSettings;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Override
