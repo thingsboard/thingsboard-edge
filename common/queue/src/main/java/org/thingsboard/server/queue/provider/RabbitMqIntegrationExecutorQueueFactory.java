@@ -72,6 +72,7 @@ import org.thingsboard.server.queue.rabbitmq.TbRabbitMqQueueArguments;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -88,10 +89,12 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
 
     private final NotificationsTopicService notificationsTopicService;
     private final TbQueueCoreSettings coreSettings;
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbRabbitMqSettings rabbitMqSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -104,13 +107,17 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
                                                    TbRabbitMqSettings rabbitMqSettings,
                                                    TbRabbitMqQueueArguments queueArguments,
                                                    TbQueueRemoteJsInvokeSettings jsInvokeSettings,
-                                                   TbQueueIntegrationApiSettings integrationApiSettings) {
+                                                   TbQueueIntegrationApiSettings integrationApiSettings,
+                                                   TbQueueIntegrationNotificationSettings integrationNotificationSettings,
+                                                   TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.rabbitMqSettings = rabbitMqSettings;
         this.jsInvokeSettings = jsInvokeSettings;
         this.integrationApiSettings = integrationApiSettings;
+        this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getCoreArgs());
         this.ruleEngineAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getRuleEngineArgs());
@@ -121,7 +128,7 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
-        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getIntegrationsTopic());
+        return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, integrationExecutorSettings.getUplinkTopic());
     }
 
     @Override
@@ -186,7 +193,7 @@ public class RabbitMqIntegrationExecutorQueueFactory implements TbIntegrationExe
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbRabbitMqConsumerTemplate<>(ruleEngineAdmin, rabbitMqSettings,
-                coreSettings.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }

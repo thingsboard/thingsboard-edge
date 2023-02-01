@@ -70,6 +70,7 @@ import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -95,6 +96,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueVersionControlSettings vcSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -114,7 +116,8 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
                                           TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                           TbQueueVersionControlSettings vcSettings,
                                           TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                          TbServiceBusQueueConfigs serviceBusQueueConfigs) {
+                                          TbServiceBusQueueConfigs serviceBusQueueConfigs,
+                                          TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -126,6 +129,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
         this.jsInvokeSettings = jsInvokeSettings;
         this.vcSettings = vcSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbServiceBusAdmin(serviceBusSettings, serviceBusQueueConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbServiceBusAdmin(serviceBusSettings, serviceBusQueueConfigs.getRuleEngineConfigs());
@@ -269,7 +273,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new TbServiceBusConsumerTemplate<>(coreAdmin, serviceBusSettings, coreSettings.getIntegrationsTopic(),
+        return new TbServiceBusConsumerTemplate<>(coreAdmin, serviceBusSettings, integrationExecutorSettings.getUplinkTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -290,14 +294,14 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbServiceBusConsumerTemplate<>(ruleEngineAdmin, serviceBusSettings,
-                coreSettings.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
     @PreDestroy

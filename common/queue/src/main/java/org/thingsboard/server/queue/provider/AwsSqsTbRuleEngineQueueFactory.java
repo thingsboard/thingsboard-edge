@@ -53,6 +53,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -79,6 +80,7 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -93,7 +95,8 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
                                           TbAwsSqsQueueAttributes sqsQueueAttributes,
                                           TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                           TbQueueTransportNotificationSettings transportNotificationSettings,
-                                          TbQueueIntegrationNotificationSettings integrationNotificationSettings) {
+                                          TbQueueIntegrationNotificationSettings integrationNotificationSettings,
+                                          TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -102,6 +105,7 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
         this.jsInvokeSettings = jsInvokeSettings;
         this.transportNotificationSettings = transportNotificationSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getCoreAttributes());
         this.ruleEngineAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getRuleEngineAttributes());
@@ -188,7 +192,7 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
 

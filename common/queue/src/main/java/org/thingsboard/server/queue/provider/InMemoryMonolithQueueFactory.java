@@ -58,6 +58,7 @@ import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -82,6 +83,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final InMemoryStorage storage;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToTransportMsg>> createTransportNotificationsMsgProducer() {
@@ -135,7 +137,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getIntegrationsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, integrationExecutorSettings.getUplinkTopic());
     }
 
     @Override
@@ -195,12 +197,12 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getIntegrationDownlinkTopic(integrationType));
+        return new InMemoryTbQueueConsumer<>(storage, integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new InMemoryTbQueueProducer<>(storage, integrationNotificationSettings.getDownlinkTopic());
+        return new InMemoryTbQueueProducer<>(storage, integrationExecutorSettings.getDownlinkTopic());
     }
 
 

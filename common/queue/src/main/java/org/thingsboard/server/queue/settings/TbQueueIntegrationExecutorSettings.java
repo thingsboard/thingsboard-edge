@@ -39,17 +39,15 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 @Lazy
 @Data
 @Component
-public class TbQueueCoreSettings {
+public class TbQueueIntegrationExecutorSettings {
 
-    @Value("${queue.core.topic}")
-    private String topic;
+    @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
+    private String downlinkTopic;
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    @Value("${queue.integration.uplink_topic:tb_ie.uplink}")
+    private String uplinkTopic;
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
-
-    @Value("${queue.core.partitions}")
-    private int partitions;
+    public  String getIntegrationDownlinkTopic(IntegrationType it) {
+        return downlinkTopic + "." + it.name().toLowerCase();
+    }
 }

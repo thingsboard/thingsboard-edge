@@ -66,6 +66,7 @@ import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -96,6 +97,7 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -116,7 +118,8 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
                                       TbAwsSqsQueueAttributes sqsQueueAttributes,
                                       TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                       TbQueueIntegrationApiSettings integrationApiSettings,
-                                      TbQueueIntegrationNotificationSettings integrationNotificationSettings) {
+                                      TbQueueIntegrationNotificationSettings integrationNotificationSettings,
+                                      TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -128,6 +131,7 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         this.jsInvokeSettings = jsInvokeSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getCoreAttributes());
         this.ruleEngineAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getRuleEngineAttributes());
@@ -267,7 +271,7 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new TbAwsSqsConsumerTemplate<>(coreAdmin, sqsSettings, coreSettings.getIntegrationsTopic(),
+        return new TbAwsSqsConsumerTemplate<>(coreAdmin, sqsSettings, integrationExecutorSettings.getUplinkTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -288,14 +292,14 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbAwsSqsConsumerTemplate<>(ruleEngineAdmin, sqsSettings,
-                coreSettings.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
     @Override

@@ -271,6 +271,7 @@ queue:
     partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
     notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    uplink_topic: "${TB_QUEUE_INTEGRATION_UPLINK_TOPIC:tb_ie.uplink}"
     poll_interval: "${TB_QUEUE_INTEGRATION_POLL_INTERVAL_MS:25}"
     pack-processing-timeout: "${TB_QUEUE_INTEGRATION_PACK_PROCESSING_TIMEOUT_MS:10000}"
   integration_api:

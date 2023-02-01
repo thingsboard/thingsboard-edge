@@ -69,6 +69,7 @@ import org.thingsboard.server.queue.pubsub.TbPubSubSettings;
 import org.thingsboard.server.queue.pubsub.TbPubSubSubscriptionSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -92,6 +93,7 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin jsExecutorAdmin;
@@ -110,7 +112,8 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
                                     TbQueueRuleEngineSettings ruleEngineSettings,
                                     TbQueueIntegrationApiSettings integrationApiSettings,
                                     TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                    TbPubSubSubscriptionSettings pubSubSubscriptionSettings) {
+                                    TbPubSubSubscriptionSettings pubSubSubscriptionSettings,
+                                    TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.pubSubSettings = pubSubSettings;
         this.coreSettings = coreSettings;
         this.transportApiSettings = transportApiSettings;
@@ -121,6 +124,7 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
         this.ruleEngineSettings = ruleEngineSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getCoreSettings());
         this.jsExecutorAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getJsExecutorSettings());
@@ -238,7 +242,7 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new TbPubSubConsumerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getIntegrationsTopic(),
+        return new TbPubSubConsumerTemplate<>(coreAdmin, pubSubSettings, integrationExecutorSettings.getUplinkTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -259,14 +263,14 @@ public class PubSubTbCoreQueueFactory implements TbCoreQueueFactory {
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbPubSubConsumerTemplate<>(ruleEngineAdmin, pubSubSettings,
-                coreSettings.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
     @Override

@@ -47,6 +47,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class HashPartitionServiceTest {
     private TenantRoutingInfoService routingInfoService;
     private ApplicationEventPublisher applicationEventPublisher;
     private QueueRoutingInfoService queueRoutingInfoService;
-    private TbQueueCoreSettings tbQueueCoreSettings;
+    private TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private String hashFunctionName = "sha256";
 
@@ -84,13 +85,13 @@ public class HashPartitionServiceTest {
         applicationEventPublisher = mock(ApplicationEventPublisher.class);
         routingInfoService = mock(TenantRoutingInfoService.class);
         queueRoutingInfoService = mock(QueueRoutingInfoService.class);
-        tbQueueCoreSettings = mock(TbQueueCoreSettings.class);
+        integrationExecutorSettings = mock(TbQueueIntegrationExecutorSettings.class);
         clusterRoutingService = new HashPartitionService(discoveryService,
                 routingInfoService,
                 applicationEventPublisher,
                 queueRoutingInfoService,
-                tbQueueCoreSettings);
-        when(tbQueueCoreSettings.getIntegrationDownlinkTopic(Mockito.any())).thenReturn("tb_ie");
+                integrationExecutorSettings);
+        when(integrationExecutorSettings.getIntegrationDownlinkTopic(Mockito.any())).thenReturn("tb_ie");
 
         ReflectionTestUtils.setField(clusterRoutingService, "coreTopic", "tb.core");
         ReflectionTestUtils.setField(clusterRoutingService, "corePartitions", 10);

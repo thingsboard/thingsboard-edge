@@ -70,6 +70,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -97,6 +98,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbKafkaConsumerStatsService consumerStatsService;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -124,7 +126,8 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
                                    TbKafkaConsumerStatsService consumerStatsService,
                                    TbQueueTransportNotificationSettings transportNotificationSettings,
                                    TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                   TbKafkaTopicConfigs kafkaTopicConfigs) {
+                                   TbKafkaTopicConfigs kafkaTopicConfigs,
+                                   TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -137,6 +140,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         this.consumerStatsService = consumerStatsService;
         this.transportNotificationSettings = transportNotificationSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -211,7 +215,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-core-to-ie-downlinks-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(integrationNotificationSettings.getDownlinkTopic());
+        requestBuilder.defaultTopic(integrationExecutorSettings.getDownlinkTopic());
         requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
@@ -260,7 +264,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         String queueName = integrationType.name();
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(coreSettings.getIntegrationDownlinkTopic(integrationType));
+        consumerBuilder.topic(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType));
         consumerBuilder.clientId("ie-" + queueName + "-consumer-" + serviceInfoProvider.getServiceId() + "-" + integrationConsumerCount.incrementAndGet());
         consumerBuilder.groupId("ie-" + queueName + "-consumer");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
@@ -273,7 +277,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCoreIntegrationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(coreSettings.getIntegrationsTopic());
+        consumerBuilder.topic(integrationExecutorSettings.getUplinkTopic());
         consumerBuilder.clientId("tb-core-integrations-consumer-" + serviceInfoProvider.getServiceId());
         consumerBuilder.groupId("tb-core-integrations-node");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders()));

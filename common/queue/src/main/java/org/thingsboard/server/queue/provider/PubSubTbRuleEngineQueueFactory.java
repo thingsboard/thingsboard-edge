@@ -62,6 +62,7 @@ import org.thingsboard.server.queue.pubsub.TbPubSubSettings;
 import org.thingsboard.server.queue.pubsub.TbPubSubSubscriptionSettings;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqProducerTemplate;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -82,6 +83,7 @@ public class PubSubTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -96,7 +98,8 @@ public class PubSubTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
                                           TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                           TbQueueTransportNotificationSettings transportNotificationSettings,
                                           TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                          TbPubSubSubscriptionSettings pubSubSubscriptionSettings) {
+                                          TbPubSubSubscriptionSettings pubSubSubscriptionSettings,
+                                          TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.pubSubSettings = pubSubSettings;
         this.coreSettings = coreSettings;
         this.ruleEngineSettings = ruleEngineSettings;
@@ -105,6 +108,7 @@ public class PubSubTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
         this.jsInvokeSettings = jsInvokeSettings;
         this.transportNotificationSettings = transportNotificationSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getCoreSettings());
         this.ruleEngineAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getRuleEngineSettings());
@@ -190,7 +194,7 @@ public class PubSubTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
     @PreDestroy

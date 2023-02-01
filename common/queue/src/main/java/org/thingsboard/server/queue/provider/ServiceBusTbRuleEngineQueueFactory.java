@@ -62,6 +62,7 @@ import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.pubsub.TbPubSubProducerTemplate;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -82,6 +83,7 @@ public class ServiceBusTbRuleEngineQueueFactory implements TbRuleEngineQueueFact
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -95,7 +97,8 @@ public class ServiceBusTbRuleEngineQueueFactory implements TbRuleEngineQueueFact
                                               TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                               TbQueueTransportNotificationSettings transportNotificationSettings,
                                               TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                              TbServiceBusQueueConfigs serviceBusQueueConfigs) {
+                                              TbServiceBusQueueConfigs serviceBusQueueConfigs,
+                                              TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -104,6 +107,7 @@ public class ServiceBusTbRuleEngineQueueFactory implements TbRuleEngineQueueFact
         this.jsInvokeSettings = jsInvokeSettings;
         this.transportNotificationSettings = transportNotificationSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbServiceBusAdmin(serviceBusSettings, serviceBusQueueConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbServiceBusAdmin(serviceBusSettings, serviceBusQueueConfigs.getRuleEngineConfigs());
@@ -189,7 +193,7 @@ public class ServiceBusTbRuleEngineQueueFactory implements TbRuleEngineQueueFact
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
     @PreDestroy

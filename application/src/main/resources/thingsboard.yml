@@ -1174,8 +1174,6 @@ queue:
     request_poll_interval: "${TB_QUEUE_TRANSPORT_REQUEST_POLL_INTERVAL_MS:25}"
     response_poll_interval: "${TB_QUEUE_TRANSPORT_RESPONSE_POLL_INTERVAL_MS:25}"
   core:
-    uplink_integrations_topic: "${TB_QUEUE_CORE_UPLINK_INTEGRATIONS_TOPIC:tb_integrations_topic}"
-    downlink_integrations_topic: "${TB_QUEUE_CORE_DOWNLINK_INTEGRATIONS_TOPIC:tb_ie}"
     topic: "${TB_QUEUE_CORE_TOPIC:tb_core}"
     poll-interval: "${TB_QUEUE_CORE_POLL_INTERVAL_MS:25}"
     partitions: "${TB_QUEUE_CORE_PARTITIONS:10}"
@@ -1277,6 +1275,7 @@ queue:
     partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
     notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    uplink_topic: "${TB_QUEUE_INTEGRATION_UPLINK_TOPIC:tb_ie.uplink}"
     poll_interval: "${TB_QUEUE_INTEGRATION_POLL_INTERVAL_MS:25}"
     pack-processing-timeout: "${TB_QUEUE_INTEGRATION_PACK_PROCESSING_TIMEOUT_MS:10000}"
   integration_api:

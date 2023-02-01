@@ -72,6 +72,7 @@ import org.thingsboard.server.queue.pubsub.TbPubSubSettings;
 import org.thingsboard.server.queue.pubsub.TbPubSubSubscriptionSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -92,6 +93,7 @@ public class PubSubIntegrationExecutorQueueFactory implements TbIntegrationExecu
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -105,12 +107,14 @@ public class PubSubIntegrationExecutorQueueFactory implements TbIntegrationExecu
                                                  TbServiceInfoProvider serviceInfoProvider,
                                                  TbPubSubSubscriptionSettings pubSubSubscriptionSettings,
                                                  TbQueueRemoteJsInvokeSettings jsInvokeSettings,
-                                                 TbQueueIntegrationApiSettings integrationApiSettings) {
+                                                 TbQueueIntegrationApiSettings integrationApiSettings,
+                                                 TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.pubSubSettings = pubSubSettings;
         this.coreSettings = coreSettings;
         this.notificationsTopicService = notificationsTopicService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.integrationApiSettings = integrationApiSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getCoreSettings());
         this.ruleEngineAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getRuleEngineSettings());
@@ -123,7 +127,7 @@ public class PubSubIntegrationExecutorQueueFactory implements TbIntegrationExecu
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer() {
-        return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getIntegrationsTopic());
+        return new TbPubSubProducerTemplate<>(coreAdmin, pubSubSettings, integrationExecutorSettings.getUplinkTopic());
     }
 
     @Override
@@ -184,7 +188,7 @@ public class PubSubIntegrationExecutorQueueFactory implements TbIntegrationExecu
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbPubSubConsumerTemplate<>(ruleEngineAdmin, pubSubSettings,
-                coreSettings.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }

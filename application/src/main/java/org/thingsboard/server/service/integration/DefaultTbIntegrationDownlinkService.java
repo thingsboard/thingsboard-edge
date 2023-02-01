@@ -53,6 +53,8 @@ import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 
 import java.util.UUID;
 
@@ -65,6 +67,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
     private final RemoteIntegrationRpcService remoteRpcService;
     private final TbQueueProducerProvider producerProvider;
     private final TbQueueCoreSettings tbQueueCoreSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Override
     public void onRuleEngineDownlinkMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg, TbCallback callback) {
@@ -79,7 +82,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
         } else {
             var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
             TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), tenantId, integrationId)
-                    .newByTopic(tbQueueCoreSettings.getIntegrationDownlinkTopic(integration.getType()));
+                    .newByTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(integration.getType()));
             producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder().setDownlinkMsg(downlinkMsg).build()), new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {

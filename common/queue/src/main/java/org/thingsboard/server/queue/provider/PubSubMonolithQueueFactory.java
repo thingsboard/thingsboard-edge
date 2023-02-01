@@ -71,6 +71,7 @@ import org.thingsboard.server.queue.pubsub.TbPubSubSettings;
 import org.thingsboard.server.queue.pubsub.TbPubSubSubscriptionSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -96,6 +97,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     private final TbQueueVersionControlSettings vcSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -116,7 +118,8 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
                                       TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                       TbQueueVersionControlSettings vcSettings,
                                       TbQueueIntegrationApiSettings integrationApiSettings,
-                                      TbQueueIntegrationNotificationSettings integrationNotificationSettings) {
+                                      TbQueueIntegrationNotificationSettings integrationNotificationSettings,
+                                      TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.pubSubSettings = pubSubSettings;
         this.coreSettings = coreSettings;
         this.ruleEngineSettings = ruleEngineSettings;
@@ -127,6 +130,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         this.vcSettings = vcSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getCoreSettings());
         this.ruleEngineAdmin = new TbPubSubAdmin(pubSubSettings, pubSubSubscriptionSettings.getRuleEngineSettings());
@@ -273,7 +277,7 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new TbPubSubConsumerTemplate<>(coreAdmin, pubSubSettings, coreSettings.getIntegrationsTopic(),
+        return new TbPubSubConsumerTemplate<>(coreAdmin, pubSubSettings, integrationExecutorSettings.getUplinkTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -294,14 +298,14 @@ public class PubSubMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbPubSubConsumerTemplate<>(ruleEngineAdmin, pubSubSettings,
-                coreSettings.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbPubSubProducerTemplate<>(notificationAdmin, pubSubSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
 

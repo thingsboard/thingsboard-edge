@@ -62,6 +62,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
@@ -81,6 +82,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -100,7 +102,8 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
                                                   TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                   TbKafkaConsumerStatsService consumerStatsService,
                                                   TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                                  TbKafkaTopicConfigs kafkaTopicConfigs) {
+                                                  TbKafkaTopicConfigs kafkaTopicConfigs,
+                                                  TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.notificationsTopicService = notificationsTopicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -108,6 +111,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         this.integrationApiSettings = integrationApiSettings;
         this.jsInvokeSettings = jsInvokeSettings;
         this.consumerStatsService = consumerStatsService;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
@@ -123,7 +127,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCoreIntegrationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-ie-to-core-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(coreSettings.getIntegrationsTopic());
+        requestBuilder.defaultTopic(integrationExecutorSettings.getUplinkTopic());
         requestBuilder.admin(coreAdmin);
         return requestBuilder.build();
     }
@@ -156,7 +160,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         String queueName = integrationType.name();
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(coreSettings.getIntegrationDownlinkTopic(integrationType));
+        consumerBuilder.topic(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType));
         consumerBuilder.clientId("ie-" + queueName + "-consumer-" + serviceInfoProvider.getServiceId() + "-" + integrationConsumerCount.incrementAndGet());
         consumerBuilder.groupId("ie-" + queueName + "-consumer");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
