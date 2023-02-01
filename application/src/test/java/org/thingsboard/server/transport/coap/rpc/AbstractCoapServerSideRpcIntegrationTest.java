@@ -94,7 +94,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         CoapObserveRelation observeRelation = client.getObserveRelation(callbackCoap);
         String awaitAlias = "await One Way Rpc (client.getObserveRelation)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.VALID.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
@@ -105,7 +105,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         String result = doPostAsync("/api/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isOk());
         awaitAlias = "await One Way Rpc setGpio(method, params, value)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveCountAfterGpioRequest == callbackCoap.getObserve().intValue());
@@ -122,7 +122,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         CoapObserveRelation observeRelation = client.getObserveRelation(callbackCoap);
         String awaitAlias = "await Two Way Rpc (client.getObserveRelation)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.VALID.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
@@ -134,7 +134,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         String actualResult = doPostAsync("/api/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isOk());
         awaitAlias = "await Two Way Rpc (setGpio(method, params, value) first";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveCountAfterGpioRequest1 == callbackCoap.getObserve().intValue());
@@ -144,7 +144,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         actualResult = doPostAsync("/api/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isOk());
         awaitAlias = "await Two Way Rpc (setGpio(method, params, value) first";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveCountAfterGpioRequest2 == callbackCoap.getObserve().intValue());
