@@ -3,7 +3,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.4PE-SNAPSHOT</version>
+        <version>3.5.0PE-SNAPSHOT</version>
         <artifactId>rule-engine</artifactId>
     </parent>
     <groupId>org.thingsboard.rule-engine</groupId>

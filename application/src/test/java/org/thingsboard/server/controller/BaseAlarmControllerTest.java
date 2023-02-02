@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -382,6 +382,49 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         testNotifyEntityEntityGroupNullAllOneTime(foundAlarm, foundAlarm.getId(), foundAlarm.getOriginator(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ALARM_CLEAR);
+    }
+
+    @Test
+    public void testClearSubCustomerAlarmViaCustomer() throws Exception {
+        loginCustomerAdministrator();
+
+        Customer subCustomer = new Customer();
+        subCustomer.setParentCustomerId(customerId);
+        subCustomer.setTitle("Sub Customer");
+
+        Customer savedSubCustomer = doPost("/api/customer", subCustomer, Customer.class);
+        createCustomerAdministrator(
+                savedCustomerAdministrator.getTenantId(),
+                savedSubCustomer.getId(),
+                SUB_CUSTOMER_ADMIN_EMAIL,
+                SUB_CUSTOMER_ADMIN_PASSWORD
+        );
+
+        login(SUB_CUSTOMER_ADMIN_EMAIL, SUB_CUSTOMER_ADMIN_PASSWORD);
+
+        Device device = new Device();
+        device.setName("sub customer device");
+        device.setLabel("Label");
+        device.setType("Type");
+        Device savedDevice = doPost("/api/device", device, Device.class);
+
+        Alarm alarm = createAlarm(
+                savedSubCustomer,
+                savedDevice.getId(),
+                TEST_ALARM_TYPE
+        );
+
+        loginCustomerAdministrator();
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        doPost("/api/alarm/" + alarm.getId() + "/clear").andExpect(status().isOk());
+        Alarm foundAlarm = doGet("/api/alarm/" + alarm.getId(), Alarm.class);
+        Assert.assertNotNull(foundAlarm);
+        Assert.assertEquals(AlarmStatus.CLEARED_UNACK, foundAlarm.getStatus());
+
+        testNotifyEntityEntityGroupNullAllOneTime(foundAlarm, foundAlarm.getId(), foundAlarm.getOriginator(),
+                tenantId, subCustomer.getId(), savedCustomerAdministrator.getId(), CUSTOMER_ADMIN_EMAIL, ActionType.ALARM_CLEAR);
     }
 
     @Test

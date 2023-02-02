@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,15 +60,16 @@ export class RuleChainAutocompleteComponent implements ControlValueAccessor, OnI
 
   selectRuleChainFormGroup: FormGroup;
 
-  ruleChainLabel = 'rulechain.rulechain';
-
   modelValue: string | null;
 
   @Input()
-  labelText: string;
+  labelText: string = 'rulechain.rulechain';
 
   @Input()
   requiredText: string;
+
+  @Input()
+  ruleChainType: RuleChainType = RuleChainType.CORE;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -206,9 +207,8 @@ export class RuleChainAutocompleteComponent implements ControlValueAccessor, OnI
 
   fetchRuleChain(searchText?: string): Observable<Array<BaseData<EntityId>>> {
     this.searchText = searchText;
-    // @voba: at the moment creation or management device profiles are not supported by edge, so 'core' hardcoded
     return this.entityService.getEntitiesByNameFilter(EntityType.RULE_CHAIN, searchText,
-      50, RuleChainType.CORE, {ignoreLoading: true}).pipe(
+      50, this.ruleChainType, {ignoreLoading: true}).pipe(
         catchError(() => of([]))
     );
   }

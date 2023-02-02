@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,7 @@ export interface AssetProfile extends BaseData<AssetProfileId>, ExportableEntity
   defaultRuleChainId?: RuleChainId;
   defaultDashboardId?: DashboardId;
   defaultQueueName?: string;
+  defaultEdgeRuleChainId?: RuleChainId;
 }
 
 export interface AssetProfileInfo extends EntityInfoData {

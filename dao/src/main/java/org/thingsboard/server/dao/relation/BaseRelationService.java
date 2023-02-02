@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,6 +72,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -389,12 +390,10 @@ public class BaseRelationService implements RelationService {
     private ListenableFuture<EntityRelationInfo> fetchRelationInfoAsync(TenantId tenantId, EntityRelation relation,
                                                                         Function<EntityRelation, EntityId> entityIdGetter,
                                                                         BiConsumer<EntityRelationInfo, String> entityNameSetter) {
-        ListenableFuture<String> entityName = entityService.fetchEntityNameAsync(tenantId, entityIdGetter.apply(relation));
-        return Futures.transform(entityName, entityName1 -> {
-            EntityRelationInfo entityRelationInfo1 = new EntityRelationInfo(relation);
-            entityNameSetter.accept(entityRelationInfo1, entityName1);
-            return entityRelationInfo1;
-        }, MoreExecutors.directExecutor());
+        EntityRelationInfo relationInfo = new EntityRelationInfo(relation);
+        entityNameSetter.accept(relationInfo,
+                entityService.fetchEntityName(tenantId, entityIdGetter.apply(relation)).orElse("N/A"));
+        return Futures.immediateFuture(relationInfo);
     }
 
     @Override

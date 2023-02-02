@@ -1,0 +1,17 @@
+[
+  {
+    "name": "AL Room Device Rule Chain",
+    "file": "al_room_device_rule_chain.json",
+    "jsonId": "c91744c0-8767-11ed-ace0-2b013f453ca4"
+  },
+  {
+    "name": "AL Wristband Device Rule Chain",
+    "file": "al_wristband_device_rule_chain.json",
+    "jsonId": "54ec7690-9d9e-11ed-9390-d159ada3209f"
+  },
+  {
+    "name": "AL Gateway Rule Chain",
+    "file": "al_gateway_rule_chain.json",
+    "jsonId": "fd4a4e40-8767-11ed-ace0-2b013f453ca4"
+  }
+]

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -204,6 +204,7 @@ public class ModelConstants {
     public static final String DEVICE_PROFILE_PROVISION_DEVICE_KEY = "provision_device_key";
     public static final String DEVICE_PROFILE_FIRMWARE_ID_PROPERTY = "firmware_id";
     public static final String DEVICE_PROFILE_SOFTWARE_ID_PROPERTY = "software_id";
+    public static final String DEVICE_PROFILE_DEFAULT_EDGE_RULE_CHAIN_ID_PROPERTY = "default_edge_rule_chain_id";
 
     /**
      * Asset profile constants.
@@ -217,6 +218,7 @@ public class ModelConstants {
     public static final String ASSET_PROFILE_DEFAULT_RULE_CHAIN_ID_PROPERTY = "default_rule_chain_id";
     public static final String ASSET_PROFILE_DEFAULT_DASHBOARD_ID_PROPERTY = "default_dashboard_id";
     public static final String ASSET_PROFILE_DEFAULT_QUEUE_NAME_PROPERTY = "default_queue_name";
+    public static final String ASSET_PROFILE_DEFAULT_EDGE_RULE_CHAIN_ID_PROPERTY = "default_edge_rule_chain_id";
 
     /**
      * Cassandra entityView constants.
@@ -359,6 +361,14 @@ public class ModelConstants {
     public static final String ALARM_PROPAGATE_RELATION_TYPES = "propagate_relation_types";
 
     public static final String ALARM_BY_ID_VIEW_NAME = "alarm_by_id";
+
+    public static final String ALARM_COMMENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String ALARM_COMMENT_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String ALARM_COMMENT_COLUMN_FAMILY_NAME = "alarm_comment";
+    public static final String ALARM_COMMENT_ALARM_ID = "alarm_id";
+    public static final String ALARM_COMMENT_USER_ID = USER_ID_PROPERTY;
+    public static final String ALARM_COMMENT_TYPE = "type";
+    public static final String ALARM_COMMENT_COMMENT = "comment";
 
     /**
      * Cassandra entity relation constants.
