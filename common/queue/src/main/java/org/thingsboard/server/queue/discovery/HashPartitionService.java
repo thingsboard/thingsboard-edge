@@ -140,6 +140,10 @@ public class HashPartitionService implements PartitionService {
         }
     }
 
+    public ConcurrentMap<QueueKey, String> getPartitionTopicsMap() {
+        return partitionTopicsMap;
+    }
+
     private void doInitRuleEnginePartitions() {
         List<QueueRoutingInfo> queueRoutingInfoList = getQueueRoutingInfos();
         queueRoutingInfoList.forEach(queue -> {

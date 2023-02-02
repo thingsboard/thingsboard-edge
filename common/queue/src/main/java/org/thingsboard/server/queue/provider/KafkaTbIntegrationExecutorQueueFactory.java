@@ -51,7 +51,6 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
@@ -63,9 +62,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
-import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 
 import javax.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
@@ -101,9 +98,8 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
                                                   TbQueueIntegrationApiSettings integrationApiSettings,
                                                   TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                   TbKafkaConsumerStatsService consumerStatsService,
-                                                  TbQueueIntegrationNotificationSettings integrationNotificationSettings,
-                                                  TbKafkaTopicConfigs kafkaTopicConfigs,
-                                                  TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
+                                                  TbQueueIntegrationExecutorSettings integrationExecutorSettings,
+                                                  TbKafkaTopicConfigs kafkaTopicConfigs) {
         this.notificationsTopicService = notificationsTopicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;

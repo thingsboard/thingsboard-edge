@@ -41,6 +41,15 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 @Component
 public class TbQueueIntegrationExecutorSettings {
 
+    @Value("${queue.integration.notifications_topic:tb_ie.notifications}")
+    private String notificationsTopic;
+
+    @Value("${queue.integration.poll_interval:25}")
+    private long pollInterval;
+
+    @Value("${queue.integration.pack-processing-timeout:10000}")
+    private long packProcessingTimeout;
+
     @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
     private String downlinkTopic;
 
