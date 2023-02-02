@@ -188,10 +188,10 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 data.setClientAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.CLIENT_SCOPE, clientAttributeNames));
             }
             if (!sharedAttributeNames.isEmpty()) {
-                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, clientAttributeNames));
+                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, sharedAttributeNames));
             }
             if (!serverAttributeNames.isEmpty()) {
-                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, clientAttributeNames));
+                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, serverAttributeNames));
             }
             return data;
         }).collect(Collectors.toList()), ctx.getDbCallbackExecutor());
