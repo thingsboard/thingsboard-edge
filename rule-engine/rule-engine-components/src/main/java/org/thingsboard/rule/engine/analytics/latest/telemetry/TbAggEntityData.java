@@ -67,8 +67,8 @@ public class TbAggEntityData {
     public void prepare() {
         putToMap(latestTs, tsFuture);
         putToMap(clientAttributes, clientAttributesFuture);
-        putToMap(serverAttributes, sharedAttributesFuture);
-        putToMap(sharedAttributes, serverAttributesFuture);
+        putToMap(serverAttributes, serverAttributesFuture);
+        putToMap(sharedAttributes, sharedAttributesFuture);
         putToMap(filterMap, clientAttributesFuture, null);
         putToMap(filterMap, sharedAttributesFuture, null);
         putToMap(filterMap, serverAttributesFuture, null);
