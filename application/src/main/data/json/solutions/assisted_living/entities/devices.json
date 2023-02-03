@@ -555,5 +555,41 @@
     "emulator": "Gateway",
     "attributes": {},
     "relations": []
+  },
+  {
+    "name": "500000025FE2",
+    "type": "AL_DoorSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Door Sensor",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "800000025FE2",
+    "type": "AL_WindowSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Window Sensor",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "600000025FE2",
+    "type": "AL_LeakSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Leak Sensor",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "700000025FE2",
+    "type": "AL_SmokeSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Smoke Sensor",
+    "attributes": {},
+    "relations": []
   }
 ]
