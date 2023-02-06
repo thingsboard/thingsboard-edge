@@ -70,7 +70,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
 
   readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private router: Router,

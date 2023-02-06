@@ -61,7 +61,6 @@ import {
 } from './lwm2m-profile-config.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { deepClone, isDefinedAndNotNull, isEmpty, isUndefined } from '@core/utils';
-import { JsonArray, JsonObject } from '@angular/compiler-cli/ngcc/src/packages/entry_point';
 import { Direction } from '@shared/models/page/sort-order';
 import _ from 'lodash';
 import { Subject } from 'rxjs';
@@ -92,7 +91,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   public isTransportWasRunWithBootstrap = true;
   public isBootstrapServerUpdateEnable: boolean;
   private requiredValue: boolean;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   lwm2mDeviceProfileFormGroup: UntypedFormGroup;
   configurationValue: Lwm2mProfileConfigModels;
@@ -432,7 +431,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     });
   }
 
-  private validateKeyNameObjects = (nameJson: JsonObject, attributeArray: JsonArray, telemetryArray: JsonArray): {} => {
+  private validateKeyNameObjects = (nameJson: object, attributeArray: string[], telemetryArray: string[]): object => {
     const keyName = JSON.parse(JSON.stringify(nameJson));
     const keyNameValidate = {};
     const keyAttrTelemetry = attributeArray.concat(telemetryArray);
@@ -442,7 +441,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
       }
     });
     return keyNameValidate;
-  }
+  };
 
   private updateObserveAttrTelemetryFromGroupToJson = (val: ObjectLwM2M[]): void => {
     const observeArray: Array<string> = [];

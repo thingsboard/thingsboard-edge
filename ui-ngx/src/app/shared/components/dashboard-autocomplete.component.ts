@@ -45,7 +45,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { FloatLabelType } from '@angular/material/form-field/form-field';
+import { FloatLabelType } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',

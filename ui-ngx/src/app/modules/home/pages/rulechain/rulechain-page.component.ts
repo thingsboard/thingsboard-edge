@@ -199,9 +199,8 @@ export class RuleChainPageComponent extends PageComponent
       mouseLeave: this.destroyTooltips.bind(this),
       mouseDown: this.destroyTooltips.bind(this)
     },
-    isValidEdge: (source, destination) => {
-      return source.type === FlowchartConstants.rightConnectorType && destination.type === FlowchartConstants.leftConnectorType;
-    },
+    isValidEdge: (source, destination) =>
+      source.type === FlowchartConstants.rightConnectorType && destination.type === FlowchartConstants.leftConnectorType,
     createEdge: (event, edge: FcRuleEdge) => {
       const sourceNode = this.ruleChainCanvas.modelService.nodes.getNodeByConnectorId(edge.source) as FcRuleNode;
       if (sourceNode.component.type === RuleNodeType.INPUT) {
@@ -245,7 +244,7 @@ export class RuleChainPageComponent extends PageComponent
   nextConnectorID: number;
   inputConnectorId: number;
 
-  ruleNodeTypesModel: {[type: string]: {model: FcRuleNodeTypeModel, selectedObjects: any[]}} = {};
+  ruleNodeTypesModel: {[type: string]: {model: FcRuleNodeTypeModel; selectedObjects: any[]}} = {};
 
   nodeLibCallbacks: UserCallbacks = {
     nodeCallbacks: {
@@ -516,9 +515,7 @@ export class RuleChainPageComponent extends PageComponent
     });
     if (this.expansionPanels && !this.readonly) {
       for (let i = 0; i < ruleNodeTypesLibrary.length; i++) {
-        const panel = this.expansionPanels.find((item, index) => {
-          return index === i;
-        });
+        const panel = this.expansionPanels.find((item, index) => index === i);
         if (panel) {
           const type = ruleNodeTypesLibrary[i];
           if (!this.ruleNodeTypesModel[type].model.nodes.length) {
@@ -1423,7 +1420,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   saveRuleChain(): Observable<any> {
-    const saveResult = new ReplaySubject();
+    const saveResult = new ReplaySubject<void>();
     let saveRuleChainObservable: Observable<RuleChain>;
     if (this.isImport) {
       saveRuleChainObservable = this.ruleChainService.saveRuleChain(this.ruleChain);

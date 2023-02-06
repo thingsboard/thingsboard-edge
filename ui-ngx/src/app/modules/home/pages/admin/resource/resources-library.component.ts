@@ -57,7 +57,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   readonly resourceTypes = Object.values(this.resourceType);
   readonly resourceTypesTranslationMap = ResourceTypeTranslationMap;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,

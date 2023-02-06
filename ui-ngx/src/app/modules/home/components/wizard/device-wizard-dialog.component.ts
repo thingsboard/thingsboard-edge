@@ -49,7 +49,7 @@ import {
   deviceTransportTypeHintMap,
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
-import { MatHorizontalStepper } from '@angular/material/stepper';
+import { MatStepper } from '@angular/material/stepper';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -77,7 +77,7 @@ import { deepTrim } from '@core/utils';
 export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatHorizontalStepper;
+  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatStepper;
 
   resource = Resource;
 
@@ -107,7 +107,7 @@ export class DeviceWizardDialogComponent extends
 
   credentialsFormGroup: UntypedFormGroup;
 
-  labelPosition: MatHorizontalStepper['labelPosition'] = 'end';
+  labelPosition: MatStepper['labelPosition'] = 'end';
 
   entitiesTableConfig = this.data.entitiesTableConfig;
 

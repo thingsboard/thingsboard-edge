@@ -438,7 +438,7 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
   }
 
   addChipValue(event: MatChipInputEvent, control: AbstractControl, fieldName: string): void {
-    const input = event.input;
+    const input = event.chipInput.inputElement;
     const value = event.value;
     const controller = control.get(fieldName) as UntypedFormArray;
     if ((value.trim() !== '')) {

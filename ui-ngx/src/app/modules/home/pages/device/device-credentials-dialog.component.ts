@@ -97,9 +97,10 @@ export class DeviceCredentialsDialogComponent extends
   }
 
   loadDeviceCredentials() {
-    const task = [];
-    task.push(this.deviceService.getDeviceCredentials(this.data.deviceId));
-    task.push(this.deviceProfileInfo(this.data.deviceProfileId, this.data.deviceId));
+    const task = [
+      this.deviceService.getDeviceCredentials(this.data.deviceId),
+      this.deviceProfileInfo(this.data.deviceProfileId, this.data.deviceId)
+    ];
     forkJoin(task).subscribe(([deviceCredentials, deviceProfile]: [DeviceCredentials, DeviceProfileInfo]) => {
       this.deviceTransportType = deviceProfile.transportType;
       this.deviceCredentials = deviceCredentials;

@@ -74,7 +74,7 @@ import {
 export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAccessor, Validator, OnDestroy {
 
   public disabled = false;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   private isDataLoadedIntoCache = false;
 

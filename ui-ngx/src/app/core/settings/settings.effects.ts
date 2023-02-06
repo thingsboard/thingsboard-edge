@@ -71,7 +71,7 @@ export class SettingsEffects {
   ) {
   }
 
-  
+
   persistSettings = createEffect(() => this.actions$.pipe(
     ofType(
       SettingsActionTypes.CHANGE_LANGUAGE,
@@ -82,7 +82,7 @@ export class SettingsEffects {
     )
   ), {dispatch: false});
 
-  
+
   setTranslateServiceLanguage = createEffect(() => this.store.pipe(
     select(selectSettingsState),
     map(settings => settings.userLang),
@@ -97,7 +97,7 @@ export class SettingsEffects {
     })
   ), {dispatch: false});
 
-  
+
   setTitle = createEffect(() => merge(
     this.actions$.pipe(ofType(SettingsActionTypes.CHANGE_LANGUAGE, SettingsActionTypes.CHANGE_WHITE_LABELING)),
     this.router.events.pipe(filter(event => event instanceof ActivationEnd))
@@ -110,7 +110,7 @@ export class SettingsEffects {
     })
   ), {dispatch: false});
 
-  
+
   setFavicon = createEffect(() => merge(
     this.actions$.pipe(ofType(SettingsActionTypes.CHANGE_WHITE_LABELING)),
   ).pipe(
@@ -119,7 +119,7 @@ export class SettingsEffects {
     })
   ), {dispatch: false});
 
-  
+
   setPublicId = createEffect(() => merge(
     this.router.events.pipe(filter(event => event instanceof ActivationEnd))
   ).pipe(
