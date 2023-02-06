@@ -41,7 +41,7 @@ import { BaseData, HasId } from '@shared/models/base-data';
 
 // @dynamic
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class GroupEntityComponent<T extends BaseData<HasId>>
   extends EntityComponent<T, PageLink, ShortEntityView, GroupEntityTableConfig<T>> {
 
