@@ -11,7 +11,7 @@ One may improve the algorithm based on the particular use case.
 
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="http://thingsboard.io/images/solutions/assisted_living/al-scheme.png" alt="Assisted Living">
+<img src="https://thingsboard.io/images/solutions/assisted_living/al-scheme.png" alt="Assisted Living">
 </div>
 
 
@@ -54,7 +54,7 @@ Click the “Zones” button on Main State to switch to the Zones state.
 * **Zones state** is intended for the management of zones, which in the future will be the basis for rooms and devices. You can create, edit or delete a zone as needed. In order to create a new zone - click the "Add zone" button and then specify the name and add a mapping scheme. Then save the zone. In our example, we created the zones “Floor 1” and “Floor 2”. 
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="http://thingsboard.io/images/solutions/assisted_living/3-zones-state.png" alt="Assisted Living">
+<img src="https://thingsboard.io/images/solutions/assisted_living/3-zones-state.png" alt="Assisted Living">
 </div>
 
 
@@ -75,7 +75,7 @@ You can create a device of the appropriate type and attach it to the correspondi
 **When you are trying to add devices, note that you can select only those devices that are in "Device Groups" -> "Unassigned Devices" on the "Customers hierarchy" page.** To add new devices on your dashboard, first create them on the "Customers hierarchy" page.
 
 <div class="img-float" style="max-width: 50%;margin: 20px auto;">
-<img src="http://thingsboard.io/images/solutions/assisted_living/5-customer-hierarchy.png" alt="Assisted Living" style="border: 1px solid #eee;">
+<img src="https://thingsboard.io/images/solutions/assisted_living/5-customer-hierarchy.png" alt="Assisted Living" style="border: 1px solid #eee;">
 </div>
 
 
@@ -203,7 +203,7 @@ curl -v -X POST -d "{\"serial\": \"C00000066F66\", \"rssi\": -10, \"data\":{\"ba
 
 
 <div class="img-float" style="max-width: 40%;margin: 20px auto;">
-<img src="http://thingsboard.io/images/solutions/assisted_living/example-2-2.png" alt="Assisted Living">
+<img src="https://thingsboard.io/images/solutions/assisted_living/example-2-2.png" alt="Assisted Living">
 </div>
 
 After using this command, we can see that after the data transfer, **Isabella Davis** moved to **“Room 103”** because his gateway connection signal was better than “Room 104”.
