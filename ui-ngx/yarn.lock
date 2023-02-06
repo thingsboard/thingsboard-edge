@@ -1334,10 +1334,10 @@
   resolved "https://registry.yarnpkg.com/@flowjs/flow.js/-/flow.js-2.14.1.tgz#267d9f9d0958f32267ea5815c2a7cc09b9219304"
   integrity sha512-99DWlPnksOOS8uHfo+bhSjvs8d2MfLTB/22JBDC2ONwz/OCdP+gL/iiM4puMSTE2wH4A2/+J0eMc7pKwusXunw==
 
-"@flowjs/ngx-flow@~0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@flowjs/ngx-flow/-/ngx-flow-0.6.0.tgz#4c1568b53c30e0a14e0f5093ec9a4032d048f167"
-  integrity sha512-oWgOQSpfrzDuR6eG98/jkK523xxCb8OIWSbWM1/87KJZzUJBzuO0jQIZspVxURjQGTNOoFl8cl9P6iNXnvBgPg==
+"@flowjs/ngx-flow@~0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@flowjs/ngx-flow/-/ngx-flow-0.5.0.tgz#6d3c3e163d5df0ff6b3912d34892e8a32dcdf5b2"
+  integrity sha512-D1mD0uaey3eQAGfGvjlvNn1UTU1VnfQfqqtK66COaFmWKx5rqpV02e4LOwi3O7R6u6z9Jm2Siwlne/YJzt9zzQ==
   dependencies:
     tslib "^2.2.0"
 
@@ -1601,10 +1601,10 @@
   resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-12.2.17.tgz#0d7bee1da3c1a25a7b51901df016e1d0c8184135"
   integrity sha512-uaS+2YZgPDW3VmUuwh4/yfIFV1KRVGWefc6xLWIqKRKs6mlRYs65m3ib9dX7CTS4kQMCbhxkxMbpBO2yXlzfvA==
 
-"@ngtools/webpack@^14.2.10":
-  version "14.2.10"
-  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-14.2.10.tgz#d33ff1147d01bd1f5d936a3d1744c81a28e2ca6a"
-  integrity sha512-sLHapZLVub6mEz5b19tf1VfIV1w3tYfg7FNPLeni79aldxu1FbP1v2WmiFAnMzrswqyK0bhTtxrl+Z/CLKqyoQ==
+"@ngtools/webpack@^13.3.10":
+  version "13.3.10"
+  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-13.3.10.tgz#442c0d41dc65e851816e2f5a1c6870db8e103f9e"
+  integrity sha512-QQ8ELLqW5PtvrEAMt99D0s982NW303k8UpZrQoQ9ODgnSVDMdbbzFPNTXq/20dg+nbp8nlOakUrkjB47TBwTNA==
 
 "@ngx-translate/core@^13.0.0":
   version "13.0.0"
