@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   ValidatorFn,
   Validators
@@ -75,14 +75,14 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
     this.requiredValue = coerceBooleanProperty(value);
   }
 
-  kvListFormGroup: FormGroup;
+  kvListFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
   private valueChangeSubscription: Subscription = null;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -92,8 +92,8 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
       this.fb.array([]));
   }
 
-  keyValsFormArray(): FormArray {
-    return this.kvListFormGroup.get('keyVals') as FormArray;
+  keyValsFormArray(): UntypedFormArray {
+    return this.kvListFormGroup.get('keyVals') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -134,11 +134,11 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
   }
 
   public removeKeyVal(index: number) {
-    (this.kvListFormGroup.get('keyVals') as FormArray).removeAt(index);
+    (this.kvListFormGroup.get('keyVals') as UntypedFormArray).removeAt(index);
   }
 
   public addKeyVal() {
-    const keyValsFormArray = this.kvListFormGroup.get('keyVals') as FormArray;
+    const keyValsFormArray = this.kvListFormGroup.get('keyVals') as UntypedFormArray;
     keyValsFormArray.push(this.fb.group({
       key: ['', [Validators.required]],
       value: ['', [Validators.required]]

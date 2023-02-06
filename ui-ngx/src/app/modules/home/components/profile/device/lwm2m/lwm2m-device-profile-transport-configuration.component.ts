@@ -32,8 +32,8 @@
 import { ChangeDetectorRef, Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -94,7 +94,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   private requiredValue: boolean;
   private destroy$ = new Subject();
 
-  lwm2mDeviceProfileFormGroup: FormGroup;
+  lwm2mDeviceProfileFormGroup: UntypedFormGroup;
   configurationValue: Lwm2mProfileConfigModels;
   sortFunction: (key: string, value: object) => object;
 
@@ -114,7 +114,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   }
 
   constructor(public translate: TranslateService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private cd: ChangeDetectorRef,
               private dialogService: DialogService,
               private deviceProfileService: DeviceProfileService) {
@@ -585,8 +585,8 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     });
   }
 
-  get clientSettingsFormGroup(): FormGroup {
-    return this.lwm2mDeviceProfileFormGroup.get('clientLwM2mSettings') as FormGroup;
+  get clientSettingsFormGroup(): UntypedFormGroup {
+    return this.lwm2mDeviceProfileFormGroup.get('clientLwM2mSettings') as UntypedFormGroup;
   }
 
 }

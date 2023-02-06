@@ -30,7 +30,7 @@
 ///
 
 import { Component, EventEmitter, forwardRef, Input, OnDestroy, Output } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -70,7 +70,7 @@ interface FormValue {
 })
 export class TargetSelectComponent implements ControlValueAccessor, OnDestroy {
 
-  targetFormGroup: FormGroup;
+  targetFormGroup: UntypedFormGroup;
   entityType = EntityType.DEVICE;
   currentUser = getCurrentAuthUser(this.store);
 
@@ -97,7 +97,7 @@ export class TargetSelectComponent implements ControlValueAccessor, OnDestroy {
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.targetFormGroup = this.fb.group({
       target: ['entity'],
       deviceTargetId: [null],

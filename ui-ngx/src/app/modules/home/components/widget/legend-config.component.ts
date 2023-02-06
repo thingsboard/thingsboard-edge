@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { isDefined } from '@core/utils';
 import {
   LegendConfig,
@@ -58,7 +58,7 @@ export class LegendConfigComponent implements OnInit, OnDestroy, ControlValueAcc
 
   @Input() disabled: boolean;
 
-  legendConfigForm: FormGroup;
+  legendConfigForm: UntypedFormGroup;
   legendDirection = LegendDirection;
   legendDirections = Object.keys(LegendDirection);
   legendDirectionTranslations = legendDirectionTranslationMap;
@@ -70,7 +70,7 @@ export class LegendConfigComponent implements OnInit, OnDestroy, ControlValueAcc
   private legendSettingsFormDirectionChanges$: Subscription;
   private propagateChange = (_: any) => {};
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   ngOnInit(): void {

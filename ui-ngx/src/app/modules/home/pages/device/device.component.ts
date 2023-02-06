@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Device } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
@@ -75,7 +75,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
               private clipboardService: ClipboardService,
               @Inject('entity') protected entityValue: Device,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -106,7 +106,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Device): FormGroup {
+  buildForm(entity: Device): UntypedFormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],

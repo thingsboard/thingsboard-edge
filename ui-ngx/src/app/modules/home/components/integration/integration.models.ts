@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { IntegrationType, MqttQos, MqttTopicFilter } from '@shared/models/integration.models';
 
 export enum ThingsStartHostType {
@@ -82,7 +82,7 @@ export function integrationEndPointUrl(type: IntegrationType, baseUrl: string, k
   return `${baseUrl}/api/v1/integrations/${type.toLowerCase()}/${key}`;
 }
 
-export function privateNetworkAddressValidator(control: FormControl): { [key: string]: any } | null {
+export function privateNetworkAddressValidator(control: UntypedFormControl): { [key: string]: any } | null {
   if (control.value) {
     const host = control.value.trim();
     return !PRIVATE_NETWORK_REGEXP.test(host) ? null : {

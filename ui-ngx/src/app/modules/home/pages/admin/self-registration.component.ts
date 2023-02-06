@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { SelfRegistrationParams } from '@shared/models/self-register.models';
@@ -51,7 +51,7 @@ import { AttributeService } from '@core/http/attribute.service';
 })
 export class SelfRegistrationComponent extends PageComponent implements OnInit, HasConfirmForm {
 
-  selfRegistrationFormGroup: FormGroup;
+  selfRegistrationFormGroup: UntypedFormGroup;
   selfRegistrationParams: SelfRegistrationParams;
   registerLink: string;
   deleteDisabled: boolean = true;
@@ -77,7 +77,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
               private selfRegistrationService: SelfRegistrationService,
               private attributeService: AttributeService,
               private translate: TranslateService,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -171,7 +171,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     );
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.selfRegistrationFormGroup;
   }
 

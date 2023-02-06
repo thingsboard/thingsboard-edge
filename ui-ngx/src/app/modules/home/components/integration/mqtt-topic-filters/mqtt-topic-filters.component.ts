@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -64,7 +64,7 @@ import { isNumber } from '@core/utils';
 })
 export class MqttTopicFiltersComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  mqttTopicFiltersForm: FormGroup;
+  mqttTopicFiltersForm: UntypedFormGroup;
   mqttQosTypes = Object.values(MqttQos).filter(v => isNumber(v));
   MqttQosTranslation = MqttQosTranslation;
 
@@ -74,7 +74,7 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
   private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     this.mqttTopicFiltersForm = this.fb.group({
       filters: this.fb.array([], Validators.required)
     });
@@ -127,8 +127,8 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
     }
   }
 
-  get mqttFiltersFromArray(): FormArray {
-    return this.mqttTopicFiltersForm.get('filters') as FormArray;
+  get mqttFiltersFromArray(): UntypedFormArray {
+    return this.mqttTopicFiltersForm.get('filters') as UntypedFormArray;
   }
 
   addTopicFilter() {

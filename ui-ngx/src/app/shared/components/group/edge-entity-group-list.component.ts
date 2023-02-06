@@ -41,7 +41,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of } from 'rxjs';
 import { expand, filter, map, mergeMap, publishReplay, reduce, refCount, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -76,7 +76,7 @@ import { CustomerService } from '@core/http/customer.service';
 })
 export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
-  edgeEntityGroupListFormGroup: FormGroup;
+  edgeEntityGroupListFormGroup: UntypedFormGroup;
 
   modelValue: Array<string> | null;
 
@@ -123,7 +123,7 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
               private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
               @Inject(MAT_DIALOG_DATA) public data: AddEntityGroupsToEdgeDialogData,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     const authUser = getCurrentAuthUser(this.store);
     this.tenantId = authUser.tenantId;
     this.ownerId = this.data.ownerId;

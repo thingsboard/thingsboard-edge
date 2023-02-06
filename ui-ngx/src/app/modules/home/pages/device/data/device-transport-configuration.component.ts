@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -66,7 +66,7 @@ export class DeviceTransportConfigurationComponent implements ControlValueAccess
 
   deviceTransportType = DeviceTransportType;
 
-  deviceTransportConfigurationFormGroup: FormGroup;
+  deviceTransportConfigurationFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -85,7 +85,7 @@ export class DeviceTransportConfigurationComponent implements ControlValueAccess
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {

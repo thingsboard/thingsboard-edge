@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -83,7 +83,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
               private dialog: MatDialog,
               @Optional() @Inject('entity') protected entityValue: Converter,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -100,7 +100,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
     }
   }
 
-  buildForm(entity: Converter): FormGroup {
+  buildForm(entity: Converter): UntypedFormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
     const form = this.fb.group(
       {
@@ -133,7 +133,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
     return form;
   }
 
-  private checkIsNewConverter(entity: Converter, form: FormGroup) {
+  private checkIsNewConverter(entity: Converter, form: UntypedFormGroup) {
     if (entity && !entity.id) {
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
       form.get('configuration').get('scriptLang').patchValue(
@@ -149,7 +149,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
     }
   }
 
-  private converterTypeChanged(form: FormGroup) {
+  private converterTypeChanged(form: UntypedFormGroup) {
     const converterType: ConverterType = form.get('type').value;
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
@@ -163,12 +163,12 @@ export class ConverterComponent extends EntityComponent<Converter> {
     }
   }
 
-  private converterScriptLangChanged(form: FormGroup) {
+  private converterScriptLangChanged(form: UntypedFormGroup) {
     const converterType: ConverterType = form.get('type').value;
     this.setupDefaultScriptBody(form, converterType);
   }
 
-  private setupDefaultScriptBody(form: FormGroup, converterType: ConverterType) {
+  private setupDefaultScriptBody(form: UntypedFormGroup, converterType: ConverterType) {
     const scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
     let targetField: string;
     let targetTemplate: string;

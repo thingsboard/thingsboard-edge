@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,13 +70,13 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
   coapSecurityModes = Object.keys(CoapSecurityMode);
   coapSecurityModeTranslations = coapSecurityModeTranslationsMap;
 
-  coapIntegrationConfigForm: FormGroup;
+  coapIntegrationConfigForm: UntypedFormGroup;
 
   private propagateChangePending = false;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private store: Store,
               private translate: TranslateService) {
     super();

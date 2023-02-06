@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -71,7 +71,7 @@ import { merge } from 'rxjs';
 })
 export class LoriotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
-  loriotIntegrationConfigForm: FormGroup;
+  loriotIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
@@ -84,7 +84,7 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private store: Store<AppState>,
               private translate: TranslateService) {
     super();

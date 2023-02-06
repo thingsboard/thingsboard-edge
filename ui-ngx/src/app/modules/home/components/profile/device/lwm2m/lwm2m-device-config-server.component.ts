@@ -32,8 +32,8 @@
 import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -78,7 +78,7 @@ export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAcc
 
   private isDataLoadedIntoCache = false;
 
-  serverFormGroup: FormGroup;
+  serverFormGroup: UntypedFormGroup;
   bindingModeTypes = Object.values(BingingMode);
   bindingModeTypeNamesMap = BingingModeTranslationsMap;
   securityConfigLwM2MType = Lwm2mSecurityType;
@@ -96,7 +96,7 @@ export class Lwm2mDeviceConfigServerComponent implements OnInit, ControlValueAcc
 
   private propagateChange = (v: any) => { };
 
-  constructor(public fb: FormBuilder,
+  constructor(public fb: UntypedFormBuilder,
               private deviceProfileService: DeviceProfileService) {
   }
 

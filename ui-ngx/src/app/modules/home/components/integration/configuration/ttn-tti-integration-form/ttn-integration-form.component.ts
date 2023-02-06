@@ -32,9 +32,9 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,10 +70,10 @@ import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integ
 })
 export class TtnIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  ttnIntegrationConfigForm: FormGroup;
+  ttnIntegrationConfigForm: UntypedFormGroup;
 
-  hostEdit: FormControl;
-  apiVersion: FormControl;
+  hostEdit: UntypedFormControl;
+  apiVersion: UntypedFormControl;
 
   ThingsStartHostType = ThingsStartHostType;
   ThingsStartHostTypes = Object.values(ThingsStartHostType).filter(v => isNumber(v));
@@ -91,7 +91,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
   private downlinkPattern = ttnVersionMap.get(ttnVersion.v3).downlinkPattern;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: FormBuilder) {
+  constructor(protected fb: UntypedFormBuilder) {
     super();
     this.hostEdit = this.fb.control('', Validators.required);
     this.apiVersion = this.fb.control(true);

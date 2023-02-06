@@ -33,9 +33,9 @@ import { Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   NgControl,
   Validators
@@ -63,7 +63,7 @@ export class PermissionListComponent extends PageComponent implements ControlVal
 
   @Input() disabled: boolean;
 
-  permissionListFormGroup: FormGroup;
+  permissionListFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
@@ -73,7 +73,7 @@ export class PermissionListComponent extends PageComponent implements ControlVal
 
   constructor(protected store: Store<AppState>,
               private injector: Injector,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -84,8 +84,8 @@ export class PermissionListComponent extends PageComponent implements ControlVal
       this.fb.array([]));
   }
 
-  permissionsFormArray(): FormArray {
-    return this.permissionListFormGroup.get('permissions') as FormArray;
+  permissionsFormArray(): UntypedFormArray {
+    return this.permissionListFormGroup.get('permissions') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -128,11 +128,11 @@ export class PermissionListComponent extends PageComponent implements ControlVal
   }
 
   public removePermission(index: number) {
-    (this.permissionListFormGroup.get('permissions') as FormArray).removeAt(index);
+    (this.permissionListFormGroup.get('permissions') as UntypedFormArray).removeAt(index);
   }
 
   public addPermission() {
-    const permissionsFormArray = this.permissionListFormGroup.get('permissions') as FormArray;
+    const permissionsFormArray = this.permissionListFormGroup.get('permissions') as UntypedFormArray;
     permissionsFormArray.push(this.fb.group({
       resource: [null, [Validators.required]],
       operations: [null, [Validators.required]]

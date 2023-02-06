@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -69,7 +69,7 @@ import { privateNetworkAddressValidator } from '@home/components/integration/int
 })
 export class OpcUaIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  opcIntegrationConfigForm: FormGroup;
+  opcIntegrationConfigForm: UntypedFormGroup;
 
   identityTypes = Object.values(IdentityType) as IdentityType[];
   IdentityType = IdentityType;
@@ -79,7 +79,7 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
 
     this.opcIntegrationConfigForm = this.fb.group({

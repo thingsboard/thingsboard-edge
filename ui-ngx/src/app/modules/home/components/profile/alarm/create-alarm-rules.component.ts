@@ -33,10 +33,10 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR, ValidationErrors,
   Validator,
@@ -78,7 +78,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
   @Input()
   deviceProfileId: EntityId;
 
-  createAlarmRulesFormGroup: FormGroup;
+  createAlarmRulesFormGroup: UntypedFormGroup;
 
   private usedSeverities: AlarmSeverity[] = [];
 
@@ -87,7 +87,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
   private propagateChange = (v: any) => { };
 
   constructor(private dialog: MatDialog,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -103,8 +103,8 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
     });
   }
 
-  createAlarmRulesFormArray(): FormArray {
-    return this.createAlarmRulesFormGroup.get('createAlarmRules') as FormArray;
+  createAlarmRulesFormArray(): UntypedFormArray {
+    return this.createAlarmRulesFormGroup.get('createAlarmRules') as UntypedFormArray;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -149,7 +149,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
   }
 
   public removeCreateAlarmRule(index: number) {
-    (this.createAlarmRulesFormGroup.get('createAlarmRules') as FormArray).removeAt(index);
+    (this.createAlarmRulesFormGroup.get('createAlarmRules') as UntypedFormArray).removeAt(index);
   }
 
   public addCreateAlarmRule() {
@@ -158,7 +158,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
         condition: []
       }
     };
-    const createAlarmRulesArray = this.createAlarmRulesFormGroup.get('createAlarmRules') as FormArray;
+    const createAlarmRulesArray = this.createAlarmRulesFormGroup.get('createAlarmRules') as UntypedFormArray;
     createAlarmRulesArray.push(this.fb.group({
       severity: [this.getFirstUnusedSeverity(), Validators.required],
       alarmRule: [createAlarmRule, alarmRuleValidator]
@@ -179,7 +179,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
     return null;
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return (this.createAlarmRulesFormGroup.valid) ? null : {
       createAlarmRules: {
         valid: false,

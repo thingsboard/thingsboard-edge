@@ -30,7 +30,7 @@
 ///
 
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   DEFAULT_EDRX_CYCLE,
   DEFAULT_PAGING_TRANSMISSION_WINDOW, DEFAULT_PSM_ACTIVITY_TIMER,
@@ -53,7 +53,7 @@ export class PowerModeSettingComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
   @Input()
-  parentForm: FormGroup;
+  parentForm: UntypedFormGroup;
 
   @Input()
   isDeviceSetting = false;

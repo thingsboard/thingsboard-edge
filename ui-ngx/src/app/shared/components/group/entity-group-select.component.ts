@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -52,7 +52,7 @@ import { EntityGroupInfo, entityGroupTypes } from '@shared/models/entity-group.m
 })
 export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit {
 
-  entityGroupSelectFormGroup: FormGroup;
+  entityGroupSelectFormGroup: UntypedFormGroup;
 
   modelValue: string;
 
@@ -113,7 +113,7 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
   constructor(private store: Store<AppState>,
               private entityService: EntityService,
               public translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {

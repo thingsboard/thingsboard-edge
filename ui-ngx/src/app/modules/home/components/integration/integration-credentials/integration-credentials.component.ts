@@ -31,8 +31,8 @@
 
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -62,7 +62,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 })
 export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
-  integrationCredentialForm: FormGroup;
+  integrationCredentialForm: UntypedFormGroup;
   hideSelectType = false;
 
   private allowCredentialTypesValue: IntegrationCredentialType[] = [];
@@ -120,7 +120,7 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   ngOnInit() {

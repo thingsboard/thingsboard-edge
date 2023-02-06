@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
@@ -63,14 +63,14 @@ export class RelationFiltersComponent extends PageComponent implements ControlVa
 
   @Input() allowedEntityTypes: Array<EntityType | AliasEntityType>;
 
-  relationFiltersFormGroup: FormGroup;
+  relationFiltersFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
   private valueChangeSubscription: Subscription = null;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -80,8 +80,8 @@ export class RelationFiltersComponent extends PageComponent implements ControlVa
       this.fb.array([]));
   }
 
-  relationFiltersFormArray(): FormArray {
-      return this.relationFiltersFormGroup.get('relationFilters') as FormArray;
+  relationFiltersFormArray(): UntypedFormArray {
+      return this.relationFiltersFormGroup.get('relationFilters') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -112,11 +112,11 @@ export class RelationFiltersComponent extends PageComponent implements ControlVa
   }
 
   public removeFilter(index: number) {
-    (this.relationFiltersFormGroup.get('relationFilters') as FormArray).removeAt(index);
+    (this.relationFiltersFormGroup.get('relationFilters') as UntypedFormArray).removeAt(index);
   }
 
   public addFilter() {
-    const relationFiltersFormArray = this.relationFiltersFormGroup.get('relationFilters') as FormArray;
+    const relationFiltersFormArray = this.relationFiltersFormGroup.get('relationFilters') as UntypedFormArray;
     const filter: RelationEntityTypeFilter = {
       relationType: null,
       entityTypes: []

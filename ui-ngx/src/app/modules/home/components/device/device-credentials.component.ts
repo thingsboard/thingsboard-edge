@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -90,7 +90,7 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
 
   private destroy$ = new Subject();
 
-  deviceCredentialsFormGroup: FormGroup;
+  deviceCredentialsFormGroup: UntypedFormGroup;
 
   deviceCredentialsType = DeviceCredentialsType;
 
@@ -100,7 +100,7 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
 
   private propagateChange = (v: any) => {};
 
-  constructor(public fb: FormBuilder) {
+  constructor(public fb: UntypedFormBuilder) {
     this.deviceCredentialsFormGroup = this.fb.group({
       credentialsType: [DeviceCredentialsType.ACCESS_TOKEN],
       credentialsId: [null],
@@ -163,7 +163,7 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
     }
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.deviceCredentialsFormGroup.valid ? null : {
       deviceCredentials: {
         valid: false,

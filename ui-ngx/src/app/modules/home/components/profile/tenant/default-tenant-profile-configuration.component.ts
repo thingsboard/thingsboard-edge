@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
@@ -50,7 +50,7 @@ import { RateLimitsType } from './rate-limits/rate-limits.models';
 })
 export class DefaultTenantProfileConfigurationComponent implements ControlValueAccessor, OnInit {
 
-  defaultTenantProfileConfigurationFormGroup: FormGroup;
+  defaultTenantProfileConfigurationFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -69,7 +69,7 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.defaultTenantProfileConfigurationFormGroup = this.fb.group({
       maxDevices: [null, [Validators.required, Validators.min(0)]],
       maxAssets: [null, [Validators.required, Validators.min(0)]],

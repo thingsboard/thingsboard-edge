@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, Subject, Subscription, throwError } from 'rxjs';
 import { map, mergeMap, publishReplay, refCount, startWith, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -55,7 +55,7 @@ import { EntityViewService } from '@core/http/entity-view.service';
 })
 export class EntitySubTypeSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
-  subTypeFormGroup: FormGroup;
+  subTypeFormGroup: UntypedFormGroup;
 
   modelValue: string | null = '';
 
@@ -96,7 +96,7 @@ export class EntitySubTypeSelectComponent implements ControlValueAccessor, OnIni
               private assetService: AssetService,
               private entityViewService: EntityViewService,
               private edgeService: EdgeService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.subTypeFormGroup = this.fb.group({
       subType: ['']
     });

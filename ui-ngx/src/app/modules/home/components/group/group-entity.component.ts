@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Directive } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { ShortEntityView } from '@shared/models/entity-group.models';
@@ -48,7 +48,7 @@ export abstract class GroupEntityComponent<T extends BaseData<HasId>>
   entityGroup = this.entitiesTableConfig?.entityGroup;
 
   constructor(protected store: Store<AppState>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected entityValue: T,
               protected entitiesTableConfigValue: GroupEntityTableConfig<T>,
               protected cd: ChangeDetectorRef) {

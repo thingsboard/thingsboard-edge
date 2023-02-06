@@ -36,7 +36,7 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { UtilsService } from '@core/services/utils.service';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { merge, Observable, of } from 'rxjs';
 import { delay, map, mapTo, mergeMap, share, startWith, tap } from 'rxjs/operators';
 
@@ -59,7 +59,7 @@ export class MaterialIconsDialogComponent extends DialogComponent<MaterialIconsD
   icons$: Observable<Array<string>>;
   loadingIcons$: Observable<boolean>;
 
-  showAllControl: FormControl;
+  showAllControl: UntypedFormControl;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -68,7 +68,7 @@ export class MaterialIconsDialogComponent extends DialogComponent<MaterialIconsD
               public dialogRef: MatDialogRef<MaterialIconsDialogComponent, string>) {
     super(store, router, dialogRef);
     this.selectedIcon = data.icon;
-    this.showAllControl = new FormControl(false);
+    this.showAllControl = new UntypedFormControl(false);
   }
 
   ngOnInit(): void {

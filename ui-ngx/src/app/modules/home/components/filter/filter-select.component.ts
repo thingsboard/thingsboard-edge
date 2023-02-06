@@ -32,9 +32,9 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, SkipSelf, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
   NgForm
@@ -69,7 +69,7 @@ import { Filter } from '@shared/models/query/query.models';
 })
 export class FilterSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, ErrorStateMatcher {
 
-  selectFilterFormGroup: FormGroup;
+  selectFilterFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -116,7 +116,7 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectFilterFormGroup = this.fb.group({
       filter: [null]
     });
@@ -155,7 +155,7 @@ export class FilterSelectComponent implements ControlValueAccessor, OnInit, Afte
       );
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = this.tbRequired && !this.modelValue;
     return originalErrorState || customErrorState;

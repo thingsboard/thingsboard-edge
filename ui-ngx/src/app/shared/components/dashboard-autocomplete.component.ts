@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -61,7 +61,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   private dirty = false;
 
-  selectDashboardFormGroup: FormGroup;
+  selectDashboardFormGroup: UntypedFormGroup;
 
   modelValue: DashboardInfo | string | null;
 
@@ -109,7 +109,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private dashboardService: DashboardService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectDashboardFormGroup = this.fb.group({
       dashboard: [null]
     });

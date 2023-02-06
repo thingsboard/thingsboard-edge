@@ -42,7 +42,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -81,7 +81,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
 
   operation = Operation;
 
-  selectDeviceProfileFormGroup: FormGroup;
+  selectDeviceProfileFormGroup: UntypedFormGroup;
 
   modelValue: DeviceProfileId | null;
 
@@ -153,7 +153,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
               public translate: TranslateService,
               public truncate: TruncatePipe,
               private deviceProfileService: DeviceProfileService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private zone: NgZone,
               private dialog: MatDialog) {
     this.selectDeviceProfileFormGroup = this.fb.group({
