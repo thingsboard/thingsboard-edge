@@ -146,7 +146,35 @@
             "dashboardId": null
           }
         },
-        "clearRule": null,
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "panicButton"
+                },
+                "valueType": "BOOLEAN",
+                "value": null,
+                "predicate": {
+                  "type": "BOOLEAN",
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": false,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
         "propagate": true,
         "propagateToOwner": true,
         "propagateToOwnerHierarchy": false,

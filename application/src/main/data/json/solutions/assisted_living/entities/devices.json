@@ -539,7 +539,7 @@
     ]
   },
   {
-    "name": "C00000105FE0",
+    "name": "C00001111111",
     "type": "AL_Wristband",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
@@ -548,7 +548,7 @@
     "relations": []
   },
   {
-    "name": "D00000020003",
+    "name": "D00001111111",
     "type": "AL_Gateway",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
@@ -557,38 +557,47 @@
     "relations": []
   },
   {
-    "name": "500000025FE2",
+    "name": "E00001111111",
+    "type": "AL_RoomSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Sensor",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "500001111111",
     "type": "AL_DoorSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Door Sensor",
+    "emulator": "Sensor",
     "attributes": {},
     "relations": []
   },
   {
-    "name": "800000025FE2",
-    "type": "AL_WindowSensor",
-    "group": "Unassigned Devices",
-    "customer": "Assisted Living Company",
-    "emulator": "Window Sensor",
-    "attributes": {},
-    "relations": []
-  },
-  {
-    "name": "600000025FE2",
+    "name": "600001111111",
     "type": "AL_LeakSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Leak Sensor",
+    "emulator": "Sensor",
     "attributes": {},
     "relations": []
   },
   {
-    "name": "700000025FE2",
+    "name": "700001111111",
     "type": "AL_SmokeSensor",
     "group": "Unassigned Devices",
     "customer": "Assisted Living Company",
-    "emulator": "Smoke Sensor",
+    "emulator": "Sensor",
+    "attributes": {},
+    "relations": []
+  },
+  {
+    "name": "800001111111",
+    "type": "AL_WindowSensor",
+    "group": "Unassigned Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Sensor",
     "attributes": {},
     "relations": []
   }
