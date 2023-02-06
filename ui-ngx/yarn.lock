@@ -1334,13 +1334,12 @@
   resolved "https://registry.yarnpkg.com/@flowjs/flow.js/-/flow.js-2.14.1.tgz#267d9f9d0958f32267ea5815c2a7cc09b9219304"
   integrity sha512-99DWlPnksOOS8uHfo+bhSjvs8d2MfLTB/22JBDC2ONwz/OCdP+gL/iiM4puMSTE2wH4A2/+J0eMc7pKwusXunw==
 
-"@flowjs/ngx-flow@~0.4.6":
-  version "0.4.6"
-  resolved "https://registry.yarnpkg.com/@flowjs/ngx-flow/-/ngx-flow-0.4.6.tgz#ed11b6a7d2079cb2a7f8dca75fc0e8d082477a86"
-  integrity sha512-HJ7RKxINAdnTdVAVbkjseMi2Z9soQcVbPk8Ki4tjUHZkOKJE1TCvFCXSqmXt34noqaS4vNv5t/xmsPbqZoHCew==
+"@flowjs/ngx-flow@~0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@flowjs/ngx-flow/-/ngx-flow-0.6.0.tgz#4c1568b53c30e0a14e0f5093ec9a4032d048f167"
+  integrity sha512-oWgOQSpfrzDuR6eG98/jkK523xxCb8OIWSbWM1/87KJZzUJBzuO0jQIZspVxURjQGTNOoFl8cl9P6iNXnvBgPg==
   dependencies:
-    "@types/flowjs" "2.13.3"
-    tslib "^1.9.0"
+    tslib "^2.2.0"
 
 "@fullcalendar/angular@^4.4.5-beta":
   version "4.4.5-beta"
@@ -1597,10 +1596,15 @@
   dependencies:
     tslib "^2.0.0"
 
-"@ngtools/webpack@12.2.17", "@ngtools/webpack@^12.2.17":
+"@ngtools/webpack@12.2.17":
   version "12.2.17"
   resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-12.2.17.tgz#0d7bee1da3c1a25a7b51901df016e1d0c8184135"
   integrity sha512-uaS+2YZgPDW3VmUuwh4/yfIFV1KRVGWefc6xLWIqKRKs6mlRYs65m3ib9dX7CTS4kQMCbhxkxMbpBO2yXlzfvA==
+
+"@ngtools/webpack@^14.2.10":
+  version "14.2.10"
+  resolved "https://registry.yarnpkg.com/@ngtools/webpack/-/webpack-14.2.10.tgz#d33ff1147d01bd1f5d936a3d1744c81a28e2ca6a"
+  integrity sha512-sLHapZLVub6mEz5b19tf1VfIV1w3tYfg7FNPLeni79aldxu1FbP1v2WmiFAnMzrswqyK0bhTtxrl+Z/CLKqyoQ==
 
 "@ngx-translate/core@^13.0.0":
   version "13.0.0"
@@ -1955,11 +1959,6 @@
   integrity sha512-aturel4TWMY86N4Pkpc9pSoUd/p8c3BjGj4fTDkaZIpkRPzLH1VXZCAKGUywcFkTqgZMhPJFPWxd4pl87y8h/w==
   dependencies:
     "@types/jquery" "*"
-
-"@types/flowjs@2.13.3":
-  version "2.13.3"
-  resolved "https://registry.yarnpkg.com/@types/flowjs/-/flowjs-2.13.3.tgz#4f1ba77d9259f4be83ecaa985db96fa758b2fd22"
-  integrity sha512-VeWuL+Whk6lUSWX/g0LzLNyZywyTB5wZ2L6mPvD8/u5pgLF2HwyV7nZ1UArOifalJ5UE1CcJbPLKS+jc5+Z2ig==
 
 "@types/geojson@*", "@types/geojson@7946.0.8":
   version "7946.0.8"
