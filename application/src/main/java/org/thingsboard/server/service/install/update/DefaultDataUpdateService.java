@@ -324,8 +324,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping blob entities migration");
                 }
                 break;
-            case "3.4.2":
-                log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
+            case "3.4.4":
+                log.info("Updating data from version 3.4.4 to 3.4.4PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
