@@ -17,7 +17,7 @@ One may improve the algorithm based on the particular use case.
 
 ### Assisted Living Administration Dashboard
 
-The <a href="${Assisted LivingDASHBOARD_URL}" target="_blank">"Assisted Living"</a> dashboard
+The "Assisted Living Administration" dashboard
 is intended for monitoring and controlling the status of residents, areas of the institution, devices, and their management. It has multiple states:
 
 * **Main** state is assigned to provisions of residents, alarms of residents, and rooms. The Main state contains:
