@@ -1017,7 +1017,7 @@ export class MenuService {
             name: 'device-profile.device-profiles',
             icon: 'mdi:alpha-d-box',
             isMdiIcon: true,
-            path: '/deviceProfiles',
+            path: '/profiles/deviceProfiles',
             disabled: disabledItems.indexOf('device_profiles') > -1
           }
         );
