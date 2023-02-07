@@ -44,7 +44,7 @@ import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { deepClone, isDefined, isUndefined } from '@core/utils';
 import { BroadcastService } from '@core/services/broadcast.service';
@@ -162,7 +162,7 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
     });
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.detailsForm;
   }
 

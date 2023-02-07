@@ -40,7 +40,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -68,7 +68,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 })
 export class EntityListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
-  entityListFormGroup: FormGroup;
+  entityListFormGroup: UntypedFormGroup;
 
   modelValue: Array<string> | null;
 
@@ -122,7 +122,7 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityService: EntityService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.entityListFormGroup = this.fb.group({
       entities: [this.entities, this.required ? [Validators.required] : []],
       entity: [null]

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '~@angular/material' as mat;
+@use '@angular/material' as mat;
 @import 'login-theme-constants';
 
 @include mat.core();
@@ -67,14 +67,19 @@
     tooltip: map_get(mat.$grey-palette, 700)
   );
 
-  @return (
-    primary: $tb-primary,
-    accent: $tb-accent,
-    warn: $warn,
-    is-dark: true,
-    foreground: if($dark-foreground, mat.$light-theme-foreground-palette, mat.$dark-theme-foreground-palette),
-    background: $tb-dark-theme-background
+  $tb-login-theme: mat.define-dark-theme(
+      $tb-primary,
+      $tb-accent,
+      $warn
   );
+
+  $color: map_get($tb-login-theme, color);
+  $color: map_merge($color, (background: $tb-dark-theme-background));
+  $color: map_merge($color, (foreground: if($dark-foreground, mat.$light-theme-foreground-palette, mat.$dark-theme-foreground-palette)));
+  $tb-login-theme: map_merge($tb-login-theme, (color: $color));
+  $tb-login-theme: map_merge($tb-login-theme, $color);
+
+  @return $tb-login-theme;
 }
 
 $tb-theme: get-tb-dark-theme(

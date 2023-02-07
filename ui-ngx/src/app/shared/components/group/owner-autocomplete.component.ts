@@ -40,7 +40,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -66,7 +66,7 @@ import { ContactBased } from '@shared/models/contact-based.model';
 })
 export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
-  selectOwnerFormGroup: FormGroup;
+  selectOwnerFormGroup: UntypedFormGroup;
 
   modelValue: EntityId | null;
 
@@ -108,7 +108,7 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   constructor(private store: Store<AppState>,
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectOwnerFormGroup = this.fb.group({
       owner: [null]
     });

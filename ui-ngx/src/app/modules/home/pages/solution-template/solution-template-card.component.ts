@@ -75,7 +75,7 @@ export class SolutionTemplateCardComponent extends PageComponent implements OnIn
   }
 
   installSolutionTemplate() {
-    const progressSubject = new Subject();
+    const progressSubject = new Subject<void>();
     this.dialogService.progress(progressSubject.asObservable(), this.translate.instant('solution-template.installing'));
     this.solutionsService.installSolutionTemplate(this.solutionTemplate.id).subscribe(
       (response) => {

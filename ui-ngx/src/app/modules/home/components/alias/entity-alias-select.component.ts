@@ -32,9 +32,9 @@
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, SkipSelf, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   FormGroupDirective,
   NG_VALUE_ACCESSOR,
   NgForm
@@ -71,7 +71,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 })
 export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, ErrorStateMatcher {
 
-  selectEntityAliasFormGroup: FormGroup;
+  selectEntityAliasFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -122,7 +122,7 @@ export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit,
               private entityService: EntityService,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectEntityAliasFormGroup = this.fb.group({
       entityAlias: [null]
     });
@@ -166,7 +166,7 @@ export class EntityAliasSelectComponent implements ControlValueAccessor, OnInit,
       );
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = this.tbRequired && !this.modelValue;
     return originalErrorState || customErrorState;

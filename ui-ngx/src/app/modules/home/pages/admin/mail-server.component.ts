@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AdminSettings, MailServerSettings, smtpPortPattern } from '@shared/models/settings.models';
 import { AdminService } from '@core/http/admin.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
@@ -61,7 +61,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
 
   authUser: AuthUser = this.authState.authUser;
 
-  mailSettings: FormGroup;
+  mailSettings: UntypedFormGroup;
   adminSettings: AdminSettings<MailServerSettings>;
   smtpProtocols = ['smtp', 'smtps'];
   showChangePassword = false;
@@ -70,14 +70,14 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
 
   readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private router: Router,
               private adminService: AdminService,
               private translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -238,7 +238,7 @@ export class MailServerComponent extends PageComponent implements OnInit, OnDest
     );
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.mailSettings;
   }
 

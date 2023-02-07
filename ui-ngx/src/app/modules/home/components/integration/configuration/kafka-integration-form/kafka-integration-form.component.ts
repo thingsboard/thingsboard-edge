@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -63,11 +63,11 @@ import { privateNetworkAddressValidator } from '@home/components/integration/int
 })
 export class KafkaIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  kafkaIntegrationConfigForm: FormGroup;
+  kafkaIntegrationConfigForm: UntypedFormGroup;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.kafkaIntegrationConfigForm = this.fb.group({
       groupId: ['', [Validators.required]],

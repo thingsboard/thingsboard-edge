@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef } from '@angular/core';
-import { FormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { UntypedFormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HttpIntegrationFormComponent } from './http-integration-form.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -56,7 +56,7 @@ export class SigfoxIntegrationFormComponent extends HttpIntegrationFormComponent
 
   protected integrationType = IntegrationType.SIGFOX;
 
-  constructor(protected fb: FormBuilder,
+  constructor(protected fb: UntypedFormBuilder,
               protected store: Store<AppState>,
               protected translate: TranslateService) {
     super(fb, store, translate);

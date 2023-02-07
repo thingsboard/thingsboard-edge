@@ -34,8 +34,8 @@ import { ContentType } from '@shared/models/constants';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -63,7 +63,7 @@ import { CustomIntegration } from '@shared/models/integration.models';
 })
 export class CustomIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  customIntegrationConfigForm: FormGroup;
+  customIntegrationConfigForm: UntypedFormGroup;
 
   // @ViewChild('jsonContentComponent', {static: true}) jsonContentComponent: JsonContentComponent;
 
@@ -71,7 +71,7 @@ export class CustomIntegrationFormComponent extends IntegrationForm implements C
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.customIntegrationConfigForm = this.fb.group({
       clazz: ['', Validators.required],

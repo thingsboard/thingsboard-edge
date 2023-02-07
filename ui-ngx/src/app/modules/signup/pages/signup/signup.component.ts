@@ -34,7 +34,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { SignupRequest, SignUpResult } from '@shared/models/signup.models';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
@@ -77,7 +77,7 @@ export class SignupComponent extends PageComponent implements OnInit {
               private dialogService: DialogService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store);
   }
 
