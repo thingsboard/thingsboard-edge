@@ -56,7 +56,7 @@ export abstract class IntegrationForm implements OnDestroy {
     }
   }
 
-  protected destroy$ = new Subject();
+  protected destroy$ = new Subject<void>();
 
   protected updatedValidationPrivateNetwork() {}
 

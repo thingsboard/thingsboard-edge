@@ -100,7 +100,7 @@ export class IntegrationWizardDialogComponent extends
   } as Converter;
 
   private checkConnectionAllow = false;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               protected router: Router,

@@ -1,0 +1,21 @@
+diff --git a/node_modules/@angular/material/button-toggle/_button-toggle-theme.scss b/node_modules/@angular/material/button-toggle/_button-toggle-theme.scss
+index 935ae2c..bc0e95a 100755
+--- a/node_modules/@angular/material/button-toggle/_button-toggle-theme.scss
++++ b/node_modules/@angular/material/button-toggle/_button-toggle-theme.scss
+@@ -12,13 +12,14 @@
+   $background: map.get($config, background);
+   $divider-color: theming.get-color-from-palette($foreground, divider);
+   $theme-divider-color: map.get($foreground, divider);
++  $card: map.get($background, card);
+ 
+   // By default the theme usually has an rgba color for the dividers, which can
+   // stack up with the background of a button toggle. This can cause the border
+   // of a selected toggle to look different from an deselected one. We use a solid
+   // color to ensure that the border always stays the same.
+-  $divider-color: if(type-of($theme-divider-color) == color,
+-    theming.private-rgba-to-hex($theme-divider-color, map.get($background, card)),
++  $divider-color: if(type-of($theme-divider-color) == color and type-of($card) == color,
++    theming.private-rgba-to-hex($theme-divider-color, $card),
+     $theme-divider-color
+   );
+ 

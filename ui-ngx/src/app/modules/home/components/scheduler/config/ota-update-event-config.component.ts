@@ -54,7 +54,7 @@ import { OtaUpdateType } from '@shared/models/ota-package.models';
 })
 export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDestroy, OnInit {
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   modelValue: SchedulerEventConfiguration | null;
   updatePackageForm: UntypedFormGroup;

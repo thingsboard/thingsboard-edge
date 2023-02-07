@@ -35,10 +35,12 @@
       padding: 0;
 
       .mat-select {
-        .mat-select-value {
+        .mat-select-trigger {
           height: 32px;
-          color: inherit;
           line-height: 32px;
+        }
+        .mat-select-value {
+          color: inherit;
         }
       }
     }

@@ -71,7 +71,7 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private fb: UntypedFormBuilder) {

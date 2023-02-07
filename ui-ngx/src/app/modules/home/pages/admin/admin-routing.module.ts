@@ -371,6 +371,7 @@ const routes: Routes = [
     children: [
       {
         path: '',
+        children: [],
         data: {
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {

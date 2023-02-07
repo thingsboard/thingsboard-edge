@@ -76,7 +76,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
 
   @Input() disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private fb: UntypedFormBuilder) {

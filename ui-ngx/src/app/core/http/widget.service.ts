@@ -333,7 +333,7 @@ export class WidgetService {
       if (this.widgetsBundleCacheSubject) {
         return this.widgetsBundleCacheSubject.asObservable();
       } else {
-        const loadWidgetsBundleCacheSubject = new ReplaySubject();
+        const loadWidgetsBundleCacheSubject = new ReplaySubject<void>();
         this.widgetsBundleCacheSubject = loadWidgetsBundleCacheSubject;
         if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ)) {
           this.http.get<Array<WidgetsBundle>>('/api/widgetsBundles',

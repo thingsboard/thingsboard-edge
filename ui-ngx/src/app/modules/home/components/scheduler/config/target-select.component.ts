@@ -75,7 +75,7 @@ export class TargetSelectComponent implements ControlValueAccessor, OnDestroy {
   currentUser = getCurrentAuthUser(this.store);
 
   private modelValue: EntityId | null;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private loadData = false;
 
   private requiredValue: boolean;
