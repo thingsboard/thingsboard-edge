@@ -43,10 +43,9 @@ import {
   Validators
 } from '@angular/forms';
 import { SnmpMapping } from '@shared/models/device.models';
-import { Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { DataType, DataTypeTranslationMap } from '@shared/models/constants';
 import { isUndefinedOrNull } from '@core/utils';
-import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-snmp-device-profile-mapping',
@@ -76,7 +75,7 @@ export class SnmpDeviceProfileMappingComponent implements OnInit, OnDestroy, Con
 
   private readonly oidPattern: RegExp  = /^\.?([0-2])((\.0)|(\.[1-9][0-9]*))*$/;
 
-  private destroy$ = new Subject<void>();
+  private valueChange$: Subscription = null;
   private propagateChange = (v: any) => { };
 
   constructor(private fb: UntypedFormBuilder) { }
@@ -85,14 +84,13 @@ export class SnmpDeviceProfileMappingComponent implements OnInit, OnDestroy, Con
     this.mappingsConfigForm = this.fb.group({
       mappings: this.fb.array([])
     });
-    this.mappingsConfigForm.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => this.updateModel());
+    this.valueChange$ = this.mappingsConfigForm.valueChanges.subscribe(() => this.updateModel());
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+    if (this.valueChange$) {
+      this.valueChange$.unsubscribe();
+    }
   }
 
   registerOnChange(fn: any) {
