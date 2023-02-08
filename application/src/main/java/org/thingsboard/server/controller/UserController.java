@@ -41,7 +41,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -68,6 +70,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.security.UserSettings;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.user.TbUserService;
@@ -559,4 +562,46 @@ public class UserController extends BaseController {
         }).collect(Collectors.toList());
     }
 
+    @ApiOperation(value = "Save user settings (saveUserSettings)",
+            notes = "Save user settings for specified user id. " )
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @PostMapping(value = "/user/{userId}/settings")
+    public UserSettings saveUserSettings(@ApiParam(value = USER_ID_PARAM_DESCRIPTION)
+                                         @PathVariable(USER_ID) String strUserId, @RequestBody UserSettings userSettings) throws ThingsboardException {
+        checkParameter(USER_ID, strUserId);
+
+        UserId userId = new UserId(toUUID(strUserId));
+        User user = checkUserId(userId, Operation.WRITE);
+
+        userSettings.setUserId(userId);
+        return userService.saveUserSettings(user.getTenantId(), userId, userSettings);
+    }
+
+    @ApiOperation(value = "Get user settings (getUserSettings)",
+            notes = "Fetch the User settings based on the provided User Id. " )
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/user/{userId}/settings")
+    public UserSettings getUserSettings(@ApiParam(value = USER_ID_PARAM_DESCRIPTION)
+                                        @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
+        checkParameter(USER_ID, strUserId);
+
+        UserId userId = new UserId(toUUID(strUserId));
+        User user = checkUserId(userId, Operation.READ);
+
+        return checkNotNull(userService.findUserSettings(user.getTenantId(), user.getId()), "No user settingd found");
+    }
+
+    @ApiOperation(value = "Delete user settings (deleteUserSettings)",
+            notes = "Delete user settings based on the provided User Id. " )
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/{userId}/settings", method = RequestMethod.DELETE)
+    public void deleteUserSettings(@ApiParam(value = USER_ID_PARAM_DESCRIPTION)
+                                         @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
+        checkParameter(USER_ID, strUserId);
+
+        UserId userId = new UserId(toUUID(strUserId));
+        User user = checkUserId(userId, Operation.WRITE);
+
+        userService.deleteUserSettings(user.getTenantId(), userId);
+    }
 }

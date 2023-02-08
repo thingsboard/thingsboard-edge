@@ -34,17 +34,20 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.common.data.security.UserSettings;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +58,7 @@ public abstract class BaseUserServiceTest extends AbstractServiceTest {
     private IdComparator<User> idComparator = new IdComparator<>();
 
     private TenantId tenantId;
+    private UserSettings userSettings;
 
     @Before
     public void before() {
@@ -80,14 +84,15 @@ public abstract class BaseUserServiceTest extends AbstractServiceTest {
         customerUser.setTenantId(tenantId);
         customerUser.setCustomerId(savedCustomer.getId());
         customerUser.setEmail("customer@thingsboard.org");
-        userService.saveUser(customerUser);
-    }
+        customerUser = userService.saveUser(customerUser);
 
+        userSettings = createUserSettings(customerUser.getId());
+        userSettings = userService.saveUserSettings(TenantId.SYS_TENANT_ID, customerUser.getId(), userSettings);
+    }
     @After
     public void after() {
         tenantService.deleteTenant(tenantId);
     }
-
     @Test
     public void testFindUserByEmail() {
         User user = userService.findUserByEmail(SYSTEM_TENANT_ID, "sysadmin@thingsboard.org");
@@ -118,6 +123,14 @@ public abstract class BaseUserServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(user);
         UserCredentials userCredentials = userService.findUserCredentialsByUserId(SYSTEM_TENANT_ID, user.getId());
         Assert.assertNotNull(userCredentials);
+    }
+
+    @Test
+    public void testFindUserSettings() {
+        User user = userService.findUserByEmail(SYSTEM_TENANT_ID,"customer@thingsboard.org");
+        Assert.assertNotNull(user);
+        UserSettings userSettings = userService.findUserSettings(SYSTEM_TENANT_ID, user.getId());
+        Assert.assertEquals(userSettings.getSettings(), userSettings.getSettings());
     }
 
     @Test
@@ -489,4 +502,10 @@ public abstract class BaseUserServiceTest extends AbstractServiceTest {
         tenantService.deleteTenant(tenantId);
     }
 
+    private UserSettings createUserSettings(UserId userId) {
+        UserSettings userSettings = new UserSettings();
+        userSettings.setUserId(userId);
+        userSettings.setSettings(JacksonUtil.newObjectNode().put("text", StringUtils.randomAlphanumeric(10)));
+        return userSettings;
+    }
 }

@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.security.UserSettings;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -97,6 +98,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     private final UserDao userDao;
     private final UserCredentialsDao userCredentialsDao;
     private final UserAuthSettingsDao userAuthSettingsDao;
+    private final UserSettingsDao userSettingsDao;
     private final DataValidator<User> userValidator;
     private final DataValidator<UserCredentials> userCredentialsValidator;
     private final ApplicationEventPublisher eventPublisher;
@@ -392,6 +394,27 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         int failedLoginAttempts = increaseFailedLoginAttempts(user);
         saveUser(user);
         return failedLoginAttempts;
+    }
+
+    @Override
+    public UserSettings saveUserSettings(TenantId tenantId, UserId userId, UserSettings userSettings) {
+        log.trace("Executing saveUserSettings for user [{}], [{}]", userId, userSettings);
+        validateId(userId, INCORRECT_USER_ID + userId);
+        return userSettingsDao.save(tenantId, userSettings);
+    }
+
+    @Override
+    public UserSettings findUserSettings(TenantId tenantId, UserId userId) {
+        log.trace("Executing findUserSettings for user [{}]", userId);
+        validateId(userId, INCORRECT_USER_ID + userId);
+        return userSettingsDao.findById(tenantId, userId);
+    }
+
+    @Override
+    public void deleteUserSettings(TenantId tenantId, UserId userId) {
+        log.trace("Executing deleteUserSettings for user [{}]", userId);
+        validateId(userId, INCORRECT_USER_ID + userId);
+        userSettingsDao.removeById(tenantId, userId);
     }
 
     private int increaseFailedLoginAttempts(User user) {
