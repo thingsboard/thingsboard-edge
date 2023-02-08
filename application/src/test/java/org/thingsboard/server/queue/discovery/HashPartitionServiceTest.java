@@ -37,7 +37,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -45,6 +47,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,6 +61,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
@@ -71,6 +76,8 @@ public class HashPartitionServiceTest {
     private TenantRoutingInfoService routingInfoService;
     private ApplicationEventPublisher applicationEventPublisher;
     private QueueRoutingInfoService queueRoutingInfoService;
+    @SpyBean
+    private TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private String hashFunctionName = "sha256";
 
@@ -80,16 +87,20 @@ public class HashPartitionServiceTest {
         applicationEventPublisher = mock(ApplicationEventPublisher.class);
         routingInfoService = mock(TenantRoutingInfoService.class);
         queueRoutingInfoService = mock(QueueRoutingInfoService.class);
+        integrationExecutorSettings = spy(TbQueueIntegrationExecutorSettings.class);
         clusterRoutingService = new HashPartitionService(discoveryService,
                 routingInfoService,
                 applicationEventPublisher,
-                queueRoutingInfoService);
+                queueRoutingInfoService,
+                integrationExecutorSettings);
+
         ReflectionTestUtils.setField(clusterRoutingService, "coreTopic", "tb.core");
         ReflectionTestUtils.setField(clusterRoutingService, "corePartitions", 10);
         ReflectionTestUtils.setField(clusterRoutingService, "vcTopic", "tb.vc");
         ReflectionTestUtils.setField(clusterRoutingService, "vcPartitions", 10);
         ReflectionTestUtils.setField(clusterRoutingService, "integrationPartitions", 3);
         ReflectionTestUtils.setField(clusterRoutingService, "hashFunctionName", hashFunctionName);
+        ReflectionTestUtils.setField(integrationExecutorSettings, "downlinkTopic", "tb_ie.downlink");
         TransportProtos.ServiceInfo currentServer = TransportProtos.ServiceInfo.newBuilder()
                 .setServiceId("tb-core-0")
                 .addAllServiceTypes(Collections.singletonList(ServiceType.TB_CORE.name()))
@@ -107,6 +118,15 @@ public class HashPartitionServiceTest {
         clusterRoutingService.init();
         clusterRoutingService.partitionsInit();
         clusterRoutingService.recalculatePartitions(currentServer, otherServers);
+    }
+
+    @Test
+    public void testPartitionsCreatedWithCorrectName() {
+        clusterRoutingService.getPartitionTopicsMap().forEach((queueKey, s) -> {
+            if (queueKey.getType().equals(ServiceType.TB_INTEGRATION_EXECUTOR)) {
+                Assert.assertEquals("tb_ie.downlink" + "." + queueKey.getQueueName().toLowerCase(), s);
+            }
+        });
     }
 
     @Test

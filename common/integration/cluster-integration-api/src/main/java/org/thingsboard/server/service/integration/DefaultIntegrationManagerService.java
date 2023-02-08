@@ -43,6 +43,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
@@ -80,7 +81,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationValidatio
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
@@ -132,6 +132,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
     private final IntegrationStatisticsService integrationStatisticsService;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reInitEnabled;
@@ -345,7 +346,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
-                        .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(configuration.getType()));
+                        .newByTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType()));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
                         .setIdLSB(task.getUuid().getLeastSignificantBits())
