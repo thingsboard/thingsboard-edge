@@ -86,7 +86,7 @@ export class TenantProfileQueuesComponent implements ControlValueAccessor, Valid
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,

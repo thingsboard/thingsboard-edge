@@ -84,7 +84,7 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
 
   kvListFormGroup: UntypedFormGroup;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = null;
 
   constructor(protected store: Store<AppState>,

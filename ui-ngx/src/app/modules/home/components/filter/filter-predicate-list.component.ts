@@ -42,7 +42,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { Observable, of, Subject, Subscription } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import {
   ComplexFilterPredicateInfo,
   ComplexOperation,
@@ -96,7 +96,7 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
 
   complexOperationTranslations = complexOperationTranslationMap;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = null;
 
   constructor(private fb: UntypedFormBuilder,
@@ -164,7 +164,7 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
   }
 
   public removePredicate(index: number) {
-    (this.filterListFormGroup.get('predicates') as UntypedFormArray).removeAt(index);
+    this.predicatesFormArray.removeAt(index);
   }
 
   public addPredicate(complex: boolean) {
