@@ -46,7 +46,8 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Instance, ResourceLwM2M, ResourceSettingTelemetry, } from './lwm2m-profile-config.models';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-profile-lwm2m-observe-attr-telemetry-instances',
@@ -87,7 +88,7 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
   @Input()
   disabled: boolean;
 
-  private valueChange$: Subscription = null;
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private fb: UntypedFormBuilder,
@@ -96,13 +97,14 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
       instances: this.fb.array([])
     });
 
-    this.valueChange$ = this.instancesFormGroup.valueChanges.subscribe(value => this.updateModel(value.instances));
+    this.instancesFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.updateModel(value.instances));
   }
 
   ngOnDestroy() {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   registerOnChange(fn: any): void {
