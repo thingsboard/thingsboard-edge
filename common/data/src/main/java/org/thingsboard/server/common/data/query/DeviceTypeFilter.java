@@ -30,22 +30,36 @@
  */
 package org.thingsboard.server.common.data.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class DeviceTypeFilter implements EntityFilter {
 
+    /**
+     * Replaced by {@link DeviceTypeFilter#getDeviceTypes()} instead.
+     */
+    @Deprecated(since = "3.5", forRemoval = true)
+    private String deviceType;
+
+    @JsonIgnore
+    private List<String> deviceTypes;
+
+    private String deviceNameFilter;
+
+    public DeviceTypeFilter(List<String> deviceTypes, String deviceNameFilter) {
+        this.deviceTypes = deviceTypes;
+        this.deviceNameFilter = deviceNameFilter;
+    }
+
     @Override
     public EntityFilterType getType() {
         return EntityFilterType.DEVICE_TYPE;
     }
-
-    private String deviceType;
-
-    private String deviceNameFilter;
-
 }

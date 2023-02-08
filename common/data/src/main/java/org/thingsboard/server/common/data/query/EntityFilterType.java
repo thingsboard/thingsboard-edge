@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data.query;
 
+import lombok.Getter;
+
 public enum EntityFilterType {
     SINGLE_ENTITY("singleEntity"),
     ENTITY_GROUP("entityGroup"),
@@ -52,6 +54,7 @@ public enum EntityFilterType {
     API_USAGE_STATE("apiUsageState"),
     SCHEDULER_EVENT("schedulerEvent");
 
+    @Getter
     private final String label;
 
     EntityFilterType(String label) {

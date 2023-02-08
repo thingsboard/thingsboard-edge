@@ -145,22 +145,22 @@ export interface StateEntityOwnerFilter {
 }
 
 export interface AssetTypeFilter {
-  assetType?: string;
+  assetTypes?: string[];
   assetNameFilter?: string;
 }
 
 export interface DeviceTypeFilter {
-  deviceType?: string;
+  deviceTypes?: string[];
   deviceNameFilter?: string;
 }
 
 export interface EntityViewFilter {
-  entityViewType?: string;
+  entityViewTypes?: string[];
   entityViewNameFilter?: string;
 }
 
 export interface EdgeTypeFilter {
-  edgeType?: string;
+  edgeTypes?: string[];
   edgeNameFilter?: string;
 }
 

@@ -110,6 +110,7 @@ import org.thingsboard.server.dao.sql.role.RoleRepository;
 import org.thingsboard.server.dao.sql.scheduler.SchedulerEventRepository;
 import org.thingsboard.server.dao.sql.user.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1940,36 +1941,48 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     }
 
     private String typeQuery(QueryContext ctx, EntityFilter filter) {
-        String type;
+        List<String> types;
         String name;
         switch (filter.getType()) {
             case ASSET_TYPE:
-                type = ((AssetTypeFilter) filter).getAssetType();
+                types = ((AssetTypeFilter) filter).getAssetTypes();
+                types = checkTypeListForBackwardCompatibility(types, ((AssetTypeFilter) filter).getAssetType());
                 name = ((AssetTypeFilter) filter).getAssetNameFilter();
                 break;
             case DEVICE_TYPE:
-                type = ((DeviceTypeFilter) filter).getDeviceType();
+                types = ((DeviceTypeFilter) filter).getDeviceTypes();
+                types = checkTypeListForBackwardCompatibility(types, ((DeviceTypeFilter) filter).getDeviceType());
                 name = ((DeviceTypeFilter) filter).getDeviceNameFilter();
                 break;
             case ENTITY_VIEW_TYPE:
-                type = ((EntityViewTypeFilter) filter).getEntityViewType();
+                types = ((EntityViewTypeFilter) filter).getEntityViewTypes();
+                types = checkTypeListForBackwardCompatibility(types, ((EntityViewTypeFilter) filter).getEntityViewType());
                 name = ((EntityViewTypeFilter) filter).getEntityViewNameFilter();
                 break;
             case EDGE_TYPE:
-                type = ((EdgeTypeFilter) filter).getEdgeType();
+                types = ((EdgeTypeFilter) filter).getEdgeTypes();
+                types = checkTypeListForBackwardCompatibility(types, ((EdgeTypeFilter) filter).getEdgeType());
                 name = ((EdgeTypeFilter) filter).getEdgeNameFilter();
                 break;
             default:
                 throw new RuntimeException("Not supported!");
         }
-        String typeFilter = "e.type = :entity_filter_type_query_type";
-        ctx.addStringParameter("entity_filter_type_query_type", type);
+        String typesFilter = "e.type in (:entity_filter_type_query_types)";
+        ctx.addStringListParameter("entity_filter_type_query_types", types);
         if (!StringUtils.isEmpty(name)) {
             ctx.addStringParameter("entity_filter_type_query_name", name);
-            return typeFilter + " and lower(e.search_text) like lower(concat(:entity_filter_type_query_name, '%%'))";
+            return typesFilter + " and lower(e.search_text) like lower(concat(:entity_filter_type_query_name, '%%'))";
         } else {
-            return typeFilter;
+            return typesFilter;
         }
+    }
+
+    private List<String> checkTypeListForBackwardCompatibility(List<String> types, String subType) {
+        if (types == null || types.isEmpty()) {
+            types = new ArrayList<>();
+            types.add(subType);
+        }
+        return types;
     }
 
     public static EntityType resolveEntityType(EntityFilter entityFilter) {

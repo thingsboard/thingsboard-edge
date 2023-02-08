@@ -30,18 +30,28 @@
  */
 package org.thingsboard.server.common.data.query;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class EntityViewTypeFilter implements EntityFilter {
+
+    /**
+     * Replaced by {@link EntityViewTypeFilter#getEntityViewTypes()} instead.
+     */
+    @Deprecated(since = "3.5", forRemoval = true)
+    private String entityViewType;
+
+    @JsonIgnore
+    private List<String> entityViewTypes;
+
+    private String entityViewNameFilter;
 
     @Override
     public EntityFilterType getType() {
         return EntityFilterType.ENTITY_VIEW_TYPE;
     }
-
-    private String entityViewType;
-
-    private String entityViewNameFilter;
 
 }

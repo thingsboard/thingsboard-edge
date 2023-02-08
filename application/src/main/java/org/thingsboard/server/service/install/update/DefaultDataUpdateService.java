@@ -143,6 +143,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
+import org.thingsboard.server.utils.MiscUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -323,6 +324,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping blob entities migration");
                 }
+                break;
+            case "3.4.4":
+                log.info("Updating data from version 3.4.4 to 3.5.0 ...");
+                tenantsDashboardsFiltersUpdater.updateEntities();
                 break;
             case "3.5.0":
                 log.info("Updating data from version 3.5.0 to 3.5.0PE ...");
@@ -1520,5 +1525,77 @@ public class DefaultDataUpdateService implements DataUpdateService {
             return Boolean.parseBoolean(env);
         }
     }
+
+    private final PaginatedUpdater<String, Tenant> tenantsDashboardsFiltersUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants dashboards filters updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    updateTenantDashboardsFilters(tenant.getId());
+                }
+            };
+
+    private void updateTenantDashboardsFilters(TenantId tenantId) {
+        PageLink pageLink = new PageLink(100);
+        PageData<DashboardInfo> pageData = dashboardService.findDashboardsByTenantId(tenantId, pageLink);
+        boolean hasNext = true;
+        while (hasNext) {
+            List<ListenableFuture<List<Void>>> updateFutures = new ArrayList<>();
+            for (DashboardInfo dashboardInfo : pageData.getData()) {
+                updateFutures.add(updateDashboardFilters(tenantId, dashboardInfo));
+            }
+
+            try {
+                Futures.allAsList(updateFutures).get();
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Failed to update dashboards filters", e);
+            }
+
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+                pageData = dashboardService.findDashboardsByTenantId(tenantId, pageLink);
+            } else {
+                hasNext = false;
+            }
+        }
+    }
+
+    private ListenableFuture<List<Void>> updateDashboardFilters(TenantId tenantId, DashboardInfo dashboardInfo) {
+        DashboardId dashboardId = dashboardInfo.getId();
+        return Futures.transform(dashboardService.findDashboardByIdAsync(tenantId, dashboardId), dashboard -> {
+            if (dashboard == null || dashboard.getConfiguration() == null) {
+                return null;
+            }
+            try {
+                List<ObjectNode> entityAliases = dashboard.getEntityAliasesConfig();
+                if (entityAliases == null) {
+                    return null;
+                }
+                for (JsonNode entityAlias : entityAliases) {
+                    MiscUtils.updateDashboardFilterIfRequired(entityAlias);
+                }
+                dashboardService.saveDashboard(dashboard);
+            } catch (Exception e) {
+                log.warn("Failed to update dashboard filters. Dashboard {} ", dashboard, e);
+            }
+            return null;
+        }, MoreExecutors.directExecutor());
+    }
+
 
 }
