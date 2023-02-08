@@ -80,7 +80,7 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
 
   private propagateChange = null;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {

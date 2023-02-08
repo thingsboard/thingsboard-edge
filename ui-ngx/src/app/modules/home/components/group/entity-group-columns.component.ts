@@ -76,7 +76,7 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
 
   private propagateChange = null;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {

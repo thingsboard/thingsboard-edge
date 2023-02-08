@@ -68,7 +68,7 @@ export class PermissionListComponent extends PageComponent implements ControlVal
 
   private propagateChange = null;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   ngControl: NgControl;
 
