@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -218,6 +218,8 @@ import { IntegrationWizardDialogComponent } from '@home/components/wizard/integr
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import { MODULES_MAP } from '@shared/models/constants';
+import { modulesMap } from '@modules/common/modules-map';
 
 @NgModule({
   declarations:
@@ -560,7 +562,8 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
-    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule }
+    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule },
+    {provide: MODULES_MAP, useValue: modulesMap}
   ]
 })
 export class HomeComponentsModule {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,8 +47,8 @@ public enum EdgeEventActionType {
     ASSIGNED_TO_EDGE,
     UNASSIGNED_FROM_EDGE,
     CREDENTIALS_REQUEST,
-    ENTITY_MERGE_REQUEST,
     ADDED_TO_ENTITY_GROUP,
     REMOVED_FROM_ENTITY_GROUP,
-    CHANGE_OWNER
+    CHANGE_OWNER,
+    ENTITY_MERGE_REQUEST // deprecated
 }

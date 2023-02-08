@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.util.List;
 
@@ -66,6 +67,7 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private CustomerId customerId;
 
+    @NoXss
     @ApiModelProperty(position = 6, required = true, value = "representing type of the Alarm", example = "High Temperature Alarm")
     @Length(fieldName = "type")
     private String type;

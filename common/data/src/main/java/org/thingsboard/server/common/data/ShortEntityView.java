@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -44,10 +45,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ApiModel
+@NoArgsConstructor
 public class ShortEntityView implements HasId<EntityId>, HasName {
 
     @ApiModelProperty(position = 1, value = "Entity Id object", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private final EntityId id;
+    private EntityId id;
     @ApiModelProperty(position = 2, value = "Map of entity fields that is configurable in the Entity Group", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Map<String, String> properties = new HashMap<>();
 

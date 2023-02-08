@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,7 +70,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 })
 export class HttpIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
-  baseHttpIntegrationConfigForm: FormGroup;
+  baseHttpIntegrationConfigForm: UntypedFormGroup;
   showSecurity = true;
 
   @Input()
@@ -81,7 +81,7 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: FormBuilder,
+  constructor(protected fb: UntypedFormBuilder,
               protected store: Store<AppState>,
               protected translate: TranslateService) {
     super();

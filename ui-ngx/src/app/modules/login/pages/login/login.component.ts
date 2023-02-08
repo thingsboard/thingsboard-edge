@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Constants } from '@shared/models/constants';
 import { Router } from '@angular/router';
@@ -65,7 +65,7 @@ export class LoginComponent extends PageComponent implements OnInit {
               public wl: WhiteLabelingService,
               public selfRegistrationService: SelfRegistrationService,
               private translateService: TranslateService,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               private router: Router) {
     super(store);
   }

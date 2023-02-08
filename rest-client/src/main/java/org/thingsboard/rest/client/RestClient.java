@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -97,6 +97,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeInstallInstructions;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.event.EventType;
@@ -2694,6 +2695,12 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }).getBody();
     }
 
+    public Optional<EdgeInstallInstructions> getEdgeDockerInstallInstructions(EdgeId edgeId) {
+        ResponseEntity<EdgeInstallInstructions> edgeInstallInstructionsResult =
+                restTemplate.getForEntity(baseURL + "/api/edge/instructions/{edgeId}", EdgeInstallInstructions.class, edgeId.getId());
+        return Optional.ofNullable(edgeInstallInstructionsResult.getBody());
+    }
+
     public UUID saveEntitiesVersion(VersionCreateRequest request) {
         return restTemplate.postForEntity(baseURL + "/api/entities/vc/version", request, UUID.class).getBody();
     }
@@ -2710,6 +2717,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
             }
         }
     }
+
     public PageData<EntityVersion> listEntityVersions(EntityId externalEntityId, EntityId internalEntityId, String branch, PageLink pageLink) {
         String url = baseURL + "/api/entities/vc/version/{entityType}/{externalEntityUuid}?branch={branch}&" + getUrlParams(pageLink);
         Map<String, String> params = new HashMap<>();

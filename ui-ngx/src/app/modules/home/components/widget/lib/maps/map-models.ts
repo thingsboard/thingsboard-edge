@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -63,8 +63,10 @@ export interface CircleData {
 }
 
 export type GenericFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => string;
-export type MarkerImageFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => MarkerImageInfo;
-export type PosFuncton = (origXPos, origYPos) => { x, y };
+export type MarkerImageFunction = (data: FormattedData, markerImages: string[],
+                                   dsData: FormattedData[], dsIndex: number) => MarkerImageInfo;
+export type PosFunction = (origXPos, origYPos, data: FormattedData,
+                           dsData: FormattedData[], dsIndex: number, aspect: number) => { x: number, y: number };
 export type MarkerIconReadyFunction = (icon: MarkerIconInfo) => void;
 
 export enum GoogleMapType {

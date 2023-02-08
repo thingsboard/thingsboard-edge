@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Inject, Input, OnDestroy, OnInit } from '@angula
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -90,7 +90,7 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
 
   @Input() onlyUserDynamicSource = false;
 
-  filterListFormGroup: FormGroup;
+  filterListFormGroup: UntypedFormGroup;
 
   valueTypeEnum = EntityKeyValueType;
 
@@ -99,7 +99,7 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
   private destroy$ = new Subject();
   private propagateChange = null;
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               @Inject(COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN) private complexFilterPredicateDialogComponent: ComponentType<any>,
               private dialog: MatDialog) {
   }
@@ -118,8 +118,8 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
     this.destroy$.complete();
   }
 
-  get predicatesFormArray(): FormArray {
-    return this.filterListFormGroup.get('predicates') as FormArray;
+  get predicatesFormArray(): UntypedFormArray {
+    return this.filterListFormGroup.get('predicates') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -164,11 +164,11 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
   }
 
   public removePredicate(index: number) {
-    (this.filterListFormGroup.get('predicates') as FormArray).removeAt(index);
+    (this.filterListFormGroup.get('predicates') as UntypedFormArray).removeAt(index);
   }
 
   public addPredicate(complex: boolean) {
-    const predicatesFormArray = this.filterListFormGroup.get('predicates') as FormArray;
+    const predicatesFormArray = this.filterListFormGroup.get('predicates') as UntypedFormArray;
     const predicate = createDefaultFilterPredicateInfo(this.valueType, complex);
     let observable: Observable<KeyFilterPredicateInfo>;
     if (complex) {

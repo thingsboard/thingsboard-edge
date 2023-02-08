@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -121,16 +121,6 @@ abstract public class BaseDashboardEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, dashboardUpdateMsg.getMsgType());
         Assert.assertEquals(savedDashboard.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getIdMSB());
         Assert.assertEquals(savedDashboard.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getIdLSB());
-    }
-
-    private Dashboard saveDashboard(String dashboardTitle, EntityGroupId entityGroupId) {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(dashboardTitle);
-        if (entityGroupId != null) {
-            return doPost("/api/dashboard?entityGroupId={entityGroupId}", dashboard, Dashboard.class, entityGroupId.getId().toString());
-        } else {
-            return doPost("/api/dashboard", dashboard, Dashboard.class);
-        }
     }
 
     private void testDashboardEntityGroupRequestMsg(long msbId, long lsbId, DashboardId expectedDashboardId) throws Exception {

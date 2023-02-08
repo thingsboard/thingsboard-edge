@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { DAY, getDefaultTimezone, historyInterval } from '@shared/models/time/time.models';
@@ -65,7 +65,7 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
 
   modelValue: ReportConfig | null;
 
-  reportConfigFormGroup: FormGroup;
+  reportConfigFormGroup: UntypedFormGroup;
 
   @Input()
   reportsServerEndpointUrl: string;
@@ -91,7 +91,7 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
               private dialogService: DialogService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.reportConfigFormGroup = this.fb.group({
       baseUrl: [null, [Validators.required]],

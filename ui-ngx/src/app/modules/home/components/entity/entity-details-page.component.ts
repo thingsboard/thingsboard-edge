@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { deepClone, isDefined, isUndefined } from '@core/utils';
 import { BroadcastService } from '@core/services/broadcast.service';
@@ -162,7 +162,7 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
     });
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.detailsForm;
   }
 

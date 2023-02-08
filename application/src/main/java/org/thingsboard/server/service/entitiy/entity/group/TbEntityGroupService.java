@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,4 +44,8 @@ public interface TbEntityGroupService {
     EntityGroup save(TenantId tenantId, EntityId parentEntityId, EntityGroup entity, User currentUser) throws Exception;
 
     void delete(TenantId tenantId, List<EdgeId> relatedEdgeIds, EntityGroup entityGroup, User user) throws ThingsboardException;
+
+    EntityId makePublic(TenantId tenantId, EntityGroup entityGroup, User user) throws ThingsboardException;
+
+    void makePrivate(TenantId tenantId, EntityGroup entityGroup, User user) throws ThingsboardException;
 }

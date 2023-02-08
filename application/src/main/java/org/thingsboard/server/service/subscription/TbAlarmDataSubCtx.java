@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -220,6 +221,11 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
         } else {
             log.trace("[{}][{}][{}][{}] Received stale subscription update: {}", sessionId, cmdId, subscriptionUpdate.getSubscriptionId(), keyType, subscriptionUpdate);
         }
+    }
+
+    @Override
+    protected Aggregation getCurrentAggregation() {
+        return Aggregation.NONE;
     }
 
     private void sendWsMsg(String sessionId, AlarmSubscriptionUpdate subscriptionUpdate) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -93,6 +93,7 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
   settings = groupSettingsDefaults(this.entityGroup.type, this.entityGroup.configuration.settings);
   actionDescriptorsBySourceId: {[actionSourceId: string]: Array<WidgetActionDescriptor>} = {};
 
+  onGroupEntityRowClick: ($event: Event, entity: ShortEntityView) => void = null;
   onToggleEntityGroupDetails = () => {};
   onToggleEntityDetails = ($event: Event, entity: ShortEntityView) => {};
 

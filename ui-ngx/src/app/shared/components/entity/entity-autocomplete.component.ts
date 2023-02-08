@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,8 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import { MatFormFieldAppearance } from '@angular/material/form-field/form-field';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -68,7 +68,7 @@ import { isEqual } from '@core/utils';
 })
 export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit {
 
-  selectEntityFormGroup: FormGroup;
+  selectEntityFormGroup: UntypedFormGroup;
 
   modelValue: string | EntityId | null;
 
@@ -152,7 +152,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityService: EntityService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectEntityFormGroup = this.fb.group({
       entity: [null]
     });

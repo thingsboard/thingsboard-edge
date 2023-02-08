@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
@@ -64,13 +64,13 @@ export class RelationFiltersComponent extends PageComponent implements ControlVa
 
   @Input() allowedEntityTypes: Array<EntityType | AliasEntityType>;
 
-  relationFiltersFormGroup: FormGroup;
+  relationFiltersFormGroup: UntypedFormGroup;
 
   private destroy$ = new Subject();
   private propagateChange = null;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -91,8 +91,8 @@ export class RelationFiltersComponent extends PageComponent implements ControlVa
     this.destroy$.complete();
   }
 
-  get relationFiltersFormArray(): FormArray {
-      return this.relationFiltersFormGroup.get('relationFilters') as FormArray;
+  get relationFiltersFormArray(): UntypedFormArray {
+      return this.relationFiltersFormGroup.get('relationFilters') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -121,7 +121,7 @@ export class RelationFiltersComponent extends PageComponent implements ControlVa
   }
 
   public removeFilter(index: number) {
-    (this.relationFiltersFormGroup.get('relationFilters') as FormArray).removeAt(index);
+    (this.relationFiltersFormGroup.get('relationFilters') as UntypedFormArray).removeAt(index);
   }
 
   public addFilter() {

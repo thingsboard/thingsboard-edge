@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -90,6 +91,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -99,7 +101,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("DeviceDaoService")
 @Slf4j
 public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKey, Device, DeviceCacheEvictEvent> implements DeviceService {
 
@@ -633,4 +635,15 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
         return deviceDao.countByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type);
     }
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findDeviceById(tenantId, new DeviceId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.DEVICE;
+    }
+
 }

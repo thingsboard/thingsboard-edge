@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output } 
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -51,11 +51,11 @@ export class DetailsPanelComponent extends PageComponent implements OnDestroy {
   @Input() isShowSearch = false;
   @Input() backgroundColor = '#FFF';
 
-  private theFormValue: FormGroup;
+  private theFormValue: UntypedFormGroup;
   private formSubscription: Subscription = null;
 
   @Input()
-  set theForm(value: FormGroup) {
+  set theForm(value: UntypedFormGroup) {
     if (this.theFormValue !== value) {
       if (this.formSubscription !== null) {
         this.formSubscription.unsubscribe();
@@ -68,7 +68,7 @@ export class DetailsPanelComponent extends PageComponent implements OnDestroy {
     }
   }
 
-  get theForm(): FormGroup {
+  get theForm(): UntypedFormGroup {
     return this.theFormValue;
   }
 

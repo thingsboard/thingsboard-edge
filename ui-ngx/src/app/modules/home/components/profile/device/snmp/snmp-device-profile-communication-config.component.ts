@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -67,16 +67,16 @@ export class SnmpDeviceProfileCommunicationConfigComponent implements OnInit, On
   snmpSpecTypes = Object.values(SnmpSpecType);
   snmpSpecTypeTranslationMap = SnmpSpecTypeTranslationMap;
 
-  deviceProfileCommunicationConfig: FormGroup;
+  deviceProfileCommunicationConfig: UntypedFormGroup;
 
   @Input()
   disabled: boolean;
 
   private usedSpecType: SnmpSpecType[] = [];
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: UntypedFormBuilder) { }
 
   ngOnInit(): void {
     this.deviceProfileCommunicationConfig = this.fb.group({
@@ -92,8 +92,8 @@ export class SnmpDeviceProfileCommunicationConfigComponent implements OnInit, On
     this.destroy$.complete();
   }
 
-  get communicationConfigFormArray(): FormArray {
-    return this.deviceProfileCommunicationConfig.get('communicationConfig') as FormArray;
+  get communicationConfigFormArray(): UntypedFormArray {
+    return this.deviceProfileCommunicationConfig.get('communicationConfig') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -189,7 +189,7 @@ export class SnmpDeviceProfileCommunicationConfigComponent implements OnInit, On
     });
   }
 
-  private createdFormGroup(value?: SnmpCommunicationConfig): FormGroup {
+  private createdFormGroup(value?: SnmpCommunicationConfig): UntypedFormGroup {
     if (isUndefinedOrNull(value)) {
       value = {
         spec: this.getFirstUnusedSeverity(),

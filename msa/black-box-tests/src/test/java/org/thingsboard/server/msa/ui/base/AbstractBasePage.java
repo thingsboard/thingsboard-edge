@@ -1,0 +1,232 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.msa.ui.base;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+
+@Slf4j
+abstract public class AbstractBasePage {
+    protected WebDriver driver;
+    protected WebDriverWait wait;
+    protected Actions actions;
+    protected JavascriptExecutor js;
+
+    public AbstractBasePage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofMillis(8000));
+        this.actions = new Actions(driver);
+        this.js = (JavascriptExecutor) driver;
+    }
+
+    @SneakyThrows
+    protected static void sleep(double second) {
+        Thread.sleep((long) (second * 1000L));
+    }
+
+    protected WebElement waitUntilVisibilityOfElementLocated(String locator) {
+        try {
+            return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
+        } catch (WebDriverException e) {
+            log.error("No visibility element: " + locator);
+            return null;
+        }
+    }
+
+    protected WebElement waitUntilPresenceOfElementLocated(String locator) {
+        try {
+            return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+        } catch (WebDriverException e) {
+            log.error("No presence element: " + locator);
+            return null;
+        }
+    }
+
+    protected WebElement waitUntilElementToBeClickable(String locator) {
+        try {
+            return wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
+        } catch (WebDriverException e) {
+            log.error("No clickable element: " + locator);
+            return null;
+        }
+    }
+
+    protected List<WebElement> waitUntilVisibilityOfElementsLocated(String locator) {
+        try {
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
+            return driver.findElements(By.xpath(locator));
+        } catch (WebDriverException e) {
+            log.error("No visibility elements: " + locator);
+            return null;
+        }
+    }
+
+    protected List<WebElement> waitUntilElementsToBeClickable(String locator) {
+        try {
+            wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
+            return driver.findElements(By.xpath(locator));
+        } catch (WebDriverException e) {
+            log.error("No clickable elements: " + locator);
+            return null;
+        }
+    }
+
+    public void waitUntilUrlContainsText(String urlPath) {
+        try {
+            wait.until(ExpectedConditions.urlContains(urlPath));
+        } catch (WebDriverException e) {
+            log.error("This URL path is missing");
+        }
+    }
+
+    protected void moveCursor(WebElement element) {
+        actions.moveToElement(element).build().perform();
+    }
+
+    protected void doubleClick(WebElement element) {
+        actions.doubleClick(element).build().perform();
+    }
+
+    public boolean elementIsNotPresent(String locator) {
+        try {
+            return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator))));
+        } catch (WebDriverException e) {
+            throw new AssertionError("Element is present");
+        }
+    }
+
+    public boolean elementIsNotPresent(WebElement element) {
+        try {
+            return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOf(element)));
+        } catch (WebDriverException e) {
+            throw new AssertionError("Element is present");
+        }
+    }
+
+    public void waitUntilElementNotVisibility(WebElement element){
+        try {
+            wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOf(element)));
+        } catch (WebDriverException e) {
+            log.error(element.getTagName() + "is visibility");
+        }
+    }
+
+    public boolean elementsIsNotPresent(String locator) {
+        try {
+            return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(locator))));
+        } catch (WebDriverException e) {
+            throw new AssertionError("Elements is present");
+        }
+    }
+
+    public void waitUntilNumberOfTabToBe(int tabNumber) {
+        try {
+            wait.until(ExpectedConditions.numberOfWindowsToBe(tabNumber));
+        } catch (WebDriverException e) {
+            log.error("No tabs with this number");
+        }
+    }
+
+    public void jsClick(WebElement element) {
+        js.executeScript("arguments[0].click();", element);
+    }
+
+    public void enterText(WebElement element, CharSequence keysToEnter) {
+        element.click();
+        element.sendKeys(keysToEnter);
+        if (element.getAttribute("value").isEmpty()) {
+            element.sendKeys(keysToEnter);
+        }
+    }
+
+    public void scrollToElement(WebElement element) {
+        js.executeScript("arguments[0].scrollIntoView(true);", element);
+    }
+
+    public void waitUntilAttributeContains(WebElement element, String attribute, String value) {
+        try {
+            wait.until(ExpectedConditions.attributeContains(element, attribute, value));
+        } catch (WebDriverException e) {
+            log.error("Miss locator, attribute or value");
+        }
+    }
+
+    public void waitUntilInvisibilityOfElementLocated(WebElement element) {
+        try {
+            wait.until(ExpectedConditions.invisibilityOf(element));
+        } catch (WebDriverException e) {
+            log.error("Element is visible");
+        }
+    }
+
+    public void goToNextTab(int tabNumber) {
+        waitUntilNumberOfTabToBe(tabNumber);
+        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
+        driver.switchTo().window(tabs.get(tabNumber - 1));
+    }
+
+    public static String getRandomNumber() {
+        StringBuilder random = new StringBuilder();
+        for (int i = 0; i < 5; i++) {
+            random.append(ThreadLocalRandom.current().nextInt(0, 100));
+        }
+        return random.toString();
+    }
+
+    public static String randomUUID() {
+        UUID randomUUID = UUID.randomUUID();
+        return randomUUID.toString().replaceAll("_", "");
+    }
+
+    public static String random() {
+        return getRandomNumber() + randomUUID().substring(0, 6);
+    }
+
+    public static char getRandomSymbol() {
+        String s = "~`!@#$^&*()_+=-";
+        return s.charAt(new Random().nextInt(s.length()));
+    }
+}

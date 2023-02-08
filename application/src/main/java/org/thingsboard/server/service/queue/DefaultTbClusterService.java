@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -461,6 +461,7 @@ public class DefaultTbClusterService implements TbClusterService {
         if (entityType.equals(EntityType.TENANT) || toIntegrationExecutor) {
             TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIeNfProducer = producerProvider.getTbIntegrationExecutorNotificationsMsgProducer();
             Set<String> tbIeServices = partitionService.getAllServiceIds(ServiceType.TB_INTEGRATION_EXECUTOR);
+            tbIeServices.addAll(partitionService.getAllServiceIds(ServiceType.TB_CORE));
             for (String serviceId : tbIeServices) {
                 TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceId);
                 ToIntegrationExecutorNotificationMsg toIeMsg = ToIntegrationExecutorNotificationMsg.newBuilder().setComponentLifecycleMsg(ByteString.copyFrom(msgBytes)).build();

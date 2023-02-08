@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -726,16 +726,16 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     protected Edge constructEdge(String name, String type) {
-        return constructEdge(tenantId, name, type);
+        return constructEdge(tenantId, name, type, StringUtils.randomAlphanumeric(20), StringUtils.randomAlphanumeric(20));
     }
 
-    protected Edge constructEdge(TenantId tenantId, String name, String type) {
+    protected Edge constructEdge(TenantId tenantId, String name, String type, String routingKey, String secret) {
         Edge edge = new Edge();
         edge.setTenantId(tenantId);
         edge.setName(name);
         edge.setType(type);
-        edge.setSecret(StringUtils.randomAlphanumeric(20));
-        edge.setRoutingKey(StringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(routingKey);
+        edge.setSecret(secret);
         edge.setEdgeLicenseKey(StringUtils.randomAlphanumeric(20));
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;

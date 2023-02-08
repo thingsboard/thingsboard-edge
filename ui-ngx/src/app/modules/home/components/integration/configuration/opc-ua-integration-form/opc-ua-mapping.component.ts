@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -63,7 +63,7 @@ import { OpcMappingType, OpcMappingTypeTranslation, OpcUaMapping } from '@shared
 })
 export class OpcUaMappingComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  opcMappingForm: FormGroup;
+  opcMappingForm: UntypedFormGroup;
 
   OpcMappingTypes = Object.values(OpcMappingType) as Array<OpcMappingType>;
   OpcMappingType = OpcMappingType;
@@ -72,10 +72,10 @@ export class OpcUaMappingComponent implements ControlValueAccessor, Validator, O
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     this.opcMappingForm = this.fb.group({
       map: this.fb.array([], Validators.required)
     });
@@ -112,7 +112,7 @@ export class OpcUaMappingComponent implements ControlValueAccessor, Validator, O
       if (this.mapFormArray.length === mappings.length) {
         this.opcMappingForm.get('map').patchValue(mappings, {emitEvent: false});
       } else {
-        const mapControls: Array<FormGroup> = [];
+        const mapControls: Array<UntypedFormGroup> = [];
         mappings.forEach((map) => {
           mapControls.push(this.createdFormGroup(map));
         });
@@ -140,15 +140,15 @@ export class OpcUaMappingComponent implements ControlValueAccessor, Validator, O
     this.mapFormArray.removeAt(index);
   }
 
-  get mapFormArray(): FormArray {
-    return this.opcMappingForm.get('map') as FormArray;
+  get mapFormArray(): UntypedFormArray {
+    return this.opcMappingForm.get('map') as UntypedFormArray;
   }
 
-  get mapFormArrayControls(): FormGroup[] {
-    return this.mapFormArray.controls as FormGroup[];
+  get mapFormArrayControls(): UntypedFormGroup[] {
+    return this.mapFormArray.controls as UntypedFormGroup[];
   }
 
-  private createdFormGroup(value?): FormGroup {
+  private createdFormGroup(value?): UntypedFormGroup {
     return this.fb.group({
       deviceNodePattern: [value?.deviceNodePattern || 'Channel1\\.Device\\d+$', Validators.required],
       mappingType: [value?.mappingType || OpcMappingType.FQN, Validators.required],

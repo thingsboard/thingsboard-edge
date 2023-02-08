@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -71,24 +71,26 @@ import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AlarmCommentId;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -140,6 +142,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerIn
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -170,6 +173,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -184,7 +188,7 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeLicenseService;
-import org.thingsboard.server.service.edge.EdgeNotificationService;
+import org.thingsboard.server.service.edge.instructions.EdgeInstallService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -267,6 +271,9 @@ public abstract class BaseController {
 
     @Autowired
     protected AlarmSubscriptionService alarmService;
+
+    @Autowired
+    protected AlarmCommentService alarmCommentService;
 
     @Autowired
     protected DeviceCredentialsService deviceCredentialsService;
@@ -384,6 +391,9 @@ public abstract class BaseController {
 
     @Autowired(required = false)
     protected EdgeRpcService edgeRpcService;
+
+    @Autowired(required = false)
+    protected EdgeInstallService edgeInstallService;
 
     @Autowired(required = false)
     protected EdgeLicenseService edgeLicenseService;
@@ -573,17 +583,6 @@ public abstract class BaseController {
         return groupType;
     }
 
-    EntityType checkPublicEntityGroupType(EntityType groupType) throws ThingsboardException {
-        if (groupType == null) {
-            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
-        if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
-                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
-            throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
-        return groupType;
-    }
-
     UUID toUUID(String id) throws ThingsboardException {
         try {
             return UUID.fromString(id);
@@ -593,9 +592,12 @@ public abstract class BaseController {
     }
 
     PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
-        if (!StringUtils.isEmpty(sortProperty)) {
+        if (StringUtils.isNotEmpty(sortProperty)) {
+            if (!Validator.isValidProperty(sortProperty)) {
+                throw new IllegalArgumentException("Invalid sort property");
+            }
             SortOrder.Direction direction = SortOrder.Direction.ASC;
-            if (!StringUtils.isEmpty(sortOrder)) {
+            if (StringUtils.isNotEmpty(sortOrder)) {
                 try {
                     direction = SortOrder.Direction.valueOf(sortOrder.toUpperCase());
                 } catch (IllegalArgumentException e) {
@@ -958,6 +960,20 @@ public abstract class BaseController {
         }
     }
 
+    AlarmComment checkAlarmCommentId(AlarmCommentId alarmCommentId, AlarmId alarmId) throws ThingsboardException {
+        try {
+            validateId(alarmCommentId, "Incorrect alarmCommentId " + alarmCommentId);
+            AlarmComment alarmComment = alarmCommentService.findAlarmCommentByIdAsync(getCurrentUser().getTenantId(), alarmCommentId).get();
+            checkNotNull(alarmComment, "Alarm comment with id [" + alarmCommentId + "] is not found");
+            if (!alarmId.equals(alarmComment.getAlarmId())) {
+                throw new ThingsboardException("Alarm id does not match with comment alarm id", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+            return alarmComment;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
     AlarmInfo checkAlarmInfoId(AlarmId alarmId, Operation operation) throws ThingsboardException {
         try {
             validateId(alarmId, "Incorrect alarmId " + alarmId);
@@ -1281,6 +1297,9 @@ public abstract class BaseController {
     }
 
     protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, EntityId previousOwnerId) {
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            tbClusterService.broadcastEntityStateChangeEvent(tenantId, new EdgeId(entityId.getId()), ComponentLifecycleEvent.UPDATED);
+        }
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
                 String body = null;

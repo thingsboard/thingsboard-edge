@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -86,6 +86,8 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.entityTranslations = entityTypeTranslations.get(EntityType.RULE_CHAIN);
     this.entityResources = entityTypeResources.get(EntityType.RULE_CHAIN);
 
+    this.rowPointer = true;
+
     this.componentsData = this.setComponentsData(this.params);
     this.columns = this.configureEntityTableColumns(this.componentsData.ruleChainScope);
     this.groupActionDescriptors = this.configureGroupActions(this.componentsData.ruleChainScope);
@@ -101,6 +103,14 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.saveEntity = ruleChain => this.saveRuleChain(ruleChain);
     this.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
     this.onEntityAction = action => this.onRuleChainAction(action, this.componentsData);
+    this.handleRowClick = ($event, ruleChain) => {
+      if (this.isDetailsOpen()) {
+        this.toggleEntityDetails($event, ruleChain);
+      } else {
+        this.openRuleChain($event, ruleChain, this.componentsData);
+      }
+      return true;
+    };
 
     this.configureRuleChainScope();
     defaultEntityTablePermissions(this.userPermissionsService, this);
@@ -303,12 +313,6 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     const actions: Array<CellActionDescriptor<RuleChain>> = [];
     actions.push(
       {
-        name: this.translate.instant('rulechain.open-rulechain'),
-        icon: 'settings_ethernet',
-        isEnabled: () => true,
-        onAction: ($event, entity) => this.openRuleChain($event, entity, params)
-      },
-      {
         name: this.translate.instant('rulechain.export'),
         icon: 'file_download',
         isEnabled: () => true,
@@ -369,6 +373,14 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         }
       );
     }
+    actions.push(
+      {
+        name: this.translate.instant('rulechain.rulechain-details'),
+        icon: 'edit',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.toggleEntityDetails($event, entity)
+      }
+    );
     return actions;
   }
 

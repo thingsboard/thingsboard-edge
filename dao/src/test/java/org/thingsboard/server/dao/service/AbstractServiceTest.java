@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,6 +72,7 @@ import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -191,6 +192,8 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected AlarmService alarmService;
+    @Autowired
+    protected AlarmCommentService alarmCommentService;
 
     @Autowired
     protected RuleChainService ruleChainService;

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import { Widget } from '@shared/models/widget.models';
 import { WidgetComponentService } from '@home/components/widget/widget-component.service';
 import { WidgetConfigComponentData } from '../../models/widget-component.models';
 import { isDefined, isString } from '@core/utils';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 
 @Component({
   selector: 'tb-edit-widget',
@@ -64,13 +64,13 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
   @Input()
   widgetLayout: WidgetLayout;
 
-  widgetFormGroup: FormGroup;
+  widgetFormGroup: UntypedFormGroup;
 
   widgetConfig: WidgetConfigComponentData;
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private widgetComponentService: WidgetComponentService) {
     super(store);
     this.widgetFormGroup = this.fb.group({

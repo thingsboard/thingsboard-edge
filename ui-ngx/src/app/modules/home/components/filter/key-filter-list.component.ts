@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,10 +33,10 @@ import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -85,16 +85,16 @@ export class KeyFilterListComponent implements ControlValueAccessor, Validator, 
 
   @Input() entityId: EntityId;
 
-  keyFilterListFormGroup: FormGroup;
+  keyFilterListFormGroup: UntypedFormGroup;
 
   entityKeyTypeTranslations = entityKeyTypeTranslationMap;
 
-  keyFiltersControl: FormControl;
+  keyFiltersControl: UntypedFormControl;
 
   private destroy$ = new Subject();
   private propagateChange = null;
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private dialog: MatDialog) {
   }
 
@@ -114,8 +114,8 @@ export class KeyFilterListComponent implements ControlValueAccessor, Validator, 
     this.destroy$.complete();
   }
 
-  get keyFiltersFormArray(): FormArray {
-    return this.keyFilterListFormGroup.get('keyFilters') as FormArray;
+  get keyFiltersFormArray(): UntypedFormArray {
+    return this.keyFilterListFormGroup.get('keyFilters') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -164,11 +164,11 @@ export class KeyFilterListComponent implements ControlValueAccessor, Validator, 
   }
 
   public removeKeyFilter(index: number) {
-    (this.keyFilterListFormGroup.get('keyFilters') as FormArray).removeAt(index);
+    (this.keyFilterListFormGroup.get('keyFilters') as UntypedFormArray).removeAt(index);
   }
 
   public addKeyFilter() {
-    const keyFiltersFormArray = this.keyFilterListFormGroup.get('keyFilters') as FormArray;
+    const keyFiltersFormArray = this.keyFilterListFormGroup.get('keyFilters') as UntypedFormArray;
     this.openKeyFilterDialog(null).subscribe((result) => {
       if (result) {
         keyFiltersFormArray.push(this.fb.control(result, [Validators.required]));
@@ -178,11 +178,11 @@ export class KeyFilterListComponent implements ControlValueAccessor, Validator, 
 
   public editKeyFilter(index: number) {
     const keyFilter: KeyFilterInfo =
-      (this.keyFilterListFormGroup.get('keyFilters') as FormArray).at(index).value;
+      (this.keyFilterListFormGroup.get('keyFilters') as UntypedFormArray).at(index).value;
     this.openKeyFilterDialog(keyFilter).subscribe(
       (result) => {
         if (result) {
-          (this.keyFilterListFormGroup.get('keyFilters') as FormArray).at(index).patchValue(result);
+          (this.keyFilterListFormGroup.get('keyFilters') as UntypedFormArray).at(index).patchValue(result);
         }
       }
     );

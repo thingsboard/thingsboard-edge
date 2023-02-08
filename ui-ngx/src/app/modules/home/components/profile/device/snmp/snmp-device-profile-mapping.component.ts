@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -65,7 +65,7 @@ import { isUndefinedOrNull } from '@core/utils';
 })
 export class SnmpDeviceProfileMappingComponent implements OnInit, OnDestroy, ControlValueAccessor, Validator {
 
-  mappingsConfigForm: FormGroup;
+  mappingsConfigForm: UntypedFormGroup;
 
   dataTypes = Object.values(DataType);
   dataTypesTranslationMap = DataTypeTranslationMap;
@@ -78,7 +78,7 @@ export class SnmpDeviceProfileMappingComponent implements OnInit, OnDestroy, Con
   private valueChange$: Subscription = null;
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: UntypedFormBuilder) { }
 
   ngOnInit() {
     this.mappingsConfigForm = this.fb.group({
@@ -140,8 +140,8 @@ export class SnmpDeviceProfileMappingComponent implements OnInit, OnDestroy, Con
     }
   }
 
-  get mappingsConfigFormArray(): FormArray {
-    return this.mappingsConfigForm.get('mappings') as FormArray;
+  get mappingsConfigFormArray(): UntypedFormArray {
+    return this.mappingsConfigForm.get('mappings') as UntypedFormArray;
   }
 
   public addMappingConfig() {
@@ -156,7 +156,7 @@ export class SnmpDeviceProfileMappingComponent implements OnInit, OnDestroy, Con
     this.mappingsConfigFormArray.removeAt(index);
   }
 
-  private createdFormGroup(value?: SnmpMapping): FormGroup {
+  private createdFormGroup(value?: SnmpMapping): UntypedFormGroup {
     if (isUndefinedOrNull(value)) {
       value = {
         dataType: DataType.STRING,
