@@ -72,5 +72,15 @@
     "imageUrls": ["https://thingsboard.io/images/solutions/assisted_living/assisted-living-1.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-2.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-3.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-4.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-5.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-6.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
+  },
+  {
+    "id": "garbage_bins",
+    "title": "Garbage Bins",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 5000,
+    "previewImageUrl": "",
+    "imageUrls": [],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
   }
 ]
