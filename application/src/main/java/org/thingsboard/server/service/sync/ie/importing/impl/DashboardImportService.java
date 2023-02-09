@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
-import org.thingsboard.server.utils.MiscUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,9 +78,6 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
         }
         for (JsonNode widgetConfig : dashboard.getWidgetsConfig()) {
             replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, "config", "actions"), Collections.singleton("id"), HINTS);
-        }
-        for (JsonNode entityAlias : dashboard.getEntityAliasesConfig()) {
-            MiscUtils.updateDashboardFilterIfRequired(entityAlias);
         }
         return dashboard;
     }

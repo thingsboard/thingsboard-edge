@@ -1582,13 +1582,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return null;
             }
             try {
-                List<ObjectNode> entityAliases = dashboard.getEntityAliasesConfig();
-                if (entityAliases == null) {
-                    return null;
-                }
-                for (JsonNode entityAlias : entityAliases) {
-                    MiscUtils.updateDashboardFilterIfRequired(entityAlias);
-                }
                 dashboardService.saveDashboard(dashboard);
             } catch (Exception e) {
                 log.warn("Failed to update dashboard filters. Dashboard {} ", dashboard, e);
