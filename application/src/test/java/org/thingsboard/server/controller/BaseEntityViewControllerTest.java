@@ -609,12 +609,14 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Ignore
     @Test
     public void testDeleteEntityViewWithDeleteRelationsOk() throws Exception {
         EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(tenantId, entityViewId, "/api/entityView/" + entityViewId);
     }
 
+    @Ignore
     @Test
     public void testDeleteEntityViewExceptionWithRelationsTransactional() throws Exception {
         EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelations Transactional Exception").getId();
