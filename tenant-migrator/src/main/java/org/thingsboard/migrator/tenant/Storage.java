@@ -67,13 +67,17 @@ public class Storage {
     }
 
     public void newFile(String name) throws IOException {
-        Path file = getFile(name);
+        Path file = getPath(name);
         Files.deleteIfExists(file);
         Files.createFile(file);
     }
 
     public Writer newWriter(Table table) throws IOException {
-        return Files.newBufferedWriter(getFile(table));
+        return newWriter(table.getName());
+    }
+
+    public Writer newWriter(String file) throws IOException {
+        return Files.newBufferedWriter(getPath(file));
     }
 
     public void addToFile(Writer writer, Map<String, Object> row) throws IOException {
@@ -87,9 +91,12 @@ public class Storage {
         writer.append(serialized).append(System.lineSeparator());
     }
 
-
     public void readAndProcess(Table table, Consumer<Map<String, Object>> processor) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(getFile(table))) {
+        readAndProcess(table.getName(), processor);
+    }
+
+    public void readAndProcess(String file, Consumer<Map<String, Object>> processor) throws IOException {
+        try (BufferedReader reader = Files.newBufferedReader(getPath(file))) {
             reader.lines().forEach(line -> {
                 if (StringUtils.isNotBlank(line)) {
                     Map<String, Object> data;
@@ -120,12 +127,7 @@ public class Storage {
         return jsonMapper.writeValueAsString(o);
     }
 
-
-    private Path getFile(Table table) {
-        return getFile(table.getName());
-    }
-
-    private Path getFile(String file) {
+    private Path getPath(String file) {
         return Path.of(workingDir, file);
     }
 

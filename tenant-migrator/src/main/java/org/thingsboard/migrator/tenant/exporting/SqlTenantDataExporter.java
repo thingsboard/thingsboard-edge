@@ -28,14 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant;
+package org.thingsboard.migrator.tenant.exporting;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.thingsboard.migrator.tenant.SqlHelperService;
+import org.thingsboard.migrator.tenant.Storage;
+import org.thingsboard.migrator.tenant.Table;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -49,10 +55,12 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-public class SqlTenantDataExporter {
+@ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_EXPORT")
+public class SqlTenantDataExporter implements ApplicationRunner {
 
     private final JdbcTemplate jdbcTemplate;
     private final Storage storage;
+    private final SqlHelperService helperService;
 
     @Value("${export.tenant_id}")
     private UUID exportedTenantId;
@@ -61,12 +69,12 @@ public class SqlTenantDataExporter {
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
 
-    public void exportTenant() throws Exception {
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
         for (Table table : Table.values()) {
             if (skippedTables.contains(table)) {
                 continue;
             }
-
             exportTableData(table, exportedTenantId);
         }
     }
@@ -113,20 +121,35 @@ public class SqlTenantDataExporter {
 
     private void queryAndSave(Table table, String query) throws IOException {
         try (Writer writer = storage.newWriter(table)) {
-            query(query, row -> {
-                try {
-                    storage.addToFile(writer, row);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            if (!table.isPartitioned()) {
+                query(query, row -> {
+                    try {
+                        storage.addToFile(writer, row);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            } else {
+                helperService.getPartitions(table).forEach((partitionStart, partitionEnd) -> {
+                    String tsFilter = format(" %s.%s >= %s AND %s.%s < %s AND ", table.getName(), table.getPartitionColumn(),
+                            partitionStart, table.getName(), table.getPartitionColumn(), partitionEnd);
+                    int afterWhere = StringUtils.indexOf(query, "WHERE") + 5;
+
+                    query(query.substring(0, afterWhere) + tsFilter + query.substring(afterWhere), row -> {
+                        try {
+                            storage.addToFile(writer, row);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                });
+            }
         }
     }
 
     private void query(String query, Consumer<Map<String, Object>> rowProcessor, Object... queryParams) {
         int batchIndex = 0;
 
-        // TODO: for partitioned tables - select by time range
         boolean hasNextBatch = true;
         while (hasNextBatch) {
             int offset = batchIndex * batchSize;

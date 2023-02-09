@@ -28,58 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant;
+package org.thingsboard.migrator.tenant.importing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.thingsboard.migrator.tenant.SqlHelperService;
+import org.thingsboard.migrator.tenant.Storage;
+import org.thingsboard.migrator.tenant.Table;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConfigurationProperties(prefix = "import")
-public class SqlTenantDataImporter {
+@ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_IMPORT")
+public class SqlTenantDataImporter implements ApplicationRunner {
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
     private final Storage storage;
+    private final SqlHelperService helperService;
 
-    @Setter
-    private Map<String, Integer> partitionSizes;
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
 
     private final Map<Table, Map<String, String>> columns = new HashMap<>();
-    private final Map<Table, Set<Long>> partitions = new HashMap<>();
 
-    public void importTenant() {
-        System.err.println("Partition sizes: " + partitionSizes);
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
         transactionTemplate.executeWithoutResult(status -> {
             for (Table table : Table.values()) {
                 if (skippedTables.contains(table)) {
                     continue;
                 }
-
                 importTableData(table);
             }
         });
-        System.err.println("FINISHED SUCCESSFULLY");
     }
 
     @SneakyThrows
@@ -87,7 +85,7 @@ public class SqlTenantDataImporter {
         storage.readAndProcess(table, row -> {
             row = prepareRow(table, row);
             if (table.isPartitioned()) {
-                createPartition(table, row);
+                helperService.createPartition(table, row);
             }
 
             String columnsStatement = "";
@@ -160,21 +158,6 @@ public class SqlTenantDataImporter {
             return unknownColumn;
         });
         return row;
-    }
-
-    private void createPartition(Table table, Map<String, Object> row) {
-        long partitionSize = TimeUnit.HOURS.toMillis(partitionSizes.get(table.getPartitionSizeSettingsKey()));
-        long ts = (long) row.get(table.getPartitionColumn());
-        long partitionStart = ts - (ts % partitionSize);
-        long partitionEnd = partitionStart + partitionSize;
-
-        boolean newPartition = partitions.computeIfAbsent(table, t -> new HashSet<>()).add(partitionStart);
-        if (newPartition) {
-            String query = format("CREATE TABLE IF NOT EXISTS %s_%s PARTITION OF %s FOR VALUES FROM (%s) TO (%s)",
-                    table.getName(), partitionStart, table.getName(), partitionStart, partitionEnd);
-            System.err.println("EXECUTING QUERY: " + query);
-            jdbcTemplate.execute(query);
-        }
     }
 
 }

@@ -28,16 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant;
+package org.thingsboard.migrator.tenant.config;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
+import org.springframework.context.annotation.Configuration;
 
-@SpringBootApplication
-public class TenantMigratorApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(TenantMigratorApplication.class, args);
-    }
-
+/*
+* Disables Cassandra auto-configuration if mode is related to SQL
+* */
+@Configuration
+@EnableAutoConfiguration(exclude = {CassandraDataAutoConfiguration.class, CassandraAutoConfiguration.class})
+@ConditionalOnExpression("'${mode}'.startsWith('SQL')")
+public class Config {
 }

@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-mode: ${MIGRATOR_MODE}  # EXPORT or IMPORT
+mode: ${MIGRATOR_MODE}  # SQL_DATA_EXPORT, CASSANDRA_DATA_EXPORT, SQL_DATA_IMPORT, CASSANDRA_DATA_IMPORT
 working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant data will be stored or read from
 
 export:
@@ -37,12 +37,15 @@ export:
   batch_size: ${EXPORT_BATCH_SIZE:200}
 
 import:
-  partition_sizes:  # in hours
-    event: ${EVENTS_PARTITION_SIZE:168}
-    debug_event: ${DEBUG_EVENT_PARTITION_SIZE:1}
-    edge_event: ${EDGE_EVENTS_PARTITION_SIZE:168}
-    audit_log: ${AUDIT_LOGS_PARTITION_SIZE:168}  # fixme: if env changed - default is used !!
-    blob_entity: ${BLOB_ENTITIES_PARTITION_SIZE:168}
+  cassandra:
+    ttl: ${CASSANDRA_TS_KV_TTL:365}  # days
+
+partition_sizes: # in hours
+  event: ${EVENTS_PARTITION_SIZE:168}
+  debug_event: ${DEBUG_EVENT_PARTITION_SIZE:1}
+  edge_event: ${EDGE_EVENTS_PARTITION_SIZE:168}
+  audit_log: ${AUDIT_LOGS_PARTITION_SIZE:168}
+  blob_entity: ${BLOB_ENTITIES_PARTITION_SIZE:168}
 
 skipped_tables: ${SKIPPED_TABLES:}
 
@@ -52,3 +55,11 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/thingsboard}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:postgres}
+
+  data:
+    cassandra:
+      keyspace-name: ${CASSANDRA_KEYSPACE_NAME:thingsboard}
+      contact-points: ${CASSANDRA_URL:127.0.0.1:9042}
+      local-datacenter: ${CASSANDRA_LOCAL_DATACENTER:datacenter1}
+      request:
+        page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}

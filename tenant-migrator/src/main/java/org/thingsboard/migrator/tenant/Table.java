@@ -54,7 +54,7 @@ public enum Table {
     RESOURCE("resource"),
     API_USAGE_STATE("api_usage_state"),
     ROLE("role"),
-    ENTITY_GROUP("entity_group", Pair.of( // FIXME: ts or attrs for entity group will not be exported
+    ENTITY_GROUP("entity_group", Pair.of(
             "owner_id", of(TENANT, CUSTOMER)
     )),
     DEVICE_GROUP_OTA_PACKAGE("device_group_ota_package", Pair.of(
