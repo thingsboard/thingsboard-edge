@@ -76,7 +76,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;

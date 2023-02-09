@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.query;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.List;

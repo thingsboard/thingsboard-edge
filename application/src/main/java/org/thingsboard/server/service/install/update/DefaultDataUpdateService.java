@@ -143,7 +143,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
-import org.thingsboard.server.utils.MiscUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
