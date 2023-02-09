@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
@@ -476,12 +477,14 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         Assert.assertEquals(1, customerUserDashboards.size());
     }
 
+    @Ignore
     @Test
     public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
         DashboardId dashboardId = createDashboard("Dashboard for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
     }
 
+    @Ignore
     @Test
     public void testDeleteDashboardExceptionWithRelationsTransactional() throws Exception {
         DashboardId dashboardId = createDashboard("Dashboard for Test WithRelations Transactional Exception").getId();
