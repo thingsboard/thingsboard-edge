@@ -79,6 +79,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelMask;
 import org.thingsboard.server.dao.audit.AuditLogLevelProperties;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.component.ComponentDescriptorService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -192,8 +193,12 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected AlarmService alarmService;
+
     @Autowired
     protected AlarmCommentService alarmCommentService;
+
+    @Autowired
+    protected BlobEntityService blobEntityService;
 
     @Autowired
     protected RuleChainService ruleChainService;

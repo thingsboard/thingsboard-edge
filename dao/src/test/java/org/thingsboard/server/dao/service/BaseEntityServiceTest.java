@@ -43,17 +43,20 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -65,6 +68,9 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -98,6 +104,7 @@ import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sql.relation.RelationRepository;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1226,6 +1233,114 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             Assert.assertEquals(deviceHighTemperatures, loadedHighTemperatures);
 
         }
+        deviceService.deleteDevicesByTenantId(tenantId);
+    }
+
+    @Test
+    public void testFindEntityDataByQueryRelationQuery() throws InterruptedException {
+
+        List<Customer> customers = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            Customer customer = new Customer();
+            customer.setId(new CustomerId(UUID.randomUUID()));
+            customer.setTenantId(tenantId);
+            customer.setTitle("Customer Relation Query " + i);
+            //TO make sure customers have different created time
+            Thread.sleep(1);
+            customers.add(customerService.saveCustomer(customer));
+        }
+
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        for (Customer customer : customers) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setId(new EntityGroupId(UUID.randomUUID()));
+            entityGroup.setName("All");
+            entityGroup.setOwnerId(customer.getId());
+            entityGroup.setTenantId(tenantId);
+            entityGroup.setType(EntityType.DEVICE);
+            //TO make sure entityGroups have different created time
+            Thread.sleep(1);
+            entityGroups.add(entityGroupService.saveEntityGroup(tenantId, customer.getId(), entityGroup));
+        }
+
+
+        List<Device> devices = new ArrayList<>();
+        for (int i = 0; i < customers.size(); i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device relation query " + i);
+            device.setCustomerId(customers.get(i).getId());
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            //TO make sure devices have different created time
+            Thread.sleep(1);
+            devices.add(deviceService.saveDevice(device));
+        }
+
+        List<BlobEntity> blobEntities = new ArrayList<>();
+        for (int i = 0; i < customers.size() * 3; i++) {
+            BlobEntity blobEntity = new BlobEntity();
+            blobEntity.setName("Blob " + i);
+            blobEntity.setTenantId(tenantId);
+            blobEntity.setContentType("image/png");
+            blobEntity.setData(ByteBuffer.allocate(1024));
+            blobEntity.setCustomerId(customers.get(i % customers.size()).getId());
+            blobEntity.setType("Report");
+            blobEntities.add(blobEntityService.saveBlobEntity(blobEntity));
+            //TO make sure blob entities have different created time
+            Thread.sleep(1);
+        }
+
+        List<EntityRelation> relations = new ArrayList<>();
+        for (int i = 0; i < blobEntities.size(); i++) {
+            EntityRelation relationEntity = new EntityRelation();
+            relationEntity.setFrom(devices.get(i % devices.size()).getId());
+            relationEntity.setTo(blobEntities.get(i).getId());
+            relationEntity.setTypeGroup(RelationTypeGroup.COMMON);
+            relationEntity.setType("fileAttached");
+            if (relationService.saveRelation(tenantId, relationEntity)) {
+                relations.add(relationEntity);
+            }
+            //TO make sure relations have different created time
+            Thread.sleep(1);
+        }
+
+        Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
+        for (EntityGroup entityGroup: entityGroups) {
+            groupPermissions.put(entityGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Collections.singleton(Operation.READ)));
+            groupPermissions.put(entityGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Collections.singleton(Operation.READ)));
+        }
+        MergedUserPermissions mergedUserPermissionsRelationQuery = new MergedUserPermissions(Collections.emptyMap(), groupPermissions);
+        mergedUserPermissionsRelationQuery.getReadEntityPermissions().forEach((key, value) -> {
+            List<EntityGroupId> list  = mergedUserPermissionsRelationQuery.getReadEntityPermissions().get(key).getEntityGroupIds();
+            MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = new MergedGroupTypePermissionInfo(list, true);
+            mergedUserPermissionsRelationQuery.getReadEntityPermissions().put(key, mergedGroupTypePermissionInfo);
+        });
+
+        RelationEntityTypeFilter relationEntityTypeFilter = new RelationEntityTypeFilter("fileAttached", Collections.singletonList(EntityType.BLOB_ENTITY));
+        RelationsQueryFilter filter = new RelationsQueryFilter();
+        filter.setFilters(Collections.singletonList(relationEntityTypeFilter));
+        filter.setDirection(EntitySearchDirection.FROM);
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+
+        for (int i = 0; i < customers.size(); i++) {
+            filter.setRootEntity(devices.get(i).getId());
+
+            EntityDataQuery query = new EntityDataQuery(filter, pageLink, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+            PageData<EntityData> data = entityService.findEntityDataByQuery(tenantId, customers.get(i).getId(), mergedUserPermissionsRelationQuery, query);
+            long count = entityService.countEntitiesByQuery(tenantId, customers.get(i).getId(), mergedUserPermissionsRelationQuery, query);
+            long blobEntitiesForCustomer = blobEntityService.findBlobEntitiesByTenantIdAndCustomerId(tenantId, customers.get(i).getId(), new TimePageLink(10)).getTotalElements();
+
+            Assert.assertEquals(blobEntitiesForCustomer, data.getData().size());
+            Assert.assertEquals(count, data.getData().size());
+        }
+
+        relations.forEach(relation -> relationService.deleteRelation(tenantId, relation));
+        blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
+        customerService.deleteCustomersByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
     }
 
