@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -63,14 +63,14 @@ import { TuyaEnv, TuyaIntegration, TuyaRegion, TuyaRegionTranslation } from '@sh
 
 export class TuyaIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  tuyaIntegrationConfigForm: FormGroup;
+  tuyaIntegrationConfigForm: UntypedFormGroup;
   tuyaRegion = TuyaRegion;
   tuyaEnv = TuyaEnv;
   TuyaRegionTranslation = TuyaRegionTranslation;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.tuyaIntegrationConfigForm = this.fb.group({
       region: [TuyaRegion.CN, [Validators.required]],

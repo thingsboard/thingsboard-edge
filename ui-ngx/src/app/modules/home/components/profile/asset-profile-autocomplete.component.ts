@@ -40,7 +40,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -78,7 +78,7 @@ export class AssetProfileAutocompleteComponent implements ControlValueAccessor, 
 
   operation = Operation;
 
-  selectAssetProfileFormGroup: FormGroup;
+  selectAssetProfileFormGroup: UntypedFormGroup;
 
   modelValue: AssetProfileId | null;
 
@@ -145,7 +145,7 @@ export class AssetProfileAutocompleteComponent implements ControlValueAccessor, 
               public translate: TranslateService,
               public truncate: TruncatePipe,
               private assetProfileService: AssetProfileService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private zone: NgZone,
               private dialog: MatDialog) {
     this.selectAssetProfileFormGroup = this.fb.group({

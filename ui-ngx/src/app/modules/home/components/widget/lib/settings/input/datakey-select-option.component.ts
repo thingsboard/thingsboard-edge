@@ -33,8 +33,8 @@ import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@ang
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   Validators
 } from '@angular/forms';
@@ -86,12 +86,12 @@ export class DataKeySelectOptionComponent extends PageComponent implements OnIni
 
   private propagateChange = null;
 
-  public selectOptionFormGroup: FormGroup;
+  public selectOptionFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private domSanitizer: DomSanitizer,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

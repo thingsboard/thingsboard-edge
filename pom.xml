@@ -852,8 +852,10 @@
                             <exclude>docker/haproxy/**</exclude>
                             <exclude>docker/tb-node/**</exclude>
                             <exclude>ui/**</exclude>
-                            <exclude>src/.browserslistrc</exclude>
+                            <exclude>**/.browserslistrc</exclude>
                             <exclude>**/yarn.lock</exclude>
+                            <exclude>**/.yarnrc</exclude>
+                            <exclude>**/.angular/**</exclude>
                             <exclude>**/*.raw</exclude>
                             <exclude>.run/**</exclude>
                             <exclude>docker/**</exclude>

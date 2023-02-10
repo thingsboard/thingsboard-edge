@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import {
   debounceTime,
@@ -66,7 +66,7 @@ interface ResourceTypeInfo {
 })
 export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
-  resourceTypeFormGroup: FormGroup;
+  resourceTypeFormGroup: UntypedFormGroup;
 
   modelValue: Resource | null;
 
@@ -102,7 +102,7 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.resourceTypeFormGroup = this.fb.group({
       resourceType: [null]
     });

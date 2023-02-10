@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator, Validators
@@ -72,12 +72,12 @@ export class RouteMapSettingsComponent extends PageComponent implements OnInit, 
 
   private propagateChange = null;
 
-  public routeMapSettingsFormGroup: FormGroup;
+  public routeMapSettingsFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -114,7 +114,7 @@ export class RouteMapSettingsComponent extends PageComponent implements OnInit, 
     );
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.routeMapSettingsFormGroup.valid ? null : {
       routeMapSettings: {
         valid: false,

@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { CustomSchedulerEventType } from '@home/components/scheduler/scheduler-events.models';
@@ -46,14 +46,14 @@ import {
 })
 export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  schedulerEventsWidgetSettingsForm: FormGroup;
+  schedulerEventsWidgetSettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.schedulerEventsWidgetSettingsForm;
   }
 
@@ -89,11 +89,11 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
     });
   }
 
-  protected doUpdateSettings(settingsForm: FormGroup, settings: WidgetSettings) {
+  protected doUpdateSettings(settingsForm: UntypedFormGroup, settings: WidgetSettings) {
     settingsForm.setControl('customEventTypes', this.prepareCustomEventTypesFormArray(settings.customEventTypes), {emitEvent: false});
   }
 
-  private prepareCustomEventTypesFormArray(customEventTypes: CustomSchedulerEventType[] | undefined): FormArray {
+  private prepareCustomEventTypesFormArray(customEventTypes: CustomSchedulerEventType[] | undefined): UntypedFormArray {
     const customEventTypesControls: Array<AbstractControl> = [];
     if (customEventTypes) {
       customEventTypes.forEach((customEventType) => {
@@ -103,8 +103,8 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
     return this.fb.array(customEventTypesControls, []);
   }
 
-  customEventTypesFormArray(): FormArray {
-    return this.schedulerEventsWidgetSettingsForm.get('customEventTypes') as FormArray;
+  customEventTypesFormArray(): UntypedFormArray {
+    return this.schedulerEventsWidgetSettingsForm.get('customEventTypes') as UntypedFormArray;
   }
 
   public trackByCustomEventType(index: number, customEventTypeControl: AbstractControl): any {
@@ -112,7 +112,7 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
   }
 
   public removeCustomEventType(index: number) {
-    (this.schedulerEventsWidgetSettingsForm.get('customEventTypes') as FormArray).removeAt(index);
+    (this.schedulerEventsWidgetSettingsForm.get('customEventTypes') as UntypedFormArray).removeAt(index);
   }
 
   public addCustomEventType() {
@@ -124,7 +124,7 @@ export class SchedulerEventsWidgetSettingsComponent extends WidgetSettingsCompon
       metadata: null,
       template: null
     };
-    const customEventTypesArray = this.schedulerEventsWidgetSettingsForm.get('customEventTypes') as FormArray;
+    const customEventTypesArray = this.schedulerEventsWidgetSettingsForm.get('customEventTypes') as UntypedFormArray;
     const customEventTypeControl = this.fb.control(customEventType, [customSchedulerEventTypeValidator]);
     (customEventTypeControl as any).new = true;
     customEventTypesArray.push(customEventTypeControl);

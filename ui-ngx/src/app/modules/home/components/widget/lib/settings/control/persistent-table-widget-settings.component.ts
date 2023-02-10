@@ -31,7 +31,7 @@
 
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -70,7 +70,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
 
   separatorKeysCodes = [ENTER, COMMA, SEMICOLON];
 
-  persistentTableWidgetSettingsForm: FormGroup;
+  persistentTableWidgetSettingsForm: UntypedFormGroup;
 
   filteredDisplayColumns: Observable<Array<DisplayColumn>>;
 
@@ -81,7 +81,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
   constructor(protected store: Store<AppState>,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.filteredDisplayColumns = this.columnInputChange
       .pipe(
@@ -92,7 +92,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
       );
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.persistentTableWidgetSettingsForm;
   }
 

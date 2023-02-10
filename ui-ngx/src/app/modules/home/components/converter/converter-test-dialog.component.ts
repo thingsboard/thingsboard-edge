@@ -45,7 +45,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { combineLatest, NEVER, Observable, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
@@ -100,7 +100,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
   @ViewChild('payloadContent', {static: true}) payloadContent: JsonContentComponent;
 
-  converterTestFormGroup: FormGroup;
+  converterTestFormGroup: UntypedFormGroup;
 
   isDecoder: boolean;
 
@@ -121,7 +121,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
               @Inject(MAT_DIALOG_DATA) public data: ConverterTestDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<ConverterTestDialogComponent, string>,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               public wl: WhiteLabelingService,
               private converterService: ConverterService) {
     super(store, router, dialogRef);
@@ -187,7 +187,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       funcBody: [this.data.funcBody, []],
       output: ['', []]
     });
-    const payloadFormGroup: FormGroup = this.converterTestFormGroup.get('payload') as FormGroup;
+    const payloadFormGroup: UntypedFormGroup = this.converterTestFormGroup.get('payload') as UntypedFormGroup;
     if (this.isDecoder) {
       payloadFormGroup.addControl(
         'payload', this.fb.control(null, [])
@@ -331,7 +331,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     });
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

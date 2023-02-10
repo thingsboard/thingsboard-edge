@@ -32,17 +32,14 @@ package org.thingsboard.server.queue.settings;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 @Lazy
 @Data
 @Component
-public class TbQueueIntegrationNotificationSettings {
-
-    @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
-    private String downlinkTopic;
+public class TbQueueIntegrationExecutorSettings {
 
     @Value("${queue.integration.notifications_topic:tb_ie.notifications}")
     private String notificationsTopic;
@@ -53,5 +50,13 @@ public class TbQueueIntegrationNotificationSettings {
     @Value("${queue.integration.pack-processing-timeout:10000}")
     private long packProcessingTimeout;
 
+    @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
+    private String downlinkTopic;
 
+    @Value("${queue.integration.uplink_topic:tb_ie.uplink}")
+    private String uplinkTopic;
+
+    public  String getIntegrationDownlinkTopic(IntegrationType it) {
+        return downlinkTopic + "." + it.name().toLowerCase();
+    }
 }
