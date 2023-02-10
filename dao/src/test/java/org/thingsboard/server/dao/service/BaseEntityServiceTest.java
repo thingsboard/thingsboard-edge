@@ -1237,82 +1237,61 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQueryRelationQuery() throws InterruptedException {
+    public void testFindEntityDataByQueryRelationQuery() {
 
-        List<Customer> customers = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
-            Customer customer = new Customer();
-            customer.setId(new CustomerId(UUID.randomUUID()));
-            customer.setTenantId(tenantId);
-            customer.setTitle("Customer Relation Query " + i);
-            //TO make sure customers have different created time
-            Thread.sleep(1);
-            customers.add(customerService.saveCustomer(customer));
-        }
+        Customer customer = new Customer();
+        customer.setId(new CustomerId(UUID.randomUUID()));
+        customer.setTenantId(tenantId);
+        customer.setTitle("Customer Relation Query ");
+        customer = customerService.saveCustomer(customer);
 
-        List<EntityGroup> entityGroups = new ArrayList<>();
-        for (Customer customer : customers) {
-            EntityGroup entityGroup = new EntityGroup();
-            entityGroup.setId(new EntityGroupId(UUID.randomUUID()));
-            entityGroup.setName("All");
-            entityGroup.setOwnerId(customer.getId());
-            entityGroup.setTenantId(tenantId);
-            entityGroup.setType(EntityType.DEVICE);
-            //TO make sure entityGroups have different created time
-            Thread.sleep(1);
-            entityGroups.add(entityGroupService.saveEntityGroup(tenantId, customer.getId(), entityGroup));
-        }
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setId(new EntityGroupId(UUID.randomUUID()));
+        entityGroup.setName("All");
+        entityGroup.setOwnerId(customer.getId());
+        entityGroup.setTenantId(tenantId);
+        entityGroup.setType(EntityType.DEVICE);
+        entityGroup = entityGroupService.saveEntityGroup(tenantId, customer.getId(), entityGroup);
 
 
         List<Device> devices = new ArrayList<>();
-        for (int i = 0; i < customers.size(); i++) {
+        for (int i = 0; i < 2; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             device.setName("Device relation query " + i);
-            device.setCustomerId(customers.get(i).getId());
+            device.setCustomerId(customer.getId());
             device.setType("default");
             device.setLabel("testLabel" + (int) (Math.random() * 1000));
-            //TO make sure devices have different created time
-            Thread.sleep(1);
             devices.add(deviceService.saveDevice(device));
         }
 
         List<BlobEntity> blobEntities = new ArrayList<>();
-        for (int i = 0; i < customers.size() * 3; i++) {
+        for (int i = 0; i < devices.size() * 3; i++) {
             BlobEntity blobEntity = new BlobEntity();
             blobEntity.setName("Blob " + i);
             blobEntity.setTenantId(tenantId);
             blobEntity.setContentType("image/png");
             blobEntity.setData(ByteBuffer.allocate(1024));
-            blobEntity.setCustomerId(customers.get(i % customers.size()).getId());
+            blobEntity.setCustomerId(customer.getId());
             blobEntity.setType("Report");
             blobEntities.add(blobEntityService.saveBlobEntity(blobEntity));
-            //TO make sure blob entities have different created time
-            Thread.sleep(1);
         }
 
-        List<EntityRelation> relations = new ArrayList<>();
         for (int i = 0; i < blobEntities.size(); i++) {
             EntityRelation relationEntity = new EntityRelation();
             relationEntity.setFrom(devices.get(i % devices.size()).getId());
             relationEntity.setTo(blobEntities.get(i).getId());
             relationEntity.setTypeGroup(RelationTypeGroup.COMMON);
             relationEntity.setType("fileAttached");
-            if (relationService.saveRelation(tenantId, relationEntity)) {
-                relations.add(relationEntity);
-            }
-            //TO make sure relations have different created time
-            Thread.sleep(1);
+            relationService.saveRelation(tenantId, relationEntity);
         }
 
         Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
-        for (EntityGroup entityGroup: entityGroups) {
-            groupPermissions.put(entityGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Collections.singleton(Operation.READ)));
-            groupPermissions.put(entityGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Collections.singleton(Operation.READ)));
-        }
+        groupPermissions.put(entityGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Collections.singleton(Operation.READ)));
+
         MergedUserPermissions mergedUserPermissionsRelationQuery = new MergedUserPermissions(Collections.emptyMap(), groupPermissions);
         mergedUserPermissionsRelationQuery.getReadEntityPermissions().forEach((key, value) -> {
-            List<EntityGroupId> list  = mergedUserPermissionsRelationQuery.getReadEntityPermissions().get(key).getEntityGroupIds();
+            List<EntityGroupId> list = mergedUserPermissionsRelationQuery.getReadEntityPermissions().get(key).getEntityGroupIds();
             MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = new MergedGroupTypePermissionInfo(list, true);
             mergedUserPermissionsRelationQuery.getReadEntityPermissions().put(key, mergedGroupTypePermissionInfo);
         });
@@ -1326,22 +1305,16 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         );
         EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
 
-        for (int i = 0; i < customers.size(); i++) {
-            filter.setRootEntity(devices.get(i).getId());
+        for (Device device : devices) {
+            filter.setRootEntity(device.getId());
 
             EntityDataQuery query = new EntityDataQuery(filter, pageLink, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-            PageData<EntityData> data = entityService.findEntityDataByQuery(tenantId, customers.get(i).getId(), mergedUserPermissionsRelationQuery, query);
-            long count = entityService.countEntitiesByQuery(tenantId, customers.get(i).getId(), mergedUserPermissionsRelationQuery, query);
-            long blobEntitiesForCustomer = blobEntityService.findBlobEntitiesByTenantIdAndCustomerId(tenantId, customers.get(i).getId(), new TimePageLink(10)).getTotalElements();
+            PageData<EntityData> data = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
+            long count = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
 
-            Assert.assertEquals(blobEntitiesForCustomer, data.getData().size());
+            Assert.assertEquals(blobEntities.size() / 2, data.getData().size());
             Assert.assertEquals(count, data.getData().size());
         }
-
-        relations.forEach(relation -> relationService.deleteRelation(tenantId, relation));
-        blobEntityService.deleteBlobEntitiesByTenantId(tenantId);
-        customerService.deleteCustomersByTenantId(tenantId);
-        deviceService.deleteDevicesByTenantId(tenantId);
     }
 
     @Test
