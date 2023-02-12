@@ -45,7 +45,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
 import org.springframework.test.web.servlet.ResultActions;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -62,7 +61,6 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.security.UserSettings;
 import org.thingsboard.server.dao.user.UserDao;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.mail.TestMailService;
@@ -874,48 +872,91 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSaveUserSettings() throws Exception {
-        loginSysAdmin();
-
-        User user = createUser();
-        User savedUser = doPost("/api/user", user, User.class);
-
-        UserSettings userSettings = createUserSettings();
-        UserSettings savedSettings = doPost("/api/user/" + savedUser.getId() + "/settings", userSettings, UserSettings.class);
-        Assert.assertEquals(savedSettings.getSettings(), savedSettings.getSettings());
-
-        UserSettings retrievedSettings = doGet("/api/user/" + savedUser.getId() + "/settings", UserSettings.class);
-        Assert.assertEquals(retrievedSettings.getSettings(), retrievedSettings.getSettings());
-
-        doDelete("/api/user/" + savedUser.getId() + "/settings");
-        doGet("/api/user/" + savedUser.getId() + "/settings").andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void testShouldNotSaveSettingsForOtherUser() throws Exception {
-        loginSysAdmin();
-
-        User user = createUser();
-        User savedUser = doPost("/api/user", user, User.class);
-
         loginCustomerUser();
-        UserSettings userSettings = createUserSettings();
-        doPost("/api/user/" + savedUser.getId() + "/settings", userSettings)
-                .andExpect(status().isForbidden());
+
+        JsonNode userSettings = mapper.readTree("{\"A\":5, \"B\":10, \"E\":18}");
+        JsonNode savedSettings = doPost("/api/user/settings", userSettings, JsonNode.class);
+        Assert.assertEquals(userSettings, savedSettings);
+
+        JsonNode retrievedSettings = doGet("/api/user/settings", JsonNode.class);
+        Assert.assertEquals(retrievedSettings, userSettings);
     }
+
     @Test
-    public void testShouldDeleteSettingsAfterUserDeletion() throws Exception {
-        loginSysAdmin();
+    public void testShouldNotSaveJsonWithRestrictedSymbols() throws Exception {
+        loginCustomerUser();
 
-        User user = createUser();
-        User savedUser = doPost("/api/user", user, User.class);
+        JsonNode userSettings = mapper.readTree("{\"A.B\":5, \"E\":18}");
+        doPost("/api/user/settings", userSettings).andExpect(status().isBadRequest());
 
-        UserSettings userSettings = createUserSettings();
-        UserSettings savedSettings = doPost("/api/user/" + savedUser.getId() + "/settings", userSettings, UserSettings.class);
-        Assert.assertEquals(savedSettings.getSettings(), savedSettings.getSettings());
+        userSettings = mapper.readTree("{\"A,B\":5, \"E\":18}");
+        doPost("/api/user/settings", userSettings).andExpect(status().isBadRequest());
+    }
 
-        doDelete("/api/user/" + savedUser.getId())
-                .andExpect(status().isOk());
-        doGet("/api/user/" + savedUser.getId() + "/settings").andExpect(status().isNotFound());
+    @Test
+    public void testUpdateUserSettings() throws Exception {
+        loginCustomerUser();
+
+        JsonNode userSettings = mapper.readTree("{\"A\":5, \"B\":{\"C\":true, \"D\":\"stringValue\"}}");
+        JsonNode savedSettings = doPost("/api/user/settings", userSettings, JsonNode.class);
+        Assert.assertEquals(userSettings, savedSettings);
+
+        JsonNode newSettings = mapper.readTree("{\"A\":10}");
+        doPut("/api/user/settings", newSettings);
+        JsonNode updatedSettings = doGet("/api/user/settings", JsonNode.class);
+        JsonNode expectedSettings = mapper.readTree("{\"A\":10, \"B\":{\"C\":true, \"D\":\"stringValue\"}}");
+        Assert.assertEquals(expectedSettings, updatedSettings);
+
+        JsonNode patchedSettings = mapper.readTree("{\"B\":{\"C\":false, \"D\":\"stringValue2\"}}");
+        doPut("/api/user/settings", patchedSettings);
+        updatedSettings = doGet("/api/user/settings", JsonNode.class);
+        expectedSettings = mapper.readTree("{\"A\":10, \"B\":{\"C\":false, \"D\":\"stringValue2\"}}");
+        Assert.assertEquals(expectedSettings, updatedSettings);
+
+        patchedSettings = mapper.readTree("{\"B.D\": \"stringValue3\"}");
+        doPut("/api/user/settings", patchedSettings);
+        updatedSettings = doGet("/api/user/settings", JsonNode.class);
+        expectedSettings = mapper.readTree("{\"A\":10, \"B\":{\"C\":false, \"D\": \"stringValue3\"}}");
+        Assert.assertEquals(expectedSettings, updatedSettings);
+
+        patchedSettings = mapper.readTree("{\"B.D\": {\"E\": 76, \"F\": 92}}");
+        doPut("/api/user/settings", patchedSettings);
+        updatedSettings = doGet("/api/user/settings", JsonNode.class);
+        expectedSettings = mapper.readTree("{\"A\":10, \"B\":{\"C\":false, \"D\": {\"E\":76, \"F\": 92}}}");
+        Assert.assertEquals(expectedSettings, updatedSettings);
+
+        patchedSettings = mapper.readTree("{\"B.D.E\": 100}");
+        doPut("/api/user/settings", patchedSettings);
+        updatedSettings = doGet("/api/user/settings", JsonNode.class);
+        expectedSettings = mapper.readTree("{\"A\":10, \"B\":{\"C\":false, \"D\": {\"E\":100, \"F\": 92}}}");
+        Assert.assertEquals(expectedSettings, updatedSettings);
+    }
+
+    @Test
+    public void testShouldNotUpdateUserSettingsWithNoExistingPath() throws Exception {
+        loginCustomerUser();
+
+        JsonNode userSettings = mapper.readTree("{\"A\":5, \"B\":{\"C\":true, \"D\":\"stringValue\"}}");
+        JsonNode savedSettings = doPost("/api/user/settings", userSettings, JsonNode.class);
+        Assert.assertEquals(userSettings, savedSettings);
+
+        JsonNode newSettings = mapper.readTree("{\"A.E\":10}");
+        doPut("/api/user/settings", newSettings).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testDeleteUserSettings() throws Exception {
+        loginCustomerUser();
+
+        JsonNode userSettings = mapper.readTree("{\"A\":10, \"B\":10, \"C\":{\"D\": 16}}");
+        JsonNode savedSettings = doPost("/api/user/settings", userSettings, JsonNode.class);
+        Assert.assertEquals(userSettings, savedSettings);
+
+        doDelete("/api/user/settings/C.D,B");
+
+        JsonNode retrievedSettings = doGet("/api/user/settings", JsonNode.class);
+        JsonNode expectedSettings = mapper.readTree("{\"A\":10, \"C\":{}}");
+        Assert.assertEquals(expectedSettings, retrievedSettings);
     }
 
     private User createUser() throws Exception {
@@ -928,11 +969,5 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         user.setFirstName("Joe");
         user.setLastName("Downs");
         return doPost("/api/user", user, User.class);
-    }
-
-    private UserSettings createUserSettings() {
-        UserSettings userSettings = new UserSettings();
-        userSettings.setSettings(JacksonUtil.newObjectNode().put("text", StringUtils.randomAlphanumeric(10)));
-        return userSettings;
     }
 }

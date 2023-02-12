@@ -28,49 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security;
+package org.thingsboard.server.dao.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.validation.Length;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.security.UserSettings;
+import org.thingsboard.server.dao.asset.AssetCacheKey;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("UserSettingsCache")
+public class UserSettingsCaffeineCache extends CaffeineTbTransactionalCache<UserId, UserSettings> {
 
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
-
-@ApiModel
-@Data
-public class UserSettings implements Serializable {
-
-    private static final long serialVersionUID = 2628320657987010348L;
-
-    @ApiModelProperty(position = 1, value = "JSON object with User id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private UserId userId;
-
-    @ApiModelProperty(position = 2, value = "JSON object with user settings.", dataType = "com.fasterxml.jackson.databind.JsonNode")
-    @NoXss
-    @Length(fieldName = "settings", max = 100000)
-    private transient JsonNode settings;
-
-    @JsonIgnore
-    private byte[] settingsBytes;
-
-    public JsonNode getSettings() {
-        return getJson(() -> settings, () -> settingsBytes);
+    public UserSettingsCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.USER_SETTINGS_CACHE);
     }
 
-    public void setSettings(JsonNode settings) {
-        setJson(settings, json -> this.settings = json, bytes -> this.settingsBytes = bytes);
-    }
 }

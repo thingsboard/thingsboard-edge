@@ -28,49 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security;
+package org.thingsboard.server.dao.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.validation.Length;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.security.UserSettings;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.List;
 
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
+public interface UserSettingsService {
 
-@ApiModel
-@Data
-public class UserSettings implements Serializable {
+    void updateUserSettings(TenantId tenantId, UserId userId, JsonNode settings);
 
-    private static final long serialVersionUID = 2628320657987010348L;
+    UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings);
 
-    @ApiModelProperty(position = 1, value = "JSON object with User id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private UserId userId;
+    UserSettings findUserSettings(TenantId tenantId, UserId userId);
 
-    @ApiModelProperty(position = 2, value = "JSON object with user settings.", dataType = "com.fasterxml.jackson.databind.JsonNode")
-    @NoXss
-    @Length(fieldName = "settings", max = 100000)
-    private transient JsonNode settings;
+    void deleteUserSettings(TenantId tenantId, UserId userId, List<String> jsonPaths);
 
-    @JsonIgnore
-    private byte[] settingsBytes;
-
-    public JsonNode getSettings() {
-        return getJson(() -> settings, () -> settingsBytes);
-    }
-
-    public void setSettings(JsonNode settings) {
-        setJson(settings, json -> this.settings = json, bytes -> this.settingsBytes = bytes);
-    }
 }
