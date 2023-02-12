@@ -477,7 +477,6 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         Assert.assertEquals(1, customerUserDashboards.size());
     }
 
-    @Ignore
     @Test
     public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
         DashboardId dashboardId = createDashboard("Dashboard for Test WithRelationsOk").getId();
