@@ -927,7 +927,6 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Mockito.verify(gatewayNotificationsService, never()).onDeviceDeleted(Mockito.any(Device.class));
     }
 
-    @Ignore
     @Test
     public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
         DeviceId deviceId = createDevice("Device for Test WithRelationsOk").getId();

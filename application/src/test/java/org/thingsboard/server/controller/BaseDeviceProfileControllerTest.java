@@ -1110,7 +1110,6 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         login("customer2@thingsboard.org", "customer");
     }
 
-    @Ignore
     @Test
     public void testDeleteDeviceProfileWithDeleteRelationsOk() throws Exception {
         DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelationsOk").getId();

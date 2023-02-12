@@ -808,7 +808,6 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         return doGet("/api/entityGroup/" + groupInfo.getUuidId(), EntityGroupInfo.class);
     }
 
-    @Ignore
     @Test
     public void testDeleteAlarmWithDeleteRelationsOk() throws Exception {
         loginCustomerAdministrator();

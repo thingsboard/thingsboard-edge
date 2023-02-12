@@ -902,7 +902,6 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         }
     }
 
-    @Ignore
     @Test
     public void testSyncEdge_tenantLevel() throws Exception {
         resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
