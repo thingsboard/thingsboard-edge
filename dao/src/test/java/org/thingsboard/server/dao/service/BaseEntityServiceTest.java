@@ -68,8 +68,6 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -1237,38 +1235,30 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQueryRelationQuery() {
+    public void testFindEntityDataByRelationQuery_blobEntity_customerLevel() {
+        int DEVICE_CNT = 2;
+        int RELATIONS_CNT = 3;
+        int BLOB_ENTITIES_CNT = DEVICE_CNT * RELATIONS_CNT;
 
         Customer customer = new Customer();
-        customer.setId(new CustomerId(UUID.randomUUID()));
         customer.setTenantId(tenantId);
-        customer.setTitle("Customer Relation Query ");
+        customer.setTitle("Customer Relation Query");
         customer = customerService.saveCustomer(customer);
 
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setId(new EntityGroupId(UUID.randomUUID()));
-        entityGroup.setName("All");
-        entityGroup.setOwnerId(customer.getId());
-        entityGroup.setTenantId(tenantId);
-        entityGroup.setType(EntityType.DEVICE);
-        entityGroup = entityGroupService.saveEntityGroup(tenantId, customer.getId(), entityGroup);
-
-
         List<Device> devices = new ArrayList<>();
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < DEVICE_CNT; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             device.setName("Device relation query " + i);
             device.setCustomerId(customer.getId());
             device.setType("default");
-            device.setLabel("testLabel" + (int) (Math.random() * 1000));
             devices.add(deviceService.saveDevice(device));
         }
 
         List<BlobEntity> blobEntities = new ArrayList<>();
-        for (int i = 0; i < devices.size() * 3; i++) {
+        for (int i = 0; i < BLOB_ENTITIES_CNT; i++) {
             BlobEntity blobEntity = new BlobEntity();
-            blobEntity.setName("Blob " + i);
+            blobEntity.setName("Blob relation query " + i);
             blobEntity.setTenantId(tenantId);
             blobEntity.setContentType("image/png");
             blobEntity.setData(ByteBuffer.allocate(1024));
@@ -1277,22 +1267,19 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             blobEntities.add(blobEntityService.saveBlobEntity(blobEntity));
         }
 
-        for (int i = 0; i < blobEntities.size(); i++) {
+        for (int i = 0; i < RELATIONS_CNT * DEVICE_CNT; i++) {
             EntityRelation relationEntity = new EntityRelation();
-            relationEntity.setFrom(devices.get(i % devices.size()).getId());
+            relationEntity.setFrom(devices.get(i % DEVICE_CNT).getId());
             relationEntity.setTo(blobEntities.get(i).getId());
             relationEntity.setTypeGroup(RelationTypeGroup.COMMON);
             relationEntity.setType("fileAttached");
             relationService.saveRelation(tenantId, relationEntity);
         }
 
-        Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
-        groupPermissions.put(entityGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Collections.singleton(Operation.READ)));
-
-        MergedUserPermissions mergedUserPermissionsRelationQuery = new MergedUserPermissions(Collections.emptyMap(), groupPermissions);
+        MergedUserPermissions mergedUserPermissionsRelationQuery = new MergedUserPermissions(Collections.emptyMap(), Collections.emptyMap());
         mergedUserPermissionsRelationQuery.getReadEntityPermissions().forEach((key, value) -> {
-            List<EntityGroupId> list = mergedUserPermissionsRelationQuery.getReadEntityPermissions().get(key).getEntityGroupIds();
-            MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = new MergedGroupTypePermissionInfo(list, true);
+            MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo =
+                    new MergedGroupTypePermissionInfo(mergedUserPermissionsRelationQuery.getReadEntityPermissions().get(key).getEntityGroupIds(), true);
             mergedUserPermissionsRelationQuery.getReadEntityPermissions().put(key, mergedGroupTypePermissionInfo);
         });
 
@@ -1300,20 +1287,17 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         RelationsQueryFilter filter = new RelationsQueryFilter();
         filter.setFilters(Collections.singletonList(relationEntityTypeFilter));
         filter.setDirection(EntitySearchDirection.FROM);
-        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
-                new EntityKey(EntityKeyType.ENTITY_FIELD, "name"), EntityDataSortOrder.Direction.ASC
-        );
-        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, null);
 
         for (Device device : devices) {
             filter.setRootEntity(device.getId());
 
             EntityDataQuery query = new EntityDataQuery(filter, pageLink, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-            PageData<EntityData> data = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
-            long count = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
+            PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
+            long relationsResultCnt = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
 
-            Assert.assertEquals(blobEntities.size() / 2, data.getData().size());
-            Assert.assertEquals(count, data.getData().size());
+            Assert.assertEquals(RELATIONS_CNT, relationsResult.getData().size());
+            Assert.assertEquals(RELATIONS_CNT, relationsResultCnt);
         }
     }
 
