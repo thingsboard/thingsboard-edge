@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -1987,7 +1988,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         createCustomerAndAddDevices(topCustomerId, "Sub Customer B", customerBDevicesCnt, deviceNamePrefix);
 
         // update mergedUserPermissionsPE - share device group from tenant
-        boolean originHasGenericRead = mergedUserPermissionsPE.getReadEntityPermissions().get(Resource.DEVICE).isHasGenericRead();
+        MergedGroupTypePermissionInfo originMergedGroupTypePermissionInfo = mergedUserPermissionsPE.getReadEntityPermissions().get(Resource.DEVICE);
         mergedUserPermissionsPE.getReadEntityPermissions().put(Resource.DEVICE, new MergedGroupTypePermissionInfo(List.of(group.getId()), true));
 
         EntityDataQuery query = createDataQueryFilterByEntityName(deviceNamePrefix);
@@ -1999,7 +2000,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         Assert.assertEquals(totalNumberOfDevices, relationsResultCnt);
 
         // rollback mergedUserPermissionsPE
-        mergedUserPermissionsPE.getReadEntityPermissions().put(Resource.DEVICE, new MergedGroupTypePermissionInfo(new ArrayList<>(), originHasGenericRead));
+        mergedUserPermissionsPE.getReadEntityPermissions().put(Resource.DEVICE, originMergedGroupTypePermissionInfo);
     }
 
     private EntityDataQuery createDataQueryFilterByEntityName(String deviceNamePrefix) {
