@@ -111,14 +111,13 @@ public enum Table {
             "oauth2_params_id", of(OAUTH2_PARAMS)
     )),
     RULE_NODE_STATE("rule_node_state", Pair.of(
-            "entity_id", of(DEVICE, ASSET, TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
-                    INTEGRATION, USER, EDGE, DASHBOARD, ASSET_PROFILE, ENTITY_VIEW)
+            "entity_id", of(DEVICE)
     )),
     AUDIT_LOG("audit_log", true, "created_time", "audit_log"),
 
     RELATION("relation", Pair.of(
-            "from_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
-                    INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION)
+            "from_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
+                    INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW)
     ), List.of("to_id")),
     ATTRIBUTE("attribute_kv", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
