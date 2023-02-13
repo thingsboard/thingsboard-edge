@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -77,7 +78,7 @@ public class Storage {
     }
 
     public Writer newWriter(String file) throws IOException {
-        return Files.newBufferedWriter(getPath(file));
+        return Files.newBufferedWriter(getPath(file), StandardOpenOption.APPEND);
     }
 
     public void addToFile(Writer writer, Map<String, Object> row) throws IOException {

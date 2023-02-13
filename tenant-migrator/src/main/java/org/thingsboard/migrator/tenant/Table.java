@@ -71,7 +71,6 @@ public enum Table {
             "rule_chain_id", of(RULE_CHAIN)
     )),
     RULE_NODE_DEBUG_EVENT("rule_node_debug_event", true, "ts", "debug_event"),
-
     CONVERTER("converter"),
     CONVERTER_DEBUG_EVENT("converter_debug_event", true, "ts", "debug_event"),
     INTEGRATION("integration"),
@@ -112,28 +111,28 @@ public enum Table {
             "oauth2_params_id", of(OAUTH2_PARAMS)
     )),
     RULE_NODE_STATE("rule_node_state", Pair.of(
-            "entity_id", of(DEVICE, TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
-                    INTEGRATION, USER, EDGE, DASHBOARD, ASSET_PROFILE, ASSET, ENTITY_VIEW)
+            "entity_id", of(DEVICE, ASSET, TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
+                    INTEGRATION, USER, EDGE, DASHBOARD, ASSET_PROFILE, ENTITY_VIEW)
     )),
     AUDIT_LOG("audit_log", true, "created_time", "audit_log"),
+
     RELATION("relation", Pair.of(
             "from_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION)
-    ), List.of("from_type", "from_id", "to_id")),
+    ), List.of("to_id")),
     ATTRIBUTE("attribute_kv", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION, API_USAGE_STATE)
-    ), List.of("last_update_ts", "entity_id", "attribute_key")),
-
+    ), List.of("last_update_ts", "attribute_key")),
     LATEST_KV("ts_kv_latest", Pair.of(
             "entity_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER, OTA_PACKAGE,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW, ALARM, SCHEDULER_EVENT, GROUP_PERMISSION, API_USAGE_STATE)
-    ), List.of("entity_id", "key"), tenantId -> {
+    ), List.of("key", "ts"), tenantId -> {
         return "SELECT ts_kv_latest.*, dict.key as key_name FROM ts_kv_latest " +
                 "INNER JOIN ts_kv_dictionary dict ON ts_kv_latest.key = dict.key_id WHERE ";
     });
 
-    private String name;
+    private final String name;
     private List<String> sortColumns = List.of("id");
     private String tenantIdColumn = "tenant_id";
     private Pair<String, List<Table>> reference;

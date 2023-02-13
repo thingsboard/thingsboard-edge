@@ -34,7 +34,7 @@ working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant dat
 
 export:
   tenant_id: ${EXPORTED_TENANT_ID:}
-  batch_size: ${EXPORT_BATCH_SIZE:200}
+  batch_size: ${EXPORT_BATCH_SIZE:500}
 
 import:
   cassandra:
@@ -42,7 +42,7 @@ import:
 
 partition_sizes: # in hours
   event: ${EVENTS_PARTITION_SIZE:168}
-  debug_event: ${DEBUG_EVENT_PARTITION_SIZE:1}
+  debug_event: ${DEBUG_EVENTS_PARTITION_SIZE:1}
   edge_event: ${EDGE_EVENTS_PARTITION_SIZE:168}
   audit_log: ${AUDIT_LOGS_PARTITION_SIZE:168}
   blob_entity: ${BLOB_ENTITIES_PARTITION_SIZE:168}

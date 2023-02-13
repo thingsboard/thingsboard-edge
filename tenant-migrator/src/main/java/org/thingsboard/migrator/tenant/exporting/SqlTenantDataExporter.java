@@ -69,10 +69,15 @@ public class SqlTenantDataExporter implements ApplicationRunner {
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
 
+    private static final Set<Table> RELATED_TABLES = Set.of(Table.RELATION, Table.ATTRIBUTE, Table.LATEST_KV);
+
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        for (Table table : RELATED_TABLES) {
+            storage.newFile(table);
+        }
         for (Table table : Table.values()) {
-            if (skippedTables.contains(table)) {
+            if (skippedTables.contains(table) || RELATED_TABLES.contains(table)) {
                 continue;
             }
             exportTableData(table, exportedTenantId);
@@ -121,27 +126,35 @@ public class SqlTenantDataExporter implements ApplicationRunner {
 
     private void queryAndSave(Table table, String query) throws IOException {
         try (Writer writer = storage.newWriter(table)) {
-            if (!table.isPartitioned()) {
-                query(query, row -> {
-                    try {
-                        storage.addToFile(writer, row);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+            Consumer<Map<String, Object>> processor = row -> {
+                try {
+                    storage.addToFile(writer, row);
+                    for (Table relatedTable : RELATED_TABLES) {
+                        if (!relatedTable.getReference().getValue().contains(table)) {
+                            continue;
+                        }
+                        String relatedQuery;
+                        if (relatedTable.getCustomSelect() == null) {
+                            relatedQuery = format("SELECT %s.* FROM %s WHERE ", relatedTable.getName(), relatedTable.getName());
+                        } else {
+                            relatedQuery = relatedTable.getCustomSelect().apply(null);
+                        }
+                        relatedQuery = format(insertAfter(relatedQuery, "SELECT", " '%s' as table_name, "), table.toString());
+                        relatedQuery += format("%s = '%s'", relatedTable.getReference().getKey(), row.get("id"));
+                        relatedQuery += " ORDER BY " + String.join(", ", relatedTable.getSortColumns());
+                        queryAndSave(relatedTable, relatedQuery);
                     }
-                });
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+            if (!table.isPartitioned()) {
+                query(query, processor);
             } else {
                 helperService.getPartitions(table).forEach((partitionStart, partitionEnd) -> {
                     String tsFilter = format(" %s.%s >= %s AND %s.%s < %s AND ", table.getName(), table.getPartitionColumn(),
                             partitionStart, table.getName(), table.getPartitionColumn(), partitionEnd);
-                    int afterWhere = StringUtils.indexOf(query, "WHERE") + 5;
-
-                    query(query.substring(0, afterWhere) + tsFilter + query.substring(afterWhere), row -> {
-                        try {
-                            storage.addToFile(writer, row);
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    query(insertAfter(query, "WHERE", tsFilter), processor);
                 });
             }
         }
@@ -163,6 +176,11 @@ public class SqlTenantDataExporter implements ApplicationRunner {
                 hasNextBatch = false;
             }
         }
+    }
+
+    private static String insertAfter(String input, String searchSequence, String value) {
+        int afterSeq = StringUtils.indexOf(input, searchSequence) + searchSequence.length();
+        return input.substring(0, afterSeq) + value + input.substring(afterSeq);
     }
 
 }

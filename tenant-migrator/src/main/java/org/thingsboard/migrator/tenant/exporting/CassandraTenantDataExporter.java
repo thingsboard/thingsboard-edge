@@ -34,21 +34,20 @@ import com.datastax.oss.driver.api.core.cql.ColumnDefinition;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.cassandra.core.CassandraTemplate;
+import org.springframework.data.cassandra.core.cql.CqlOperations;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.SqlHelperService;
 import org.thingsboard.migrator.tenant.Storage;
 import org.thingsboard.migrator.tenant.Table;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -57,40 +56,45 @@ import java.util.UUID;
 public class CassandraTenantDataExporter implements ApplicationRunner {
 
     private final CassandraTemplate cassandraTemplate;
-    private final SqlHelperService sqlHelperService;
+    private CqlOperations cqlOperations;
     private final Storage storage;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        List<Table> tables = Table.LATEST_KV.getReference().getValue();
+        cqlOperations = cassandraTemplate.getCqlOperations();
         storage.newFile("ts_kv");
         try (Writer writer = storage.newWriter("ts_kv")) {
-            for (Table table : tables) {
-                Set<String> entities = sqlHelperService.getTenantEntities(table);
-                for (String entityId : entities) {
-                    getDataForEntityAndSave(table, UUID.fromString(entityId), writer);
-                }
-            }
+            storage.readAndProcess(Table.LATEST_KV, latestKvRow -> {
+                getTsHistoryAndSave(latestKvRow, writer);
+            });
         }
         System.exit(0);
     }
 
-    private void getDataForEntityAndSave(Table table, UUID entityId, Writer writer) throws IOException {
-        String entityType = table.toString();
-        List<Map<String, Object>> partitions = cassandraTemplate.getCqlOperations().queryForList("SELECT partition, key FROM ts_kv_partitions_cf " +
-                "WHERE entity_type = ? AND entity_id = ? ALLOW FILTERING", entityType, entityId);
-        for (Map<String, Object> partitionInfo : partitions) {
-            Long partition = (Long) partitionInfo.get("partition");
-            String key = (String) partitionInfo.get("key");
+    @SneakyThrows
+    private void getTsHistoryAndSave(Map<String, Object> latestKvRow, Writer writer) {
+        String entityType = (String) latestKvRow.get("table_name");
+        UUID entityId = (UUID) latestKvRow.get("entity_id");
+        String key = (String) latestKvRow.get("key_name");
+
+        List<Long> partitions = cqlOperations.queryForList("SELECT partition FROM ts_kv_partitions_cf " +
+                "WHERE entity_type = ? AND entity_id = ? AND key = ?", Long.class, entityType, entityId, key);
+
+        for (Long partition : partitions) {
             System.err.printf("EXPORTING PARTITION %s: %s %s %s\n", partition, entityType, entityId, key);
 
-            String query = "SELECT * FROM ts_kv_cf WHERE entity_type = ? AND entity_id = ? " +
-                    "AND partition = ? AND key = ? ORDER BY ts";
-            ResultSet rows = cassandraTemplate.getCqlOperations().queryForResultSet(query, entityType, entityId, partition, key);
+            String query = "SELECT * FROM ts_kv_cf WHERE entity_type = ? AND entity_id = ? AND key = ? " +
+                    "AND partition = ? ORDER BY ts";
+            ResultSet rows = cqlOperations.queryForResultSet(query, entityType, entityId, key, partition);
             for (Row row : rows) {
                 Map<String, Object> data = new HashMap<>();
                 for (ColumnDefinition columnDefinition : row.getColumnDefinitions()) {
-                    data.put(columnDefinition.getName().toString(), row.getObject(columnDefinition.getName()));
+                    String column = columnDefinition.getName().toString();
+                    Object value = row.getObject(columnDefinition.getName());
+                    if (column.endsWith("_v") && value == null) {
+                        continue;
+                    }
+                    data.put(column, value);
                 }
                 storage.addToFile(writer, data);
             }
