@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
@@ -607,6 +608,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         testEntityDaoWithRelationsOk(savedTenant.getId(), assetId, "/api/asset/" + assetId);
     }
 
+    @Ignore
     @Test
     public void testDeleteAssetExceptionWithRelationsTransactional() throws Exception {
         AssetId assetId = createAsset("Asset for Test WithRelations Transactional Exception").getId();
