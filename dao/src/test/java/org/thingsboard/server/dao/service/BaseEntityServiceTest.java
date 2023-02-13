@@ -42,7 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -81,7 +82,9 @@ import org.thingsboard.server.common.data.query.EntityDataSortOrder;
 import org.thingsboard.server.common.data.query.EntityGroupFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.EntityListFilter;
+import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
@@ -832,26 +835,6 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         createLoopRelations(tenantId, "Loop-Ast-Tnt-Ast", assets.get(2).getId(), tenantId, assets.get(3).getId());
 
         //printAllRelations();
-    }
-
-    private ResultSetExtractor<List<List<String>>> getListResultSetExtractor() {
-        return rs -> {
-            List<List<String>> list = new ArrayList<>();
-            final int columnCount = rs.getMetaData().getColumnCount();
-            List<String> columns = new ArrayList<>(columnCount);
-            for (int i = 1; i <= columnCount; i++) {
-                columns.add(rs.getMetaData().getColumnName(i));
-            }
-            list.add(columns);
-            while (rs.next()) {
-                List<String> data = new ArrayList<>(columnCount);
-                for (int i = 1; i <= columnCount; i++) {
-                    data.add(rs.getString(i));
-                }
-                list.add(data);
-            }
-            return list;
-        };
     }
 
     /*
@@ -1977,4 +1960,84 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             }
         }
     }
+
+    @Test
+    public void testFindEntitiesByQuery_customerHierarchySearch() {
+        final String deviceNamePrefix = "Customer Device ";
+
+        final int tenantSharedDevicesCnt = 1;
+        EntityGroup group = new EntityGroup();
+        group.setName("Tenant Level Group");
+        group.setOwnerId(tenantId);
+        group.setType(EntityType.DEVICE);
+        group = entityGroupService.saveEntityGroup(tenantId, tenantId, group);
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName(deviceNamePrefix + " Tenant");
+        device = deviceService.saveDevice(device);
+        entityGroupService.addEntityToEntityGroup(tenantId, group.getId(), device.getId());
+
+        final int topCustomerDevicesCnt = 3;
+        CustomerId topCustomerId = createCustomerAndAddDevices(null, "Top Customer", topCustomerDevicesCnt, deviceNamePrefix);
+
+        final int customerADevicesCnt = 2;
+        createCustomerAndAddDevices(topCustomerId, "Sub Customer A", customerADevicesCnt, deviceNamePrefix);
+
+        final int customerBDevicesCnt = 4;
+        createCustomerAndAddDevices(topCustomerId, "Sub Customer B", customerBDevicesCnt, deviceNamePrefix);
+
+        // update mergedUserPermissionsPE - share device group from tenant
+        boolean originHasGenericRead = mergedUserPermissionsPE.getReadEntityPermissions().get(Resource.DEVICE).isHasGenericRead();
+        mergedUserPermissionsPE.getReadEntityPermissions().put(Resource.DEVICE, new MergedGroupTypePermissionInfo(List.of(group.getId()), true));
+
+        EntityDataQuery query = createDataQueryFilterByEntityName(deviceNamePrefix);
+        PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, topCustomerId, mergedUserPermissionsPE, query);
+        long relationsResultCnt = entityService.countEntitiesByQuery(tenantId, topCustomerId, mergedUserPermissionsPE, query);
+
+        final int totalNumberOfDevices = tenantSharedDevicesCnt + topCustomerDevicesCnt + customerADevicesCnt + customerBDevicesCnt;
+        Assert.assertEquals(totalNumberOfDevices, relationsResult.getData().size());
+        Assert.assertEquals(totalNumberOfDevices, relationsResultCnt);
+
+        // rollback mergedUserPermissionsPE
+        mergedUserPermissionsPE.getReadEntityPermissions().put(Resource.DEVICE, new MergedGroupTypePermissionInfo(new ArrayList<>(), originHasGenericRead));
+    }
+
+    private EntityDataQuery createDataQueryFilterByEntityName(String deviceNamePrefix) {
+        EntityTypeFilter filter = new EntityTypeFilter();
+        filter.setEntityType(EntityType.DEVICE);
+
+        ArrayList<KeyFilter> keyFilters = new ArrayList<>();
+        KeyFilter keyFilter = new KeyFilter();
+        keyFilter.setKey(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+        keyFilter.setValueType(EntityKeyValueType.STRING);
+        StringFilterPredicate predicate = new StringFilterPredicate();
+        predicate.setOperation(StringOperation.CONTAINS);
+        predicate.setValue(new FilterPredicateValue<>(deviceNamePrefix, null, null));
+        predicate.setIgnoreCase(false);
+        keyFilter.setPredicate(predicate);
+        keyFilters.add(keyFilter);
+
+        ArrayList<EntityKey> entityFields = new ArrayList<>();
+        entityFields.add(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, null);
+        return new EntityDataQuery(filter, pageLink, entityFields, Collections.emptyList(), keyFilters);
+    }
+
+    private CustomerId createCustomerAndAddDevices(CustomerId parentCustomerId, String customerTitle, int numOfDevices, String deviceNamePrefix) {
+        Customer customer = new Customer();
+        customer.setTitle(customerTitle);
+        customer.setTenantId(tenantId);
+        customer.setParentCustomerId(parentCustomerId);
+        Customer savedCustomer = customerService.saveCustomer(customer);
+        for (int i = 0; i < numOfDevices; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setOwnerId(savedCustomer.getId());
+            device.setName(deviceNamePrefix + i + " " + customerTitle);
+            deviceService.saveDevice(device);
+        }
+        return savedCustomer.getId();
+    }
+
 }
