@@ -97,6 +97,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sql.relation.RelationRepository;
@@ -129,7 +130,11 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     private AttributesService attributesService;
 
     @Autowired
+    private BlobEntityService blobEntityService;
+
+    @Autowired
     private EntityGroupService entityGroupService;
+
     @Autowired
     private TimeseriesService timeseriesService;
 
@@ -1236,9 +1241,9 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindEntityDataByRelationQuery_blobEntity_customerLevel() {
-        int DEVICE_CNT = 2;
-        int RELATIONS_CNT = 3;
-        int BLOB_ENTITIES_CNT = DEVICE_CNT * RELATIONS_CNT;
+        final int deviceCnt = 2;
+        final int relationsCnt = 3;
+        final int blobEntitiesCnt = deviceCnt * relationsCnt;
 
         Customer customer = new Customer();
         customer.setTenantId(tenantId);
@@ -1246,7 +1251,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         customer = customerService.saveCustomer(customer);
 
         List<Device> devices = new ArrayList<>();
-        for (int i = 0; i < DEVICE_CNT; i++) {
+        for (int i = 0; i < deviceCnt; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             device.setName("Device relation query " + i);
@@ -1256,7 +1261,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         }
 
         List<BlobEntity> blobEntities = new ArrayList<>();
-        for (int i = 0; i < BLOB_ENTITIES_CNT; i++) {
+        for (int i = 0; i < blobEntitiesCnt; i++) {
             BlobEntity blobEntity = new BlobEntity();
             blobEntity.setName("Blob relation query " + i);
             blobEntity.setTenantId(tenantId);
@@ -1267,13 +1272,15 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             blobEntities.add(blobEntityService.saveBlobEntity(blobEntity));
         }
 
-        for (int i = 0; i < RELATIONS_CNT * DEVICE_CNT; i++) {
-            EntityRelation relationEntity = new EntityRelation();
-            relationEntity.setFrom(devices.get(i % DEVICE_CNT).getId());
-            relationEntity.setTo(blobEntities.get(i).getId());
-            relationEntity.setTypeGroup(RelationTypeGroup.COMMON);
-            relationEntity.setType("fileAttached");
-            relationService.saveRelation(tenantId, relationEntity);
+        for (int i = 0; i < deviceCnt; i++) {
+            for (int j = 0; j < relationsCnt; j++) {
+                EntityRelation relationEntity = new EntityRelation();
+                relationEntity.setFrom(devices.get(i).getId());
+                relationEntity.setTo(blobEntities.get(j + (i * relationsCnt)).getId());
+                relationEntity.setTypeGroup(RelationTypeGroup.COMMON);
+                relationEntity.setType("fileAttached");
+                relationService.saveRelation(tenantId, relationEntity);
+            }
         }
 
         MergedUserPermissions mergedUserPermissionsRelationQuery = new MergedUserPermissions(Collections.emptyMap(), Collections.emptyMap());
@@ -1296,8 +1303,8 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
             long relationsResultCnt = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
 
-            Assert.assertEquals(RELATIONS_CNT, relationsResult.getData().size());
-            Assert.assertEquals(RELATIONS_CNT, relationsResultCnt);
+            Assert.assertEquals(relationsCnt, relationsResult.getData().size());
+            Assert.assertEquals(relationsCnt, relationsResultCnt);
         }
     }
 
