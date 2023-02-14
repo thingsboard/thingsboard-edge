@@ -41,14 +41,21 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 @Component
 public class Storage {
@@ -63,22 +70,19 @@ public class Storage {
         Files.createDirectories(Path.of(workingDir));
     }
 
-    public void newFile(Table table) throws IOException {
-        newFile(table.getName());
-    }
-
     public void newFile(String name) throws IOException {
         Path file = getPath(name);
         Files.deleteIfExists(file);
         Files.createFile(file);
     }
 
-    public Writer newWriter(Table table) throws IOException {
-        return newWriter(table.getName());
-    }
-
     public Writer newWriter(String file) throws IOException {
         return Files.newBufferedWriter(getPath(file), StandardOpenOption.APPEND);
+    }
+
+    public Writer newGzipWriter(String file) throws IOException {
+        FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
+        return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
     }
 
     public void addToFile(Writer writer, Map<String, Object> row) throws IOException {
@@ -92,35 +96,42 @@ public class Storage {
         writer.append(serialized).append(System.lineSeparator());
     }
 
-    public void readAndProcess(Table table, Consumer<Map<String, Object>> processor) throws IOException {
-        readAndProcess(table.getName(), processor);
+    public void readAndProcessGzipped(String file, Consumer<Map<String, Object>> processor) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)))) {
+            readAndProcess(reader, processor);
+        }
     }
 
     public void readAndProcess(String file, Consumer<Map<String, Object>> processor) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(getPath(file))) {
-            reader.lines().forEach(line -> {
-                if (StringUtils.isNotBlank(line)) {
-                    Map<String, Object> data;
-                    try {
-                        data = jsonMapper.readValue(line, new TypeReference<Map<String, Object>>() {});
-                    } catch (JsonProcessingException e) {
-                        throw new RuntimeException(e);
-                    }
-                    data.replaceAll((key, value) -> {
-                        if (value == null) return null;
-                        if (key.contains("id")) {
-                            try {
-                                value = UUID.fromString(value.toString());
-                            } catch (IllegalArgumentException ignored) {}
-                        } else if (value instanceof Map) {
-                            value = jsonMapper.valueToTree(value);
-                        }
-                        return value;
-                    });
-                    processor.accept(data);
-                }
-            });
+            readAndProcess(reader, processor);
         }
+    }
+
+    private void readAndProcess(BufferedReader reader, Consumer<Map<String, Object>> processor) {
+        reader.lines().forEach(line -> {
+            if (StringUtils.isNotBlank(line)) {
+                Map<String, Object> data;
+                try {
+                    data = jsonMapper.readValue(line, new TypeReference<Map<String, Object>>() {});
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                data.replaceAll((key, value) -> {
+                    if (value == null) return null;
+                    if (key.contains("id")) {
+                        try {
+                            value = UUID.fromString(value.toString());
+                        } catch (IllegalArgumentException ignored) {}
+                    } else if (value instanceof Map) {
+                        value = jsonMapper.valueToTree(value);
+                    }
+                    return value;
+                });
+                processor.accept(data);
+            }
+        });
     }
 
     @SneakyThrows

@@ -39,7 +39,11 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.cassandra.core.CassandraTemplate;
+import org.springframework.data.cassandra.core.cql.ArgumentPreparedStatementBinder;
+import org.springframework.data.cassandra.core.cql.CachedPreparedStatementCreator;
 import org.springframework.data.cassandra.core.cql.CqlOperations;
+import org.springframework.data.cassandra.core.cql.RowMapperResultSetExtractor;
+import org.springframework.data.cassandra.core.cql.SingleColumnRowMapper;
 import org.springframework.stereotype.Service;
 import org.thingsboard.migrator.tenant.Storage;
 import org.thingsboard.migrator.tenant.Table;
@@ -56,18 +60,22 @@ import java.util.UUID;
 public class CassandraTenantDataExporter implements ApplicationRunner {
 
     private final CassandraTemplate cassandraTemplate;
-    private CqlOperations cqlOperations;
     private final Storage storage;
+    private CqlOperations cqlOperations;
+
+    public static final String TS_KV_FILE = "ts_kv.gz";
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         cqlOperations = cassandraTemplate.getCqlOperations();
-        storage.newFile("ts_kv");
-        try (Writer writer = storage.newWriter("ts_kv")) {
-            storage.readAndProcess(Table.LATEST_KV, latestKvRow -> {
+
+        storage.newFile(TS_KV_FILE);
+        try (Writer writer = storage.newGzipWriter(TS_KV_FILE)) {
+            storage.readAndProcess(Table.LATEST_KV.getName(), latestKvRow -> {
                 getTsHistoryAndSave(latestKvRow, writer);
             });
         }
+
         System.exit(0);
     }
 
@@ -77,7 +85,7 @@ public class CassandraTenantDataExporter implements ApplicationRunner {
         UUID entityId = (UUID) latestKvRow.get("entity_id");
         String key = (String) latestKvRow.get("key_name");
 
-        List<Long> partitions = cqlOperations.queryForList("SELECT partition FROM ts_kv_partitions_cf " +
+        List<Long> partitions = query("SELECT partition FROM ts_kv_partitions_cf " +
                 "WHERE entity_type = ? AND entity_id = ? AND key = ?", Long.class, entityType, entityId, key);
 
         for (Long partition : partitions) {
@@ -85,7 +93,7 @@ public class CassandraTenantDataExporter implements ApplicationRunner {
 
             String query = "SELECT * FROM ts_kv_cf WHERE entity_type = ? AND entity_id = ? AND key = ? " +
                     "AND partition = ? ORDER BY ts";
-            ResultSet rows = cqlOperations.queryForResultSet(query, entityType, entityId, key, partition);
+            ResultSet rows = query(query, entityType, entityId, key, partition);
             for (Row row : rows) {
                 Map<String, Object> data = new HashMap<>();
                 for (ColumnDefinition columnDefinition : row.getColumnDefinitions()) {
@@ -99,6 +107,17 @@ public class CassandraTenantDataExporter implements ApplicationRunner {
                 storage.addToFile(writer, data);
             }
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private <T> List<T> query(String query, Class<T> type, Object... args) {
+        return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args),
+                new RowMapperResultSetExtractor<>(SingleColumnRowMapper.newInstance(type)));
+    }
+
+    @SuppressWarnings("deprecation")
+    private ResultSet query(String query, Object... args) {
+        return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args), rs -> rs);
     }
 
 }

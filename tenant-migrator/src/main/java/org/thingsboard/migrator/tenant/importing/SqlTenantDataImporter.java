@@ -40,7 +40,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.migrator.tenant.SqlHelperService;
+import org.thingsboard.migrator.tenant.SqlPartitionService;
 import org.thingsboard.migrator.tenant.Storage;
 import org.thingsboard.migrator.tenant.Table;
 
@@ -61,7 +61,7 @@ public class SqlTenantDataImporter implements ApplicationRunner {
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
     private final Storage storage;
-    private final SqlHelperService helperService;
+    private final SqlPartitionService partitionService;
 
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
@@ -82,10 +82,10 @@ public class SqlTenantDataImporter implements ApplicationRunner {
 
     @SneakyThrows
     private void importTableData(Table table) {
-        storage.readAndProcess(table, row -> {
+        storage.readAndProcess(table.getName(), row -> {
             row = prepareRow(table, row);
             if (table.isPartitioned()) {
-                helperService.createPartition(table, row);
+                partitionService.createPartition(table, row);
             }
 
             String columnsStatement = "";

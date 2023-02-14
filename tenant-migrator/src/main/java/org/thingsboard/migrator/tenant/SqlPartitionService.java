@@ -33,18 +33,14 @@ package org.thingsboard.migrator.tenant;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -53,13 +49,11 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 @ConfigurationProperties
-public class SqlHelperService {
+public class SqlPartitionService {
 
     private final JdbcTemplate jdbcTemplate;
     @Setter
     private Map<String, Integer> partitionSizes;
-    @Value("${export.tenant_id}")
-    private UUID exportedTenantId;
 
     private final Map<Table, Set<Long>> partitions = new HashMap<>();
 
@@ -89,28 +83,6 @@ public class SqlHelperService {
 
     private long getPartitionSize(Table table) {
         return TimeUnit.HOURS.toMillis(partitionSizes.get(table.getPartitionSizeSettingsKey()));
-    }
-
-    public Set<String> getTenantEntities(Table table) {
-        Set<String> entities = new HashSet<>();
-        if (table.getReference() == null) {
-            String query = format("SELECT %s.id FROM %s WHERE %s.%s = '%s'",
-                    table.getName(), table.getName(), table.getName(), table.getTenantIdColumn(), exportedTenantId);
-            System.err.println("EXECUTING QUERY: " + query);
-            entities.addAll(jdbcTemplate.queryForList(query, String.class));
-        } else {
-            Pair<String, List<Table>> reference = table.getReference();
-            String referencingColumn = reference.getKey();
-            List<Table> referencedTables = reference.getValue();
-            for (Table referencedTable : referencedTables) {
-                String query = format("SELECT %s.id FROM %s INNER JOIN %s ON %s.%s = %s.id WHERE %s.%s = '%s'",
-                        table.getName(), table.getName(), referencedTable.getName(), table.getName(), referencingColumn, referencedTable.getName(),
-                        referencedTable.getName(), referencedTable.getTenantIdColumn(), exportedTenantId);
-                System.err.println("EXECUTING QUERY: " + query);
-                entities.addAll(jdbcTemplate.queryForList(query, String.class));
-            }
-        }
-        return entities;
     }
 
 }

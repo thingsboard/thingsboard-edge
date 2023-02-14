@@ -154,7 +154,7 @@ public enum Table {
         this.partitioned = partitioned;
         this.partitionColumn = partitionColumn;
         this.partitionSizeSettingsKey = settingsKey;
-        this.sortColumns = List.of(partitionColumn + " DESC", "id");
+        this.sortColumns = List.of(partitionColumn, "id");
     }
 
     Table(String name, List<String> sortColumns) {

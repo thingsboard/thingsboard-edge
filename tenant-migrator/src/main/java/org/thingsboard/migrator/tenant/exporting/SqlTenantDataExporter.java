@@ -39,7 +39,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.SqlHelperService;
+import org.thingsboard.migrator.tenant.SqlPartitionService;
 import org.thingsboard.migrator.tenant.Storage;
 import org.thingsboard.migrator.tenant.Table;
 
@@ -60,7 +60,7 @@ public class SqlTenantDataExporter implements ApplicationRunner {
 
     private final JdbcTemplate jdbcTemplate;
     private final Storage storage;
-    private final SqlHelperService helperService;
+    private final SqlPartitionService partitionService;
 
     @Value("${export.tenant_id}")
     private UUID exportedTenantId;
@@ -69,15 +69,15 @@ public class SqlTenantDataExporter implements ApplicationRunner {
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
 
-    private static final Set<Table> RELATED_TABLES = Set.of(Table.RELATION, Table.ATTRIBUTE, Table.LATEST_KV);
+    private static final Set<Table> relatedTables = Set.of(Table.RELATION, Table.ATTRIBUTE, Table.LATEST_KV);
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        for (Table table : RELATED_TABLES) {
-            storage.newFile(table);
+        for (Table table : relatedTables) {
+            storage.newFile(table.getName());
         }
         for (Table table : Table.values()) {
-            if (skippedTables.contains(table) || RELATED_TABLES.contains(table)) {
+            if (skippedTables.contains(table) || relatedTables.contains(table)) {
                 continue;
             }
             exportTableData(table, exportedTenantId);
@@ -85,7 +85,7 @@ public class SqlTenantDataExporter implements ApplicationRunner {
     }
 
     private void exportTableData(Table table, UUID tenantId) throws IOException {
-        storage.newFile(table);
+        storage.newFile(table.getName());
         String query;
         if (table.getCustomSelect() != null) {
             query = table.getCustomSelect().apply(tenantId);
@@ -124,12 +124,13 @@ public class SqlTenantDataExporter implements ApplicationRunner {
         queryAndSave(table, query);
     }
 
+    // TODO: delay between queries (100 ms)
     private void queryAndSave(Table table, String query) throws IOException {
-        try (Writer writer = storage.newWriter(table)) {
+        try (Writer writer = storage.newWriter(table.getName())) {
             Consumer<Map<String, Object>> processor = row -> {
                 try {
                     storage.addToFile(writer, row);
-                    for (Table relatedTable : RELATED_TABLES) {
+                    for (Table relatedTable : relatedTables) {
                         if (!relatedTable.getReference().getValue().contains(table)) {
                             continue;
                         }
@@ -151,7 +152,7 @@ public class SqlTenantDataExporter implements ApplicationRunner {
             if (!table.isPartitioned()) {
                 query(query, processor);
             } else {
-                helperService.getPartitions(table).forEach((partitionStart, partitionEnd) -> {
+                partitionService.getPartitions(table).forEach((partitionStart, partitionEnd) -> {
                     String tsFilter = format(" %s.%s >= %s AND %s.%s < %s AND ", table.getName(), table.getPartitionColumn(),
                             partitionStart, table.getName(), table.getPartitionColumn(), partitionEnd);
                     query(insertAfter(query, "WHERE", tsFilter), processor);

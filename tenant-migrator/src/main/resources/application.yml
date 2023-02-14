@@ -38,7 +38,7 @@ export:
 
 import:
   cassandra:
-    ttl: ${CASSANDRA_TS_KV_TTL:365}  # days
+    ttl: ${CASSANDRA_TS_KV_TTL:730}  # days
 
 partition_sizes: # in hours
   event: ${EVENTS_PARTITION_SIZE:168}
@@ -63,3 +63,7 @@ spring:
       local-datacenter: ${CASSANDRA_LOCAL_DATACENTER:datacenter1}
       request:
         page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}
+        timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+      connection:
+        connect-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+        init-query-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
