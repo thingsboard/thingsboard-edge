@@ -53,10 +53,10 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -1305,6 +1305,11 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
             Assert.assertEquals(relationsCnt, relationsResult.getData().size());
             Assert.assertEquals(relationsCnt, relationsResultCnt);
+            /*
+            In order to be careful with updating Relation Query while adding new Entity Type,
+            this checkup will help to find place, where you could check the correctness of building query
+             */
+            Assert.assertEquals(28, EntityType.values().length);
         }
     }
 
