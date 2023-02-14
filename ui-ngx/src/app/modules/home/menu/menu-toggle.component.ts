@@ -65,7 +65,7 @@ export class MenuToggleComponent implements OnInit {
   }
 
   sectionHeight(): string {
-    if (this.section.opened) {
+    if (this.sectionActive()) {
       return this.sectionPages.length * 40 + 'px';
     } else {
       return '0px';

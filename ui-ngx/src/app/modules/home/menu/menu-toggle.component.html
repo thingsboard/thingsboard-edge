@@ -30,16 +30,30 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<a mat-button class="tb-button-toggle" (click)="toggleSection($event)">
-  <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
-  <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon !== null" class="tb-mat-18">{{section.icon}}</mat-icon>
-  <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon !== null" [svgIcon]="section.icon" class="tb-mat-18"></mat-icon>
-  <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
-  <span class=" pull-right fa fa-chevron-down tb-toggle-icon"
-        [ngClass]="{'tb-toggled' : section.opened}"></span>
+<a *ngIf="!section.isCustom" mat-button class="tb-button-toggle" (click)="toggleSection($event)">
+  <ng-container
+    *ngTemplateOutlet="toggleWithIcon;context:{section: section}">
+  </ng-container>
+</a>
+<a *ngIf="section.isCustom" mat-button class="tb-button-toggle"
+   routerLinkActive="tb-active"
+   [routerLinkActiveOptions]="{paths: 'exact', queryParams: 'subset', matrixParams: 'ignored', fragment: 'ignored'}"
+   [queryParams]="section.queryParams"
+   [routerLink]="section.path">
+  <ng-container
+    *ngTemplateOutlet="toggleWithIcon;context:{section: section}">
+  </ng-container>
 </a>
 <ul id="docs-menu-{{section.name | nospace}}" class="tb-menu-toggle-list" [ngStyle]="{height: sectionHeight()}">
   <li *ngFor="let page of sectionPages; trackBy: trackBySectionPages">
     <tb-menu-link [section]="page"></tb-menu-link>
   </li>
 </ul>
+<ng-template #toggleWithIcon let-section="section">
+  <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
+  <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon !== null" class="tb-mat-18">{{section.icon}}</mat-icon>
+  <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon !== null" [svgIcon]="section.icon" class="tb-mat-18"></mat-icon>
+  <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
+  <span class=" pull-right fa fa-chevron-down tb-toggle-icon"
+        [ngClass]="{'tb-toggled' : sectionActive()}"></span>
+</ng-template>

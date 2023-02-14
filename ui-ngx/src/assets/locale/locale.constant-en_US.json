@@ -5136,6 +5136,8 @@
     "white-labeling": {
         "white-labeling": "White Labeling",
         "login-white-labeling": "Login White Labeling",
+        "general": "General",
+        "login": "Login",
         "preview": "Preview",
         "app-title": "Application title",
         "favicon": "Website icon",

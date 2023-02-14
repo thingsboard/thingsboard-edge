@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../core.state';
-import { selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
+import { getCurrentOpenedMenuSections, selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
 import { filter, map, mergeMap, publishReplay, refCount, take } from 'rxjs/operators';
 import { HomeSection, MenuSection } from '@core/services/menu.models';
 import { BehaviorSubject, Observable, of, Subject, Subscription } from 'rxjs';
@@ -42,7 +42,7 @@ import { CustomMenuService } from '@core/http/custom-menu.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { BroadcastService } from '@core/services/broadcast.service';
-import { ActivationEnd, Params, Router } from '@angular/router';
+import { ActivationEnd, NavigationEnd, Params, Router } from '@angular/router';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { AuthState } from '@core/auth/auth.models';
@@ -82,6 +82,11 @@ export class MenuService {
     this.customMenuService.customMenuChanged$.subscribe(() => {
       this.buildMenu();
     });
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(
+      () => {
+        this.updateOpenedMenuSections();
+      }
+    );
     this.router.events.pipe(filter(event => event instanceof ActivationEnd)).subscribe(() => {
       this.updateCurrentCustomSection();
     });
@@ -121,10 +126,20 @@ export class MenuService {
             customMenuItems = customMenu.menuItems;
           }
           this.buildCustomMenu(customMenuItems);
+          this.updateOpenedMenuSections();
           this.menuSections$.next(this.currentMenuSections);
           this.homeSections$.next(this.currentHomeSections);
         }
       }
+    );
+  }
+
+  private updateOpenedMenuSections() {
+    const url = this.router.url;
+    const openedMenuSections = getCurrentOpenedMenuSections(this.store);
+    this.currentMenuSections.filter(section => section.type === 'toggle' &&
+      (url.startsWith(section.path) || openedMenuSections.includes(section.path))).forEach(
+      section => section.opened = true
     );
   }
 
@@ -164,18 +179,36 @@ export class MenuService {
       },
       {
         id: guid(),
-        name: 'widget.widget-library',
-        type: 'link',
-        path: '/widgets-bundles',
-        icon: 'now_widgets',
-        disabled: disabledItems.indexOf('widget_library') > -1
+        name: 'admin.resources',
+        type: 'toggle',
+        path: '/resources',
+        icon: 'folder',
+        pages: [
+          {
+            id: guid(),
+            name: 'widget.widget-library',
+            type: 'link',
+            path: '/resources/widgets-bundles',
+            icon: 'now_widgets',
+            disabled: disabledItems.indexOf('widget_library') > -1
+          },
+          {
+            id: guid(),
+            name: 'resource.resources-library',
+            type: 'link',
+            path: '/resources/resources-library',
+            icon: 'mdi:rhombus-split',
+            isMdiIcon: true,
+            disabled: disabledItems.indexOf('resources_library') > -1
+          }
+        ]
       }
     );
 
     const whiteLabelPages: Array<MenuSection> = [
       {
         id: guid(),
-        name: 'white-labeling.white-labeling',
+        name: 'white-labeling.general',
         type: 'link',
         path: '/white-labeling/whiteLabel',
         icon: 'format_paint',
@@ -183,7 +216,7 @@ export class MenuService {
       },
       {
         id: guid(),
-        name: 'white-labeling.login-white-labeling',
+        name: 'white-labeling.login',
         type: 'link',
         path: '/white-labeling/loginWhiteLabel',
         icon: 'format_paint',
@@ -218,11 +251,10 @@ export class MenuService {
     const whiteLabelSection: MenuSection = {
       id: guid(),
       name: 'white-labeling.white-labeling',
-      type: 'toggle',
+      type: 'link',
       path: '/white-labeling',
       icon: 'format_paint',
-      pages: whiteLabelPages,
-      asyncPages: of(whiteLabelPages)
+      pages: whiteLabelPages
     };
     sections.push(whiteLabelSection);
 
@@ -245,44 +277,11 @@ export class MenuService {
       },
       {
         id: guid(),
-        name: 'admin.sms-provider',
+        name: 'admin.notifications',
         type: 'link',
-        path: '/settings/sms-provider',
+        path: '/settings/notifications',
         icon: 'sms',
-        disabled: disabledItems.indexOf('sms_provider') > -1
-      },
-      {
-        id: guid(),
-        name: 'admin.security-settings',
-        type: 'link',
-        path: '/settings/security-settings',
-        icon: 'security',
-        disabled: disabledItems.indexOf('security_settings') > -1
-      },
-      {
-        id: guid(),
-        name: 'admin.oauth2.oauth2',
-        type: 'link',
-        path: '/settings/oauth2',
-        icon: 'security',
-        disabled: disabledItems.indexOf('oauth2') > -1
-      },
-      {
-        id: guid(),
-        name: 'admin.2fa.2fa',
-        type: 'link',
-        path: '/settings/2fa',
-        icon: 'mdi:two-factor-authentication',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('2fa') > -1
-      },
-      {
-        id: guid(),
-        name: 'resource.resources-library',
-        type: 'link',
-        path: '/settings/resources-library',
-        icon: 'folder',
-        disabled: disabledItems.indexOf('resources_library') > -1
+        disabled: disabledItems.indexOf('sms_provider') > -1 || disabledItems.indexOf('notification_settings') > -1
       },
       {
         id: guid(),
@@ -296,14 +295,52 @@ export class MenuService {
 
     const settingSection: MenuSection = {
       id: guid(),
-      name: 'admin.system-settings',
-      type: 'toggle',
+      name: 'admin.settings',
+      type: 'link',
       path: '/settings',
       icon: 'settings',
-      pages: settingPages,
-      asyncPages: of(settingPages)
+      pages: settingPages
     };
     sections.push(settingSection);
+
+    const securitySettingPages: Array<MenuSection> = [
+      {
+        id: guid(),
+        name: 'admin.general',
+        type: 'link',
+        path: '/security-settings/general',
+        icon: 'settings_applications',
+        disabled: disabledItems.indexOf('security_settings') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.2fa.2fa',
+        type: 'link',
+        path: '/security-settings/2fa',
+        icon: 'mdi:two-factor-authentication',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('2fa') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.oauth2.oauth2',
+        type: 'link',
+        path: '/security-settings/oauth2',
+        icon: 'mdi:shield-account',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('oauth2') > -1
+      }
+    ];
+
+    const securitySettingSection: MenuSection = {
+      id: guid(),
+      name: 'security.security',
+      type: 'link',
+      path: '/security-settings',
+      icon: 'security',
+      pages: securitySettingPages
+    };
+    sections.push(securitySettingSection);
 
     return sections;
   }
@@ -1769,7 +1806,7 @@ export class MenuService {
         return false;
       }
     } else {
-      return this.router.isActive(section.path, false);
+      return section.opened;
     }
   }
 
