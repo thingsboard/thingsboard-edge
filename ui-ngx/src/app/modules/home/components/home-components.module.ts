@@ -220,10 +220,12 @@ import { ConverterTestDialogComponent } from '@home/components/converter/convert
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
 
 @NgModule({
   declarations:
     [
+      RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
       DetailsPanelComponent,
@@ -405,6 +407,7 @@ import { modulesMap } from '@modules/common/modules-map';
   ],
   exports: [
     SharedHomeComponentsModule,
+    RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,

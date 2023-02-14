@@ -107,6 +107,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
 import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
+import { UserSettingsService } from '@core/http/user-settings.service';
 
 export interface IWidgetAction {
   name: string;
@@ -198,6 +199,7 @@ export class WidgetContext {
   dialogs: DialogService;
   customDialog: CustomDialogService;
   resourceService: ResourceService;
+  userSettingsService: UserSettingsService;
   telemetryWsService: TelemetryWebsocketService;
   telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;

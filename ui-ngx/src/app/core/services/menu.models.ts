@@ -45,6 +45,7 @@ export interface MenuSection extends HasUUID{
   isMdiIcon?: boolean;
   asyncPages?: Observable<Array<MenuSection>>;
   pages?: Array<MenuSection>;
+  opened?: boolean;
   disabled?: boolean;
   ignoreTranslate?: boolean;
   groupType?: EntityType;

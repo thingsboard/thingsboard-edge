@@ -513,12 +513,14 @@ export interface CustomTimeSchedulerItem{
   endsOn: number;
 }
 
-export interface AlarmRule {
+interface AlarmRule {
   condition: AlarmCondition;
   alarmDetails?: string;
   dashboardId?: DashboardId;
   schedule?: AlarmSchedule;
 }
+
+export { AlarmRule as DeviceProfileAlarmRule };
 
 export function alarmRuleValidator(control: AbstractControl): ValidationErrors | null {
   const alarmRule: AlarmRule = control.value;
