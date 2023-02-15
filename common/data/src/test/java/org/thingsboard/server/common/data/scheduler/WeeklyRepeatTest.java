@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class WeeklyRepeatTest {
 
-    public static final String TIMEZONE = "Europe/Kyiv";
+    public static final String TIMEZONE = "EET";
 
     @Test
     public void getNextTest() throws ParseException {
