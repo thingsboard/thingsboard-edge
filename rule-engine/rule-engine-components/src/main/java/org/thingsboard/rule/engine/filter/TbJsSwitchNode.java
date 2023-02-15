@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,8 +54,8 @@ import java.util.Set;
         name = "switch", customRelations = true,
         relationTypes = {},
         configClazz = TbJsSwitchNodeConfiguration.class,
-        nodeDescription = "Route incoming Message to one or multiple output chains",
-        nodeDetails = "Node executes configured JS script. Script should return array of next Chain names where Message should be routed. " +
+        nodeDescription = "Routes incoming message to one OR multiple output connections.",
+        nodeDetails = "Node executes configured TBEL(recommended) or JavaScript function that returns array of strings (connection names). " +
                 "If Array is empty - message not routed to next Node. " +
                 "Message payload can be accessed via <code>msg</code> property. For example <code>msg.temperature < 10;</code><br/>" +
                 "Message metadata can be accessed via <code>metadata</code> property. For example <code>metadata.customerName === 'John';</code><br/>" +

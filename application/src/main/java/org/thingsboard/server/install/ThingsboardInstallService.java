@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -252,10 +252,14 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.4.1 to 3.4.2 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.1");
                             dataUpdateService.updateData("3.4.1");
-                        case "3.4.2": // to 3.4.2PE
-                            log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.2PE ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.2");
-                            dataUpdateService.updateData("3.4.2");
+                        case "3.4.2":
+                            log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.3 ...");
+                        case "3.4.3":
+                            log.info("Upgrading ThingsBoard from version 3.4.3 to 3.4.4 ...");
+                        case "3.4.4": // to 3.4.4PE
+                            log.info("Upgrading ThingsBoard from version 3.4.4 to 3.4.4PE ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
+                            dataUpdateService.updateData("3.4.4");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
                             break;

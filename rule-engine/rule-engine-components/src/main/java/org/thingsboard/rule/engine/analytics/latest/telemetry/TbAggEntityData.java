@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,8 +67,8 @@ public class TbAggEntityData {
     public void prepare() {
         putToMap(latestTs, tsFuture);
         putToMap(clientAttributes, clientAttributesFuture);
-        putToMap(serverAttributes, sharedAttributesFuture);
-        putToMap(sharedAttributes, serverAttributesFuture);
+        putToMap(serverAttributes, serverAttributesFuture);
+        putToMap(sharedAttributes, sharedAttributesFuture);
         putToMap(filterMap, clientAttributesFuture, null);
         putToMap(filterMap, sharedAttributesFuture, null);
         putToMap(filterMap, serverAttributesFuture, null);

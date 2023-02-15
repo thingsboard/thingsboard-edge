@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.thingsboard.server.msa.ui.base.AbstractBasePage;
@@ -105,6 +106,11 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String CUSTOMER_FROM_DROPDOWN = "//div[@role='listbox']//span[contains(text(),'%s')]";
     private static final String CHANGE_OWNER_VIEW_CHANGE_BTN = "//span[contains(text(),'Change owner')]//ancestor::button";
     private static final String SELECT_GROUP_VIEW_SUBMIT_BTN = "//button[@type='submit']";
+    private static final String ENTITY_FROM_LIST = "//div[@role='listbox']/mat-option//span[contains(text(),'%s')]";
+    private static final String BROWSE_FILE = "//input[@class='file-input']";
+    private static final String IMPORT_BROWSE_FILE = "//mat-dialog-container//span[contains(text(),'Import')]/..";
+    private static final String IMPORTING_FILE = "//div[contains(text(),'%s')]";
+    private static final String CLEAR_IMPORT_FILE_BTN = "//div[@class='tb-file-clear-container']//button";
 
     public String getEntity(String entityName) {
         return String.format(ENTITY, entityName);
@@ -160,6 +166,10 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement checkBox(String entityName) {
         return waitUntilElementToBeClickable(String.format(CHECKBOX, entityName));
+    }
+
+    public WebElement presentCheckBox(String name) {
+        return waitUntilPresenceOfElementLocated(getCheckbox(name));
     }
 
     public WebElement deleteSelectedBtn() {
@@ -300,6 +310,10 @@ public class OtherPageElements extends AbstractBasePage {
         return waitUntilElementsToBeClickable(LIST_OF_ENTITY);
     }
 
+    public WebElement entityFromList(String entityName) {
+        return waitUntilVisibilityOfElementLocated(String.format(ENTITY_FROM_LIST, entityName));
+    }
+
     public WebElement addEntityView() {
         return waitUntilVisibilityOfElementLocated(ADD_ENTITY_VIEW);
     }
@@ -354,6 +368,23 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement changeOwnerBtn() {
         return waitUntilElementToBeClickable(CHANGE_OWNER_BTN);
+    }
+
+    public WebElement browseFile() {
+        waitUntilElementToBeClickable(BROWSE_FILE + "/preceding-sibling::button");
+        return driver.findElement(By.xpath(BROWSE_FILE));
+    }
+
+    public WebElement importBrowseFileBtn() {
+        return waitUntilElementToBeClickable(IMPORT_BROWSE_FILE);
+    }
+
+    public WebElement importingFile(String fileName) {
+        return waitUntilVisibilityOfElementLocated(String.format(IMPORTING_FILE, fileName));
+    }
+
+    public WebElement clearImportFileBtn() {
+        return waitUntilElementToBeClickable(CLEAR_IMPORT_FILE_BTN);
     }
 
     public WebElement addToGroupBtn() {

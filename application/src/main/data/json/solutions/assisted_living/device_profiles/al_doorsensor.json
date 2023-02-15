@@ -1,0 +1,347 @@
+{
+  "name": "AL_DoorSensor",
+  "description": "",
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "c91744c0-8767-11ed-ace0-2b013f453ca4"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "233eb0e2-e4d5-7004-191d-67d6e4d5170b",
+        "alarmType": "Door open",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "CONSTANT",
+                    "key": "enabled"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": true,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": false,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "doorOpenAlarmEnabled",
+                        "inherit": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "open"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "MINUTES",
+                "predicate": {
+                  "defaultValue": 60,
+                  "userValue": null,
+                  "dynamicValue": {
+                    "sourceType": "CURRENT_CUSTOMER",
+                    "sourceAttribute": "maxCriticalDoorOpenThreshold",
+                    "inherit": false
+                  }
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "CONSTANT",
+                    "key": "enabled"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": true,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": false,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "doorOpenAlarmEnabled",
+                        "inherit": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "open"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": null,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": true,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "DURATION",
+                "unit": "MINUTES",
+                "predicate": {
+                  "defaultValue": 30,
+                  "userValue": null,
+                  "dynamicValue": {
+                    "sourceType": "CURRENT_CUSTOMER",
+                    "sourceAttribute": "maxMajorDoorOpenThreshold",
+                    "inherit": false
+                  }
+                }
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "open"
+                },
+                "valueType": "BOOLEAN",
+                "value": null,
+                "predicate": {
+                  "type": "BOOLEAN",
+                  "operation": "EQUAL",
+                  "value": {
+                    "defaultValue": false,
+                    "userValue": null,
+                    "dynamicValue": null
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": true,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": ["Contains"]
+      },
+      {
+        "id": "6ca2bf03-5fb1-6e4e-19d2-a736829226b6",
+        "alarmType": "Battery",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "CONSTANT",
+                    "key": "enabled"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": true,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": false,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "batteryLevelAlarmEnabled",
+                        "inherit": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "battery"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 15,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "minCriticalBatteryLevelThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "MAJOR": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "CONSTANT",
+                    "key": "enabled"
+                  },
+                  "valueType": "BOOLEAN",
+                  "value": true,
+                  "predicate": {
+                    "type": "BOOLEAN",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": false,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "batteryLevelAlarmEnabled",
+                        "inherit": false
+                      }
+                    }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "battery"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 25,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_CUSTOMER",
+                        "sourceAttribute": "minMajorBatteryLevelThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "battery"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 25,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_CUSTOMER",
+                      "sourceAttribute": "minMajorBatteryLevelThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": true,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": [
+          "Contains"
+        ]
+      }
+    ]
+  },
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "externalId": null,
+  "default": false
+}

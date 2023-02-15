@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -288,7 +288,7 @@ public class MqttProvisionProtoDeviceTest extends AbstractMqttIntegrationTest {
         client.setCallback(onProvisionCallback);
         client.subscribe(DEVICE_PROVISION_RESPONSE_TOPIC, MqttQoS.AT_MOST_ONCE);
         client.publishAndWait(DEVICE_PROVISION_REQUEST_TOPIC, provisionRequestMsg);
-        onProvisionCallback.getSubscribeLatch().await(3, TimeUnit.SECONDS);
+        onProvisionCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         client.disconnect();
         return onProvisionCallback.getPayloadBytes();
     }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -467,6 +467,9 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.geo.TbGpsGeofencingFilterNode': 'ruleNodeGpsGeofencingFilter',
   'org.thingsboard.rule.engine.filter.TbJsFilterNode': 'ruleNodeJsFilter',
   'org.thingsboard.rule.engine.filter.TbJsSwitchNode': 'ruleNodeJsSwitch',
+  'org.thingsboard.rule.engine.filter.TbAssetTypeSwitchNode': 'ruleNodeAssetProfileSwitch',
+  'org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode': 'ruleNodeDeviceProfileSwitch',
+  'org.thingsboard.rule.engine.filter.TbCheckAlarmStatusNode': 'ruleNodeCheckAlarmStatus',
   'org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode': 'ruleNodeMessageTypeFilter',
   'org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode': 'ruleNodeMessageTypeSwitch',
   'org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode': 'ruleNodeOriginatorTypeFilter',
