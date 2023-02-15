@@ -969,6 +969,10 @@ public class DefaultSolutionService implements SolutionService {
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
             entity = assetService.saveAsset(entity);
+            if (!ctx.getCreatedEntitiesList().contains(entity.getAssetProfileId())){
+                ctx.register(entity.getAssetProfileId());
+                log.info("Saved asset profile: {}", entity.getAssetProfileId());
+            }
             ctx.register(entityDef, entity);
             log.info("[{}] Saved asset: {}", entity.getId(), entity);
             AssetId entityId = entity.getId();
