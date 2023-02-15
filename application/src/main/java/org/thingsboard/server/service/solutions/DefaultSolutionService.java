@@ -1307,14 +1307,18 @@ public class DefaultSolutionService implements SolutionService {
                 userService.deleteUser(tenantId, new UserId(entityId.getId()));
                 break;
             case ASSET:
+                AssetId assetId = new AssetId(entityId.getId());
+                Asset asset = assetService.findAssetById(tenantId, assetId);
                 assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
+                notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(), ActionType.DELETED,
+                        Collections.emptyList(), user, assetId.toString());
                 break;
             case DEVICE:
                 DeviceId deviceId = new DeviceId(entityId.getId());
                 Device device = deviceService.findDeviceById(tenantId, deviceId);
                 deviceService.deleteDevice(tenantId, deviceId);
                 notificationEntityService.notifyDeleteDevice(tenantId, deviceId, device.getCustomerId(), device,
-                        List.of(), user, deviceId.toString());
+                        Collections.emptyList(), user, deviceId.toString());
                 break;
             case CUSTOMER:
                 customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));
