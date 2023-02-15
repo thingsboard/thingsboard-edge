@@ -192,6 +192,7 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     protected AlarmService alarmService;
+
     @Autowired
     protected AlarmCommentService alarmCommentService;
 

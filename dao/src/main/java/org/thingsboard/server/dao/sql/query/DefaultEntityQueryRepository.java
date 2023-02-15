@@ -1134,7 +1134,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             entitiesQuery.append(readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ? "true" : "false");
             entitiesQuery.append(")");
         } else {
-            entitiesQuery.append("(e.entity_type = 'ROLE' AND ");
+            entitiesQuery.append("(e.entity_type = '").append(entityType.name()).append("' AND ");
             if (readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead()) {
                 entitiesQuery.append("e.customer_id in ").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY);
             } else {
