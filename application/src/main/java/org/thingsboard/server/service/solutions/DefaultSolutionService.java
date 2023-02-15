@@ -853,6 +853,10 @@ public class DefaultSolutionService implements SolutionService {
 
             entityActionService.logEntityAction(user, entity.getId(), entity, customerId, ActionType.ADDED, null);
 
+            if (!ctx.getCreatedEntitiesList().contains(entity.getDeviceProfileId())){
+                ctx.register(entity.getDeviceProfileId());
+                log.info("Saved device profile: {}", entity.getDeviceProfileId());
+            }
             ctx.register(entityDef, entity);
             log.info("[{}] Saved device: {}", entity.getId(), entity);
             DeviceId entityId = entity.getId();
