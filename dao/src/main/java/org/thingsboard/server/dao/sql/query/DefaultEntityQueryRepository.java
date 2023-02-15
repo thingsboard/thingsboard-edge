@@ -1230,13 +1230,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     hasFilters = true;
                 }
                 if (!ctx.getEntityType().equals(EntityType.CUSTOMER)) {
-                    entityFlagsQuery.append("select re.to_id, ")
+                    entityFlagsQuery.append("select e.id to_id, ")
                             .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
                             .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
                             .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
-                    entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
-                    entityFlagsQuery.append(" AND re.from_id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
-                    entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
+                    entityFlagsQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
+                    entityFlagsQuery.append(" where ").append(entityWhereClause);
+                    entityFlagsQuery.append(" AND e.customer_id in (").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY).append(")");
                 } else {
                     entityFlagsQuery.append("select c.id to_id, ")
                             .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
