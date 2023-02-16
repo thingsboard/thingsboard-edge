@@ -819,33 +819,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         doPost("/api/user/" + tenantUser.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
                 .andExpect(status().isOk());
 
-        Role role = new Role();
-        role.setTenantId(tenantId);
-        role.setCustomerId(customerId);
-        role.setType(RoleType.GENERIC);
-        role.setName("Test customer administrator");
-        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
-        role = doPost("/api/role", role, Role.class);
-
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName("Test customer administrators");
-        entityGroup.setType(EntityType.USER);
-        entityGroup.setOwnerId(customerId);
-        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
-
-        GroupPermission groupPermission = new GroupPermission(tenantId, entityGroup.getId(), role.getId(),
-                null, null, false
-        );
-        doPost("/api/groupPermission", groupPermission, GroupPermission.class);
-
-        User customerAdmin = new User();
-        customerAdmin.setEmail("customer1@thingsboard.org");
-        customerAdmin.setTenantId(tenantId);
-        customerAdmin.setCustomerId(customerId);
-        customerAdmin.setFirstName("customer");
-        customerAdmin.setLastName("admin");
-        customerAdmin.setAuthority(Authority.CUSTOMER_USER);
-        customerAdmin = createUser(customerAdmin, "testPassword1", entityGroup.getId());
+        User customerAdmin = createCustomerAdminWithAllPermission(customerId, "testPassword1");
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
@@ -1033,11 +1007,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
             doPost("/api/user", user, User.class);
         }
 
-        User user = new User();
-        user.setAuthority(Authority.CUSTOMER_USER);
-        user.setCustomerId(customerId);
-        user.setEmail("testCustomerUser@thingsboard.org");
-        createUserAndLogin(user, "testPassword2");
+        User customerAdmin = createCustomerAdminWithAllPermission(customerId, "testPassword2");
+        login(customerAdmin.getEmail(), "testPassword2");
 
         // find user my name
         List<UserData> loadedCustomerUsers = new ArrayList<>();
@@ -1154,6 +1125,37 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         loginUser(tenantAdmin.getEmail(), "testPassword1");
         doDelete("/api/customer/" + customerId.getId().toString())
                 .andExpect(status().isOk());
+    }
+
+    private User createCustomerAdminWithAllPermission(CustomerId customerId, String testPassword2) throws Exception {
+        Role role = new Role();
+        role.setTenantId(tenantId);
+        role.setCustomerId(customerId);
+        role.setType(RoleType.GENERIC);
+        role.setName("Test customer administrator");
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+        role = doPost("/api/role", role, Role.class);
+
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Test customer administrators");
+        entityGroup.setType(EntityType.USER);
+        entityGroup.setOwnerId(customerId);
+        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        GroupPermission groupPermission = new GroupPermission(tenantId, entityGroup.getId(), role.getId(),
+                null, null, false
+        );
+        doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+
+        User customerAdmin = new User();
+        customerAdmin.setEmail("customer1@thingsboard.org");
+        customerAdmin.setTenantId(tenantId);
+        customerAdmin.setCustomerId(customerId);
+        customerAdmin.setFirstName("customer");
+        customerAdmin.setLastName("admin");
+        customerAdmin.setAuthority(Authority.CUSTOMER_USER);
+        customerAdmin = createUser(customerAdmin, testPassword2, entityGroup.getId());
+        return customerAdmin;
     }
 
     private User createUser() throws Exception {
