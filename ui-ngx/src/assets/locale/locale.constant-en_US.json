@@ -1026,6 +1026,8 @@
         "time-to": "Time to"
     },
     "dashboard": {
+        "all": "All",
+        "groups": "Groups",
         "dashboard": "Dashboard",
         "dashboards": "Dashboards",
         "management": "Dashboard management",
@@ -2249,7 +2251,9 @@
         "list-of-edges": "{ count, plural, 1 {One edge} other {List of # edges} }",
         "edge-name-starts-with": "Edges whose names start with '{{prefix}}'",
         "type-tb-resource": "Resource",
-        "type-ota-package": "OTA package"
+        "type-ota-package": "OTA package",
+        "customer-name": "Customer name",
+        "sub-customer-name": "Sub-customer name"
     },
     "entity-group": {
         "entity-group": "Entity group",

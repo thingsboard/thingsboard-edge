@@ -104,6 +104,16 @@ export class UserPermissionsService {
     }
   }
 
+  public hasSharedReadGroupsPermission(entityType: EntityType): boolean {
+    if (this.userPermissions) {
+      const readGroupPermissions = this.userPermissions.readGroupPermissions;
+      const groupTypePermissionInfo = readGroupPermissions[entityType];
+      return groupTypePermissionInfo.entityGroupIds.length > 0;
+    } else {
+      return false;
+    }
+  }
+
   public hasReadGenericPermission(resource: Resource): boolean {
     if (this.userPermissions) {
       return this.hasGenericPermission(resource, Operation.READ);

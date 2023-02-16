@@ -492,6 +492,80 @@ export class MenuService {
         disabled: disabledItems.indexOf('home') > -1
       }
     );
+    const alarmPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.ALARM)) {
+      alarmPages.push(
+        {
+          id: guid(),
+          name: 'alarm.all-alarms',
+          type: 'link',
+          path: '/alarm/alarms',
+          icon: 'notifications',
+          disabled: disabledItems.indexOf('alarms') > -1
+        }
+      );
+    }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.ALARM)) { TODO: Alarm Rules permissions
+      alarmPages.push(
+        {
+          id: guid(),
+          name: 'alarm-rule.rules',
+          type: 'link',
+          path: '/alarm/rules',
+          icon: 'edit_notifications',
+          disabled: disabledItems.indexOf('alarm_rules') > -1
+        }
+      );
+    // }
+    if (alarmPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'alarm.alarms',
+          type: 'link',
+          path: '/alarm',
+          icon: 'notifications',
+          pages: alarmPages
+        }
+      );
+    }
+    const dashboardPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD)) {
+      dashboardPages.push(
+        {
+          id: guid(),
+          name: 'dashboard.all',
+          type: 'link',
+          path: '/dashboards/all',
+          icon: 'dashboards',
+          disabled: disabledItems.indexOf('dashboard_all') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD)) {
+      dashboardPages.push(
+        {
+          id: guid(),
+          name: 'dashboard.groups',
+          type: 'link',
+          path: '/dashboards/groups',
+          icon: 'dashboard',
+          disabled: disabledItems.indexOf('dashboard_groups') > -1
+        }
+      );
+    }
+    if (dashboardPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'dashboard.dashboards',
+          type: 'link',
+          path: '/dashboards',
+          icon: 'dashboards',
+          pages: dashboardPages
+        }
+      );
+    }
     if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
       sections.push(
         {
@@ -1863,27 +1937,28 @@ export class MenuService {
   }
 
   public getRedirectPath(parentPath: string, redirectPath: string): Observable<string> {
+    parentPath = '/' + parentPath.replace(/\./g, '/');
+    if (!redirectPath.startsWith('/')) {
+      redirectPath = `${parentPath}/${redirectPath}`;
+    }
     return this.menuSections$.pipe(
-      mergeMap((sections) => {
+      map((sections) => {
         const filtered = sections.filter((section) => section.path === parentPath);
         if (filtered && filtered.length) {
           const parentSection = filtered[0];
-          if (parentSection.asyncPages) {
-            return parentSection.asyncPages.pipe(
-              map((childPages) => {
-                const filteredPages = childPages.filter((page) => !page.disabled);
-                if (filteredPages && filteredPages.length) {
-                  const redirectPage = filteredPages.filter((page) => page.path === redirectPath);
-                  if (!redirectPage || !redirectPage.length) {
-                    return filteredPages[0].path;
-                  }
-                }
-                return redirectPath;
-              })
-            );
+          if (parentSection.pages) {
+            const childPages = parentSection.pages;
+            const filteredPages = childPages.filter((page) => !page.disabled);
+            if (filteredPages && filteredPages.length) {
+              const redirectPage = filteredPages.filter((page) => page.path === redirectPath);
+              if (!redirectPage || !redirectPage.length) {
+                return filteredPages[0].path;
+              }
+            }
+            return redirectPath;
           }
         }
-        return of(redirectPath);
+        return redirectPath;
       })
     );
   }

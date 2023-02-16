@@ -29,40 +29,32 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { GroupDashboardFormComponent } from '@modules/home/pages/dashboard/group-dashboard-form.component';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
-import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
-import { DashboardRoutingModule } from '@home/pages/dashboard/dashboard-routing.module';
-import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
-import { DashboardsTableFilterComponent } from '@home/pages/dashboard/dashboards-table-filter.component';
+import { Component, Input, OnInit } from '@angular/core';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
 
-@NgModule({
-  declarations: [
-    GroupDashboardFormComponent,
-    DashboardFormComponent,
-    DashboardTabsComponent,
-    DashboardsTableFilterComponent,
-    PublicDashboardLinkDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    DashboardRoutingModule
-  ],
-  providers: [
-    {
-      provide: DASHBOARD_GROUP_CONFIG_FACTORY,
-      useClass: DashboardGroupConfigFactory
-    }
-  ]
+export interface DashboardsTableFilter {
+  includeCustomers: boolean;
+}
+
+@Component({
+  selector: 'tb-dashboards-table-filter',
+  templateUrl: './dashboards-table-filter.component.html',
+  styleUrls: []
 })
-export class DashboardModule { }
+export class DashboardsTableFilterComponent implements OnInit {
+
+  @Input()
+  filter: DashboardsTableFilter;
+
+  @Input()
+  tableConfig: EntityTableConfig<DashboardInfo | Dashboard>;
+
+  ngOnInit(): void {
+  }
+
+  dashboardsTableFilterChanged() {
+    this.tableConfig.componentsData.dashboardsTableFilterChanged(this.filter);
+  }
+
+}

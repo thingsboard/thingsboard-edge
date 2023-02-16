@@ -53,8 +53,12 @@ export class RouterTabsComponent extends PageComponent implements AfterViewInit,
 
   tabs$: Observable<Array<MenuSection>> = this.menuService.menuSections().pipe(
     map(sections => {
-      const found = sections.find(section => section.path === `/${this.activatedRoute.routeConfig.path}`);
-      return found ? found.pages.filter(page => !page.disabled) : [];
+      const sectionPath = '/' + this.activatedRoute.pathFromRoot.map(r => r.snapshot.url)
+        .filter(f => !!f[0]).map(f => f.map(f1 => f1.path).join('/')).join('/');
+      const found = sections.find(section => sectionPath.endsWith(section.path));
+      const tabs: Array<MenuSection> = found ? found.pages.filter(page => !page.disabled) : [];
+      const rootPath = sectionPath.substring(0, sectionPath.length - found.path.length);
+      return tabs.map((tab) => ({...tab, path: rootPath + tab.path}));
     })
   );
 

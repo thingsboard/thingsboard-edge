@@ -31,7 +31,7 @@
 
 -->
 <div fxFlex fxLayout="column" style="width: 100%;">
-  <nav mat-tab-nav-bar class="tb-router-tabs">
+  <nav *ngIf="!routerOutlet?.activatedRouteData?.hideTabs" mat-tab-nav-bar class="tb-router-tabs">
     <a *ngFor="let tab of tabs$ | async"
        routerLink="{{tab.path}}"
        routerLinkActive
@@ -45,6 +45,6 @@
     </a>
   </nav>
   <div fxFlex fxLayout="column" class="tb-router-tabs-content">
-    <router-outlet (activate)="activeComponentChanged($event)"></router-outlet>
+    <router-outlet #routerOutlet="outlet" (activate)="activeComponentChanged($event)"></router-outlet>
   </div>
 </div>

@@ -196,6 +196,8 @@ public class ControllerConstants {
     protected static final String VERSION_ID_PARAM_DESCRIPTION = "Version id, for example fd82625bdd7d6131cf8027b44ee967012ecaf990. Represents commit hash.";
     protected static final String BRANCH_PARAM_DESCRIPTION = "The name of the working branch, for example 'master'";
 
+    protected static final String INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS = "Include customer or sub-customer entities";
+
     protected static final String MARKDOWN_CODE_BLOCK_START = "```json\n";
     protected static final String MARKDOWN_CODE_BLOCK_END = "\n```";
     protected static final String EVENT_ERROR_FILTER_OBJ = MARKDOWN_CODE_BLOCK_START +

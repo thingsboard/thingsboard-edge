@@ -33,7 +33,6 @@ import { Injectable, NgModule } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
-  Resolve,
   Route,
   Router,
   RouterModule,
@@ -44,22 +43,12 @@ import {
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { EntityType } from '@shared/models/entity-type.models';
-import { Observable, of } from 'rxjs';
-import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
+import { of } from 'rxjs';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
-import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
-import { resolveGroupParams } from '@shared/models/entity-group.models';
-import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
-import { Operation, Resource } from '@shared/models/security.models';
-import { Dashboard } from '@shared/models/dashboard.models';
-import { DashboardService } from '@core/http/dashboard.service';
-import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { map, switchMap } from 'rxjs/operators';
-import { dashboardBreadcumbLabelFunction } from '@home/pages/dashboard/dashboard-routing.module';
 import { CustomersHierarchyComponent } from '@home/pages/group/customers-hierarchy.component';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
-import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
 import { RuleChainPageComponent } from '@home/pages/rulechain/rulechain-page.component';
@@ -85,33 +74,8 @@ import _ from 'lodash';
 import { EntityService } from '@core/http/entity.service';
 import { entityIdEquals } from '@shared/models/id/entity-id';
 import { IntegrationsTableConfigResolver } from '@home/pages/integration/integrations-table-config.resolver';
-
-@Injectable()
-export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
-
-  constructor(private entityGroupConfigResolver: EntityGroupConfigResolver) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupStateInfo<T>> | EntityGroupStateInfo<T> {
-    const entityGroupParams = resolveGroupParams(route);
-    return this.entityGroupConfigResolver.constructGroupConfigByStateParams(entityGroupParams);
-  }
-}
-
-@Injectable()
-export class DashboardResolver implements Resolve<Dashboard> {
-
-  constructor(private dashboardService: DashboardService,
-              private dashboardUtils: DashboardUtilsService) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<Dashboard> {
-    const dashboardId = route.params.dashboardId;
-    return this.dashboardService.getDashboard(dashboardId).pipe(
-      map((dashboard) => this.dashboardUtils.validateAndUpdateDashboard(dashboard))
-    );
-  }
-}
+import { dashboardsRoute } from '@home/pages/dashboard/dashboard-routing.module';
+import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/group/entity-group.shared';
 
 @Injectable()
 export class RedirectToEntityGroup implements CanActivate {
@@ -163,11 +127,6 @@ export class RedirectToEntityGroup implements CanActivate {
   }
 
 }
-
-const groupEntitiesLabelFunction: BreadCrumbLabelFunction<GroupEntitiesTableComponent> =
-  (route, translate, component, data) => {
-    return component.entityGroup.name;
-  };
 
 const ENTITY_RUTE_ROUTE: Routes = [
   {
@@ -501,73 +460,22 @@ const USER_GROUPS_ROUTE: Route = {
   ]
 };
 
-const DASHBOARD_GROUPS_ROUTE: Route =   {
-  path: 'dashboardGroups',
-  data: {
-    groupType: EntityType.DASHBOARD,
-    breadcrumb: {
-      label: 'entity-group.dashboard-groups',
-      icon: 'dashboard'
-    }
+const redirectDashboardGroupsRoutes: Routes = [
+  {
+    path: 'dashboardGroups',
+    pathMatch: 'full',
+    redirectTo: '/dashboards/groups'
   },
-  children: [
-    {
-      path: '',
-      component: EntitiesTableComponent,
-      data: {
-        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        title: 'entity-group.dashboard-groups',
-        groupType: EntityType.DASHBOARD
-      },
-      resolve: {
-        entityGroup: EntityGroupResolver,
-        entitiesTableConfig: EntityGroupsTableConfigResolver
-      }
-    },
-    {
-      path: ':entityGroupId',
-      data: {
-        groupType: EntityType.DASHBOARD,
-        breadcrumb: {
-          icon: 'dashboard',
-          labelFunction: groupEntitiesLabelFunction
-        } as BreadCrumbConfig<GroupEntitiesTableComponent>
-      },
-      children: [
-        {
-          path: '',
-          component: GroupEntitiesTableComponent,
-          data: {
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'entity-group.dashboard-group',
-            groupType: EntityType.DASHBOARD
-          },
-          resolve: {
-            entityGroup: EntityGroupResolver
-          }
-        },
-        {
-          path: ':dashboardId',
-          component: DashboardPageComponent,
-          data: {
-            groupType: EntityType.DASHBOARD,
-            breadcrumb: {
-              labelFunction: dashboardBreadcumbLabelFunction,
-              icon: 'dashboard'
-            } as BreadCrumbConfig<DashboardPageComponent>,
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'dashboard.dashboard',
-            widgetEditMode: false
-          },
-          resolve: {
-            dashboard: DashboardResolver,
-            entityGroup: EntityGroupResolver
-          }
-        }
-      ]
-    }
-  ]
-};
+  {
+    path: 'dashboardGroups/:entityGroupId',
+    pathMatch: 'full',
+    redirectTo: '/dashboards/groups/:entityGroupId'
+  },
+  {
+    path: 'dashboardGroups/:entityGroupId/:dashboardId',
+    redirectTo: '/dashboards/groups/:entityGroupId/:dashboardId'
+  }
+];
 
 const EDGE_SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
@@ -865,14 +773,14 @@ const routes: Routes = [
               }
             }
           },
-          { ...DASHBOARD_GROUPS_ROUTE, ...{
-              path: ':customerId/dashboardGroups',
+          { ...dashboardsRoute, ...{
+              path: ':customerId/dashboards',
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.customerGroupsTitle;
                   },
-                  icon: 'dashboard'
+                  icon: 'dashboards'
                 }
               }
             }
@@ -998,8 +906,8 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {...DASHBOARD_GROUPS_ROUTE, ...{
-                      path: ':edgeId/dashboardGroups',
+                  {...dashboardsRoute, ...{
+                      path: ':edgeId/dashboards',
                       data: {
                         edgeEntitiesType: EntityType.DASHBOARD,
                         groupType: EntityType.DASHBOARD,
@@ -1007,7 +915,7 @@ const routes: Routes = [
                           labelFunction: (route, translate, component, data) => {
                             return data.entityGroup.edgeEntitiesTitle;
                           },
-                          icon: 'dashboard'
+                          icon: 'dashboards'
                         }
                       }
                     }
@@ -1179,14 +1087,14 @@ const routes: Routes = [
               }
             }
           },
-          { ...DASHBOARD_GROUPS_ROUTE, ...{
-              path: ':edgeId/dashboardGroups',
+          { ...dashboardsRoute, ...{
+              path: ':edgeId/dashboards',
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeEntitiesTitle;
                   },
-                  icon: 'dashboard'
+                  icon: 'dashboards'
                 }
               }
             }
@@ -1202,29 +1110,7 @@ const routes: Routes = [
   DEVICE_GROUPS_ROUTE,
   ENTITY_VIEW_GROUPS_ROUTE,
   USER_GROUPS_ROUTE,
-  DASHBOARD_GROUPS_ROUTE,
-  {
-    path: 'dashboards/:dashboardId',
-    component: DashboardPageComponent,
-    data: {
-      breadcrumb: {
-        labelFunction: dashboardBreadcumbLabelFunction,
-        icon: 'dashboard'
-      } as BreadCrumbConfig<DashboardPageComponent>,
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      canActivate: (userPermissionsService: UserPermissionsService): boolean => {
-        return userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
-          userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ);
-      },
-      title: 'dashboard.dashboard',
-      widgetEditMode: false,
-      singlePageMode: true
-    },
-    resolve: {
-      dashboard: DashboardResolver,
-      entityGroup: 'emptyEntityGroupResolver'
-    }
-  },
+  ...redirectDashboardGroupsRoutes,
   {
     path: 'customersHierarchy',
     component: CustomersHierarchyComponent,
@@ -1245,7 +1131,6 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [
     EntityGroupResolver,
-    DashboardResolver,
     RedirectToEntityGroup,
     UsersTableConfigResolver,
     {

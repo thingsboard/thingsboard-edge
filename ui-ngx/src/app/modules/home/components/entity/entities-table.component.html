@@ -97,10 +97,11 @@
               </ng-template>
             </div>
             <button mat-icon-button [disabled]="isLoading$ | async"
+                    #headerButton
                     [fxShow]="actionDescriptor.isEnabled()" *ngFor="let actionDescriptor of headerActionDescriptors"
                     matTooltip="{{ actionDescriptor.name }}"
                     matTooltipPosition="above"
-                    (click)="actionDescriptor.onAction($event)">
+                    (click)="actionDescriptor.onAction($event, headerButton)">
               <mat-icon *ngIf="actionDescriptor.isMdiIcon" [svgIcon]="actionDescriptor.icon"></mat-icon>
               <mat-icon *ngIf="!actionDescriptor.isMdiIcon">{{actionDescriptor.icon}}</mat-icon>
             </button>

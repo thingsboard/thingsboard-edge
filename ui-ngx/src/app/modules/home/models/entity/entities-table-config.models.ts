@@ -49,6 +49,7 @@ import { Operation, resourceByEntityType } from '@shared/models/security.models'
 import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 import { IEntityDetailsPageComponent } from '@home/models/entity/entity-details-page-component.models';
+import { MatButton } from '@angular/material/button';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -95,7 +96,7 @@ export interface HeaderActionDescriptor {
   icon: string;
   isMdiIcon?: boolean;
   isEnabled: () => boolean;
-  onAction: ($event: MouseEvent) => void;
+  onAction: ($event: MouseEvent, headerButton?: MatButton) => void;
 }
 
 export type EntityTableColumnType = 'content' | 'action' | 'chart';
@@ -275,19 +276,22 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
 export const checkBoxCell =
   (value: boolean): string => `<mat-icon class="material-icons mat-icon">${value ? 'check_box' : 'check_box_outline_blank'}</mat-icon>`;
 
-export function defaultEntityTablePermissions(userPermissionsService: UserPermissionsService,
-                                              entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {
+export const defaultEntityTablePermissions = (userPermissionsService: UserPermissionsService,
+                                              entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) => {
   const resource = resourceByEntityType.get(entitiesTableConfig.entityType);
-  if (!userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
-    entitiesTableConfig.addEnabled = false;
-  }
+  entitiesTableConfig.addEnabled = userPermissionsService.hasGenericPermission(resource, Operation.CREATE);
 
-  if (!userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
+  if (userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
+    entitiesTableConfig.entitiesDeleteEnabled = true;
+    entitiesTableConfig.deleteEnabled = () => true;
+  } else {
     entitiesTableConfig.entitiesDeleteEnabled = false;
     entitiesTableConfig.deleteEnabled = () => false;
   }
 
-  if (!userPermissionsService.hasGenericPermission(resource, Operation.WRITE)) {
+  if (userPermissionsService.hasGenericPermission(resource, Operation.WRITE)) {
+    entitiesTableConfig.detailsReadonly = () => false;
+  } else {
     entitiesTableConfig.detailsReadonly = () => true;
   }
-}
+};

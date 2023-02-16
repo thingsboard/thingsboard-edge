@@ -71,6 +71,8 @@ public class ModelConstants {
     public static final String ATTRIBUTE_KEY_COLUMN = "attribute_key";
     public static final String LAST_UPDATE_TS_COLUMN = "last_update_ts";
 
+    public static final String OWNER_NAME_COLUMN = "owner_name";
+
     /**
      * Cassandra user constants.
      */
@@ -456,6 +458,8 @@ public class ModelConstants {
     public static final String DASHBOARD_MOBILE_ORDER_PROPERTY = "mobile_order";
 
     public static final String DASHBOARD_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "dashboard_by_tenant_and_search_text";
+
+    public static final String DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME = "dashboard_info_view";
 
     /**
      * Cassandra plugin component metadata constants.
@@ -877,4 +881,9 @@ public class ModelConstants {
                 throw new RuntimeException("Aggregation type: " + aggregation + " is not supported!");
         }
     }
+
+    public static final String SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
+            "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
+            "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
+            "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
 }

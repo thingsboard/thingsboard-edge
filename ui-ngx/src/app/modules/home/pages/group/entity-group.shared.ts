@@ -29,40 +29,28 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { GroupDashboardFormComponent } from '@modules/home/pages/dashboard/group-dashboard-form.component';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
-import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
-import { DashboardRoutingModule } from '@home/pages/dashboard/dashboard-routing.module';
-import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
-import { DashboardsTableFilterComponent } from '@home/pages/dashboard/dashboards-table-filter.component';
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
+import { Observable } from 'rxjs';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
+import { BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 
-@NgModule({
-  declarations: [
-    GroupDashboardFormComponent,
-    DashboardFormComponent,
-    DashboardTabsComponent,
-    DashboardsTableFilterComponent,
-    PublicDashboardLinkDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    DashboardRoutingModule
-  ],
-  providers: [
-    {
-      provide: DASHBOARD_GROUP_CONFIG_FACTORY,
-      useClass: DashboardGroupConfigFactory
-    }
-  ]
-})
-export class DashboardModule { }
+@Injectable()
+export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
+
+  constructor(private entityGroupConfigResolver: EntityGroupConfigResolver) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupStateInfo<T>> | EntityGroupStateInfo<T> {
+    const entityGroupParams = resolveGroupParams(route);
+    return this.entityGroupConfigResolver.constructGroupConfigByStateParams(entityGroupParams);
+  }
+}
+
+export const groupEntitiesLabelFunction: BreadCrumbLabelFunction<GroupEntitiesTableComponent> =
+  (route, translate, component, data) => {
+    return component.entityGroup.name;
+  };

@@ -39,9 +39,9 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
+  OnInit, Renderer2,
   SimpleChanges,
-  ViewChild
+  ViewChild, ViewContainerRef
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -151,7 +151,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private cd: ChangeDetectorRef,
               private router: Router,
               private componentFactoryResolver: ComponentFactoryResolver,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              public viewContainerRef: ViewContainerRef,
+              public renderer: Renderer2) {
     super(store);
   }
 
