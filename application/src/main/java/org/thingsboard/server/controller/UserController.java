@@ -36,6 +36,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -56,7 +57,9 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserData;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -69,6 +72,16 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.query.EntityData;
+import org.thingsboard.server.common.data.query.EntityDataPageLink;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.EntityTypeFilter;
+import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.query.KeyFilter;
+import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.UserSettings;
@@ -76,6 +89,7 @@ import org.thingsboard.server.common.data.security.event.UserCredentialsInvalida
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.user.TbUserService;
 import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
@@ -87,8 +101,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
+import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
+import static org.thingsboard.server.common.data.query.FilterPredicateValue.fromString;
+import static org.thingsboard.server.common.data.query.StringFilterPredicate.StringOperation.EQUAL;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_DASHBOARD;
@@ -138,6 +158,9 @@ public class UserController extends BaseController {
     private final SystemSecurityService systemSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final TbUserService tbUserService;
+
+    @Autowired
+    private EntityQueryService entityQueryService;
 
     @ApiOperation(value = "Get User (getUserById)",
             notes = "Fetch the User object based on the provided User Id. " +
@@ -418,6 +441,62 @@ public class UserController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Find users by query (findUsersByQuery)",
+            notes = "Returns a page of user data owned by tenant or customer." +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/users/find", method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<UserData> findUsersByQuery(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = USER_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = USER_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        SecurityUser securityUser = getCurrentUser();
+
+        EntityTypeFilter entityFilter = new EntityTypeFilter();
+        entityFilter.setEntityType(EntityType.USER);
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(pageSize, page, textSearch, createEntityDataSortOrder(sortProperty, sortOrder));
+
+        List<EntityKey> entityFields = Arrays.asList(new EntityKey(ENTITY_FIELD, "firstName"),
+                new EntityKey(ENTITY_FIELD, "lastName"),
+                new EntityKey(ENTITY_FIELD, "email"));
+
+        List<KeyFilter> keyFilters = new ArrayList<>();
+        KeyFilter tenantIdFilter = KeyFilter.builder()
+                .key(new EntityKey(ENTITY_FIELD, "tenantId"))
+                .predicate(StringFilterPredicate.builder()
+                        .operation(EQUAL)
+                        .value(fromString(securityUser.getTenantId().getId().toString())).build())
+                .build();
+        keyFilters.add(tenantIdFilter);
+
+        if (!Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
+            KeyFilter customerIdFilter = KeyFilter.builder()
+                    .key(new EntityKey(ENTITY_FIELD, "customerId"))
+                    .predicate(StringFilterPredicate.builder()
+                            .operation(EQUAL)
+                            .value(fromString(securityUser.getCustomerId().getId().toString())).build())
+                    .build();
+            keyFilters.add(customerIdFilter);
+        }
+
+        EntityDataQuery query = new EntityDataQuery(entityFilter, pageLink, entityFields, null, keyFilters);
+
+        return entityQueryService.findEntityDataByQuery(securityUser, query).mapData(entityData ->
+                new UserData(UserId.fromString(entityData.getEntityId().getId().toString()),
+                        entityData.getLatest().get(ENTITY_FIELD).get("email").getValue(),
+                        entityData.getLatest().get(ENTITY_FIELD).get("firstName").getValue(),
+                        entityData.getLatest().get(ENTITY_FIELD).get("lastName").getValue()));
+    }
+
     @ApiOperation(value = "Get Customer Users (getCustomerUsers)",
             notes = "Returns a page of users for the current tenant with authority 'CUSTOMER_USER'. "
                     + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
@@ -612,5 +691,18 @@ public class UserController extends BaseController {
 
         SecurityUser currentUser = getCurrentUser();
         userSettingsService.deleteUserSettings(currentUser.getTenantId(), currentUser.getId(), Arrays.asList(paths.split(",")));
+    }
+
+    private EntityDataSortOrder createEntityDataSortOrder(String sortProperty, String sortOrder) {
+        if (isNotEmpty(sortProperty)) {
+            EntityDataSortOrder entityDataSortOrder = new EntityDataSortOrder();
+            entityDataSortOrder.setKey(new EntityKey(ENTITY_FIELD, sortProperty));
+            if (isNotEmpty(sortOrder)) {
+                entityDataSortOrder.setDirection(EntityDataSortOrder.Direction.valueOf(sortOrder));
+            }
+            return entityDataSortOrder;
+        } else {
+            return null;
+        }
     }
 }

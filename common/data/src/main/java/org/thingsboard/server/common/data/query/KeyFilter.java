@@ -31,12 +31,18 @@
 package org.thingsboard.server.common.data.query;
 
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @ApiModel
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class KeyFilter implements Serializable {
 
     private EntityKey key;
