@@ -893,24 +893,40 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void checkCustomerUserDoNotSeeTenantAndOtherCustomerUsers() throws Exception {
+    public void checkCustomerUserDoNotSeeTenantUsersOtherTenantUsersOtherCustomerUsers() throws Exception {
         loginSysAdmin();
+        String searchText = "Joe";
 
-        User tenantAdmin = createTenantAdminUser("Joe", "Brown");
+        loginDifferentTenant();
+        CustomerId customerId1 = postCustomer();
+        doPost("/api/user", createCustomerUser(searchText, "Ress", customerId1), User.class);
+
+        loginSysAdmin();
+        User tenantAdmin = createTenantAdminUser(searchText, "Brown");
         createUserAndLogin(tenantAdmin, "testPassword1");
 
-        CustomerId customerId = postCustomer();
-        User user = createCustomerUser("Joe", "Downs", customerId);
+        CustomerId customerId2 = postCustomer();
+        User user = createCustomerUser(searchText, "Downs", customerId2);
         doPost("/api/user", user, User.class);
 
-        CustomerId customerId2 = postCustomer();
-        User user2 = createCustomerUser(customerId2);
+        CustomerId customerId3 = postCustomer();
+        User user2 = createCustomerUser(customerId3);
         createUserAndLogin(user2, "testPassword2");
 
-        PageLink pageLink = new PageLink(10, 0, "Joe");
+        PageLink pageLink = new PageLink(10, 0, searchText);
         List<UserData> usersInfo = getUsersInfo(pageLink);
 
         Assert.assertEquals(usersInfo.size(), 0);
+
+        //clear users
+        loginDifferentTenant();
+        doDelete("/api/customer/" + customerId1.getId().toString())
+                .andExpect(status().isOk());
+        loginUser(tenantAdmin.getEmail(), "testPassword1");
+        doDelete("/api/customer/" + customerId2.getId().toString())
+                .andExpect(status().isOk());
+        doDelete("/api/customer/" + customerId3.getId().toString())
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -924,12 +940,12 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         CustomerId customerId = postCustomer();
         CustomerId customerId2 = postCustomer();
 
-        List<User> customerUsersContainingWord = new ArrayList<>();
+        List<User> customerUsersContainingText = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             String suffix = StringUtils.randomAlphabetic((int) (5 + Math.random() * 10));
 
-            customerUsersContainingWord.add(doPost("/api/user", createCustomerUser(searchText + i, "Last" + i, customerId), User.class));
-            customerUsersContainingWord.add(doPost("/api/user", createCustomerUser(null, null, searchText + suffix + "@thingsboard.org", customerId), User.class));
+            customerUsersContainingText.add(doPost("/api/user", createCustomerUser(searchText + i, "Last" + i, customerId), User.class));
+            customerUsersContainingText.add(doPost("/api/user", createCustomerUser(null, null, searchText + suffix + "@thingsboard.org", customerId), User.class));
             doPost("/api/user", createCustomerUser(null, null, customerId), User.class);
 
             suffix = StringUtils.randomAlphabetic((int) (5 + Math.random() * 10));
@@ -944,7 +960,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         PageLink pageLink = new PageLink(10, 0, searchText);
         List<UserData> usersInfo = getUsersInfo(pageLink);
 
-        List<UserData> expectedUserInfos = customerUsersContainingWord.stream().map(customerUser -> new UserData(customerUser.getId(),
+        List<UserData> expectedUserInfos = customerUsersContainingText.stream().map(customerUser -> new UserData(customerUser.getId(),
                         customerUser.getEmail(), customerUser.getFirstName() == null ? "" : customerUser.getFirstName(),
                         customerUser.getLastName() == null ? "" : customerUser.getLastName()))
                 .sorted(userDataIdComparator).collect(Collectors.toList());
@@ -952,7 +968,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         Assert.assertEquals(expectedUserInfos, usersInfo);
 
-        // find user by full name
+        // find user by full first name
         pageLink = new PageLink(10, 0, searchText + "5");
         usersInfo = getUsersInfo(pageLink);
         Assert.assertEquals(1, usersInfo.size());
@@ -976,16 +992,16 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         String searchText = "Brown";
 
-        List<User> usersContainingWord = new ArrayList<>();
+        List<User> usersContainingText = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             String suffix = StringUtils.randomAlphabetic((int) (5 + Math.random() * 10));
-            usersContainingWord.add(doPost("/api/user", createCustomerUser("First" + i, searchText + i, customerId), User.class));
-            usersContainingWord.add(doPost("/api/user", createCustomerUser(null, null, searchText + suffix + "@thingsboard.org", customerId), User.class));
+            usersContainingText.add(doPost("/api/user", createCustomerUser("First" + i, searchText + i, customerId), User.class));
+            usersContainingText.add(doPost("/api/user", createCustomerUser(null, null, searchText + suffix + "@thingsboard.org", customerId), User.class));
             doPost("/api/user", createCustomerUser(null, null, customerId), User.class);
 
             suffix = StringUtils.randomAlphabetic((int) (5 + Math.random() * 10));
-            usersContainingWord.add(doPost("/api/user", createCustomerUser("First" + i, searchText + i, customerId2), User.class));
-            usersContainingWord.add(doPost("/api/user", createCustomerUser(null, null, searchText + suffix + "@thingsboard.org", customerId2), User.class));
+            usersContainingText.add(doPost("/api/user", createCustomerUser("First" + i, searchText + i, customerId2), User.class));
+            usersContainingText.add(doPost("/api/user", createCustomerUser(null, null, searchText + suffix + "@thingsboard.org", customerId2), User.class));
         }
 
         loginDifferentTenant();
@@ -997,7 +1013,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         PageLink pageLink = new PageLink(10, 0, searchText);
         List<UserData> usersInfo = getUsersInfo(pageLink);
 
-        List<UserData> expectedUserInfos = usersContainingWord.stream().map(customerUser -> new UserData(customerUser.getId(),
+        List<UserData> expectedUserInfos = usersContainingText.stream().map(customerUser -> new UserData(customerUser.getId(),
                         customerUser.getEmail(), customerUser.getFirstName() == null ? "" : customerUser.getFirstName(),
                         customerUser.getLastName() == null ? "" : customerUser.getLastName()))
                 .sorted(userDataIdComparator).collect(Collectors.toList());
