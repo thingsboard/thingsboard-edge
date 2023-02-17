@@ -910,8 +910,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         doPost("/api/user", user, User.class);
 
         CustomerId customerId3 = postCustomer();
-        User user2 = createCustomerUser(customerId3);
-        createUserAndLogin(user2, "testPassword2");
+        User customerAdmin = createCustomerAdminWithAllPermission(customerId, "testPassword2");
+        login(customerAdmin.getEmail(), "testPassword2");
 
         PageLink pageLink = new PageLink(10, 0, searchText);
         List<UserData> usersInfo = getUsersInfo(pageLink);
