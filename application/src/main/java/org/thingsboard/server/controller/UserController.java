@@ -58,7 +58,7 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.UserData;
+import org.thingsboard.server.common.data.UserEmailInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -437,7 +437,7 @@ public class UserController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/users/info", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<UserData> findUsersByQuery(
+    public PageData<UserEmailInfo> findUsersByQuery(
             @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
             @RequestParam int pageSize,
             @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
@@ -462,7 +462,7 @@ public class UserController extends BaseController {
         return entityQueryService.findEntityDataByQuery(securityUser, query).mapData(entityData ->
         {
             Map<String, TsValue> fieldValues = entityData.getLatest().get(ENTITY_FIELD);
-            return new UserData(UserId.fromString(entityData.getEntityId().getId().toString()),
+            return new UserEmailInfo(UserId.fromString(entityData.getEntityId().getId().toString()),
                     fieldValues.get("email").getValue(),
                     fieldValues.get("firstName").getValue(),
                     fieldValues.get("lastName").getValue());
