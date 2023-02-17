@@ -34,11 +34,20 @@ working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant dat
 
 export:
   tenant_id: ${EXPORTED_TENANT_ID:}
-  batch_size: ${EXPORT_BATCH_SIZE:500}
+  sql:
+    batch_size: ${EXPORT_SQL_BATCH_SIZE:500}
+    delay_between_queries: ${EXPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
 
 import:
+  sql:
+    delay_between_queries: ${IMPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
   cassandra:
     ttl: ${CASSANDRA_TS_KV_TTL:730}  # days
+    stats_print_interval: ${CASSANDRA_STATS_PRINT_INTERVAL:10000}
+
+skipped_tables: ${SKIPPED_TABLES:RULE_NODE_DEBUG_EVENT,STATS_EVENT,LC_EVENT}
+
+parallelism_level: ${PARALLELISM_LEVEL:4}
 
 partition_sizes: # in hours
   event: ${EVENTS_PARTITION_SIZE:168}
@@ -46,8 +55,6 @@ partition_sizes: # in hours
   edge_event: ${EDGE_EVENTS_PARTITION_SIZE:168}
   audit_log: ${AUDIT_LOGS_PARTITION_SIZE:168}
   blob_entity: ${BLOB_ENTITIES_PARTITION_SIZE:168}
-
-skipped_tables: ${SKIPPED_TABLES:}
 
 spring:
   datasource:

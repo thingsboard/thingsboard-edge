@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant;
+package org.thingsboard.migrator.tenant.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -76,16 +76,17 @@ public class Storage {
         Files.createFile(file);
     }
 
-    public Writer newWriter(String file) throws IOException {
-        return Files.newBufferedWriter(getPath(file), StandardOpenOption.APPEND);
+    public Writer newWriter(String file, boolean gzip) throws IOException {
+        if (gzip) {
+            FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
+            return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
+        } else {
+            return Files.newBufferedWriter(getPath(file), StandardOpenOption.APPEND);
+        }
     }
 
-    public Writer newGzipWriter(String file) throws IOException {
-        FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
-        return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
-    }
-
-    public void addToFile(Writer writer, Map<String, Object> row) throws IOException {
+    @SneakyThrows
+    public void addToFile(Writer writer, Map<String, Object> row) {
         row.replaceAll((column, data) -> {
             if (data instanceof PGobject) {
                 data = ((PGobject) data).getValue();
@@ -93,45 +94,44 @@ public class Storage {
             return data;
         });
         String serialized = toJson(row);
-        writer.append(serialized).append(System.lineSeparator());
+        writer.write(serialized + System.lineSeparator());
     }
 
-    public void readAndProcessGzipped(String file, Consumer<Map<String, Object>> processor) throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)))) {
-            readAndProcess(reader, processor);
-        }
-    }
 
-    public void readAndProcess(String file, Consumer<Map<String, Object>> processor) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(getPath(file))) {
-            readAndProcess(reader, processor);
-        }
-    }
-
-    private void readAndProcess(BufferedReader reader, Consumer<Map<String, Object>> processor) {
-        reader.lines().forEach(line -> {
-            if (StringUtils.isNotBlank(line)) {
-                Map<String, Object> data;
-                try {
-                    data = jsonMapper.readValue(line, new TypeReference<Map<String, Object>>() {});
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                data.replaceAll((key, value) -> {
-                    if (value == null) return null;
-                    if (key.contains("id")) {
-                        try {
-                            value = UUID.fromString(value.toString());
-                        } catch (IllegalArgumentException ignored) {}
-                    } else if (value instanceof Map) {
-                        value = jsonMapper.valueToTree(value);
+    public void readAndProcess(String file, boolean gzip, Consumer<Map<String, Object>> processor) throws IOException {
+        try (BufferedReader reader = newReader(file, gzip)) {
+            reader.lines().forEach(line -> {
+                if (StringUtils.isNotBlank(line)) {
+                    Map<String, Object> data;
+                    try {
+                        data = jsonMapper.readValue(line, new TypeReference<Map<String, Object>>() {});
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
                     }
-                    return value;
-                });
-                processor.accept(data);
-            }
-        });
+                    data.replaceAll((key, value) -> {
+                        if (value == null) return null;
+                        if (key.contains("id")) {
+                            try {
+                                value = UUID.fromString(value.toString());
+                            } catch (IllegalArgumentException ignored) {}
+                        } else if (value instanceof Map) {
+                            value = jsonMapper.valueToTree(value);
+                        }
+                        return value;
+                    });
+                    processor.accept(data);
+                }
+            });
+        }
+    }
+
+    private BufferedReader newReader(String file, boolean gzip) throws IOException {
+        if (gzip) {
+            FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
+            return new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)));
+        } else {
+            return Files.newBufferedReader(getPath(file));
+        }
     }
 
     @SneakyThrows

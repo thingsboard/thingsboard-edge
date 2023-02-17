@@ -34,14 +34,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.SqlPartitionService;
-import org.thingsboard.migrator.tenant.Storage;
 import org.thingsboard.migrator.tenant.Table;
+import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
+import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
+import org.thingsboard.migrator.tenant.utils.Storage;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -49,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
@@ -56,7 +56,7 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_EXPORT")
-public class SqlTenantDataExporter implements ApplicationRunner {
+public class SqlTenantDataExporter extends BaseTenantMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final Storage storage;
@@ -64,15 +64,17 @@ public class SqlTenantDataExporter implements ApplicationRunner {
 
     @Value("${export.tenant_id}")
     private UUID exportedTenantId;
-    @Value("${export.batch_size}")
+    @Value("${export.sql.batch_size}")
     private int batchSize;
+    @Value("${export.sql.delay_between_queries}")
+    private int delayBetweenQueries;
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
 
     private static final Set<Table> relatedTables = Set.of(Table.RELATION, Table.ATTRIBUTE, Table.LATEST_KV);
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    protected void start() throws Exception {
         for (Table table : relatedTables) {
             storage.newFile(table.getName());
         }
@@ -124,9 +126,8 @@ public class SqlTenantDataExporter implements ApplicationRunner {
         queryAndSave(table, query);
     }
 
-    // TODO: delay between queries (100 ms)
     private void queryAndSave(Table table, String query) throws IOException {
-        try (Writer writer = storage.newWriter(table.getName())) {
+        try (Writer writer = storage.newWriter(table.getName(), false)) {
             Consumer<Map<String, Object>> processor = row -> {
                 try {
                     storage.addToFile(writer, row);
@@ -169,12 +170,17 @@ public class SqlTenantDataExporter implements ApplicationRunner {
             int offset = batchIndex * batchSize;
             String batchQuery = query + " LIMIT " + batchSize + " OFFSET " + offset;
 
-            System.err.println("EXECUTING QUERY: " + batchQuery);
+            System.out.println("Executing query: " + batchQuery);
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(batchQuery, queryParams);
             rows.forEach(rowProcessor);
             batchIndex++;
             if (rows.size() < batchSize) {
                 hasNextBatch = false;
+            }
+            try {
+                TimeUnit.MILLISECONDS.sleep(delayBetweenQueries);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }

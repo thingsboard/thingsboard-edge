@@ -34,19 +34,12 @@ import com.datastax.oss.driver.api.core.cql.ColumnDefinition;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.cassandra.core.CassandraTemplate;
-import org.springframework.data.cassandra.core.cql.ArgumentPreparedStatementBinder;
-import org.springframework.data.cassandra.core.cql.CachedPreparedStatementCreator;
-import org.springframework.data.cassandra.core.cql.CqlOperations;
-import org.springframework.data.cassandra.core.cql.RowMapperResultSetExtractor;
-import org.springframework.data.cassandra.core.cql.SingleColumnRowMapper;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.Storage;
+import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
 import org.thingsboard.migrator.tenant.Table;
+import org.thingsboard.migrator.tenant.utils.CassandraService;
+import org.thingsboard.migrator.tenant.utils.Storage;
 
 import java.io.Writer;
 import java.util.HashMap;
@@ -57,43 +50,39 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "mode", havingValue = "CASSANDRA_DATA_EXPORT")
-public class CassandraTenantDataExporter implements ApplicationRunner {
+public class CassandraTenantDataExporter extends BaseTenantMigrationService {
 
-    private final CassandraTemplate cassandraTemplate;
     private final Storage storage;
-    private CqlOperations cqlOperations;
+    private final CassandraService cassandraService;
 
     public static final String TS_KV_FILE = "ts_kv.gz";
 
+    private Writer writer;
+
     @Override
-    public void run(ApplicationArguments args) throws Exception {
-        cqlOperations = cassandraTemplate.getCqlOperations();
-
+    protected void start() throws Exception {
         storage.newFile(TS_KV_FILE);
-        try (Writer writer = storage.newGzipWriter(TS_KV_FILE)) {
-            storage.readAndProcess(Table.LATEST_KV.getName(), latestKvRow -> {
-                getTsHistoryAndSave(latestKvRow, writer);
-            });
-        }
+        writer = storage.newWriter(TS_KV_FILE, true);
 
-        System.exit(0);
+        storage.readAndProcess(Table.LATEST_KV.getName(), false, latestKvRow -> {
+            executor.submit(() -> {
+                getTsHistoryAndSave(latestKvRow);
+            });
+        });
     }
 
-    @SneakyThrows
-    private void getTsHistoryAndSave(Map<String, Object> latestKvRow, Writer writer) {
+    private void getTsHistoryAndSave(Map<String, Object> latestKvRow) {
         String entityType = (String) latestKvRow.get("table_name");
         UUID entityId = (UUID) latestKvRow.get("entity_id");
         String key = (String) latestKvRow.get("key_name");
+        System.out.printf("Exporting data for %s %s (%s)\n", entityType, entityId, key);
 
-        List<Long> partitions = query("SELECT partition FROM ts_kv_partitions_cf " +
+        List<Long> partitions = cassandraService.query("SELECT partition FROM ts_kv_partitions_cf " +
                 "WHERE entity_type = ? AND entity_id = ? AND key = ?", Long.class, entityType, entityId, key);
-
         for (Long partition : partitions) {
-            System.err.printf("EXPORTING PARTITION %s: %s %s %s\n", partition, entityType, entityId, key);
-
             String query = "SELECT * FROM ts_kv_cf WHERE entity_type = ? AND entity_id = ? AND key = ? " +
                     "AND partition = ? ORDER BY ts";
-            ResultSet rows = query(query, entityType, entityId, key, partition);
+            ResultSet rows = cassandraService.query(query, entityType, entityId, key, partition);
             for (Row row : rows) {
                 Map<String, Object> data = new HashMap<>();
                 for (ColumnDefinition columnDefinition : row.getColumnDefinitions()) {
@@ -109,15 +98,9 @@ public class CassandraTenantDataExporter implements ApplicationRunner {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private <T> List<T> query(String query, Class<T> type, Object... args) {
-        return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args),
-                new RowMapperResultSetExtractor<>(SingleColumnRowMapper.newInstance(type)));
-    }
-
-    @SuppressWarnings("deprecation")
-    private ResultSet query(String query, Object... args) {
-        return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args), rs -> rs);
+    @Override
+    protected void afterFinished() throws Exception {
+        writer.close();
     }
 
 }

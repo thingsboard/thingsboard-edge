@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant;
+package org.thingsboard.migrator.tenant.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.thingsboard.migrator.tenant.Table;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,7 +68,7 @@ public class SqlPartitionService {
         if (newPartition) {
             String query = format("CREATE TABLE IF NOT EXISTS %s_%s PARTITION OF %s FOR VALUES FROM (%s) TO (%s)",
                     table.getName(), partitionStart, table.getName(), partitionStart, partitionEnd);
-            System.err.println("EXECUTING QUERY: " + query);
+            System.out.println("Executing query: " + query);
             jdbcTemplate.execute(query);
         }
     }

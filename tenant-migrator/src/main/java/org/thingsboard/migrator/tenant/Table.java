@@ -115,6 +115,9 @@ public enum Table {
     )),
     AUDIT_LOG("audit_log", true, "created_time", "audit_log"),
 
+    /*
+    * data from tables below is exported for each entity separately
+    * */
     RELATION("relation", Pair.of(
             "from_id", of(TENANT, CUSTOMER, RULE_CHAIN, DEVICE_PROFILE, ROLE, ENTITY_GROUP, RULE_NODE, CONVERTER,
                     INTEGRATION, USER, EDGE, DASHBOARD, DEVICE, ASSET_PROFILE, ASSET, ENTITY_VIEW)

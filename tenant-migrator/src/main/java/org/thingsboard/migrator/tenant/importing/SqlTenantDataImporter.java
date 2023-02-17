@@ -34,21 +34,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.migrator.tenant.SqlPartitionService;
-import org.thingsboard.migrator.tenant.Storage;
+import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
 import org.thingsboard.migrator.tenant.Table;
+import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
+import org.thingsboard.migrator.tenant.utils.Storage;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -56,7 +56,7 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_IMPORT")
-public class SqlTenantDataImporter implements ApplicationRunner {
+public class SqlTenantDataImporter extends BaseTenantMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
@@ -65,11 +65,13 @@ public class SqlTenantDataImporter implements ApplicationRunner {
 
     @Value("${skipped_tables}")
     private Set<Table> skippedTables;
+    @Value("${import.sql.delay_between_queries}")
+    private int delayBetweenQueries;
 
     private final Map<Table, Map<String, String>> columns = new HashMap<>();
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    protected void start() throws Exception {
         transactionTemplate.executeWithoutResult(status -> {
             for (Table table : Table.values()) {
                 if (skippedTables.contains(table)) {
@@ -82,38 +84,47 @@ public class SqlTenantDataImporter implements ApplicationRunner {
 
     @SneakyThrows
     private void importTableData(Table table) {
-        storage.readAndProcess(table.getName(), row -> {
-            row = prepareRow(table, row);
-            if (table.isPartitioned()) {
-                partitionService.createPartition(table, row);
-            }
-
-            String columnsStatement = "";
-            String valuesStatement = "";
-            for (Map.Entry<String, Object> entry : row.entrySet()) {
-                String column = entry.getKey();
-                Object value = entry.getValue();
-
-                if (!columnsStatement.isEmpty()) {
-                    columnsStatement += ",";
-                }
-                columnsStatement += column;
-
-                if (!valuesStatement.isEmpty()) {
-                    valuesStatement += ",";
-                }
-                valuesStatement += "?";
-                if (value instanceof JsonNode) {
-                    entry.setValue(value.toString());
-                }
-                String valueType = columns.get(table).get(column);
-                valuesStatement += "::" + valueType;
-            }
-
-            String query = format("INSERT INTO %s (%s) VALUES (%s)", table.getName(), columnsStatement, valuesStatement);
-            System.err.println("EXECUTING QUERY: " + query);
-            jdbcTemplate.update(query, row.values().toArray());
+        storage.readAndProcess(table.getName(), false, row -> {
+            saveRow(table, row);
         });
+    }
+
+    private void saveRow(Table table, Map<String, Object> row) {
+        row = prepareRow(table, row);
+        if (table.isPartitioned()) {
+            partitionService.createPartition(table, row);
+        }
+
+        String columnsStatement = "";
+        String valuesStatement = "";
+        for (Map.Entry<String, Object> entry : row.entrySet()) {
+            String column = entry.getKey();
+            Object value = entry.getValue();
+
+            if (!columnsStatement.isEmpty()) {
+                columnsStatement += ",";
+            }
+            columnsStatement += column;
+
+            if (!valuesStatement.isEmpty()) {
+                valuesStatement += ",";
+            }
+            valuesStatement += "?";
+            if (value instanceof JsonNode) {
+                entry.setValue(value.toString());
+            }
+            String valueType = columns.get(table).get(column);
+            valuesStatement += "::" + valueType;
+        }
+
+        String query = format("INSERT INTO %s (%s) VALUES (%s)", table.getName(), columnsStatement, valuesStatement);
+        System.out.println("Executing query: " + query);
+        jdbcTemplate.update(query, row.values().toArray());
+        try {
+            TimeUnit.MILLISECONDS.sleep(delayBetweenQueries);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Map<String, Object> prepareRow(Table table, Map<String, Object> row) {
@@ -129,14 +140,14 @@ public class SqlTenantDataImporter implements ApplicationRunner {
                 keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
             }
             Object oldKey = row.put("key", keyId);
-            System.err.println("Replaced old keyId " + oldKey + " with newly created " + keyId);
+            System.out.println("Replaced old keyId " + oldKey + " with newly created " + keyId);
         } else if (table == Table.GROUP_PERMISSION) {
             UUID roleId = (UUID) row.get("role_id");
             Boolean roleExists = jdbcTemplate.queryForObject("SELECT EXISTS (SELECT * FROM role WHERE id = ?)", Boolean.class, roleId);
             if (!roleExists) {
                 // happens when system role is used (e.g. 'Tenant Administrators')
                 String roleName = (String) row.remove("role_name");
-                System.err.println("Role for id " + roleId + " does not exist. Finding by name " + roleName);
+                System.out.println("Role for id " + roleId + " does not exist. Finding by name " + roleName);
                 Map<String, Object> role = jdbcTemplate.queryForList("SELECT * FROM role WHERE name = ?", roleName).stream()
                         .findFirst().orElse(null);
                 if (role == null) {
@@ -153,7 +164,7 @@ public class SqlTenantDataImporter implements ApplicationRunner {
         row.keySet().removeIf(column -> {
             boolean unknownColumn = !existingColumns.containsKey(column);
             if (unknownColumn) {
-                System.err.println("Unknown column " + column + " for table " + table.getName() + ". Skipping");
+                System.out.println("Unknown column " + column + " for table " + table.getName() + ". Skipping");
             }
             return unknownColumn;
         });
