@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.Collection;
 
@@ -57,7 +58,7 @@ import java.util.Set;
 /**
  * Created by ashvayka on 11.05.17.
  */
-public interface AlarmService {
+public interface AlarmService extends EntityDaoService {
 
     AlarmOperationResult createOrUpdateAlarm(Alarm alarm);
 

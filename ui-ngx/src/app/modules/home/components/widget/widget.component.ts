@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -490,7 +490,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   }
 
   private loadFromWidgetInfo() {
-    this.widgetContext.widgetNamespace = `widget-type-${(this.widget.isSystemType ? 'sys-' : '')}${this.widget.bundleAlias}-${this.widget.typeAlias}`;
+    this.widgetContext.widgetNamespace =
+      `widget-type-${(this.widget.isSystemType ? 'sys-' : '')}${this.widget.bundleAlias}-${this.widget.typeAlias}`;
     const elem = this.elementRef.nativeElement;
     elem.classList.add('tb-widget');
     elem.classList.add(this.widgetContext.widgetNamespace);
@@ -715,7 +716,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
 
   private initialize(): Observable<any> {
 
-    const initSubject = new ReplaySubject();
+    const initSubject = new ReplaySubject<void>();
 
     this.rxSubscriptions.push(this.widgetContext.aliasController.entityAliasesChanged.subscribe(
       (aliasIds) => {
@@ -990,7 +991,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   }
 
   private createDefaultSubscription(): Observable<any> {
-    const createSubscriptionSubject = new ReplaySubject();
+    const createSubscriptionSubject = new ReplaySubject<void>();
     let options: WidgetSubscriptionOptions;
     if (this.widget.type !== widgetType.rpc && this.widget.type !== widgetType.static) {
       const comparisonSettings: WidgetComparisonSettings = this.widgetContext.settings;

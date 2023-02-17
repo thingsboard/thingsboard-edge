@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { isDefinedAndNotNull } from '@core/utils';
+import { getDescendantProp, isDefinedAndNotNull } from '@core/utils';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
@@ -60,6 +60,7 @@ import {
 } from '@home/components/wizard/entity-group-wizard-dialog.component';
 import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
+import { PageLinkSearchFunction } from '@shared/models/page/page-link';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -140,7 +141,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
       }
       return fetchObservable.pipe(
-        map((entityGroups) => pageLink.filterData(entityGroups)
+        map((entityGroups) => pageLink.filterData(entityGroups, this.groupPageLinkSearchFunction())
         )
       );
     };
@@ -467,4 +468,24 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE));
   }
 
+  private groupPageLinkSearchFunction(): PageLinkSearchFunction<any> {
+    return (entity, textSearch) => this.groupPageLinkSearch(entity, textSearch, ['name', 'additionalInfo.description']);
+  }
+
+  private groupPageLinkSearch(entity: any, textSearch: string, searchProperties: string[]): boolean {
+    if (textSearch === null || !textSearch.length) {
+      return true;
+    }
+    const expected = ('' + textSearch).toLowerCase();
+    for (const searchProperty of searchProperties) {
+      const val = getDescendantProp(entity, searchProperty);
+      if (isDefinedAndNotNull(val)) {
+        const actual = ('' + val).toLowerCase();
+        if (actual.indexOf(expected) !== -1) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

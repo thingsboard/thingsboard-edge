@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -731,10 +731,6 @@ public class EntityGroupController extends AutoCommitController {
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
 
-        GroupPermission groupPermission = new GroupPermission();
-        groupPermission.setPublic(true);
-        groupPermission.setTenantId(getTenantId());
-
         EntityGroup entityGroup = null;
 
         try {
@@ -743,41 +739,14 @@ public class EntityGroupController extends AutoCommitController {
             if (!getCurrentUser().getOwnerId().equals(entityGroup.getOwnerId())) {
                 throw permissionDenied();
             }
-            checkPublicEntityGroupType(entityGroup.getType());
 
-            if (entityGroup.isPublic()) {
-                throw new ThingsboardException("Entity group is already public!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-
-            EntityGroup publicUsers = customerService.findOrCreatePublicUserGroup(getTenantId(), getCurrentUser().getOwnerId());
-            Role publicUserEntityGroupRole = customerService.findOrCreatePublicUserEntityGroupRole(getTenantId(), getCurrentUser().getOwnerId());
-
-            groupPermission.setRoleId(publicUserEntityGroupRole.getId());
-            groupPermission.setUserGroupId(publicUsers.getId());
-            groupPermission.setEntityGroupId(entityGroup.getId());
-            groupPermission.setEntityGroupType(entityGroup.getType());
-
-            JsonNode additionalInfo = entityGroup.getAdditionalInfo();
-            if (additionalInfo == null || additionalInfo instanceof NullNode) {
-                additionalInfo = JacksonUtil.newObjectNode();
-            }
-            ((ObjectNode) additionalInfo).put("isPublic", true);
-            ((ObjectNode) additionalInfo).put("publicCustomerId", publicUsers.getOwnerId().getId().toString());
-            entityGroup.setAdditionalInfo(additionalInfo);
-
-            GroupPermission savedGroupPermission = groupPermissionService.saveGroupPermission(getTenantId(), groupPermission);
-            entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
-            userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
-
-            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, null,
-                    ActionType.MADE_PUBLIC, getCurrentUser(), strEntityGroupId, entityGroup.getName());
-
+            tbEntityGroupService.makePublic(getTenantId(), entityGroup, getCurrentUser());
         } catch (Exception e) {
             if (entityGroup != null) {
                 notificationEntityService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PUBLIC,
                         getCurrentUser(), e, strEntityGroupId, entityGroup.getName());
             }
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -801,37 +770,14 @@ public class EntityGroupController extends AutoCommitController {
             if (!getCurrentUser().getOwnerId().equals(entityGroup.getOwnerId())) {
                 throw permissionDenied();
             }
-            checkPublicEntityGroupType(entityGroup.getType());
 
-            if (!entityGroup.isPublic()) {
-                throw new ThingsboardException("Entity group is not public!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-
-            Optional<GroupPermission> groupPermission = groupPermissionService.findPublicGroupPermissionByTenantIdAndEntityGroupId(getTenantId(), entityGroup.getId());
-            if (groupPermission.isPresent()) {
-                groupPermissionService.deleteGroupPermission(getTenantId(), groupPermission.get().getId());
-                userPermissionsService.onGroupPermissionDeleted(groupPermission.get());
-            }
-
-            JsonNode additionalInfo = entityGroup.getAdditionalInfo();
-            if (additionalInfo == null) {
-                additionalInfo = JacksonUtil.newObjectNode();
-            }
-            ((ObjectNode) additionalInfo).put("isPublic", false);
-            ((ObjectNode) additionalInfo).put("publicCustomerId", "");
-            entityGroup.setAdditionalInfo(additionalInfo);
-
-            entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
-
-            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, null,
-                    ActionType.MADE_PRIVATE, getCurrentUser(), strEntityGroupId, entityGroup.getName());
-
+            tbEntityGroupService.makePrivate(getTenantId(), entityGroup, getCurrentUser());
         } catch (Exception e) {
             if (entityGroup != null) {
                 notificationEntityService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PRIVATE,
                         getCurrentUser(), e, strEntityGroupId, entityGroup.getName());
             }
-            throw handleException(e);
+            throw e;
         }
     }
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -46,7 +46,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Country, CountryData } from '@shared/models/country.models';
 import examples from 'libphonenumber-js/examples.mobile.json';
 import { Subscription } from 'rxjs';
-import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field/form-field';
+import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-phone-input',
@@ -90,7 +90,7 @@ export class PhoneInputComponent implements OnInit, ControlValueAccessor, Valida
   placeholder;
 
   @Input()
-  label = 'phone-input.phone-input-label';
+  label = this.translate.instant('phone-input.phone-input-label');
 
   get showFlagSelect(): boolean {
     return this.enableFlagsSelect && !this.isLegacy;
@@ -99,7 +99,7 @@ export class PhoneInputComponent implements OnInit, ControlValueAccessor, Valida
   allCountries: Array<Country> = this.countryCodeData.allCountries;
   phonePlaceholder = '+12015550123';
   flagIcon: string;
-  phoneFormGroup: FormGroup;
+  phoneFormGroup: UntypedFormGroup;
 
   private isLoading = true;
   get isLoad(): boolean {
@@ -131,7 +131,7 @@ export class PhoneInputComponent implements OnInit, ControlValueAccessor, Valida
   private propagateChange = (v: any) => { };
 
   constructor(private translate: TranslateService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private countryCodeData: CountryData) {
     import('libphonenumber-js/max').then((libphonenubmer) => {
       this.parsePhoneNumberFromString = libphonenubmer.parsePhoneNumberFromString;
@@ -209,7 +209,7 @@ export class PhoneInputComponent implements OnInit, ControlValueAccessor, Valida
   }
 
   validatePhoneNumber(): ValidatorFn {
-    return (c: FormControl) => {
+    return (c: UntypedFormControl) => {
       const phoneNumber = c.value;
       if (phoneNumber && this.parsePhoneNumberFromString) {
         const parsedPhoneNumber = this.parsePhoneNumberFromString(phoneNumber);
@@ -289,6 +289,7 @@ export class PhoneInputComponent implements OnInit, ControlValueAccessor, Valida
     if (phoneNumber.value === '+' || phoneNumber.value === this.countryCallingCode) {
       this.propagateChange(null);
     } else if (phoneNumber.valid) {
+      this.modelValue = phoneNumber.value;
       if (parsedPhoneNumber) {
         this.updateModelValueInFormat(parsedPhoneNumber);
       }

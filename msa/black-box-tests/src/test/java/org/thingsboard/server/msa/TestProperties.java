@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,6 +53,13 @@ public class TestProperties {
         return getProperties().getProperty("tb.baseUrl");
     }
 
+    public static String getBaseUiUrl() {
+        if (instance.isActive()) {
+            return "https://host.docker.internal";
+        }
+        return getProperties().getProperty("tb.baseUiUrl");
+    }
+
     public static String getWebSocketUrl() {
         if (instance.isActive()) {
             return WSS_URL;
@@ -76,6 +83,20 @@ public class TestProperties {
             return "tcp://" + host + ":" + port;
         }
         return getProperties().getProperty("mqtt.broker");
+    }
+
+    public static String getRemoteCoapHost(){
+        if (instance.isActive()) {
+            return "localhost";
+        }
+        return getProperties().getProperty("remote.coap.host");
+    }
+
+    public static int getRemoteCoapPort(){
+        if (instance.isActive()) {
+            return 15683;
+        }
+        return Integer.parseInt(getProperties().getProperty("remote.coap.port"));
     }
 
     private static Properties getProperties() {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -64,7 +64,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
 
   @Input() isEdgeTemplate = false;
 
-  ibmWatsonIotIntegrationConfigForm: FormGroup;
+  ibmWatsonIotIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
@@ -72,7 +72,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.ibmWatsonIotIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({

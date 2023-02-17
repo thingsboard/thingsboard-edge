@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,8 +31,8 @@
 
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -62,7 +62,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 })
 export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
-  integrationCredentialForm: FormGroup;
+  integrationCredentialForm: UntypedFormGroup;
   hideSelectType = false;
 
   private allowCredentialTypesValue: IntegrationCredentialType[] = [];
@@ -80,7 +80,7 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input()
   set ignoreCaCert(value: boolean) {
     const newVal = coerceBooleanProperty(value);
-    if (this.ignoreCaCertValue !== newVal) {
+    if (this.ignoreCaCertValue !== newVal && this.integrationCredentialForm) {
       this.ignoreCaCertValue = newVal;
       if (newVal) {
         this.integrationCredentialForm.get('caCertFileName').clearValidators();
@@ -117,10 +117,10 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
   }
 
   ngOnInit() {
@@ -128,8 +128,8 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
       type: ['', Validators.required],
       username: [{value: '', disabled: true}, Validators.required],
       password: [{value: '', disabled: true}, this.passwordOptional ? null : Validators.required],
-      caCertFileName: [{value: '', disabled: true}, Validators.required],
-      caCert: [{value: '', disabled: true}, Validators.required],
+      caCertFileName: [{value: '', disabled: true}, this.ignoreCaCert ? null : Validators.required],
+      caCert: [{value: '', disabled: true},  this.ignoreCaCert ? null : Validators.required],
       certFileName: [{value: '', disabled: true}, Validators.required],
       cert: [{value: '', disabled: true}, Validators.required],
       privateKeyFileName: [{value: '', disabled: true}, Validators.required],

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,8 +68,13 @@ public class ConstraintValidator {
     public static List<String> getConstraintsViolations(Object data) {
         return fieldsValidator.validate(data).stream()
                 .map(constraintViolation -> {
-                    Path propertyPath = constraintViolation.getPropertyPath();
-                    String property = Iterators.getLast(propertyPath.iterator()).toString();
+                    String property;
+                    if (constraintViolation.getConstraintDescriptor().getAttributes().containsKey("fieldName")) {
+                        property = constraintViolation.getConstraintDescriptor().getAttributes().get("fieldName").toString();
+                    } else {
+                        Path propertyPath = constraintViolation.getPropertyPath();
+                        property = Iterators.getLast(propertyPath.iterator()).toString();
+                    }
                     return property + " " + constraintViolation.getMessage();
                 })
                 .distinct()

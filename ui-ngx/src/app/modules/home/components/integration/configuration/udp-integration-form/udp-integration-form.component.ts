@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -68,7 +68,7 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
 
   @Input() isSetDownlink: boolean;
 
-  updConfigForm: FormGroup;
+  updConfigForm: UntypedFormGroup;
 
   HandlerConfigurationType = HandlerConfigurationType;
   HandlerConfigurationTypeTranslation = HandlerConfigurationTypeTranslation;
@@ -76,7 +76,7 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.updConfigForm = this.fb.group({
       port: [11560, [Validators.required, Validators.min(1), Validators.max(65535)]],

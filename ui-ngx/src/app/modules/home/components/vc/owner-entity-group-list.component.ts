@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder, FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder, UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -75,7 +75,7 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
   @Input()
   entityType: EntityType;
 
-  ownerEntityGroupListFormGroup: FormGroup;
+  ownerEntityGroupListFormGroup: UntypedFormGroup;
 
   modelValue: Array<string> | null;
 
@@ -85,7 +85,7 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -121,7 +121,7 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
         [{ownerId: {id: this.currentUser.tenantId, entityType: EntityType.TENANT}, groupIds: []}]), {emitEvent: false});
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.ownerEntityGroupListFormGroup.valid && this.ownerEntityGroupsArray().length ? null : {
       ownerEntityGroups: {
         valid: false,
@@ -129,7 +129,7 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
     };
   }
 
-  private prepareOwnerEntityGroupsFormArray(ownerGroupsArray: {ownerId: EntityId, groupIds: string[] }[] | undefined): FormArray {
+  private prepareOwnerEntityGroupsFormArray(ownerGroupsArray: {ownerId: EntityId, groupIds: string[] }[] | undefined): UntypedFormArray {
     const ownerEntityGroupsControls: Array<AbstractControl> = [];
     if (ownerGroupsArray) {
       for (const ownerGroups of ownerGroupsArray) {
@@ -149,8 +149,8 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
     return ownerEntityGroupsControl;
   }
 
-  ownerEntityGroupsArray(): FormGroup[] {
-    return (this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as FormArray).controls as FormGroup[];
+  ownerEntityGroupsArray(): UntypedFormGroup[] {
+    return (this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as UntypedFormArray).controls as UntypedFormGroup[];
   }
 
   entityGroupsTitle(): string {
@@ -177,11 +177,11 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
   }
 
   public removeOwnerEntityGroups(index: number) {
-    (this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as FormArray).removeAt(index);
+    (this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as UntypedFormArray).removeAt(index);
   }
 
   public addOwnerEntityGroup() {
-    const ownerEntityGroupsArray = this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as FormArray;
+    const ownerEntityGroupsArray = this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as UntypedFormArray;
     const ownerGroups: {ownerId: EntityId, groupIds: string[] } = {
       ownerId: null,
       groupIds: []

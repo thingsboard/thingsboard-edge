@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,10 +33,10 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -81,14 +81,14 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
 
   @Input() isStrokedButton = false;
 
-  kvListFormGroup: FormGroup;
+  kvListFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
   private valueChangeSubscription: Subscription = null;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -98,8 +98,8 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
       this.fb.array([]));
   }
 
-  keyValsFormArray(): FormArray {
-    return this.kvListFormGroup.get('keyVals') as FormArray;
+  keyValsFormArray(): UntypedFormArray {
+    return this.kvListFormGroup.get('keyVals') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -148,18 +148,18 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
   }
 
   public removeKeyVal(index: number) {
-    (this.kvListFormGroup.get('keyVals') as FormArray).removeAt(index);
+    (this.kvListFormGroup.get('keyVals') as UntypedFormArray).removeAt(index);
   }
 
   public addKeyVal() {
-    const keyValsFormArray = this.kvListFormGroup.get('keyVals') as FormArray;
+    const keyValsFormArray = this.kvListFormGroup.get('keyVals') as UntypedFormArray;
     keyValsFormArray.push(this.fb.group({
       key: [this.isSinglePredefinedKey ? this.singlePredefinedKey : '', [Validators.required]],
       value: ['', [Validators.required]]
     }));
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     const kvList: {key: string; value: string}[] = this.kvListFormGroup.get('keyVals').value;
     let valid = true;
     for (const entry of kvList) {
