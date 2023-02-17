@@ -130,6 +130,8 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
@@ -222,6 +224,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
+import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
+import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
 import static org.thingsboard.server.controller.ControllerConstants.INCORRECT_TENANT_ID;
 import static org.thingsboard.server.controller.UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -1408,5 +1412,18 @@ public abstract class BaseController {
             }
         }, MoreExecutors.directExecutor());
         return deferredResult;
+    }
+
+    protected EntityDataSortOrder createEntityDataSortOrder(String sortProperty, String sortOrder) {
+        if (isNotEmpty(sortProperty)) {
+            EntityDataSortOrder entityDataSortOrder = new EntityDataSortOrder();
+            entityDataSortOrder.setKey(new EntityKey(ENTITY_FIELD, sortProperty));
+            if (isNotEmpty(sortOrder)) {
+                entityDataSortOrder.setDirection(EntityDataSortOrder.Direction.valueOf(sortOrder));
+            }
+            return entityDataSortOrder;
+        } else {
+            return null;
+        }
     }
 }
