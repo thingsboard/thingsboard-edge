@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,14 +33,39 @@ package org.thingsboard.server.dao.sql.notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.thingsboard.server.common.data.notification.rule.NotificationRuleInfo;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.dao.model.sql.NotificationRuleEntity;
+import org.thingsboard.server.dao.model.sql.NotificationRuleInfoEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface NotificationRuleRepository extends JpaRepository<NotificationRuleEntity, UUID> {
 
-    Page<NotificationRuleEntity> findByTenantIdAndNameContainingIgnoreCase(UUID tenantId, String searchText, Pageable pageable);
+    String RULE_INFO_QUERY = "SELECT new org.thingsboard.server.dao.model.sql.NotificationRuleInfoEntity(r, t.name, t.configuration) " +
+            "FROM NotificationRuleEntity r INNER JOIN NotificationTemplateEntity t ON r.templateId = t.id";
+
+    @Query("SELECT r FROM NotificationRuleEntity r WHERE r.tenantId = :tenantId " +
+            "AND lower(r.name) LIKE lower(concat('%', :searchText, '%')) ")
+    Page<NotificationRuleEntity> findByTenantIdAndSearchText(@Param("tenantId") UUID tenantId,
+                                                             @Param("searchText") String searchText,
+                                                             Pageable pageable);
+
+    boolean existsByRecipientsConfigContaining(String string);
+
+    List<NotificationRuleEntity> findAllByTenantIdAndTriggerType(UUID tenantId, NotificationRuleTriggerType triggerType);
+
+    @Query(RULE_INFO_QUERY + " WHERE r.id = :id")
+    NotificationRuleInfoEntity findInfoById(@Param("id") UUID id);
+
+    @Query(RULE_INFO_QUERY + " WHERE r.tenantId = :tenantId AND lower(r.name) LIKE lower(concat('%', :searchText, '%'))")
+    Page<NotificationRuleInfoEntity> findInfosByTenantIdAndSearchText(@Param("tenantId") UUID tenantId,
+                                                                      @Param("searchText") String searchText,
+                                                                      Pageable pageable);
 
 }

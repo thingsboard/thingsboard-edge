@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,31 +31,32 @@
 package org.thingsboard.server.service.notification.channels;
 
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
-import org.thingsboard.server.common.data.notification.template.NotificationText;
+import org.thingsboard.server.common.data.notification.template.SmsDeliveryMethodNotificationTemplate;
+import org.thingsboard.server.common.data.notification.NotificationProcessingContext;
 import org.thingsboard.server.service.sms.SmsExecutorService;
-
-import java.util.concurrent.Future;
 
 @Component
 @RequiredArgsConstructor
-public class SmsNotificationChannel implements NotificationChannel {
+public class SmsNotificationChannel implements NotificationChannel<User, SmsDeliveryMethodNotificationTemplate> {
 
     private final SmsService smsService;
     private final SmsExecutorService executor;
 
     @Override
-    public Future<Void> sendNotification(User recipient, NotificationRequest request, NotificationText text) {
+    public ListenableFuture<Void> sendNotification(User recipient, SmsDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) {
         String phone = recipient.getPhone();
-        if (StringUtils.isBlank(phone)) return Futures.immediateFuture(null);
+        if (StringUtils.isBlank(phone))
+            return Futures.immediateFailedFuture(new RuntimeException("User does not have phone number"));
+
         return executor.submit(() -> {
-            smsService.sendSms(recipient.getTenantId(), recipient.getCustomerId(), new String[]{phone}, text.getBody());
+            smsService.sendSms(recipient.getTenantId(), recipient.getCustomerId(), new String[]{phone}, processedTemplate.getBody());
             return null;
         });
     }

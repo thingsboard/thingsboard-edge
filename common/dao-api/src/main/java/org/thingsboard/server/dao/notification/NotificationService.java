@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,9 +31,11 @@
 package org.thingsboard.server.dao.notification;
 
 import org.thingsboard.server.common.data.id.NotificationId;
+import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
+import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
@@ -43,12 +45,18 @@ public interface NotificationService {
 
     Notification findNotificationById(TenantId tenantId, NotificationId notificationId);
 
-    boolean markNotificationAsRead(TenantId tenantId, UserId userId, NotificationId notificationId);
+    boolean markNotificationAsRead(TenantId tenantId, UserId recipientId, NotificationId notificationId);
 
-    PageData<Notification> findNotificationsByUserIdAndReadStatus(TenantId tenantId, UserId userId, boolean unreadOnly, PageLink pageLink);
+    int markAllNotificationsAsRead(TenantId tenantId, UserId recipientId);
 
-    PageData<Notification> findLatestUnreadNotificationsByUserId(TenantId tenantId, UserId userId, int limit);
+    PageData<Notification> findNotificationsByRecipientIdAndReadStatus(TenantId tenantId, UserId recipientId, boolean unreadOnly, PageLink pageLink);
 
-    int countUnreadNotificationsByUserId(TenantId tenantId, UserId userId);
+    PageData<Notification> findLatestUnreadNotificationsByRecipientId(TenantId tenantId, UserId recipientId, int limit);
+
+    int countUnreadNotificationsByRecipientId(TenantId tenantId, UserId recipientId);
+
+    void updateNotificationsStatusByRequestId(TenantId tenantId, NotificationRequestId requestId, NotificationStatus status);
+
+    boolean deleteNotification(TenantId tenantId, UserId recipientId, NotificationId notificationId);
 
 }

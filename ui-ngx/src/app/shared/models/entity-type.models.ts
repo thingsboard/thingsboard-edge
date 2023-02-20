@@ -60,7 +60,12 @@ export enum EntityType {
   EDGE = 'EDGE',
   OTA_PACKAGE = 'OTA_PACKAGE',
   RPC = 'RPC',
-  QUEUE = 'QUEUE'
+  QUEUE = 'QUEUE',
+  NOTIFICATION = 'NOTIFICATION',
+  NOTIFICATION_REQUEST = 'NOTIFICATION_REQUEST',
+  NOTIFICATION_RULE = 'NOTIFICATION_RULE',
+  NOTIFICATION_TARGET = 'NOTIFICATION_TARGET',
+  NOTIFICATION_TEMPLATE = 'NOTIFICATION_TEMPLATE'
 }
 
 export enum AliasEntityType {
@@ -474,12 +479,49 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.RPC,
+      {
+        type: 'entity.type-rpc'
+      }
+    ],
+    [
       EntityType.QUEUE,
       {
+        type: 'entity.type-queue',
         add: 'queue.add',
         search: 'queue.search',
         details: 'queue.details',
         selectedEntities: 'queue.selected-queues'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION,
+      {
+        type: 'entity.type-notification'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_REQUEST,
+      {
+        type: 'entity.type-notification-request'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_RULE,
+      {
+        type: 'entity.type-notification-rule'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_TARGET,
+      {
+        type: 'entity.type-notification-target'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_TEMPLATE,
+      {
+        type: 'entity.type-notification-template'
       }
     ]
   ]

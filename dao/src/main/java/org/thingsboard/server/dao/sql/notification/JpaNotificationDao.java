@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,13 +35,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
-import org.thingsboard.server.common.data.notification.NotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -73,7 +72,6 @@ public class JpaNotificationDao extends JpaAbstractDao<NotificationEntity, Notif
             UUID uuid = Uuids.timeBased();
             notification.setId(new NotificationId(uuid));
             notification.setCreatedTime(Uuids.unixTimestamp(uuid));
-            // todo: regarding ttl, it might be better to remove notifications on NotificationRequest level
             partitioningRepository.createPartitionIfNotExists(ModelConstants.NOTIFICATION_TABLE_NAME,
                     notification.getCreatedTime(), TimeUnit.HOURS.toMillis(partitionSizeInHours));
         }
@@ -81,28 +79,43 @@ public class JpaNotificationDao extends JpaAbstractDao<NotificationEntity, Notif
     }
 
     @Override
-    public PageData<Notification> findUnreadByUserIdAndPageLink(TenantId tenantId, UserId userId, PageLink pageLink) {
-        return DaoUtil.toPageData(notificationRepository.findByRecipientIdAndStatusNot(userId.getId(), NotificationStatus.READ, DaoUtil.toPageable(pageLink)));
+    public PageData<Notification> findUnreadByRecipientIdAndPageLink(TenantId tenantId, UserId recipientId, PageLink pageLink) {
+        return DaoUtil.toPageData(notificationRepository.findByRecipientIdAndStatusNot(recipientId.getId(), NotificationStatus.READ, DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public PageData<Notification> findByUserIdAndPageLink(TenantId tenantId, UserId userId, PageLink pageLink) {
-        return DaoUtil.toPageData(notificationRepository.findByRecipientId(userId.getId(), DaoUtil.toPageable(pageLink)));
+    public PageData<Notification> findByRecipientIdAndPageLink(TenantId tenantId, UserId recipientId, PageLink pageLink) {
+        return DaoUtil.toPageData(notificationRepository.findByRecipientId(recipientId.getId(), DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public boolean updateStatusByIdAndUserId(TenantId tenantId, UserId userId, NotificationId notificationId, NotificationStatus status) {
-        return notificationRepository.updateStatusByIdAndRecipientId(notificationId.getId(), userId.getId(), status) != 0;
+    public boolean updateStatusByIdAndRecipientId(TenantId tenantId, UserId recipientId, NotificationId notificationId, NotificationStatus status) {
+        return notificationRepository.updateStatusByIdAndRecipientId(notificationId.getId(), recipientId.getId(), status) != 0;
     }
 
     @Override
-    public int countUnreadByUserId(TenantId tenantId, UserId userId) {
-        return notificationRepository.countByRecipientIdAndStatusNot(userId.getId(), NotificationStatus.READ);
+    public int countUnreadByRecipientId(TenantId tenantId, UserId recipientId) {
+        return notificationRepository.countByRecipientIdAndStatusNot(recipientId.getId(), NotificationStatus.READ);
     }
 
     @Override
     public PageData<Notification> findByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, PageLink pageLink) {
         return DaoUtil.toPageData(notificationRepository.findByRequestId(notificationRequestId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public void updateStatusesByRequestId(TenantId tenantId, NotificationRequestId requestId, NotificationStatus status) {
+        notificationRepository.updateStatusesByRequestId(requestId.getId(), status);
+    }
+
+    @Override
+    public boolean deleteByIdAndRecipientId(TenantId tenantId, UserId recipientId, NotificationId notificationId) {
+        return notificationRepository.deleteByIdAndRecipientId(notificationId.getId(), recipientId.getId()) != 0;
+    }
+
+    @Override
+    public int updateStatusByRecipientId(TenantId tenantId, UserId recipientId, NotificationStatus status) {
+        return notificationRepository.updateStatusByRecipientId(recipientId.getId(), status);
     }
 
     @Override
@@ -113,6 +126,11 @@ public class JpaNotificationDao extends JpaAbstractDao<NotificationEntity, Notif
     @Override
     protected JpaRepository<NotificationEntity, UUID> getRepository() {
         return notificationRepository;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION;
     }
 
 }

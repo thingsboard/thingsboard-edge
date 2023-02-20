@@ -1,0 +1,147 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import '../../../../../scss/constants';
+
+:host {
+  width: 100%;
+  height: 100%;
+  display: block;
+  .tb-notification-center {
+    padding: 8px;
+    width: 100%;
+    height: 100%;
+    display: block;
+
+    .tb-notification-center-content {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: 0 4px 10px rgba(23, 33, 90, 0.08);
+      display: flex;
+      flex-direction: column;
+
+      .title-container {
+        padding: 16px 16px 0;
+
+        .title {
+          margin: 8px;
+          letter-spacing: 0.1px;
+          font-size: 24px;
+          line-height: 24px;
+          font-weight: 400;
+        }
+
+        .action-buttons {
+          color: rgba(0, 0, 0, .54);
+        }
+      }
+
+      .tabs-container {
+        position: relative;
+        flex-direction: column;
+        flex: 1 1 100%;
+      }
+    }
+  }
+
+  @media #{$mat-xs} {
+    .tb-notification-center {
+      .tb-notification-center-content {
+        .title-container {
+          padding: 8px;
+
+          .title {
+            margin: 4px 0;
+          }
+        }
+      }
+    }
+  }
+}
+
+:host ::ng-deep {
+  .tabs-container {
+    .mat-tab-group {
+      > .mat-tab-body-wrapper {
+        position: absolute;
+        top: 49px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      > .mat-tab-header {
+        .mat-tab-label {
+          min-width: 40px;
+
+          &.mat-tab-disabled {
+            opacity: 1;
+            width: 100%;
+
+            .mat-tab-label-content {
+              width: 100%;
+            }
+          }
+        }
+      }
+    }
+
+    .tb-entity-table {
+      padding: 0;
+
+      .mat-toolbar-single-row, .mat-toolbar-tools {
+        height: 56px;
+      }
+
+      .mat-toolbar-single-row {
+        padding: 0 24px 0 12px;
+      }
+
+      .title-container {
+        width: 100%;
+      }
+    }
+  }
+
+  @media #{$mat-xs} {
+    .tabs-container {
+      .mat-tab-group {
+        > .mat-tab-header {
+          .mat-tab-label {
+            &.mat-tab-disabled {
+              width: auto;
+            }
+          }
+        }
+      }
+    }
+  }
+}

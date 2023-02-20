@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,15 +38,25 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.validation.NoXss;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class NotificationTemplate extends BaseData<NotificationTemplateId> implements TenantEntity, HasName {
 
     private TenantId tenantId;
+    @NoXss
     private String name;
-    private NotificationTemplateConfig configuration;
-    // add notification type (notification reason)
+    @NoXss
+    @NotNull
+    private NotificationType notificationType;
+    @Valid
+    @NotNull
+    private NotificationTemplateConfig configuration; // TODO: add pg_tgrm index
 
     @Override
     public EntityType getEntityType() {

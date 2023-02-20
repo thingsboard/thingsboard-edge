@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -45,6 +45,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
@@ -61,8 +63,12 @@ public class NotificationTemplateEntity extends BaseSqlEntity<NotificationTempla
     @Column(name = ModelConstants.NAME_PROPERTY, nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = ModelConstants.NOTIFICATION_TEMPLATE_NOTIFICATION_TYPE_PROPERTY, nullable = false)
+    private NotificationType notificationType;
+
     @Type(type = "json")
-    @Column(name = ModelConstants.NOTIFICATION_TEMPLATE_CONFIGURATION, nullable = false)
+    @Column(name = ModelConstants.NOTIFICATION_TEMPLATE_CONFIGURATION_PROPERTY, nullable = false)
     private JsonNode configuration;
 
     public NotificationTemplateEntity() {}
@@ -70,8 +76,9 @@ public class NotificationTemplateEntity extends BaseSqlEntity<NotificationTempla
     public NotificationTemplateEntity(NotificationTemplate notificationTemplate) {
         setId(notificationTemplate.getUuidId());
         setCreatedTime(notificationTemplate.getCreatedTime());
-        setTenantId(getUuid(notificationTemplate.getTenantId()));
+        setTenantId(getTenantUuid(notificationTemplate.getTenantId()));
         setName(notificationTemplate.getName());
+        setNotificationType(notificationTemplate.getNotificationType());
         setConfiguration(toJson(notificationTemplate.getConfiguration()));
     }
 
@@ -80,8 +87,9 @@ public class NotificationTemplateEntity extends BaseSqlEntity<NotificationTempla
         NotificationTemplate notificationTemplate = new NotificationTemplate();
         notificationTemplate.setId(new NotificationTemplateId(id));
         notificationTemplate.setCreatedTime(createdTime);
-        notificationTemplate.setTenantId(createId(tenantId, TenantId::fromUUID));
+        notificationTemplate.setTenantId(getTenantId(tenantId));
         notificationTemplate.setName(name);
+        notificationTemplate.setNotificationType(notificationType);
         notificationTemplate.setConfiguration(fromJson(configuration, NotificationTemplateConfig.class));
         return notificationTemplate;
     }

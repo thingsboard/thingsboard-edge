@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,12 +32,20 @@ package org.thingsboard.server.common.data.id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
 
-public class NotificationId extends UUIDBased {
+public class NotificationId extends UUIDBased implements EntityId {
+
     @JsonCreator
     public NotificationId(@JsonProperty("id") UUID id) {
         super(id);
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION;
+    }
+
 }

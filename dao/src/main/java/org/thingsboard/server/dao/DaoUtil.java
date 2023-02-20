@@ -37,6 +37,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -120,11 +121,18 @@ public abstract class DaoUtil {
     }
 
     public static UUID getId(UUIDBased idBased) {
-        UUID id = null;
-        if (idBased != null) {
-            id = idBased.getId();
+        return getId(idBased, false);
+    }
+
+    public static UUID getId(UUIDBased uuidBased, boolean nullUuidToNull) {
+        UUID uuid = null;
+        if (uuidBased != null) {
+            uuid = uuidBased.getId();
+            if (nullUuidToNull && uuid.equals(EntityId.NULL_UUID)) {
+                uuid = null;
+            }
         }
-        return id;
+        return uuid;
     }
 
     public static List<UUID> toUUIDs(List<? extends UUIDBased> idBasedIds) {
@@ -136,17 +144,17 @@ public abstract class DaoUtil {
     }
 
     public static <T> void processInBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<T> processor) {
-       processBatches(finder, batchSize, batch -> batch.forEach(processor));
+        processBatches(finder, batchSize, batch -> batch.getData().forEach(processor));
     }
 
-    public static <T> void processBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<List<T>> processor) {
+    public static <T> void processBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<PageData<T>> processor) {
         PageLink pageLink = new PageLink(batchSize);
         PageData<T> batch;
 
         boolean hasNextBatch;
         do {
             batch = finder.apply(pageLink);
-            processor.accept(batch.getData());
+            processor.accept(batch);
 
             hasNextBatch = batch.hasNext();
             pageLink = pageLink.nextPageLink();

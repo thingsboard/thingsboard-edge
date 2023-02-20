@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,28 +34,32 @@ import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestInfo;
+import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
-import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.NotificationRequestEntity;
+import org.thingsboard.server.dao.model.sql.NotificationRequestInfoEntity;
 import org.thingsboard.server.dao.notification.NotificationRequestDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.dao.DaoUtil.getId;
 
 @Component
 @SqlDao
@@ -63,12 +67,23 @@ import java.util.stream.Collectors;
 public class JpaNotificationRequestDao extends JpaAbstractDao<NotificationRequestEntity, NotificationRequest> implements NotificationRequestDao {
 
     private final NotificationRequestRepository notificationRequestRepository;
-    private final NotificationRepository notificationRepository;
 
     @Override
-    public PageData<NotificationRequest> findByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(notificationRequestRepository.findByTenantIdAndSearchText(tenantId.getId(),
-                Strings.nullToEmpty(pageLink.getTextSearch()), DaoUtil.toPageable(pageLink)));
+    public PageData<NotificationRequest> findByTenantIdAndOriginatorTypeAndPageLink(TenantId tenantId, EntityType originatorType, PageLink pageLink) {
+        return DaoUtil.toPageData(notificationRequestRepository.findByTenantIdAndOriginatorEntityType(getId(tenantId, true),
+                originatorType, DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<NotificationRequestInfo> findInfosByTenantIdAndOriginatorTypeAndPageLink(TenantId tenantId, EntityType originatorType, PageLink pageLink) {
+        return DaoUtil.pageToPageData(notificationRequestRepository.findInfosByTenantIdAndOriginatorEntityTypeAndSearchText(getId(tenantId, true),
+                originatorType, Strings.nullToEmpty(pageLink.getTextSearch()), DaoUtil.toPageable(pageLink))).mapData(NotificationRequestInfoEntity::toData);
+    }
+
+    @Override
+    public List<NotificationRequestId> findIdsByRuleId(TenantId tenantId, NotificationRequestStatus requestStatus, NotificationRuleId ruleId) {
+        return notificationRequestRepository.findAllIdsByStatusAndRuleId(requestStatus, ruleId.getId()).stream()
+                .map(NotificationRequestId::new).collect(Collectors.toList());
     }
 
     @Override
@@ -81,16 +96,30 @@ public class JpaNotificationRequestDao extends JpaAbstractDao<NotificationReques
         return DaoUtil.toPageData(notificationRequestRepository.findAllByStatus(status, DaoUtil.toPageable(pageLink)));
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public NotificationRequestInfo getNotificationRequestInfoById(TenantId tenantId, NotificationRequestId id) {
-        NotificationRequestInfo notificationRequestInfo = new NotificationRequestInfo(findById(tenantId, id.getId()));
-        notificationRequestInfo.setSent(notificationRepository.countByRequestId(id.getId()));
-        notificationRequestInfo.setRead(notificationRepository.countByRequestIdAndStatus(id.getId(), NotificationStatus.READ));
-        Map<String, NotificationStatus> statusesByRecipient = notificationRepository.getStatusesByRecipientForRequestId(id.getId()).stream()
-                .collect(Collectors.toMap(r -> (String) r[0], r -> (NotificationStatus) r[1]));
-        notificationRequestInfo.setStatusesByRecipient(statusesByRecipient);
-        return notificationRequestInfo;
+    public void updateById(TenantId tenantId, NotificationRequestId requestId, NotificationRequestStatus requestStatus, NotificationRequestStats stats) {
+        notificationRequestRepository.updateStatusAndStatsById(requestId.getId(), requestStatus, JacksonUtil.valueToTree(stats));
+    }
+
+    @Override
+    public boolean existsByStatusAndTargetId(TenantId tenantId, NotificationRequestStatus status, NotificationTargetId targetId) {
+        return notificationRequestRepository.existsByStatusAndTargetsContaining(status, targetId.getId().toString());
+    }
+
+    @Override
+    public boolean existsByStatusAndTemplateId(TenantId tenantId, NotificationRequestStatus status, NotificationTemplateId templateId) {
+        return notificationRequestRepository.existsByStatusAndTemplateId(status, templateId.getId());
+    }
+
+    @Override
+    public int removeAllByCreatedTimeBefore(long ts) {
+        return notificationRequestRepository.deleteAllByCreatedTimeBefore(ts);
+    }
+
+    @Override
+    public NotificationRequestInfo findInfoById(TenantId tenantId, NotificationRequestId id) {
+        NotificationRequestInfoEntity info = notificationRequestRepository.findInfoById(id.getId());
+        return info != null ? info.toData() : null;
     }
 
     @Override

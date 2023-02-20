@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,16 +44,16 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
-import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -63,50 +63,58 @@ import java.util.Map;
 public class NotificationRequest extends BaseData<NotificationRequestId> implements HasName, TenantEntity {
 
     private TenantId tenantId;
-    @NotNull(message = "Target is not specified")
-    private NotificationTargetId targetId;
-
-    @NoXss
-    private String type;
     @NotNull
+    private List<UUID> targets;
+
     private NotificationTemplateId templateId;
     @Valid
+    private NotificationTemplate template;
+    @Valid
     private NotificationInfo info;
-    @NotEmpty
-    private List<NotificationDeliveryMethod> deliveryMethods;
     @NotNull
     @Valid
     private NotificationRequestConfig additionalConfig;
 
-    private NotificationOriginatorType originatorType;
     private EntityId originatorEntityId;
     private NotificationRuleId ruleId;
 
     private NotificationRequestStatus status;
 
-    @JsonIgnore
-    private transient Map<String, String> templateContext;
+    private NotificationRequestStats stats;
 
     public NotificationRequest(NotificationRequest other) {
         super(other);
         this.tenantId = other.tenantId;
-        this.targetId = other.targetId;
-        this.type = other.type;
+        this.targets = other.targets;
         this.templateId = other.templateId;
+        this.template = other.template;
         this.info = other.info;
-        this.deliveryMethods = other.deliveryMethods;
         this.additionalConfig = other.additionalConfig;
-        this.originatorType = other.originatorType;
         this.originatorEntityId = other.originatorEntityId;
         this.ruleId = other.ruleId;
         this.status = other.status;
-        this.templateContext = other.templateContext;
+        this.stats = other.stats;
     }
 
     @JsonIgnore
     @Override
     public String getName() {
-        return type;
+        return "To targets " + targets;
+    }
+
+    @JsonIgnore
+    public UserId getSenderId() {
+        return originatorEntityId instanceof UserId ? (UserId) originatorEntityId : null;
+    }
+
+    @JsonIgnore
+    public boolean isSent() {
+        return status == NotificationRequestStatus.SENT;
+    }
+
+    @JsonIgnore
+    public boolean isScheduled() {
+        return status == NotificationRequestStatus.SCHEDULED;
     }
 
     @Override

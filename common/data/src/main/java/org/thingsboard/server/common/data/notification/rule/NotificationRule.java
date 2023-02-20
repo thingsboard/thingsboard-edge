@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,44 +30,61 @@
  */
 package org.thingsboard.server.common.data.notification.rule;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
-import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class NotificationRule extends BaseData<NotificationRuleId> implements TenantEntity, HasName {
+public class NotificationRule extends BaseData<NotificationRuleId> implements HasTenantId, HasName {
 
-    @NotNull
     private TenantId tenantId;
     @NotBlank
     private String name;
     @NotNull
     private NotificationTemplateId templateId;
-    @NotEmpty
-    private List<NotificationDeliveryMethod> deliveryMethods;
-    @NotNull
-    private NotificationTargetId initialNotificationTargetId;
-    @Valid
-    private NotificationEscalationConfig escalationConfig;
 
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.NOTIFICATION_RULE;
+    @NotNull
+    private NotificationRuleTriggerType triggerType;
+    @NotNull
+    private NotificationRuleTriggerConfig triggerConfig;
+    @NotNull
+    @Valid
+    private NotificationRuleRecipientsConfig recipientsConfig; // todo: add pg_tgrm index (but index is 2.5x size of the column)
+
+    private NotificationRuleConfig additionalConfig;
+
+    public NotificationRule(NotificationRule other) {
+        super(other);
+        this.tenantId = other.tenantId;
+        this.name = other.name;
+        this.templateId = other.templateId;
+        this.triggerType = other.triggerType;
+        this.triggerConfig = other.triggerConfig;
+        this.recipientsConfig = other.recipientsConfig;
+        this.additionalConfig = other.additionalConfig;
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "trigger type not matching")
+    public boolean isValid() {
+        return triggerType == triggerConfig.getTriggerType() &&
+                triggerType == recipientsConfig.getTriggerType();
     }
 
 }

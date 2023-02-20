@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,24 +30,21 @@
  */
 package org.thingsboard.server.common.data.notification.settings;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-//@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "method", visible = true, include = JsonTypeInfo.As.EXISTING_PROPERTY, defaultImpl = NotificationDeliveryMethodConfig.class)
-//@JsonSubTypes({
-////        @JsonSubTypes.Type(name = "SLACK", value = SlackNotificationDeliveryMethodConfig.class),
-//})
-@Data
-public class NotificationDeliveryMethodConfig {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "method")
+@JsonSubTypes({
+        @Type(name = "SLACK", value = SlackNotificationDeliveryMethodConfig.class)
+})
+public interface NotificationDeliveryMethodConfig {
 
-    private boolean enabled;
-
-    public NotificationDeliveryMethod getMethod() {
-        return null;
-    }
+    @JsonIgnore
+    NotificationDeliveryMethod getMethod();
 
 }

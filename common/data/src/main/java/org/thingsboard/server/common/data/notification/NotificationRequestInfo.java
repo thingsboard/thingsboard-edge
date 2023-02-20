@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,19 +32,22 @@ package org.thingsboard.server.common.data.notification;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class NotificationRequestInfo extends NotificationRequest {
 
-    private int sent;
-    private int read;
-    private Map<String, NotificationStatus> statusesByRecipient;
+    private String templateName;
+    private List<NotificationDeliveryMethod> deliveryMethods;
 
-    public NotificationRequestInfo(NotificationRequest notificationRequest) {
-        super(notificationRequest);
+    public NotificationRequestInfo(NotificationRequest request, String templateName, List<NotificationDeliveryMethod> deliveryMethods) {
+        super(request);
+        this.templateName = templateName;
+        this.deliveryMethods = deliveryMethods;
     }
 
 }

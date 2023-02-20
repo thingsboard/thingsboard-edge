@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,26 +30,24 @@
  */
 package org.thingsboard.rule.engine.notification;
 
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.id.NotificationTargetId;
-import org.thingsboard.server.common.data.notification.NotificationOriginatorType;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
+import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
+import org.thingsboard.server.common.data.notification.info.RuleEngineOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.common.util.DonAsynchron.withCallback;
-
 @RuleNode(
-        type = ComponentType.ACTION,
+        type = ComponentType.EXTERNAL,
         name = "send notification",
         configClazz = TbNotificationNodeConfiguration.class,
         nodeDescription = "Sends notification to a target",
@@ -63,39 +61,36 @@ public class TbNotificationNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbNotificationNodeConfiguration.class);
-        validateConfig(config);
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-//        NotificationRequest notificationRequest = NotificationRequest.builder()
-//                .tenantId(ctx.getTenantId())
-//                .targetId(new NotificationTargetId(config.getTargetId()))
-//                .type(config.getNotificationReason())
-//                .textTemplate(TbNodeUtils.processPattern(config.getNotificationTextTemplate(), msg))
-//                .notificationSeverity(config.getNotificationSeverity())
-//                .originatorType(NotificationOriginatorType.RULE_NODE)
-//                .originatorEntityId(ctx.getTenantId())
-//                .build();
-//        withCallback(ctx.getDbCallbackExecutor().executeAsync(() -> {
-//                    return ctx.getNotificationManager().processNotificationRequest(ctx.getTenantId(), notificationRequest);
-//                }),
-//                r -> {
-//                    TbMsgMetaData msgMetaData = msg.getMetaData().copy();
-//                    msgMetaData.putValue("notificationRequestId", r.getUuidId().toString());
-//                    msgMetaData.putValue("notificationTextTemplate", r.getTextTemplate());
-//                    ctx.tellSuccess(TbMsg.transformMsg(msg, msgMetaData));
-//                },
-//                e -> ctx.tellFailure(msg, e));
-    }
+        RuleEngineOriginatedNotificationInfo notificationInfo = RuleEngineOriginatedNotificationInfo.builder()
+                .msgOriginator(msg.getOriginator())
+                .msgMetadata(msg.getMetaData().getData())
+                .msgType(msg.getType())
+                .build();
 
-    private void validateConfig(TbNotificationNodeConfiguration config) throws TbNodeException {
-        if (config.getTargetId() == null) {
-            throw new TbNodeException("Notification target is not specified");
-        }
-        if (StringUtils.isBlank(config.getNotificationTextTemplate())) {
-            throw new TbNodeException("Notification text template is missing");
-        }
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .tenantId(ctx.getTenantId())
+                .targets(config.getTargets())
+                .templateId(config.getTemplateId())
+                .info(notificationInfo)
+                .additionalConfig(new NotificationRequestConfig())
+                .originatorEntityId(ctx.getSelf().getRuleChainId())
+                .build();
+
+        DonAsynchron.withCallback(ctx.getNotificationExecutor().executeAsync(() -> {
+                    return ctx.getNotificationCenter().processNotificationRequest(ctx.getTenantId(), notificationRequest);
+                }),
+                r -> {
+                    TbMsgMetaData msgMetaData = msg.getMetaData().copy();
+                    msgMetaData.putValue("notificationRequestId", r.getUuidId().toString());
+                    ctx.tellSuccess(TbMsg.transformMsg(msg, msgMetaData));
+                },
+                e -> {
+                    ctx.tellFailure(msg, e);
+                });
     }
 
 }

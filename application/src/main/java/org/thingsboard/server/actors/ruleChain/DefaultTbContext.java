@@ -42,7 +42,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.NotificationManager;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
 import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
@@ -54,6 +54,7 @@ import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.rule.engine.util.TenantIdLoader;
 import org.thingsboard.script.api.ScriptType;
@@ -506,6 +507,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public ListeningExecutor getNotificationExecutor() {
+        return mainCtx.getNotificationExecutor();
+    }
+
+    @Override
     @Deprecated
     public ScriptEngine createJsScriptEngine(String script, String... argNames) {
         return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);
@@ -734,8 +740,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public NotificationManager getNotificationManager() {
-        return mainCtx.getNotificationManager();
+    public NotificationCenter getNotificationCenter() {
+        return mainCtx.getNotificationCenter();
+    }
+
+    @Override
+    public SlackService getSlackService() {
+        return mainCtx.getSlackService();
     }
 
     @Override

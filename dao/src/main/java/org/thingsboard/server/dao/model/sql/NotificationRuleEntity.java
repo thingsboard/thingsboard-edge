@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,26 +33,25 @@ package org.thingsboard.server.dao.model.sql;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
-import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.rule.NotificationEscalationConfig;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.notification.rule.NotificationRuleConfig;
+import org.thingsboard.server.common.data.notification.rule.NotificationRuleRecipientsConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
-import java.util.Arrays;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Data @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -69,27 +68,46 @@ public class NotificationRuleEntity extends BaseSqlEntity<NotificationRule> {
     @Column(name = ModelConstants.NOTIFICATION_RULE_TEMPLATE_ID_PROPERTY, nullable = false)
     private UUID templateId;
 
-    @Column(name = ModelConstants.NOTIFICATION_RULE_DELIVERY_METHODS_PROPERTY, nullable = false)
-    private String deliveryMethods;
-
-    @Column(name = ModelConstants.NOTIFICATION_RULE_INITIAL_NOTIFICATION_TARGET_ID_PROPERTY)
-    private UUID initialNotificationTargetId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = ModelConstants.NOTIFICATION_RULE_TRIGGER_TYPE_PROPERTY, nullable = false)
+    private NotificationRuleTriggerType triggerType;
 
     @Type(type = "json")
-    @Column(name = ModelConstants.NOTIFICATION_RULE_ESCALATION_CONFIG_PROPERTY)
-    private JsonNode escalationConfig;
+    @Column(name = ModelConstants.NOTIFICATION_RULE_TRIGGER_CONFIG_PROPERTY, nullable = false)
+    private JsonNode triggerConfig;
+
+    @Type(type = "json")
+    @Column(name = ModelConstants.NOTIFICATION_RULE_RECIPIENTS_CONFIG_PROPERTY, nullable = false)
+    private JsonNode recipientsConfig;
+
+    @Type(type = "json")
+    @Column(name = ModelConstants.NOTIFICATION_RULE_ADDITIONAL_CONFIG_PROPERTY)
+    private JsonNode additionalConfig;
 
     public NotificationRuleEntity() {}
 
     public NotificationRuleEntity(NotificationRule notificationRule) {
         setId(notificationRule.getUuidId());
         setCreatedTime(notificationRule.getCreatedTime());
-        setTenantId(getUuid(notificationRule.getTenantId()));
+        setTenantId(getTenantUuid(notificationRule.getTenantId()));
         setName(notificationRule.getName());
         setTemplateId(getUuid(notificationRule.getTemplateId()));
-        setDeliveryMethods(StringUtils.join(notificationRule.getDeliveryMethods(), ','));
-        setInitialNotificationTargetId(getUuid(notificationRule.getInitialNotificationTargetId()));
-        setEscalationConfig(toJson(notificationRule.getEscalationConfig()));
+        setTriggerType(notificationRule.getTriggerType());
+        setTriggerConfig(toJson(notificationRule.getTriggerConfig()));
+        setRecipientsConfig(toJson(notificationRule.getRecipientsConfig()));
+        setAdditionalConfig(toJson(notificationRule.getAdditionalConfig()));
+    }
+
+    public NotificationRuleEntity(NotificationRuleEntity other) {
+        this.id = other.id;
+        this.createdTime = other.createdTime;
+        this.tenantId = other.tenantId;
+        this.name = other.name;
+        this.templateId = other.templateId;
+        this.triggerType = other.triggerType;
+        this.triggerConfig = other.triggerConfig;
+        this.recipientsConfig = other.recipientsConfig;
+        this.additionalConfig = other.additionalConfig;
     }
 
     @Override
@@ -97,15 +115,13 @@ public class NotificationRuleEntity extends BaseSqlEntity<NotificationRule> {
         NotificationRule notificationRule = new NotificationRule();
         notificationRule.setId(new NotificationRuleId(id));
         notificationRule.setCreatedTime(createdTime);
-        notificationRule.setTenantId(createId(tenantId, TenantId::fromUUID));
+        notificationRule.setTenantId(getTenantId(tenantId));
         notificationRule.setName(name);
-        notificationRule.setTemplateId(createId(templateId, NotificationTemplateId::new));
-        if (deliveryMethods != null) {
-            notificationRule.setDeliveryMethods(Arrays.stream(StringUtils.split(deliveryMethods, ','))
-                    .filter(StringUtils::isNotBlank).map(NotificationDeliveryMethod::valueOf).collect(Collectors.toList()));
-        }
-        notificationRule.setInitialNotificationTargetId(createId(initialNotificationTargetId, NotificationTargetId::new));
-        notificationRule.setEscalationConfig(fromJson(escalationConfig, NotificationEscalationConfig.class));
+        notificationRule.setTemplateId(getEntityId(templateId, NotificationTemplateId::new));
+        notificationRule.setTriggerType(triggerType);
+        notificationRule.setTriggerConfig(fromJson(triggerConfig, NotificationRuleTriggerConfig.class));
+        notificationRule.setRecipientsConfig(fromJson(recipientsConfig, NotificationRuleRecipientsConfig.class));
+        notificationRule.setAdditionalConfig(fromJson(additionalConfig, NotificationRuleConfig.class));
         return notificationRule;
     }
 

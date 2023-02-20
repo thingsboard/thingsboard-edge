@@ -220,6 +220,9 @@ import { ConverterTestDialogComponent } from '@home/components/converter/convert
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
+import {
+  SlackConversationAutocompleteComponent
+} from '@home/components/notification/slack-conversation-autocomplete.component';
 
 @NgModule({
   declarations:
@@ -388,7 +391,8 @@ import { modulesMap } from '@modules/common/modules-map';
       RateLimitsTextComponent,
       IntegrationWizardDialogComponent,
       ConverterComponent,
-      ConverterTestDialogComponent
+      ConverterTestDialogComponent,
+      SlackConversationAutocompleteComponent
     ],
   imports: [
     CommonModule,
@@ -550,7 +554,8 @@ import { modulesMap } from '@modules/common/modules-map';
     RateLimitsComponent,
     RateLimitsListComponent,
     RateLimitsTextComponent,
-    IntegrationWizardDialogComponent
+    IntegrationWizardDialogComponent,
+    SlackConversationAutocompleteComponent
   ],
   providers: [
     WidgetComponentService,

@@ -30,8 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" [formGroup]="entityListFormGroup" class="mat-block">
-  <mat-chip-list #chipList formControlName="entities">
+<mat-form-field appearance="standard" [formGroup]="entityListFormGroup" class="mat-block" floatLabel="always">
+  <mat-label *ngIf="labelText">{{ labelText }}</mat-label>
+  <mat-chip-list #chipList formControlName="entities" [required]="required">
     <mat-chip
       *ngFor="let entity of entities"
       [selectable]="!disabled"
@@ -40,7 +41,7 @@
       {{entity.name}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
     </mat-chip>
-    <input matInput type="text" placeholder="{{ !disabled ? (entityListText | translate) : '' }}"
+    <input matInput type="text" placeholder="{{ !disabled ? placeholderText : '' }}"
            style="max-width: 200px;"
            #entityInput
            (focusin)="onFocus()"
@@ -64,6 +65,9 @@
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="entityListFormGroup.get('entities').hasError('required')">
-    {{ entitiesRequiredText | translate }}
+    {{ requiredText }}
   </mat-error>
+  <div matSuffix>
+    <ng-content select="[matSuffix]"></ng-content>
+  </div>
 </mat-form-field>

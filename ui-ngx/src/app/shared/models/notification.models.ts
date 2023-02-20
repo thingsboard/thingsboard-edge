@@ -1,0 +1,369 @@
+///
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+///
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+///
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
+///
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+///
+
+import { NotificationId } from '@shared/models/id/notification-id';
+import { NotificationRequestId } from '@shared/models/id/notification-request-id';
+import { UserId } from '@shared/models/id/user-id';
+import { BaseData } from '@shared/models/base-data';
+import { TenantId } from '@shared/models/id/tenant-id';
+import { NotificationTargetId } from '@shared/models/id/notification-target-id';
+import { NotificationTemplateId } from '@shared/models/id/notification-template-id';
+import { EntityId } from '@shared/models/id/entity-id';
+import { NotificationRuleId } from '@shared/models/id/notification-rule-id';
+import { AlarmSeverity, AlarmStatus } from '@shared/models/alarm.models';
+import { EntityType } from '@shared/models/entity-type.models';
+
+export interface Notification {
+  readonly id: NotificationId;
+  readonly requestId: NotificationRequestId;
+  readonly recipientId: UserId;
+  readonly type: NotificationType;
+  readonly subject: string;
+  readonly text: string;
+  readonly info: NotificationInfo;
+  readonly status: NotificationStatus;
+  readonly createdTime: number;
+  readonly additionalConfig?: PushDeliveryMethodAdditionalConfig;
+}
+
+export interface NotificationInfo {
+  description: string;
+  type: string;
+  alarmSeverity?: AlarmSeverity;
+  alarmStatus?: AlarmStatus;
+  alarmType?: string;
+}
+
+export interface NotificationRequest extends Omit<BaseData<NotificationRequestId>, 'label'> {
+  tenantId?: TenantId;
+  targets: Array<string>;
+  templateId?: NotificationTemplateId;
+  template?: NotificationTemplate;
+  info?: NotificationInfo;
+  deliveryMethods: Array<NotificationDeliveryMethod>;
+  originatorEntityId: EntityId;
+  status: NotificationRequestStatus;
+  stats: NotificationRequestStats;
+  additionalConfig: NotificationRequestConfig;
+}
+
+export interface NotificationRequestInfo extends NotificationRequest {
+  templateName: string;
+  deliveryMethods: NotificationDeliveryMethod[];
+}
+
+export interface NotificationRequestPreview {
+  totalRecipientsCount: number;
+  recipientsCountByTarget: { [key in string]: number };
+  processedTemplates: { [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate };
+}
+
+export interface NotificationRequestStats {
+  sent: Map<NotificationDeliveryMethod, any>;
+  errors: Map<NotificationDeliveryMethod, Map<string, string>>;
+  processedRecipients: Map<NotificationDeliveryMethod, Set<UserId>>;
+}
+
+export interface NotificationRequestConfig {
+  sendingDelayInSec: number;
+}
+
+export interface NotificationSettings {
+  deliveryMethodsConfigs: { [key in NotificationDeliveryMethod]: NotificationDeliveryMethodConfig };
+}
+
+export interface NotificationDeliveryMethodConfig extends Partial<SlackNotificationDeliveryMethodConfig>{
+  enabled: boolean;
+  method: NotificationDeliveryMethod;
+}
+
+interface SlackNotificationDeliveryMethodConfig {
+  botToken: string;
+}
+
+export interface SlackConversation {
+  id: string;
+  name: string;
+}
+
+export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'label'>{
+  tenantId: TenantId;
+  templateId: NotificationTemplateId;
+  triggerType: TriggerType;
+  triggerConfig: NotificationRuleTriggerConfig;
+  recipientsConfig: NotificationRuleRecipientConfig;
+  additionalConfig: {description: string};
+}
+
+export interface NotificationRuleTriggerConfig {
+  alarmTypes?: Array<string>;
+  alarmSeverities?: Array<AlarmSeverity>;
+  clearRule?: AlarmStatus;
+  devices?: Array<string>;
+  deviceProfiles?: Array<string>;
+  entityType?: EntityType;
+  created?: boolean;
+  updated?: boolean;
+  deleted?: boolean;
+}
+
+export interface NotificationRuleRecipientConfig {
+  targets?: Array<string>;
+  escalationTable?: {[key: number]: Array<string>};
+}
+
+export interface NonConfirmedNotificationEscalation {
+  delayInSec: number;
+  targets: Array<string>;
+}
+
+export interface NotificationTarget extends Omit<BaseData<NotificationTargetId>, 'label'>{
+  tenantId: TenantId;
+  configuration: NotificationTargetConfig;
+}
+
+export interface NotificationTargetConfig extends Partial<PlatformUsersNotificationTargetConfig & SlackNotificationTargetConfig> {
+  description?: string;
+  type: NotificationTargetType;
+}
+export interface PlatformUsersNotificationTargetConfig {
+  usersFilter: UsersFilter;
+}
+
+export interface UsersFilter extends
+  Partial<UserListNotificationTargetConfig & CustomerUsersNotificationTargetConfig>{
+  type: NotificationTargetConfigType;
+}
+
+interface UserListNotificationTargetConfig {
+  usersIds: Array<string>;
+}
+
+interface CustomerUsersNotificationTargetConfig {
+  customerId: string;
+}
+
+export interface SlackNotificationTargetConfig {
+  conversationType: SlackChanelType;
+  conversation: SlackConversation;
+}
+export enum NotificationTargetType {
+  PLATFORM_USERS = 'PLATFORM_USERS',
+  SLACK = 'SLACK'
+}
+
+export const NotificationTargetTypeTranslationMap = new Map<NotificationTargetType, string>([
+  [NotificationTargetType.PLATFORM_USERS, 'notification.platform-users'],
+  [NotificationTargetType.SLACK, 'notification.slack']
+]);
+
+export interface NotificationTemplate extends Omit<BaseData<NotificationTemplateId>, 'label'>{
+  tenantId: TenantId;
+  notificationType: NotificationType;
+  configuration: NotificationTemplateConfig;
+}
+
+interface NotificationTemplateConfig {
+  defaultTextTemplate: string;
+  notificationSubject: string;
+  deliveryMethodsTemplates: {
+    [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate
+  };
+}
+
+export interface DeliveryMethodNotificationTemplate extends
+  Partial<PushDeliveryMethodNotificationTemplate & EmailDeliveryMethodNotificationTemplate & SlackDeliveryMethodNotificationTemplate>{
+  body?: string;
+  enabled: boolean;
+  method: NotificationDeliveryMethod;
+}
+
+interface PushDeliveryMethodNotificationTemplate {
+  subject?: string;
+  additionalConfig: PushDeliveryMethodAdditionalConfig;
+}
+
+interface PushDeliveryMethodAdditionalConfig {
+  icon: {
+    enabled: boolean;
+    icon: string;
+    color: string;
+  };
+  actionButtonConfig: {
+    enabled: boolean;
+    text: string;
+    color: string;
+    link: string;
+  };
+}
+
+interface EmailDeliveryMethodNotificationTemplate {
+  subject: string;
+}
+
+interface SlackDeliveryMethodNotificationTemplate {
+  conversationType: SlackChanelType;
+  conversationId: string;
+}
+
+export enum NotificationStatus {
+  SENT = 'SENT',
+  READ = 'READ'
+}
+
+export enum NotificationDeliveryMethod {
+  PUSH = 'PUSH',
+  SMS = 'SMS',
+  EMAIL = 'EMAIL',
+  SLACK = 'SLACK'
+}
+
+export const NotificationDeliveryMethodTranslateMap = new Map<NotificationDeliveryMethod, string>([
+  [NotificationDeliveryMethod.PUSH, 'notification.delivery-method-type.push'],
+  [NotificationDeliveryMethod.SMS, 'notification.delivery-method-type.sms'],
+  [NotificationDeliveryMethod.EMAIL, 'notification.delivery-method-type.email'],
+  [NotificationDeliveryMethod.SLACK, 'notification.delivery-method-type.slack'],
+]);
+
+export enum NotificationRequestStatus {
+  PROCESSING = 'PROCESSING',
+  SCHEDULED = 'SCHEDULED',
+  SENT = 'SENT'
+}
+
+export const NotificationRequestStatusTranslateMap = new Map<NotificationRequestStatus, string>([
+  [NotificationRequestStatus.PROCESSING, 'notification.request-status.processing'],
+  [NotificationRequestStatus.SCHEDULED, 'notification.request-status.scheduled'],
+  [NotificationRequestStatus.SENT, 'notification.request-status.sent']
+]);
+
+export enum SlackChanelType {
+  PUBLIC_CHANNEL = 'PUBLIC_CHANNEL',
+  PRIVATE_CHANNEL = 'PRIVATE_CHANNEL',
+  DIRECT= 'DIRECT'
+}
+
+export const SlackChanelTypesTranslateMap = new Map<SlackChanelType, string>([
+  [SlackChanelType.DIRECT, 'notification.slack-chanel-types.direct'],
+  [SlackChanelType.PUBLIC_CHANNEL, 'notification.slack-chanel-types.public-channel'],
+  [SlackChanelType.PRIVATE_CHANNEL, 'notification.slack-chanel-types.private-channel']
+]);
+
+export enum NotificationTargetConfigType {
+  ALL_USERS = 'ALL_USERS',
+  USER_LIST = 'USER_LIST',
+  CUSTOMER_USERS = 'CUSTOMER_USERS',
+  ORIGINATOR_ENTITY_OWNER_USERS = 'ORIGINATOR_ENTITY_OWNER_USERS'
+}
+
+export const NotificationTargetConfigTypeTranslateMap = new Map<NotificationTargetConfigType, string>([
+  [NotificationTargetConfigType.ALL_USERS, 'notification.target-type.all-users'],
+  [NotificationTargetConfigType.USER_LIST, 'notification.target-type.user-list'],
+  [NotificationTargetConfigType.CUSTOMER_USERS, 'notification.target-type.customer-users'],
+  [NotificationTargetConfigType.ORIGINATOR_ENTITY_OWNER_USERS, 'notification.target-type.originator-entity-owner-users']
+]);
+
+export enum NotificationType {
+  GENERAL = 'GENERAL',
+  ALARM = 'ALARM',
+  DEVICE_INACTIVITY = 'DEVICE_INACTIVITY',
+  ENTITY_ACTION = 'ENTITY_ACTION',
+  ALARM_COMMENT = 'ALARM_COMMENT'
+}
+
+export const NotificationTypeIcons = new Map<NotificationType, string | null>([
+  [NotificationType.ALARM, 'warning'],
+  [NotificationType.DEVICE_INACTIVITY, 'phonelink_off'],
+  [NotificationType.ENTITY_ACTION, 'devices'],
+  [NotificationType.ALARM_COMMENT, 'warning']
+]);
+
+export const AlarmSeverityNotificationColors = new Map<AlarmSeverity, string>(
+  [
+    [AlarmSeverity.CRITICAL, '#D12730'],
+    [AlarmSeverity.MAJOR, '#FEAC0C'],
+    [AlarmSeverity.MINOR, '#F2DA05'],
+    [AlarmSeverity.WARNING, '#F66716'],
+    [AlarmSeverity.INDETERMINATE, '#00000061']
+  ]
+);
+
+interface NotificationTemplateTypeTranslate {
+  name: string;
+  hint?: string;
+}
+
+export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, NotificationTemplateTypeTranslate>([
+  [NotificationType.GENERAL,
+    {
+      name: 'notification.template-type.general',
+      hint: 'notification.template-hint.general'
+    }
+  ],
+  [NotificationType.ALARM,
+    {
+      name: 'notification.template-type.alarm',
+      hint: 'notification.template-hint.alarm'
+    }
+  ],
+  [NotificationType.DEVICE_INACTIVITY,
+    {
+      name: 'notification.template-type.device-inactivity',
+      hint: 'notification.template-hint.device-inactivity'
+    }
+  ],
+  [NotificationType.ENTITY_ACTION,
+    {
+      name: 'notification.template-type.entity-action',
+      hint: 'notification.template-hint.entity-action'
+    }
+  ],
+  [NotificationType.ALARM_COMMENT,
+    {
+      name: 'notification.template-type.alarm-comment',
+      hint: 'notification.template-hint.alarm-comment'
+    }
+  ],
+]);
+
+export enum TriggerType {
+  ALARM = 'ALARM',
+  DEVICE_INACTIVITY = 'DEVICE_INACTIVITY',
+  ENTITY_ACTION = 'ENTITY_ACTION',
+  ALARM_COMMENT = 'ALARM_COMMENT'
+}
+
+export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
+  [TriggerType.ALARM, 'notification.trigger.alarm'],
+  [TriggerType.DEVICE_INACTIVITY, 'notification.trigger.device-inactivity'],
+  [TriggerType.ENTITY_ACTION, 'notification.trigger.entity-action'],
+  [TriggerType.ALARM_COMMENT, 'notification.trigger.alarm-comment']
+]);

@@ -1,0 +1,168 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../../theme";
+
+:host {
+  width: 700px;
+  max-height: 100vh;
+
+  @media #{$mat-gt-xs} {
+    .mat-dialog-content {
+      max-height: 75vh;
+    }
+  }
+
+  .tb-hint {
+    margin-top: -1.25em;
+    padding: 0;
+  }
+
+  .fields-group {
+    padding: 0 16px 8px;
+    border: 1px groove rgba(0, 0, 0, .25);
+    border-radius: 4px;
+
+    &.tb-margin {
+      margin-bottom: 10px;
+    }
+
+    &.tb-hierarchy {
+      padding: 0 0 8px 16px;
+    }
+
+    legend {
+      margin-bottom: 8px;
+      color: rgba(0, 0, 0, .7);
+      width: fit-content;
+    }
+  }
+
+  ::ng-deep {
+
+    .mat-dialog-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 0 !important;
+
+      .mat-stepper-horizontal {
+        display: flex;
+        height: 100%;
+        overflow: hidden;
+
+        .mat-horizontal-stepper-wrapper {
+          flex: 1 1 100%;
+        }
+
+        @media #{$mat-lt-sm} {
+          .mat-step-label {
+            white-space: normal;
+            overflow: visible;
+
+            .mat-step-text-label {
+              overflow: visible;
+            }
+          }
+        }
+
+        .mat-horizontal-content-container {
+          height: 550px;
+          max-height: 100%;
+          width: 100%;;
+          overflow-y: auto;
+          scrollbar-gutter: stable;
+          @media #{$mat-gt-sm} {
+            min-width: 500px;
+          }
+        }
+
+        .mat-horizontal-stepper-content[aria-expanded=true] {
+          height: 100%;
+          position: relative;
+        }
+      }
+    }
+
+    .mat-button-toggle-group.tb-notification-unread-toggle-group {
+      &.mat-button-toggle-group-appearance-standard {
+        border: none;
+        border-radius: 18px;
+        margin-bottom: 8px;
+
+        .mat-button-toggle + .mat-button-toggle {
+          border-left: none;
+        }
+      }
+
+      .mat-button-toggle {
+        background: rgba(0, 0, 0, 0.06);
+        height: 36px;
+        align-items: center;
+        display: flex;
+
+        .mat-button-toggle-ripple {
+          top: 2px;
+          left: 2px;
+          right: 2px;
+          bottom: 2px;
+          border-radius: 18px;
+        }
+      }
+
+      .mat-button-toggle-button {
+        color: #959595;
+      }
+
+      .mat-button-toggle-focus-overlay {
+        border-radius: 18px;
+        margin: 2px;
+      }
+
+      .mat-button-toggle-checked .mat-button-toggle-button {
+        background-color: $tb-primary-color;
+        color: #fff;
+        border-radius: 18px;
+        margin-left: 2px;
+        margin-right: 2px;
+      }
+
+      .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
+        line-height: 34px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .mat-button-toggle-checked.mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {
+        opacity: .01;
+      }
+    }
+  }
+}

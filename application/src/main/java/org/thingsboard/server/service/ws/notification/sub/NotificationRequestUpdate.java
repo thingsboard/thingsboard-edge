@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
-import org.thingsboard.server.common.data.notification.NotificationInfo;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
 
 @Data
 @NoArgsConstructor
@@ -43,7 +43,6 @@ import org.thingsboard.server.common.data.notification.NotificationInfo;
 @Builder
 public class NotificationRequestUpdate {
     private NotificationRequestId notificationRequestId;
-    private String notificationReason;
     private NotificationInfo notificationInfo;
     private boolean deleted;
 }

@@ -120,6 +120,7 @@ import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { QueueService } from '@core/http/queue.service';
 import { AssetProfileService } from '@core/http/asset-profile.service';
+import { NotificationService } from '@core/http/notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -152,9 +153,9 @@ export class EntityService {
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
     private utils: UtilsService,
-    private queueService: QueueService
-  ) {
-  }
+    private queueService: QueueService,
+    private notificationService: NotificationService
+  ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
                               config?: RequestConfig): Observable<BaseData<EntityId>> {
@@ -423,6 +424,9 @@ export class EntityService {
       case EntityType.WIDGETS_BUNDLE:
         observable = this.widgetService.getWidgetsBundlesByIds(entityIds, config);
         break;
+      case EntityType.NOTIFICATION_TARGET:
+        observable = this.notificationService.getNotificationTargetsByIds(entityIds, config);
+        break;
     }
     return observable;
   }
@@ -583,6 +587,10 @@ export class EntityService {
       case EntityType.WIDGETS_BUNDLE:
         pageLink.sortOrder.property = 'title';
         entitiesObservable = this.widgetService.getWidgetBundles(pageLink, config);
+        break;
+      case EntityType.NOTIFICATION_TARGET:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationTargets(pageLink, config);
         break;
     }
     return entitiesObservable;
@@ -1035,6 +1043,7 @@ export class EntityService {
         entityFieldKeys.push(entityFields.email.keyName);
         entityFieldKeys.push(entityFields.firstName.keyName);
         entityFieldKeys.push(entityFields.lastName.keyName);
+        entityFieldKeys.push(entityFields.phone.keyName);
         break;
       case EntityType.TENANT:
       case EntityType.CUSTOMER:

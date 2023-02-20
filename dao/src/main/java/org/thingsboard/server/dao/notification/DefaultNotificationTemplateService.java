@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,13 +34,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.AbstractEntityService;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class DefaultNotificationTemplateService implements NotificationTemplateService {
+public class DefaultNotificationTemplateService extends AbstractEntityService implements NotificationTemplateService {
 
     private final NotificationTemplateDao notificationTemplateDao;
+    private final NotificationRequestDao notificationRequestDao;
 
     @Override
     public NotificationTemplate findNotificationTemplateById(TenantId tenantId, NotificationTemplateId id) {
@@ -49,12 +58,34 @@ public class DefaultNotificationTemplateService implements NotificationTemplateS
 
     @Override
     public NotificationTemplate saveNotificationTemplate(TenantId tenantId, NotificationTemplate notificationTemplate) {
-        return notificationTemplateDao.save(tenantId, notificationTemplate);
+        try {
+            return notificationTemplateDao.saveAndFlush(tenantId, notificationTemplate);
+        } catch (Exception e) {
+            checkConstraintViolation(e, Map.of(
+                    "uq_notification_template_name", "Notification template with such name already exists"
+            ));
+            throw e;
+        }
+    }
+
+    @Override
+    public PageData<NotificationTemplate> findNotificationTemplatesByTenantIdAndNotificationTypes(TenantId tenantId, List<NotificationType> notificationTypes, PageLink pageLink) {
+        return notificationTemplateDao.findByTenantIdAndNotificationTypesAndPageLink(tenantId, notificationTypes, pageLink);
     }
 
     @Override
     public void deleteNotificationTemplateById(TenantId tenantId, NotificationTemplateId id) {
-        notificationTemplateDao.removeById(tenantId, id.getId());
+        if (notificationRequestDao.existsByStatusAndTemplateId(tenantId, NotificationRequestStatus.SCHEDULED, id)) {
+            throw new IllegalArgumentException("Notification template is referenced by scheduled notification request");
+        }
+        try {
+            notificationTemplateDao.removeById(tenantId, id.getId());
+        } catch (Exception e) {
+            checkConstraintViolation(e, Map.of(
+                    "fk_notification_rule_template_id", "Notification template is referenced by notification rule"
+            ));
+            throw e;
+        }
     }
 
 }

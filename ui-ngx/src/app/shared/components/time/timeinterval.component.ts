@@ -90,7 +90,18 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
   }
 
   set hideFlag(val) {
-    this.hideFlagValue = val;
+    this.hideFlagValue = coerceBooleanProperty(val);
+  }
+
+  private disabledAdvancedValue = false;
+
+  get disabledAdvanced() {
+    return this.disabledAdvancedValue;
+  }
+
+  @Input()
+  set disabledAdvanced(val) {
+    this.disabledAdvancedValue = coerceBooleanProperty(val);
   }
 
   @Output() hideFlagChange = new EventEmitter<boolean>();

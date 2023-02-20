@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.controller.TbTestWebSocketClient;
+import org.thingsboard.server.service.ws.notification.cmd.MarkAllNotificationsAsReadCmd;
 import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationsAsReadCmd;
 import org.thingsboard.server.service.ws.notification.cmd.NotificationCmdsWrapper;
 import org.thingsboard.server.service.ws.notification.cmd.NotificationsCountSubCmd;
@@ -67,22 +68,30 @@ public class NotificationApiWsClient extends TbTestWebSocketClient {
         super(new URI(wsUrl + "/api/ws/plugins/notifications?token=" + token));
     }
 
-    public void subscribeForUnreadNotifications(int limit) {
+    public NotificationApiWsClient subscribeForUnreadNotifications(int limit) {
         NotificationCmdsWrapper cmdsWrapper = new NotificationCmdsWrapper();
         cmdsWrapper.setUnreadSubCmd(new NotificationsSubCmd(1, limit));
         sendCmd(cmdsWrapper);
         this.limit = limit;
+        return this;
     }
 
-    public void subscribeForUnreadNotificationsCount() {
+    public NotificationApiWsClient subscribeForUnreadNotificationsCount() {
         NotificationCmdsWrapper cmdsWrapper = new NotificationCmdsWrapper();
         cmdsWrapper.setUnreadCountSubCmd(new NotificationsCountSubCmd(2));
         sendCmd(cmdsWrapper);
+        return this;
     }
 
     public void markNotificationAsRead(UUID... notifications) {
         NotificationCmdsWrapper cmdsWrapper = new NotificationCmdsWrapper();
         cmdsWrapper.setMarkAsReadCmd(new MarkNotificationsAsReadCmd(newCmdId(), Arrays.asList(notifications)));
+        sendCmd(cmdsWrapper);
+    }
+
+    public void markAllNotificationsAsRead() {
+        NotificationCmdsWrapper cmdsWrapper = new NotificationCmdsWrapper();
+        cmdsWrapper.setMarkAllAsReadCmd(new MarkAllNotificationsAsReadCmd(newCmdId()));
         sendCmd(cmdsWrapper);
     }
 

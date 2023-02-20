@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -55,7 +56,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -85,10 +85,8 @@ public abstract class AbstractTbEntityService {
     protected EdgeService edgeService;
     @Autowired
     protected AlarmService alarmService;
-    @Autowired
+    @Autowired @Lazy
     protected AlarmSubscriptionService alarmSubscriptionService;
-    @Autowired
-    protected AlarmCommentService alarmCommentService;
     @Autowired
     protected CustomerService customerService;
     @Autowired

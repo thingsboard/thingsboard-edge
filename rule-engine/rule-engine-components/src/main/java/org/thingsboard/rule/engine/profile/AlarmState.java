@@ -256,7 +256,6 @@ class AlarmState {
             // Skip update if severity is decreased.
             if (severity.ordinal() <= oldSeverity.ordinal()) {
                 currentAlarm.setDetails(createDetails(ruleState));
-                currentAlarm.setNotificationRuleId(alarmDefinition.getNotificationRuleId());
                 if (!oldSeverity.equals(severity)) {
                     currentAlarm.setSeverity(severity);
                     currentAlarm = ctx.getAlarmService().createOrUpdateAlarm(currentAlarm);
@@ -289,7 +288,6 @@ class AlarmState {
             if (alarmDefinition.getPropagateRelationTypes() != null) {
                 currentAlarm.setPropagateRelationTypes(alarmDefinition.getPropagateRelationTypes());
             }
-            currentAlarm.setNotificationRuleId(alarmDefinition.getNotificationRuleId());
             currentAlarm = ctx.getAlarmService().createOrUpdateAlarm(currentAlarm);
             boolean updated = currentAlarm.getStartTs() != currentAlarm.getEndTs();
             return new TbAlarmResult(!updated, updated, false, false, currentAlarm);

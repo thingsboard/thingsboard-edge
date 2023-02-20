@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,28 +30,27 @@
  */
 package org.thingsboard.server.service.notification.channels;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
-import org.thingsboard.server.common.data.notification.template.NotificationText;
+import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.service.mail.MailExecutorService;
-
-import java.util.concurrent.Future;
+import org.thingsboard.server.common.data.notification.NotificationProcessingContext;
 
 @Component
 @RequiredArgsConstructor
-public class EmailNotificationChannel implements NotificationChannel {
+public class EmailNotificationChannel implements NotificationChannel<User, EmailDeliveryMethodNotificationTemplate> {
 
     private final MailService mailService;
     private final MailExecutorService executor;
 
     @Override
-    public Future<Void> sendNotification(User recipient, NotificationRequest request, NotificationText text) {
+    public ListenableFuture<Void> sendNotification(User recipient, EmailDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) {
         return executor.submit(() -> {
-            mailService.sendEmail(recipient.getTenantId(), recipient.getEmail(), text.getSubject(), text.getBody());
+            mailService.sendEmail(recipient.getTenantId(), recipient.getEmail(), processedTemplate.getSubject(), processedTemplate.getBody());
             return null;
         });
     }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.model.sql;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.EntityType;
@@ -42,13 +41,12 @@ import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.NotificationInfo;
-import org.thingsboard.server.common.data.notification.NotificationOriginatorType;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
+import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
@@ -58,9 +56,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
-import java.util.Arrays;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -72,29 +68,23 @@ public class NotificationRequestEntity extends BaseSqlEntity<NotificationRequest
     @Column(name = ModelConstants.TENANT_ID_PROPERTY, nullable = false)
     private UUID tenantId;
 
-    @Column(name = ModelConstants.NOTIFICATION_REQUEST_TARGET_ID_PROPERTY, nullable = false)
-    private UUID targetId;
+    @Column(name = ModelConstants.NOTIFICATION_REQUEST_TARGETS_PROPERTY, nullable = false)
+    private String targets;
 
-    @Column(name = ModelConstants.NOTIFICATION_REQUEST_TYPE_PROPERTY, nullable = false)
-    private String type;
-
-    @Column(name = ModelConstants.NOTIFICATION_REQUEST_TEMPLATE_ID_PROPERTY, nullable = false)
+    @Column(name = ModelConstants.NOTIFICATION_REQUEST_TEMPLATE_ID_PROPERTY)
     private UUID templateId;
+
+    @Type(type = "json")
+    @Column(name = ModelConstants.NOTIFICATION_REQUEST_TEMPLATE_PROPERTY)
+    private JsonNode template;
 
     @Type(type = "json")
     @Column(name = ModelConstants.NOTIFICATION_REQUEST_INFO_PROPERTY)
     private JsonNode info;
 
-    @Column(name = ModelConstants.NOTIFICATION_REQUEST_DELIVERY_METHODS_PROPERTY, nullable = false)
-    private String deliveryMethods;
-
     @Type(type = "json")
     @Column(name = ModelConstants.NOTIFICATION_REQUEST_ADDITIONAL_CONFIG_PROPERTY)
     private JsonNode additionalConfig;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = ModelConstants.NOTIFICATION_REQUEST_ORIGINATOR_TYPE_PROPERTY, nullable = false)
-    private NotificationOriginatorType originatorType;
 
     @Column(name = ModelConstants.NOTIFICATION_REQUEST_ORIGINATOR_ENTITY_ID_PROPERTY)
     private UUID originatorEntityId;
@@ -110,25 +100,44 @@ public class NotificationRequestEntity extends BaseSqlEntity<NotificationRequest
     @Column(name = ModelConstants.NOTIFICATION_REQUEST_STATUS_PROPERTY)
     private NotificationRequestStatus status;
 
+    @Type(type = "json")
+    @Column(name = ModelConstants.NOTIFICATION_REQUEST_STATS_PROPERTY)
+    private JsonNode stats;
+
     public NotificationRequestEntity() {}
 
     public NotificationRequestEntity(NotificationRequest notificationRequest) {
         setId(notificationRequest.getUuidId());
         setCreatedTime(notificationRequest.getCreatedTime());
-        setTenantId(getUuid(notificationRequest.getTenantId()));
-        setTargetId(getUuid(notificationRequest.getTargetId()));
-        setType(notificationRequest.getType());
+        setTenantId(getTenantUuid(notificationRequest.getTenantId()));
+        setTargets(listToString(notificationRequest.getTargets()));
         setTemplateId(getUuid(notificationRequest.getTemplateId()));
+        setTemplate(toJson(notificationRequest.getTemplate()));
         setInfo(toJson(notificationRequest.getInfo()));
-        setDeliveryMethods(StringUtils.join(notificationRequest.getDeliveryMethods(), ','));
         setAdditionalConfig(toJson(notificationRequest.getAdditionalConfig()));
-        setOriginatorType(notificationRequest.getOriginatorType());
         if (notificationRequest.getOriginatorEntityId() != null) {
             setOriginatorEntityId(notificationRequest.getOriginatorEntityId().getId());
             setOriginatorEntityType(notificationRequest.getOriginatorEntityId().getEntityType());
         }
         setRuleId(getUuid(notificationRequest.getRuleId()));
         setStatus(notificationRequest.getStatus());
+        setStats(toJson(notificationRequest.getStats()));
+    }
+
+    public NotificationRequestEntity(NotificationRequestEntity other) {
+        this.id = other.id;
+        this.createdTime = other.createdTime;
+        this.tenantId = other.tenantId;
+        this.targets = other.targets;
+        this.templateId = other.templateId;
+        this.template = other.template;
+        this.info = other.info;
+        this.additionalConfig = other.additionalConfig;
+        this.originatorEntityId = other.originatorEntityId;
+        this.originatorEntityType = other.originatorEntityType;
+        this.ruleId = other.ruleId;
+        this.status = other.status;
+        this.stats = other.stats;
     }
 
     @Override
@@ -136,22 +145,18 @@ public class NotificationRequestEntity extends BaseSqlEntity<NotificationRequest
         NotificationRequest notificationRequest = new NotificationRequest();
         notificationRequest.setId(new NotificationRequestId(id));
         notificationRequest.setCreatedTime(createdTime);
-        notificationRequest.setTenantId(createId(tenantId, TenantId::new));
-        notificationRequest.setTargetId(createId(targetId, NotificationTargetId::new));
-        notificationRequest.setType(type);
-        notificationRequest.setTemplateId(createId(templateId, NotificationTemplateId::new));
+        notificationRequest.setTenantId(getTenantId(tenantId));
+        notificationRequest.setTargets(listFromString(targets, UUID::fromString));
+        notificationRequest.setTemplateId(getEntityId(templateId, NotificationTemplateId::new));
+        notificationRequest.setTemplate(fromJson(template, NotificationTemplate.class));
         notificationRequest.setInfo(fromJson(info, NotificationInfo.class));
-        if (deliveryMethods != null) {
-            notificationRequest.setDeliveryMethods(Arrays.stream(StringUtils.split(deliveryMethods, ','))
-                    .filter(StringUtils::isNotBlank).map(NotificationDeliveryMethod::valueOf).collect(Collectors.toList()));
-        }
         notificationRequest.setAdditionalConfig(fromJson(additionalConfig, NotificationRequestConfig.class));
-        notificationRequest.setOriginatorType(originatorType);
         if (originatorEntityId != null) {
             notificationRequest.setOriginatorEntityId(EntityIdFactory.getByTypeAndUuid(originatorEntityType, originatorEntityId));
         }
-        notificationRequest.setRuleId(createId(ruleId, NotificationRuleId::new));
+        notificationRequest.setRuleId(getEntityId(ruleId, NotificationRuleId::new));
         notificationRequest.setStatus(status);
+        notificationRequest.setStats(fromJson(stats, NotificationRequestStats.class));
         return notificationRequest;
     }
 

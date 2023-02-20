@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,14 +36,13 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
-import org.thingsboard.server.common.data.notification.NotificationInfo;
-import org.thingsboard.server.common.data.notification.NotificationOriginatorType;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
@@ -68,19 +67,23 @@ public class NotificationEntity extends BaseSqlEntity<Notification> {
     @Column(name = ModelConstants.NOTIFICATION_RECIPIENT_ID_PROPERTY, nullable = false)
     private UUID recipientId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = ModelConstants.NOTIFICATION_TYPE_PROPERTY, nullable = false)
-    private String type;
+    private NotificationType type;
+
+    @Column(name = ModelConstants.NOTIFICATION_SUBJECT_PROPERTY)
+    private String subject;
 
     @Column(name = ModelConstants.NOTIFICATION_TEXT_PROPERTY, nullable = false)
     private String text;
 
     @Type(type = "json")
+    @Column(name = ModelConstants.NOTIFICATION_ADDITIONAL_CONFIG_PROPERTY)
+    private JsonNode additionalConfig;
+
+    @Type(type = "json")
     @Formula("(SELECT r.info FROM notification_request r WHERE r.id = request_id)")
     private JsonNode info;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = ModelConstants.NOTIFICATION_ORIGINATOR_TYPE_PROPERTY)
-    private NotificationOriginatorType originatorType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = ModelConstants.NOTIFICATION_STATUS_PROPERTY)
@@ -94,9 +97,10 @@ public class NotificationEntity extends BaseSqlEntity<Notification> {
         setRequestId(getUuid(notification.getRequestId()));
         setRecipientId(getUuid(notification.getRecipientId()));
         setType(notification.getType());
+        setSubject(notification.getSubject());
         setText(notification.getText());
+        setAdditionalConfig(notification.getAdditionalConfig());
         setInfo(toJson(notification.getInfo()));
-        setOriginatorType(notification.getOriginatorType());
         setStatus(notification.getStatus());
     }
 
@@ -105,12 +109,13 @@ public class NotificationEntity extends BaseSqlEntity<Notification> {
         Notification notification = new Notification();
         notification.setId(new NotificationId(id));
         notification.setCreatedTime(createdTime);
-        notification.setRequestId(createId(requestId, NotificationRequestId::new));
-        notification.setRecipientId(createId(recipientId, UserId::new));
-        notification.setText(type);
+        notification.setRequestId(getEntityId(requestId, NotificationRequestId::new));
+        notification.setRecipientId(getEntityId(recipientId, UserId::new));
+        notification.setType(type);
+        notification.setSubject(subject);
         notification.setText(text);
+        notification.setAdditionalConfig(additionalConfig);
         notification.setInfo(fromJson(info, NotificationInfo.class));
-        notification.setOriginatorType(originatorType);
         notification.setStatus(status);
         return notification;
     }

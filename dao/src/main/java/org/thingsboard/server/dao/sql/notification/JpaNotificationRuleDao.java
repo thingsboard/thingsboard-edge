@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,17 +35,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.notification.rule.NotificationRuleInfo;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.NotificationRuleEntity;
+import org.thingsboard.server.dao.model.sql.NotificationRuleInfoEntity;
 import org.thingsboard.server.dao.notification.NotificationRuleDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.List;
 import java.util.UUID;
+
+import static org.thingsboard.server.dao.DaoUtil.getId;
 
 @Component
 @SqlDao
@@ -56,8 +64,30 @@ public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntit
 
     @Override
     public PageData<NotificationRule> findByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(notificationRuleRepository.findByTenantIdAndNameContainingIgnoreCase(tenantId.getId(),
+        return DaoUtil.toPageData(notificationRuleRepository.findByTenantIdAndSearchText(getId(tenantId, true),
                 Strings.nullToEmpty(pageLink.getTextSearch()), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<NotificationRuleInfo> findInfosByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.pageToPageData(notificationRuleRepository.findInfosByTenantIdAndSearchText(getId(tenantId, true),
+                Strings.nullToEmpty(pageLink.getTextSearch()), DaoUtil.toPageable(pageLink))).mapData(NotificationRuleInfoEntity::toData);
+    }
+
+    @Override
+    public boolean existsByTargetId(TenantId tenantId, NotificationTargetId targetId) {
+        return notificationRuleRepository.existsByRecipientsConfigContaining(targetId.getId().toString());
+    }
+
+    @Override
+    public List<NotificationRule> findByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType) {
+        return DaoUtil.convertDataList(notificationRuleRepository.findAllByTenantIdAndTriggerType(getId(tenantId, true), triggerType));
+    }
+
+    @Override
+    public NotificationRuleInfo findInfoById(TenantId tenantId, NotificationRuleId id) {
+        NotificationRuleInfoEntity infoEntity = notificationRuleRepository.findInfoById(id.getId());
+        return infoEntity != null ? infoEntity.toData() : null;
     }
 
     @Override

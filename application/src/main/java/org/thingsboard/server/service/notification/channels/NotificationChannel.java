@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,16 +30,15 @@
  */
 package org.thingsboard.server.service.notification.channels;
 
-import org.thingsboard.server.common.data.User;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
-import org.thingsboard.server.common.data.notification.template.NotificationText;
+import org.thingsboard.server.common.data.notification.NotificationProcessingContext;
+import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
+import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
 
-import java.util.concurrent.Future;
+public interface NotificationChannel<R extends NotificationRecipient, T extends DeliveryMethodNotificationTemplate> {
 
-public interface NotificationChannel {
-
-    Future<Void> sendNotification(User recipient, NotificationRequest request, NotificationText text);
+    ListenableFuture<Void> sendNotification(R recipient, T processedTemplate, NotificationProcessingContext ctx);
 
     NotificationDeliveryMethod getDeliveryMethod();
 

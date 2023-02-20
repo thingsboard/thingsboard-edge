@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,13 +34,30 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.notification.Notification;
+import org.thingsboard.server.common.data.notification.NotificationStatus;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class NotificationUpdate {
+
+    private NotificationId notificationId;
     private Notification notification;
-    private boolean isNew;
+
+    boolean allNotifications;
+
+    private NotificationStatus updatedStatus;
+    private ComponentLifecycleEvent updateType;
+
+    public UUID getNotificationId() {
+        return notificationId != null ? notificationId.getId() :
+                notification != null ? notification.getUuidId() : null;
+    }
+
 }

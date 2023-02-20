@@ -60,4 +60,7 @@ public interface SystemDataLoaderService {
     void deleteSystemWidgetBundle(String bundleAlias) throws Exception;
 
     void createQueues();
+
+    void createNotificationConfigs();
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,6 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
@@ -70,7 +69,7 @@ public class NotificationTargetEntity extends BaseSqlEntity<NotificationTarget> 
     public NotificationTargetEntity(NotificationTarget notificationTarget) {
         setId(notificationTarget.getUuidId());
         setCreatedTime(notificationTarget.getCreatedTime());
-        setTenantId(getUuid(notificationTarget.getTenantId()));
+        setTenantId(getTenantUuid(notificationTarget.getTenantId()));
         setName(notificationTarget.getName());
         setConfiguration(toJson(notificationTarget.getConfiguration()));
     }
@@ -80,7 +79,7 @@ public class NotificationTargetEntity extends BaseSqlEntity<NotificationTarget> 
         NotificationTarget notificationTarget = new NotificationTarget();
         notificationTarget.setId(new NotificationTargetId(id));
         notificationTarget.setCreatedTime(createdTime);
-        notificationTarget.setTenantId(createId(tenantId, TenantId::fromUUID));
+        notificationTarget.setTenantId(getTenantId(tenantId));
         notificationTarget.setName(name);
         notificationTarget.setConfiguration(fromJson(configuration, NotificationTargetConfig.class));
         return notificationTarget;

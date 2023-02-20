@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,12 +63,19 @@ public interface NotificationRepository extends JpaRepository<NotificationEntity
 
     Page<NotificationEntity> findByRequestId(UUID requestId, Pageable pageable);
 
-    int countByRequestId(UUID requestId);
+    @Modifying
+    @Transactional
+    @Query("UPDATE NotificationEntity n SET n.status = :status " +
+            "WHERE n.requestId = :requestId AND n.status <> :status")
+    int updateStatusesByRequestId(@Param("requestId") UUID requestId,
+                                  @Param("status") NotificationStatus status);
 
-    int countByRequestIdAndStatus(UUID requestId, NotificationStatus status);
+    int deleteByIdAndRecipientId(UUID id, UUID recipientId);
 
-    @Query("SELECT u.email, n.status FROM NotificationEntity n INNER JOIN UserEntity u ON n.recipientId = u.id " +
-            "WHERE n.requestId = :requestId")
-    List<Object[]> getStatusesByRecipientForRequestId(@Param("requestId") UUID requestId);
+    @Modifying
+    @Transactional
+    @Query("UPDATE NotificationEntity n SET n.status = :status WHERE n.recipientId = :recipientId")
+    int updateStatusByRecipientId(@Param("recipientId") UUID recipientId,
+                                  @Param("status") NotificationStatus status);
 
 }

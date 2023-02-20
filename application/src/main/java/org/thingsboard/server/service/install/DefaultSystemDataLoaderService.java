@@ -718,4 +718,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         }
     }
 
+    @Override
+    public void createNotificationConfigs() {
+        // create default notification targets: Alarm's customer
+    }
+
 }

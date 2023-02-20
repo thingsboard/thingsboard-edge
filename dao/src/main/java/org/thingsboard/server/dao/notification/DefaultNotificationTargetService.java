@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,32 +38,44 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.targets.CustomerUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
-import org.thingsboard.server.common.data.notification.targets.SingleUserNotificationTargetConfig;
-import org.thingsboard.server.common.data.notification.targets.UserListNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.OriginatorEntityOwnerUsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.user.UserService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class DefaultNotificationTargetService implements NotificationTargetService {
+public class DefaultNotificationTargetService extends AbstractEntityService implements NotificationTargetService {
 
     private final NotificationTargetDao notificationTargetDao;
+    private final NotificationRequestDao notificationRequestDao;
+    private final NotificationRuleDao notificationRuleDao;
     private final UserService userService;
-    private final NotificationTargetValidator validator = new NotificationTargetValidator();
 
     @Override
     public NotificationTarget saveNotificationTarget(TenantId tenantId, NotificationTarget notificationTarget) {
-        validator.validate(notificationTarget, NotificationTarget::getTenantId);
-        return notificationTargetDao.save(tenantId, notificationTarget);
+        try {
+            return notificationTargetDao.saveAndFlush(tenantId, notificationTarget);
+        } catch (Exception e) {
+            checkConstraintViolation(e, Map.of(
+                    "uq_notification_target_name", "Notification target with such name already exists"
+            ));
+            throw e;
+        }
     }
 
     @Override
@@ -77,22 +89,32 @@ public class DefaultNotificationTargetService implements NotificationTargetServi
     }
 
     @Override
-    public PageData<User> findRecipientsForNotificationTarget(TenantId tenantId, NotificationTargetId notificationTargetId, PageLink pageLink) {
-        NotificationTarget notificationTarget = findNotificationTargetById(tenantId, notificationTargetId);
-        NotificationTargetConfig configuration = notificationTarget.getConfiguration();
-        return findRecipientsForNotificationTargetConfig(tenantId, configuration, pageLink);
+    public List<NotificationTarget> findNotificationTargetsByTenantIdAndIds(TenantId tenantId, List<NotificationTargetId> ids) {
+        return notificationTargetDao.findByTenantIdAndIds(tenantId, ids);
     }
 
     @Override
-    public PageData<User> findRecipientsForNotificationTargetConfig(TenantId tenantId, NotificationTargetConfig targetConfig, PageLink pageLink) {
-        switch (targetConfig.getType()) {
-            case SINGLE_USER: {
-                UserId userId = new UserId(((SingleUserNotificationTargetConfig) targetConfig).getUserId());
-                User user = userService.findUserById(tenantId, userId);
-                return new PageData<>(List.of(user), 1, 1, false);
-            }
+    public PageData<User> findRecipientsForNotificationTarget(TenantId tenantId, CustomerId customerId, NotificationTargetId targetId, PageLink pageLink) {
+        NotificationTarget notificationTarget = findNotificationTargetById(tenantId, targetId);
+        Objects.requireNonNull(notificationTarget, "Notification target [" + targetId + "] not found");
+        NotificationTargetConfig configuration = notificationTarget.getConfiguration();
+        return findRecipientsForNotificationTargetConfig(tenantId, customerId, configuration, pageLink);
+    }
+
+    @Override
+    public int countRecipientsForNotificationTargetConfig(TenantId tenantId, NotificationTargetConfig targetConfig) {
+        return (int) findRecipientsForNotificationTargetConfig(tenantId, null, targetConfig, new PageLink(1)).getTotalElements();
+    }
+
+    @Override
+    public PageData<User> findRecipientsForNotificationTargetConfig(TenantId tenantId, CustomerId customerId, NotificationTargetConfig targetConfig, PageLink pageLink) {
+        if (!(targetConfig instanceof PlatformUsersNotificationTargetConfig)) {
+            throw new IllegalArgumentException("Unsupported target type " + targetConfig.getType());
+        }
+        UsersFilter usersFilter = ((PlatformUsersNotificationTargetConfig) targetConfig).getUsersFilter();
+        switch (usersFilter.getType()) {
             case USER_LIST: {
-                List<User> users = ((UserListNotificationTargetConfig) targetConfig).getUsersIds().stream()
+                List<User> users = ((UserListFilter) usersFilter).getUsersIds().stream()
                         .map(UserId::new).map(userId -> userService.findUserById(tenantId, userId))
                         .collect(Collectors.toList());
                 return new PageData<>(users, 1, users.size(), false);
@@ -101,8 +123,8 @@ public class DefaultNotificationTargetService implements NotificationTargetServi
                 if (tenantId.equals(TenantId.SYS_TENANT_ID)) {
                     throw new IllegalArgumentException("Customer users target is not supported for system administrator");
                 }
-                CustomerId customerId = new CustomerId(((CustomerUsersNotificationTargetConfig) targetConfig).getCustomerId());
-                return userService.findCustomerUsers(tenantId, customerId, pageLink);
+                CustomerUsersFilter filter = (CustomerUsersFilter) usersFilter;
+                return userService.findCustomerUsers(tenantId, new CustomerId(filter.getCustomerId()), pageLink);
             }
             case ALL_USERS: {
                 if (!tenantId.equals(TenantId.SYS_TENANT_ID)) {
@@ -111,22 +133,27 @@ public class DefaultNotificationTargetService implements NotificationTargetServi
                     return userService.findUsers(TenantId.SYS_TENANT_ID, pageLink);
                 }
             }
+            case ORIGINATOR_ENTITY_OWNER_USERS: {
+                OriginatorEntityOwnerUsersFilter filter = (OriginatorEntityOwnerUsersFilter) usersFilter;
+                if (customerId != null && !customerId.isNullUid()) {
+                    return userService.findCustomerUsers(tenantId, customerId, pageLink);
+                } else {
+                    return userService.findTenantAdmins(tenantId, pageLink); // TODO: or should we send to all users within tenant?
+                }
+            }
         }
         return new PageData<>();
     }
 
     @Override
-    public void deleteNotificationTarget(TenantId tenantId, NotificationTargetId notificationTargetId) {
-        notificationTargetDao.removeById(tenantId, notificationTargetId.getId());
-        // todo: delete related notification requests (?)
-    }
-
-    private static class NotificationTargetValidator extends DataValidator<NotificationTarget> {
-
-        @Override
-        protected void validateDataImpl(TenantId tenantId, NotificationTarget notificationTarget) {
-            super.validateDataImpl(tenantId, notificationTarget);
+    public void deleteNotificationTargetById(TenantId tenantId, NotificationTargetId id) {
+        if (notificationRequestDao.existsByStatusAndTargetId(tenantId, NotificationRequestStatus.SCHEDULED, id)) {
+            throw new IllegalArgumentException("Notification target is referenced by scheduled notification request");
         }
+        if (notificationRuleDao.existsByTargetId(tenantId, id)) {
+            throw new IllegalArgumentException("Notification target is being used in notification rule");
+        }
+        notificationTargetDao.removeById(tenantId, id.getId());
     }
 
 }

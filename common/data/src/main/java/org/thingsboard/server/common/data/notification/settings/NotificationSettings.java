@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,15 @@ package org.thingsboard.server.common.data.notification.settings;
 import lombok.Data;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @Data
 public class NotificationSettings {
 
+    @NotNull
+    @Valid
     // location on the screen, shown notifications count, timings of displaying
     private Map<NotificationDeliveryMethod, NotificationDeliveryMethodConfig> deliveryMethodsConfigs;
 

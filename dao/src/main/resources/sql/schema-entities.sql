@@ -74,8 +74,7 @@ CREATE TABLE IF NOT EXISTS alarm (
     type varchar(255),
     propagate_to_owner boolean,
     propagate_to_owner_hierarchy boolean,
-    propagate_to_tenant boolean,
-    notification_rule_id uuid
+    propagate_to_tenant boolean
 );
 
 CREATE TABLE IF NOT EXISTS alarm_comment (
@@ -86,7 +85,7 @@ CREATE TABLE IF NOT EXISTS alarm_comment (
     type varchar(255) NOT NULL,
     comment varchar(10000),
     CONSTRAINT fk_alarm_comment_alarm_id FOREIGN KEY (alarm_id) REFERENCES alarm(id) ON DELETE CASCADE
-    ) PARTITION BY RANGE (created_time);
+) PARTITION BY RANGE (created_time);
 
 CREATE TABLE IF NOT EXISTS entity_alarm (
     tenant_id uuid NOT NULL,
@@ -1012,55 +1011,60 @@ CREATE TABLE IF NOT EXISTS user_settings (
 CREATE TABLE IF NOT EXISTS notification_target (
     id UUID NOT NULL CONSTRAINT notification_target_pkey PRIMARY KEY,
     created_time BIGINT NOT NULL,
-    tenant_id UUID NOT NULL,
+    tenant_id UUID NULL CONSTRAINT fk_notification_target_tenant_id REFERENCES tenant(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    configuration VARCHAR(10000) NOT NULL
+    configuration VARCHAR(10000) NOT NULL,
+    CONSTRAINT uq_notification_target_name UNIQUE (tenant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS notification_template (
     id UUID NOT NULL CONSTRAINT notification_template_pkey PRIMARY KEY,
     created_time BIGINT NOT NULL,
-    tenant_id UUID NOT NULL,
+    tenant_id UUID NULL CONSTRAINT fk_notification_template_tenant_id REFERENCES tenant(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    configuration VARCHAR(10000) NOT NULL
+    notification_type VARCHAR(50) NOT NULL,
+    configuration VARCHAR(10000) NOT NULL,
+    CONSTRAINT uq_notification_template_name UNIQUE (tenant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS notification_rule (
     id UUID NOT NULL CONSTRAINT notification_rule_pkey PRIMARY KEY,
     created_time BIGINT NOT NULL,
-    tenant_id UUID NOT NULL,
+    tenant_id UUID NULL CONSTRAINT fk_notification_rule_tenant_id REFERENCES tenant(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     template_id UUID NOT NULL CONSTRAINT fk_notification_rule_template_id REFERENCES notification_template(id),
-    delivery_methods VARCHAR(255),
-    initial_notification_target_id UUID NULL CONSTRAINT fk_notification_rule_target_id REFERENCES notification_target(id),
-    escalation_config VARCHAR(500)
+    trigger_type VARCHAR(50) NOT NULL,
+    trigger_config VARCHAR(1000) NOT NULL,
+    recipients_config VARCHAR(10000) NOT NULL,
+    additional_config VARCHAR(255),
+    CONSTRAINT uq_notification_rule_name UNIQUE (tenant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS notification_request (
     id UUID NOT NULL CONSTRAINT notification_request_pkey PRIMARY KEY,
     created_time BIGINT NOT NULL,
-    tenant_id UUID NOT NULL,
-    target_id UUID NOT NULL CONSTRAINT fk_notification_request_target_id REFERENCES notification_target(id),
-    type VARCHAR(255) NOT NULL,
-    template_id UUID NOT NULL CONSTRAINT fk_notification_request_template_id REFERENCES notification_template(id),
+    tenant_id UUID NULL CONSTRAINT fk_notification_request_tenant_id REFERENCES tenant(id) ON DELETE CASCADE,
+    targets VARCHAR(10000) NOT NULL,
+    template_id UUID,
+    template VARCHAR(10000),
     info VARCHAR(1000),
-    delivery_methods VARCHAR(255),
     additional_config VARCHAR(1000),
-    originator_type VARCHAR(32) NOT NULL,
     originator_entity_id UUID,
     originator_entity_type VARCHAR(32),
-    rule_id UUID NULL CONSTRAINT fk_notification_request_rule_id REFERENCES notification_rule(id),
-    status VARCHAR(32)
+    rule_id UUID NULL,
+    status VARCHAR(32),
+    stats VARCHAR(10000)
 );
 
 CREATE TABLE IF NOT EXISTS notification (
     id UUID NOT NULL,
     created_time BIGINT NOT NULL,
-    request_id UUID NOT NULL CONSTRAINT fk_notification_request_id REFERENCES notification_request(id) ON DELETE CASCADE,
+    request_id UUID NULL CONSTRAINT fk_notification_request_id REFERENCES notification_request(id) ON DELETE CASCADE,
     recipient_id UUID NOT NULL CONSTRAINT fk_notification_recipient_id REFERENCES tb_user(id) ON DELETE CASCADE,
-    type VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    subject VARCHAR(255),
     text VARCHAR(1000) NOT NULL,
+    additional_config VARCHAR(1000),
     info VARCHAR(1000),
-    originator_type VARCHAR(32) NOT NULL,
     status VARCHAR(32)
 ) PARTITION BY RANGE (created_time);

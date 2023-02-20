@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,21 +30,27 @@
  */
 package org.thingsboard.server.common.data.notification.targets;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @Type(value = SingleUserNotificationTargetConfig.class, name = "SINGLE_USER"),
-        @Type(value = UserListNotificationTargetConfig.class, name = "USER_LIST"),
-        @Type(value = CustomerUsersNotificationTargetConfig.class, name = "CUSTOMER_USERS"),
-        @Type(value = AllUsersNotificationTargetConfig.class, name = "ALL_USERS")
+        @Type(value = PlatformUsersNotificationTargetConfig.class, name = "PLATFORM_USERS"),
+        @Type(value = SlackNotificationTargetConfig.class, name = "SLACK")
 })
-public interface NotificationTargetConfig {
+@Data
+public abstract class NotificationTargetConfig {
 
-    NotificationTargetConfigType getType();
+    private String description;
+
+    @JsonIgnore
+    public abstract NotificationTargetType getType();
 
 }

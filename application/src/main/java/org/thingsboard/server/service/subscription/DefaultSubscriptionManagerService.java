@@ -32,8 +32,6 @@ package org.thingsboard.server.service.subscription;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
@@ -62,7 +60,6 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.service.notification.NotificationRuleProcessingService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmSubscriptionUpdateProto;
@@ -79,6 +76,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.notification.rule.NotificationRuleProcessingService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
@@ -330,7 +328,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 s -> alarm,
                 false
         );
-        notificationRuleProcessingService.onAlarmCreatedOrUpdated(tenantId, alarm);
+        notificationRuleProcessingService.process(tenantId, alarm, false);
         callback.onSuccess();
     }
 
@@ -348,7 +346,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 s -> alarm,
                 true
         );
-        notificationRuleProcessingService.onAlarmDeleted(tenantId, alarm);
+        notificationRuleProcessingService.process(tenantId, alarm, true);
         callback.onSuccess();
     }
 
@@ -378,15 +376,22 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     @Override
     public void onNotificationRequestUpdate(TenantId tenantId, NotificationRequestUpdate notificationRequestUpdate, TbCallback callback) {
         NotificationsSubscriptionUpdate subscriptionUpdate = new NotificationsSubscriptionUpdate(notificationRequestUpdate);
-        subscriptionsByEntityId.entrySet().stream()
-                .filter(subEntry -> subEntry.getKey().getEntityType() == EntityType.USER)
-                .flatMap(subEntry -> subEntry.getValue().stream()
-                        .filter(sub -> sub.getType() == TbSubscriptionType.NOTIFICATIONS
-                                || sub.getType() == TbSubscriptionType.NOTIFICATIONS_COUNT)
-                        .filter(sub -> sub.getServiceId().equals(serviceId)))
-                .forEach(subscription -> {
-                    localSubscriptionService.onSubscriptionUpdate(subscription.getSessionId(), subscription.getSubscriptionId(), subscriptionUpdate, TbCallback.EMPTY);
-                });
+        subscriptionsByEntityId.forEach((entityId, subscriptions) -> {
+            if (entityId.getEntityType() != EntityType.USER) {
+                return;
+            }
+            subscriptions.forEach(subscription -> {
+                if (subscription.getType() != TbSubscriptionType.NOTIFICATIONS &&
+                        subscription.getType() != TbSubscriptionType.NOTIFICATIONS_COUNT) {
+                    return;
+                }
+                if (!subscription.getTenantId().equals(tenantId) || !subscription.getServiceId().equals(serviceId)) {
+                    return;
+                }
+                localSubscriptionService.onSubscriptionUpdate(subscription.getSessionId(), subscription.getSubscriptionId(),
+                        subscriptionUpdate, TbCallback.EMPTY);
+            });
+        });
         callback.onSuccess();
     }
 
@@ -419,7 +424,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 deleteDeviceInactivityTimeout(tenantId, entityId, keys);
             } else if (TbAttributeSubscriptionScope.SHARED_SCOPE.name().equalsIgnoreCase(scope) && notifyDevice) {
                 clusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(tenantId,
-                                new DeviceId(entityId.getId()), scope, keys), null);
+                        new DeviceId(entityId.getId()), scope, keys), null);
             }
         }
         callback.onSuccess();

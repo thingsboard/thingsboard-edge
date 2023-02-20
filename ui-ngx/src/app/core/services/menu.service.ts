@@ -183,6 +183,7 @@ export class MenuService {
       },
       {
         id: guid(),
+<<<<<<< HEAD
         name: 'white-labeling.login-white-labeling',
         type: 'link',
         path: '/white-labeling/loginWhiteLabel',
@@ -212,6 +213,86 @@ export class MenuService {
         path: '/white-labeling/customMenu',
         icon: 'list',
         disabled: disabledItems.indexOf('custom_menu') > -1
+=======
+        name: 'notification.notification-center',
+        type: 'link',
+        path: '/notification-center',
+        icon: 'notifications'
+      },
+      {
+        id: guid(),
+        name: 'admin.system-settings',
+        type: 'toggle',
+        path: '/settings',
+        height: '360px',
+        icon: 'settings',
+        pages: [
+          {
+            id: guid(),
+            name: 'admin.general',
+            type: 'link',
+            path: '/settings/general',
+            icon: 'settings_applications'
+          },
+          {
+            id: guid(),
+            name: 'admin.outgoing-mail',
+            type: 'link',
+            path: '/settings/outgoing-mail',
+            icon: 'mail'
+          },
+          {
+            id: guid(),
+            name: 'admin.sms-provider',
+            type: 'link',
+            path: '/settings/sms-provider',
+            icon: 'sms'
+          },
+          {
+            id: guid(),
+            name: 'notification.notification',
+            type: 'link',
+            path: '/settings/notification',
+            icon: 'notifications'
+          },
+          {
+            id: guid(),
+            name: 'admin.security-settings',
+            type: 'link',
+            path: '/settings/security-settings',
+            icon: 'security'
+          },
+          {
+            id: guid(),
+            name: 'admin.oauth2.oauth2',
+            type: 'link',
+            path: '/settings/oauth2',
+            icon: 'security'
+          },
+          {
+            id: guid(),
+            name: 'admin.2fa.2fa',
+            type: 'link',
+            path: '/settings/2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true
+          },
+          {
+            id: guid(),
+            name: 'resource.resources-library',
+            type: 'link',
+            path: '/settings/resources-library',
+            icon: 'folder'
+          },
+          {
+            id: guid(),
+            name: 'admin.queues',
+            type: 'link',
+            path: '/settings/queues',
+            icon: 'swap_calls'
+          },
+        ]
+>>>>>>> ce-fork/feature/notification-system
       }
     ];
 
@@ -341,6 +422,16 @@ export class MenuService {
         ]
       },
       {
+        name: 'notification.management',
+        places: [
+          {
+            name: 'notification.notification-center',
+            path: '/notification-center',
+            icon: 'notifications'
+          },
+        ]
+      },
+      {
         name: 'admin.system-settings',
         places: [
           {
@@ -360,6 +451,11 @@ export class MenuService {
             icon: 'sms',
             path: '/settings/sms-provider',
             disabled: disabledItems.indexOf('sms_provider') > -1
+          },
+          {
+            name: 'notification.notification',
+            icon: 'notifications',
+            path: '/settings/notification'
           },
           {
             name: 'admin.security-settings',
@@ -847,6 +943,98 @@ export class MenuService {
         }
       );
     }
+<<<<<<< HEAD
+=======
+    sections.push(
+      {
+        id: guid(),
+        name: 'widget.widget-library',
+        type: 'link',
+        path: '/widgets-bundles',
+        icon: 'now_widgets'
+      },
+      {
+        id: guid(),
+        name: 'dashboard.dashboards',
+        type: 'link',
+        path: '/dashboards',
+        icon: 'dashboards'
+      },
+      {
+        id: guid(),
+        name: 'version-control.version-control',
+        type: 'link',
+        path: '/vc',
+        icon: 'history'
+      },
+      {
+        id: guid(),
+        name: 'audit-log.audit-logs',
+        type: 'link',
+        path: '/auditLogs',
+        icon: 'track_changes'
+      },
+      {
+        id: guid(),
+        name: 'api-usage.api-usage',
+        type: 'link',
+        path: '/usage',
+        icon: 'insert_chart'
+      },
+      {
+        id: guid(),
+        name: 'notification.notification-center',
+        type: 'link',
+        path: '/notification-center',
+        icon: 'notifications'
+      },
+      {
+        id: guid(),
+        name: 'admin.system-settings',
+        type: 'toggle',
+        path: '/settings',
+        height: '200px',
+        icon: 'settings',
+        pages: [
+          {
+            id: guid(),
+            name: 'admin.home-settings',
+            type: 'link',
+            path: '/settings/home',
+            icon: 'settings_applications'
+          },
+          {
+            id: guid(),
+            name: 'notification.notification',
+            type: 'link',
+            path: '/settings/notification',
+            icon: 'notifications'
+          },
+          {
+            id: guid(),
+            name: 'resource.resources-library',
+            type: 'link',
+            path: '/settings/resources-library',
+            icon: 'folder'
+          },
+          {
+            id: guid(),
+            name: 'admin.repository-settings',
+            type: 'link',
+            path: '/settings/repository',
+            icon: 'manage_history'
+          },
+          {
+            id: guid(),
+            name: 'admin.auto-commit-settings',
+            type: 'link',
+            path: '/settings/auto-commit',
+            icon: 'settings_backup_restore'
+          }
+        ]
+      }
+    );
+>>>>>>> ce-fork/feature/notification-system
     return sections;
   }
 
@@ -1571,8 +1759,77 @@ export class MenuService {
           {
             name: 'dashboard.dashboards',
             icon: 'dashboard',
+<<<<<<< HEAD
             path: '/dashboardGroups',
             disabled: disabledItems.indexOf('dashboard_groups') > -1
+=======
+            path: '/dashboards'
+          }
+        ]
+      },
+      {
+        name: 'version-control.management',
+        places: [
+          {
+            name: 'version-control.version-control',
+            icon: 'history',
+            path: '/vc'
+          }
+        ]
+      },
+      {
+        name: 'notification.management',
+        places: [
+          {
+            name: 'notification.notification-center',
+            path: '/notification-center',
+            icon: 'notifications'
+          },
+        ]
+      },
+      {
+        name: 'audit-log.audit',
+        places: [
+          {
+            name: 'audit-log.audit-logs',
+            icon: 'track_changes',
+            path: '/auditLogs'
+          },
+          {
+            name: 'api-usage.api-usage',
+            icon: 'insert_chart',
+            path: '/usage'
+          }
+        ]
+      },
+      {
+        name: 'admin.system-settings',
+        places: [
+          {
+            name: 'admin.home-settings',
+            icon: 'settings_applications',
+            path: '/settings/home'
+          },
+          {
+            name: 'notification.notification',
+            icon: 'notifications',
+            path: '/settings/notification'
+          },
+          {
+            name: 'resource.resources-library',
+            icon: 'folder',
+            path: '/settings/resources-library'
+          },
+          {
+            name: 'admin.repository-settings',
+            icon: 'manage_history',
+            path: '/settings/repository',
+          },
+          {
+            name: 'admin.auto-commit-settings',
+            icon: 'settings_backup_restore',
+            path: '/settings/auto-commit'
+>>>>>>> ce-fork/feature/notification-system
           }
         ]
       });
@@ -1592,7 +1849,64 @@ export class MenuService {
         }
       );
     }
+<<<<<<< HEAD
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+=======
+    sections.push(
+      {
+        id: guid(),
+        name: 'dashboard.dashboards',
+        type: 'link',
+        path: '/dashboards',
+        icon: 'dashboard'
+      },
+      {
+        id: guid(),
+        name: 'notification.notification-center',
+        type: 'link',
+        path: '/notification-center',
+        icon: 'notifications'
+      },
+    );
+    return sections;
+  }
+
+  private buildCustomerUserHome(authState: AuthState): Array<HomeSection> {
+    const homeSections: Array<HomeSection> = [];
+    homeSections.push(
+      {
+        name: 'asset.view-assets',
+        places: [
+          {
+            name: 'asset.assets',
+            icon: 'domain',
+            path: '/assets'
+          }
+        ]
+      },
+      {
+        name: 'device.view-devices',
+        places: [
+          {
+            name: 'device.devices',
+            icon: 'devices_other',
+            path: '/devices'
+          }
+        ]
+      },
+      {
+        name: 'entity-view.management',
+        places: [
+          {
+            name: 'entity-view.entity-views',
+            icon: 'view_quilt',
+            path: '/entityViews'
+          }
+        ]
+      }
+    );
+    if (authState.edgesSupportEnabled) {
+>>>>>>> ce-fork/feature/notification-system
       homeSections.push(
         {
           name: 'white-labeling.white-labeling',
@@ -1669,6 +1983,31 @@ export class MenuService {
         }
       );
     }
+<<<<<<< HEAD
+=======
+    homeSections.push(
+      {
+        name: 'dashboard.view-dashboards',
+        places: [
+          {
+            name: 'dashboard.dashboards',
+            icon: 'dashboard',
+            path: '/dashboards'
+          }
+        ]
+      },
+      {
+        name: 'notification.management',
+        places: [
+          {
+            name: 'notification.notification-center',
+            path: '/notification-center',
+            icon: 'notifications'
+          },
+        ]
+      }
+    );
+>>>>>>> ce-fork/feature/notification-system
     return homeSections;
   }
 
