@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -44,11 +43,13 @@ import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 
+import java.util.Optional;
+
 public interface EntityService {
 
-    ListenableFuture<String> fetchEntityNameAsync(TenantId tenantId, EntityId entityId);
+    Optional<String> fetchEntityName(TenantId tenantId, EntityId entityId);
 
-    CustomerId fetchEntityCustomerId(TenantId tenantId, EntityId entityId);
+    Optional<CustomerId> fetchEntityCustomerId(TenantId tenantId, EntityId entityId);
 
     long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query);
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { UserComponent } from '@modules/home/pages/user/user.component';
 import { Authority } from '@shared/models/authority.enum';
 import { ActivationMethod, activationMethodTranslations, User } from '@shared/models/user.model';
@@ -61,7 +61,7 @@ export interface AddUserDialogData {
 })
 export class AddUserDialogComponent extends DialogComponent<AddUserDialogComponent, User> implements OnInit {
 
-  detailsForm: FormGroup;
+  detailsForm: UntypedFormGroup;
   user: User;
 
   activationMethods = Object.keys(ActivationMethod);

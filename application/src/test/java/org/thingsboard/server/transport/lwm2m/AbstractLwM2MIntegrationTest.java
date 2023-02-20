@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -77,12 +77,12 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
-import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.ws.telemetry.cmd.TelemetryPluginCmdsWrapper;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.LatestValueCmd;
+import org.thingsboard.server.transport.AbstractTransportIntegrationTest;
 import org.thingsboard.server.transport.lwm2m.client.LwM2MTestClient;
 import org.thingsboard.server.transport.lwm2m.server.client.LwM2mClientContext;
 import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
@@ -120,7 +120,7 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MProfil
 })
 @Slf4j
 @DaoSqlTest
-public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTest {
+public abstract class AbstractLwM2MIntegrationTest extends AbstractTransportIntegrationTest {
 
     @SpyBean
     DefaultLwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
@@ -387,7 +387,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTes
 
     private static void awaitServersDestroy() {
         await("One of servers ports number is not free")
-                .atMost(3000, TimeUnit.MILLISECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> isServerPortsAvailable() == null);
     }
 
@@ -406,7 +406,7 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractControllerTes
 
     private static void awaitClientDestroy(LeshanClient leshanClient) {
         await("Destroy LeshanClient: delete All is registered Servers.")
-                .atMost(2000, TimeUnit.MILLISECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> leshanClient.getRegisteredServers().size() == 0);
     }
 

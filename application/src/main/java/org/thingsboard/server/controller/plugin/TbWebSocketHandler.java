@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,10 +44,12 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.adapter.NativeWebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.config.WebSocketConfiguration;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -67,6 +69,8 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.net.URI;
 import java.security.InvalidParameterException;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -152,7 +156,10 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
             if (!checkLimits(session, sessionRef)) {
                 return;
             }
-            internalSessionMap.put(internalSessionId, new SessionMetaData(session, sessionRef));
+            var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
+            internalSessionMap.put(internalSessionId, new SessionMetaData(session, sessionRef,
+                    tenantProfileConfiguration != null && tenantProfileConfiguration.getWsMsgQueueLimitPerSession() > 0 ?
+                    tenantProfileConfiguration.getWsMsgQueueLimitPerSession() : 500));
 
             externalSessionMap.put(externalSessionId, internalSessionId);
             processInWebSocketService(sessionRef, SessionEvent.onEstablished());
@@ -320,22 +327,24 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
         if (internalId != null) {
             SessionMetaData sessionMd = internalSessionMap.get(internalId);
             if (sessionMd != null) {
-                var tenantProfileConfiguration = tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()).getDefaultProfileConfiguration();
-                if (StringUtils.isNotEmpty(tenantProfileConfiguration.getWsUpdatesPerSessionRateLimit())) {
-                    TbRateLimits rateLimits = perSessionUpdateLimits.computeIfAbsent(sessionRef.getSessionId(), sid -> new TbRateLimits(tenantProfileConfiguration.getWsUpdatesPerSessionRateLimit()));
-                    if (!rateLimits.tryConsume()) {
-                        if (blacklistedSessions.putIfAbsent(externalId, sessionRef) == null) {
-                            log.info("[{}][{}][{}] Failed to process session update. Max session updates limit reached"
-                                    , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), externalId);
-                            sessionMd.sendMsg("{\"subscriptionId\":" + subscriptionId + ", \"errorCode\":" + ThingsboardErrorCode.TOO_MANY_UPDATES.getErrorCode() + ", \"errorMsg\":\"Too many updates!\"}");
+                var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
+                if (tenantProfileConfiguration != null) {
+                    if (StringUtils.isNotEmpty(tenantProfileConfiguration.getWsUpdatesPerSessionRateLimit())) {
+                        TbRateLimits rateLimits = perSessionUpdateLimits.computeIfAbsent(sessionRef.getSessionId(), sid -> new TbRateLimits(tenantProfileConfiguration.getWsUpdatesPerSessionRateLimit()));
+                        if (!rateLimits.tryConsume()) {
+                            if (blacklistedSessions.putIfAbsent(externalId, sessionRef) == null) {
+                                log.info("[{}][{}][{}] Failed to process session update. Max session updates limit reached"
+                                        , sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), externalId);
+                                sessionMd.sendMsg("{\"subscriptionId\":" + subscriptionId + ", \"errorCode\":" + ThingsboardErrorCode.TOO_MANY_UPDATES.getErrorCode() + ", \"errorMsg\":\"Too many updates!\"}");
+                            }
+                            return;
+                        } else {
+                            log.debug("[{}][{}][{}] Session is no longer blacklisted.", sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), externalId);
+                            blacklistedSessions.remove(externalId);
                         }
-                        return;
                     } else {
-                        log.debug("[{}][{}][{}] Session is no longer blacklisted.", sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), externalId);
-                        blacklistedSessions.remove(externalId);
+                        perSessionUpdateLimits.remove(sessionRef.getSessionId());
                     }
-                } else {
-                    perSessionUpdateLimits.remove(sessionRef.getSessionId());
                 }
                 sessionMd.sendMsg(msg);
             } else {
@@ -380,8 +389,7 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
     }
 
     private boolean checkLimits(WebSocketSession session, WebSocketSessionRef sessionRef) throws Exception {
-        var tenantProfileConfiguration =
-                tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()).getDefaultProfileConfiguration();
+        var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
         if (tenantProfileConfiguration == null) {
             return true;
         }
@@ -448,7 +456,8 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
     }
 
     private void cleanupLimits(WebSocketSession session, WebSocketSessionRef sessionRef) {
-        var tenantProfileConfiguration = tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()).getDefaultProfileConfiguration();
+        var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
+        if (tenantProfileConfiguration == null) return;
 
         String sessionId = session.getId();
         perSessionUpdateLimits.remove(sessionRef.getSessionId());
@@ -479,6 +488,11 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
                 }
             }
         }
+    }
+
+    private DefaultTenantProfileConfiguration getTenantProfileConfiguration(WebSocketSessionRef sessionRef) {
+        return Optional.ofNullable(tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()))
+                .map(TenantProfile::getDefaultProfileConfiguration).orElse(null);
     }
 
 }

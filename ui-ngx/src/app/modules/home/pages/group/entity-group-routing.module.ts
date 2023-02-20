@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -173,6 +173,7 @@ const ENTITY_RUTE_ROUTE: Routes = [
   {
     path: 'devices/:entityId',
     pathMatch: 'full',
+    children: [],
     canActivate: [RedirectToEntityGroup],
     data: {
       groupType: EntityType.DEVICE
@@ -181,6 +182,7 @@ const ENTITY_RUTE_ROUTE: Routes = [
   {
     path: 'assets/:entityId',
     pathMatch: 'full',
+    children: [],
     canActivate: [RedirectToEntityGroup],
     data: {
       groupType: EntityType.ASSET
@@ -189,6 +191,7 @@ const ENTITY_RUTE_ROUTE: Routes = [
   {
     path: 'entityViews/:entityId',
     pathMatch: 'full',
+    children: [],
     canActivate: [RedirectToEntityGroup],
     data: {
       groupType: EntityType.ENTITY_VIEW
@@ -197,6 +200,7 @@ const ENTITY_RUTE_ROUTE: Routes = [
   {
     path: 'customers/:entityId',
     pathMatch: 'full',
+    children: [],
     canActivate: [RedirectToEntityGroup],
     data: {
       groupType: EntityType.CUSTOMER
@@ -205,6 +209,7 @@ const ENTITY_RUTE_ROUTE: Routes = [
   {
     path: 'edgeInstances/:entityId',
     pathMatch: 'full',
+    children: [],
     canActivate: [RedirectToEntityGroup],
     data: {
       groupType: EntityType.EDGE

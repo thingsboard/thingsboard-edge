@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -1134,7 +1134,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             entitiesQuery.append(readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ? "true" : "false");
             entitiesQuery.append(")");
         } else {
-            entitiesQuery.append("(e.entity_type = 'ROLE' AND ");
+            entitiesQuery.append("(e.entity_type = '").append(entityType.name()).append("' AND ");
             if (readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead()) {
                 entitiesQuery.append("e.customer_id in ").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY);
             } else {
@@ -1230,13 +1230,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     hasFilters = true;
                 }
                 if (!ctx.getEntityType().equals(EntityType.CUSTOMER)) {
-                    entityFlagsQuery.append("select re.to_id, ")
+                    entityFlagsQuery.append("select e.id to_id, ")
                             .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
                             .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
                             .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
-                    entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
-                    entityFlagsQuery.append(" AND re.from_id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
-                    entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
+                    entityFlagsQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
+                    entityFlagsQuery.append(" where ").append(entityWhereClause);
+                    entityFlagsQuery.append(" AND e.customer_id in (").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY).append(")");
                 } else {
                     entityFlagsQuery.append("select c.id to_id, ")
                             .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")

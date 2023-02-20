@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -226,10 +226,10 @@ export class HomeDialogsService {
   public unassignEntityGroupsFromEdge($event: Event, entityGroups: Array<EntityGroup>, edgeId: string): Observable<boolean> {
     const title = this.translate.instant('edge.unassign-entity-groups-from-edge-title', { count: entityGroups.length });
     const content = this.translate.instant('edge.unassign-entity-groups-from-edge-text');
-    const tasks: Observable<Array<EntityGroup>>[] = [];
+    const tasks: Array<Observable<EntityGroup>> = [];
     entityGroups.forEach((entityGroup) => {
       tasks.push(this.entityGroupService.unassignEntityGroupFromEdge(edgeId, entityGroup.id.id, entityGroup.type).pipe(
-        map(() => entityGroup.id),
+        map((e) => e),
         catchError(() => of(null)
         )));
     });

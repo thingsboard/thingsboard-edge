@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -112,6 +112,8 @@ CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(
 CREATE INDEX IF NOT EXISTS idx_blob_entity_created_time ON blob_entity(tenant_id, created_time DESC);
 
 CREATE INDEX IF NOT EXISTS idx_blob_entity_id ON blob_entity(id);
+
+CREATE INDEX IF NOT EXISTS idx_alarm_comment_alarm_id ON alarm_comment(alarm_id);
 
 CREATE INDEX IF NOT EXISTS idx_notification_target_tenant_id_created_time ON notification_target(tenant_id, created_time DESC);
 

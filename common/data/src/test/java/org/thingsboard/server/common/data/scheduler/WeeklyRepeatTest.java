@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class WeeklyRepeatTest {
 
-    public static final String TIMEZONE = "Europe/Kyiv";
+    public static final String TIMEZONE = "EET";
 
     @Test
     public void getNextTest() throws ParseException {

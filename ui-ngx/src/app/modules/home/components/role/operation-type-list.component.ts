@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -71,7 +71,7 @@ interface OperationTypeInfo {
 })
 export class OperationTypeListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
-  operationTypeListFormGroup: FormGroup;
+  operationTypeListFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -124,7 +124,7 @@ export class OperationTypeListComponent implements ControlValueAccessor, OnInit,
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.operationTypeListFormGroup = this.fb.group({
       operationTypeList: [this.operationTypeList, this.required ? [Validators.required] : []],
       operationType: [null]

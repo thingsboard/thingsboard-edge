@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,18 +31,22 @@
 package org.thingsboard.server.msa;
 
 import lombok.extern.slf4j.Slf4j;
-import org.testng.ITestContext;
+import org.openqa.selenium.WebDriver;
+import org.testng.ITestListener;
 import org.testng.ITestResult;
-import org.testng.TestListenerAdapter;
+import org.testng.internal.ConstructorOrMethod;
+import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 
 import static org.testng.internal.Utils.log;
+import static org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest.captureScreen;
 
 @Slf4j
-public class TestListener  extends TestListenerAdapter {
+public class TestListener implements ITestListener {
+
+    WebDriver driver;
 
     @Override
     public void onTestStart(ITestResult result) {
-        super.onTestStart(result);
         log.info("===>>> Test started: " + result.getName());
     }
 
@@ -51,10 +55,14 @@ public class TestListener  extends TestListenerAdapter {
      */
     @Override
     public void onTestSuccess(ITestResult result) {
-        super.onTestSuccess(result);
-        if (result != null) {
-            log.info("<<<=== Test completed successfully: " + result.getName());
+        log.info("<<<=== Test completed successfully: " + result.getName());
+        ConstructorOrMethod consOrMethod = result.getMethod().getConstructorOrMethod();
+        DisableUIListeners disable = consOrMethod.getMethod().getDeclaringClass().getAnnotation(DisableUIListeners.class);
+        if (disable != null) {
+            return;
         }
+        driver = ((AbstractDriverBaseTest) result.getInstance()).getDriver();
+        captureScreen(driver, "success");
     }
 
     /**
@@ -62,7 +70,28 @@ public class TestListener  extends TestListenerAdapter {
      */
     @Override
     public void onTestFailure(ITestResult result) {
-        super.onTestFailure(result);
         log.info("<<<=== Test failed: " + result.getName());
+        ConstructorOrMethod consOrMethod = result.getMethod().getConstructorOrMethod();
+        DisableUIListeners disable = consOrMethod.getMethod().getDeclaringClass().getAnnotation(DisableUIListeners.class);
+        if (disable != null) {
+            return;
+        }
+        driver = ((AbstractDriverBaseTest) result.getInstance()).getDriver();
+        captureScreen(driver, "failure");
+    }
+
+    /**
+     * Invoked when a test skipped
+     */
+    @Override
+    public void onTestSkipped(ITestResult result) {
+        log.info("<<<=== Test skipped: " + result.getName());
+        ConstructorOrMethod consOrMethod = result.getMethod().getConstructorOrMethod();
+        DisableUIListeners disable = consOrMethod.getMethod().getDeclaringClass().getAnnotation(DisableUIListeners.class);
+        if (disable != null) {
+            return;
+        }
+        driver = ((AbstractDriverBaseTest) result.getInstance()).getDriver();
+        captureScreen(driver, "skipped");
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -112,11 +112,13 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
+import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.scheduler.SchedulerService;
@@ -212,6 +214,7 @@ public class DefaultSolutionService implements SolutionService {
     private final CustomerService customerService;
     private final UserService userService;
     private final EntityGroupService entityGroupService;
+    private final TbEntityGroupService tbEntityGroupService;
     private final GroupPermissionService groupPermissionService;
     private final RoleService roleService;
     private final SystemSecurityService systemSecurityService;
@@ -451,7 +454,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private SolutionInstallResponse doInstallSolution(User user, TenantId tenantId, String solutionId, HttpServletRequest request) {
-        SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, new TenantSolutionTemplateInstructions());
+        SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, user, new TenantSolutionTemplateInstructions());
         try {
             provisionRoles(ctx);
 
@@ -472,11 +475,11 @@ public class DefaultSolutionService implements SolutionService {
 
             var devices = provisionDevices(user, ctx);
 
-            provisionRelations(ctx);
-
             provisionDashboards(ctx);
 
             provisionCustomerUsers(ctx, customers);
+
+            provisionRelations(ctx);
 
             provisionSchedulerEvents(ctx);
 
@@ -493,6 +496,15 @@ public class DefaultSolutionService implements SolutionService {
             TenantSolutionTemplateInstructions instructions = new TenantSolutionTemplateInstructions(ctx.getSolutionInstructions());
             AttributeKvEntry instructionAttribute = new BaseAttributeKvEntry(new StringDataEntry(toInstructionsKey(solutionId), JacksonUtil.toString(instructions)), ts);
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(createdEntitiesAttribute, statusAttribute, instructionAttribute));
+
+            List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+            });
+            if (ruleChains.stream().anyMatch(r -> StringUtils.isNotEmpty(r.getUpdate()))) {
+                long timeout = solutions.stream().filter(s -> s.getId().equals(solutionId))
+                        .map(SolutionTemplate::getInstallTimeoutMs).findFirst().orElseThrow(RuntimeException::new);
+                Thread.sleep(timeout);
+                finalUpdateRuleChains(ctx);
+            }
 
             return new SolutionInstallResponse(ctx.getSolutionInstructions(), true);
         } catch (Throwable e) {
@@ -519,14 +531,21 @@ public class DefaultSolutionService implements SolutionService {
     private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
         String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
         template = template.replace("${BASE_URL}", systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+        TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
         template = template.replace("${MAIN_DASHBOARD_URL}",
-                "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
-                        "/" + ctx.getSolutionInstructions().getDashboardId().getId());
+                getDashboardLink(solutionInstructions, solutionInstructions.getDashboardGroupId(), solutionInstructions.getDashboardId(), false));
+        if (solutionInstructions.isMainDashboardPublic()) {
+            template = template.replace("${MAIN_DASHBOARD_PUBLIC_URL}",
+                    getDashboardLink(solutionInstructions, solutionInstructions.getDashboardGroupId(), solutionInstructions.getDashboardId(), true));
+        }
 
         for (DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
             template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_URL}",
-                    "/dashboardGroups/" + dashboardLinkInfo.getEntityGroupId().getId() +
-                            "/" + dashboardLinkInfo.getDashboardId().getId());
+                    getDashboardLink(solutionInstructions, dashboardLinkInfo.getEntityGroupId(), dashboardLinkInfo.getDashboardId(), false));
+            if (dashboardLinkInfo.isPublic()) {
+                template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_PUBLIC_URL}",
+                        getDashboardLink(solutionInstructions, dashboardLinkInfo.getEntityGroupId(), dashboardLinkInfo.getDashboardId(), true));
+            }
         }
 
         StringBuilder devList = new StringBuilder();
@@ -584,6 +603,16 @@ public class DefaultSolutionService implements SolutionService {
         return template;
     }
 
+    private String getDashboardLink(TenantSolutionTemplateInstructions solutionInstructions, EntityGroupId dashboardGroupId, DashboardId dashboardId, boolean isPublic) {
+        String dashboardLink;
+        if (isPublic) {
+            dashboardLink = "/dashboard/" + dashboardId.getId() + "?publicId=" + solutionInstructions.getPublicId();
+        } else {
+            dashboardLink = "/dashboardGroups/" + dashboardGroupId.getId() + "/" + dashboardId.getId();
+        }
+        return dashboardLink;
+    }
+
     private void provisionRoles(SolutionInstallContext ctx) {
         List<RoleDefinition> roleDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "roles.json", new TypeReference<>() {
         });
@@ -637,6 +666,33 @@ public class DefaultSolutionService implements SolutionService {
             }
             if (metadataStr.equals(oldMetadataStr)) {
                 continue;
+            }
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
+
+            RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
+            RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
+            ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
+        }
+    }
+
+    private void finalUpdateRuleChains(SolutionInstallContext ctx) {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+        });
+        for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
+            if (StringUtils.isEmpty(entityDefinition.getUpdate())) {
+                continue;
+            }
+            // Rule chains should be ordered correctly to exclude dependencies.
+            Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getUpdate());
+            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            ruleChain.setTenantId(ctx.getTenantId());
+            String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
+            String oldMetadataStr = metadataStr;
+            for (var entry : ctx.getRealIds().entrySet()) {
+                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
             }
             RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
 
@@ -728,7 +784,7 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
+    private void provisionDashboards(SolutionInstallContext ctx) throws ThingsboardException {
         List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<>() {
         });
         for (DashboardDefinition entityDef : dashboards) {
@@ -750,8 +806,9 @@ public class DefaultSolutionService implements SolutionService {
             if (entityDef.isMain()) {
                 ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
                 ctx.getSolutionInstructions().setDashboardId(dashboard.getId());
+                ctx.getSolutionInstructions().setMainDashboardPublic(entityDef.isMakePublic());
             }
-            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId()));
+            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId(), entityDef.isMakePublic()));
         }
     }
 
@@ -819,8 +876,17 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
-        Map<String, EmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<EmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        List<EmulatorDefinition> emulatorDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<>() {
+        });
+        Map<String, EmulatorDefinition> deviceEmulators = emulatorDefinitions.stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        emulatorDefinitions.stream().filter(ed -> StringUtils.isNotEmpty(ed.getExtendz()))
+                .forEach(ed -> {
+                    EmulatorDefinition parent = deviceEmulators.get(ed.getExtendz());
+                    if (parent != null) {
+                        ed.enrich(parent);
+                    }
+                });
+
 
         for (var entry : devicesMap.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
             DeviceEmulatorLauncher.builder()
@@ -891,7 +957,7 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) {
+    protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) throws ThingsboardException {
         Map<Asset, AssetDefinition> result = new HashMap<>();
         List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
@@ -951,7 +1017,6 @@ public class DefaultSolutionService implements SolutionService {
     private void provisionCustomerUsers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
-
             for (UserGroupDefinition ugDef : entityDef.getUserGroups()) {
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
@@ -983,6 +1048,7 @@ public class DefaultSolutionService implements SolutionService {
             }
 
             for (UserDefinition uDef : entityDef.getUsers()) {
+                String originalName = uDef.getName(); // May not be unique;
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), uDef.getGroup());
                 User user = createUser(ctx, entity, uDef, entityDef);
                 // TODO: get activation token, etc..
@@ -1010,6 +1076,10 @@ public class DefaultSolutionService implements SolutionService {
                 credentialsInfo.setCustomerGroup(uDef.getGroup());
                 ctx.addUserCredentials(credentialsInfo);
                 ctx.register(entityDef, uDef, user);
+                ctx.put(user.getId(), uDef.getRelations());
+                ctx.putIdToMap(EntityType.USER, originalName, user.getId());
+                ctx.putIdToMap(EntityType.USER, uDef.getName(), user.getId());
+                saveServerSideAttributes(ctx.getTenantId(), user.getId(), uDef.getAttributes());
             }
         }
     }
@@ -1137,7 +1207,7 @@ public class DefaultSolutionService implements SolutionService {
         return eg;
     }
 
-    private EntityGroupId addEntityToGroup(SolutionInstallContext ctx, CustomerEntityDefinition entityDef, EntityId entityId) {
+    private EntityGroupId addEntityToGroup(SolutionInstallContext ctx, CustomerEntityDefinition entityDef, EntityId entityId) throws ThingsboardException {
         CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
         if (!StringUtils.isEmpty(entityDef.getGroup())) {
             EntityId ownerId = customerId == null ? ctx.getTenantId() : customerId;
@@ -1152,9 +1222,28 @@ public class DefaultSolutionService implements SolutionService {
                 }
             }
             entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), egId, Collections.singletonList(entityId));
+
+            if (entityDef.isMakePublic()) {
+                EntityGroup eg = entityGroupService.findEntityGroupById(ctx.getTenantId(), egId);
+                TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
+                if (!eg.isPublic()) {
+                    EntityId publicId = tbEntityGroupService.makePublic(ctx.getTenantId(), eg, ctx.getUser());
+                    solutionInstructions.setPublicId(new CustomerId(publicId.getId()));
+                } else {
+                    if (solutionInstructions.getPublicId() == null) {
+                        solutionInstructions.setPublicId(new CustomerId(
+                                customerService.findOrCreatePublicUserGroup(ctx.getTenantId(), ctx.getUser().getOwnerId()).getOwnerId().getId()));
+                    }
+                }
+            }
+
             return egId;
         } else {
-            return null;
+            if (entityDef.isMakePublic()) {
+                throw new IllegalArgumentException("Entity is assigned to group 'All' only. Can't make entity public!");
+            } else {
+                return null;
+            }
         }
     }
 

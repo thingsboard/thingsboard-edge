@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,6 @@ public class RuleChainMetaData {
     @ApiModelProperty(position = 2, required = true, value = "Index of the first rule node in the 'nodes' list")
     private Integer firstNodeIndex;
 
-    @Valid
     @ApiModelProperty(position = 3, required = true, value = "List of rule node JSON objects")
     private List<RuleNode> nodes;
 

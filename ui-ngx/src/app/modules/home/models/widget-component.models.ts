@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -106,7 +106,7 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
-import { TelemetrySubscriber } from '@app/shared/public-api';
+import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
 
 export interface IWidgetAction {
   name: string;
@@ -201,6 +201,7 @@ export class WidgetContext {
   telemetryWsService: TelemetryWebsocketService;
   telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;
+  milliSecondsToTimeString: MillisecondsToTimeStringPipe;
   translate: TranslateService;
   http: HttpClient;
   sanitizer: DomSanitizer;

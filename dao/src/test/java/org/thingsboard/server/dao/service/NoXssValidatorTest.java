@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,7 +58,7 @@ public class NoXssValidatorTest {
 
         assertThatThrownBy(() -> {
             ConstraintValidator.validateFields(invalidAsset);
-        }).hasMessageContaining("field value is malformed");
+        }).hasMessageContaining("is malformed");
     }
 
     @Test
@@ -70,7 +70,7 @@ public class NoXssValidatorTest {
 
         assertThatThrownBy(() -> {
             ConstraintValidator.validateFields(invalidAsset);
-        }).hasMessageContaining("field value is malformed");
+        }).hasMessageContaining("is malformed");
     }
 
 }

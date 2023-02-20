@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,8 +36,8 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
   AbstractControl,
-  FormBuilder,
-  FormGroup, FormGroupDirective,
+  UntypedFormBuilder,
+  UntypedFormGroup, FormGroupDirective,
   NgForm,
   ValidationErrors,
   ValidatorFn,
@@ -79,8 +79,8 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
   private readonly destroy$ = new Subject<void>();
   private accountConfig: AccountTwoFaSettingProviders;
 
-  twoFactorAuth: FormGroup;
-  changePassword: FormGroup;
+  twoFactorAuth: UntypedFormGroup;
+  changePassword: UntypedFormGroup;
 
   user: User;
   passwordPolicy: UserPasswordPolicy;
@@ -105,7 +105,7 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
               private twoFaService: TwoFactorAuthenticationService,
               public dialog: MatDialog,
               public dialogService: DialogService,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               private datePipe: DatePipe,
               private userPermissionsService: UserPermissionsService,
               private authService: AuthService,
