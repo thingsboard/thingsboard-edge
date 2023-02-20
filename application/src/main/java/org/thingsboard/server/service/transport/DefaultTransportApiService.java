@@ -62,6 +62,8 @@ import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfigu
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProvisionDeviceProfileCredentials;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -79,7 +81,6 @@ import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProvisionService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -109,6 +110,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceLwM2MC
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceX509CertRequestMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -304,6 +306,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     device.setType(requestMsg.getDeviceType());
                     device.setCustomerId(gateway.getCustomerId());
                     DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), requestMsg.getDeviceType());
+
                     device.setDeviceProfileId(deviceProfile.getId());
                     ObjectNode additionalInfo = JacksonUtil.newObjectNode();
                     additionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
@@ -319,7 +322,8 @@ public class DefaultTransportApiService implements TransportApiService {
                     if (customerId != null && !customerId.isNullUid()) {
                         metaData.putValue("customerId", customerId.toString());
                     }
-                    metaData.putValue("gatewayId", gatewayId.toString());
+                    String deviceIdStr = requestMsg.getSparkplug() ? "sparkplugId" : "gatewayId";
+                    metaData.putValue(deviceIdStr, gatewayId.toString());
 
                     DeviceId deviceId = device.getId();
                     ObjectNode entityNode = mapper.valueToTree(device);
@@ -330,11 +334,12 @@ public class DefaultTransportApiService implements TransportApiService {
                     if (deviceAdditionalInfo == null) {
                         deviceAdditionalInfo = JacksonUtil.newObjectNode();
                     }
+                    String lastConnectedStr = requestMsg.getSparkplug() ? DataConstants.LAST_CONNECTED_SPARKPLUG : DataConstants.LAST_CONNECTED_GATEWAY;
                     if (deviceAdditionalInfo.isObject() &&
-                            (!deviceAdditionalInfo.has(DataConstants.LAST_CONNECTED_GATEWAY)
-                                    || !gatewayId.toString().equals(deviceAdditionalInfo.get(DataConstants.LAST_CONNECTED_GATEWAY).asText()))) {
+                            (!deviceAdditionalInfo.has(lastConnectedStr)
+                                    || !gatewayId.toString().equals(deviceAdditionalInfo.get(lastConnectedStr).asText()))) {
                         ObjectNode newDeviceAdditionalInfo = (ObjectNode) deviceAdditionalInfo;
-                        newDeviceAdditionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
+                        newDeviceAdditionalInfo.put(lastConnectedStr, gatewayId.toString());
                         Device savedDevice = deviceService.saveDevice(device);
                         tbClusterService.onDeviceUpdated(savedDevice, device);
                     }

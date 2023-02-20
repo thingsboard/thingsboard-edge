@@ -28,45 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt.sparkplug.timeseries;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import org.thingsboard.server.common.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
-
-import java.util.UUID;
+import org.eclipse.paho.mqttv5.common.MqttException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 /**
- * Created by ashvayka on 19.01.17.
+ * Created by nickAS21 on 12.01.23
  */
-public class GatewaySessionHandler extends AbstractGatewaySessionHandler {
+@DaoSqlTest
+public class MqttV5ClientSparkplugBTelemetryTest extends AbstractMqttV5ClientSparkplugTelemetryTest {
 
-    public GatewaySessionHandler(DeviceSessionCtx deviceSessionCtx, UUID sessionId) {
-        super(deviceSessionCtx, sessionId);
+    @Before
+    public void beforeTest() throws Exception {
+        beforeSparkplugTest();
     }
 
-    public void onDeviceConnect(MqttPublishMessage mqttMsg) throws AdaptorException {
-        if (isJsonPayloadType()) {
-            onDeviceConnectJson(mqttMsg);
-        } else {
-            onDeviceConnectProto(mqttMsg);
-        }
+    @After
+    public void afterTest () throws MqttException {
+        if (client.isConnected()) {
+            client.disconnect();        }
     }
 
-    public void onDeviceTelemetry(MqttPublishMessage mqttMsg) throws AdaptorException {
-        int msgId = getMsgId(mqttMsg);
-        ByteBuf payload = mqttMsg.payload();
-        if (isJsonPayloadType()) {
-            onDeviceTelemetryJson(msgId, payload);
-        } else {
-            onDeviceTelemetryProto(msgId, payload);
-        }
+    @Test
+    public void testClientWithCorrectAccessTokenPublishNBIRTH() throws Exception {
+        processClientWithCorrectAccessTokenPublishNBIRTH();
     }
 
-    @Override
-    protected GatewayDeviceSessionContext newDeviceSessionCtx(GetOrCreateDeviceFromGatewayResponse msg) {
-         return new GatewayDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
+    @Test
+    public void testClientWithCorrectAccessTokenPushNodeMetricBuildPrimitiveSimple() throws Exception {
+        processClientWithCorrectAccessTokenPushNodeMetricBuildPrimitiveSimple();
+    }
+
+    @Test
+    public void testClientWithCorrectAccessTokenPushNodeMetricBuildPArraysPrimitiveSimple() throws Exception {
+        processClientWithCorrectAccessTokenPushNodeMetricBuildArraysPrimitiveSimple();
     }
 
 }

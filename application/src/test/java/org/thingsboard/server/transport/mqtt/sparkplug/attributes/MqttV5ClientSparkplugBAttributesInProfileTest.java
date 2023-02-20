@@ -28,45 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt.sparkplug.attributes;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import org.thingsboard.server.common.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
+import org.eclipse.paho.mqttv5.common.MqttException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.UUID;
+import java.util.HashSet;
 
 /**
- * Created by ashvayka on 19.01.17.
+ * Created by nickAS21 on 12.01.23
  */
-public class GatewaySessionHandler extends AbstractGatewaySessionHandler {
+@DaoSqlTest
+public class MqttV5ClientSparkplugBAttributesInProfileTest extends AbstractMqttV5ClientSparkplugAttributesTest {
 
-    public GatewaySessionHandler(DeviceSessionCtx deviceSessionCtx, UUID sessionId) {
-        super(deviceSessionCtx, sessionId);
+    @Before
+    public void beforeTest() throws Exception {
+        sparkPlugAttributesMetricNames = new HashSet<>();
+        sparkPlugAttributesMetricNames.add(metricBirthName_Int32);
+        beforeSparkplugTest();
     }
 
-    public void onDeviceConnect(MqttPublishMessage mqttMsg) throws AdaptorException {
-        if (isJsonPayloadType()) {
-            onDeviceConnectJson(mqttMsg);
-        } else {
-            onDeviceConnectProto(mqttMsg);
-        }
+    @After
+    public void afterTest () throws MqttException {
+        if (client.isConnected()) {
+            client.disconnect();        }
     }
 
-    public void onDeviceTelemetry(MqttPublishMessage mqttMsg) throws AdaptorException {
-        int msgId = getMsgId(mqttMsg);
-        ByteBuf payload = mqttMsg.payload();
-        if (isJsonPayloadType()) {
-            onDeviceTelemetryJson(msgId, payload);
-        } else {
-            onDeviceTelemetryProto(msgId, payload);
-        }
+    @Test
+    public void testClientNodeWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes() throws Exception {
+        processClientNodeWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes();
     }
 
-    @Override
-    protected GatewayDeviceSessionContext newDeviceSessionCtx(GetOrCreateDeviceFromGatewayResponse msg) {
-         return new GatewayDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
+    @Test
+    public void testClientDeviceWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes() throws Exception {
+        processClientDeviceWithCorrectAccessTokenPublish_AttributesInProfileContainsKeyAttributes();
     }
 
 }

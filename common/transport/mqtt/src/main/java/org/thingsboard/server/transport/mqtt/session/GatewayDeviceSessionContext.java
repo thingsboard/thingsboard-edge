@@ -30,43 +30,23 @@
  */
 package org.thingsboard.server.transport.mqtt.session;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import org.thingsboard.server.common.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.transport.TransportService;
+import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 
-import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
 
 /**
- * Created by ashvayka on 19.01.17.
+ * Created by nickAS21 on 26.12.22
  */
-public class GatewaySessionHandler extends AbstractGatewaySessionHandler {
+public class GatewayDeviceSessionContext extends AbstractGatewayDeviceSessionContext<GatewaySessionHandler> {
 
-    public GatewaySessionHandler(DeviceSessionCtx deviceSessionCtx, UUID sessionId) {
-        super(deviceSessionCtx, sessionId);
-    }
-
-    public void onDeviceConnect(MqttPublishMessage mqttMsg) throws AdaptorException {
-        if (isJsonPayloadType()) {
-            onDeviceConnectJson(mqttMsg);
-        } else {
-            onDeviceConnectProto(mqttMsg);
-        }
-    }
-
-    public void onDeviceTelemetry(MqttPublishMessage mqttMsg) throws AdaptorException {
-        int msgId = getMsgId(mqttMsg);
-        ByteBuf payload = mqttMsg.payload();
-        if (isJsonPayloadType()) {
-            onDeviceTelemetryJson(msgId, payload);
-        } else {
-            onDeviceTelemetryProto(msgId, payload);
-        }
-    }
-
-    @Override
-    protected GatewayDeviceSessionContext newDeviceSessionCtx(GetOrCreateDeviceFromGatewayResponse msg) {
-         return new GatewayDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
+    public GatewayDeviceSessionContext(GatewaySessionHandler parent,
+                                       TransportDeviceInfo deviceInfo,
+                                       DeviceProfile deviceProfile,
+                                       ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap,
+                                       TransportService transportService) {
+        super(parent, deviceInfo, deviceProfile, mqttQoSMap, transportService);
     }
 
 }

@@ -28,45 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt.util.sparkplug;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.mqtt.MqttPublishMessage;
-import org.thingsboard.server.common.adaptor.AdaptorException;
-import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 
-import java.util.UUID;
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class SparkplugRpcRequestHeader {
 
-/**
- * Created by ashvayka on 19.01.17.
- */
-public class GatewaySessionHandler extends AbstractGatewaySessionHandler {
-
-    public GatewaySessionHandler(DeviceSessionCtx deviceSessionCtx, UUID sessionId) {
-        super(deviceSessionCtx, sessionId);
-    }
-
-    public void onDeviceConnect(MqttPublishMessage mqttMsg) throws AdaptorException {
-        if (isJsonPayloadType()) {
-            onDeviceConnectJson(mqttMsg);
-        } else {
-            onDeviceConnectProto(mqttMsg);
-        }
-    }
-
-    public void onDeviceTelemetry(MqttPublishMessage mqttMsg) throws AdaptorException {
-        int msgId = getMsgId(mqttMsg);
-        ByteBuf payload = mqttMsg.payload();
-        if (isJsonPayloadType()) {
-            onDeviceTelemetryJson(msgId, payload);
-        } else {
-            onDeviceTelemetryProto(msgId, payload);
-        }
-    }
-
-    @Override
-    protected GatewayDeviceSessionContext newDeviceSessionCtx(GetOrCreateDeviceFromGatewayResponse msg) {
-         return new GatewayDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
-    }
+    private String messageType;
+    private String metricName;
+    private Object value;
 
 }

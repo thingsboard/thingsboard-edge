@@ -31,18 +31,13 @@
 package org.thingsboard.server.transport.mqtt.session;
 
 import io.netty.handler.codec.mqtt.MqttQoS;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
-import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.transport.session.DeviceAwareSessionContext;
-import org.thingsboard.server.transport.mqtt.util.MqttTopicFilter;
-import org.thingsboard.server.transport.mqtt.util.MqttTopicFilterFactory;
+import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -52,14 +47,28 @@ import java.util.stream.Collectors;
 public abstract class MqttDeviceAwareSessionContext extends DeviceAwareSessionContext {
 
     private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
+    private Map<String, SparkplugBProto.Payload.Metric> deviceBirthMetrics;
 
     public MqttDeviceAwareSessionContext(UUID sessionId, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap) {
         super(sessionId);
         this.mqttQoSMap = mqttQoSMap;
+        this.deviceBirthMetrics = null;
     }
 
     public ConcurrentMap<MqttTopicMatcher, Integer> getMqttQoSMap() {
         return mqttQoSMap;
+    }
+
+    public  Map<String, SparkplugBProto.Payload.Metric> getDeviceBirthMetrics() {
+        return deviceBirthMetrics;
+    }
+
+    public void setDeviceBirthMetrics(java.util.List<org.thingsboard.server.gen.transport.mqtt.SparkplugBProto.Payload.Metric> metrics) {
+        if  (this.deviceBirthMetrics == null) {
+            this.deviceBirthMetrics = new ConcurrentHashMap<>();
+        }
+        this.deviceBirthMetrics.putAll(metrics.stream()
+                .collect(Collectors.toMap(metric -> metric.getName(), metric -> metric)));
     }
 
     public MqttQoS getQoSForTopic(String topic) {

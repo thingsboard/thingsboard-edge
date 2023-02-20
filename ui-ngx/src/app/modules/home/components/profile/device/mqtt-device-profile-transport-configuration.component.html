@@ -30,7 +30,14 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="mqttDeviceProfileTransportConfigurationFormGroup" style="padding-bottom: 16px;">
+<form [formGroup]="mqttDeviceProfileTransportConfigurationFormGroup" style="padding-top: 8px;">
+  <mat-checkbox formControlName="sparkPlug">
+    {{ 'device-profile.mqtt-device-topic-filters-spark-plug' | translate }}
+  </mat-checkbox>
+  <div *ngIf="mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlug').value"
+       class="tb-hint" innerHTML="{{ 'device-profile.mqtt-device-topic-filters-spark-plug-hint' | translate }}"></div>
+</form>
+<form [formGroup]="mqttDeviceProfileTransportConfigurationFormGroup" style="padding-bottom: 16px;" *ngIf="!mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlug').value">
   <fieldset class="fields-group">
     <legend class="group-title" translate>device-profile.mqtt-device-topic-filters</legend>
     <div fxLayoutGap="8px" fxLayout="column">
