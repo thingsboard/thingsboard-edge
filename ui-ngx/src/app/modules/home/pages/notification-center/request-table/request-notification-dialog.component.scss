@@ -29,7 +29,6 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @import "../../../../../../scss/constants";
-@import "../../../../../../theme";
 
 :host-context(.tb-fullscreen-dialog .mat-dialog-container) {
   width: 800px;
@@ -123,7 +122,7 @@
       display: flex;
 
       tb-notification {
-        border: 1px groove $tb-primary-color;
+        border: 1px groove var(--tb-primary-500);
         border-radius: 4px;
         width: 80%;
         background-color: #fff;
@@ -236,7 +235,7 @@
     }
 
     .mat-button-toggle-checked .mat-button-toggle-button {
-      background-color: $tb-primary-color;
+      background-color: var(--tb-primary-500);
       color: #fff;
       border-radius: 18px;
       margin-left: 2px;

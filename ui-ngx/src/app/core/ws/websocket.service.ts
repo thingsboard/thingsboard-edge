@@ -39,6 +39,7 @@ import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { WebsocketNotificationMsg } from '@shared/models/websocket/notification-ws.models';
 import { CmdUpdateMsg } from '@shared/models/telemetry/telemetry.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { ReportService } from '@core/http/report.service';
 import Timeout = NodeJS.Timeout;
 
 const RECONNECT_INTERVAL = 2000;
@@ -72,7 +73,8 @@ export abstract class WebsocketService<T extends WsSubscriber> implements WsServ
                         protected ngZone: NgZone,
                         protected apiEndpoint: string,
                         protected cmdWrapper: CmdWrapper,
-                        protected window: Window) {
+                        protected window: Window,
+                        protected reportService?: ReportService) {
     this.store.pipe(select(selectIsAuthenticated)).subscribe(
       () => {
         this.reset(true);
@@ -94,13 +96,26 @@ export abstract class WebsocketService<T extends WsSubscriber> implements WsServ
     this.notificationUri += `//${this.window.location.hostname}:${port}/${apiEndpoint}`;
   }
 
-  abstract subscribe(subscriber: T);
+  abstract subscribe(subscriber: T, skipPublish?: boolean);
 
   abstract update(subscriber: T);
 
-  abstract unsubscribe(subscriber: T);
+  abstract unsubscribe(subscriber: T, skipPublish?: boolean);
 
   abstract processOnMessage(message: any);
+
+  public batchSubscribe(subscribers: T[]) {
+    subscribers.forEach((subscriber) => {
+      this.subscribe(subscriber, true);
+    });
+  }
+
+  public batchUnsubscribe(subscribers: T[]) {
+    subscribers.forEach((subscriber) => {
+      this.unsubscribe(subscriber, true);
+      subscriber.complete();
+    });
+  }
 
   protected nextCmdId(): number {
     this.lastCmdId++;
@@ -109,7 +124,11 @@ export abstract class WebsocketService<T extends WsSubscriber> implements WsServ
 
   protected publishCommands() {
     while (this.isOpened && this.cmdWrapper.hasCommands()) {
-      this.dataStream.next(this.cmdWrapper.preparePublishCommands(MAX_PUBLISH_COMMANDS));
+      const cmds = this.cmdWrapper.preparePublishCommands(MAX_PUBLISH_COMMANDS);
+      if (this.reportService?.reportView) {
+        this.reportService.onSendWsCommands(cmds);
+      }
+      this.dataStream.next(cmds);
       this.checkToClose();
     }
     this.tryOpenSocket();
@@ -222,6 +241,9 @@ export abstract class WebsocketService<T extends WsSubscriber> implements WsServ
   }
 
   private onMessage(message: WebsocketNotificationMsg) {
+    if (this.reportService?.reportView) {
+      this.reportService.onWsCmdUpdateMessage(message);
+    }
     if (message.errorCode) {
       this.showWsError(message.errorCode, message.errorMsg);
     } else {

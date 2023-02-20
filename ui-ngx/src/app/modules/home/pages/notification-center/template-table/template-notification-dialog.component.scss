@@ -29,7 +29,6 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @import "../../../../../../scss/constants";
-@import "../../../../../../theme";
 
 :host-context(.tb-fullscreen-dialog .mat-dialog-container) {
   width: 830px;
@@ -152,7 +151,7 @@
       }
 
       &.mat-radio-checked {
-        border-color: map_get($tb-accent, 500);
+        border-color: var(--tb-accent-500);
       }
     }
   }

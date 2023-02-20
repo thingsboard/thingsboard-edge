@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../../theme";
+@import "../../../../../../scss/constants";
 
 :host {
   width: 700px;
@@ -147,7 +147,7 @@
       }
 
       .mat-button-toggle-checked .mat-button-toggle-button {
-        background-color: $tb-primary-color;
+        background-color: var(--tb-primary-500);
         color: #fff;
         border-radius: 18px;
         margin-left: 2px;
