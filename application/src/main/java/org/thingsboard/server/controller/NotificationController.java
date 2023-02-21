@@ -66,7 +66,6 @@ import org.thingsboard.server.common.data.notification.template.NotificationTemp
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
@@ -78,9 +77,12 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
 
 @RestController
 @TbCoreComponent
@@ -155,6 +157,7 @@ public class NotificationController extends BaseController {
                                                    @RequestParam(required = false) String sortOrder,
                                                    @RequestParam(defaultValue = "false") boolean unreadOnly,
                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        // no permissions
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return notificationService.findNotificationsByRecipientIdAndReadStatus(user.getTenantId(), user.getId(), unreadOnly, pageLink);
     }
@@ -163,6 +166,7 @@ public class NotificationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void markNotificationAsRead(@PathVariable UUID id,
                                        @AuthenticationPrincipal SecurityUser user) {
+        // no permissions
         NotificationId notificationId = new NotificationId(id);
         notificationCenter.markNotificationAsRead(user.getTenantId(), user.getId(), notificationId);
     }
@@ -170,6 +174,7 @@ public class NotificationController extends BaseController {
     @PutMapping("/notifications/read")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void markAllNotificationsAsRead(@AuthenticationPrincipal SecurityUser user) {
+        // no permissions
         notificationCenter.markAllNotificationsAsRead(user.getTenantId(), user.getId());
     }
 
@@ -177,6 +182,7 @@ public class NotificationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void deleteNotification(@PathVariable UUID id,
                                    @AuthenticationPrincipal SecurityUser user) {
+        // no permissions
         NotificationId notificationId = new NotificationId(id);
         notificationCenter.deleteNotification(user.getTenantId(), user.getId(), notificationId);
     }
@@ -189,7 +195,7 @@ public class NotificationController extends BaseController {
             throw new IllegalArgumentException("Notification request cannot be updated. You may only cancel/delete it");
         }
         notificationRequest.setTenantId(user.getTenantId());
-        checkEntity(notificationRequest.getId(), notificationRequest, Resource.NOTIFICATION_REQUEST);
+        checkEntity(notificationRequest.getId(), notificationRequest, NOTIFICATION);
 
         notificationRequest.setOriginatorEntityId(user.getId());
         if (notificationRequest.getInfo() != null && !(notificationRequest.getInfo() instanceof UserOriginatedNotificationInfo)) {
@@ -205,13 +211,15 @@ public class NotificationController extends BaseController {
     @PostMapping("/notification/request/preview")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationRequestPreview getNotificationRequestPreview(@RequestBody @Valid NotificationRequest request,
-                                                                    @AuthenticationPrincipal SecurityUser user) {
+                                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         NotificationRequestPreview preview = new NotificationRequestPreview();
 
         request.setOriginatorEntityId(user.getId());
         NotificationTemplate template;
         if (request.getTemplateId() != null) {
             template = notificationTemplateService.findNotificationTemplateById(user.getTenantId(), request.getTemplateId());
+            checkNotNull(template, "Template not found");
+            accessControlService.checkPermission(user, NOTIFICATION, Operation.READ, template.getId(), template);
         } else {
             template = request.getTemplate();
         }
@@ -237,21 +245,19 @@ public class NotificationController extends BaseController {
                 }));
         preview.setProcessedTemplates(processedTemplates);
 
+        // generic permission
         Map<String, Integer> recipientsCountByTarget = new HashMap<>();
-        request.getTargets().forEach(targetId -> {
-            NotificationTarget notificationTarget = notificationTargetService.findNotificationTargetById(user.getTenantId(), new NotificationTargetId(targetId));
-            if (notificationTarget == null) {
-                throw new IllegalArgumentException("Notification target with id " + targetId + " not found");
-            }
-
+        List<NotificationTarget> targets = notificationTargetService.findNotificationTargetsByTenantIdAndIds(user.getTenantId(),
+                request.getTargets().stream().map(NotificationTargetId::new).collect(Collectors.toList()));
+        for (NotificationTarget target : targets) {
             int recipientsCount;
-            if (notificationTarget.getConfiguration().getType() == NotificationTargetType.PLATFORM_USERS) {
-                recipientsCount = notificationTargetService.countRecipientsForNotificationTargetConfig(user.getTenantId(), notificationTarget.getConfiguration());
+            if (target.getConfiguration().getType() == NotificationTargetType.PLATFORM_USERS) {
+                recipientsCount = notificationTargetService.countRecipientsForNotificationTargetConfig(user.getTenantId(), target.getConfiguration());
             } else {
                 recipientsCount = 1;
             }
-            recipientsCountByTarget.put(notificationTarget.getName(), recipientsCount);
-        });
+            recipientsCountByTarget.put(target.getName(), recipientsCount);
+        }
         preview.setRecipientsCountByTarget(recipientsCountByTarget);
         preview.setTotalRecipientsCount(recipientsCountByTarget.values().stream().mapToInt(Integer::intValue).sum());
 
@@ -262,7 +268,7 @@ public class NotificationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationRequestInfo getNotificationRequestById(@PathVariable UUID id) throws ThingsboardException {
         NotificationRequestId notificationRequestId = new NotificationRequestId(id);
-        return checkEntityId(notificationRequestId, notificationRequestService::findNotificationRequestInfoById, Operation.READ);
+        return checkEntityId(NOTIFICATION, Operation.READ, notificationRequestId, notificationRequestService::findNotificationRequestInfoById);
     }
 
     @GetMapping("/notification/requests")
@@ -273,7 +279,7 @@ public class NotificationController extends BaseController {
                                                                      @RequestParam(required = false) String sortProperty,
                                                                      @RequestParam(required = false) String sortOrder,
                                                                      @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.NOTIFICATION_REQUEST, Operation.READ);
+        // generic permission
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return notificationRequestService.findNotificationRequestsInfosByTenantIdAndOriginatorType(user.getTenantId(), EntityType.USER, pageLink);
     }
@@ -282,7 +288,7 @@ public class NotificationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public void deleteNotificationRequest(@PathVariable UUID id) throws Exception {
         NotificationRequestId notificationRequestId = new NotificationRequestId(id);
-        NotificationRequest notificationRequest = checkEntityId(notificationRequestId, notificationRequestService::findNotificationRequestById, Operation.DELETE);
+        NotificationRequest notificationRequest = checkEntityId(NOTIFICATION, Operation.DELETE, notificationRequestId, notificationRequestService::findNotificationRequestById);
         doDeleteAndLog(EntityType.NOTIFICATION_REQUEST, notificationRequest, notificationCenter::deleteNotificationRequest);
     }
 
@@ -291,6 +297,7 @@ public class NotificationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings saveNotificationSettings(@RequestBody @Valid NotificationSettings notificationSettings,
                                                          @AuthenticationPrincipal SecurityUser user) {
+        // generic permission
         TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
         notificationSettingsService.saveNotificationSettings(tenantId, notificationSettings);
         return notificationSettings;
@@ -299,6 +306,7 @@ public class NotificationController extends BaseController {
     @GetMapping("/notification/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings getNotificationSettings(@AuthenticationPrincipal SecurityUser user) {
+        // generic permission
         TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
         return notificationSettingsService.findNotificationSettings(tenantId);
     }

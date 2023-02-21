@@ -35,8 +35,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -51,7 +53,7 @@ import javax.validation.constraints.NotNull;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class NotificationRule extends BaseData<NotificationRuleId> implements HasTenantId, HasName {
+public class NotificationRule extends BaseData<NotificationRuleId> implements HasName, TenantEntity {
 
     private TenantId tenantId;
     @NotBlank
@@ -85,6 +87,11 @@ public class NotificationRule extends BaseData<NotificationRuleId> implements Ha
     public boolean isValid() {
         return triggerType == triggerConfig.getTriggerType() &&
                 triggerType == recipientsConfig.getTriggerType();
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_RULE;
     }
 
 }

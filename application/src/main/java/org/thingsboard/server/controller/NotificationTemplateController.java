@@ -50,13 +50,12 @@ import org.thingsboard.server.common.data.notification.NotificationDeliveryMetho
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.SlackNotificationDeliveryMethodConfig;
+import org.thingsboard.server.common.data.notification.targets.slack.SlackConversation;
 import org.thingsboard.server.common.data.notification.targets.slack.SlackConversationType;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.notification.targets.slack.SlackConversation;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -66,6 +65,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
+import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 
 @RestController
@@ -97,7 +97,7 @@ public class NotificationTemplateController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationTemplate saveNotificationTemplate(@RequestBody @Valid NotificationTemplate notificationTemplate) throws Exception {
         notificationTemplate.setTenantId(getTenantId());
-        checkEntity(notificationTemplate.getId(), notificationTemplate, Resource.NOTIFICATION_TEMPLATE);
+        checkEntity(notificationTemplate.getId(), notificationTemplate, NOTIFICATION);
         return doSaveAndLog(EntityType.NOTIFICATION_TEMPLATE, notificationTemplate, notificationTemplateService::saveNotificationTemplate);
     }
 
@@ -108,7 +108,7 @@ public class NotificationTemplateController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationTemplate getNotificationTemplateById(@PathVariable UUID id) throws ThingsboardException {
         NotificationTemplateId notificationTemplateId = new NotificationTemplateId(id);
-        return checkEntityId(notificationTemplateId, notificationTemplateService::findNotificationTemplateById, Operation.READ);
+        return checkEntityId(NOTIFICATION, Operation.READ, notificationTemplateId, notificationTemplateService::findNotificationTemplateById);
     }
 
     @ApiOperation(value = "Get notification templates (getNotificationTemplates)",
@@ -123,6 +123,7 @@ public class NotificationTemplateController extends BaseController {
                                                                    @RequestParam(required = false) String sortOrder,
                                                                    @RequestParam(required = false) NotificationType[] notificationTypes,
                                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        // generic permission
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         if (notificationTypes == null || notificationTypes.length == 0) {
             notificationTypes = NotificationType.values();
@@ -139,7 +140,7 @@ public class NotificationTemplateController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public void deleteNotificationTemplateById(@PathVariable UUID id) throws Exception {
         NotificationTemplateId notificationTemplateId = new NotificationTemplateId(id);
-        NotificationTemplate notificationTemplate = checkEntityId(notificationTemplateId, notificationTemplateService::findNotificationTemplateById, Operation.DELETE);
+        NotificationTemplate notificationTemplate = checkEntityId(NOTIFICATION, Operation.DELETE, notificationTemplateId, notificationTemplateService::findNotificationTemplateById);
         doDeleteAndLog(EntityType.NOTIFICATION_TEMPLATE, notificationTemplate, notificationTemplateService::deleteNotificationTemplateById);
     }
 
@@ -151,6 +152,7 @@ public class NotificationTemplateController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public List<SlackConversation> listSlackConversations(@RequestParam SlackConversationType type,
                                                           @AuthenticationPrincipal SecurityUser user) {
+        // generic permission
         NotificationSettings settings = notificationSettingsService.findNotificationSettings(user.getTenantId());
         SlackNotificationDeliveryMethodConfig slackConfig = (SlackNotificationDeliveryMethodConfig)
                 settings.getDeliveryMethodsConfigs().get(NotificationDeliveryMethod.SLACK);

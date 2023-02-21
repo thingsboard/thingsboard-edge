@@ -81,10 +81,7 @@ public enum Resource {
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
     QUEUE(EntityType.QUEUE),
     VERSION_CONTROL,
-    NOTIFICATION_TARGET(EntityType.NOTIFICATION_TARGET),
-    NOTIFICATION_TEMPLATE(EntityType.NOTIFICATION_TEMPLATE),
-    NOTIFICATION_REQUEST(EntityType.NOTIFICATION_REQUEST),
-    NOTIFICATION_RULE(EntityType.NOTIFICATION_RULE);
+    NOTIFICATION;
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -107,6 +104,12 @@ public enum Resource {
             for (Resource resource : Resource.values()) {
                 if (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(entityType)) {
                     resourceByEntityType.put(entityType, resource);
+                }
+                if (resource == NOTIFICATION) {
+                    resourceByEntityType.put(EntityType.NOTIFICATION_REQUEST, NOTIFICATION);
+                    resourceByEntityType.put(EntityType.NOTIFICATION_RULE, NOTIFICATION);
+                    resourceByEntityType.put(EntityType.NOTIFICATION_TARGET, NOTIFICATION);
+                    resourceByEntityType.put(EntityType.NOTIFICATION_TEMPLATE, NOTIFICATION);
                 }
             }
         }
@@ -155,6 +158,7 @@ public enum Resource {
         operationsByResource.put(Resource.AUDIT_LOG, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
         operationsByResource.put(Resource.QUEUE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
         operationsByResource.put(Resource.VERSION_CONTROL, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE)));
+        operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -172,7 +176,9 @@ public enum Resource {
                 Resource.OAUTH2_CONFIGURATION_INFO,
                 Resource.OAUTH2_CONFIGURATION_TEMPLATE,
                 Resource.TB_RESOURCE,
-                Resource.QUEUE)));
+                Resource.QUEUE,
+                Resource.NOTIFICATION
+        )));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -210,7 +216,9 @@ public enum Resource {
                 Resource.TB_RESOURCE,
                 Resource.OTA_PACKAGE,
                 Resource.QUEUE,
-                Resource.VERSION_CONTROL)));
+                Resource.VERSION_CONTROL,
+                Resource.NOTIFICATION
+        )));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -239,7 +247,8 @@ public enum Resource {
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
-                Resource.ASSET_PROFILE)));
+                Resource.ASSET_PROFILE
+        )));
 
     }
 
