@@ -91,4 +91,6 @@ public interface DashboardService extends EntityDaoService {
 
     List<Dashboard> findTenantDashboardsByTitle(TenantId tenantId, String title);
 
+    PageData<DashboardInfo> findDashboardsByTenantIdAndConfigurationText(TenantId tenantId, String searchText, PageLink pageLink);
+
 }
