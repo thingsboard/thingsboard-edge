@@ -431,6 +431,7 @@ integrations:
 reports:
   server:
     endpointUrl: "${REPORTS_SERVER_ENDPOINT_URL:http://localhost:8383}"
+    maxResponseSize: "${MAX_RESPONSE_SIZE:52428800}" # 50MB
   rate_limits:
     enabled: "${REPORTS_TENANT_RATE_LIMITS_ENABLED:false}"
     configuration: "${REPORTS_TENANT_RATE_LIMITS_CONFIGURATION:5:300}"
