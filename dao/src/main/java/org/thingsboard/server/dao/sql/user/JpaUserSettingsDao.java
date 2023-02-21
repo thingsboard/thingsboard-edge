@@ -28,28 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.dao.sql.user;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.security.UserSettings;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.model.sql.UserSettingsEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
+import org.thingsboard.server.dao.user.UserSettingsDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
-@Lazy
-@Data
+@Slf4j
 @Component
-public class TbQueueCoreSettings {
+@SqlDao
+public class JpaUserSettingsDao extends JpaAbstractDaoListeningExecutorService implements UserSettingsDao {
 
-    @Value("${queue.core.topic}")
-    private String topic;
+    @Autowired
+    private UserSettingsRepository userSettingsRepository;
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    @Override
+    public UserSettings save(TenantId tenantId, UserSettings userSettings) {
+        return DaoUtil.getData(userSettingsRepository.save(new UserSettingsEntity(userSettings)));
+    }
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
+    @Override
+    public UserSettings findById(TenantId tenantId, UserId userId) {
+        return DaoUtil.getData(userSettingsRepository.findById(userId.getId()));
+    }
 
-    @Value("${queue.core.partitions}")
-    private int partitions;
+    @Override
+    public void removeById(TenantId tenantId, UserId userId) {
+        userSettingsRepository.deleteById(userId.getId());
+    }
+
 }

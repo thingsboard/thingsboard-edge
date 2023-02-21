@@ -28,30 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.dao.user;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.security.UserSettings;
 
-@Lazy
-@Data
-@Component
-public class TbQueueIntegrationNotificationSettings {
+public interface UserSettingsDao {
 
-    @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
-    private String downlinkTopic;
+    UserSettings save(TenantId tenantId, UserSettings userSettings);
 
-    @Value("${queue.integration.notifications_topic:tb_ie.notifications}")
-    private String notificationsTopic;
+    UserSettings findById(TenantId tenantId, UserId userId);
 
-    @Value("${queue.integration.poll_interval:25}")
-    private long pollInterval;
-
-    @Value("${queue.integration.pack-processing-timeout:10000}")
-    private long packProcessingTimeout;
-
+    void removeById(TenantId tenantId, UserId userId);
 
 }

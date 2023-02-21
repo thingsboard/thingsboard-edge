@@ -28,28 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.dao.entity;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.thingsboard.server.cache.TbTransactionalCache;
 
-@Lazy
-@Data
-@Component
-public class TbQueueCoreSettings {
+import java.io.Serializable;
 
-    @Value("${queue.core.topic}")
-    private String topic;
+public abstract class AbstractCachedService<K extends Serializable, V extends Serializable, E> {
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    @Autowired
+    protected TbTransactionalCache<K, V> cache;
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
-    @Value("${queue.core.partitions}")
-    private int partitions;
+    protected void publishEvictEvent(E event) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            eventPublisher.publishEvent(event);
+        } else {
+            handleEvictEvent(event);
+        }
+    }
+
+    public abstract void handleEvictEvent(E event);
+
 }

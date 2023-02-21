@@ -39,17 +39,24 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 @Lazy
 @Data
 @Component
-public class TbQueueCoreSettings {
+public class TbQueueIntegrationExecutorSettings {
 
-    @Value("${queue.core.topic}")
-    private String topic;
+    @Value("${queue.integration.notifications_topic:tb_ie.notifications}")
+    private String notificationsTopic;
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    @Value("${queue.integration.poll_interval:25}")
+    private long pollInterval;
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
+    @Value("${queue.integration.pack-processing-timeout:10000}")
+    private long packProcessingTimeout;
 
-    @Value("${queue.core.partitions}")
-    private int partitions;
+    @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
+    private String downlinkTopic;
+
+    @Value("${queue.integration.uplink_topic:tb_ie.uplink}")
+    private String uplinkTopic;
+
+    public  String getIntegrationDownlinkTopic(IntegrationType it) {
+        return downlinkTopic + "." + it.name().toLowerCase();
+    }
 }

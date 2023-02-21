@@ -28,28 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.dao.user;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.security.UserSettings;
 
-@Lazy
-@Data
-@Component
-public class TbQueueCoreSettings {
+import java.util.List;
 
-    @Value("${queue.core.topic}")
-    private String topic;
+public interface UserSettingsService {
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    void updateUserSettings(TenantId tenantId, UserId userId, JsonNode settings);
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
+    UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings);
 
-    @Value("${queue.core.partitions}")
-    private int partitions;
+    UserSettings findUserSettings(TenantId tenantId, UserId userId);
+
+    void deleteUserSettings(TenantId tenantId, UserId userId, List<String> jsonPaths);
+
 }

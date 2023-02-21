@@ -163,7 +163,7 @@ public interface AlarmRepository extends JpaRepository<AlarmEntity, UUID> {
             "AND ea.entityType = :affectedEntityType " +
             "AND (:startTime IS NULL OR (a.createdTime >= :startTime AND ea.createdTime >= :startTime)) " +
             "AND (:endTime IS NULL OR (a.createdTime <= :endTime AND ea.createdTime <= :endTime)) " +
-            "AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
+            "AND ((:typesList) IS NULL OR (a.type in (:typesList) AND ea.alarmType in (:typesList))) " +
             "AND ((:severityList) IS NULL OR a.severity in (:severityList)) " +
             "AND ((:statusList) IS NULL OR a.status in (:statusList))")
     long findAlarmCount(@Param("tenantId") UUID tenantId,

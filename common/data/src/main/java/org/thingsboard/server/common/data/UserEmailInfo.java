@@ -28,28 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.common.data;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.UserId;
 
-@Lazy
+@ApiModel
 @Data
-@Component
-public class TbQueueCoreSettings {
+@AllArgsConstructor
+public class UserEmailInfo implements HasId<UserId> {
 
-    @Value("${queue.core.topic}")
-    private String topic;
+    @ApiModelProperty(position = 1, value = "User id")
+    private UserId id;
+    @ApiModelProperty(position = 2, value = "User email", example = "john@gmail.com")
+    private String email;
+    @ApiModelProperty(position = 3, value = "User first name", example = "John")
+    private String firstName;
+    @ApiModelProperty(position = 4, value = "User last name", example = "Brown")
+    private String lastName;
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
-
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
-
-    @Value("${queue.core.partitions}")
-    private int partitions;
 }

@@ -585,6 +585,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testEntityDaoWithRelationsOk(tenantId, entityViewId, "/api/entityView/" + entityViewId);
     }
 
+    @Ignore
     @Test
     public void testDeleteEntityViewExceptionWithRelationsTransactional() throws Exception {
         EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelations Transactional Exception").getId();

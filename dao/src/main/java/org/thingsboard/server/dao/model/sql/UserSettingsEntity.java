@@ -28,28 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.dao.model.sql;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.security.UserSettings;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.model.ToData;
+import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-@Lazy
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.util.UUID;
+
 @Data
-@Component
-public class TbQueueCoreSettings {
+@NoArgsConstructor
+@TypeDef(name = "json", typeClass = JsonStringType.class)
+@Entity
+@Table(name = ModelConstants.USER_SETTINGS_COLUMN_FAMILY_NAME)
+public class UserSettingsEntity implements ToData<UserSettings> {
 
-    @Value("${queue.core.topic}")
-    private String topic;
+    @Id
+    @Column(name = ModelConstants.USER_SETTINGS_USER_ID_PROPERTY)
+    private UUID userId;
+    @Type(type = "json")
+    @Column(name = ModelConstants.USER_SETTINGS_SETTINGS)
+    private JsonNode settings;
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    public UserSettingsEntity(UserSettings userSettings) {
+        this.userId = userSettings.getUserId().getId();
+        if (userSettings.getSettings() != null) {
+            this.settings= userSettings.getSettings();
+        }
+    }
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
+    @Override
+    public UserSettings toData() {
+        UserSettings userSettings = new UserSettings();
+        userSettings.setUserId(new UserId(userId));
+        if (settings != null) {
+            userSettings.setSettings(settings);
+        }
+        return userSettings;
+    }
 
-    @Value("${queue.core.partitions}")
-    private int partitions;
 }

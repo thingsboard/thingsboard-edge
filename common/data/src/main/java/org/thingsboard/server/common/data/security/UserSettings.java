@@ -28,28 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.settings;
+package org.thingsboard.server.common.data.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
-@Lazy
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
+
+@ApiModel
 @Data
-@Component
-public class TbQueueCoreSettings {
+public class UserSettings implements Serializable {
 
-    @Value("${queue.core.topic}")
-    private String topic;
+    private static final long serialVersionUID = 2628320657987010348L;
 
-    @Value("${queue.core.ota.topic:tb_ota_package}")
-    private String otaPackageTopic;
+    @ApiModelProperty(position = 1, value = "JSON object with User id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private UserId userId;
 
-    @Value("${queue.core.usage-stats-topic:tb_usage_stats}")
-    private String usageStatsTopic;
+    @ApiModelProperty(position = 2, value = "JSON object with user settings.", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @NoXss
+    @Length(fieldName = "settings", max = 100000)
+    private transient JsonNode settings;
 
-    @Value("${queue.core.partitions}")
-    private int partitions;
+    @JsonIgnore
+    private byte[] settingsBytes;
+
+    public JsonNode getSettings() {
+        return getJson(() -> settings, () -> settingsBytes);
+    }
+
+    public void setSettings(JsonNode settings) {
+        setJson(settings, json -> this.settings = json, bytes -> this.settingsBytes = bytes);
+    }
 }
