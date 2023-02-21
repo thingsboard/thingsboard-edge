@@ -45,3 +45,6 @@ CREATE TABLE IF NOT EXISTS user_settings (
     settings varchar(100000),
     CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE
 );
+
+ALTER TABLE user_credentials
+    ADD COLUMN IF NOT EXISTS additional_info varchar NULL;
