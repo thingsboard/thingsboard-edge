@@ -31,7 +31,9 @@
 package org.thingsboard.integration.tuya;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
+import org.thingsboard.common.util.JacksonUtil;
 
 import java.util.Map;
 
@@ -44,5 +46,12 @@ public class TuyaIntegrationMsg {
     TuyaIntegrationMsg(JsonNode json, Map<String, String> deviceMetadata) {
         this.json = json;
         this.deviceMetadata = deviceMetadata;
+    }
+
+    public String toString() {
+        ObjectNode msgInJson = JacksonUtil.newObjectNode();
+        msgInJson.set("metadata", JacksonUtil.convertValue(deviceMetadata, ObjectNode.class));
+        msgInJson.set("data", json);
+        return msgInJson.toString();
     }
 }
