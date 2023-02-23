@@ -60,6 +60,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -170,6 +171,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private AdminSettingsService adminSettingsService;
 
     @Autowired
+    private NotificationSettingsService notificationSettingsService;
+
+    @Autowired
     protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
     @Autowired
@@ -242,6 +246,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
             entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+            notificationSettingsService.createDefaultNotificationConfigs(savedTenant.getId());
         }
         return savedTenant;
     }

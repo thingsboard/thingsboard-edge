@@ -265,6 +265,7 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.5.0");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
+                            systemDataLoaderService.createDefaultNotificationConfigs();
                             break;
                         //TODO update CacheCleanupService on the next version upgrade
                         default:
