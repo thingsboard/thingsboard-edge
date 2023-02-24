@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.dao.model.sql.NotificationTemplateEntity;
 
@@ -54,6 +55,7 @@ public interface NotificationTemplateRepository extends JpaRepository<Notificati
                                                                                      @Param("searchText") String searchText,
                                                                                      Pageable pageable);
 
+    @Transactional
     void deleteByTenantId(UUID tenantId);
 
 }
