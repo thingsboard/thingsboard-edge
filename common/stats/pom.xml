@@ -54,10 +54,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>data</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <scope>provided</scope>
