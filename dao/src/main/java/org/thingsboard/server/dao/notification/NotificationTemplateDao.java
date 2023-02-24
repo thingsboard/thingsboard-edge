@@ -43,4 +43,6 @@ public interface NotificationTemplateDao extends Dao<NotificationTemplate> {
 
     PageData<NotificationTemplate> findByTenantIdAndNotificationTypesAndPageLink(TenantId tenantId, List<NotificationType> notificationTypes, PageLink pageLink);
 
+    void removeByTenantId(TenantId tenantId);
+
 }

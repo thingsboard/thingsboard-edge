@@ -69,4 +69,6 @@ public interface NotificationRequestDao extends Dao<NotificationRequest> {
 
     NotificationRequestInfo findInfoById(TenantId tenantId, NotificationRequestId id);
 
+    void removeByTenantId(TenantId tenantId);
+
 }

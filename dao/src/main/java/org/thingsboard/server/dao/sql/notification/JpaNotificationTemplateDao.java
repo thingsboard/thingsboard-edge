@@ -70,6 +70,11 @@ public class JpaNotificationTemplateDao extends JpaAbstractDao<NotificationTempl
     }
 
     @Override
+    public void removeByTenantId(TenantId tenantId) {
+        notificationTemplateRepository.deleteByTenantId(tenantId.getId());
+    }
+
+    @Override
     protected JpaRepository<NotificationTemplateEntity, UUID> getRepository() {
         return notificationTemplateRepository;
     }

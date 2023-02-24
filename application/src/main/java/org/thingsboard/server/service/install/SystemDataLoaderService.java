@@ -61,6 +61,6 @@ public interface SystemDataLoaderService {
 
     void createQueues();
 
-    void createNotificationConfigs();
+    void createDefaultNotificationConfigs();
 
 }

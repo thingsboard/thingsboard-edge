@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -81,7 +82,8 @@ public enum Resource {
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
     QUEUE(EntityType.QUEUE),
     VERSION_CONTROL,
-    NOTIFICATION;
+    NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
+            EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -102,14 +104,8 @@ public enum Resource {
                 continue;
             }
             for (Resource resource : Resource.values()) {
-                if (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(entityType)) {
+                if (resource.getEntityTypes().contains(entityType)) {
                     resourceByEntityType.put(entityType, resource);
-                }
-                if (resource == NOTIFICATION) {
-                    resourceByEntityType.put(EntityType.NOTIFICATION_REQUEST, NOTIFICATION);
-                    resourceByEntityType.put(EntityType.NOTIFICATION_RULE, NOTIFICATION);
-                    resourceByEntityType.put(EntityType.NOTIFICATION_TARGET, NOTIFICATION);
-                    resourceByEntityType.put(EntityType.NOTIFICATION_TEMPLATE, NOTIFICATION);
                 }
             }
         }
@@ -264,17 +260,17 @@ public enum Resource {
         return operationsByResource.get(resource);
     }
 
-    private final EntityType entityType;
+    private final Set<EntityType> entityTypes;
 
     Resource() {
-        this.entityType = null;
+        this.entityTypes = Collections.emptySet();
     }
 
-    Resource(EntityType entityType) {
-        this.entityType = entityType;
+    Resource(EntityType... entityTypes) {
+        this.entityTypes = Set.of(entityTypes);
     }
 
-    public Optional<EntityType> getEntityType() {
-        return Optional.ofNullable(entityType);
+    public Set<EntityType> getEntityTypes() {
+        return entityTypes;
     }
 }

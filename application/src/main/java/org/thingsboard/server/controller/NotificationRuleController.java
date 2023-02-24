@@ -81,7 +81,7 @@ public class NotificationRuleController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     public NotificationRuleInfo getNotificationRuleById(@PathVariable UUID id) throws ThingsboardException {
         NotificationRuleId notificationRuleId = new NotificationRuleId(id);
-        return checkEntityId(NOTIFICATION, Operation.READ, notificationRuleId, notificationRuleService::findNotificationRuleInfoById);
+        return checkEntityId(notificationRuleId, notificationRuleService::findNotificationRuleInfoById,  Operation.READ);
     }
 
     @GetMapping("/rules")
@@ -102,7 +102,7 @@ public class NotificationRuleController extends BaseController {
     public void deleteNotificationRule(@PathVariable UUID id,
                                        @AuthenticationPrincipal SecurityUser user) throws Exception {
         NotificationRuleId notificationRuleId = new NotificationRuleId(id);
-        NotificationRule notificationRule = checkEntityId(NOTIFICATION, Operation.DELETE, notificationRuleId, notificationRuleService::findNotificationRuleById);
+        NotificationRule notificationRule = checkEntityId(notificationRuleId, notificationRuleService::findNotificationRuleById, Operation.DELETE);
         doDeleteAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::deleteNotificationRuleById);
         tbClusterService.broadcastEntityStateChangeEvent(user.getTenantId(), notificationRuleId, ComponentLifecycleEvent.DELETED);
     }

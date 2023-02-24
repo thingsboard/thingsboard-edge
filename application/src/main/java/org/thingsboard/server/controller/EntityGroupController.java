@@ -886,7 +886,7 @@ public class EntityGroupController extends AutoCommitController {
                     if (hasGenenericPermissionToShareGroup(entityGroup.getType())) {
                         Map<Resource, Set<Operation>> genericPermissions = userPermissions.getGenericPermissions();
                         genericPermissions.forEach((resource, operations) -> {
-                            if (resource.equals(Resource.ALL) || (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(EntityType.ENTITY_GROUP))) {
+                            if (resource.equals(Resource.ALL) || (resource.getEntityTypes().contains(EntityType.ENTITY_GROUP))) {
                                 mergedOperations.addAll(operations);
                             }
                         });

@@ -48,4 +48,6 @@ public interface NotificationTargetRepository extends JpaRepository<Notification
 
     List<NotificationTargetEntity> findByTenantIdAndIdIn(UUID tenantId, List<UUID> ids);
 
+    void deleteByTenantId(UUID tenantId);
+
 }
