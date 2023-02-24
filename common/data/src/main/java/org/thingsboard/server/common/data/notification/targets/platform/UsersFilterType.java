@@ -32,11 +32,9 @@ package org.thingsboard.server.common.data.notification.targets.platform;
 
 public enum UsersFilterType {
     USER_LIST,
+    USER_GROUP_LIST,
     CUSTOMER_USERS,
+    USER_ROLE,
     ALL_USERS,
     ORIGINATOR_ENTITY_OWNER_USERS
-
-//    USER_GROUP,
-//    USERS_WITH_ROLE,
-//    QUERY // ?
 }

@@ -109,16 +109,16 @@ public enum Resource {
                 }
             }
         }
-        operationsByResource.put(Resource.ALL, new HashSet<>(Arrays.asList(Operation.values())));
-        operationsByResource.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.WRITE)));
-        operationsByResource.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
+        operationsByResource.put(Resource.ALL, Set.of(Operation.values()));
+        operationsByResource.put(Resource.PROFILE, Set.of(Operation.ALL, Operation.WRITE));
+        operationsByResource.put(Resource.ADMIN_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_INFO, Operation.crudOperations);
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
-        operationsByResource.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE)));
-        operationsByResource.put(Resource.DEVICE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE,
+        operationsByResource.put(Resource.ALARM, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE));
+        operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
-                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT)));
+                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT));
         operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.OTA_PACKAGE, Operation.defaultEntityOperations);
@@ -129,7 +129,7 @@ public enum Resource {
         operationsByResource.put(Resource.EDGE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT_PROFILE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.API_USAGE_STATE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.READ_TELEMETRY)));
+        operationsByResource.put(Resource.API_USAGE_STATE, Set.of(Operation.ALL, Operation.READ, Operation.READ_TELEMETRY));
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
         userOperations.add(Operation.IMPERSONATE);
@@ -150,13 +150,13 @@ public enum Resource {
         operationsByResource.put(Resource.DASHBOARD_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.ROLE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
-        operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
-        operationsByResource.put(Resource.AUDIT_LOG, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
-        operationsByResource.put(Resource.QUEUE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
-        operationsByResource.put(Resource.VERSION_CONTROL, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE)));
+        operationsByResource.put(Resource.WHITE_LABELING, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
+        operationsByResource.put(Resource.AUDIT_LOG, Set.of(Operation.ALL, Operation.READ));
+        operationsByResource.put(Resource.QUEUE, Set.of(Operation.ALL, Operation.READ));
+        operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
 
-        resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
+        resourcesByAuthority.put(Authority.SYS_ADMIN, Set.of(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ADMIN_SETTINGS,
@@ -174,9 +174,9 @@ public enum Resource {
                 Resource.TB_RESOURCE,
                 Resource.QUEUE,
                 Resource.NOTIFICATION
-        )));
+        ));
 
-        resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
+        resourcesByAuthority.put(Authority.TENANT_ADMIN, Set.of(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ALARM,
@@ -214,9 +214,9 @@ public enum Resource {
                 Resource.QUEUE,
                 Resource.VERSION_CONTROL,
                 Resource.NOTIFICATION
-        )));
+        ));
 
-        resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
+        resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ALARM,
@@ -244,7 +244,7 @@ public enum Resource {
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
                 Resource.ASSET_PROFILE
-        )));
+        ));
 
     }
 

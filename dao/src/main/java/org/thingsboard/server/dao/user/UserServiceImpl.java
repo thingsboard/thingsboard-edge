@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -339,6 +340,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         validateIds(groupIds, "Incorrect groupIds " + groupIds);
         validatePageLink(pageLink);
         return userDao.findUsersByEntityGroupIds(toUUIDs(groupIds), pageLink);
+    }
+
+    @Override
+    public PageData<User> findUsersByTenantIdAndRoles(TenantId tenantId, List<RoleId> roles, PageLink pageLink) {
+        return userDao.findUsersByTenantIdAndRolesIds(tenantId, roles, pageLink);
     }
 
     @Override

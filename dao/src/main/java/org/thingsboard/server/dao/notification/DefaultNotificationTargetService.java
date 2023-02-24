@@ -35,7 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
@@ -44,10 +46,13 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.OriginatorEntityOwnerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.user.UserService;
 
@@ -119,6 +124,14 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
                         .map(UserId::new).map(userId -> userService.findUserById(tenantId, userId))
                         .collect(Collectors.toList());
                 return new PageData<>(users, 1, users.size(), false);
+            }
+            case USER_GROUP_LIST: {
+                List<EntityGroupId> groups = DaoUtil.fromUUIDs(((UserGroupListFilter) usersFilter).getGroupsIds(), EntityGroupId::new);
+                return userService.findUsersByEntityGroupIds(groups, pageLink);
+            }
+            case USER_ROLE: {
+                List<RoleId> roles = DaoUtil.fromUUIDs(((UserRoleFilter) usersFilter).getRolesIds(), RoleId::new);
+                return userService.findUsersByTenantIdAndRoles(tenantId, roles, pageLink);
             }
             case CUSTOMER_USERS: {
                 if (tenantId.equals(TenantId.SYS_TENANT_ID)) {

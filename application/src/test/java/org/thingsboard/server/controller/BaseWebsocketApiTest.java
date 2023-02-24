@@ -69,7 +69,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
-import org.thingsboard.server.service.telemetry.sub.SubscriptionErrorCode;
 
 import java.util.Arrays;
 import java.util.Collections;

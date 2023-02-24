@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
@@ -99,5 +98,13 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
                                     Pageable pageable);
 
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.id IN " +
+            "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE (p.tenantId = :tenantId OR :tenantId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "AND p.roleId IN :rolesIds))")
+    Page<UserEntity> findByTenantIdAndRolesIds(@Param("tenantId") UUID tenantId,
+                                               @Param("rolesIds") List<UUID> rolesIds,
+                                               Pageable pageable);
 
 }

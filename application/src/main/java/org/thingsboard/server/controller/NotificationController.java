@@ -243,7 +243,7 @@ public class NotificationController extends BaseController {
                 }));
         preview.setProcessedTemplates(processedTemplates);
 
-        // generic permission
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         Map<String, Integer> recipientsCountByTarget = new HashMap<>();
         List<NotificationTarget> targets = notificationTargetService.findNotificationTargetsByTenantIdAndIds(user.getTenantId(),
                 request.getTargets().stream().map(NotificationTargetId::new).collect(Collectors.toList()));
@@ -277,7 +277,7 @@ public class NotificationController extends BaseController {
                                                                      @RequestParam(required = false) String sortProperty,
                                                                      @RequestParam(required = false) String sortOrder,
                                                                      @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        // generic permission
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return notificationRequestService.findNotificationRequestsInfosByTenantIdAndOriginatorType(user.getTenantId(), EntityType.USER, pageLink);
     }
@@ -294,8 +294,8 @@ public class NotificationController extends BaseController {
     @PostMapping("/notification/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings saveNotificationSettings(@RequestBody @Valid NotificationSettings notificationSettings,
-                                                         @AuthenticationPrincipal SecurityUser user) {
-        // generic permission
+                                                         @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.WRITE);
         TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
         notificationSettingsService.saveNotificationSettings(tenantId, notificationSettings);
         return notificationSettings;
@@ -303,8 +303,8 @@ public class NotificationController extends BaseController {
 
     @GetMapping("/notification/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public NotificationSettings getNotificationSettings(@AuthenticationPrincipal SecurityUser user) {
-        // generic permission
+    public NotificationSettings getNotificationSettings(@AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
         return notificationSettingsService.findNotificationSettings(tenantId);
     }

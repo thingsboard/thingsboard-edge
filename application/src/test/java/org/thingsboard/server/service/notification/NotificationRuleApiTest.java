@@ -199,6 +199,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         Map<Integer, NotificationApiWsClient> clients = new HashMap<>();
         for (int delay = 0; delay <= 5; delay++) {
             Pair<User, NotificationApiWsClient> userAndClient = createUserAndConnectWsClient(Authority.TENANT_ADMIN);
+            loginTenantAdmin();
             NotificationTarget notificationTarget = createNotificationTarget(userAndClient.getFirst().getId());
             escalationTable.put(delay, List.of(notificationTarget.getUuidId()));
             clients.put(delay, userAndClient.getSecond());

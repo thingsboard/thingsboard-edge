@@ -93,7 +93,7 @@ public class NotificationTargetApiTest extends AbstractControllerTest {
     public void givenNotificationTargetWithUsersFromDifferentTenant_whenSaving_returnAccessDeniedError() throws Exception {
         loginDifferentTenant();
         NotificationTarget notificationTarget = new NotificationTarget();
-        notificationTarget.setTenantId(differentTenantId);
+        notificationTarget.setTenantId(savedDifferentTenant.getId());
         notificationTarget.setName("Target 1");
 
         PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();
@@ -143,7 +143,7 @@ public class NotificationTargetApiTest extends AbstractControllerTest {
             assertThat(recipient.getTenantId()).isEqualTo(tenantId);
         });
         assertThat(recipients).anySatisfy(recipient -> {
-            assertThat(recipient.getTenantId()).isEqualTo(differentTenantId);
+            assertThat(recipient.getTenantId()).isEqualTo(savedDifferentTenant.getId());
         });
     }
 
@@ -152,15 +152,16 @@ public class NotificationTargetApiTest extends AbstractControllerTest {
         createDifferentTenant();
         NotificationTarget notificationTarget = new NotificationTarget();
         notificationTarget.setName("Test 1");
-        notificationTarget.setTenantId(differentTenantId);
+        TenantId tenantId = savedDifferentTenant.getId();
+        notificationTarget.setTenantId(tenantId);
         PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();
         targetConfig.setUsersFilter(new AllUsersFilter());
         notificationTarget.setConfiguration(targetConfig);
         save(notificationTarget, status().isOk());
-        assertThat(notificationTargetDao.findByTenantIdAndPageLink(differentTenantId, new PageLink(10)).getData()).isNotEmpty();
+        assertThat(notificationTargetDao.findByTenantIdAndPageLink(tenantId, new PageLink(10)).getData()).isNotEmpty();
 
         deleteDifferentTenant();
-        assertThat(notificationTargetDao.findByTenantIdAndPageLink(differentTenantId, new PageLink(10)).getData()).isEmpty();
+        assertThat(notificationTargetDao.findByTenantIdAndPageLink(tenantId, new PageLink(10)).getData()).isEmpty();
     }
 
     private String saveAndGetError(NotificationTarget notificationTarget, ResultMatcher statusMatcher) throws Exception {

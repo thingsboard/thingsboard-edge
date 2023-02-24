@@ -47,18 +47,20 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
-import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -71,6 +73,7 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.dao.DaoUtil.fromUUIDs;
 
 @RestController
 @TbCoreComponent
@@ -129,7 +132,7 @@ public class NotificationTargetController extends BaseController {
                                                                    @RequestParam int pageSize,
                                                                    @RequestParam int page,
                                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        // generic permission
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         NotificationTargetConfig targetConfig = notificationTarget.getConfiguration();
         if (targetConfig.getType() == NotificationTargetType.PLATFORM_USERS) {
             checkTargetUsers(user, targetConfig);
@@ -144,8 +147,8 @@ public class NotificationTargetController extends BaseController {
     @GetMapping(value = "/targets", params = {"ids"})
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public List<NotificationTarget> getNotificationTargetsByIds(@RequestParam("ids") UUID[] ids,
-                                                                @AuthenticationPrincipal SecurityUser user) {
-        // generic permission
+                                                                @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         List<NotificationTargetId> targetsIds = Arrays.stream(ids).map(NotificationTargetId::new).collect(Collectors.toList());
         return notificationTargetService.findNotificationTargetsByTenantIdAndIds(user.getTenantId(), targetsIds);
     }
@@ -161,7 +164,7 @@ public class NotificationTargetController extends BaseController {
                                                                @RequestParam(required = false) String sortProperty,
                                                                @RequestParam(required = false) String sortOrder,
                                                                @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        // generic permission
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return notificationTargetService.findNotificationTargetsByTenantId(user.getTenantId(), pageLink);
     }
@@ -182,18 +185,30 @@ public class NotificationTargetController extends BaseController {
         if (user.isSystemAdmin()) {
             return;
         }
-        // generic permission for users
+        accessControlService.checkPermission(user, Resource.USER, Operation.READ);
         UsersFilter usersFilter = ((PlatformUsersNotificationTargetConfig) targetConfig).getUsersFilter();
-        if (usersFilter.getType() == UsersFilterType.USER_LIST) {
-            PageDataIterable<User> recipients = new PageDataIterable<>(pageLink -> {
-                return notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(), null, targetConfig, pageLink);
-            }, 200);
-            for (User recipient : recipients) {
-                checkEntity(user, recipient, Operation.READ);
-            }
-        } else if (usersFilter.getType() == UsersFilterType.CUSTOMER_USERS) {
-            CustomerId customerId = new CustomerId(((CustomerUsersFilter) usersFilter).getCustomerId());
-            checkEntityId(customerId, Operation.READ);
+        switch (usersFilter.getType()) {
+            case USER_LIST:
+                PageDataIterable<User> recipients = new PageDataIterable<>(pageLink -> {
+                    return notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(), null, targetConfig, pageLink);
+                }, 200);
+                for (User recipient : recipients) {
+                    checkEntity(user, recipient, Operation.READ);
+                }
+                break;
+            case CUSTOMER_USERS:
+                CustomerId customerId = new CustomerId(((CustomerUsersFilter) usersFilter).getCustomerId());
+                checkEntityId(customerId, Operation.READ);
+                break;
+            case USER_GROUP_LIST:
+                for (EntityGroupId groupId : fromUUIDs(((UserGroupListFilter) usersFilter).getGroupsIds(), EntityGroupId::new)) {
+                    checkEntityGroupId(groupId, Operation.READ);
+                }
+                break;
+            case USER_ROLE:
+                accessControlService.checkPermission(user, Resource.GROUP_PERMISSION, Operation.READ);
+                accessControlService.checkPermission(user, Resource.ROLE, Operation.READ);
+                break;
         }
     }
 

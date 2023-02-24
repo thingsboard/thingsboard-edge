@@ -329,6 +329,7 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
             NotificationApiWsClient wsClient = buildAndConnectWebSocketClient();
             sessions.put(user, wsClient);
 
+            loginTenantAdmin();
             NotificationTarget notificationTarget = createNotificationTarget(user.getId());
             targets.add(notificationTarget.getId());
 

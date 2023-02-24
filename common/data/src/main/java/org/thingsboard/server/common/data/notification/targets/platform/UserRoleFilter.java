@@ -30,25 +30,21 @@
  */
 package org.thingsboard.server.common.data.notification.targets.platform;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(value = UserListFilter.class, name = "USER_LIST"),
-        @Type(value = UserGroupListFilter.class, name = "USER_GROUP_LIST"),
-        @Type(value = CustomerUsersFilter.class, name = "CUSTOMER_USERS"),
-        @Type(value = UserRoleFilter.class, name = "USER_ROLE"),
-        @Type(value = AllUsersFilter.class, name = "ALL_USERS"),
-        @Type(value = OriginatorEntityOwnerUsersFilter.class, name = "ORIGINATOR_ENTITY_OWNER_USERS") // for usage in notification rules
-})
-public interface UsersFilter {
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
+import java.util.UUID;
 
-    @JsonIgnore
-    UsersFilterType getType();
+@Data
+public class UserRoleFilter implements UsersFilter {
+
+    @NotEmpty
+    private List<UUID> rolesIds;
+
+    @Override
+    public UsersFilterType getType() {
+        return UsersFilterType.USER_ROLE;
+    }
 
 }

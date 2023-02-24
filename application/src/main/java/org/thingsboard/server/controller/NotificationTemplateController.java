@@ -123,7 +123,7 @@ public class NotificationTemplateController extends BaseController {
                                                                    @RequestParam(required = false) String sortOrder,
                                                                    @RequestParam(required = false) NotificationType[] notificationTypes,
                                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        // generic permission
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         if (notificationTypes == null || notificationTypes.length == 0) {
             notificationTypes = NotificationType.values();
@@ -151,8 +151,8 @@ public class NotificationTemplateController extends BaseController {
     @GetMapping("/slack/conversations")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public List<SlackConversation> listSlackConversations(@RequestParam SlackConversationType type,
-                                                          @AuthenticationPrincipal SecurityUser user) {
-        // generic permission
+                                                          @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         NotificationSettings settings = notificationSettingsService.findNotificationSettings(user.getTenantId());
         SlackNotificationDeliveryMethodConfig slackConfig = (SlackNotificationDeliveryMethodConfig)
                 settings.getDeliveryMethodsConfigs().get(NotificationDeliveryMethod.SLACK);

@@ -63,7 +63,6 @@ public class NotificationTemplateApiTest extends AbstractNotificationApiTest {
     @Test
     public void givenInvalidNotificationTemplate_whenSaving_returnValidationError() throws Exception {
         NotificationTemplate notificationTemplate = new NotificationTemplate();
-        notificationTemplate.setTenantId(tenantId);
         notificationTemplate.setName(null);
         notificationTemplate.setNotificationType(null);
         notificationTemplate.setConfiguration(null);
