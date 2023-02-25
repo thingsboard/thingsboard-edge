@@ -42,6 +42,7 @@ services:
       INTEGRATION_SECRET: secret-key-123456
       RPC_HOST: haproxy
       RPC_PORT: 9090
+      JAVA_OPTS: "-Xmx256m -Xss256k"
   tb-pe-mqtt-integration:
     restart: always
     image: "thingsboard/tb-pe-mqtt-integration:latest"
@@ -52,6 +53,7 @@ services:
       INTEGRATION_SECRET: secret-key-1234567
       RPC_HOST: haproxy
       RPC_PORT: 9090
+      JAVA_OPTS: "-Xmx256m -Xss256k"
   tb-pe-tcp-integration:
     restart: always
     image: "thingsboard/tb-pe-tcp-udp-integration:latest"
@@ -62,6 +64,7 @@ services:
       INTEGRATION_SECRET: secret-key-tcp
       RPC_HOST: haproxy
       RPC_PORT: 9090
+      JAVA_OPTS: "-Xmx256m -Xss256k"
   tb-pe-udp-integration:
     restart: always
     image: "thingsboard/tb-pe-tcp-udp-integration:latest"
@@ -72,6 +75,7 @@ services:
       INTEGRATION_SECRET: secret-key-udp
       RPC_HOST: haproxy
       RPC_PORT: 9090
+      JAVA_OPTS: "-Xmx256m -Xss256k"
   tb-pe-coap-integration:
     restart: always
     image: "thingsboard/tb-pe-coap-integration:latest"
@@ -82,3 +86,4 @@ services:
       INTEGRATION_SECRET: secret-key-coap
       RPC_HOST: haproxy
       RPC_PORT: 9090
+      JAVA_OPTS: "-Xmx256m -Xss256k"
