@@ -142,6 +142,9 @@ public class NashornJsInvokeService extends AbstractJsInvokeService {
         if (monitorExecutorService != null) {
             monitorExecutorService.shutdownNow();
         }
+        if (jsExecutor != null) {
+            jsExecutor.shutdownNow();
+        }
     }
 
     @Override
