@@ -51,7 +51,10 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -67,6 +70,9 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
@@ -84,6 +90,7 @@ import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -99,7 +106,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
-import org.thingsboard.server.service.mail.TestMailService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
@@ -114,6 +120,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -160,6 +167,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected MockMvc mockMvc;
 
+    protected String currentActivateToken;
+    protected String currentResetPasswordToken;
+
     protected String token;
     protected String refreshToken;
     protected String username;
@@ -184,6 +194,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     private TenantProfileService tenantProfileService;
+
+    @SpyBean
+    protected MailService mailService;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -216,6 +229,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     @Before
     public void setupWebTest() throws Exception {
         log.info("Executing web test setup");
+
+        setupMailServiceMock();
 
         if (this.mockMvc == null) {
             this.mockMvc = webAppContextSetup(webApplicationContext)
@@ -256,6 +271,27 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         resetTokens();
 
         log.info("Executed web test setup");
+    }
+
+    private void setupMailServiceMock() throws ThingsboardException {
+        Mockito.doNothing().when(mailService).sendAccountActivatedEmail(anyString(), anyString());
+        Mockito.doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                String activationLink = (String) args[0];
+                currentActivateToken = activationLink.split("=")[1];
+                return null;
+            }
+        }).when(mailService).sendActivationEmail(anyString(), anyString());
+
+        Mockito.doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                String passwordResetLink = (String) args[0];
+                currentResetPasswordToken = passwordResetLink.split("=")[1];
+                return null;
+            }
+        }).when(mailService).sendResetPasswordEmailAsync(anyString(), anyString());
     }
 
     @After
@@ -392,11 +428,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     private JsonNode getActivateRequest(String password) throws Exception {
-        doGet("/api/noauth/activate?activateToken={activateToken}", TestMailService.currentActivateToken)
+        doGet("/api/noauth/activate?activateToken={activateToken}", this.currentActivateToken)
                 .andExpect(status().isSeeOther())
-                .andExpect(header().string(HttpHeaders.LOCATION, "/login/createPassword?activateToken=" + TestMailService.currentActivateToken));
+                .andExpect(header().string(HttpHeaders.LOCATION, "/login/createPassword?activateToken=" + this.currentActivateToken));
         return new ObjectMapper().createObjectNode()
-                .put("activateToken", TestMailService.currentActivateToken)
+                .put("activateToken", this.currentActivateToken)
                 .put("password", password);
     }
 
