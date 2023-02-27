@@ -282,11 +282,11 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 .put("resetToken", this.currentResetPasswordToken)
                 .put("password", "testPassword2");
 
-        Mockito.doNothing().when(mailService).sendPasswordWasResetEmail(anyString(), anyString());
+        Mockito.doNothing().when(mailService).sendPasswordWasResetEmail(any(), anyString(), anyString());
         JsonNode tokenInfo = readResponse(
                 doPost("/api/noauth/resetPassword", resetPasswordRequest)
                         .andExpect(status().isOk()), JsonNode.class);
-        Mockito.verify(mailService).sendPasswordWasResetEmail(anyString(), anyString());
+        Mockito.verify(mailService).sendPasswordWasResetEmail(any(), anyString(), anyString());
         validateAndSetJwtToken(tokenInfo, email);
 
         doGet("/api/auth/user")

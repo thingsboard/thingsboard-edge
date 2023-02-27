@@ -274,24 +274,24 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     private void setupMailServiceMock() throws ThingsboardException {
-        Mockito.doNothing().when(mailService).sendAccountActivatedEmail(anyString(), anyString());
+        Mockito.doNothing().when(mailService).sendAccountActivatedEmail(any(), anyString(), anyString());
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                String activationLink = (String) args[0];
+                String activationLink = (String) args[1];
                 currentActivateToken = activationLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendActivationEmail(anyString(), anyString());
+        }).when(mailService).sendActivationEmail(any(), anyString(), anyString());
 
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                String passwordResetLink = (String) args[0];
+                String passwordResetLink = (String) args[1];
                 currentResetPasswordToken = passwordResetLink.split("=")[1];
                 return null;
             }
-        }).when(mailService).sendResetPasswordEmailAsync(anyString(), anyString());
+        }).when(mailService).sendResetPasswordEmailAsync(any(), anyString(), anyString());
     }
 
     @After
