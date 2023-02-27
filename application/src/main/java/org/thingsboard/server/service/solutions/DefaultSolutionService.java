@@ -118,6 +118,8 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.asset.TbAssetService;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -209,9 +211,10 @@ public class DefaultSolutionService implements SolutionService {
     private final DashboardService dashboardService;
     private final TbEntityRelationService relationService;
     private final DeviceService deviceService;
-    private final TbNotificationEntityService notificationEntityService;
+    private final TbDeviceService tbDeviceService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
+    private final TbAssetService tbAssetService;
     private final CustomerService customerService;
     private final UserService userService;
     private final EntityGroupService entityGroupService;
@@ -1309,16 +1312,12 @@ public class DefaultSolutionService implements SolutionService {
             case ASSET:
                 AssetId assetId = new AssetId(entityId.getId());
                 Asset asset = assetService.findAssetById(tenantId, assetId);
-                assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
-                notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(), ActionType.DELETED,
-                        Collections.emptyList(), user, assetId.toString());
+                tbAssetService.delete(asset, user);
                 break;
             case DEVICE:
                 DeviceId deviceId = new DeviceId(entityId.getId());
                 Device device = deviceService.findDeviceById(tenantId, deviceId);
-                deviceService.deleteDevice(tenantId, deviceId);
-                notificationEntityService.notifyDeleteDevice(tenantId, deviceId, device.getCustomerId(), device,
-                        Collections.emptyList(), user, deviceId.toString());
+                tbDeviceService.delete(device, user);
                 break;
             case CUSTOMER:
                 customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));
