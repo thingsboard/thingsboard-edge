@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,31 @@
  */
 package org.thingsboard.rule.engine.deduplication;
 
-public enum DeduplicationId {
+import lombok.Data;
+import org.thingsboard.server.common.msg.TbMsg;
 
-    ORIGINATOR, TENANT, CUSTOMER
+import java.util.LinkedList;
+import java.util.List;
 
+@Data
+public class DeduplicationData {
+
+    private final List<TbMsg> msgList;
+    private boolean tickScheduled;
+
+    public DeduplicationData() {
+        msgList = new LinkedList<>();
+    }
+
+    public int size() {
+        return msgList.size();
+    }
+
+    public void add(TbMsg msg) {
+        msgList.add(msg);
+    }
+
+    public boolean isEmpty() {
+        return msgList.isEmpty();
+    }
 }

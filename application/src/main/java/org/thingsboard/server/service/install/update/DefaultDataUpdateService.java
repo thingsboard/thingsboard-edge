@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -324,8 +324,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping blob entities migration");
                 }
                 break;
-            case "3.4.2":
-                log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
+            case "3.4.4":
+                log.info("Updating data from version 3.4.4 to 3.4.4PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
@@ -1492,8 +1492,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private TenantProfileQueueConfiguration getMainQueueConfiguration() {
         TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
-        mainQueueConfiguration.setName("Main");
-        mainQueueConfiguration.setTopic("tb_rule_engine.main");
+        mainQueueConfiguration.setName(DataConstants.MAIN_QUEUE_NAME);
+        mainQueueConfiguration.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
         mainQueueConfiguration.setPollInterval(25);
         mainQueueConfiguration.setPartitions(10);
         mainQueueConfiguration.setConsumerPerPartition(true);

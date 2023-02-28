@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,11 +39,13 @@ import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
+import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomNumber;
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_RULE_CHAIN_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultRuleChainPrototype;
 
 public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
@@ -54,9 +56,7 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
@@ -72,8 +72,8 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void changeName() {
-        String newRuleChainName = "Changed";
-        String ruleChainName = ENTITY_NAME;
+        String newRuleChainName = "Changed" + getRandomNumber();
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
         this.ruleChainName = ruleChainName;
 
@@ -95,7 +95,7 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void deleteName() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
         this.ruleChainName = ruleChainName;
 
@@ -110,7 +110,7 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void saveOnlyWithSpace() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME +random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
         this.ruleChainName = ruleChainName;
 
@@ -125,37 +125,27 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(ruleChainsPage.warningMessage().getText(), EMPTY_RULE_CHAIN_MESSAGE);
     }
 
-    @Test(priority = 20, groups = "smoke")
+    @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
     @Description
-    public void editDescription() {
-        String ruleChainName = ENTITY_NAME;
-        testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
-        this.ruleChainName = ruleChainName;
-        String description = "Description";
+    public void editDescription(String description, String newDescription, String finalDescription) {
+        String name = ENTITY_NAME + random();
+        testRestClient.postRuleChain(EntityPrototypes.defaultRuleChainPrototype(name, description));
+        ruleChainName = name;
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.detailsBtn(ruleChainName).click();
+        ruleChainsPage.detailsBtn(name).click();
         ruleChainsPage.editPencilRuleChainViewBtn().click();
-        ruleChainsPage.descriptionEntityView().sendKeys(description);
+        ruleChainsPage.descriptionEntityView().sendKeys(newDescription);
         ruleChainsPage.doneBtnEditRuleChainView().click();
-        String description1 = ruleChainsPage.descriptionEntityView().getAttribute("value");
-        ruleChainsPage.editPencilRuleChainViewBtn().click();
-        ruleChainsPage.descriptionEntityView().sendKeys(description);
-        ruleChainsPage.doneBtnEditRuleChainView().click();
-        String description2 = ruleChainsPage.descriptionEntityView().getAttribute("value");
-        ruleChainsPage.editPencilRuleChainViewBtn().click();
-        ruleChainsPage.changeDescription("");
-        ruleChainsPage.doneBtnEditRuleChainView().click();
+        ruleChainsPage.setDescription();
 
-        Assert.assertTrue(ruleChainsPage.descriptionEntityView().getAttribute("value").isEmpty());
-        Assert.assertEquals(description, description1);
-        Assert.assertEquals(description + description, description2);
+        Assert.assertEquals(ruleChainsPage.getDescription(), finalDescription);
     }
 
     @Test(priority = 20, groups = "smoke")
     @Description
     public void debugMode() {
-        String ruleChainName = ENTITY_NAME;
+        String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
         this.ruleChainName = ruleChainName;
 
