@@ -37,7 +37,7 @@ import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.common.data.CacheConstants;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("notificationRuleCache")
+@Service
 public class NotificationRuleCaffeineCache extends CaffeineTbTransactionalCache<NotificationRuleCacheKey, NotificationRuleCacheValue> {
 
     public NotificationRuleCaffeineCache(CacheManager cacheManager) {

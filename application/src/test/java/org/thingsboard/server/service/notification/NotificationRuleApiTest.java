@@ -407,7 +407,6 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         DeviceProfileAlarm alarm = new DeviceProfileAlarm();
         alarm.setAlarmType(alarmType);
         alarm.setId(alarmType);
-        alarm.setNotificationRuleId(notificationRuleId);
         AlarmRule alarmRule = new AlarmRule();
         alarmRule.setAlarmDetails("Details");
         AlarmCondition alarmCondition = new AlarmCondition();

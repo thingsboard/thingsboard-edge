@@ -28,41 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.template;
+package org.thingsboard.server.dao.notification.cache;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationType;
-import org.thingsboard.server.common.data.validation.NoXss;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class NotificationTemplate extends BaseData<NotificationTemplateId> implements TenantEntity, HasName {
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class NotificationRequestCacheKey implements Serializable {
 
-    private TenantId tenantId;
-    @NoXss
-    @NotEmpty
-    private String name;
-    @NoXss
-    @NotNull
-    private NotificationType notificationType;
-    @Valid
-    @NotNull
-    private NotificationTemplateConfig configuration;
+    private static final long serialVersionUID = 59871139005482170L;
+
+    private EntityId originatorEntityId;
+    private NotificationRuleId ruleId;
 
     @Override
-    public EntityType getEntityType() {
-        return EntityType.NOTIFICATION_TEMPLATE;
+    public String toString() {
+        return ruleId + "_" + originatorEntityId;
     }
 
 }
