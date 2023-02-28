@@ -39,6 +39,8 @@ import java.util.Base64;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class StringUtils {
+    public static final SecureRandom RANDOM = new SecureRandom();
+
     public static final String EMPTY = "";
 
     public static final int INDEX_NOT_FOUND = -1;
@@ -207,9 +209,8 @@ public class StringUtils {
     }
 
     public static String generateSafeToken(int length) {
-        SecureRandom random = new SecureRandom();
         byte[] bytes = new byte[length];
-        random.nextBytes(bytes);
+        RANDOM.nextBytes(bytes);
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         return encoder.encodeToString(bytes);
     }
