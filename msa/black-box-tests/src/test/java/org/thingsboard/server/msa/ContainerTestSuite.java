@@ -122,6 +122,7 @@ public class ContainerTestSuite {
                     new File(targetDir + "advanced/docker-compose.yml"),
                     new File(targetDir + "advanced/docker-compose.volumes.yml"),
                     new File(targetDir + "advanced/" + (IS_HYBRID_MODE ? "docker-compose.hybrid.yml" : "docker-compose.postgres.yml")),
+                    new File(targetDir + (IS_HYBRID_MODE ? "docker-compose.hybrid-test-extras.yml" : "docker-compose.postgres-test-extras.yml")),
                     new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                     new File(targetDir + "docker-compose.integration.yml"),
                     new File(targetDir + "docker-compose.mosquitto.yml"),
