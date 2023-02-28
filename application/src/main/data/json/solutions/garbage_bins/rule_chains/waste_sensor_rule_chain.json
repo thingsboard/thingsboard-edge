@@ -1,0 +1,248 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Waste Sensor Rule Chain",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 5,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 773,
+          "layoutY": 215
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 362,
+          "layoutY": 302
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 772,
+          "layoutY": 341
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 773,
+          "layoutY": 403
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 773,
+          "layoutY": 475
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 85,
+          "layoutY": 304
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 773,
+          "layoutY": 278
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 477,
+          "layoutY": 137
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count alarms",
+        "debugMode": false,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "lowBatteryAlarmsCount",
+              "typesList": [
+                "Low Battery Level"
+              ],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            },
+            {
+              "target": "fullnessAlarmsCount",
+              "typesList": [
+                "Fullness Level"
+              ],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": false,
+          "propagationEntityTypes": null,
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 774,
+          "layoutY": 138
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "msg.isLowBattery = msg.lowBatteryAlarmsCount > 0 ? true : false;\nmsg.isFull = msg.fullnessAlarmsCount > 0 ? true : false;\n\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1080,
+          "layoutY": 140
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 1,
+        "toIndex": 0,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 2,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 3,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 4,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 6,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 1,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 5,
+        "toIndex": 7,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 9,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

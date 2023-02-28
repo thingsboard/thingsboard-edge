@@ -1,1 +1,51 @@
-[]
+[
+  {
+    "name": "Garbage Bins Emulator",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 7200000,
+    "telemetryProfiles": [
+      {
+        "key": "fullLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 99,
+          "maxStartValue": 99,
+          "minLowValue": 0,
+          "maxLowValue": 0,
+          "minHighValue": 80,
+          "maxHighValue": 100,
+          "minIncrement": 2.5,
+          "maxIncrement": 5.0,
+          "minDecrement": 100,
+          "maxDecrement": 100,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 99,
+          "maxStartValue": 99,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 20,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]
