@@ -125,6 +125,24 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
     }
 
     @Override
+    public ListenableFuture<Void> delete(DeviceId deviceId, User user) {
+        TenantId tenantId = user.getTenantId();
+        Device device = deviceService.findDeviceById(tenantId, deviceId);
+        try {
+            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, deviceId);
+            deviceService.deleteDevice(tenantId, deviceId);
+            notificationEntityService.notifyDeleteDevice(tenantId, deviceId, device.getCustomerId(), device,
+                    relatedEdgeIds, user, deviceId.toString());
+
+            return removeAlarmsByEntityId(tenantId, deviceId);
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE), ActionType.DELETED,
+                    user, e, deviceId.toString());
+            throw e;
+        }
+    }
+
+    @Override
     public DeviceCredentials getDeviceCredentialsByDeviceId(Device device, User user) throws ThingsboardException {
         TenantId tenantId = device.getTenantId();
         DeviceId deviceId = device.getId();

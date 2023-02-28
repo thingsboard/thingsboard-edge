@@ -1325,13 +1325,11 @@ public class DefaultSolutionService implements SolutionService {
                 break;
             case ASSET:
                 AssetId assetId = new AssetId(entityId.getId());
-                Asset asset = assetService.findAssetById(tenantId, assetId);
-                tbAssetService.delete(asset, user);
+                tbAssetService.delete(assetId, user);
                 break;
             case DEVICE:
                 DeviceId deviceId = new DeviceId(entityId.getId());
-                Device device = deviceService.findDeviceById(tenantId, deviceId);
-                tbDeviceService.delete(device, user);
+                tbDeviceService.delete(deviceId, user);
                 break;
             case CUSTOMER:
                 customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));
