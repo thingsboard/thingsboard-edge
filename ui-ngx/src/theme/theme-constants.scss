@@ -247,10 +247,4 @@ $mat-tb-accent: (
   div.tb-dashboard-page.mobile-app {
     @include mat-fab-toolbar-inverse-theme($theme);
   }
-
-  .same-color.mat-form-field-invalid {
-    .mat-form-field-suffix {
-      color: mat.get-color-from-palette($warn, text);
-    }
-  }
 }

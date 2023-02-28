@@ -67,11 +67,15 @@
     tooltip: map_get(mat.$grey-palette, 700)
   );
 
-  $tb-login-theme: mat.define-dark-theme(
-      $tb-primary,
-      $tb-accent,
-      $warn
-  );
+  $tb-login-theme: mat.define-dark-theme((
+    color: (
+      primary: $tb-primary,
+      accent: $tb-accent,
+      warn: $warn
+    ),
+    typography: mat.define-typography-config(),
+    density: 0
+  ));
 
   $color: map_get($tb-login-theme, color);
   $color: map_merge($color, (background: $tb-dark-theme-background));
@@ -95,8 +99,8 @@ $tb-dark-foreground-theme: get-tb-dark-theme(
 );
 
 .tb-dark {
-  @include mat.all-component-themes($tb-theme);
+  @include mat.all-component-colors($tb-theme);
   &.dark-foreground {
-    @include mat.all-component-themes($tb-dark-foreground-theme);
+    @include mat.all-component-colors($tb-dark-foreground-theme);
   }
 }

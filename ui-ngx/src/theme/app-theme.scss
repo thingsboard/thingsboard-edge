@@ -41,10 +41,14 @@ $background: (background: map_get(mat.$grey-palette, 200));
 
 $tb-theme-background: map_merge(mat.$light-theme-background-palette, $background);
 
-$tb-theme: mat.define-light-theme(
-    $tb-primary,
-    $tb-accent
-);
+$tb-theme: mat.define-light-theme((
+  color: (
+    primary: $tb-primary,
+    accent: $tb-accent
+  ),
+  typography: mat.define-typography-config(),
+  density: 0
+));
 
 $color: map_get($tb-theme, color);
 $color: map_merge($color, (background: $tb-theme-background));
