@@ -119,6 +119,7 @@ public class NashornJsInvokeService extends AbstractJsInvokeService {
     }
 
     @PostConstruct
+    @Override
     public void init() {
         super.init();
         jsExecutor = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(jsExecutorThreadPoolSize));
@@ -137,6 +138,7 @@ public class NashornJsInvokeService extends AbstractJsInvokeService {
     }
 
     @PreDestroy
+    @Override
     public void stop() {
         super.stop();
         if (monitorExecutorService != null) {
