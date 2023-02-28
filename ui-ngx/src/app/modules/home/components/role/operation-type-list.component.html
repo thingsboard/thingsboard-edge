@@ -30,16 +30,15 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" [formGroup]="operationTypeListFormGroup" class="mat-block">
-  <mat-chip-list #chipList formControlName="operationTypeList">
-    <mat-chip
+<mat-form-field [formGroup]="operationTypeListFormGroup" class="mat-block">
+  <mat-chip-grid #chipList formControlName="operationTypeList">
+    <mat-chip-row
       *ngFor="let operationType of operationTypeList"
-      [selectable]="!disabled"
       [removable]="!disabled"
       (removed)="remove(operationType)">
       {{operationType.name}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input matInput type="text"
            [fxShow]="!disabled"
            placeholder="{{ !disabled ? ((!operationTypeList || !operationTypeList.length) ? placeholder : secondaryPlaceholder) : '' }}"
@@ -52,7 +51,7 @@
            [matAutocompleteConnectedTo]="origin"
            [matAutocomplete]="operationTypeAutocomplete"
            [matChipInputFor]="chipList">
-  </mat-chip-list>
+  </mat-chip-grid>
   <mat-autocomplete #operationTypeAutocomplete="matAutocomplete"
                     class="tb-autocomplete"
                     [displayWith]="displayOperationTypeFn">

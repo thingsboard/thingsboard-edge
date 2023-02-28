@@ -29,12 +29,24 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host ::ng-deep {
+  /*TODO(mdc-migration): The following rule targets internal classes of radio that may no longer apply for the MDC version.
+ */
+  /*TODO(mdc-migration): The following rule targets internal classes of radio that may no longer apply for the MDC version.
+ */
+  /*TODO(mdc-migration): The following rule targets internal classes of radio that may no longer apply for the MDC version.
+ */
   mat-radio-button {
     display: block;
     margin-bottom: 16px;
+    /*TODO(mdc-migration): The following rule targets internal classes of radio that may no longer apply for the MDC version.
+ */
+    /*TODO(mdc-migration): The following rule targets internal classes of radio that may no longer apply for the MDC version.
+ */
     .mat-radio-label {
       width: 100%;
       align-items: start;
+      /*TODO(mdc-migration): The following rule targets internal classes of radio that may no longer apply for the MDC version.
+ */
       .mat-radio-label-content {
         width: 100%;
       }

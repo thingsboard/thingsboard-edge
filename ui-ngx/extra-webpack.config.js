@@ -46,6 +46,7 @@ dirTree("./src/assets/locale/", {extensions: /\.json$/}, (item) => {
 module.exports = (config, options) => {
 
   config.ignoreWarnings.push(/Usage of '~' in imports is deprecated/);
+  config.ignoreWarnings.push(/var(--tb-login-primary-500) is not a color. Falling back to "dark" tone/);
   config.ignoreWarnings.push(/Did you mean "left" instead?/);
   config.ignoreWarnings.push(/autoprefixer/);
 

@@ -30,9 +30,9 @@
  */
 @import "../../../../../scss/constants";
 
-:host-context(.tb-fullscreen-dialog .mat-dialog-container) {
+:host-context(.tb-fullscreen-dialog .mat-mdc-dialog-container) {
   @media #{$mat-gt-xs} {
-    .mat-dialog-content {
+    .mat-mdc-dialog-content {
       max-height: 75vh;
     }
   }
@@ -126,7 +126,7 @@
 
 :host ::ng-deep {
   width: 720px;
-  .mat-dialog-content {
+  .mat-mdc-dialog-content {
     display: flex;
     flex-direction: column;
     height: 100%;

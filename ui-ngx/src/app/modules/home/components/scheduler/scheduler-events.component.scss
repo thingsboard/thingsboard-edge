@@ -52,14 +52,14 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
 
       .tb-toolbar-button {
         height: 40px;
-        button.mat-icon-button {
+        button.mat-mdc-icon-button {
           margin: 0;
         }
         &.tb-selected {
           background-color: rgba(255, 255, 255, .15);
           border-bottom: $tb-button-selected-color solid 4px;
 
-          button.mat-icon-button {
+          button.mat-mdc-icon-button {
             margin-bottom: -4px;
 
             mat-icon {
@@ -101,12 +101,13 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
   max-height: 404px;
   border-radius: 8px;
   margin-left: -20px;
-
+  /*TODO(mdc-migration): The following rule targets internal classes of menu that may no longer apply for the MDC version.
+ */
   &.mat-menu-below {
     margin-top: -60px;
   }
 
-  .mat-menu-content {
+  .mat-mdc-menu-content {
     padding: 0;
     display: flex;
     flex-direction: column;

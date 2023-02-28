@@ -32,13 +32,17 @@
   height: 100%;
   flex: 1;
   display: flex;
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.
+ */
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.
+ */
   mat-card {
     flex: 1;
     margin: 10px;
-    .mat-card-title {
+    .mat-mdc-card-title {
       min-height: 82px;
     }
-    .mat-card-image {
+    .mat-mdc-card-image {
       width: 100%;
       margin: 0;
       overflow: hidden;
@@ -51,6 +55,8 @@
         cursor: pointer;
       }
     }
+    /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.
+ */
     mat-card-content {
       padding-top: 16px;
       overflow-y: auto;
@@ -68,7 +74,13 @@
 }
 
 :host ::ng-deep {
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.
+ */
+  /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.
+ */
   mat-card {
+    /*TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version.
+ */
     .mat-card-header-text {
       flex: 1;
       margin: 0;

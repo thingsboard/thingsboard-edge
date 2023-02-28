@@ -49,7 +49,7 @@ import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { MatAutocomplete } from '@angular/material/autocomplete';
-import { MatChipList } from '@angular/material/chips';
+import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
@@ -104,7 +104,7 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
 
   @ViewChild('entityGroupInput') entityGroupInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityGroupAutocomplete') matAutocomplete: MatAutocomplete;
-  @ViewChild('chipList', {static: true}) chipList: MatChipList;
+  @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
   entityGroups: Array<EntityGroupInfo> = [];
   filteredEntityGroups: Observable<Array<EntityGroupInfo>>;

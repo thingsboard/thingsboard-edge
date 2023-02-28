@@ -50,7 +50,7 @@
     .mat-content {
       overflow: visible;
     }
-    .mat-slide-toggle {
+    .mat-mdc-slide-toggle {
       width: fit-content;
     }
     .mat-expansion-panel-body {
@@ -64,7 +64,8 @@
 
   .toggle {
     margin: 0 0 8px;
-
+    /*TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.
+ */
     .mat-slide-toggle-content {
       white-space: normal;
     }

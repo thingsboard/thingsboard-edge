@@ -51,7 +51,7 @@ import { BaseData } from '@shared/models/base-data';
 import { EntityId, entityIdEquals } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
-import { MatChipList } from '@angular/material/chips';
+import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { PageLink } from '@shared/models/page/page-link';
@@ -109,7 +109,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
 
   @ViewChild('entityGroupInput') entityGroupInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityGroupAutocomplete') matAutocomplete: MatAutocomplete;
-  @ViewChild('chipList', {static: true}) chipList: MatChipList;
+  @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
   entityGroups: Array<BaseData<EntityId>> = [];
   filteredEntityGroups: Observable<Array<BaseData<EntityId>>>;

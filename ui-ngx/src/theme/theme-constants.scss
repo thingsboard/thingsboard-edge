@@ -215,14 +215,14 @@ $mat-tb-accent: (
     mat-toolbar {
       &.mat-primary {
         @include _mat-toolbar-inverse-color($primary);
-        button.mat-icon-button {
+        button.mat-mdc-icon-button {
           mat-icon {
             color: mat.get-color-from-palette($primary);
           }
         }
       }
     }
-    .mat-fab {
+    .mat-mdc-fab {
       &.mat-primary {
         background: #fff;
         color: mat.get-color-from-palette($primary);

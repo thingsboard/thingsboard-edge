@@ -34,26 +34,35 @@
 
 :host ::ng-deep {
   .tb-entity-group-column {
+    /*TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.
+ */
     mat-select {
       margin: 0;
     }
-
+    /*TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version.
+ */
     mat-checkbox {
       width: 20px;
       margin-bottom: 0;
     }
 
-    button.mat-icon-button {
+    button.mat-mdc-icon-button {
       margin: 0;
     }
 
     mat-form-field {
+      /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
+ */
       .mat-form-field-infix {
         border-top: 0;
       }
+      /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
+ */
       .mat-form-field-underline {
         bottom: 0;
       }
+      /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
+ */
       .mat-form-field-wrapper {
         padding-bottom: 0;
       }

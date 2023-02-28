@@ -531,17 +531,17 @@
                                               </mat-form-field>
                                               <mat-form-field fxFlex class="mat-block">
                                                 <mat-label translate>admin.oauth2.user-groups-name-pattern</mat-label>
-                                                <mat-chip-list #userGroupsNamePatternList>
-                                                  <mat-chip *ngFor="let userGroupNamePattern of registration.get('mapperConfig.basic.userGroupsNamePattern').value; let k = index; trackBy: trackByParams"
+                                                <mat-chip-grid #userGroupsNamePatternList>
+                                                  <mat-chip-row *ngFor="let userGroupNamePattern of registration.get('mapperConfig.basic.userGroupsNamePattern').value; let k = index; trackBy: trackByParams"
                                                             removable (removed)="removeChipValue(k, registration, 'mapperConfig.basic.userGroupsNamePattern')">
                                                     {{userGroupNamePattern}}
                                                     <mat-icon matChipRemove>cancel</mat-icon>
-                                                  </mat-chip>
+                                                  </mat-chip-row>
                                                   <input [matChipInputFor]="userGroupsNamePatternList"
                                                          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                                                          matChipInputAddOnBlur
                                                          (matChipInputTokenEnd)="addChipValue($event, registration, 'mapperConfig.basic.userGroupsNamePattern')">
-                                                </mat-chip-list>
+                                                </mat-chip-grid>
                                               </mat-form-field>
                                             </section>
                                             <section formGroupName="custom"

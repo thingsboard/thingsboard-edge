@@ -1462,7 +1462,7 @@ mat-label {
   // TinyMCE
 
   .tox-tinymce {
-    button:not(.mat-menu-item):not(.mat-sort-header-button) {
+    button:not(.mat-mdc-menu-item):not(.mat-sort-header-button) {
       text-transform: none;
     }
   }
