@@ -186,28 +186,28 @@
             <mat-cell *matCellDef="let schedulerEvent">
               <div fxFlex fxLayout="row" fxLayoutAlign="end">
                 <button *ngIf="editEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.edit-scheduler-event' | translate }}"
                         matTooltipPosition="above"
                         (click)="editSchedulerEvent($event, schedulerEvent)">
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button *ngIf="!editEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.view-scheduler-event' | translate }}"
                         matTooltipPosition="above"
                         (click)="viewSchedulerEvent($event, schedulerEvent)">
                   <mat-icon>more_horiz</mat-icon>
                 </button>
                 <button *ngIf="assignEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'edge.unassign-from-edge' | translate }}"
                         matTooltipPosition="above"
                         (click)="unassignFromEdge($event, schedulerEvent)">
                   <mat-icon>assignment_return</mat-icon>
                 </button>
                 <button *ngIf="deleteEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.delete-scheduler-event' | translate }}"
                         matTooltipPosition="above"
                         (click)="deleteSchedulerEvent($event, schedulerEvent)">

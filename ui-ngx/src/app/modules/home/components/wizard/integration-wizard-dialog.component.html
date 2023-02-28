@@ -202,7 +202,7 @@
                       <mat-label translate>integration.integration-secret</mat-label>
                       <input matInput formControlName="secret">
                     </mat-form-field>
-                    <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+                    <button mat-icon-button ngxClipboard type="button" color="primary"
                             (cbOnSuccess)="onIntegrationInfoCopied('secret')"
                             [cbContent]="integrationConfigurationForm.get('secret').value"
                             matTooltip="{{'integration.copy-integration-secret' | translate}}">
