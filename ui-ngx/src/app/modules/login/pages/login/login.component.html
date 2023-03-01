@@ -32,10 +32,10 @@
 -->
 <div class="tb-login-content mat-app-background tb-dark" [ngClass]="{'dark-foreground': wl.loginDarkForeground$ | async}" fxFlex fxLayoutAlign="center center"
   [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
-  <mat-card appearance="outlined" style="max-height: 100%; overflow-y: auto;">
+  <mat-card appearance="raised" style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
       <form class="tb-login-form" [formGroup]="loginFormGroup" (ngSubmit)="login()">
-        <fieldset [disabled]="isLoading$ | async" fxLayout="column">
+        <fieldset fxLayout="column">
           <div fxLayout="column">
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
               <img [src]="wl.loginLogoSafeUrl$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>

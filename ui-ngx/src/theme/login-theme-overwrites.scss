@@ -29,43 +29,16 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
-@use 'app-theme-overwrites' as overwrites;
-@import 'datepicker-theme';
-@import 'theme-constants';
+@use '@material/card/elevated-card-theme' as mdc-elevated-card-theme;
 
-@include mat.core();
-
-$tb-primary: mat.define-palette($mat-tb-primary);
-$tb-accent: mat.define-palette($mat-tb-accent);
-
-$background: (background: map_get(mat.$grey-palette, 200));
-
-$tb-theme-background: map_merge(mat.$light-theme-background-palette, $background);
-
-$tb-theme: mat.define-light-theme((
-  color: (
-    primary: $tb-primary,
-    accent: $tb-accent
-  ),
-  typography: mat.define-typography-config(),
-  density: 0
-));
-
-$color: map_get($tb-theme, color);
-$color: map_merge($color, (background: $tb-theme-background));
-$tb-theme: map_merge($tb-theme, (color: $color));
-$tb-theme: map_merge($tb-theme, $color);
-
-.tb-default {
-  @include mat.all-component-themes($tb-theme);
-  @include mat-datetimepicker-theme($tb-theme);
-  @include tb-components-theme($tb-theme);
-  @include overwrites.app-theme-overwrites($tb-theme);
-  @include mat.typography-hierarchy($tb-theme);
+@mixin login-theme-overwrites($primary, $config-or-theme) {
+  @include _mat-card-overwrites($primary, $config-or-theme);
 }
 
-.tb-default, .tb-dark {
-  .tb-primary-background {
-    background-color: mat.get-color-from-palette($tb-primary);
+@mixin _mat-card-overwrites($primary, $config-or-theme) {
+  .mat-mdc-card {
+    @include mdc-elevated-card-theme.theme((
+      container-color: mat.get-color-from-palette($primary)
+    ));
   }
 }

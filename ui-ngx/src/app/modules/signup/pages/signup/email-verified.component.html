@@ -32,7 +32,7 @@
 -->
 <div class="tb-email-verified-content mat-app-background tb-dark" fxLayout="row" [ngClass]="{'dark-foreground': wl.loginDarkForeground$ | async}" fxLayoutAlign="center center"
      [ngStyle]="{backgroundColor: (wl.loginPageBackgroundColor$ | async), width: '100%'}">
-  <mat-card appearance="outlined" fxFlex="initial">
+  <mat-card appearance="raised" fxFlex="initial">
     <mat-card-title>
       <span class="mat-headline-5">{{((activated | async) ? 'signup.account-activated' : 'signup.activating-account') | translate}}</span>
     </mat-card-title>

@@ -30,8 +30,6 @@
  */
 @use '@angular/material' as mat;
 
-@include mat.core();
-
 $mat-datetimepicker-selected-today-box-shadow-width: 1px;
 
 @mixin mat-datetimepicker-theme($theme) {
