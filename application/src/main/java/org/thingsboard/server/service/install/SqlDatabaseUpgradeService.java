@@ -42,10 +42,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -55,7 +53,6 @@ import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
-import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -67,7 +64,6 @@ import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
 import org.thingsboard.server.dao.sql.tenant.TenantRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
-import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.service.install.sql.SqlDbHelper;
 
@@ -133,9 +129,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 
     @Autowired
     private TenantService tenantService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private TenantRepository tenantRepository;
@@ -727,34 +720,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             conn.createStatement().execute("ALTER TABLE device_profile ADD CONSTRAINT fk_default_edge_rule_chain_device_profile FOREIGN KEY (default_edge_rule_chain_id) REFERENCES rule_chain(id)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                         } catch (Exception e) {
                         }
-
-                        PageLink pageLink = new PageLink(1000);
-                        PageData<User> users;
-                        do {
-                            List<ListenableFuture<?>> futures = new ArrayList<>();
-                            users = userService.findAllUsers(pageLink);
-                            for (User user : users.getData()) {
-                                futures.add(dbUpgradeExecutor.submit(() -> {
-                                    try {
-                                        log.info("Migrating password history for user: " + user.getId());
-                                        JsonNode additionalInfo = user.getAdditionalInfo();
-                                        if (additionalInfo != null && additionalInfo.has("userPasswordHistory")){
-                                            UserCredentials creds = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-                                            if (creds != null) {
-                                                creds.setAdditionalInfo(JacksonUtil.newObjectNode().set("userPasswordHistory", additionalInfo.get("userPasswordHistory")));
-                                                userService.saveUserCredentials(user.getTenantId(), creds);
-                                            }
-                                            ((ObjectNode) additionalInfo).remove("userPasswordHistory");
-                                            userService.saveUser(user);
-                                        }
-                                    } catch (Exception e){
-                                        log.error("Failed to migrate password history for user: " + user.getId(), e);
-                                    }
-                                }));
-                            }
-                            Futures.allAsList(futures).get();
-                            pageLink = pageLink.nextPageLink();
-                        } while (users.hasNext());
 
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3005000;");
                     }
