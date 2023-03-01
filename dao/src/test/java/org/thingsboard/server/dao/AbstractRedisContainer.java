@@ -30,15 +30,37 @@
  */
 package org.thingsboard.server.dao;
 
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
-import org.junit.runner.RunWith;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.ClassRule;
+import org.junit.rules.ExternalResource;
+import org.testcontainers.containers.GenericContainer;
 
-@RunWith(ClasspathSuite.class)
-@ClassnameFilters(
-        //All the same tests using redis instead of caffeine.
-        "org.thingsboard.server.dao.service.*ServiceSqlTest"
-)
-public class RedisSqlTestSuite extends AbstractRedisContainer {
+import java.util.List;
+
+@Slf4j
+public class AbstractRedisContainer {
+
+    @ClassRule(order = 0)
+    public static GenericContainer redis = new GenericContainer("redis:7.0")
+            .withExposedPorts(6379);
+
+    @ClassRule(order = 1)
+    public static ExternalResource resource = new ExternalResource() {
+        @Override
+        protected void before() throws Throwable {
+            redis.start();
+            System.setProperty("cache.type", "redis");
+            System.setProperty("redis.connection.type", "standalone");
+            System.setProperty("redis.standalone.host", redis.getHost());
+            System.setProperty("redis.standalone.port", String.valueOf(redis.getMappedPort(6379)));
+        }
+
+        @Override
+        protected void after() {
+            redis.stop();
+            List.of("cache.type", "redis.connection.type", "redis.standalone.host", "redis.standalone.port")
+                    .forEach(System.getProperties()::remove);
+        }
+    };
 
 }
