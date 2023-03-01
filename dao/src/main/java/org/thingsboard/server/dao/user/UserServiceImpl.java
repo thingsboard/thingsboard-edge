@@ -168,7 +168,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
             userCredentials.setEnabled(false);
             userCredentials.setActivateToken(StringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
             userCredentials.setUserId(new UserId(savedUser.getUuidId()));
-            userCredentialsDao.save(user.getTenantId(), userCredentials);
+            checkAdditionalInfoAndSaveUserCredentials(user.getTenantId(), userCredentials);
             if (!user.getTenantId().isNullUid()) {
                 entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
             }
@@ -201,7 +201,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
         log.trace("Executing saveUserCredentials [{}]", userCredentials);
         userCredentialsValidator.validate(userCredentials, data -> tenantId);
-        return userCredentialsDao.save(tenantId, userCredentials);
+        return checkAdditionalInfoAndSaveUserCredentials(tenantId, userCredentials);
     }
 
     @Override
@@ -260,7 +260,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         if (userCredentials.getPassword() != null) {
             updatePasswordHistory(userCredentials);
         }
-        return userCredentialsDao.save(tenantId, userCredentials);
+        return checkAdditionalInfoAndSaveUserCredentials(tenantId, userCredentials);
     }
 
     @Override
@@ -415,9 +415,16 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         return failedLoginAttempts;
     }
 
+    private UserCredentials checkAdditionalInfoAndSaveUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
+        if (userCredentials.getAdditionalInfo() == null){
+            userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
+        }
+        return userCredentialsDao.save(tenantId, userCredentials);
+    }
+
     private void updatePasswordHistory(UserCredentials userCredentials) {
         JsonNode additionalInfo = userCredentials.getAdditionalInfo();
-        if (!(additionalInfo instanceof ObjectNode)) {
+        if (additionalInfo == null) {
             additionalInfo = JacksonUtil.newObjectNode();
         }
         Map<String, String> userPasswordHistoryMap = null;
