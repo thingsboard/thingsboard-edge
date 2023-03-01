@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -181,7 +181,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
 
     @Override
     public long findAlarmCount(TenantId tenantId, AlarmQuery query, AlarmFilter filter) {
-        log.trace("Try to find alarm count by entity [{}], status [{}], pageLink [{}] and filter [{}]", query.getAffectedEntityId(), query.getStatus(), query.getPageLink(), filter);
+        log.trace("Try to find alarm count by entity [{}][{}], status [{}], pageLink [{}] and filter [{}]", query.getAffectedEntityId(), query.getAffectedEntityId().getEntityType(), query.getStatus(), query.getPageLink(), filter);
         EntityId affectedEntity = query.getAffectedEntityId();
         Long startTime;
         if (query.getPageLink().getStartTime() != null && filter.getStartTime() != null) {

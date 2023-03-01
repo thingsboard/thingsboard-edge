@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,15 +30,9 @@
  */
 package org.thingsboard.server.transport;
 
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.runner.RunWith;
-import org.thingsboard.server.dao.CustomCassandraCQLUnit;
-import org.thingsboard.server.queue.memory.InMemoryStorage;
-
-import java.util.Arrays;
+import org.thingsboard.server.dao.AbstractNoSqlContainer;
 
 // @voba - merge comment
 // NoSQL is not supported on edge
@@ -46,16 +40,6 @@ import java.util.Arrays;
 @ClasspathSuite.ClassnameFilters({
         "org.thingsboard.server.transport.*.telemetry.timeseries.nosql.*Test",
 })
-public class TransportNoSqlTestSuite {
-
-    @ClassRule
-    public static CustomCassandraCQLUnit cassandraUnit =
-            new CustomCassandraCQLUnit(
-                    Arrays.asList(
-                            new ClassPathCQLDataSet("cassandra/schema-keyspace.cql", false, false),
-                            new ClassPathCQLDataSet("cassandra/schema-ts.cql", false, false),
-                            new ClassPathCQLDataSet("cassandra/schema-ts-latest.cql", false, false)
-                    ),
-                    "cassandra-test.yaml", 30000l);
+public class TransportNoSqlTestSuite extends AbstractNoSqlContainer {
 
 }

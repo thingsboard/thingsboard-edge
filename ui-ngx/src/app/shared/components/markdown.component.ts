@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -103,7 +103,7 @@ export class TbMarkdownComponent implements OnChanges {
   }
 
   private render(markdown: string) {
-    const compiled = this.markdownService.compile(markdown, false);
+    const compiled = this.markdownService.parse(markdown, { decodeHtml: false });
     let template = this.sanitizeCurlyBraces(compiled);
     let markdownClass = 'tb-markdown-view';
     if (this.markdownClass) {

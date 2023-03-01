@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -122,7 +122,7 @@ export class WidgetComponentService {
           }, new WidgetTypeId('1'), new TenantId( NULL_UUID ), 'customWidgetBundle', undefined
         );
       }
-      const initSubject = new ReplaySubject();
+      const initSubject = new ReplaySubject<void>();
       this.init$ = initSubject.asObservable();
 
       const w = (this.window as any);
@@ -360,7 +360,7 @@ export class WidgetComponentService {
               factories: modulesWithFactoriesList.map(mf => mf.factories).flat()
             };
             if (modules && modules.length) {
-              resModulesWithFactories.modules.concat(modules);
+              resModulesWithFactories.modules = resModulesWithFactories.modules.concat(modules);
             }
             return resModulesWithFactories;
           }

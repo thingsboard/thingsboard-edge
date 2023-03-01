@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { PageComponent } from '@shared/components/page.component';
 import { CustomDialogContainerComponent } from './custom-dialog-container.component';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { TbInject } from '@shared/decorators/tb-inject';
 
 export const CUSTOM_DIALOG_DATA = new InjectionToken<any>('ConfigDialogData');
@@ -47,7 +47,7 @@ export interface CustomDialogData {
 }
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class CustomDialogComponent extends PageComponent {
 
   [key: string]: any;
@@ -55,7 +55,7 @@ export class CustomDialogComponent extends PageComponent {
   constructor(@TbInject(Store) protected store: Store<AppState>,
               @TbInject(Router) protected router: Router,
               @TbInject(MatDialogRef) public dialogRef: MatDialogRef<CustomDialogContainerComponent>,
-              @TbInject(FormBuilder) public fb: FormBuilder,
+              @TbInject(UntypedFormBuilder) public fb: UntypedFormBuilder,
               @TbInject(CUSTOM_DIALOG_DATA) public data: CustomDialogData) {
     super(store);
     // @ts-ignore

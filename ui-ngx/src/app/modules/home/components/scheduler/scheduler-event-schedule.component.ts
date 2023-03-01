@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,10 +32,10 @@
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   Validators
 } from '@angular/forms';
@@ -70,7 +70,7 @@ interface SchedulerEventScheduleConfig {
 }
 
 export class EndsOnDateErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null): boolean {
+  isErrorState(control: UntypedFormControl | null): boolean {
     const invalidCtrl = !!(control?.invalid);
     const invalidParent = !!(control?.parent &&
       control?.parent.invalid && control?.parent.hasError('endsOnDateValidator'));
@@ -94,7 +94,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   endsOnDateMatcher = new EndsOnDateErrorStateMatcher();
 
-  scheduleConfigFormGroup: FormGroup;
+  scheduleConfigFormGroup: UntypedFormGroup;
 
   schedulerRepeatTypes = Object.keys(SchedulerRepeatType);
 
@@ -114,7 +114,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   private propagateChange = (v: any) => {};
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.scheduleConfigFormGroup = this.fb.group({
       timezone: [null, [Validators.required]],
@@ -184,7 +184,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   }
 
   private endsOnDateValidator(startDate: string | null, endsOnDate: string | null) {
-    return (group: FormGroup): {[key: string]: any} => {
+    return (group: UntypedFormGroup): {[key: string]: any} => {
       if (group.controls[startDate].valid && group.controls[endsOnDate].valid &&
         (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime())) {
         return { endsOnDateValidator: true };
@@ -193,8 +193,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     };
   }
 
-  weeklyRepeatControl(index: number): FormControl {
-    return (this.scheduleConfigFormGroup.get('weeklyRepeat') as FormArray).at(index) as FormControl;
+  weeklyRepeatControl(index: number): UntypedFormControl {
+    return (this.scheduleConfigFormGroup.get('weeklyRepeat') as UntypedFormArray).at(index) as UntypedFormControl;
   }
 
   registerOnChange(fn: any): void {

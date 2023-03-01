@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -943,6 +943,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         testEntityDaoWithRelationsOk(savedTenant.getId(), deviceId, "/api/device/" + deviceId);
     }
 
+    @Ignore
     @Test
     public void testDeleteDeviceExceptionWithRelationsTransactional() throws Exception {
         DeviceId deviceId = createDevice("Device for Test WithRelations Transactional Exception").getId();

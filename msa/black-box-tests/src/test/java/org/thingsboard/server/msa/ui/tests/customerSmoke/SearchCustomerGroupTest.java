@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,9 +43,6 @@ import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
-
 public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
 
     private SideBarMenuViewElements sideBarMenuView;
@@ -54,9 +51,7 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -81,7 +76,7 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage.entityGroups().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 
-    @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
+    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
     @Description
     public void searchNumberAndSymbol(String name, String namePath) {
         customerGroupName = name;

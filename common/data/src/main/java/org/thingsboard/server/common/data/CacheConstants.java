@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,4 +59,5 @@ public class CacheConstants {
     public static final String AUTO_COMMIT_SETTINGS_CACHE = "autoCommitSettings";
     public static final String TWO_FA_VERIFICATION_CODES_CACHE = "twoFaVerificationCodes";
     public static final String VERSION_CONTROL_TASK_CACHE = "versionControlTask";
+    public static final String USER_SETTINGS_CACHE = "userSettings";
 }

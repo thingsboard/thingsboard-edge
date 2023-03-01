@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -61,7 +61,7 @@ interface EntityTypeInfo {
 })
 export class EntityTypeListComponent implements ControlValueAccessor, OnInit, AfterViewInit {
 
-  entityTypeListFormGroup: FormGroup;
+  entityTypeListFormGroup: UntypedFormGroup;
 
   modelValue: Array<EntityType> | null;
 
@@ -107,7 +107,7 @@ export class EntityTypeListComponent implements ControlValueAccessor, OnInit, Af
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityService: EntityService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.entityTypeListFormGroup = this.fb.group({
       entityTypeList: [this.entityTypeList, this.required ? [Validators.required] : []],
       entityType: [null]

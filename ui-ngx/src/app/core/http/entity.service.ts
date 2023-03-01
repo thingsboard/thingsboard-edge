@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -1213,7 +1213,7 @@ export class EntityService {
               if (result.entityParamName && result.entityParamName.length) {
                 targetParams = stateParams[result.entityParamName];
               }
-              if (targetParams && targetParams.entityId) {
+              if (targetParams && targetParams.entityId && targetParams.entityName) {
                 currentEntity = {
                   id: targetParams.entityId.id,
                   entityType: targetParams.entityId.entityType as EntityType,

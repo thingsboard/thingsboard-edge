@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { AfterViewInit, EventEmitter, Inject, OnInit, Directive } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { RuleChainType } from '@shared/models/rule-chain.models';
 
 export interface RuleNodeConfiguration {
@@ -92,7 +92,7 @@ export interface IRuleNodeConfigurationComponent {
 }
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class RuleNodeConfigurationComponent extends PageComponent implements
   IRuleNodeConfigurationComponent, OnInit, AfterViewInit {
 
@@ -194,7 +194,7 @@ export abstract class RuleNodeConfigurationComponent extends PageComponent imple
 
   protected onValidate() {}
 
-  protected abstract configForm(): FormGroup;
+  protected abstract configForm(): UntypedFormGroup;
 
   protected abstract onConfigurationSet(configuration: RuleNodeConfiguration);
 
@@ -467,6 +467,9 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.geo.TbGpsGeofencingFilterNode': 'ruleNodeGpsGeofencingFilter',
   'org.thingsboard.rule.engine.filter.TbJsFilterNode': 'ruleNodeJsFilter',
   'org.thingsboard.rule.engine.filter.TbJsSwitchNode': 'ruleNodeJsSwitch',
+  'org.thingsboard.rule.engine.filter.TbAssetTypeSwitchNode': 'ruleNodeAssetProfileSwitch',
+  'org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode': 'ruleNodeDeviceProfileSwitch',
+  'org.thingsboard.rule.engine.filter.TbCheckAlarmStatusNode': 'ruleNodeCheckAlarmStatus',
   'org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode': 'ruleNodeMessageTypeFilter',
   'org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode': 'ruleNodeMessageTypeSwitch',
   'org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode': 'ruleNodeOriginatorTypeFilter',

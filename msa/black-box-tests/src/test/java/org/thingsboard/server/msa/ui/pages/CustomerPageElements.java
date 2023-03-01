@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -90,7 +90,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW = "Manage dashboard groups";
     private static final String MANAGE_CUSTOMERS_EDGE_BTN_VIEW = "Manage edge groups";
     private static final String DELETE_FROM_VIEW_BTN = "//tb-customer//span[contains(text(),' Delete')]";
-    private static final String HEADER_NAME_VIEW = "(//header//div[@class='tb-details-title']/span)[2]";
+    private static final String HEADER_NAME_VIEW = "//span[text()='Customer details']/parent::div/div/span";
 
     public WebElement titleFieldAddEntityView() {
         return waitUntilElementToBeClickable(ADD_ENTITY_VIEW + String.format(INPUT_FIELD, INPUT_FIELD_NAME_TITLE));

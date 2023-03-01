@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -163,7 +163,7 @@ public interface AlarmRepository extends JpaRepository<AlarmEntity, UUID> {
             "AND ea.entityType = :affectedEntityType " +
             "AND (:startTime IS NULL OR (a.createdTime >= :startTime AND ea.createdTime >= :startTime)) " +
             "AND (:endTime IS NULL OR (a.createdTime <= :endTime AND ea.createdTime <= :endTime)) " +
-            "AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
+            "AND ((:typesList) IS NULL OR (a.type in (:typesList) AND ea.alarmType in (:typesList))) " +
             "AND ((:severityList) IS NULL OR a.severity in (:severityList)) " +
             "AND ((:statusList) IS NULL OR a.status in (:statusList))")
     long findAlarmCount(@Param("tenantId") UUID tenantId,

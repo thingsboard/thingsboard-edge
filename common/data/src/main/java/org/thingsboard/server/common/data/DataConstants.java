@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -152,4 +152,12 @@ public class DataConstants {
 
     public static final String ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING = "Please create it on the cloud and assign to edge - " +
             "creation of this entity type is not supported on the edge at the moment!";
+
+    public static final String MAIN_QUEUE_NAME = "Main";
+    public static final String MAIN_QUEUE_TOPIC = "tb_rule_engine.main";
+    public static final String HP_QUEUE_NAME = "HighPriority";
+    public static final String HP_QUEUE_TOPIC = "tb_rule_engine.hp";
+    public static final String SQ_QUEUE_NAME = "SequentialByOriginator";
+    public static final String SQ_QUEUE_TOPIC = "tb_rule_engine.sq";
+
 }
