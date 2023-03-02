@@ -40,10 +40,7 @@ public class SparkplugTopic {
 
     /**
      * The Sparkplug namespace version.
-     * For the Sparkplug™ A version of the payload definition, the UTF-8 string constant for the namespace element will be:
-     * “spAv1.0”
-     * For the Sparkplug™ B version of the specification, the UTF-8 string constant for the namespace element will be:
-     * “spBv1.0”
+     * For the Sparkplug™ B version of the specification, the UTF-8 string constant for the namespace element will be: “spBv1.0”
      */
     private String namespace;
 
@@ -120,9 +117,7 @@ public class SparkplugTopic {
     }
 
     /**
-     * Returns the Sparkplug namespace version.
-     *
-     * @return the namespace
+     * @return the Sparkplug namespace version
      */
     public String getNamespace() {
         return namespace;
@@ -138,17 +133,13 @@ public class SparkplugTopic {
     }
 
     /**
-     * Returns the ID of the Edge of Network (EoN) Node.
-     *
-     * @return the edge node ID
+     * @return  the ID of the Edge of Network (EoN) Node
      */
     public String getEdgeNodeId() {
         return edgeNodeId;
     }
 
     /**
-     * Returns the ID of the device.
-     *
      * @return the device ID
      */
     public String getDeviceId() {
@@ -156,8 +147,6 @@ public class SparkplugTopic {
     }
 
     /**
-     * Returns the message type.
-     *
      * @return the message type
      */
     public SparkplugMessageType getType() {
@@ -177,8 +166,6 @@ public class SparkplugTopic {
     }
 
     /**
-     * Returns true if this topic's type matches the passes in type, false otherwise.
-     *
      * @param type the type to check
      * @return true if this topic's type matches the passes in type, false otherwise
      */
