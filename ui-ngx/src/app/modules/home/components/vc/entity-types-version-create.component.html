@@ -78,7 +78,7 @@
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-              <div fxFlex fxLayout="column" fxLayoutGap="8px">
+              <div fxFlex fxLayout="column">
                 <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.USER" formControlName="savePermissions">
                   {{ 'version-control.export-roles' | translate }}
                 </mat-checkbox>

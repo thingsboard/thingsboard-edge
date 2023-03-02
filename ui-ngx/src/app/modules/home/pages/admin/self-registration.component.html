@@ -32,13 +32,13 @@
 -->
 <div>
   <mat-card appearance="outlined" class="settings-card self-registration">
-    <mat-card-title>
-      <div fxLayout="row">
+    <mat-card-header>
+      <mat-card-title>
         <span class="mat-headline-5" translate>self-registration.self-registration</span>
-        <span fxFlex></span>
-        <div tb-help="selfRegistration"></div>
-      </div>
-    </mat-card-title>
+      </mat-card-title>
+      <span fxFlex></span>
+      <div tb-help="selfRegistration"></div>
+    </mat-card-header>
     <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
@@ -113,13 +113,13 @@
               </div>
             </section>
           </fieldset>
-          <mat-checkbox class="checkbox-mobile-settings" formControlName="enableMobileSelfRegistration">
+          <mat-checkbox formControlName="enableMobileSelfRegistration">
             {{ 'self-registration.enable-mobile-self-registration' | translate }}
           </mat-checkbox>
           <fieldset [fxShow]="selfRegistrationFormGroup.get('enableMobileSelfRegistration').value" class="fields-group">
             <legend class="group-title" translate>self-registration.mobile-self-registration-title</legend>
             <div fxLayout="column" style="margin: 8px;">
-              <div fxLayout="row" fxLayoutGap="8px" fxLayout.xs="column" style="padding-bottom: 40px;">
+              <div fxLayout="row" fxLayoutGap="8px" fxLayout.xs="column" style="padding-bottom: 20px;">
                 <mat-form-field fxFlex class="mat-block" floatLabel="always">
                   <mat-label translate>self-registration.mobile-package</mat-label>
                   <input matInput formControlName="pkgName" placeholder="{{ 'self-registration.mobile-package-placeholder' | translate }}" required>
@@ -131,7 +131,7 @@
                 <div fxFlex fxLayout="row">
                   <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>self-registration.mobile-app-secret</mat-label>
-                    <textarea matInput #inputAppSecret mat-autosize formControlName="appSecret" [maxLength]="2048" required></textarea>
+                    <textarea matInput #inputAppSecret mat-autosize formControlName="appSecret" [maxLength]="2048" rows="1" required></textarea>
                     <mat-hint align="end">{{ inputAppSecret.value?.length || 0 }}/2048</mat-hint>
                     <tb-copy-button
                       matSuffix

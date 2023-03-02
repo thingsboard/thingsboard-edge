@@ -29,39 +29,37 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host ::ng-deep {
-  /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-  /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-  /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-  .mat-form-field-wrapper {
-    padding-bottom: 12px;
-    /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-    /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-    .mat-form-field-infix {
-      padding: 0;
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      .mat-mdc-form-field-infix {
+        padding-bottom: 0;
+        .mat-mdc-select {
+          .mat-mdc-select-trigger {
+            .mat-mdc-select-arrow-wrapper {
+              transform: translateY(0);
+              padding-right: 8px;
+              .mat-mdc-select-arrow {
+                color: inherit;
+              }
+            }
+            height: 32px;
+            line-height: 32px;
 
-      .mat-mdc-select {
-        /*TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.
- */
-        .mat-select-trigger {
-          height: 32px;
-          line-height: 32px;
-        }
-        /*TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version.
- */
-        .mat-select-value {
-          color: inherit;
+            .mat-mdc-select-value {
+              color: inherit;
+              padding-left: 8px;
+            }
+          }
+          &.mat-mdc-select-empty {
+            .mat-mdc-select-trigger {
+              .mat-mdc-select-arrow-wrapper {
+                transform: translateY(-12px);
+                padding-right: 0;
+              }
+            }
+          }
         }
       }
-    }
-    /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-    .mat-form-field-underline {
-      bottom: 12px;
     }
   }
 }

@@ -102,13 +102,11 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
   }
 }
 
-.tb-event-schedule-calendar-menu {
+.tb-event-schedule-calendar-menu.mat-mdc-menu-panel.mdc-menu-surface {
   min-width: 256px;
   max-height: 404px;
   border-radius: 8px;
   margin-left: -20px;
-  /*TODO(mdc-migration): The following rule targets internal classes of menu that may no longer apply for the MDC version.
- */
   &.mat-menu-below {
     margin-top: -60px;
   }
@@ -139,10 +137,12 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
 
     .tb-context-menu-title {
       font-weight: 500;
+      line-height: normal;
     }
 
     .tb-context-menu-subtitle {
       font-size: 12px;
+      line-height: normal;
     }
   }
 }
