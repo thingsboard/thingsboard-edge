@@ -33,7 +33,7 @@
 <div #blobEntitiesWidgetContainer class="mat-padding tb-blob-entities tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
   <div [fxShow]="showData"
        fxFlex fxLayout="column" class="tb-blob-entities-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else blobEntitiesTitle" class="tb-blob-entities-title">{{ctx.widgetTitle}}</span>
         <ng-template #blobEntitiesTitle>
@@ -61,7 +61,7 @@
         </button>
       </section>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 matTooltip="{{ 'blob-entity.search' | translate }}"
@@ -81,7 +81,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
                 <span>
                   {{ translate.get('blob-entity.selected-blob-entities', {count: dataSource.selection.selected.length}) | async }}

@@ -51,7 +51,7 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
       box-shadow: none;
 
       .tb-toolbar-button {
-        height: 40px;
+        height: 48px;
         button.mat-mdc-icon-button {
           margin: 0;
         }
@@ -92,6 +92,12 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
       .fc-day-grid-event {
         margin: 2px 5px 0;
       }
+    }
+
+    .mat-mdc-mini-fab.tb-scheduler-nav-button {
+      background: transparent;
+      color: inherit;
+      box-shadow: 0 3px 1px -2px #0003, 0 2px 2px 0 #00000024, 0 1px 5px 0 #0000001f;
     }
   }
 }

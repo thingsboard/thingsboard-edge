@@ -32,7 +32,7 @@
 -->
 <div #schedulerEventWidgetContainer class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
   <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else schedulerEventsTitle" class="tb-scheduler-events-title">{{ctx.widgetTitle}}</span>
         <ng-template #schedulerEventsTitle>
@@ -94,7 +94,7 @@
         </section>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 matTooltip="{{ 'scheduler.search-scheduler-events' | translate }}"
@@ -114,7 +114,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
                 <span>
                   {{ translate.get('scheduler.selected-scheduler-events', {count: dataSource.selection.selected.length}) | async }}
@@ -242,7 +242,7 @@
         <h2 class="mat-headline-5">
           {{ calendarViewTitle() }}
         </h2>
-        <mat-form-field class="mat-block" fxFlex style="margin-left: 16px; margin-right: 16px;">
+        <mat-form-field class="mat-block" fxFlex subscriptSizing="dynamic" style="margin-left: 16px; margin-right: 16px;">
           <mat-label translate>scheduler.calendar-view-type</mat-label>
           <mat-select [(ngModel)]="currentCalendarView" (ngModelChange)="changeCalendarView()">
             <mat-option *ngFor="let viewType of schedulerCalendarViews" [value]="viewType">
@@ -254,12 +254,12 @@
           <button mat-button mat-raised-button [disabled]="isCalendarToday()" (click)="gotoCalendarToday()">
             {{'scheduler.today' | translate}}
           </button>
-          <button mat-button mat-raised-button mat-icon-button (click)="gotoCalendarPrev()"
+          <button mat-mini-fab class="tb-scheduler-nav-button" (click)="gotoCalendarPrev()"
             matTooltip="{{'scheduler.navigate-before' | translate}}"
             matTooltipPosition="above">
             <mat-icon>navigate_before</mat-icon>
           </button>
-          <button mat-button mat-raised-button mat-icon-button (click)="gotoCalendarNext()"
+          <button mat-mini-fab class="tb-scheduler-nav-button" (click)="gotoCalendarNext()"
                   matTooltip="{{'scheduler.navigate-next' | translate}}"
                   matTooltipPosition="above">
             <mat-icon>navigate_next</mat-icon>

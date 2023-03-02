@@ -32,7 +32,7 @@
 -->
 <div class="mat-padding tb-entity-table" [ngClass]="{'tb-absolute-fill': groupPermissionsMode === 'group'}">
   <div fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span class="tb-entity-table-title">{{(isUserGroup ? 'group-permission.user-group-roles' : 'group-permission.entity-group-permissions') | translate}}</span>
         <span fxFlex></span>
@@ -58,7 +58,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 type="button"
@@ -80,7 +80,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
           <span>
             {{ translate.get('group-permission.selected-group-permissions', {count: dataSource.selection.selected.length}) | async }}
