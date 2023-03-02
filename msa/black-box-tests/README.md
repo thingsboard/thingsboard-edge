@@ -30,7 +30,7 @@ As result, in REPOSITORY column, next images should be present:
         thingsboard/tb-pe-http-integration
         thingsboard/tb-pe-mqtt-integration
 
-- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis standalone:
+- Run the black box tests (without ui tests) in the [msa/black-box-tests](../black-box-tests) directory with Redis standalone:
 
         mvn clean install -DblackBoxTests.skip=false
 
@@ -71,11 +71,11 @@ As result, in REPOSITORY column, next images should be present:
 
         mvn clean install -DblackBoxTests.skip=false -DrunLocal=true
 
-- To run ui smoke tests in the [msa/black-box-tests](../black-box-tests) directory specifying suite name: 
+- To run only ui tests in the [msa/black-box-tests](../black-box-tests) directory: 
 
         mvn clean install -DblackBoxTests.skip=false -Dsuite=uiTests
 
-- To run all tests in the [msa/black-box-tests](../black-box-tests) directory specifying suite name:
+- To run all tests (black-box and ui) in the [msa/black-box-tests](../black-box-tests) directory:
 
         mvn clean install -DblackBoxTests.skip=false -Dsuite=all 
 
