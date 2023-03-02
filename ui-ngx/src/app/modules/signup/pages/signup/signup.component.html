@@ -46,16 +46,16 @@
             <span style="height: 4px;" *ngIf="!(isLoading$ | async)"></span>
             <div tb-toast fxLayout="column" class="layout-padding">
               <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
-                <mat-form-field fxFlex class="mat-block">
+                <mat-form-field fxFlex class="mat-block tb-appearance-transparent">
                   <mat-label translate>signup.firstname</mat-label>
                   <input matInput autofocus formControlName="firstName" required/>
                 </mat-form-field>
-                <mat-form-field fxFlex class="mat-block">
+                <mat-form-field fxFlex class="mat-block tb-appearance-transparent">
                   <mat-label translate>signup.lastname</mat-label>
                   <input matInput formControlName="lastName" required/>
                 </mat-form-field>
               </div>
-              <mat-form-field class="mat-block">
+              <mat-form-field class="mat-block tb-appearance-transparent">
                 <mat-label translate>signup.email</mat-label>
                 <input matInput type="email" formControlName="email" email required/>
                 <mat-icon matPrefix>email</mat-icon>
@@ -63,13 +63,13 @@
                   {{ 'user.invalid-email-format' | translate }}
                 </mat-error>
               </mat-form-field>
-              <mat-form-field class="mat-block">
+              <mat-form-field class="mat-block tb-appearance-transparent">
                 <mat-label translate>signup.create-password</mat-label>
                 <input matInput type="password" formControlName="password" required/>
                 <tb-toggle-password matSuffix></tb-toggle-password>
                 <mat-icon matPrefix>lock</mat-icon>
               </mat-form-field>
-              <mat-form-field class="mat-block">
+              <mat-form-field class="mat-block tb-appearance-transparent">
                 <mat-label translate>signup.repeat-password</mat-label>
                 <input matInput type="password" [(ngModel)]="passwordCheck"
                        [ngModelOptions]="{standalone: true}" required/>

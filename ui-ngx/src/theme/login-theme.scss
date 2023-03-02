@@ -78,10 +78,10 @@ $tb-primary: mat.define-palette($mat-tb-primary);
 .tb-dark {
   @include mat.all-component-colors($tb-theme);
   @include overwrites.login-theme-overwrites($tb-primary, $tb-theme);
-  @include app-overwrites.app-theme-overwrites($tb-theme);
+  @include app-overwrites.app-theme-overwrites($tb-primary, $tb-theme);
   &.dark-foreground {
     @include mat.all-component-colors($tb-dark-foreground-theme);
     @include overwrites.login-theme-overwrites($tb-primary, $tb-dark-foreground-theme);
-    @include app-overwrites.app-theme-overwrites($tb-dark-foreground-theme);
+    @include app-overwrites.app-theme-overwrites($tb-primary, $tb-dark-foreground-theme);
   }
 }

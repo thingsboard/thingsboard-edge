@@ -33,15 +33,14 @@
 @use '@material/fab/fab-theme' as mdc-fab-theme;
 @use '@material/checkbox/checkbox-theme' as mdc-checkbox-theme;
 
-@mixin app-theme-overwrites($config-or-theme) {
-  @include _mat-button-overwrites($config-or-theme);
-  @include _mat-fab-overwrites($config-or-theme);
-  @include _mat-checkbox-overwrites($config-or-theme);
+@mixin app-theme-overwrites($primary, $config-or-theme) {
+  @include _mat-button-overwrites($primary, $config-or-theme);
+  @include _mat-fab-overwrites($primary, $config-or-theme);
+  @include _mat-checkbox-overwrites($primary, $config-or-theme);
 }
 
-@mixin _mat-button-overwrites($config-or-theme) {
+@mixin _mat-button-overwrites($primary, $config-or-theme) {
   $config: mat.get-color-config($config-or-theme);
-  $primary: map_get($config, primary);
   $accent: map_get($config, accent);
   .mat-mdc-raised-button {
     &.mat-primary {
@@ -59,9 +58,8 @@
   }
 }
 
-@mixin _mat-fab-overwrites($config-or-theme) {
+@mixin _mat-fab-overwrites($primary, $config-or-theme) {
   $config: mat.get-color-config($config-or-theme);
-  $primary: map_get($config, primary);
   $accent: map_get($config, accent);
   .mat-mdc-fab, .mat-mdc-mini-fab {
     &.mat-primary {
@@ -79,9 +77,8 @@
   }
 }
 
-@mixin _mat-checkbox-overwrites($config-or-theme) {
+@mixin _mat-checkbox-overwrites($primary, $config-or-theme) {
   $config: mat.get-color-config($config-or-theme);
-  $primary: map_get($config, primary);
   $accent: map_get($config, accent);
   .mat-mdc-checkbox {
     &.mat-primary {

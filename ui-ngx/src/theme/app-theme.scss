@@ -60,7 +60,7 @@ $tb-theme: map_merge($tb-theme, $color);
   @include mat.all-component-themes($tb-theme);
   @include mat-datetimepicker-theme($tb-theme);
   @include tb-components-theme($tb-theme);
-  @include overwrites.app-theme-overwrites($tb-theme);
+  @include overwrites.app-theme-overwrites($tb-primary, $tb-theme);
   @include mat.typography-hierarchy($tb-theme);
 }
 
