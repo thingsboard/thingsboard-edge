@@ -59,7 +59,7 @@
 
                        [expanded]="loriotIntegrationConfigForm.get('createLoriotOutput').value || loriotIntegrationConfigForm.get('sendDownlink').value">
     <mat-expansion-panel-header collapsedHeight="72px" expandedHeight="72px">
-      <mat-panel-title fxLayout="column" fxLayoutGap="8px">
+      <mat-panel-title fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="8px">
         <mat-slide-toggle formControlName="createLoriotOutput" (click)="$event.stopPropagation()">
           {{ 'integration.create-loriot-output' | translate }}
         </mat-slide-toggle>

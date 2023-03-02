@@ -31,7 +31,8 @@
 
 -->
 <mat-form-field [formGroup]="selectConverterFormGroup" class="mat-block">
-  <input matInput type="text" placeholder="{{ entityText | translate }}"
+  <mat-label>{{ entityText | translate }}</mat-label>
+  <input matInput type="text"
          #converterInput
          formControlName="entity"
          (focusin)="onFocus()"

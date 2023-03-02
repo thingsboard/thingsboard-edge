@@ -64,11 +64,6 @@
         margin: 0 0 16px;
       }
     }
-    /*TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.
- */
-    .mat-slide-toggle-content {
-      white-space: normal;
-    }
   }
 
   .mat-mdc-radio-group {

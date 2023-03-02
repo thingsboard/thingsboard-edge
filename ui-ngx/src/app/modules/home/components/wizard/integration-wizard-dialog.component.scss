@@ -44,6 +44,7 @@
     position: relative;
 
     .tb-radio-button {
+      display: inline-block;
       margin-bottom: 12px;
     }
 
@@ -126,6 +127,7 @@
 
 :host ::ng-deep {
   width: 720px;
+  display: block;
   .mat-mdc-dialog-content {
     display: flex;
     flex-direction: column;
