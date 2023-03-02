@@ -57,7 +57,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_DAYS" style="padding-bottom: 16px;">
+    <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_DAYS">
       <mat-label translate>scheduler.repeat-every-n-days</mat-label>
       <input type="number" min="1" step="1" matInput formControlName="days" required>
       <mat-error *ngIf="scheduleConfigFormGroup.get('days').hasError('required')">
@@ -67,7 +67,7 @@
         {{ 'scheduler.invalid-repeat-days-value' | translate }}
       </mat-error>
     </mat-form-field>
-    <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_WEEKS" style="padding-bottom: 16px;">
+    <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_WEEKS">
       <mat-label translate>scheduler.repeat-every-n-weeks</mat-label>
       <input type="number" min="1" step="1" matInput formControlName="weeks" required>
       <mat-error *ngIf="scheduleConfigFormGroup.get('weeks').hasError('required')">
