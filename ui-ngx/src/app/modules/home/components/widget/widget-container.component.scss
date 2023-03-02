@@ -28,9 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-
-}
 
 tb-widget.tb-widget {
   position: relative;
@@ -107,6 +104,10 @@ div.tb-widget {
         min-height: 20px;
         font-size: 20px;
         line-height: 20px;
+        svg {
+          width: 20px;
+          height: 20px;
+        }
       }
     }
   }
