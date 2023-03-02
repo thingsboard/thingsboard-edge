@@ -71,6 +71,14 @@ As result, in REPOSITORY column, next images should be present:
 
         mvn clean install -DblackBoxTests.skip=false -DrunLocal=true
 
+- To run only integrations tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=integrations
+
+- To run only connectivity tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=connectivity
+
 - To run only ui tests in the [msa/black-box-tests](../black-box-tests) directory: 
 
         mvn clean install -DblackBoxTests.skip=false -Dsuite=uiTests
