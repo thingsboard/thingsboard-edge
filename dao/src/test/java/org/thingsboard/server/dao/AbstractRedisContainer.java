@@ -28,30 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.tuya;
+package org.thingsboard.server.dao;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.Data;
-import org.thingsboard.common.util.JacksonUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.ClassRule;
+import org.junit.rules.ExternalResource;
+import org.testcontainers.containers.GenericContainer;
 
-import java.util.Map;
+import java.util.List;
 
-@Data
-public class TuyaIntegrationMsg {
+@Slf4j
+public class AbstractRedisContainer {
 
-    private Map<String, String> deviceMetadata;
-    private JsonNode json;
+    @ClassRule(order = 0)
+    public static GenericContainer redis = new GenericContainer("redis:7.0")
+            .withExposedPorts(6379);
 
-    TuyaIntegrationMsg(JsonNode json, Map<String, String> deviceMetadata) {
-        this.json = json;
-        this.deviceMetadata = deviceMetadata;
-    }
+    @ClassRule(order = 1)
+    public static ExternalResource resource = new ExternalResource() {
+        @Override
+        protected void before() throws Throwable {
+            redis.start();
+            System.setProperty("cache.type", "redis");
+            System.setProperty("redis.connection.type", "standalone");
+            System.setProperty("redis.standalone.host", redis.getHost());
+            System.setProperty("redis.standalone.port", String.valueOf(redis.getMappedPort(6379)));
+        }
 
-    public String toString() {
-        ObjectNode msgInJson = JacksonUtil.newObjectNode();
-        msgInJson.set("metadata", JacksonUtil.convertValue(deviceMetadata, ObjectNode.class));
-        msgInJson.set("data", json);
-        return msgInJson.toString();
-    }
+        @Override
+        protected void after() {
+            redis.stop();
+            List.of("cache.type", "redis.connection.type", "redis.standalone.host", "redis.standalone.port")
+                    .forEach(System.getProperties()::remove);
+        }
+    };
+
 }
