@@ -63,13 +63,14 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.credentials.BasicCredentials;
 import org.thingsboard.rule.engine.credentials.ClientCredentials;
 import org.thingsboard.rule.engine.credentials.CredentialsType;
-<<<<<<< HEAD
 import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
-=======
 import org.thingsboard.server.common.data.StringUtils;
->>>>>>> opensource/feature/rest-api-node
+import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -215,7 +216,6 @@ public class TbHttpClient {
             config.isIgnoreRequestBody()) {
             entity = new HttpEntity<>(headers);
         } else {
-            entity = new HttpEntity<>(getData(ctx, msg), headers);
             String data = msg.getData();
             if (config.isTrimDoubleQuotes()) {
                 data = trimDoubleQuotes(data);
