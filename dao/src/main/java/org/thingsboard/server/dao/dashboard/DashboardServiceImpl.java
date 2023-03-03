@@ -32,8 +32,6 @@ package org.thingsboard.server.dao.dashboard;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -42,15 +40,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -60,7 +56,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.query.EntityFilterType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.customer.CustomerDao;
@@ -147,9 +142,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing saveDashboard [{}]", dashboard);
         dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
         try {
-            for (JsonNode entityAlias : dashboard.getEntityAliasesConfig()) {
-                updateDashboardFilterIfRequired(entityAlias);
-            }
             Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
             if (dashboard.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
@@ -158,29 +150,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         } catch (Exception e) {
             checkConstraintViolation(e, "dashboard_external_id_unq_key", "Dashboard with such external id already exists!");
             throw e;
-        }
-    }
-
-    private static void updateDashboardFilterIfRequired(JsonNode entityAlias) {
-        JsonNode filter = entityAlias.get("filter");
-        if (filter == null || filter.get("type") == null) {
-            return;
-        }
-        for (String filterTypeForUpdate : DataConstants.DASHBOARD_FILTER_TYPES_FOR_UPDATE) {
-            updateFilterByTypeIfRequired(filter, filterTypeForUpdate);
-        }
-    }
-
-    private static void updateFilterByTypeIfRequired(JsonNode filter, String filterTypeSingularLabel) {
-        if (filter.get(filterTypeSingularLabel) == null) {
-            return;
-        }
-        if (filterTypeSingularLabel.equals(filter.get("type").asText())) {
-            ArrayNode filterTypes = JacksonUtil.OBJECT_MAPPER.createArrayNode();
-            filterTypes.add(filter.get(filterTypeSingularLabel).asText());
-            final String filterTypesPluralLabel = String.format("%ss", filterTypeSingularLabel);
-            ((ObjectNode) filter).set(filterTypesPluralLabel, filterTypes);
-            ((ObjectNode) filter).remove(filterTypeSingularLabel);
         }
     }
 
@@ -326,11 +295,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public List<Dashboard> findTenantDashboardsByTitle(TenantId tenantId, String title) {
         return dashboardDao.findByTenantIdAndTitle(tenantId.getId(), title);
-    }
-
-    @Override
-    public PageData<DashboardInfo> findDashboardsByTenantIdAndConfigurationText(TenantId tenantId, String searchText, PageLink pageLink) {
-        return dashboardInfoDao.findByTenantIdAndConfigurationText(tenantId.getId(), searchText, pageLink);
     }
 
     private PaginatedRemover<TenantId, DashboardInfo> tenantDashboardsRemover =
