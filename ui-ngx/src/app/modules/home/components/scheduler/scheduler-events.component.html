@@ -298,20 +298,18 @@
             </div>
           </ng-template>
         </mat-menu>
-        <full-calendar #calendar
-                       height="parent"
-                       [eventSources]="eventSources"
-                       [editable]="editEnabled"
-                       [eventDurationEditable]="false"
-                       [allDaySlot]="false"
-                       [header]="false"
-                       timeZone="UTC"
-                       (eventClick)="onEventClick($event)"
-                       (dateClick)="onDayClick($event)"
-                       (eventDrop)="onEventDrop($event)"
-                       (eventRender)="eventRender($event)"
-                       [defaultView]="currentCalendarViewValue"
-                       [plugins]="calendarPlugins">
+        <full-calendar #calendar [options]="calendarOptions">
+          <ng-template #eventContent let-arg>
+            <div class="fc-event-main-frame">
+              <div class="fc-event-time">
+                {{ arg.timeText }}
+              </div>
+              <div class="fc-event-title-container">
+                <b class="fc-event-title fc-sticky" *ngIf="arg.event.extendedProps.repeatInterval">{{ arg.event.extendedProps.repeatInterval }}&nbsp;</b>
+                <div class="fc-event-title fc-sticky">{{ arg.event.title }}</div>
+              </div>
+            </div>
+          </ng-template>
         </full-calendar>
       </div>
     </div>
