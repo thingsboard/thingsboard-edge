@@ -69,7 +69,7 @@ import { MatSort, SortDirection } from '@angular/material/sort';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isEmptyStr, isNotEmptyStr, isNumber } from '@core/utils';
+import { deepClone, isDefined, isEmptyStr, isNotEmptyStr, isNumber, isString } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -410,7 +410,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               this.updateData();
             } else {
               const queryParams: PageQueryParam = {
-                textSearch: encodeURI(this.pageLink.textSearch) || null,
+                textSearch: isString(this.pageLink.textSearch) && this.pageLink.textSearch !== ''
+                  ? encodeURI(this.pageLink.textSearch) : null,
                 page: null
               };
               this.updatedRouterQueryParams(queryParams);
@@ -468,7 +469,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
             this.textSearchMode = true;
             this.pageLink.textSearch = decodeURI(params.textSearch);
           } else {
-            this.textSearchMode = false;
             this.pageLink.textSearch = null;
           }
           this.updateData();
