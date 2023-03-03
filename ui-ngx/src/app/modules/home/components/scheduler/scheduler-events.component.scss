@@ -84,13 +84,33 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
       min-height: 0;
       box-sizing: border-box;
 
-      .fc-event {
+      .fc-event:not(.fc-list-event) {
         border-radius: 2px;
         box-shadow: 0 4px 20px 0 rgba(0, 0, 0, .14), 0 7px 10px -5px rgba(58, 135, 173, .4);
       }
 
       .fc-day-grid-event {
         margin: 2px 5px 0;
+      }
+
+      a {
+        font-weight: inherit;
+        color: inherit;
+        text-decoration: inherit;
+        border: inherit;
+        transition: inherit;
+
+        &:hover, &:focus {
+          border: inherit;
+        }
+      }
+
+      table > tbody {
+        cursor: pointer;
+      }
+
+      .fc-event-title-container {
+        display: flex;
       }
     }
 
