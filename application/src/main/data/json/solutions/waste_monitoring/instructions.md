@@ -8,14 +8,16 @@ This dashboard is intended for monitoring the fullness of trash bins, viewing fu
 
 - **Main state** is intended for monitoring the placement and filling of garbage bins, management devices, and their status. The Main state contains:
 
-  - A section with an interactive map that displays the placement of garbage cans and their fullness in real-time. The fullness status is displayed as an indicator (red indicates that the tank is critically full or is already completely full). To get more information, click on the garbage can marker - a popup with detailed information will appear.
-  - The Bins section displays a list of all existing bins. You can delete or edit existing ones. The main list of trash cans contains the following data: “Serial Number”, “Address”, “Connection”, “Fullness”, “Battery Level”, and action buttons.
+  - A section with an interactive map that displays the placement of garbage bins and their fullness in real-time. The fullness status is displayed as an indicator (red indicates that the tank is critically full or is already completely full). To get more information, click on the garbage bin marker - a popup with detailed information will appear.
+  - The Bins section displays a list of all existing bins. You can delete or edit existing ones. The main list of trash bins contains the following data: “Serial Number”, “Address”, “Connection”, “Fullness”, “Battery Level”, and action buttons.
     The user can create/add new sensors by clicking on the "+" button. Creation takes place by uploading a CSV file - in this way, you can download unlimited devices simultaneously.
     You can also filter the display of bins in the list using the buttons/tabs according to the following parameters: “Total bins”, “Fullness”, “Low Battery,” and “Offline”. By default, the applied parameter is “Total bins”.
 
   - The alarms section is designed to display all alarms related to the fullness sensors and their battery level. You can set the conditions under which alarms will be triggered by clicking the “Alarm Rules” button.
 
-<br>
+<div class="img-float" style="max-width:50%;margin: 10px auto">
+<img src="https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-1.png" alt="Waste Monitoring">
+</div>
 
 The user can go to the bin state in several ways: click on the line in the Bins section of a specific bin or click the "Edit" icon/button, as well as on the popup when clicking on the marker of the interactive map - click on the "Details" button.
 
@@ -26,28 +28,28 @@ The user can go to the bin state in several ways: click on the line in the Bins 
   - Sensor's section with detailed info. Contains the following data: "Serial number", "Address", "Latitude", "Longitude", "Fullness level", "Battery level", "Connection" status, and "Last update".
   - By clicking on the "Edit" button of the sensor section, the user can edit the sensor's main fields.
   - The map section is designed to track the sensor's placement and can manually edit the placement.
-  - Fullness section designed for monitoring and maintaining tank fullness statistics in real time.
+  - Fullness section designed for monitoring and maintaining bin fullness statistics in real time.
   - Battery level section is designed for monitoring and keeping statistics of the battery level of the sensor in real-time.
   - The Alarms section is designed to display and monitor the main alarms that occur.
 
-
-<div class="img-float" style="max-width:50%;margin: 20px auto;float:right">
-<img src="/images/solutions/garbage_bins/waste-monitoring-1.png" alt="Waste Monitoring">
+<div class="img-float" style="max-width:50%;margin: 10px auto">
+<img src="https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-2.png" alt="Waste Monitoring">
 </div>
-
-
 
 
 #### Rule Chains
 
-Waste Sensor Rule Chain
+The **"Waste Sensor Rule Chain"** is processing all incoming messages from waste sensors. This rule chain is responsible for counting alarms of both types and updating the status of the garbage bin by fullness and battery levels.
 
+<div class="img-float" style="max-width:50%;margin: 10px auto">
+<img src="https://thingsboard.io/images/solutions/waste_monitoring/rule-chain.png" alt="Waste Monitoring">
+</div>
 
 #### Device Profiles
 
 The device profile listed below uses predefined values for alarm thresholds. Administrators may configure alarm thresholds for all devices by navigating to alarm rules.
 
-##### Waste Sensor
+###### Waste Sensor
 
 The profile by default is configured to raise alarms if:
 - the value of "batteryLevel" is equal or less than a configured. By default, the value is set to 30%.
@@ -88,15 +90,25 @@ ${all_entities}
 
 #### Examples
 
-##### How to raise the alarm if the bin is full
+##### Raise the alarm if the bin is full
 
 Let's recreate an event in which the garbage bin will be filled to 100% and require the responsible persons' fastest response.
 
 To do this, let's take, for example, "Waste Sensor" - "389021001241", which currently has 18% capacity.
 
-<img src="">
+<div class="img-float" style="width:40%;margin: 20px auto">
+<img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-1.png" alt="Waste Monitoring">
+</div>
 
 Also, the alarm is currently configured and will trigger if the FULLNESS value is greater than or equal to 90%.
+
+<br>
+
+<div class="img-float" style="max-width:20%;margin: 20px auto">
+<img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-2.png" alt="Waste Monitoring">
+</div>
+
+<br>
 
 Then to emulate the fullness - “fullLevel” data of device "389021001241" execute the following command:
 
@@ -104,7 +116,11 @@ Then to emulate the fullness - “fullLevel” data of device "389021001241" exe
 curl -v -X POST -d "{\"fullLevel\": 100 }" ${BASE_URL}/api/v1/${389021001241ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-<img src="">
+<br>
+
+<div class="img-float" style="max-width:50%;margin: 20px auto">
+<img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-3.png" alt="Waste Monitoring">
+</div>
 
 After the data has been sent, we can see that the fullness is 100% - accordingly, an alarm has been displayed, which will inform the appropriate person about the need to service the bin.
 
