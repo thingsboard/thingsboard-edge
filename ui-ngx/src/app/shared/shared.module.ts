@@ -201,6 +201,7 @@ import { TbSparkLineComponent } from './components/spark-line/tb-spark-line.comp
 import { CustomDateAdapter } from '@shared/adapter/custom-datatime-adapter';
 import { CustomPaginatorIntl } from '@shared/services/custom-paginator-intl';
 import { TbScriptLangComponent } from '@shared/components/script-lang.component';
+import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -216,6 +217,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbJsonPipe,
     FileSizePipe,
     SafePipe,
+    DateAgoPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -339,6 +341,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbJsonPipe,
     FileSizePipe,
     SafePipe,
+    DateAgoPipe,
     SelectableColumnsPipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
@@ -561,6 +564,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyboardShortcutPipe,
     FileSizePipe,
     SafePipe,
+    DateAgoPipe,
     SelectableColumnsPipe,
     RouterModule,
     HasGenericPermissionPipe,

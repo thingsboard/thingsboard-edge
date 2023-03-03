@@ -107,6 +107,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
 import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
+import { UserId } from '@shared/models/id/user-id';
 
 export interface IWidgetAction {
   name: string;
@@ -438,8 +439,8 @@ export class WidgetContext {
     return new TimePageLink(pageSize, page, textSearch, sortOrder, startTime, endTime);
   }
 
-  alarmQuery(entityId: EntityId, pageLink: TimePageLink, searchStatus: AlarmSearchStatus, status: AlarmStatus, fetchOriginator: boolean) {
-    return new AlarmQuery(entityId, pageLink, searchStatus, status, fetchOriginator);
+  alarmQuery(entityId: EntityId, pageLink: TimePageLink, searchStatus: AlarmSearchStatus, status: AlarmStatus, assigneeId: UserId, fetchOriginator: boolean) {
+    return new AlarmQuery(entityId, pageLink, searchStatus, status, assigneeId, fetchOriginator);
   }
 }
 
