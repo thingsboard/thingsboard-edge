@@ -42,6 +42,7 @@ import { BroadcastService } from '@app/core/services/broadcast.service';
 import { AssetService } from '@core/http/asset.service';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityViewService } from '@core/http/entity-view.service';
+import { SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-entity-subtype-select',
@@ -58,6 +59,9 @@ export class EntitySubTypeSelectComponent implements ControlValueAccessor, OnIni
   subTypeFormGroup: UntypedFormGroup;
 
   modelValue: string | null = '';
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
 
   @Input()
   entityType: EntityType;

@@ -29,11 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host ::ng-deep {
-  .mat-slide-toggle {
+  .mat-mdc-slide-toggle {
     margin: 16px 0 8px;
-
-    .mat-slide-toggle-content {
-      white-space: normal;
-    }
   }
 }
