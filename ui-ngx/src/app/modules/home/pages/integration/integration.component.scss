@@ -98,12 +98,6 @@
   mat-expansion-panel {
     margin-bottom: 16px;
   }
-  /*TODO(mdc-migration): The following rule targets internal classes of checkbox that may no longer apply for the MDC version.
- */
-  mat-checkbox {
-    margin-bottom: 16px;
-    display: block;
-  }
 
   fieldset {
     min-width: 0;

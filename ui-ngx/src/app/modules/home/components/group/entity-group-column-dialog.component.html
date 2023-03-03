@@ -93,10 +93,10 @@
           {{ 'entity-group.default-sort-order-required' | translate }}
         </mat-error>
       </mat-form-field>
-      <mat-checkbox formControlName="mobileHide" style="padding-bottom: 16px;">
+      <mat-checkbox formControlName="mobileHide">
         {{ 'entity-group.hide-in-mobile-view' | translate }}
       </mat-checkbox>
-      <mat-checkbox formControlName="useCellStyleFunction" style="padding-bottom: 16px;">
+      <mat-checkbox formControlName="useCellStyleFunction">
         {{ 'entity-group.use-cell-style-function' | translate }}
       </mat-checkbox>
       <tb-js-func [fxShow]="columnFormGroup.get('useCellStyleFunction').value"
@@ -106,7 +106,7 @@
         helpId="entity_group/cell_style_fn"
         [validationArgs]="[]">
       </tb-js-func>
-      <mat-checkbox formControlName="useCellContentFunction" style="padding-bottom: 16px;">
+      <mat-checkbox formControlName="useCellContentFunction">
         {{ 'entity-group.use-cell-content-function' | translate }}
       </mat-checkbox>
       <tb-js-func [fxShow]="columnFormGroup.get('useCellContentFunction').value"

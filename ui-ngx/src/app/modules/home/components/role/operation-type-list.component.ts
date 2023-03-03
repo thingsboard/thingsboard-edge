@@ -60,7 +60,7 @@ interface OperationTypeInfo {
 @Component({
   selector: 'tb-operation-type-list',
   templateUrl: './operation-type-list.component.html',
-  styleUrls: ['./operation-type-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
