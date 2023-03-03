@@ -41,8 +41,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -53,11 +51,9 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -74,6 +70,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.AssetSearchQueryFilter;
+import org.thingsboard.server.common.data.query.AssetTypeFilter;
 import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EdgeSearchQueryFilter;
@@ -84,10 +81,12 @@ import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.query.EntityDataSortOrder;
 import org.thingsboard.server.common.data.query.EntityGroupFilter;
+import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.EntityListFilter;
+import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.KeyFilter;
@@ -146,9 +145,6 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     private MergedUserPermissions mergedUserPermissionsPE;
 
     @Autowired
-    private JdbcTemplate template;
-
-    @Autowired
     private RelationRepository relationRepository;
 
     @Before
@@ -162,6 +158,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
         mergedUserPermissionsPE = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
@@ -1095,6 +1092,469 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
         PageData<EntityData> result = searchEntities(query);
         assertEquals(devices.size(), result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_entity_name_starts_with() {
+        List<Device> devices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device " + i + " test");
+            device.setType("default");
+            devices.add(device);
+        }
+
+        devices.forEach(deviceService::saveDevice);
+
+        EntityNameFilter deviceTypeFilter = new EntityNameFilter();
+        deviceTypeFilter.setEntityType(EntityType.DEVICE);
+        deviceTypeFilter.setEntityNameFilter("Device");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(deviceTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("Device%");
+
+        result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("%Device%");
+
+        result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("%Device");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_entity_name_ends_with() {
+        List<Device> devices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device " + i + " test");
+            device.setType("default");
+            devices.add(device);
+        }
+
+        devices.forEach(deviceService::saveDevice);
+
+        EntityNameFilter deviceTypeFilter = new EntityNameFilter();
+        deviceTypeFilter.setEntityType(EntityType.DEVICE);
+        deviceTypeFilter.setEntityNameFilter("%test");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(deviceTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("%test%");
+
+        result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_entity_name_contains() {
+        List<Device> devices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device test" + i);
+            device.setType("default");
+            devices.add(device);
+        }
+
+        devices.forEach(deviceService::saveDevice);
+
+        EntityNameFilter deviceTypeFilter = new EntityNameFilter();
+        deviceTypeFilter.setEntityType(EntityType.DEVICE);
+        deviceTypeFilter.setEntityNameFilter("%test%");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(deviceTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        deviceTypeFilter.setEntityNameFilter("%test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_device_type_name_starts_with() {
+        List<Device> devices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device " + i + " test");
+            device.setType("default");
+            devices.add(device);
+        }
+
+        devices.forEach(deviceService::saveDevice);
+
+        DeviceTypeFilter deviceTypeFilter = new DeviceTypeFilter();
+        deviceTypeFilter.setDeviceType("default");
+        deviceTypeFilter.setDeviceNameFilter("Device");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(deviceTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("Device%");
+
+        result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("%Device%");
+
+        result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("%Device");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_device_type_name_ends_with() {
+        List<Device> devices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device " + i + " test");
+            device.setType("default");
+            devices.add(device);
+        }
+
+        devices.forEach(deviceService::saveDevice);
+
+        DeviceTypeFilter deviceTypeFilter = new DeviceTypeFilter();
+        deviceTypeFilter.setDeviceType("default");
+        deviceTypeFilter.setDeviceNameFilter("%test");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(deviceTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("%test%");
+
+        result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_device_type_name_contains() {
+        List<Device> devices = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device test" + i);
+            device.setType("default");
+            devices.add(device);
+        }
+
+        devices.forEach(deviceService::saveDevice);
+
+        DeviceTypeFilter deviceTypeFilter = new DeviceTypeFilter();
+        deviceTypeFilter.setDeviceType("default");
+        deviceTypeFilter.setDeviceNameFilter("%test%");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(deviceTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(devices.size(), result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        deviceTypeFilter.setDeviceNameFilter("%test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_asset_type_name_starts_with() {
+        List<Asset> assets = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Asset asset = new Asset();
+            asset.setTenantId(tenantId);
+            asset.setName("Asset " + i + " test");
+            asset.setType("default");
+            assets.add(asset);
+        }
+
+        assets.forEach(assetService::saveAsset);
+
+        AssetTypeFilter assetTypeFilter = new AssetTypeFilter();
+        assetTypeFilter.setAssetType("default");
+        assetTypeFilter.setAssetNameFilter("Asset");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(assetTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(assets.size(), result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("Asset%");
+
+        result = searchEntities(query);
+        assertEquals(assets.size(), result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("%Asset%");
+
+        result = searchEntities(query);
+        assertEquals(assets.size(), result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("%Asset");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_asset_type_name_ends_with() {
+        List<Asset> assets = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Asset asset = new Asset();
+            asset.setTenantId(tenantId);
+            asset.setName("Asset " + i + " test");
+            asset.setType("default");
+            assets.add(asset);
+        }
+
+        assets.forEach(assetService::saveAsset);
+
+        AssetTypeFilter assetTypeFilter = new AssetTypeFilter();
+        assetTypeFilter.setAssetType("default");
+        assetTypeFilter.setAssetNameFilter("%test");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(assetTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(assets.size(), result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("%test%");
+
+        result = searchEntities(query);
+        assertEquals(assets.size(), result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_asset_type_name_contains() {
+        List<Asset> assets = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            Asset asset = new Asset();
+            asset.setTenantId(tenantId);
+            asset.setName("Asset test" + i);
+            asset.setType("default");
+            assets.add(asset);
+        }
+
+        assets.forEach(assetService::saveAsset);
+
+        AssetTypeFilter assetTypeFilter = new AssetTypeFilter();
+        assetTypeFilter.setAssetType("default");
+        assetTypeFilter.setAssetNameFilter("%test%");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(assetTypeFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(assets.size(), result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        assetTypeFilter.setAssetNameFilter("%test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_entity_group_name_starts_with() {
+        List<EntityGroup> groups = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName("group " + i + " test");
+            entityGroup.setType(EntityType.DEVICE);
+            groups.add(entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup));
+        }
+
+        EntityGroupNameFilter entityGroupNameFilter = new EntityGroupNameFilter();
+        entityGroupNameFilter.setGroupType(EntityType.DEVICE);
+        entityGroupNameFilter.setEntityGroupNameFilter("group");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(entityGroupNameFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(groups.size(), result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("group%");
+
+        result = searchEntities(query);
+        assertEquals(groups.size(), result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("%group%");
+
+        result = searchEntities(query);
+        assertEquals(groups.size(), result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("%group");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_entity_group_name_ends_with() {
+        List<EntityGroup> groups = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName("group " + i + " test");
+            entityGroup.setType(EntityType.DEVICE);
+            groups.add(entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup));
+        }
+
+        EntityGroupNameFilter entityGroupNameFilter = new EntityGroupNameFilter();
+        entityGroupNameFilter.setGroupType(EntityType.DEVICE);
+        entityGroupNameFilter.setEntityGroupNameFilter("%test");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(entityGroupNameFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(groups.size(), result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("%test%");
+
+        result = searchEntities(query);
+        assertEquals(groups.size(), result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+    }
+
+    @Test
+    public void testFindEntityDataByQuery_filter_entity_group_name_contains() {
+        List<EntityGroup> groups = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            EntityGroup entityGroup = new EntityGroup();
+            entityGroup.setName("group test " + i);
+            entityGroup.setType(EntityType.DEVICE);
+            groups.add(entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup));
+        }
+
+        EntityGroupNameFilter entityGroupNameFilter = new EntityGroupNameFilter();
+        entityGroupNameFilter.setGroupType(EntityType.DEVICE);
+        entityGroupNameFilter.setEntityGroupNameFilter("%test%");
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+
+        EntityDataQuery query = new EntityDataQuery(entityGroupNameFilter, pageLink, null, null, null);
+
+        PageData<EntityData> result = searchEntities(query);
+        assertEquals(groups.size(), result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("test%");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
+
+        entityGroupNameFilter.setEntityGroupNameFilter("%test");
+
+        result = searchEntities(query);
+        assertEquals(0, result.getTotalElements());
     }
 
     private PageData<EntityData> searchEntities(EntityDataQuery query) {
