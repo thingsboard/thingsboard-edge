@@ -74,8 +74,8 @@
     "tenantAttributeKeys": []
   },
   {
-    "id": "garbage_bins",
-    "title": "Garbage Bins",
+    "id": "waste_monitoring",
+    "title": "Waste Monitoring",
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "",
