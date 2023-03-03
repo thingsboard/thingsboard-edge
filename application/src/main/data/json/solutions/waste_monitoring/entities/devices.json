@@ -3,7 +3,7 @@
     "name": "389021001291",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.8936843,
@@ -19,7 +19,7 @@
     "name": "389021001305",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.888286,
@@ -35,7 +35,7 @@
     "name": "389021001273",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.89108,
@@ -51,7 +51,7 @@
     "name": "389021001228",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.8854546,
@@ -67,7 +67,7 @@
     "name": "389021001241",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.8847724,
@@ -83,7 +83,7 @@
     "name": "389021001302",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.8929445,
@@ -99,7 +99,7 @@
     "name": "389021001318",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.88605217,
@@ -115,7 +115,7 @@
     "name": "389021001299",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.89506547,
@@ -131,7 +131,7 @@
     "name": "389021001250",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": "Garbage Bins Emulator",
     "attributes": {
       "latitude": 33.8938007,
@@ -147,7 +147,7 @@
     "name": "389021001264",
     "label": "",
     "type": "Waste Sensor",
-    "group": "Garbage Bins Monitoring",
+    "group": "Waste Sensors",
     "emulator": null,
     "attributes": {
       "latitude": 33.8905202,
