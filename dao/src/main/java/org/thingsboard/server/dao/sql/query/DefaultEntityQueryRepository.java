@@ -110,7 +110,6 @@ import org.thingsboard.server.dao.sql.role.RoleRepository;
 import org.thingsboard.server.dao.sql.scheduler.SchedulerEventRepository;
 import org.thingsboard.server.dao.sql.user.UserRepository;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1952,22 +1951,18 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         switch (filter.getType()) {
             case ASSET_TYPE:
                 types = ((AssetTypeFilter) filter).getAssetTypes();
-                types = checkTypeListForBackwardCompatibility(types, ((AssetTypeFilter) filter).getAssetType());
                 name = ((AssetTypeFilter) filter).getAssetNameFilter();
                 break;
             case DEVICE_TYPE:
                 types = ((DeviceTypeFilter) filter).getDeviceTypes();
-                types = checkTypeListForBackwardCompatibility(types, ((DeviceTypeFilter) filter).getDeviceType());
                 name = ((DeviceTypeFilter) filter).getDeviceNameFilter();
                 break;
             case ENTITY_VIEW_TYPE:
                 types = ((EntityViewTypeFilter) filter).getEntityViewTypes();
-                types = checkTypeListForBackwardCompatibility(types, ((EntityViewTypeFilter) filter).getEntityViewType());
                 name = ((EntityViewTypeFilter) filter).getEntityViewNameFilter();
                 break;
             case EDGE_TYPE:
                 types = ((EdgeTypeFilter) filter).getEdgeTypes();
-                types = checkTypeListForBackwardCompatibility(types, ((EdgeTypeFilter) filter).getEdgeType());
                 name = ((EdgeTypeFilter) filter).getEdgeNameFilter();
                 break;
             default:
@@ -1984,14 +1979,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         } else {
             return typesFilter;
         }
-    }
-
-    private List<String> checkTypeListForBackwardCompatibility(List<String> types, String subType) {
-        if (types == null || types.isEmpty()) {
-            types = new ArrayList<>();
-            types.add(subType);
-        }
-        return types;
     }
 
     public static EntityType resolveEntityType(EntityFilter entityFilter) {
