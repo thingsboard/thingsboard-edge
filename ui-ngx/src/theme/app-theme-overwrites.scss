@@ -32,11 +32,14 @@
 @use '@material/button/button-protected-theme' as mdc-button-protected-theme;
 @use '@material/fab/fab-theme' as mdc-fab-theme;
 @use '@material/checkbox/checkbox-theme' as mdc-checkbox-theme;
+@use 'sass:meta';
+@use 'sass:color';
 
 @mixin app-theme-overwrites($primary, $config-or-theme) {
   @include _mat-button-overwrites($primary, $config-or-theme);
   @include _mat-fab-overwrites($primary, $config-or-theme);
   @include _mat-checkbox-overwrites($primary, $config-or-theme);
+  @include _mat-progress-bar-overwrites($primary, $config-or-theme);
 }
 
 @mixin _mat-button-overwrites($primary, $config-or-theme) {
@@ -105,6 +108,25 @@
   }
 }
 
+@mixin _mat-progress-bar-overwrites($primary, $config-or-theme) {
+  $config: mat.get-color-config($config-or-theme);
+  $accent: map_get($config, accent);
+  $background: map_get(map_get($config, background), background);
+
+  .mat-mdc-progress-bar {
+
+    .mdc-linear-progress__buffer-bar {
+      background-color: _get-buffer-color($primary, $background);
+    }
+
+    &.mat-accent {
+      .mdc-linear-progress__buffer-bar {
+        background-color: _get-buffer-color($accent, $background);
+      }
+    }
+  }
+}
+
 @mixin _raised-button-variant($foreground, $background) {
   @include mdc-button-protected-theme.theme((
     container-color: $background,
@@ -147,3 +169,11 @@
   }
 }
 
+@function _get-buffer-color($theme, $background) {
+  $theme-color: mat.get-color-from-palette($theme);
+  // Return fallback color if the theme uses variables to define colors.
+  @if (meta.type-of($theme-color) != 'color' or meta.type-of($background) != 'color') {
+    @return mat.get-color-from-palette($theme, lighter);
+  }
+  @return color.mix($theme-color, $background, $weight: 25%);
+}
