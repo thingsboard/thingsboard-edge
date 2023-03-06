@@ -40,7 +40,7 @@
       {{entity.name}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
     </mat-chip-row>
-    <input matInput type="text" placeholder="{{ !disabled ? placeholder : '' }}"
+    <input matInput type="text" placeholder="{{ !disabled ? placeholderText : '' }}"
            style="max-width: 200px;"
            #entityInput
            (focusin)="onFocus()"

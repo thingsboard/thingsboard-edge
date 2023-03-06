@@ -119,7 +119,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;import java.util.function.Consumer;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -250,7 +251,6 @@ public class DefaultWebSocketService implements WebSocketService {
             sendWsMsg(sessionRef, new TelemetrySubscriptionUpdate(UNKNOWN_SUBSCRIPTION_ID, SubscriptionErrorCode.BAD_REQUEST, FAILED_TO_PARSE_WS_COMMAND));
         }
     }
-
 
     private void processTelemetryCmds(WebSocketSessionRef sessionRef, String msg) throws JsonProcessingException {
         TelemetryPluginCmdsWrapper cmdsWrapper = JacksonUtil.fromString(msg, TelemetryPluginCmdsWrapper.class);
@@ -627,7 +627,6 @@ public class DefaultWebSocketService implements WebSocketService {
                         .entityId(entityId)
                         .allKeys(true)
                         .keyStates(subState)
-                        .scope(scope)
                         .updateProcessor((subscription, update) -> {
                             subLock.lock();
                             try {
@@ -636,6 +635,7 @@ public class DefaultWebSocketService implements WebSocketService {
                                 subLock.unlock();
                             }
                         })
+                        .scope(scope)
                         .build();
 
                 subLock.lock();
