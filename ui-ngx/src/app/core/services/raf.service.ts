@@ -48,9 +48,9 @@ export class RafService {
     private ngZone: NgZone
   ) {
     const requestAnimationFrame: (frameCallback: () => void) => number = window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame;
+      (window as any).webkitRequestAnimationFrame;
     const cancelAnimationFrame = window.cancelAnimationFrame ||
-      window.webkitCancelAnimationFrame ||
+      (window as any).webkitCancelAnimationFrame ||
       // @ts-ignore
       window.webkitCancelRequestAnimationFrame;
 

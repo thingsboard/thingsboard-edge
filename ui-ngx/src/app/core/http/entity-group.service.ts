@@ -135,25 +135,25 @@ export class EntityGroupService {
       return this.otaPackageService.confirmDialogUpdatePackage(entityGroup, originalEntityGroup).pipe(
         mergeMap((update) => {
           if (update) {
-            const tasks = [];
-            tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.firmwareGroup, entityGroup.firmwareId,
-              entityGroup.id, OtaUpdateType.FIRMWARE, config));
-            tasks.push(this.updateDeviceGroupOtaPackage(entityGroup.softwareGroup, entityGroup.softwareId,
-              entityGroup.id, OtaUpdateType.SOFTWARE, config));
+            const firmwareId = entityGroup.firmwareId;
+            const firmwareGroup = entityGroup.firmwareGroup;
+            const softwareId = entityGroup.softwareId;
+            const softwareGroup = entityGroup.softwareGroup;
             delete entityGroup.firmwareId;
             delete entityGroup.firmwareGroup;
             delete entityGroup.softwareId;
             delete entityGroup.softwareGroup;
-            tasks.push(this.saveEntityGroup(entityGroup, config));
+            const tasks = [this.updateDeviceGroupOtaPackage(firmwareGroup, firmwareId, entityGroup.id, OtaUpdateType.FIRMWARE, config),
+                           this.updateDeviceGroupOtaPackage(softwareGroup, softwareId, entityGroup.id, OtaUpdateType.SOFTWARE, config),
+                           this.saveEntityGroup(entityGroup, config)];
             return forkJoin(tasks).pipe(
-              map(([firmware, software, savedEntityGroup]: [DeviceGroupOtaPackage, DeviceGroupOtaPackage, EntityGroupInfo]) => {
-                  return Object.assign(savedEntityGroup, {
+              map(([firmware, software, savedEntityGroup]: [DeviceGroupOtaPackage, DeviceGroupOtaPackage, EntityGroupInfo]) =>
+                Object.assign(savedEntityGroup, {
                     firmwareId: deepClone(firmware?.otaPackageId),
                     firmwareGroup: firmware,
                     softwareId: deepClone(software?.otaPackageId),
                     softwareGroup: software
-                  });
-                }
+                  })
               ));
           }
           return throwError('Canceled saving device group');

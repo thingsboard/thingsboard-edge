@@ -29,8 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import indigo from '@material-ui/core/colors/indigo';
-import deeepOrange from '@material-ui/core/colors/deepOrange';
+import { indigo, deepOrange } from '@material-ui/core/colors';
 import { ThemeOptions } from '@material-ui/core/styles';
 import { PaletteOptions, SimplePaletteColorOptions } from '@material-ui/core/styles/createPalette';
 import { mergeDeep } from '@core/utils';
@@ -49,7 +48,7 @@ const tbIndigo = mergeDeep<any>({}, indigo, {
 
 const thingsboardPalette: PaletteOptions = {
   primary: tbIndigo,
-  secondary: deeepOrange,
+  secondary: deepOrange,
   background: {
     default: '#eee'
   },

@@ -35,8 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -47,13 +50,14 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("ConverterDaoService")
 @Slf4j
 public class BaseConverterService extends AbstractEntityService implements ConverterService {
 
@@ -157,4 +161,15 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                     deleteConverter(tenantId, new ConverterId(entity.getId().getId()));
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findConverterById(tenantId, new ConverterId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CONVERTER;
+    }
+
 }

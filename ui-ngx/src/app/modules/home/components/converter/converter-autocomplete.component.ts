@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -63,7 +63,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 })
 export class ConverterAutocompleteComponent implements ControlValueAccessor, OnInit {
 
-  selectConverterFormGroup: FormGroup;
+  selectConverterFormGroup: UntypedFormGroup;
 
   private modelValue: ConverterId | string | null;
 
@@ -135,7 +135,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
               public truncate: TruncatePipe,
               private converterService: ConverterService,
               public dialog: MatDialog,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectConverterFormGroup = this.fb.group({
       entity: [null]
     });

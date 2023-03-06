@@ -32,7 +32,7 @@
 import { Directive, ElementRef, forwardRef, HostListener, Renderer2, SkipSelf } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormControl,
+  UntypedFormControl,
   FormGroupDirective,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
@@ -87,13 +87,13 @@ export class TbJsonToStringDirective implements ControlValueAccessor, Validator,
 
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.parseError);
     return originalErrorState || customErrorState;
   }
 
-  validate(c: FormControl): ValidationErrors {
+  validate(c: UntypedFormControl): ValidationErrors {
     return (!this.parseError) ? null : {
       invalidJSON: {
         valid: false

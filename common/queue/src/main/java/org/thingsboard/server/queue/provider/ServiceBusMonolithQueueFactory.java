@@ -65,12 +65,11 @@ import org.thingsboard.server.queue.azure.servicebus.TbServiceBusSettings;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -94,7 +93,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
     private final TbServiceBusSettings serviceBusSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueVersionControlSettings vcSettings;
-    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -113,7 +112,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
                                           TbServiceBusSettings serviceBusSettings,
                                           TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                           TbQueueVersionControlSettings vcSettings,
-                                          TbQueueIntegrationNotificationSettings integrationNotificationSettings,
+                                          TbQueueIntegrationExecutorSettings integrationExecutorSettings,
                                           TbServiceBusQueueConfigs serviceBusQueueConfigs) {
         this.notificationsTopicService = notificationsTopicService;
         this.coreSettings = coreSettings;
@@ -125,7 +124,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
         this.serviceBusSettings = serviceBusSettings;
         this.jsInvokeSettings = jsInvokeSettings;
         this.vcSettings = vcSettings;
-        this.integrationNotificationSettings = integrationNotificationSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbServiceBusAdmin(serviceBusSettings, serviceBusQueueConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbServiceBusAdmin(serviceBusSettings, serviceBusQueueConfigs.getRuleEngineConfigs());
@@ -269,7 +268,7 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new TbServiceBusConsumerTemplate<>(coreAdmin, serviceBusSettings, coreSettings.getIntegrationsTopic(),
+        return new TbServiceBusConsumerTemplate<>(coreAdmin, serviceBusSettings, integrationExecutorSettings.getUplinkTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
@@ -284,20 +283,20 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getNotificationsTopic());
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationExecutorSettings.getNotificationsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
         return new TbServiceBusConsumerTemplate<>(ruleEngineAdmin, serviceBusSettings,
-                HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+                integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
         );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getDownlinkTopic());
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationExecutorSettings.getDownlinkTopic());
     }
 
     @PreDestroy

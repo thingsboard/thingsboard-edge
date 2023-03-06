@@ -113,6 +113,9 @@ import { RabbitMqIntegrationFormComponent } from '@home/components/integration/c
 import {
   AzureIotHubIntegrationFormComponent
 } from '@home/components/integration/configuration/azure-iot-hub-integration-form/azure-iot-hub-integration-form.component';
+import {
+  TuyaIntegrationFormComponent
+} from '@home/components/integration/configuration/tuya-integration-form/tuya-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -148,7 +151,8 @@ import {
     ThingParkEnterpriseIntegrationFormComponent,
     KafkaIntegrationFormComponent,
     RabbitMqIntegrationFormComponent,
-    AzureIotHubIntegrationFormComponent
+    AzureIotHubIntegrationFormComponent,
+    TuyaIntegrationFormComponent
   ],
   imports: [
     CommonModule,

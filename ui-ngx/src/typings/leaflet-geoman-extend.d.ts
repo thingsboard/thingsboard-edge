@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-/* tslint:disable:adjacent-overload-signatures unified-signatures */
+/* eslint-disable @typescript-eslint/adjacent-overload-signatures, @typescript-eslint/unified-signatures */
 
 import * as L from 'leaflet';
 

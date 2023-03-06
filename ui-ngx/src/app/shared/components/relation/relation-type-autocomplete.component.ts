@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -39,6 +39,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { BroadcastService } from '@app/core/services/broadcast.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { RelationTypes } from '@app/shared/models/relation.models';
+import { SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-relation-type-autocomplete',
@@ -52,7 +53,7 @@ import { RelationTypes } from '@app/shared/models/relation.models';
 })
 export class RelationTypeAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
-  relationTypeFormGroup: FormGroup;
+  relationTypeFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -68,6 +69,9 @@ export class RelationTypeAutocompleteComponent implements ControlValueAccessor, 
   @Input()
   disabled: boolean;
 
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
+
   @ViewChild('relationTypeInput', {static: true}) relationTypeInput: ElementRef;
 
   filteredRelationTypes: Observable<Array<string>>;
@@ -81,7 +85,7 @@ export class RelationTypeAutocompleteComponent implements ControlValueAccessor, 
   constructor(private store: Store<AppState>,
               private broadcast: BroadcastService,
               public translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.relationTypeFormGroup = this.fb.group({
       relationType: [null, this.required ? [Validators.required, Validators.maxLength(255)] : [Validators.maxLength(255)]]
     });

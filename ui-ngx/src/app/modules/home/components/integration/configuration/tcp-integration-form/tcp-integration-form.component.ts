@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -71,7 +71,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
 
   @Input() isSetDownlink: boolean;
 
-  tcpConfigForm: FormGroup;
+  tcpConfigForm: UntypedFormGroup;
 
   HandlerConfigurationType = TcpHandlerConfigurationType;
   HandlerConfigurationTypeTranslation = HandlerConfigurationTypeTranslation;
@@ -82,7 +82,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.tcpConfigForm = this.fb.group({
       port: [10560, [Validators.required, Validators.min(1), Validators.max(65535)]],

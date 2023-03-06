@@ -33,7 +33,7 @@ import { Directive, Input, OnDestroy, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class IntegrationForm implements OnDestroy {
 
   @Input() executeRemotelyTemplate: TemplateRef<any>;
@@ -56,7 +56,7 @@ export abstract class IntegrationForm implements OnDestroy {
     }
   }
 
-  protected destroy$ = new Subject();
+  protected destroy$ = new Subject<void>();
 
   protected updatedValidationPrivateNetwork() {}
 

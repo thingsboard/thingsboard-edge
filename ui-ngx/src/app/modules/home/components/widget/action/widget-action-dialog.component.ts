@@ -35,9 +35,9 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   FormGroupDirective,
   NgForm,
   ValidatorFn,
@@ -96,7 +96,7 @@ const stateDisplayTypesTranslations = new Map<stateDisplayType, string>(
   selector: 'tb-widget-action-dialog',
   templateUrl: './widget-action-dialog.component.html',
   providers: [{provide: ErrorStateMatcher, useExisting: WidgetActionDialogComponent}],
-  styleUrls: ['./widget-action-dialog.component.scss']
+  styleUrls: []
 })
 export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDialogComponent,
                                                  WidgetActionDescriptorInfo> implements OnInit, ErrorStateMatcher {
@@ -105,10 +105,10 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
 
   @ViewChild('mobileActionEditor', {static: false}) mobileActionEditor: MobileActionEditorComponent;
 
-  widgetActionFormGroup: FormGroup;
-  actionTypeFormGroup: FormGroup;
+  widgetActionFormGroup: UntypedFormGroup;
+  actionTypeFormGroup: UntypedFormGroup;
   actionTypeFormGroupSubscriptions: Subscription[] = [];
-  stateDisplayTypeFormGroup: FormGroup;
+  stateDisplayTypeFormGroup: UntypedFormGroup;
 
   isAdd: boolean;
   action: WidgetActionDescriptorInfo;
@@ -142,7 +142,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
               @Inject(MAT_DIALOG_DATA) public data: WidgetActionDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<WidgetActionDialogComponent, WidgetActionDescriptorInfo>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.isAdd = data.isAdd;
     if (this.isAdd) {
@@ -426,7 +426,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
   }
 
   private validateActionName(): ValidatorFn {
-    return (c: FormControl) => {
+    return (c: UntypedFormControl) => {
       const newName = c.value;
       const valid = this.checkActionName(newName, this.widgetActionFormGroup.get('actionSourceId').value);
       return !valid ? {
@@ -449,7 +449,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
     return actionNameIsUnique;
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

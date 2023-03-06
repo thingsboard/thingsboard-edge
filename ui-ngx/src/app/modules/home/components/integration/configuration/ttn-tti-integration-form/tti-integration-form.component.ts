@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef } from '@angular/core';
-import { FormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { UntypedFormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {
   TtnIntegrationFormComponent
 } from './ttn-integration-form.component';
@@ -61,7 +61,7 @@ export class TtiIntegrationFormComponent extends TtnIntegrationFormComponent {
 
   hideSelectVersion = true;
 
-  constructor(protected fb: FormBuilder) {
+  constructor(protected fb: UntypedFormBuilder) {
     super(fb);
     this.ttnIntegrationConfigForm.get('topicFilters').enable({emitEvent: false});
   }

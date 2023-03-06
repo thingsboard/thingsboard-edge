@@ -28,11 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+@import "../../../../../scss/constants";
+
 .tb-entity-group-columns {
   .tb-header {
     font-size: 12px;
     font-weight: 700;
     color: rgba(0, 0, 0, .57);
+    @media #{$mat-gt-xl} {
+      .tb-column-type {
+        min-width: 180px;
+        max-width: 180px;
+      }
+      .tb-column-value {
+        min-width: 200px;
+        max-width: 200px;
+      }
+      .tb-column-sort-order {
+        min-width: 150px;
+        max-width: 150px;
+      }
+    }
   }
 
   .tb-columns {
@@ -48,21 +65,18 @@
       cursor: move;
     }
 
-    .mat-list {
+    .mat-mdc-list {
       min-height: 42px;
       padding-left: 0;
     }
   }
 }
 
-.mat-list-base .mat-list-item, .mat-list-item {
+.mat-mdc-list-item {
   &.tb-entity-group-column {
-    min-height: 42px;
-    display: block;
-    font-size: 13px;
     background: #fff;
-    .mat-list-item-content {
-      padding: 0;
+    &.mdc-list-item.mdc-list-item--with-one-line {
+      height: auto;
     }
     &.tb-draggable {
       &.cdk-drag-placeholder {

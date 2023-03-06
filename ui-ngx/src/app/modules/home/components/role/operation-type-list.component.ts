@@ -40,14 +40,14 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { MatAutocomplete } from '@angular/material/autocomplete';
-import { MatChipList } from '@angular/material/chips';
+import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation, operationTypeTranslationMap, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -60,7 +60,7 @@ interface OperationTypeInfo {
 @Component({
   selector: 'tb-operation-type-list',
   templateUrl: './operation-type-list.component.html',
-  styleUrls: ['./operation-type-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -71,7 +71,7 @@ interface OperationTypeInfo {
 })
 export class OperationTypeListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
-  operationTypeListFormGroup: FormGroup;
+  operationTypeListFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -106,7 +106,7 @@ export class OperationTypeListComponent implements ControlValueAccessor, OnInit,
 
   @ViewChild('operationTypeInput') operationTypeInput: ElementRef<HTMLInputElement>;
   @ViewChild('operationTypeAutocomplete') operationTypeAutocomplete: MatAutocomplete;
-  @ViewChild('chipList', {static: true}) chipList: MatChipList;
+  @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
   allOperationTypeList: Array<OperationTypeInfo> = [];
   operationTypeList: Array<OperationTypeInfo> = [];
@@ -124,7 +124,7 @@ export class OperationTypeListComponent implements ControlValueAccessor, OnInit,
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.operationTypeListFormGroup = this.fb.group({
       operationTypeList: [this.operationTypeList, this.required ? [Validators.required] : []],
       operationType: [null]

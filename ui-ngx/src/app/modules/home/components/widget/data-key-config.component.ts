@@ -43,9 +43,9 @@ import {
 } from '@shared/models/widget.models';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -143,9 +143,9 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
 
   private propagateChange = null;
 
-  public dataKeyFormGroup: FormGroup;
+  public dataKeyFormGroup: UntypedFormGroup;
 
-  public dataKeySettingsFormGroup: FormGroup;
+  public dataKeySettingsFormGroup: UntypedFormGroup;
 
   private dataKeySettingsData: JsonFormComponentData;
 
@@ -165,7 +165,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
               private dialog: MatDialog,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
@@ -422,7 +422,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
     }
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     if (!this.dataKeyFormGroup.valid) {
       return {
         dataKey: {

@@ -36,19 +36,19 @@
       <mat-label translate>entity-group.group-table-title</mat-label>
       <input matInput formControlName="groupTableTitle">
     </mat-form-field>
-    <mat-checkbox fxFlex formControlName="enableSearch" style="padding-bottom: 16px;">
+    <mat-checkbox fxFlex formControlName="enableSearch">
       {{ 'entity-group.enable-search' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableAdd" style="padding-bottom: 16px;">
+    <mat-checkbox fxFlex formControlName="enableAdd">
       {{ 'entity-group.enable-add' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableDelete" style="padding-bottom: 16px;">
+    <mat-checkbox fxFlex formControlName="enableDelete">
       {{ 'entity-group.enable-delete' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableSelection" style="padding-bottom: 16px;">
+    <mat-checkbox fxFlex formControlName="enableSelection">
       {{ 'entity-group.enable-selection' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableGroupTransfer" style="padding-bottom: 16px;">
+    <mat-checkbox fxFlex formControlName="enableGroupTransfer">
       {{ 'entity-group.enable-group-transfer' | translate }}
     </mat-checkbox>
     <mat-form-field class="mat-block">
@@ -59,7 +59,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-checkbox fxFlex formControlName="displayPagination" style="padding-bottom: 16px;">
+    <mat-checkbox fxFlex formControlName="displayPagination">
       {{ 'entity-group.display-pagination' | translate }}
     </mat-checkbox>
     <mat-form-field [fxShow]="settingsFormGroup.get('displayPagination').value" class="mat-block">
@@ -67,53 +67,53 @@
       <input matInput type="number" min="5" step="1" formControlName="defaultPageSize">
     </mat-form-field>
     <mat-checkbox *ngIf="entityType === entityTypes.DEVICE"
-                  fxFlex formControlName="enableCredentialsManagement" style="padding-bottom: 16px;">
+                  fxFlex formControlName="enableCredentialsManagement">
       {{ 'entity-group.enable-credentials-management' | translate }}
     </mat-checkbox>
     <mat-checkbox *ngIf="entityType === entityTypes.USER"
-                  fxFlex formControlName="enableLoginAsUser" style="padding-bottom: 16px;">
+                  fxFlex formControlName="enableLoginAsUser">
       {{ 'entity-group.enable-login-as-user' | translate }}
     </mat-checkbox>
     <section *ngIf="entityType === entityTypes.CUSTOMER" fxLayout="column">
-      <mat-checkbox fxFlex formControlName="enableUsersManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableUsersManagement">
         {{ 'entity-group.enable-users-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableCustomersManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableCustomersManagement">
         {{ 'entity-group.enable-customers-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableAssetsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableAssetsManagement">
         {{ 'entity-group.enable-assets-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDevicesManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableDevicesManagement">
         {{ 'entity-group.enable-devices-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement">
         {{ 'entity-group.enable-entity-views-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableEdgesManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableEdgesManagement">
         {{ 'entity-group.enable-edges-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDashboardsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableDashboardsManagement">
         {{ 'entity-group.enable-dashboards-management' | translate }}
       </mat-checkbox>
     </section>
     <section *ngIf="entityType === entityTypes.EDGE" fxLayout="column">
-      <mat-checkbox fxFlex formControlName="enableUsersManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableUsersManagement">
         {{ 'entity-group.enable-users-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableAssetsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableAssetsManagement">
         {{ 'entity-group.enable-assets-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDevicesManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableDevicesManagement">
         {{ 'entity-group.enable-devices-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement">
         {{ 'entity-group.enable-entity-views-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDashboardsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableDashboardsManagement">
         {{ 'entity-group.enable-dashboards-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableSchedulerEventsManagement" style="padding-bottom: 16px;">
+      <mat-checkbox fxFlex formControlName="enableSchedulerEventsManagement">
         {{ 'entity-group.enable-scheduler-events-management' | translate }}
       </mat-checkbox>
     </section>

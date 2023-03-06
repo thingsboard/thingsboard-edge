@@ -35,7 +35,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { RequestData } from '@shared/models/rpc.models';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -47,7 +47,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 export class PersistentAddDialogComponent extends DialogComponent<PersistentAddDialogComponent, RequestData> implements OnInit {
 
-  public persistentFormGroup: FormGroup;
+  public persistentFormGroup: UntypedFormGroup;
   public rpcMessageTypeText: string;
 
   private requestData: RequestData = null;
@@ -55,7 +55,7 @@ export class PersistentAddDialogComponent extends DialogComponent<PersistentAddD
   constructor(protected store: Store<AppState>,
               protected router: Router,
               public dialogRef: MatDialogRef<PersistentAddDialogComponent, RequestData>,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private translate: TranslateService) {
     super(store, router, dialogRef);
 

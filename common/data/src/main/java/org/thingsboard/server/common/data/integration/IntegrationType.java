@@ -60,7 +60,8 @@ public enum IntegrationType {
     APACHE_PULSAR(false),
     RABBITMQ(false),
     LORIOT(false),
-    COAP(false);
+    COAP(false),
+    TUYA(false);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;

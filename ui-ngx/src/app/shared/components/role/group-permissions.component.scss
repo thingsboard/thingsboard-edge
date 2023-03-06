@@ -49,9 +49,9 @@
 
       .table-container {
         overflow: auto;
-        .mat-row {
+        .mat-mdc-row {
           &.tb-read-only {
-            .mat-cell {
+            .mat-mdc-cell {
               color: rgba(0, 0, 0, .38);
             }
           }

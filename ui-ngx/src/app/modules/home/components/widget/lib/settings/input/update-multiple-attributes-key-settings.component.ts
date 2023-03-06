@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -47,14 +47,14 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 })
 export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettingsComponent {
 
-  updateMultipleAttributesKeySettingsForm: FormGroup;
+  updateMultipleAttributesKeySettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.updateMultipleAttributesKeySettingsForm;
   }
 
@@ -199,11 +199,11 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
     this.updateMultipleAttributesKeySettingsForm.updateValueAndValidity({emitEvent: false});
   }
 
-  protected doUpdateSettings(settingsForm: FormGroup, settings: WidgetSettings) {
+  protected doUpdateSettings(settingsForm: UntypedFormGroup, settings: WidgetSettings) {
     settingsForm.setControl('selectOptions', this.prepareSelectOptionsFormArray(settings.selectOptions), {emitEvent: false});
   }
 
-  private prepareSelectOptionsFormArray(selectOptions: DataKeySelectOption[] | undefined): FormArray {
+  private prepareSelectOptionsFormArray(selectOptions: DataKeySelectOption[] | undefined): UntypedFormArray {
     const selectOptionsControls: Array<AbstractControl> = [];
     if (selectOptions) {
       selectOptions.forEach((selectOption) => {
@@ -221,8 +221,8 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
     }]);
   }
 
-  selectOptionsFormArray(): FormArray {
-    return this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as FormArray;
+  selectOptionsFormArray(): UntypedFormArray {
+    return this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as UntypedFormArray;
   }
 
   public trackBySelectOption(index: number, selectOptionControl: AbstractControl): any {
@@ -230,7 +230,7 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
   }
 
   public removeSelectOption(index: number) {
-    (this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as FormArray).removeAt(index);
+    (this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as UntypedFormArray).removeAt(index);
   }
 
   public addSelectOption() {
@@ -238,7 +238,7 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
       value: null,
       label: null
     };
-    const selectOptionsArray = this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as FormArray;
+    const selectOptionsArray = this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as UntypedFormArray;
     const selectOptionControl = this.fb.control(selectOption, [dataKeySelectOptionValidator]);
     (selectOptionControl as any).new = true;
     selectOptionsArray.push(selectOptionControl);
@@ -249,7 +249,7 @@ export class UpdateMultipleAttributesKeySettingsComponent extends WidgetSettings
   }
 
   selectOptionDrop(event: CdkDragDrop<any[]>) {
-    const selectOptionsArray = this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as FormArray;
+    const selectOptionsArray = this.updateMultipleAttributesKeySettingsForm.get('selectOptions') as UntypedFormArray;
     const selectOption = selectOptionsArray.at(event.previousIndex);
     selectOptionsArray.removeAt(event.previousIndex);
     selectOptionsArray.insert(event.currentIndex, selectOption);
