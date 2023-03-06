@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -72,7 +72,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 })
 export class SnmpDeviceTransportConfigurationComponent implements ControlValueAccessor, OnInit, Validator {
 
-  snmpDeviceTransportConfigurationFormGroup: FormGroup;
+  snmpDeviceTransportConfigurationFormGroup: UntypedFormGroup;
 
   snmpDeviceProtocolVersions = Object.values(SnmpDeviceProtocolVersion);
   snmpAuthenticationProtocols = Object.values(SnmpAuthenticationProtocol);
@@ -97,7 +97,7 @@ export class SnmpDeviceTransportConfigurationComponent implements ControlValueAc
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {

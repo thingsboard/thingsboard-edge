@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,6 +94,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     @ApiModelProperty(position = 3, value = "JSON object with the owner of the group - Tenant or Customer Id.")
     private EntityId ownerId;
 
+    @NoXss
     @ApiModelProperty(position = 6, value = "Arbitrary JSON with additional information about the group")
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode additionalInfo;

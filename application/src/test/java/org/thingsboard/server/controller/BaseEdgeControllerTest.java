@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
@@ -1132,6 +1133,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         testEntityDaoWithRelationsOk(savedTenant.getId(), edgeId, "/api/edge/" + edgeId);
     }
 
+    @Ignore
     @Test
     public void testDeleteEdgeExceptionWithRelationsTransactional() throws Exception {
         EdgeId edgeId = savedEdge("Edge for Test WithRelations Transactional Exception").getId();

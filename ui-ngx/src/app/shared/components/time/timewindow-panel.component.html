@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@
                      (selectedIndexChange)="timewindowForm.markAsDirty()" [(selectedIndex)]="timewindow.selectedTab">
         <mat-tab label="{{ 'timewindow.realtime' | translate }}">
           <section fxLayout="row">
-            <section *ngIf="isEdit" fxLayout="column" style="padding-top: 8px; padding-left: 16px;">
+            <section *ngIf="isEdit" fxLayout="column" fxLayoutAlign="start center" style="padding-top: 8px; padding-left: 16px;">
               <label class="tb-small hide-label" translate>timewindow.hide</label>
               <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideInterval"
                             (ngModelChange)="onHideIntervalChanged()"></mat-checkbox>
@@ -48,7 +48,7 @@
                                  formControlName="realtimeType">
                   <mat-radio-button [value]="realtimeTypes.LAST_INTERVAL" color="primary">
                     <section fxLayout="row">
-                      <section *ngIf="isEdit" fxLayout="column" style="padding-right: 8px;">
+                      <section *ngIf="isEdit" fxLayout="column" fxLayoutAlign="start center" style="padding-right: 8px;">
                         <label class="tb-small hide-label" translate>timewindow.hide</label>
                         <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideLastInterval"
                                       (ngModelChange)="onHideLastIntervalChanged()"></mat-checkbox>
@@ -67,7 +67,7 @@
                   </mat-radio-button>
                   <mat-radio-button [value]="realtimeTypes.INTERVAL" color="primary">
                     <section fxLayout="row">
-                      <section *ngIf="isEdit" fxLayout="column" style="padding-right: 8px;">
+                      <section *ngIf="isEdit" fxLayout="column" fxLayoutAlign="start center" style="padding-right: 8px;">
                         <label class="tb-small hide-label" translate>timewindow.hide</label>
                         <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideQuickInterval"
                                       (ngModelChange)="onHideQuickIntervalChanged()"></mat-checkbox>
@@ -101,7 +101,7 @@
         </mat-tab>
         <mat-tab label="{{ 'timewindow.history' | translate }}">
           <section fxLayout="row">
-            <section *ngIf="isEdit" fxLayout="column" style="padding-top: 8px; padding-left: 16px;">
+            <section *ngIf="isEdit" fxLayout="column" fxLayoutAlign="start center" style="padding-top: 8px; padding-left: 16px;">
               <label class="tb-small hide-label" translate>timewindow.hide</label>
               <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideInterval"
                             (ngModelChange)="onHideIntervalChanged()"></mat-checkbox>
@@ -154,7 +154,7 @@
       </mat-tab-group>
       <div *ngIf="aggregation" formGroupName="aggregation" class="mat-content mat-padding" fxLayout="column">
         <section fxLayout="row">
-          <section fxLayout="column" [fxShow]="isEdit">
+          <section fxLayout="column" fxLayoutAlign="start center" [fxShow]="isEdit">
             <label class="tb-small hide-label" translate>timewindow.hide</label>
             <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideAggregation"
                           (ngModelChange)="onHideAggregationChanged()"></mat-checkbox>
@@ -171,7 +171,7 @@
           </section>
         </section>
         <section fxLayout="row" *ngIf="timewindowForm.get('aggregation.type').value === aggregationTypes.NONE">
-          <section fxLayout="column" [fxShow]="isEdit">
+          <section fxLayout="column" fxLayoutAlign="start center" [fxShow]="isEdit">
             <label class="tb-small hide-label" translate>timewindow.hide</label>
             <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideAggInterval"
                           (ngModelChange)="onHideAggIntervalChanged()"></mat-checkbox>
@@ -181,11 +181,10 @@
                                                 fxLayout.xs="column"  fxLayoutAlign.xs="stretch">
               <label translate>aggregation.limit</label>
               <div fxLayout="row" fxLayoutAlign="start center" fxFlex>
-                <mat-slider fxFlex formControlName="limit"
-                            thumbLabel
-                            [value]="timewindowForm.get('aggregation.limit').value"
+                <mat-slider fxFlex
+                            discrete
                             min="{{minDatapointsLimit()}}"
-                            max="{{maxDatapointsLimit()}}">
+                            max="{{maxDatapointsLimit()}}"><input matSliderThumb formControlName="limit" />
                 </mat-slider>
                 <mat-form-field class="limit-slider-value">
                   <input matInput formControlName="limit" type="number" step="1"
@@ -223,7 +222,7 @@
         </tb-timeinterval>
       </div>
       <div *ngIf="timezone" class="mat-content mat-padding" fxLayout="row">
-        <section fxLayout="column" [fxShow]="isEdit">
+        <section fxLayout="column" fxLayoutAlign="start center" [fxShow]="isEdit">
           <label class="tb-small hide-label" translate>timewindow.hide</label>
           <mat-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="timewindow.hideTimezone"
                         (ngModelChange)="onHideTimezoneChanged()"></mat-checkbox>

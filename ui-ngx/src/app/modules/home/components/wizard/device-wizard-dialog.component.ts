@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Component, Inject, OnDestroy, SkipSelf, ViewChild } from '@angular/core
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import {
@@ -49,7 +49,7 @@ import {
   deviceTransportTypeHintMap,
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
-import { MatHorizontalStepper } from '@angular/material/stepper';
+import { MatStepper } from '@angular/material/stepper';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -77,7 +77,7 @@ import { deepTrim } from '@core/utils';
 export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatHorizontalStepper;
+  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatStepper;
 
   resource = Resource;
 
@@ -97,17 +97,17 @@ export class DeviceWizardDialogComponent extends
 
   deviceTransportTypeHints = deviceTransportTypeHintMap;
 
-  deviceWizardFormGroup: FormGroup;
+  deviceWizardFormGroup: UntypedFormGroup;
 
-  transportConfigFormGroup: FormGroup;
+  transportConfigFormGroup: UntypedFormGroup;
 
-  alarmRulesFormGroup: FormGroup;
+  alarmRulesFormGroup: UntypedFormGroup;
 
-  provisionConfigFormGroup: FormGroup;
+  provisionConfigFormGroup: UntypedFormGroup;
 
-  credentialsFormGroup: FormGroup;
+  credentialsFormGroup: UntypedFormGroup;
 
-  labelPosition: MatHorizontalStepper['labelPosition'] = 'end';
+  labelPosition: MatStepper['labelPosition'] = 'end';
 
   entitiesTableConfig = this.data.entitiesTableConfig;
 
@@ -127,7 +127,7 @@ export class DeviceWizardDialogComponent extends
               private deviceService: DeviceService,
               private userPermissionService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.deviceWizardFormGroup = this.fb.group({
         name: ['', [Validators.required, Validators.maxLength(255)]],
@@ -225,7 +225,7 @@ export class DeviceWizardDialogComponent extends
     this.subscriptions.forEach(s => s.unsubscribe());
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid);
     return originalErrorState || customErrorState;

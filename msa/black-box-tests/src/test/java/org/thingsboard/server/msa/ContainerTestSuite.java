@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -122,6 +122,7 @@ public class ContainerTestSuite {
                     new File(targetDir + "advanced/docker-compose.yml"),
                     new File(targetDir + "advanced/docker-compose.volumes.yml"),
                     new File(targetDir + "advanced/" + (IS_HYBRID_MODE ? "docker-compose.hybrid.yml" : "docker-compose.postgres.yml")),
+                    new File(targetDir + (IS_HYBRID_MODE ? "docker-compose.hybrid-test-extras.yml" : "docker-compose.postgres-test-extras.yml")),
                     new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                     new File(targetDir + "docker-compose.integration.yml"),
                     new File(targetDir + "docker-compose.mosquitto.yml"),

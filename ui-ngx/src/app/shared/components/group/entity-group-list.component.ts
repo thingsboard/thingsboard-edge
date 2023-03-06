@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -51,7 +51,7 @@ import { BaseData } from '@shared/models/base-data';
 import { EntityId, entityIdEquals } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
-import { MatChipList } from '@angular/material/chips';
+import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { PageLink } from '@shared/models/page/page-link';
@@ -60,7 +60,7 @@ import { Direction } from '@shared/models/page/sort-order';
 @Component({
   selector: 'tb-entity-group-list',
   templateUrl: './entity-group-list.component.html',
-  styleUrls: ['./entity-group-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -71,7 +71,7 @@ import { Direction } from '@shared/models/page/sort-order';
 })
 export class EntityGroupListComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
-  entityGroupListFormGroup: FormGroup;
+  entityGroupListFormGroup: UntypedFormGroup;
 
   modelValue: Array<string> | null;
 
@@ -109,7 +109,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
 
   @ViewChild('entityGroupInput') entityGroupInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityGroupAutocomplete') matAutocomplete: MatAutocomplete;
-  @ViewChild('chipList', {static: true}) chipList: MatChipList;
+  @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
   entityGroups: Array<BaseData<EntityId>> = [];
   filteredEntityGroups: Observable<Array<BaseData<EntityId>>>;
@@ -124,7 +124,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
               public translate: TranslateService,
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.entityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
       entityGroup: [null]

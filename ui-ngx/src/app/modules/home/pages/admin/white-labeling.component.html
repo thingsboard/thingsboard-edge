@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 
 -->
 <div>
-  <mat-card class="settings-card">
-    <mat-card-title>
-      <div fxLayout="row">
-        <span class="mat-headline">{{ (isLoginWl ? 'white-labeling.login-white-labeling' : 'white-labeling.white-labeling') | translate }}</span>
-        <span fxFlex></span>
-        <div tb-help="whiteLabeling"></div>
-      </div>
-    </mat-card-title>
+  <mat-card appearance="outlined" class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <span class="mat-headline-5">{{ (isLoginWl ? 'white-labeling.login-white-labeling' : 'white-labeling.white-labeling') | translate }}</span>
+      </mat-card-title>
+      <span fxFlex></span>
+      <div tb-help="whiteLabeling"></div>
+    </mat-card-header>
     <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
@@ -60,7 +60,7 @@
                 {{ 'white-labeling.base-url-required' | translate }}
               </mat-error>
             </mat-form-field>
-            <mat-checkbox formControlName="prohibitDifferentUrl" style="display: block; padding-bottom: 16px;">
+            <mat-checkbox formControlName="prohibitDifferentUrl">
               {{ 'white-labeling.prohibit-different-url' | translate }}
             </mat-checkbox>
             <div class="tb-hint" translate>white-labeling.prohibit-different-url-hint</div>
@@ -105,7 +105,7 @@
             <mat-label translate>white-labeling.logo-height</mat-label>
             <input matInput type="number" step="1" min="1" formControlName="logoImageHeight"/>
           </mat-form-field>
-          <mat-checkbox *ngIf="!isLoginWl && isSysAdmin" formControlName="enableHelpLinks" style="display: block; padding-bottom: 16px;">
+          <mat-checkbox *ngIf="!isLoginWl && isSysAdmin" formControlName="enableHelpLinks">
             {{ 'white-labeling.enable-help-links' | translate }}
           </mat-checkbox>
           <mat-form-field *ngIf="!isLoginWl && isSysAdmin && wlSettings.get('enableHelpLinks').value" class="mat-block">
@@ -121,17 +121,19 @@
             <tb-palette
               label="{{ 'white-labeling.primary-palette' | translate }}"
               formControlName="primaryPalette"
+              style="padding-bottom: 20px;"
             ></tb-palette>
             <tb-palette
               label="{{ 'white-labeling.accent-palette' | translate }}"
               formControlName="accentPalette"
+              style="padding-bottom: 20px;"
             ></tb-palette>
           </div>
           <button mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || readonly"
                   style="margin-bottom: 16px;"
                   type="button" (click)="editCustomCss()">{{'white-labeling.advanced-css' | translate}}
           </button>
-          <mat-checkbox *ngIf="isLoginWl" formControlName="darkForeground" style="display: block; padding-bottom: 16px;">
+          <mat-checkbox *ngIf="isLoginWl" formControlName="darkForeground" style="display: block;">
             {{ 'white-labeling.dark-foreground' | translate }}
           </mat-checkbox>
           <tb-color-input *ngIf="isLoginWl"
@@ -142,7 +144,7 @@
                           openOnInput
                           formControlName="pageBackgroundColor">
           </tb-color-input>
-          <mat-checkbox formControlName="showNameVersion" style="display: block; padding-bottom: 16px;">
+          <mat-checkbox formControlName="showNameVersion" style="display: block;">
             {{ 'white-labeling.show-platform-name-version' | translate }}
           </mat-checkbox>
           <mat-form-field floatLabel='always' class="mat-block" *ngIf="wlSettings.get('showNameVersion').value">

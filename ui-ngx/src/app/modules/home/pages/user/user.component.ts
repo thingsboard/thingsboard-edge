@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, Optional } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { User } from '@shared/models/user.model';
 import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
@@ -70,7 +70,7 @@ export class UserComponent extends EntityComponent<User> {
   constructor(protected store: Store<AppState>,
               @Optional() @Inject('entity') protected entityValue: User,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<User>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
               protected translate: TranslateService) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -92,7 +92,7 @@ export class UserComponent extends EntityComponent<User> {
     return this.entity && this.entity.additionalInfo && isDefinedAndNotNull(this.entity.additionalInfo.userCredentialsEnabled);
   }
 
-  buildForm(entity: User): FormGroup {
+  buildForm(entity: User): UntypedFormGroup {
     return this.fb.group(
       {
         email: [entity ? entity.email : '', [Validators.required, Validators.email]],

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { Dashboard } from '@shared/models/dashboard.models';
@@ -60,7 +60,7 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
               private dashboardService: DashboardService,
               @Inject('entity') protected entityValue: Dashboard,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Dashboard>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
     if (this.entityGroup && this.entityGroup.additionalInfo && this.entityGroup.additionalInfo.isPublic) {
@@ -92,7 +92,7 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     }
   }
 
-  buildForm(entity: Dashboard): FormGroup {
+  buildForm(entity: Dashboard): UntypedFormGroup {
     this.updateFields(entity);
     return this.fb.group(
       {

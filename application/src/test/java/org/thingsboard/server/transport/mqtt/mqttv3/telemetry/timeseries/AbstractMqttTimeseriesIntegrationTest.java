@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -345,7 +345,7 @@ public abstract class AbstractMqttTimeseriesIntegrationTest extends AbstractMqtt
 //        MqttClient <- SUB_ACK <- Transport
         Thread.sleep(5000);
         doPostAsync("/api/plugins/telemetry/" + savedDevice.getId() + "/SHARED_SCOPE", payload, String.class, status().isOk());
-        callback.getSubscribeLatch().await(10, TimeUnit.SECONDS);
+        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertEquals(payload.getBytes(), callback.getPayloadBytes());
         assertEquals(MqttQoS.AT_MOST_ONCE.value(), callback.getQoS());
     }

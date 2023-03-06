@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -58,7 +58,7 @@ import { RuleChainType } from '@app/shared/models/rule-chain.models';
 })
 export class RuleChainAutocompleteComponent implements ControlValueAccessor, OnInit {
 
-  selectRuleChainFormGroup: FormGroup;
+  selectRuleChainFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
@@ -99,7 +99,7 @@ export class RuleChainAutocompleteComponent implements ControlValueAccessor, OnI
               public truncate: TruncatePipe,
               private entityService: EntityService,
               private ruleChainService: RuleChainService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectRuleChainFormGroup = this.fb.group({
       ruleChainId: [null]
     });

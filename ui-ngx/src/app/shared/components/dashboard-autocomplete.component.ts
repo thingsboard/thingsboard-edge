@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -45,7 +45,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { FloatLabelType } from '@angular/material/form-field/form-field';
+import { FloatLabelType } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -61,7 +61,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   private dirty = false;
 
-  selectDashboardFormGroup: FormGroup;
+  selectDashboardFormGroup: UntypedFormGroup;
 
   modelValue: DashboardInfo | string | null;
 
@@ -70,6 +70,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   @Input()
   selectFirstDashboard = false;
+
+  @Input()
+  label = this.translate.instant('dashboard.dashboard');
 
   @Input()
   placeholder: string;
@@ -109,7 +112,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private dashboardService: DashboardService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectDashboardFormGroup = this.fb.group({
       dashboard: [null]
     });
@@ -148,7 +151,10 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   selectFirstDashboardIfNeeded(): void {
     if (this.selectFirstDashboard && !this.modelValue) {
-      this.getDashboards(new PageLink(1)).subscribe(
+      this.getDashboards(new PageLink(1, 0, null, {
+        property: 'title',
+        direction: Direction.ASC
+      })).subscribe(
         (data) => {
           if (data.data.length) {
             const dashboard = data.data[0];

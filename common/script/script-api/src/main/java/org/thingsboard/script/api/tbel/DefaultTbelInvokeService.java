@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -134,6 +134,7 @@ public class DefaultTbelInvokeService extends AbstractScriptInvokeService implem
 
     @SneakyThrows
     @PostConstruct
+    @Override
     public void init() {
         super.init();
         OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
@@ -157,7 +158,9 @@ public class DefaultTbelInvokeService extends AbstractScriptInvokeService implem
     }
 
     @PreDestroy
-    public void destroy() {
+    @Override
+    public void stop() {
+        super.stop();
         if (executor != null) {
             executor.shutdownNow();
         }

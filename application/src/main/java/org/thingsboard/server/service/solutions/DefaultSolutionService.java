@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -115,6 +115,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -482,11 +483,11 @@ public class DefaultSolutionService implements SolutionService {
 
             var devices = provisionDevices(user, ctx);
 
-            provisionRelations(ctx);
-
             provisionDashboards(ctx);
 
             provisionCustomerUsers(ctx, customers);
+
+            provisionRelations(ctx);
 
             provisionSchedulerEvents(ctx);
 
@@ -914,8 +915,17 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
-        Map<String, EmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<EmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        List<EmulatorDefinition> emulatorDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<>() {
+        });
+        Map<String, EmulatorDefinition> deviceEmulators = emulatorDefinitions.stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        emulatorDefinitions.stream().filter(ed -> StringUtils.isNotEmpty(ed.getExtendz()))
+                .forEach(ed -> {
+                    EmulatorDefinition parent = deviceEmulators.get(ed.getExtendz());
+                    if (parent != null) {
+                        ed.enrich(parent);
+                    }
+                });
+
 
         for (var entry : devicesMap.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
             DeviceEmulatorLauncher.builder()
@@ -1046,7 +1056,6 @@ public class DefaultSolutionService implements SolutionService {
     private void provisionCustomerUsers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
-
             for (UserGroupDefinition ugDef : entityDef.getUserGroups()) {
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
@@ -1078,6 +1087,7 @@ public class DefaultSolutionService implements SolutionService {
             }
 
             for (UserDefinition uDef : entityDef.getUsers()) {
+                String originalName = uDef.getName(); // May not be unique;
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), uDef.getGroup());
                 User user = createUser(ctx, entity, uDef, entityDef);
                 // TODO: get activation token, etc..
@@ -1105,6 +1115,10 @@ public class DefaultSolutionService implements SolutionService {
                 credentialsInfo.setCustomerGroup(uDef.getGroup());
                 ctx.addUserCredentials(credentialsInfo);
                 ctx.register(entityDef, uDef, user);
+                ctx.put(user.getId(), uDef.getRelations());
+                ctx.putIdToMap(EntityType.USER, originalName, user.getId());
+                ctx.putIdToMap(EntityType.USER, uDef.getName(), user.getId());
+                saveServerSideAttributes(ctx.getTenantId(), user.getId(), uDef.getAttributes());
             }
         }
     }

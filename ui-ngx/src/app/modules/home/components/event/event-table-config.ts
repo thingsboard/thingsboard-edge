@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -348,6 +348,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               name: this.translate.instant('event.copy-entity-id'),
               icon: 'content_paste',
               style: {
+                padding: '4px',
                 'font-size': '16px',
                 color: 'rgba(0,0,0,.87)'
               },
@@ -364,6 +365,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               name: this.translate.instant('event.copy-message-id'),
               icon: 'content_paste',
               style: {
+                padding: '4px',
                 'font-size': '16px',
                 color: 'rgba(0,0,0,.87)'
               },

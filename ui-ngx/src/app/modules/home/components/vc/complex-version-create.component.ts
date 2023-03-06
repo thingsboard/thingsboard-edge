@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   ComplexVersionCreateRequest,
   createDefaultEntityTypesVersionCreate,
@@ -67,7 +67,7 @@ export class ComplexVersionCreateComponent extends PageComponent implements OnIn
   @Input()
   popoverComponent: TbPopoverComponent;
 
-  createVersionFormGroup: FormGroup;
+  createVersionFormGroup: UntypedFormGroup;
 
   syncStrategies = Object.values(SyncStrategy);
 
@@ -92,7 +92,7 @@ export class ComplexVersionCreateComponent extends PageComponent implements OnIn
               private cd: ChangeDetectorRef,
               private sanitizer: DomSanitizer,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

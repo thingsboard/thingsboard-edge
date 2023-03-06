@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Observable, ReplaySubject } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
@@ -66,7 +66,7 @@ export interface AlarmDetailsDialogData {
 export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDialogComponent, boolean> implements OnInit {
 
   alarmId: string;
-  alarmFormGroup: FormGroup;
+  alarmFormGroup: UntypedFormGroup;
 
   allowAcknowledgment: boolean;
   allowClear: boolean;
@@ -90,7 +90,7 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
               @Inject(MAT_DIALOG_DATA) public data: AlarmDetailsDialogData,
               private alarmService: AlarmService,
               public dialogRef: MatDialogRef<AlarmDetailsDialogComponent, boolean>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.allowAcknowledgment = data.allowAcknowledgment;

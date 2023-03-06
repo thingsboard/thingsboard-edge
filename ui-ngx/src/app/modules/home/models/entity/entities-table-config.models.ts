@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,6 @@ import { Operation, resourceByEntityType } from '@shared/models/security.models'
 import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 import { IEntityDetailsPageComponent } from '@home/models/entity/entity-details-page-component.models';
-import { templateJitUrl } from '@angular/compiler';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -204,9 +203,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   headerComponent: Type<EntityTableHeaderComponent<T, P, L>>;
   addEntity: CreateEntityOperation<T> = null;
   dataSource: (dataLoadedFunction: (col?: number, row?: number) => void)
-    => EntitiesDataSource<L> = (dataLoadedFunction: (col?: number, row?: number) => void) => {
-    return new EntitiesDataSource(this.entitiesFetchFunction, this.entitySelectionEnabled, dataLoadedFunction);
-  }
+    => EntitiesDataSource<L> = (dataLoadedFunction: (col?: number, row?: number) => void) =>
+    new EntitiesDataSource(this.entitiesFetchFunction, this.entitySelectionEnabled, dataLoadedFunction);
   detailsReadonly: EntityBooleanFunction<T> = () => false;
   entitySelectionEnabled: EntityBooleanFunction<L> = () => true;
   deleteEnabled: EntityBooleanFunction<T | L> = () => true;
@@ -274,9 +272,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   }
 }
 
-export function checkBoxCell(value: boolean): string {
-  return `<mat-icon class="material-icons mat-icon">${value ? 'check_box' : 'check_box_outline_blank'}</mat-icon>`;
-}
+export const checkBoxCell =
+  (value: boolean): string => `<mat-icon class="material-icons mat-icon">${value ? 'check_box' : 'check_box_outline_blank'}</mat-icon>`;
 
 export function defaultEntityTablePermissions(userPermissionsService: UserPermissionsService,
                                               entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -333,7 +333,7 @@ export class WidgetService {
       if (this.widgetsBundleCacheSubject) {
         return this.widgetsBundleCacheSubject.asObservable();
       } else {
-        const loadWidgetsBundleCacheSubject = new ReplaySubject();
+        const loadWidgetsBundleCacheSubject = new ReplaySubject<void>();
         this.widgetsBundleCacheSubject = loadWidgetsBundleCacheSubject;
         if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ)) {
           this.http.get<Array<WidgetsBundle>>('/api/widgetsBundles',
