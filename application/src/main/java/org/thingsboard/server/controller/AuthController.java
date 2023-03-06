@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -58,11 +59,13 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.common.data.security.event.UserSessionInvalidationEvent;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
+import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -80,6 +83,8 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @RestController
 @TbCoreComponent
@@ -87,6 +92,10 @@ import java.net.URISyntaxException;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
+
+    @Value("${server.rest.rate_limits.reset_password_per_user:5:3600}")
+    private String defaultLimitsConfiguration;
+    private final ConcurrentMap<UserId, TbRateLimits> resetPasswordRateLimits = new ConcurrentHashMap<>();
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtTokenFactory tokenFactory;
     private final MailService mailService;
@@ -237,7 +246,12 @@ public class AuthController extends BaseController {
         HttpStatus responseStatus;
         String resetURI = "/login/resetPassword";
         UserCredentials userCredentials = userService.findUserCredentialsByResetToken(TenantId.SYS_TENANT_ID, resetToken);
+
         if (userCredentials != null) {
+            TbRateLimits tbRateLimits = getTbRateLimits(userCredentials.getUserId());
+            if (!tbRateLimits.tryConsume()) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+            }
             try {
                 URI location = new URI(resetURI + "?resetToken=" + resetToken);
                 headers.setLocation(location);
@@ -348,5 +362,10 @@ public class AuthController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private TbRateLimits getTbRateLimits(UserId userId) {
+        return resetPasswordRateLimits.computeIfAbsent(userId,
+                key -> new TbRateLimits(defaultLimitsConfiguration, true));
     }
 }

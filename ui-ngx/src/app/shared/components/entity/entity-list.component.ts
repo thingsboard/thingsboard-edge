@@ -51,13 +51,13 @@ import { BaseData } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
-import { MatChipList } from '@angular/material/chips';
+import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'tb-entity-list',
   templateUrl: './entity-list.component.html',
-  styleUrls: ['./entity-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -117,7 +117,7 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
 
   @ViewChild('entityInput') entityInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityAutocomplete') matAutocomplete: MatAutocomplete;
-  @ViewChild('chipList', {static: true}) chipList: MatChipList;
+  @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
   entities: Array<BaseData<EntityId>> = [];
   filteredEntities: Observable<Array<BaseData<EntityId>>>;
@@ -274,6 +274,15 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
       this.entityInput.nativeElement.blur();
       this.entityInput.nativeElement.focus();
     }, 0);
+  }
+
+  get placeholder(): string {
+    return this.placeholderText ? this.placeholderText : (this.entityListText ? this.translate.instant(this.entityListText): undefined);
+  }
+
+  get requiredLabel(): string {
+    return this.requiredText ? this.requiredText :
+      (this.entitiesRequiredText ? this.translate.instant(this.entitiesRequiredText): undefined);
   }
 
 }

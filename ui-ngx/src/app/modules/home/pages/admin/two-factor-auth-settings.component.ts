@@ -128,9 +128,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
       $event.stopPropagation();
     }
     if (currentState) {
-      this.getByIndexPanel(index).close();
-    } else {
       this.getByIndexPanel(index).open();
+    } else {
+      this.getByIndexPanel(index).close();
     }
   }
 

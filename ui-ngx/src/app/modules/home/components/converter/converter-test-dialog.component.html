@@ -35,7 +35,7 @@
   <mat-toolbar fxLayout="row" color="primary">
     <h2>{{ (isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
     <span fxFlex></span>
-    <button mat-button mat-icon-button
+    <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
@@ -86,12 +86,14 @@
             </div>
             <div fxFlex tb-toast toastTarget="metadataPanel">
               <tb-key-val-map
+                subscriptSizing="dynamic"
                 formControlName="metadata"
                 titleText="converter.metadata">
               </tb-key-val-map>
             </div>
             <div fxFlex *ngIf="!isDecoder" tb-toast toastTarget="integrationMetadataPanel">
               <tb-key-val-map
+                subscriptSizing="dynamic"
                 formControlName="integrationMetadata"
                 titleText="converter.integration-metadata">
               </tb-key-val-map>

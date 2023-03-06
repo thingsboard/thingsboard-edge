@@ -39,7 +39,7 @@ import { FlowInjectionToken, NgxFlowModule } from '@flowjs/ngx-flow';
 import { NgxFlowchartModule } from 'ngx-flowchart';
 import Flow from '@flowjs/flow.js';
 
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MAT_AUTOCOMPLETE_DEFAULT_OPTIONS, MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -58,7 +58,7 @@ import { MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginato
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
+import { MAT_SELECT_CONFIG, MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSliderModule } from '@angular/material/slider';
@@ -138,7 +138,6 @@ import { EntitySubTypeListComponent } from '@shared/components/entity/entity-sub
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
 import { TbJsonPipe } from '@shared/pipe/tbJson.pipe';
 import { ColorPickerDialogComponent } from '@shared/components/dialog/color-picker-dialog.component';
-import { MatChipDraggableDirective } from '@shared/components/mat-chip-draggable.directive';
 import { ColorInputComponent } from '@shared/components/color-input.component';
 import { JsFuncComponent } from '@shared/components/js-func.component';
 import { JsonFormComponent } from '@shared/components/json-form/json-form.component';
@@ -242,7 +241,20 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     { provide: HELP_MARKDOWN_COMPONENT_TOKEN, useValue: HelpMarkdownComponent },
     { provide: SHARED_MODULE_TOKEN, useValue: SharedModule },
     { provide: MatPaginatorIntl, useClass: CustomPaginatorIntl },
-    TbPopoverService
+    TbPopoverService,
+    {
+      provide: MAT_SELECT_CONFIG,
+      useValue: {
+        overlayPanelClass: 'tb-select-overlay',
+        hideSingleSelectionIndicator: true
+      }
+    },
+    {
+      provide: MAT_AUTOCOMPLETE_DEFAULT_OPTIONS,
+      useValue: {
+        hideSingleSelectionIndicator: true
+      }
+    }
   ],
   declarations: [
     FooterComponent,
@@ -251,7 +263,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ToastDirective,
     FullscreenDirective,
     CircularProgressDirective,
-    MatChipDraggableDirective,
     TbHotkeysDirective,
     TbAnchorComponent,
     TbPopoverComponent,
@@ -432,7 +443,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ToastDirective,
     FullscreenDirective,
     CircularProgressDirective,
-    MatChipDraggableDirective,
     TbHotkeysDirective,
     TbAnchorComponent,
     TbStringTemplateOutletDirective,

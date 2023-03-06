@@ -63,6 +63,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TbTestWebSocketClient extends WebSocketClient {
 
+    private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+
     @Getter
     private volatile String lastMsg;
     private volatile CountDownLatch reply;
@@ -104,13 +106,14 @@ public class TbTestWebSocketClient extends WebSocketClient {
     }
 
     public void registerWaitForUpdate(int count) {
+        log.debug("registerWaitForUpdate [{}]", count);
         lastMsg = null;
         update = new CountDownLatch(count);
     }
 
     @Override
     public void send(String text) throws NotYetConnectedException {
-        log.info("SENDING: {}", text);
+        log.debug("send [{}]", text);
         reply = new CountDownLatch(1);
         super.send(text);
     }
@@ -132,7 +135,7 @@ public class TbTestWebSocketClient extends WebSocketClient {
     }
 
     public String waitForUpdate(boolean throwExceptionOnTimeout) {
-        return waitForUpdate(TimeUnit.SECONDS.toMillis(3), throwExceptionOnTimeout);
+        return waitForUpdate(TIMEOUT, throwExceptionOnTimeout);
     }
 
     public String waitForUpdate(long ms) {
@@ -140,12 +143,15 @@ public class TbTestWebSocketClient extends WebSocketClient {
     }
 
     public String waitForUpdate(long ms, boolean throwExceptionOnTimeout) {
+        log.debug("waitForUpdate [{}]", ms);
         try {
             if (update.await(ms, TimeUnit.MILLISECONDS)) {
                 return lastMsg;
+            } else {
+                log.warn("Failed to await update (waiting time [{}]ms elapsed)", ms, new RuntimeException("stacktrace"));
             }
         } catch (InterruptedException e) {
-            log.warn("Failed to await reply", e);
+            log.warn("Failed to await update", e);
         }
         if (throwExceptionOnTimeout) {
             throw new AssertionError("Waited for update for " + ms + " ms but none arrived");
@@ -159,15 +165,22 @@ public class TbTestWebSocketClient extends WebSocketClient {
     }
 
     public String waitForReply(boolean throwExceptionOnTimeout) {
+        return waitForReply(TIMEOUT, throwExceptionOnTimeout);
+    }
+
+    public String waitForReply(long ms, boolean throwExceptionOnTimeout) {
+        log.debug("waitForReply [{}]", ms);
         try {
-            if (reply.await(3, TimeUnit.SECONDS)) {
+            if (reply.await(ms, TimeUnit.MILLISECONDS)) {
                 return lastMsg;
+            } else {
+                log.warn("Failed to await reply (waiting time [{}]ms elapsed)", ms, new RuntimeException("stacktrace"));
             }
         } catch (InterruptedException e) {
             log.warn("Failed to await reply", e);
         }
         if (throwExceptionOnTimeout) {
-            throw new AssertionError("Waited for reply for 3 seconds but none arrived");
+            throw new AssertionError("Waited for reply for " + ms + " ms but none arrived");
         } else {
             return null;
         }

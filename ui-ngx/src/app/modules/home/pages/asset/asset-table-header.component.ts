@@ -40,7 +40,7 @@ import { AssetProfileId } from '@shared/models/id/asset-profile-id';
 @Component({
   selector: 'tb-asset-table-header',
   templateUrl: './asset-table-header.component.html',
-  styleUrls: ['./asset-table-header.component.scss']
+  styleUrls: []
 })
 export class AssetTableHeaderComponent extends EntityTableHeaderComponent<Asset> {
 
