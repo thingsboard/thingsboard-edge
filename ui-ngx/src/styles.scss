@@ -986,16 +986,16 @@ mat-label {
 
   // Material table
 
-  /*.mat-toolbar.mat-primary {
-    button.mat-mdc-icon-button {
+  .mat-toolbar.mat-primary {
+  /*  button.mat-mdc-icon-button {
       mat-icon {
         color: white;
       }
-    }
+    } */
     .mat-mdc-select-value, .mat-mdc-select-arrow {
-      color: white;
+      color: inherit;
     }
-  }*/
+  }
 
   .mat-toolbar.mat-mdc-table-toolbar {
     padding: 0 24px;
