@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -30,33 +31,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectOwnerFormGroup" class="mat-block">
-  <mat-label>{{ placeholderText | translate }}</mat-label>
-  <input matInput type="text"
-         #ownerInput
-         formControlName="owner"
-         (focusin)="onFocus()"
-         [required]="required"
-         [matAutocomplete]="ownerAutocomplete">
-  <button *ngIf="selectOwnerFormGroup.get('owner').value && !disabled"
-          type="button"
-          matSuffix mat-icon-button aria-label="Clear"
-          (click)="clear()">
-    <mat-icon class="material-icons">close</mat-icon>
-  </button>
-  <mat-autocomplete class="tb-autocomplete"
-                    #ownerAutocomplete="matAutocomplete"
-                    [displayWith]="displayOwnerFn">
-    <mat-option *ngFor="let owner of filteredOwners | async" [value]="owner">
-      <span [innerHTML]="owner.name | highlight:searchText"></span>
-    </mat-option>
-    <mat-option *ngIf="!(filteredOwners | async)?.length" [value]="null">
-      <span>
-          {{ notFoundText | translate: {owner: searchText, entity: searchText} }}
-      </span>
-    </mat-option>
-  </mat-autocomplete>
-  <mat-error *ngIf="selectOwnerFormGroup.get('owner').hasError('required')">
-    {{ requiredText | translate }}
-  </mat-error>
-</mat-form-field>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="integration tests">
+    <test verbose="2" name="Integration tests" preserve-order="false">
+        <packages>
+            <package name="org.thingsboard.server.msa.integration"/>
+        </packages>
+    </test>
+</suite>

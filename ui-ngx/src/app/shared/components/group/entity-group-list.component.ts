@@ -60,7 +60,7 @@ import { Direction } from '@shared/models/page/sort-order';
 @Component({
   selector: 'tb-entity-group-list',
   templateUrl: './entity-group-list.component.html',
-  styleUrls: ['./entity-group-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="edgeEntityGroupListFormGroup" class="mat-block">
+<mat-form-field [formGroup]="edgeEntityGroupListFormGroup" class="mat-block tb-chip-list">
   <mat-chip-grid #chipList formControlName="entityGroups">
     <mat-chip-row
       *ngFor="let entityGroup of entityGroups"

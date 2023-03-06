@@ -79,12 +79,4 @@
       align-items: center;
     }
   }
-
-  .mat-mdc-slide-toggle {
-    /*TODO(mdc-migration): The following rule targets internal classes of slide-toggle that may no longer apply for the MDC version.
- */
-    .mat-slide-toggle-content {
-      font-size: 14px;
-    }
-  }
 }

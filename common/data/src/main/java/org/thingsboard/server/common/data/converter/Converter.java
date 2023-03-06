@@ -60,6 +60,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private ConverterType type;
     private boolean debugMode;
     private JsonNode configuration;
+    @NoXss
     private JsonNode additionalInfo;
     private boolean edgeTemplate;
 

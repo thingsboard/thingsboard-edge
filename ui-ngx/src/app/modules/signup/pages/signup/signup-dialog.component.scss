@@ -29,20 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-
-}
-
-:host ::ng-deep {
-  /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-  /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-  .mat-form-field-flex {
-    padding-top: 0;
-    /*TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version.
- */
-    .mat-form-field-infix {
-      border-top: 0;
-    }
+  .mat-mdc-dialog-content {
+    color: #000;
   }
 }

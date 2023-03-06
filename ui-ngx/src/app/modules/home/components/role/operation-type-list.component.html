@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="operationTypeListFormGroup" class="mat-block">
+<mat-form-field [formGroup]="operationTypeListFormGroup" class="mat-block tb-chip-list">
   <mat-chip-grid #chipList formControlName="operationTypeList">
     <mat-chip-row
       *ngFor="let operationType of operationTypeList"

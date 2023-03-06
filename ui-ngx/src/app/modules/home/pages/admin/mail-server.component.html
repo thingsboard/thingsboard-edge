@@ -44,7 +44,7 @@
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
       <form [formGroup]="mailSettings" (ngSubmit)="save()">
-        <mat-checkbox *ngIf="isTenantAdmin()" formControlName="useSystemMailSettings" style="padding-bottom: 16px;">
+        <mat-checkbox *ngIf="isTenantAdmin()" formControlName="useSystemMailSettings">
           {{ 'admin.use-system-mail-settings' | translate }}
         </mat-checkbox>
         <fieldset [disabled]="(isLoading$ | async) || readonly" *ngIf="!mailSettings.get('useSystemMailSettings').value">

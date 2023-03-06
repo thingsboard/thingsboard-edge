@@ -34,7 +34,7 @@
   <div class="header" fxFlex fxLayout="row">
     <span class="cell" fxFlex="30" translate>permission.resource.resource</span>
     <span class="cell" fxFlex="70" translate>permission.operation.operations</span>
-    <span [fxShow]="!disabled" style="width: 40px; min-width: 40px;">&nbsp;</span>
+    <span [fxShow]="!disabled" style="width: 48px; min-width: 48px;">&nbsp;</span>
   </div>
   <div class="body">
     <div class="row" fxFlex fxLayout="row"
@@ -54,7 +54,6 @@
       <button mat-icon-button color="primary"
               [fxShow]="!disabled"
               type="button"
-              style="width: 40px; min-width: 40px;"
               (click)="removePermission($index)"
               [disabled]="isLoading$ | async"
               matTooltip="{{ 'permission.remove-permission' | translate }}"

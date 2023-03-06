@@ -439,7 +439,7 @@ mat-label {
   }
 }
 
-.tb-markdown-view {
+.tb-default .tb-markdown-view, .tb-dark .tb-markdown-view, .tb-markdown-view {
   display: block;
 
   $headings: h1, h2, h3, h4, h5, h6;
@@ -987,13 +987,13 @@ mat-label {
   // Material table
 
   .mat-toolbar.mat-primary {
-    button.mat-mdc-icon-button {
+  /*  button.mat-mdc-icon-button {
       mat-icon {
         color: white;
       }
-    }
+    } */
     .mat-mdc-select-value, .mat-mdc-select-arrow {
-      color: white;
+      color: inherit;
     }
   }
 

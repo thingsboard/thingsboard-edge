@@ -84,13 +84,33 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
       min-height: 0;
       box-sizing: border-box;
 
-      .fc-event {
+      .fc-event:not(.fc-list-event) {
         border-radius: 2px;
         box-shadow: 0 4px 20px 0 rgba(0, 0, 0, .14), 0 7px 10px -5px rgba(58, 135, 173, .4);
       }
 
       .fc-day-grid-event {
         margin: 2px 5px 0;
+      }
+
+      a {
+        font-weight: inherit;
+        color: inherit;
+        text-decoration: inherit;
+        border: inherit;
+        transition: inherit;
+
+        &:hover, &:focus {
+          border: inherit;
+        }
+      }
+
+      table > tbody {
+        cursor: pointer;
+      }
+
+      .fc-event-title-container {
+        display: flex;
       }
     }
 
@@ -102,13 +122,11 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
   }
 }
 
-.tb-event-schedule-calendar-menu {
+.tb-event-schedule-calendar-menu.mat-mdc-menu-panel.mdc-menu-surface {
   min-width: 256px;
   max-height: 404px;
   border-radius: 8px;
   margin-left: -20px;
-  /*TODO(mdc-migration): The following rule targets internal classes of menu that may no longer apply for the MDC version.
- */
   &.mat-menu-below {
     margin-top: -60px;
   }
@@ -139,10 +157,12 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
 
     .tb-context-menu-title {
       font-weight: 500;
+      line-height: normal;
     }
 
     .tb-context-menu-subtitle {
       font-size: 12px;
+      line-height: normal;
     }
   }
 }

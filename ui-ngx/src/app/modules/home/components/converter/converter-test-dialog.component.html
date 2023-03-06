@@ -86,12 +86,14 @@
             </div>
             <div fxFlex tb-toast toastTarget="metadataPanel">
               <tb-key-val-map
+                subscriptSizing="dynamic"
                 formControlName="metadata"
                 titleText="converter.metadata">
               </tb-key-val-map>
             </div>
             <div fxFlex *ngIf="!isDecoder" tb-toast toastTarget="integrationMetadataPanel">
               <tb-key-val-map
+                subscriptSizing="dynamic"
                 formControlName="integrationMetadata"
                 titleText="converter.integration-metadata">
               </tb-key-val-map>

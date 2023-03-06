@@ -65,7 +65,7 @@ import { CustomerService } from '@core/http/customer.service';
 @Component({
   selector: 'tb-edge-entity-group-list',
   templateUrl: './edge-entity-group-list.component.html',
-  styleUrls: ['./edge-entity-group-list.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

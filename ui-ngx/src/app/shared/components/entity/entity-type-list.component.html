@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="entityTypeListFormGroup" class="mat-block" subscriptSizing="{{ subscriptSizing }}">
+<mat-form-field [formGroup]="entityTypeListFormGroup" class="mat-block tb-chip-list" subscriptSizing="{{ subscriptSizing }}">
   <mat-chip-grid #chipList formControlName="entityTypeList">
     <mat-chip-row
       *ngFor="let entityType of entityTypeList"
