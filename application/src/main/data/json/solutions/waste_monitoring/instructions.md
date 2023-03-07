@@ -23,7 +23,7 @@ The user can go to the bin state in several ways: click on the line in the Bins 
 
 <br>
 
-- **Bin state** is designed to edit basic information and location relative to a specific bin and monitor fullness, battery level, and alert statistics. The Bin state contains:
+- **Bin state** is designed to edit basic information and location relative to a specific bin and monitor fullness, battery level statistics. The Bin state contains:
 
   - Sensor's section with detailed info. Contains the following data: "Serial number", "Address", "Latitude", "Longitude", "Fullness level", "Battery level", "Connection" status, and "Last update".
   - By clicking on the "Edit" button of the sensor section, the user can edit the sensor's main fields.
@@ -59,7 +59,7 @@ The profile by default is configured to raise alarms if:
 #### Alarms
 Alarms are generated using two <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
 "Waste Sensor" <a href="/deviceProfiles" target="_blank">device profile</a>.
-User may turn alarms on and off as well as configure the alarm thresholds via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Waste Monitoring"</a> dashboard using "Edit Sensor" form.
+User may configure the alarm rules via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Waste Monitoring"</a> dashboard using "Alarm rules" form.
 
 
 #### Devices
@@ -94,7 +94,7 @@ ${all_entities}
 
 Let's recreate an event in which the garbage bin will be filled to 100% and require the responsible persons' fastest response.
 
-To do this, let's take, for example, "Waste Sensor" - "389021001241", which currently has 18% capacity.
+To do this, let's take, for example, "Waste Sensor" - "389021001241", which currently has 17% capacity.
 
 <div class="img-float" style="width:40%;margin: 20px auto">
 <img src="https://thingsboard.io/images/solutions/waste_monitoring/example-1-1.png" alt="Waste Monitoring">

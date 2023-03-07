@@ -6,4 +6,4 @@ A template for waste monitoring demonstrating the general capabilities of the pl
 - Device management
 - Alert system
 
-Press the **Install** button to get started!
+Press the Install button to get started!

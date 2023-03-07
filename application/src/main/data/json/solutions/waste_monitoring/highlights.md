@@ -9,4 +9,4 @@ Smart waste management systems utilize sensors and other monitoring devices to c
   - interactive map for monitoring the placement and fullness of garbage bins/sensors;
   - bins management system;
   - alarm system;
-  - statistics of bins fullness and the level of the battery.
+  - statistics of bins fullness and the battery level.
