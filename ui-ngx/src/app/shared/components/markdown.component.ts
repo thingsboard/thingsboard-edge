@@ -33,14 +33,17 @@ import {
   ChangeDetectorRef,
   Component,
   ComponentFactory,
-  ComponentRef, ElementRef,
+  ComponentRef,
+  ElementRef,
   EventEmitter,
   Inject,
   Injector,
-  Input, OnChanges,
+  Input,
+  OnChanges,
   Output,
   SimpleChanges,
-  Type, ViewChild,
+  Type,
+  ViewChild,
   ViewContainerRef
 } from '@angular/core';
 import { HelpService } from '@core/services/help.service';
@@ -48,12 +51,13 @@ import { MarkdownService, PrismPlugin } from 'ngx-markdown';
 import { DynamicComponentFactoryService } from '@core/services/dynamic-component-factory.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { SHARED_MODULE_TOKEN } from '@shared/components/tokens';
-import { isDefinedAndNotNull } from '@core/utils';
+import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { Observable, of, ReplaySubject } from 'rxjs';
 
 @Component({
   selector: 'tb-markdown',
-  templateUrl: './markdown.component.html'
+  templateUrl: './markdown.component.html',
+  styleUrls: ['./markdown.component.scss']
 })
 export class TbMarkdownComponent implements OnChanges {
 
@@ -68,7 +72,11 @@ export class TbMarkdownComponent implements OnChanges {
 
   @Input() markdownClass: string | undefined;
 
+  @Input() containerClass: string | undefined;
+
   @Input() style: { [klass: string]: any } = {};
+
+  @Input() additionalStyles: string[];
 
   @Input()
   get lineNumbers(): boolean { return this.lineNumbersValue; }
@@ -110,12 +118,20 @@ export class TbMarkdownComponent implements OnChanges {
       markdownClass += ` ${this.markdownClass}`;
     }
     template = `<div [ngStyle]="style" class="${markdownClass}">${template}</div>`;
+    if (this.containerClass) {
+      template = `<div class="${this.containerClass}" style="width: 100%; height: 100%;">${template}</div>`;
+    }
     this.markdownContainer.clear();
     const parent = this;
     let readyObservable: Observable<void>;
     let compileModules = [this.sharedModule];
     if (this.additionalCompileModules) {
       compileModules = compileModules.concat(this.additionalCompileModules);
+    }
+    let styles: string[] = deepClone(TbMarkdownComponent['ɵcmp'].styles);
+    styles[0] = styles[0].replace(/\[_nghost\-%COMP%\]/g, '').replace(/\[_ngcontent\-%COMP%\]/g, '');
+    if (this.additionalStyles) {
+      styles = styles.concat(this.additionalStyles);
     }
     this.dynamicComponentFactoryService.createDynamicComponentFactory(
       class TbMarkdownInstance {
@@ -125,7 +141,7 @@ export class TbMarkdownComponent implements OnChanges {
       },
       template,
       compileModules,
-      true
+      true, 1, styles
     ).subscribe((factory) => {
       this.tbMarkdownInstanceComponentFactory = factory;
       const injector: Injector = Injector.create({providers: [], parent: this.markdownContainer.injector});

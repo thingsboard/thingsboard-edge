@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, HostBinding, Inject, Input, OnInit, Type } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnInit, Type } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
@@ -40,7 +40,8 @@ import {
   createLabelFromPattern,
   flatDataWithoutOverride,
   formattedDataFormDatasourceData,
-  hashCode, isDefinedAndNotNull,
+  hashCode,
+  isDefinedAndNotNull,
   isNotEmptyStr,
   parseFunction,
   safeExecute
@@ -68,13 +69,14 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
   settings: MarkdownWidgetSettings;
   markdownTextFunction: MarkdownTextFunction;
 
-  @HostBinding('class')
   markdownClass: string;
 
   @Input()
   ctx: WidgetContext;
 
   markdownText: string;
+
+  additionalStyles: string[];
 
 
   constructor(protected store: Store<AppState>,
@@ -89,14 +91,15 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
     this.settings = this.ctx.settings;
     this.markdownTextFunction = this.settings.useMarkdownTextFunction ?
       parseFunction(this.settings.markdownTextFunction, ['data', 'ctx']) : null;
-    this.markdownClass = 'markdown-widget';
-    const cssString = this.settings.markdownCss;
+    let cssString = this.settings.markdownCss;
     if (isNotEmptyStr(cssString)) {
       const cssParser = new cssjs();
+      this.markdownClass = 'markdown-widget-' + hashCode(cssString);
+      cssParser.cssPreviewNamespace = this.markdownClass;
       cssParser.testMode = false;
-      this.markdownClass += '-' + hashCode(cssString);
-      cssParser.cssPreviewNamespace = 'tb-default .' + this.markdownClass;
-      cssParser.createStyleElement(this.markdownClass, cssString);
+      cssString = cssParser.applyNamespacing(cssString);
+      cssString = cssParser.getCSSForEditor(cssString);
+      this.additionalStyles = [cssString];
     }
     const pageSize = isDefinedAndNotNull(this.ctx.widgetConfig.pageSize) &&
                       this.ctx.widgetConfig.pageSize > 0 ? this.ctx.widgetConfig.pageSize : 16384;
