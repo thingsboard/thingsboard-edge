@@ -3183,6 +3183,7 @@
         "mqtt-qos-exactly-once": "Exactly once",
         "downlink-topic-pattern": "Downlink topic pattern",
         "downlink-topic-pattern-required": "Downlink topic pattern is required.",
+        "retained-message": "Retained",
         "aws-access-key-id": "AWS access key Id",
         "aws-secret-access-key": "AWS secret access key",
         "aws-region": "Region",
