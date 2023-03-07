@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
@@ -64,8 +63,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.alarm.TbAlarmService;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.model.UserPrincipal;
 
 import java.util.UUID;
 
@@ -287,10 +284,7 @@ public class AlarmController extends BaseController {
         }
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         checkEntityId(entityId, Operation.READ);
-        UserId assigneeUserId = null;
-        if (assigneeId != null) {
-            assigneeUserId = new UserId(UUID.fromString(assigneeId));
-        }
+        UserId assigneeUserId = checkAssigneeId(assigneeId);
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
         try {
@@ -339,10 +333,7 @@ public class AlarmController extends BaseController {
             throw new ThingsboardException("Invalid alarms search query: Both parameters 'searchStatus' " +
                     "and 'status' can't be specified at the same time!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        UserId assigneeUserId = null;
-        if (assigneeId != null) {
-            assigneeUserId = new UserId(UUID.fromString(assigneeId));
-        }
+        UserId assigneeUserId = checkAssigneeId(assigneeId);
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
