@@ -35,7 +35,7 @@
   <div class="container">
     <div fxFlex fxLayout="row" fxLayoutGap="8px"
          *ngFor="let topicFilter of mqttFiltersFromArray.controls; let i = index"
-         [formGroup]="topicFilter" fxLayoutAlign="start center" class="no-padding">
+         [formGroup]="topicFilter" fxLayoutAlign="start center">
       <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
         <mat-label>{{ i !== 0 ? "" : "integration.topic" | translate }}</mat-label>
         <input matInput required name="topicFilterTopic" formControlName="filter">

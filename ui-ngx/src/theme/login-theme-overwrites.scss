@@ -28,37 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+@use '@angular/material' as mat;
+@use '@material/card/elevated-card-theme' as mdc-elevated-card-theme;
 
-:host {
-  flex: 1;
-  display: flex;
-  justify-content: flex-start;
-  min-width: 150px;
+@mixin login-theme-overwrites($primary, $config-or-theme) {
+  @include _mat-card-overwrites($primary, $config-or-theme);
+  @include _mat-toolbar-overwrites($primary, $config-or-theme);
 }
 
-:host ::ng-deep {
-  tb-asset-profile-autocomplete {
-    width: 100%;
+@mixin _mat-card-overwrites($primary, $config-or-theme) {
+  .mat-mdc-card {
+    @include mdc-elevated-card-theme.theme((
+      container-color: mat.get-color-from-palette($primary)
+    ));
+  }
+}
 
-    mat-form-field {
-      font-size: 16px;
-
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
-      }
-
-      .mat-form-field-underline {
-        bottom: 0;
-      }
-
-      @media #{$mat-xs} {
-        width: 100%;
-
-        .mat-form-field-infix {
-          width: auto !important;
-        }
-      }
+@mixin _mat-toolbar-overwrites($primary, $config-or-theme) {
+  .mat-toolbar {
+    &.mat-primary {
+      background: mat.get-color-from-palette($primary);
+      color: mat.get-color-from-palette($primary, default-contrast);
     }
   }
 }
+

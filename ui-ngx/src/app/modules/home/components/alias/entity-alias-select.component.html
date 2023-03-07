@@ -30,10 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [floatLabel]="showLabel ? 'auto' : 'always'"
-                [hideRequiredMarker]="!showLabel" [formGroup]="selectEntityAliasFormGroup" class="mat-block">
-  <mat-label *ngIf="!showLabel"></mat-label>
-  <input matInput type="text" placeholder="{{ 'entity.entity-alias' | translate }}"
+<mat-form-field [formGroup]="selectEntityAliasFormGroup" class="mat-block">
+  <mat-label *ngIf="showLabel">{{ 'entity.entity-alias' | translate }}</mat-label>
+  <input matInput type="text" placeholder="{{ !showLabel ? ('entity.entity-alias' | translate) : ''}}"
          #entityAliasInput
          formControlName="entityAlias"
          (focusin)="onFocus()"
