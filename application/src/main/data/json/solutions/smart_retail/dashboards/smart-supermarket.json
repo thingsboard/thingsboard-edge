@@ -201,8 +201,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -412,8 +412,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -494,8 +494,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -509,9 +509,9 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "16px",
           "settings": {
-            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n    <h5 class=\"market-title\">${entityName}</h5>\n    <tb-dashboard-state style=\"width: 100%; height: 90px;\" [ctx]=\"ctx\" stateId=\"alarm_badges\"></tb-dashboard-state>\n    <tb-dashboard-state fxFlex=\"70\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"plan\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n    <div fxFlex=\"30\" fxLayout=\"row\">\n     <div fxFlex=\"60\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">Filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"device-filter\"></tb-dashboard-state>\n     </div>\n     <mat-divider vertical style=\"margin-left: 20px; margin-right: 20px;\"></mat-divider>\n     <div fxFlex=\"40\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"state-filter\"></tb-dashboard-state>\n     </div>\n    </div>\n</div>",
-            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n    <h5 class=\"market-title\">${entityName}</h5>\n    <tb-dashboard-state style=\"width: 100%; height: 90px;\" [ctx]=\"ctx\" stateId=\"alarm_badges\"></tb-dashboard-state>\n    <tb-dashboard-state fxFlex=\"70\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"plan\"></tb-dashboard-state>\n    <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n    <div fxFlex=\"30\" fxLayout=\"row\">\n     <div fxFlex=\"60\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">Filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"device-filter\"></tb-dashboard-state>\n     </div>\n     <mat-divider vertical style=\"margin-left: 20px; margin-right: 20px;\"></mat-divider>\n     <div fxFlex=\"40\" fxLayout=\"column\">\n        <h5 style=\"padding-bottom: 15px;\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"state-filter\"></tb-dashboard-state>\n     </div>\n    </div>\n</div>",
+            "applyDefaultMarkdownStyle": true,
             "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    position: absolute;\n    top: 10px;\n    left: 10px;\n    z-index: 2;\n}"
           },
           "title": "New Markdown/HTML Card",
@@ -1392,8 +1392,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1525,8 +1525,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1957,8 +1957,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2170,8 +2170,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808883,
-                "endTimeMs": 1678203208883
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2185,10 +2185,10 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "4px",
           "settings": {
-            "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
-            "markdownTextFunction": "var deviceState;\nif (data && data.length && data[0]['entityId']) {\n    deviceState = true;\n} else {\n    deviceState = false;\n}\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (deviceState \n            ? ('<tb-dashboard-state style=\"height: 174px;\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"device_card_header\"></tb-dashboard-state>' +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"device_card_details\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"devices_card\"></tb-dashboard-state>') +\n          '<mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"' + (deviceState ? 'true' : 'false') + '\" stateId=\"'+ (deviceState ? 'device_alarms' : 'devices_alarms') +'\"></tb-dashboard-state>' +\n       '</div>';",
             "useMarkdownTextFunction": true,
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n"
+            "markdownTextFunction": "var deviceState;\nif (data && data.length && data[0]['entityId']) {\n    deviceState = true;\n} else {\n    deviceState = false;\n}\n\nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          (deviceState \n            ? ('<tb-dashboard-state style=\"height: 174px;\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"device_card_header\"></tb-dashboard-state>' +\n               '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"device_card_details\"></tb-dashboard-state>') \n            : '<tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"devices_card\"></tb-dashboard-state>') +\n          '<mat-divider style=\"margin-top: 10px; margin-bottom: 10px;\"></mat-divider>' +\n          '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"' + (deviceState ? 'true' : 'false') + '\" stateId=\"'+ (deviceState ? 'device_alarms' : 'devices_alarms') +'\"></tb-dashboard-state>' +\n       '</div>';",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view table {\n    border: none;\n    border-radius: 0px;\n    overflow: auto;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget {\n    border-radius: 0px;\n}\n\n.tb-markdown-view .tb-widget-container > .tb-widget .tb-table-widget mat-toolbar {\n    height: 65px;\n    max-height: 65px;\n}\n\n\n.tb-markdown-view .tb-widget-container > .tb-widget.tb-has-timewindow .tb-table-widget mat-toolbar {\n    height: 100px;\n    max-height: 100px;\n}\n\n"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -2975,8 +2975,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -3515,8 +3515,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -3644,8 +3644,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -3837,8 +3837,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -4030,8 +4030,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -4120,8 +4120,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -4212,8 +4212,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -4415,8 +4415,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -4506,8 +4506,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -4753,8 +4753,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -5093,8 +5093,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817439,
+                "endTimeMs": 1678283217439
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -5183,8 +5183,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -5508,8 +5508,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -5638,8 +5638,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -5733,8 +5733,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6054,8 +6054,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6149,8 +6149,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6417,8 +6417,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6512,8 +6512,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6628,8 +6628,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6645,6 +6645,7 @@
           "settings": {
             "useMarkdownTextFunction": true,
             "markdownTextFunction": "var name, label, type, state, active, batteryLevel;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    label = data[0]['Label'];\n    type = data[0]['Type'];\n    state = data[0]['state'];\n    active = data[0]['active'];\n    batteryLevel = data[0]['batteryLevel'];\n    if (active === 'false') {\n        state = 'disconnected';\n    }\n} else {\n    name = 'N/A';\n    label = 'N/A';\n    type = 'N/A';\n    state = 'N/A';\n    active = 'N/A';\n    batteryLevel = 'N/A';\n}\n\nvar displayBatteryLevel = showBatteryLevel(type);\n\nvar typeSvg = getTypeSvg(type);\n    var encodedTypeSvg = encodeURIComponent(typeSvg);\n    var typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">' + label + '</div>' +\n                   '<div class=\"subtitle\">' + name + '</div>' +\n                '</div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"start\"><button id=\"settings\" data-device-type=' + encodeURIComponent(type) + ' type=\"button\" mat-button color=\"primary\"><mat-icon class=\"tb-mat-18\">settings</mat-icon><span>Settings</span></button></div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<div fxLayout=\"row\" class=\"params\">' +\n              '<div fxFlex class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">Type: </div>' +\n                '<div class=\"param\">'+ type +'</div>' +\n              '</div>' +\n              '<div fxFlex class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">Label: </div>' +\n                '<div class=\"param\">'+ label +'</div>' +\n              '</div>' +\n              '<div fxFlex class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">State: </div>' +\n                '<div class=\"param\">'+ getStateHtml(state) +'</div>' +\n              '</div>' +\n              (displayBatteryLevel ? ('<div fxFlex class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">Battery level: </div>' +\n                '<div class=\"param\">'+ getBatteryLevelHtml(batteryLevel) +'</div>' +\n              '</div>') : '') +\n          '</div>' +\n       '<div>';\n\nfunction getTypeSvg(type) {\n    var typeSvg;\n    switch (type) {\n        case 'Smart Shelf':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M2.5 2C2.22386 2 2 2.22386 2 2.5V17.5C2 17.7761 2.22386 18 2.5 18C2.77614 18 3 17.7761 3 17.5V17H17V17.5C17 17.7761 17.2239 18 17.5 ' +\n                      '18C17.7761 18 18 17.7761 18 17.5V2.5C18 2.22386 17.7761 2 17.5 2C17.2239 2 17 2.22386 17 2.5V8H14C14.5523 8 15 7.55228 15 7V4C15 3.44772 14.5523 3 14 3H11C10.4477 3 10 3.44772 10 4V7C10 ' +\n                      '7.55228 10.4477 8 11 8H7C7.55228 8 8 7.55228 8 7V6C8 5.44772 7.55228 5 7 5H6C5.44772 5 5 5.44772 5 6V7C5 7.55228 5.44772 8 6 8H3V2.5C3 2.22386 2.77614 2 2.5 2ZM17 16V9H3V16H6C5.44772 16 ' +\n                      '5 15.5523 5 15V12C5 11.4477 5.44772 11 6 11H9C9.55228 11 10 11.4477 10 12V15C10 15.5523 9.55228 16 9 16H12C11.4477 16 11 15.5523 11 15V13C11 12.4477 11.4477 12 12 12H14C14.5523 12 15 ' +\n                      '12.4477 15 13V15C15 15.5523 14.5523 16 14 16H17Z\" fill=\"#212121\"/>';\n            break;\n        case 'Freezer':            \n            typeSvg = '<rect x=\"9\" y=\"2\" width=\"2\" height=\"16\" rx=\"1\" fill=\"#212121\"/>' +\n                      '<path d=\"M12.5 3.5L10 6L7.5 3.5M12.5 16.5L10 14L7.5 16.5\" stroke=\"#212121\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M16.8792 8.91509L13.4641 8.00002L14.3792 4.58496M5.62082 15.4151L6.53588 12L3.12082 11.085\" stroke=\"#212121\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<path d=\"M5.62085 4.58491L6.53591 7.99998L3.12085 8.91504M16.8792 11.0849L13.4641 12L14.3792 15.415\" stroke=\"#212121\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>' +\n                      '<rect x=\"16.4282\" y=\"5.13379\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(60 16.4282 5.13379)\" fill=\"#212121\"/>' +\n                      '<rect x=\"2.57178\" y=\"6.86621\" width=\"2\" height=\"16\" rx=\"1\" transform=\"rotate(-60 2.57178 6.86621)\" fill=\"#212121\"/>';\n            break;\n        case 'Chiller':            \n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M13.0001 7.49994C13.0001 8.53714 12.2661 9.2516 11.4454 9.64333C11.2807 9.72191 11.1185 9.75061 10.9657 9.73874C10.9881 9.82201 ' +\n                      '11.0001 9.90957 11.0001 9.99994C11.0001 10.0304 10.9988 10.0605 10.9961 10.0902C11.1511 10.0322 11.322 9.99993 11.5001 9.99993L12.5001 9.99994L13.5 9.99993C14.3285 9.99992 15.0003 ' +\n                      '10.6975 14.6435 11.4452C14.2517 12.2658 13.5373 12.9999 12.5001 12.9999C11.4629 12.9999 10.7484 12.2658 10.3567 11.4452C10.2781 11.2805 10.2494 11.1184 10.2613 10.9655C10.178 10.988 ' +\n                      '10.0905 10.9999 10.0001 10.9999C9.96965 10.9999 9.93949 10.9986 9.90971 10.9959C9.96779 11.1509 10 11.3218 10 11.5L10 12.4999L10 13.4999C10.0001 14.3284 9.30246 15.0002 8.55482 ' +\n                      '14.6433C7.73413 14.2516 7.00006 13.5371 7.00006 12.4999C7.00006 11.4627 7.73413 10.7483 8.55482 10.3566C8.71948 10.278 8.8817 10.2493 9.03459 10.2611C9.01212 10.1779 9.00013 10.0903 ' +\n                      '9.00013 9.99994C9.00013 9.9695 9.00149 9.93938 9.00416 9.90963C8.84921 9.96766 8.67837 9.9999 8.50029 9.99989L7.50031 9.99988L6.50033 9.99989C5.67189 9.9999 5.00006 9.3023 5.35692 ' +\n                      '8.55467C5.74865 7.73397 6.46311 6.99991 7.50031 6.99991C8.5375 6.99991 9.25197 7.73397 9.6437 8.55467C9.72227 8.71929 9.75098 8.88149 9.73911 9.03435C9.82232 9.01191 9.90983 8.99994 ' +\n                      '10.0001 8.99994C10.0306 8.99994 10.0607 9.0013 10.0905 9.00397C10.0324 8.84898 10.0002 8.67807 10.0002 8.49992L10.0002 7.49994L10.0002 6.49996C10.0001 5.67153 10.6977 4.99969 11.4454 ' +\n                      '5.35655C12.2661 5.74828 13.0001 6.46274 13.0001 7.49994Z\" fill=\"#212121\"/>' +\n                      '<circle cx=\"10\" cy=\"10\" r=\"8\" stroke=\"#212121\" stroke-width=\"2\"/>';\n            break;                      \n        case 'Smart Bin':\n            typeSvg = '<path d=\"M6.71849 14C5.15241 14 4.19394 12.2816 5.01686 10.9491L5.09816 10.8175C5.17797 10.8327 5.26094 10.8383 5.34575 10.8332C5.89704 10.8001 6.31713 10.3264 6.28404 9.77509L6.21705 8.65906C6.19838 8.34795 6.03571 8.06333 5.77714 7.88933C5.51856 7.71533 5.19363 7.67184 4.8984 7.77171L3.93237 8.09851C3.40921 8.27549 3.12858 8.84306 3.30556 9.36622C3.34237 9.47504 3.39608 9.57337 3.46278 9.65927L3.31523 9.89818C1.66939 12.5631 3.58633 16 6.71849 16H7.83485C8.38714 16 8.83485 15.5523 8.83485 15C8.83485 14.4478 8.38714 14 7.83485 14L6.71849 14Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M13.3135 13.8409C14.8789 13.8873 15.8879 12.198 15.1048 10.8418L14.5467 9.87495C14.2705 9.39666 14.4344 8.78507 14.9127 8.50893C15.391 8.23279 16.0026 8.39666 16.2787 8.87495L16.8369 9.84175C18.403 12.5543 16.3849 15.9329 13.2542 15.84L12.9735 15.8317C12.9324 15.9324 12.8741 16.0281 12.7983 16.1143C12.4337 16.5292 11.8019 16.5699 11.387 16.2054L10.621 15.5322C10.3869 15.3264 10.2621 15.0233 10.2835 14.7123C10.3049 14.4014 10.47 14.1182 10.7301 13.9465L11.6632 13.3305C12.124 13.0262 12.7444 13.1531 13.0487 13.614C13.0955 13.6849 13.1321 13.7596 13.1588 13.8363L13.3135 13.8409Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M11.6696 5.21002C10.9272 3.83113 8.95968 3.80195 8.17664 5.15821L7.61846 6.12501C7.34232 6.6033 6.73073 6.76718 6.25244 6.49104C5.77414 6.21489 5.61027 5.6033 5.88641 5.12501L6.44459 4.15821C8.01067 1.44568 11.9456 1.50404 13.4306 4.26183L13.5637 4.50907C13.6715 4.49425 13.7835 4.4969 13.8961 4.51943C14.4377 4.62774 14.7889 5.15457 14.6806 5.69613L14.4806 6.69613C14.4195 7.00175 14.2193 7.26139 13.9393 7.39833C13.6594 7.53526 13.3315 7.53382 13.0528 7.39444L12.0528 6.89444C11.5588 6.64745 11.3586 6.04678 11.6056 5.5528C11.6436 5.47681 11.6899 5.40777 11.743 5.34624L11.6696 5.21002Z\" fill=\"#212121\"/>';\n            break;          \n        case 'Door Sensor':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M14 4H6V16H14V4ZM8 12C8.55228 12 9 11.5523 9 11C9 10.4477 8.55228 10 8 10C7.44772 10 7 10.4477 7 11C7 11.5523 7.44772 12 8 12Z\" fill=\"#212121\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M16 17V3C16 2.44772 15.5523 2 15 2H5C4.44772 2 4 2.44772 4 3V17H3.5C3.22386 17 3 17.2239 3 17.5C3 17.7761 3.22386 18 3.5 18H16.5C16.7761 18 17 17.7761 17 17.5C17 17.2239 16.7761 17 16.5 17H16ZM15 3H5L5 17H15V3Z\" fill=\"#212121\"/>';\n            break;\n        case 'Liquid Level Sensor':\n            typeSvg = '<path d=\"M14.6363 0.453212C14.8228 0.210257 15.1772 0.210257 15.3637 0.453213C15.9404 1.2044 17 2.73057 17 3.80373C17 5.02723 16.1143 5.99982 15 5.99982C13.8857 5.99982 13 5.02723 13 3.80373C13 2.73057 14.0596 1.2044 14.6363 0.453212Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M8.3017 2.76073C8.67788 2.33798 9.32212 2.33798 9.6983 2.76073C11.2801 4.53832 15 9.0479 15 12.1437C15 15.4064 12.3427 18 9 18C5.65725 18 3 15.4064 3 12.1437C3 9.0479 6.71994 4.53832 8.3017 2.76073Z\" fill=\"#212121\"/>';\n            break;\n        case 'Motion Sensor':\n            typeSvg = '<path d=\"M2.5 5C2.22386 5 2 5.22386 2 5.5C2 5.77614 2.22386 6 2.5 6H4C4 6.55228 4.44772 7 5 7H15C15.5523 7 16 6.55228 16 6H17.5C17.7761 6 18 5.77614 18 5.5C18 5.22386 17.7761 5 17.5 5H2.5Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M12.0001 12C12.5524 12 13.0001 11.5523 13.0001 11C13.0001 10.4477 12.5524 10 12.0001 10C11.4478 10 11.0001 10.4477 11.0001 11C11.0001 11.5523 11.4478 12 12.0001 12Z\" fill=\"#212121\"/>' +\n                      '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M10.0001 16C14.0804 16 17.4472 12.9453 17.9384 8.99801C18.0066 8.44996 17.5524 8 17.0001 8H3.00009C2.4478 8 1.99353 8.44996 2.06173 8.99801C2.55295 12.9453 5.91978 16 10.0001 16ZM12.0001 13C13.1047 13 14.0001 12.1046 14.0001 11C14.0001 9.89543 13.1047 9 12.0001 9C10.8955 9 10.0001 9.89543 10.0001 11C10.0001 12.1046 10.8955 13 12.0001 13Z\" fill=\"#212121\"/>';\n            break;\n        case 'Occupancy Sensor':\n            typeSvg = '<path d=\"M7 3.5C7 4.32843 6.32843 5 5.5 5C4.67157 5 4 4.32843 4 3.5C4 2.67157 4.67157 2 5.5 2C6.32843 2 7 2.67157 7 3.5Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M3 12C2.44772 12 2 11.5523 2 11L2 7.88652C2 6.84462 2.84462 6 3.88652 6C3.90535 6 3.92403 6.00055 3.94255 6.00162C3.96157 6.00055 3.98072 6 4 6H7C7.01928 6 7.03843 6.00055 7.05745 6.00162C7.07597 6.00055 7.09465 6 7.11348 6C8.15538 6 9 6.84462 9 7.88652V11C9 11.5523 8.55229 12 8 12V17C8 17.5523 7.55228 18 7 18C6.44772 18 6 17.5523 6 17L6 14H5V17C5 17.5523 4.55228 18 4 18C3.44772 18 3 17.5523 3 17V12Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M16 18C15.4477 18 15 17.5523 15 17V14H14V17C14 17.5523 13.5523 18 13 18C12.4477 18 12 17.5523 12 17V14H10.7215C10.3724 14 10.1308 13.6513 10.2533 13.3244L12.4733 7.40449C12.7901 6.55968 13.5977 6 14.5 6C15.4023 6 16.2099 6.55968 16.5267 7.40449L18.7467 13.3244C18.8692 13.6513 18.6276 14 18.2785 14H17V17C17 17.5523 16.5523 18 16 18Z\" fill=\"#212121\"/>' +\n                      '<path d=\"M14.5 5C15.3284 5 16 4.32843 16 3.5C16 2.67157 15.3284 2 14.5 2C13.6716 2 13 2.67157 13 3.5C13 4.32843 13.6716 5 14.5 5Z\" fill=\"#212121\"/>';\n            break;\n        case 'Smoke Sensor':\n            typeSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M9.64491 2.08319C9.48444 1.9888 9.28482 1.99138 9.12685 2.08988C8.96887 2.18839 8.87871 2.3665 8.89285 2.55213C8.98169 3.71876 8.78795 4.5943 8.45363 5.30483C8.11607 6.02225 7.62209 6.60008 7.06387 7.157C6.88401 7.33644 6.69008 7.52013 6.49214 7.70763C6.10197 8.07721 5.69618 8.46158 5.35189 8.85718C4.81113 9.47853 4.35082 10.1982 4.15741 11.131C3.35478 15.0023 6.43952 18.1649 10.361 17.9822C10.41 17.9806 10.4592 17.9779 10.5088 17.9741L10.55 17.9708L10.5673 17.9695C10.6635 17.9622 10.7585 17.9532 10.8523 17.9427C10.897 17.9427 10.9422 17.9409 10.9878 17.9375C11.1369 17.9261 11.2735 17.9002 11.3976 17.8614C12.9028 17.5787 14.0571 16.8581 14.836 15.8302C15.7453 14.6303 16.1036 13.0646 15.9781 11.4151C15.7275 8.1215 13.5473 4.37866 9.64491 2.08319ZM12.1372 15.5326C12.1487 15.5269 12.1601 15.521 12.1714 15.5152C12.2227 15.2706 12.2393 15.0003 12.2172 14.7101C12.1353 13.6344 11.5243 12.3752 10.3912 11.4298C10.3443 11.6743 10.2711 11.8979 10.1767 12.1045C9.97248 12.5515 9.68116 12.8915 9.40451 13.1748C9.2918 13.2902 9.1897 13.3891 9.09461 13.4812C8.93666 13.6341 8.79804 13.7684 8.66241 13.9284C8.46694 14.1591 8.33595 14.3839 8.28119 14.6575C8.20904 15.018 8.23357 15.3634 8.33595 15.6725C8.69526 15.8186 9.08844 15.9185 9.50948 15.9633C9.62655 15.764 9.79981 15.6036 9.97777 15.4389C10.3505 15.0938 10.7439 14.7297 10.6844 13.949C11.3929 14.3558 11.8813 14.938 12.1372 15.5326ZM13.2143 14.6343L13.2159 14.6563L13.2421 14.6222C13.7907 13.8983 14.0816 12.8503 13.9839 11.5668C13.8301 9.5445 12.7138 7.15459 10.6097 5.25541C10.5143 5.57021 10.3981 5.86993 10.2634 6.15628C9.78098 7.18157 9.09869 7.9521 8.47652 8.57282C8.20885 8.83986 7.97694 9.05847 7.76612 9.25719C7.43058 9.57348 7.14846 9.83941 6.86065 10.1701C6.45742 10.6334 6.21678 11.0502 6.11585 11.537C5.83546 12.8894 6.29313 14.1616 7.23945 14.9971C7.24423 14.8222 7.26422 14.6432 7.30064 14.4613C7.39921 13.9687 7.63564 13.5933 7.89951 13.2819C8.06367 13.0882 8.26661 12.8908 8.44919 12.7131C8.53584 12.6288 8.61792 12.549 8.68907 12.4761C8.93347 12.2258 9.13295 11.9826 9.26713 11.689C9.39844 11.4016 9.47964 11.0379 9.44124 10.5337C9.42702 10.347 9.51835 10.168 9.67788 10.0698C9.83741 9.97174 10.0384 9.97101 10.1986 10.068C12.0451 11.1851 13.0906 13.0082 13.2143 14.6343Z\" fill=\"#212121\"/>';\n            break;\n        default:\n            typeSvg = '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"#AAAAAA\"/>';\n    }\n    \n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' + \n           typeSvg +\n           '</svg>';\n} \n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getBatteryLevelHtml(batteryLevel) {\n    var batteryLevelNumber = Number(batteryLevel);\n    var batteryLevelSvg = getBatteryLevelSvg(batteryLevelNumber);\n    var encodedBatteryLevelSvg = encodeURIComponent(batteryLevelSvg);\n    var batteryLevelSvgUrl = 'data:image/svg+xml,' + encodedBatteryLevelSvg;\n    return '<div>' +\n              '<img class=\"mat-icon\" src=\"'+ batteryLevelSvgUrl +'\">' +\n              '<span style=\"padding-left: 8px; padding-right: 8px;\">' + batteryLevelNumber.toFixed(0) + '%</span>' +\n              '<button id=\"battery-level\" matTooltip=\"Battery Level History\" type=\"button\" mat-flat-button color=\"primary\"><mat-icon>bar_chart</mat-icon></button>' +\n            '</div>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        case 'disconnected':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<g clip-path=\"url(#clip0_2839_52564)\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M1.92896 16.728L16.0711 2.58589L17.4853 4.00011L3.34317 18.1422L1.92896 16.728Z\" fill=\"#CAC1D2\"/>' +\n                   '<path d=\"M2.10692 16.3171C1.81393 16.0241 1.81393 15.5491 2.10692 15.2561L15.1852 2.17788C15.4781 1.88489 15.9532 1.88489 16.2462 2.17788C16.5392 2.47088 16.5392 2.94591 16.2462 3.2389L3.16794 16.3171C2.87495 16.6101 2.39991 16.6101 2.10692 16.3171Z\" fill=\"white\"/>' +\n                   '</g>' +\n                   '<defs>' +\n                   '<clipPath id=\"clip0_2839_52564\">' +\n                   '<rect width=\"20\" height=\"20\" fill=\"white\"/>' +\n                   '</clipPath>' +\n                   '</defs>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getBatteryLevelSvg(batteryLevel) {\n    var battryLevelSvg;\n    if (batteryLevel <= 5) {\n        battryLevelSvg = '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7 3H5C4.44772 3 4 3.44772 4 4V17C4 17.5523 4.44772 18 5 18H15C15.5523 18 16 17.5523 16 17V4C16 3.44772 15.5523 3 15 3H13V2C13 1.44772 12.5523 1 12 1H8C7.44772 1 7 1.44772 7 2V3ZM8 4H5V17H15V4H12V2H8V4Z\" fill=\"#E64A19\"/>';\n    } else if (batteryLevel <= 35) {\n        battryLevelSvg = '<path d=\"M14 14H6V16H14V14Z\" fill=\"#E64A19\"/>' +\n                         '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M5 3H7V2C7 1.44772 7.44772 1 8 1H12C12.5523 1 13 1.44772 13 2V3H15C15.5523 3 16 3.44772 16 4V17C16 17.5523 15.5523 18 15 18H5C4.44772 18 4 17.5523 4 17V4C4 3.44772 4.44772 3 5 3ZM5 4H8V2H12V4H15V17H5V4Z\" fill=\"#E64A19\"/>';\n    } else if (batteryLevel <= 65) {\n        battryLevelSvg = '<path d=\"M6 14H14V16H6V14Z\" fill=\"#D5C21B\"/>' +\n                         '<path d=\"M14 11H6V13H14V11Z\" fill=\"#D5C21B\"/>' +\n                         '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7 3H5C4.44772 3 4 3.44772 4 4V17C4 17.5523 4.44772 18 5 18H15C15.5523 18 16 17.5523 16 17V4C16 3.44772 15.5523 3 15 3H13V2C13 1.44772 12.5523 1 12 1H8C7.44772 1 7 1.44772 7 2V3ZM8 4H5V17H15V4H12V2H8V4Z\" fill=\"#D5C21B\"/>';\n    } else if (batteryLevel <= 95) {\n        battryLevelSvg = '<path d=\"M14 14H6V16H14V14Z\" fill=\"#1F8B4D\"/>' +\n                         '<path d=\"M6 11H14V13H6V11Z\" fill=\"#1F8B4D\"/>' +\n                         '<path d=\"M14 8H6V10H14V8Z\" fill=\"#1F8B4D\"/>' +\n                         '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M5 3H7V2C7 1.44772 7.44772 1 8 1H12C12.5523 1 13 1.44772 13 2V3H15C15.5523 3 16 3.44772 16 4V17C16 17.5523 15.5523 18 15 18H5C4.44772 18 4 17.5523 4 17V4C4 3.44772 4.44772 3 5 3ZM5 4H8V2H12V4H15V17H5V4Z\" fill=\"#1F8B4D\"/>';\n    } else {\n        battryLevelSvg = '<path d=\"M6 14H14V16H6V14Z\" fill=\"#1F8B4D\"/>' +\n                         '<path d=\"M14 11H6V13H14V11Z\" fill=\"#1F8B4D\"/>' +\n                         '<path d=\"M6 8H14V10H6V8Z\" fill=\"#1F8B4D\"/>' +\n                         '<path d=\"M14 5H6V7H14V5Z\" fill=\"#1F8B4D\"/>' +\n                         '<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M7 3H5C4.44772 3 4 3.44772 4 4V17C4 17.5523 4.44772 18 5 18H15C15.5523 18 16 17.5523 16 17V4C16 3.44772 15.5523 3 15 3H13V2C13 1.44772 12.5523 1 12 1H8C7.44772 1 7 1.44772 7 2V3ZM8 4H5V17H15V4H12V2H8V4Z\" fill=\"#1F8B4D\"/>';\n    }\n    return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n              battryLevelSvg +\n            '</svg>';\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        case 'disconnected':\n            return 'Disconnected';\n        default:\n            return state;\n    }\n}\n\nfunction showBatteryLevel(deviceType) {\n    switch(deviceType) {\n        case 'Smart Shelf':\n            return false;\n        case 'Door Sensor':\n            return true;\n        case 'Smoke Sensor':\n            return true;\n        case 'Chiller':\n            return false;\n        case 'Freezer':\n            return false;\n        case 'Liquid Level Sensor':\n            return true;\n        case 'Smart Bin':\n            return true;\n        case 'Motion Sensor':\n            return true;\n        case 'Occupancy Sensor':\n            return true;\n        default:\n            return false;\n    }\n}   \n",
+            "applyDefaultMarkdownStyle": false,
             "markdownCss": ".main-layout .header {\n    height: 60px;\n} \n\n.main-layout .header .mat-icon.title-icon {\n    width: 40px;\n    height: 40px;\n}\n\n.main-layout .header .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n\n.main-layout .header .subtitle {\n    font-size: 13px;\n    font-weight: normal;\n    color: #757575;\n}\n\n.tb-markdown-view .params {\n    background-color: #FAFAFA;\n    border-radius: 4px;\n    padding: 16px;\n    margin-bottom: 20px;\n}\n\n.tb-markdown-view .param-title {\n    font-size: 12px;\n    font-weight: normal;\n    color: #757575;\n}\n\n.tb-markdown-view .param {\n    font-size: 12px;\n    font-weight: 500;\n    color: #212121;\n    line-height: 24px;\n    height: 24px;\n}\n\n.tb-markdown-view .param img.mat-icon {\n    vertical-align: bottom;\n}\n\n.tb-markdown-view .param #battery-level {\n    width: 24px;\n    height: 24px;\n    line-height: 24px;\n    padding: 0 2px;\n    min-width: 28px;\n    vertical-align: baseline;\n    display: inline-block;\n}\n\n.tb-markdown-view .param #battery-level .mat-mdc-button-touch-target {\n    height: 24px;\n}\n\n.tb-markdown-view .param #battery-level .mat-icon {\n    width: 24px;\n    height: 24px;\n    font-size: 24px;\n    margin: 0;    \n}\n"
           },
           "title": "New Markdown/HTML Card",
@@ -6757,8 +6758,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -6772,9 +6773,9 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
+            "useMarkdownTextFunction": true,
             "markdownTextFunction": "var type;      \nif (data && data.length) {\n    type = data[0]['Type'];\n} else {\n    type = 'N/A';\n}\n             \nvar detailsStateName = getDetailsStateName(type);\n\nreturn '<div style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' + \n           '<tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"' + detailsStateName + '\"></tb-dashboard-state>' +\n       '</div>';\n\nfunction getDetailsStateName(deviceType) {\n    switch(deviceType) {\n        case 'Smart Shelf':\n            return 'smart_shelf_details';\n        case 'Door Sensor':\n            return 'door_details';\n        case 'Smoke Sensor':\n            return 'smoke_sensor_details';\n        case 'Chiller':\n            return 'chiller_details';\n        case 'Freezer':\n            return 'freezer_details';\n        case 'Liquid Level Sensor':\n            return 'liquid_sensor_details';\n        case 'Smart Bin':\n            return 'smart_bin_details';\n        case 'Motion Sensor':\n            return 'motion_sensor_details';\n        case 'Occupancy Sensor':\n            return 'occupancy_sensor_details';\n        default:\n            return 'unknown_details';\n    }\n}       \n       ",
-            "useMarkdownTextFunction": true
+            "applyDefaultMarkdownStyle": false
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -6923,8 +6924,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -7081,8 +7082,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -7297,8 +7298,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -7371,8 +7372,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -7386,10 +7387,10 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    font-size: 26px;\n    padding-bottom: 16px;\n    padding-left: 10px;\n    padding-top: 5px;\n}\n\n.state-filter-title {\n    padding-bottom: 15px;\n    padding-left: 10px;\n}\n\n.market-layout .alarm-badges-layout {\n    position: absolute;\n    height: 50px;\n    top: 0;\n    left: 0;\n    right: 0;\n    z-index: 2;\n    display: flex;\n    justify-content: center;\n    pointer-events: none;\n}\n\n.market-layout .alarm-badges-layout .alarm-badges {\n    height: 50px;\n    width: 350px;\n    pointer-events: all;\n}",
-            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n     <div class=\"alarm-badges-layout\">\n         <tb-dashboard-state class=\"alarm-badges\" *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" [ctx]=\"ctx\" stateId=\"all_alarm_badges\"></tb-dashboard-state>\n         <tb-dashboard-state class=\"alarm-badges\" *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"alarm_badges\"></tb-dashboard-state>\n     </div>\n     <div *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxLayout=\"column\" style=\"width: 100%; height: 170px;\">\n        <h5 class=\"market-title\">Supermarkets</h5>\n        <h5 class=\"state-filter-title\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarket-state-filter\"></tb-dashboard-state>\n        <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n     </div>\n     <tb-dashboard-state *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" style=\"height: 170px;\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_card_header\"></tb-dashboard-state>\n    <div fxFlex fxLayout=\"column\" style=\"position: relative;\">\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets_map\"></tb-dashboard-state>\n    </div>\n</div>"
+            "markdownTextPattern": "<div class=\"market-layout\" style=\"width: 100%; height: 100%; padding: 0;\" fxLayout=\"column\">\n     <div class=\"alarm-badges-layout\">\n         <tb-dashboard-state class=\"alarm-badges\" *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" [ctx]=\"ctx\" stateId=\"all_alarm_badges\"></tb-dashboard-state>\n         <tb-dashboard-state class=\"alarm-badges\" *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"alarm_badges\"></tb-dashboard-state>\n     </div>\n     <div *ngIf=\"!ctx.stateController.getStateParams().selectedSupermarket\" fxLayout=\"column\" style=\"width: 100%; height: 170px;\">\n        <h5 class=\"market-title\">Supermarkets</h5>\n        <h5 class=\"state-filter-title\">State filter</h5>\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" stateId=\"supermarket-state-filter\"></tb-dashboard-state>\n        <mat-divider style=\"margin-top: 10px; margin-bottom: 20px;\"></mat-divider>\n     </div>\n     <tb-dashboard-state *ngIf=\"ctx.stateController.getStateParams().selectedSupermarket\" style=\"height: 170px;\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarket_card_header\"></tb-dashboard-state>\n    <div fxFlex fxLayout=\"column\" style=\"position: relative;\">\n        <tb-dashboard-state fxFlex [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"supermarkets_map\"></tb-dashboard-state>\n    </div>\n</div>",
+            "applyDefaultMarkdownStyle": true,
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.market-layout {\n    position: relative;\n}\n\n.market-title {\n    font-size: 26px;\n    padding-bottom: 16px;\n    padding-left: 10px;\n    padding-top: 5px;\n}\n\n.state-filter-title {\n    padding-bottom: 15px;\n    padding-left: 10px;\n}\n\n.market-layout .alarm-badges-layout {\n    position: absolute;\n    height: 50px;\n    top: 0;\n    left: 0;\n    right: 0;\n    z-index: 2;\n    display: flex;\n    justify-content: center;\n    pointer-events: none;\n}\n\n.market-layout .alarm-badges-layout .alarm-badges {\n    height: 50px;\n    width: 350px;\n    pointer-events: all;\n}"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -7438,8 +7439,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -7821,8 +7822,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -7836,9 +7837,9 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "0px",
           "settings": {
-            "markdownTextPattern": "### Markdown/HTML card\n - **Current entity**: ${entityName}.\n - **Current value**: ${Random}.",
-            "markdownTextFunction": "var name, address, state;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    address = data[0]['address'];\n    state = data[0]['state'];\n} else {\n    name = 'N/A';\n    address = 'N/A';\n    state = 'N/A';\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">' + name + '</div>' +\n                '</div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"start\"><button id=\"details\" type=\"button\" mat-raised-button color=\"primary\">Open details</button></div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<div fxLayout=\"row\" class=\"params\">' +\n              '<div fxFlex=\"70\" class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">Address: </div>' +\n                '<div class=\"param\">'+ address +'</div>' +\n              '</div>' +\n              '<div fxFlex=\"30\" class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">State: </div>' +\n                '<div class=\"param\">'+ getStateHtml(state) +'</div>' +\n              '</div>' +\n          '</div>' +\n       '<div>';\n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        default:\n            return state;\n    }\n}\n",
             "useMarkdownTextFunction": true,
+            "markdownTextFunction": "var name, address, state;\nif (data && data.length) {\n    name = data[0]['entityName'];\n    address = data[0]['address'];\n    state = data[0]['state'];\n} else {\n    name = 'N/A';\n    address = 'N/A';\n    state = 'N/A';\n}\n\nvar typeSvg = '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                '<path d=\"m13.636 10.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.087968-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789' + \n                ' 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967' + \n                ' 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174' + \n                ' 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994z\" stroke-width=\".7997\" fill=\"#212121\"/>' + \n              '</svg>';\nvar encodedTypeSvg = encodeURIComponent(typeSvg);\nvar typeSvgUrl = 'data:image/svg+xml,' + encodedTypeSvg;\n\nvar header = '<div class=\"header\" fxLayout=\"row\" fxLayoutAlign=\"start stretch\" fxLayoutGap=\"8px\">' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><button id=\"go-back\" matTooltip=\"Go back\" type=\"button\" mat-icon-button><mat-icon>arrow_back</mat-icon></button></div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"center\"><img style=\"vertical-align: middle;\" class=\"title-icon mat-icon\" src=\"'+ typeSvgUrl +'\"></div>' +\n                '<div fxFlex fxLayout=\"column\" fxLayoutAlign=\"center\">' +\n                   '<div class=\"title\">' + name + '</div>' +\n                '</div>' +\n                '<div fxLayout=\"column\" fxLayoutAlign=\"start\"><button id=\"details\" type=\"button\" mat-raised-button color=\"primary\">Open details</button></div>' +\n             '</div>';\n             \nreturn '<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">' +\n          header +\n          '<div fxLayout=\"row\" class=\"params\">' +\n              '<div fxFlex=\"70\" class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">Address: </div>' +\n                '<div class=\"param\">'+ address +'</div>' +\n              '</div>' +\n              '<div fxFlex=\"30\" class=\"param-cell\" fxLayout=\"column\" fxLayoutGap=\"8px\">' +\n                '<div class=\"param-title\">State: </div>' +\n                '<div class=\"param\">'+ getStateHtml(state) +'</div>' +\n              '</div>' +\n          '</div>' +\n       '<div>';\n\n\nfunction getStateHtml(state) {\n    var stateSvg = getStateSvg(state);\n    var encodedStateSvg = encodeURIComponent(stateSvg);\n    var stateSvgUrl = 'data:image/svg+xml,' + encodedStateSvg;\n    var stateLabel = getStateLabel(state);\n    return '<span>'+\n           '<img style=\"vertical-align: middle;\" class=\"mat-icon\" src=\"'+ stateSvgUrl +'\">' +\n           '<span style=\"vertical-align: middle; padding-left: 8px;\">'+ stateLabel +'</span>' +\n    '</span>';\n}\n\nfunction getStateSvg(state) {\n    switch (state) {\n        case 'critical':\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#E64A19\"/>' +\n                   '</svg>';\n        case 'major':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#D5C21B\"/>' +\n                   '</svg>';\n        case 'normal':            \n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#1F8B4D\"/>' +\n                   '</svg>';\n        default:\n            return '<svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                   '<circle cx=\"10\" cy=\"10\" r=\"6\" fill=\"#AAAAAA\"/>' +\n                   '</svg>';\n    }\n}\n\nfunction getStateLabel(state) {\n    switch(state) {\n        case 'critical':\n            return 'Critical';\n        case 'major':\n            return 'Major';\n        case 'normal':\n            return 'Normal';\n        default:\n            return state;\n    }\n}\n",
+            "applyDefaultMarkdownStyle": false,
             "markdownCss": ".main-layout .header {\n    height: 60px;\n} \n\n.main-layout .header .mat-icon.title-icon {\n    width: 40px;\n    height: 40px;\n}\n\n.main-layout .header .title {\n    font-size: 18px;\n    font-weight: 500;\n    color: #28232D;\n}\n\n.main-layout .header .subtitle {\n    font-size: 13px;\n    font-weight: normal;\n    color: #757575;\n}\n\n.tb-markdown-view .params {\n    background-color: #FAFAFA;\n    border-radius: 4px;\n    padding: 16px;\n    margin-bottom: 20px;\n}\n\n.tb-markdown-view .param-title {\n    font-size: 12px;\n    font-weight: normal;\n    color: #757575;\n}\n\n.tb-markdown-view .param {\n    font-size: 12px;\n    font-weight: 500;\n    color: #212121;\n    line-height: 24px;\n    height: 24px;\n}\n\n.tb-markdown-view .param #battery-level {\n    width: 24px;\n    height: 24px;\n    line-height: 24px;\n    padding: 0 2px;\n    min-width: 28px;\n}\n"
           },
           "title": "New Markdown/HTML Card",
@@ -7931,8 +7932,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -8211,8 +8212,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1678116808884,
-                "endTimeMs": 1678203208884
+                "startTimeMs": 1678196817440,
+                "endTimeMs": 1678283217440
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -10533,7 +10534,7 @@
       "hideToolbar": false,
       "showFilters": true,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view .tb-progress-cover, .tb-widget-container > .tb-widget .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view div, .tb-widget-container > .tb-widget .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view > div {\n    padding: 0; \n}\n\n"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view .tb-progress-cover, .tb-widget-container > .tb-widget .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view div, .tb-widget-container > .tb-widget .tb-markdown-view p {\n    line-height: normal;\n}\n"
     }
   },
   "externalId": null,
