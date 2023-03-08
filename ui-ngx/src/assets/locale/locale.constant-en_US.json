@@ -3755,7 +3755,9 @@
             "customer-users": "Customer users",
             "originator-entity-owner-users": "Users of originator entity owner",
             "user-filters": "User filter",
-            "user-list": "User list"
+            "user-group-list": "User group list",
+            "user-list": "User list",
+            "user-role": "User role"
         },
         "targets": "Recipients",
         "targets-required": "Recipients is required",
@@ -4166,6 +4168,7 @@
         "view-roles": "View Roles",
         "no-roles-matching": "No roles matching '{{entity}}' were found.",
         "role-list": "Role list",
+        "role-list-required": "Role list is required",
         "add": "Add Role",
         "view": "View Role",
         "search": "Search roles",

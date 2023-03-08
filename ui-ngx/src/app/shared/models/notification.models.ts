@@ -159,7 +159,7 @@ export interface PlatformUsersNotificationTargetConfig {
 }
 
 export interface UsersFilter extends
-  Partial<UserListNotificationTargetConfig & CustomerUsersNotificationTargetConfig>{
+  Partial<UserListNotificationTargetConfig & CustomerUsersNotificationTargetConfig & UserGroupListFilter & UserRoleFilter>{
   type: NotificationTargetConfigType;
 }
 
@@ -169,6 +169,14 @@ interface UserListNotificationTargetConfig {
 
 interface CustomerUsersNotificationTargetConfig {
   customerId: string;
+}
+
+interface UserGroupListFilter {
+  groupsIds: Array<string>;
+}
+
+interface UserRoleFilter {
+  rolesIds: Array<string>;
 }
 
 export interface SlackNotificationTargetConfig {
@@ -221,7 +229,7 @@ interface PushDeliveryMethodAdditionalConfig {
     enabled: boolean;
     text: string;
     color: string;
-    linkType: ActionButtonLinkType,
+    linkType: ActionButtonLinkType;
     link?: string;
     dashboardId?: string;
     dashboardState?: string;
@@ -283,14 +291,18 @@ export const SlackChanelTypesTranslateMap = new Map<SlackChanelType, string>([
 export enum NotificationTargetConfigType {
   ALL_USERS = 'ALL_USERS',
   USER_LIST = 'USER_LIST',
+  USER_GROUP_LIST = 'USER_GROUP_LIST',
   CUSTOMER_USERS = 'CUSTOMER_USERS',
+  USER_ROLE = 'USER_ROLE',
   ORIGINATOR_ENTITY_OWNER_USERS = 'ORIGINATOR_ENTITY_OWNER_USERS'
 }
 
 export const NotificationTargetConfigTypeTranslateMap = new Map<NotificationTargetConfigType, string>([
   [NotificationTargetConfigType.ALL_USERS, 'notification.target-type.all-users'],
   [NotificationTargetConfigType.USER_LIST, 'notification.target-type.user-list'],
+  [NotificationTargetConfigType.USER_GROUP_LIST, 'notification.target-type.user-group-list'],
   [NotificationTargetConfigType.CUSTOMER_USERS, 'notification.target-type.customer-users'],
+  [NotificationTargetConfigType.USER_ROLE, 'notification.target-type.user-role'],
   [NotificationTargetConfigType.ORIGINATOR_ENTITY_OWNER_USERS, 'notification.target-type.originator-entity-owner-users']
 ]);
 

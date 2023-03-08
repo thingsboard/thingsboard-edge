@@ -105,7 +105,9 @@ export class TargetNotificationDialogComponent extends
         usersFilter: this.fb.group({
           type: [{value: NotificationTargetConfigType.ALL_USERS, disabled: !this.isTenantAdmin()}],
           usersIds: [{value: null, disabled: true}, Validators.required],
-          customerId: [{value: null, disabled: true}, Validators.required]
+          customerId: [{value: null, disabled: true}, Validators.required],
+          groupsIds: [{value: null, disabled: true}, Validators.required],
+          rolesIds: [{value: null, disabled: true}, Validators.required]
         }),
         conversationType: [{value: SlackChanelType.PUBLIC_CHANNEL, disabled: true}],
         conversation: [{value: '', disabled: true}, Validators.required],
@@ -143,6 +145,12 @@ export class TargetNotificationDialogComponent extends
           break;
         case NotificationTargetConfigType.CUSTOMER_USERS:
           this.targetNotificationForm.get('configuration.usersFilter.customerId').enable({emitEvent: false});
+          break;
+        case NotificationTargetConfigType.USER_GROUP_LIST:
+          this.targetNotificationForm.get('configuration.usersFilter.groupsIds').enable({emitEvent: false});
+          break;
+        case NotificationTargetConfigType.USER_ROLE:
+          this.targetNotificationForm.get('configuration.usersFilter.rolesIds').enable({emitEvent: false});
           break;
       }
       this.targetNotificationForm.get('configuration.usersFilter.type').enable({emitEvent: false});

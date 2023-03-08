@@ -88,6 +88,23 @@
               [entityType]="entityType.CUSTOMER">
             </tb-entity-autocomplete>
           </ng-container>
+          <ng-container *ngSwitchCase="notificationTargetConfigType.USER_GROUP_LIST">
+            <tb-entity-group-list
+              formControlName="groupsIds"
+              [groupType]="entityType.USER"
+            >
+            </tb-entity-group-list>
+          </ng-container>
+          <ng-container *ngSwitchCase="notificationTargetConfigType.USER_ROLE">
+            <tb-entity-list
+              formControlName="rolesIds"
+              [entityType]="entityType.ROLE"
+              labelText="{{ 'role.role-list' | translate }}"
+              placeholderText="{{ 'role.role' | translate }}"
+              requiredText="{{ 'role.role-list-required' | translate }}"
+              *ngIf="targetNotificationForm.get('configuration.usersFilter.type').value === notificationTargetConfigType.USER_LIST">
+            </tb-entity-list>
+          </ng-container>
         </ng-container>
       </section>
       <section *ngIf="targetNotificationForm.get('configuration.type').value === notificationTargetType.SLACK">
