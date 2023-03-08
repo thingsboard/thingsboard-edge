@@ -99,7 +99,7 @@ export class RequestNotificationDialogComponent extends
               private dialog: MatDialog) {
     super(store, router, dialogRef, fb);
 
-    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
+    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
     this.notificationRequestForm = this.fb.group({

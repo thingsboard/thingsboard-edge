@@ -62,8 +62,10 @@ export class AlarmSeveritiesListComponent implements ControlValueAccessor{
   alarmSeveritiesForm: FormGroup;
 
   alarmSeverityTranslationMap = alarmSeverityTranslations;
-  private alarmSeverities = Object.keys(AlarmSeverity);
+  private alarmSeveritiesValues = Object.keys(AlarmSeverity) as Array<AlarmSeverity>;
   alarmSeverity = AlarmSeverity;
+
+  alarmSeverities: Array<AlarmSeverity> = []
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA, SEMICOLON];
 
@@ -132,12 +134,14 @@ export class AlarmSeveritiesListComponent implements ControlValueAccessor{
     }
   }
 
-  writeValue(value: Array<string> | null): void {
+  writeValue(value: Array<AlarmSeverity> | null): void {
     this.searchText = '';
     if (value != null && value.length > 0) {
       this.modelValue = [...value];
+      this.alarmSeverities = [...value];
       this.alarmSeveritiesForm.get('alarmSeverities').setValue(value);
     } else {
+      this.alarmSeverities = [];
       this.alarmSeveritiesForm.get('alarmSeverities').setValue(null);
       this.modelValue = null;
     }
@@ -156,13 +160,14 @@ export class AlarmSeveritiesListComponent implements ControlValueAccessor{
     }
   }
 
-  private addSeverity(alarmSeverity: string) {
+  private addSeverity(alarmSeverity: AlarmSeverity) {
     if (alarmSeverity) {
       if (!this.modelValue || this.modelValue.indexOf(alarmSeverity) === -1) {
         if (!this.modelValue) {
           this.modelValue = [];
         }
         this.modelValue.push(alarmSeverity);
+        this.alarmSeverities.push(alarmSeverity);
         this.alarmSeveritiesForm.get('alarmSeverities').setValue(this.modelValue);
       }
       this.propagateChange(this.modelValue);
@@ -179,6 +184,7 @@ export class AlarmSeveritiesListComponent implements ControlValueAccessor{
     const index = this.modelValue.indexOf(alarmSeverity);
     if (index >= 0) {
       this.modelValue.splice(index, 1);
+      this.alarmSeverities.splice(index, 1);
       if (!this.modelValue.length) {
         this.modelValue = null;
       }
@@ -204,9 +210,9 @@ export class AlarmSeveritiesListComponent implements ControlValueAccessor{
     return (text && text.length > 0);
   }
 
-  private fetchSeverities(searchText?: string): Array<string> {
+  private fetchSeverities(searchText?: string): Array<AlarmSeverity> {
     this.searchText = searchText;
-    const allowAlarmSeverity = this.alarmSeverities.filter(severity => !this.modelValue?.includes(severity));
+    const allowAlarmSeverity = this.alarmSeveritiesValues.filter(severity => !this.modelValue?.includes(severity));
     if (this.textIsNotEmpty(this.searchText)) {
       const search = this.searchText.toUpperCase();
       return allowAlarmSeverity.filter(severity => severity.toUpperCase().includes(search));

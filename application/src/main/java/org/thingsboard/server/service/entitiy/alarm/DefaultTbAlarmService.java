@@ -41,9 +41,9 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmAssignee;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmCommentType;
+import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
-import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -118,7 +118,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
                     .alarmId(alarm.getId())
                     .type(AlarmCommentType.SYSTEM)
                     .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was acknowledged by user %s",
-                            (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
+                                    (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
                             .put("userId", user.getId().toString())
                             .put("subtype", "ACK"))
                     .build();
@@ -150,7 +150,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
                     .alarmId(alarm.getId())
                     .type(AlarmCommentType.SYSTEM)
                     .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was cleared by user %s",
-                            (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
+                                    (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
                             .put("userId", user.getId().toString())
                             .put("subtype", "CLEAR"))
                     .build();
@@ -179,8 +179,8 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
                     .alarmId(alarm.getId())
                     .type(AlarmCommentType.SYSTEM)
                     .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was assigned by user %s to user %s",
-                            (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName(),
-                            (assignee.getFirstName() == null || assignee.getLastName() == null) ? assignee.getEmail() : assignee.getFirstName() + " " + assignee.getLastName()))
+                                    (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName(),
+                                    (assignee.getFirstName() == null || assignee.getLastName() == null) ? assignee.getEmail() : assignee.getFirstName() + " " + assignee.getLastName()))
                             .put("userId", user.getId().toString())
                             .put("assigneeId", assignee.getId().toString())
                             .put("subtype", "ASSIGN"))
@@ -209,7 +209,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
                     .alarmId(alarm.getId())
                     .type(AlarmCommentType.SYSTEM)
                     .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was unassigned by user %s",
-                            (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
+                                    (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
                             .put("userId", user.getId().toString())
                             .put("subtype", "ASSIGN"))
                     .build();

@@ -373,7 +373,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     PhoneInputComponent,
     TbSparkLineComponent,
     TbScriptLangComponent,
-    NotificationComponent
+    NotificationComponent,
+    DateAgoPipe
   ],
   imports: [
     CommonModule,
@@ -602,7 +603,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     PhoneInputComponent,
     TbSparkLineComponent,
     TbScriptLangComponent,
-    NotificationComponent
+    NotificationComponent,
+    DateAgoPipe
   ]
 })
 export class SharedModule { }

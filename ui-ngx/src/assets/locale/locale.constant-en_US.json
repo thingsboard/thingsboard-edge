@@ -3715,7 +3715,7 @@
         "platform-users": "Platform users",
         "recipient": "Recipient",
         "recipient-type": "Recipient type",
-        "recipients-count": "{ count, plural, 1 {1 Recipient} other {# Recipients} }",
+        "recipients-count": "{ count, plural, =1 {1 Recipient} other {# Recipients} }",
         "request-status": {
             "processing": "Processing",
             "scheduled": "Scheduled",

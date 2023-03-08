@@ -47,15 +47,15 @@
 }
 
 :host ::ng-deep {
-  .mat-radio-group {
+  .mat-mdc-radio-group {
     display: flex;
     flex-direction: row;
     margin-bottom: 14px;
     gap: 8px;
 
-    .mat-radio-button {
+    .mat-mdc-radio-button {
       flex: 1 1 100%;
-      padding: 14px;
+      padding: 4px;
       border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 6px;
 
@@ -66,7 +66,7 @@
   }
 
   @media #{$mat-xs} {
-    .mat-radio-group {
+    .mat-mdc-radio-group {
       flex-direction: column;
     }
   }

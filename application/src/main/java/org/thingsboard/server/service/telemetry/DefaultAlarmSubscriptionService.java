@@ -250,20 +250,14 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     @Deprecated
     private void onAlarmUpdated(AlarmOperationResult result) {
         wsCallBackExecutor.submit(() -> {
-            Alarm alarm = result.getAlarm();
+            AlarmInfo alarm = new AlarmInfo(result.getAlarm());
             TenantId tenantId = alarm.getTenantId();
             for (EntityId entityId : result.getPropagatedEntitiesList()) {
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId);
-                if (currentPartitions.contains(tpi)) {
-                    if (subscriptionManagerService.isPresent()) {
-                        subscriptionManagerService.get().onAlarmUpdate(tenantId, entityId, new AlarmInfo(alarm), TbCallback.EMPTY);
-                    } else {
-                        log.warn("Possible misconfiguration because subscriptionManagerService is null!");
-                    }
-                } else {
-                    TransportProtos.ToCoreMsg toCoreMsg = TbSubscriptionUtils.toAlarmUpdateProto(tenantId, entityId, new AlarmInfo(alarm));
-                    clusterService.pushMsgToCore(tpi, entityId.getId(), toCoreMsg, null);
-                }
+                forwardToSubscriptionManagerService(tenantId, entityId, subscriptionManagerService -> {
+                    subscriptionManagerService.onAlarmUpdate(tenantId, entityId, alarm, TbCallback.EMPTY);
+                }, () -> {
+                    return TbSubscriptionUtils.toAlarmUpdateProto(tenantId, entityId, alarm);
+                });
             }
         });
     }
@@ -325,7 +319,11 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
                 if (request != null && request.getUserId() != null) {
                     alarmComment.userId(request.getUserId());
                 }
-                alarmCommentService.createOrUpdateAlarmComment(alarm.getTenantId(), alarmComment.build());
+                try {
+                    alarmCommentService.saveAlarmComment(alarm, alarmComment.build(), null);
+                } catch (ThingsboardException e) {
+                    log.error("Failed to save alarm comment", e);
+                }
             }
         }
         return result;

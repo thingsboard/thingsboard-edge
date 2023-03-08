@@ -33,6 +33,7 @@ import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@ang
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TimeInterval, TimeService } from '@core/services/time.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-timeinterval',
@@ -107,6 +108,9 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
   @Output() hideFlagChange = new EventEmitter<boolean>();
 
   @Input() disabled: boolean;
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
 
   days = 0;
   hours = 0;
