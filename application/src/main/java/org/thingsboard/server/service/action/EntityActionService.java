@@ -128,6 +128,15 @@ public class EntityActionService {
             case UPDATED_COMMENT:
                 msgType = DataConstants.COMMENT_UPDATED;
                 break;
+            case ALARM_ASSIGN:
+                msgType = DataConstants.ALARM_ASSIGN;
+                break;
+            case ALARM_UNASSIGN:
+                msgType = DataConstants.ALARM_UNASSIGN;
+                break;
+            case ALARM_DELETE:
+                msgType = DataConstants.ALARM_DELETE;
+                break;
             case ASSIGNED_FROM_TENANT:
                 msgType = DataConstants.ENTITY_ASSIGNED_FROM_TENANT;
                 break;

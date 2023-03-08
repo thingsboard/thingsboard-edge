@@ -68,13 +68,13 @@
     mat-icon, img {
       margin-right: 8px;
       margin-left: 0;
+      min-width: 1.125rem;
+      min-height: 1.125rem;
     }
     img {
       display: inline-block;
-      width: 24px;
-      min-width: 24px;
-      height: 24px;
-      min-height: 24px;
+      width: 1.125rem;
+      height: 1.125rem;
       color: rgb(255, 255, 255);
       fill: rgb(255, 255, 255);
     }
@@ -83,6 +83,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      display: inline-flex;
+      & > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
       .tb-toggle-icon {
         padding-top: 12px;
         padding-bottom: 12px;
