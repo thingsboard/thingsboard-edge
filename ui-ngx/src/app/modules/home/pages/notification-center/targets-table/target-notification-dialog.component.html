@@ -97,12 +97,12 @@
           </ng-container>
           <ng-container *ngSwitchCase="notificationTargetConfigType.USER_ROLE">
             <tb-entity-list
+              required
               formControlName="rolesIds"
               [entityType]="entityType.ROLE"
               labelText="{{ 'role.role-list' | translate }}"
               placeholderText="{{ 'role.role' | translate }}"
-              requiredText="{{ 'role.role-list-required' | translate }}"
-              *ngIf="targetNotificationForm.get('configuration.usersFilter.type').value === notificationTargetConfigType.USER_LIST">
+              requiredText="{{ 'role.role-list-required' | translate }}">
             </tb-entity-list>
           </ng-container>
         </ng-container>
