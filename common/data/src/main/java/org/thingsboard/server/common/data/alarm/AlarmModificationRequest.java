@@ -28,15 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
+package org.thingsboard.server.common.data.alarm;
 
-}
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 
-:host ::ng-deep {
-  .mat-form-field-flex {
-    padding-top: 0;
-    .mat-form-field-infix {
-      border-top: 0;
-    }
-  }
+public interface AlarmModificationRequest {
+
+    TenantId getTenantId();
+
+    long getStartTs();
+
+    long getEndTs();
+
+    void setStartTs(long startTs);
+
+    void setEndTs(long endTs);
+
+    UserId getUserId();
 }

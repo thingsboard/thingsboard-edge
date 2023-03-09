@@ -37,7 +37,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { deepClone } from '@core/utils';
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
+import { MatChipInputEvent, MatChipGrid } from '@angular/material/chips';
 import { TranslateService } from '@ngx-translate/core';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { catchError, map, mergeMap, share, startWith } from 'rxjs/operators';
@@ -55,7 +55,7 @@ import { RuleChainService } from '@core/http/rule-chain.service';
 })
 export class LinkLabelsComponent implements ControlValueAccessor, OnInit, OnChanges {
 
-  @ViewChild('chipList') chipList: MatChipList;
+  @ViewChild('chipList') chipList: MatChipGrid;
   @ViewChild('labelAutocomplete') matAutocomplete: MatAutocomplete;
   @ViewChild('labelInput') labelInput: ElementRef<HTMLInputElement>;
 

@@ -28,37 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+package org.thingsboard.server.common.data;
 
-:host {
-  flex: 1;
-  display: flex;
-  justify-content: flex-start;
-  min-width: 150px;
-}
+public interface HasLabel extends HasName {
 
-:host ::ng-deep {
-  tb-asset-profile-autocomplete {
-    width: 100%;
+    String getLabel();
 
-    mat-form-field {
-      font-size: 16px;
-
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
-      }
-
-      .mat-form-field-underline {
-        bottom: 0;
-      }
-
-      @media #{$mat-xs} {
-        width: 100%;
-
-        .mat-form-field-infix {
-          width: auto !important;
-        }
-      }
-    }
-  }
 }

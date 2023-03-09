@@ -28,22 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .mat-form-field-wrapper {
-    padding-bottom: 8px;
-  }
-  .mat-form-field-underline {
-    bottom: 8px;
-  }
-  .mat-form-field-infix {
-    width: auto;
-    min-width: 100px;
-  }
-  mat-form-field {
-    &.no-label {
-      .mat-form-field-infix {
-        border-top-width: 0.2em;
-      }
-    }
-  }
+package org.thingsboard.server.common.data;
+
+public interface HasEmail extends HasName {
+
+    String getEmail();
+
 }

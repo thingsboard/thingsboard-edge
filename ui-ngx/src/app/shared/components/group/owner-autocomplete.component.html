@@ -31,7 +31,8 @@
 
 -->
 <mat-form-field [formGroup]="selectOwnerFormGroup" class="mat-block">
-  <input matInput type="text" placeholder="{{ placeholderText | translate }}"
+  <mat-label>{{ placeholderText | translate }}</mat-label>
+  <input matInput type="text"
          #ownerInput
          formControlName="owner"
          (focusin)="onFocus()"
@@ -39,7 +40,7 @@
          [matAutocomplete]="ownerAutocomplete">
   <button *ngIf="selectOwnerFormGroup.get('owner').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>

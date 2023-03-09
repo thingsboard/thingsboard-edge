@@ -361,7 +361,9 @@ public class TbAlarmsCountNodeTest {
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
             int alarmStatusOrdinal = (int)Math.floor(Math.random() * AlarmStatus.values().length);
-            alarm.setStatus(AlarmStatus.values()[alarmStatusOrdinal]);
+            var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
+            alarm.setCleared(alarmStatus.isCleared());
+            alarm.setAcknowledged(alarmStatus.isAck());
             alarm.setStartTs(createdTime);
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
@@ -442,7 +444,7 @@ public class TbAlarmsCountNodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null, false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

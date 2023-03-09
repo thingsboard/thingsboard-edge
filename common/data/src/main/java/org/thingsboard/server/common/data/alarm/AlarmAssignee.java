@@ -28,15 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
+package org.thingsboard.server.common.data.alarm;
 
-}
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.UserId;
 
-:host ::ng-deep {
-  .mat-form-field-flex {
-    padding-top: 0;
-    .mat-form-field-infix {
-      border-top: 0;
-    }
-  }
+import java.io.Serializable;
+
+@Builder
+@AllArgsConstructor
+@Data
+public class AlarmAssignee implements Serializable {
+
+    private static final long serialVersionUID = 6628286223963972860L;
+
+    private final UserId id;
+    private final String firstName;
+    private final String lastName;
+    private final String email;
+
 }

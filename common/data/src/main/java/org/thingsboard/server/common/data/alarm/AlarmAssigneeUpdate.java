@@ -28,10 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .mat-form-field {
-    .mat-form-field-infix {
-      border-top: none;
-    }
-  }
+package org.thingsboard.server.common.data.alarm;
+
+import lombok.Data;
+
+import java.io.Serializable;
+
+@Data
+public class AlarmAssigneeUpdate implements Serializable {
+
+    private static final long serialVersionUID = -2391676304697483808L;
+
+    private final boolean deleted;
+    private final AlarmAssignee assignee;
+
 }

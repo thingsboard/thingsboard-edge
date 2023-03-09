@@ -28,10 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .mat-form-field {
-    .mat-form-field-infix {
-      border-top: none;
-    }
-  }
+package org.thingsboard.server.common.data.id;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class NameLabelAndCustomerDetails {
+    private final String name;
+    private final String label;
+    private final CustomerId customerId;
 }

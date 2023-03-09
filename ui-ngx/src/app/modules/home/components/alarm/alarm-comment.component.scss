@@ -28,37 +28,95 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
-
 :host {
-  flex: 1;
-  display: flex;
-  justify-content: flex-start;
-  min-width: 150px;
-}
+  .tb-alarm-comments {
+    padding: 16px 24px 24px 24px;
+    background-color: #fafafa;
+    max-width: 600px;
 
-:host ::ng-deep {
-  tb-entity-subtype-select {
-    width: 100%;
+    &-header {
+      background-color: #fafafa;
+      position: sticky;
+      top: -25px;
+      z-index: 1;
+      margin-bottom: 10px;
 
-    mat-form-field {
+      &-title {
+        color: rgba(0, 0, 0, 0.76);
+        letter-spacing: 0.25px;
+        font-weight: 500;
+      }
+
+      .mat-icon {
+        color: rgba(0, 0, 0, 0.38);
+      }
+    }
+
+    &-user-avatar {
+      width: 28px;
+      min-width: 28px;
+      height: 28px;
+      min-height: 28px;
+      border-radius: 50%;
+      font-weight: 700;
+      color: #FFFFFF;
+      font-size: 13px;
+    }
+
+    &-user-name {
       font-size: 16px;
+      color: rgba(0, 0, 0, 0.76);
+      font-weight: 500;
+      letter-spacing: 0.25px;
+    }
 
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
+    &-time {
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(0, 0, 0, 0.38);
+      letter-spacing: 0.2px
+    }
+
+    &-system-text {
+      color: rgba(0, 0, 0, 0.38);
+      font-weight: 500;
+      letter-spacing: 0.25px;
+    }
+
+    &-text {
+      white-space: pre-line;
+      word-break: break-word;
+      color: rgba(0, 0, 0, 0.54);
+      letter-spacing: 0.15px;
+    }
+
+    &-action-buttons {
+      visibility: hidden;
+      .mat-icon {
+        color: rgba(0, 0, 0, 0.38);
       }
+    }
 
-      .mat-form-field-underline {
-        bottom: 0;
-      }
+    .show-buttons {
+      visibility: visible;
+    }
 
-      @media #{$mat-xs} {
-        width: 100%;
+    .green-button {
+      color: #00695C;
+    }
 
-        .mat-form-field-infix {
-          width: auto !important;
-        }
-      }
+    .red-button {
+      color: #D12730;
+    }
+
+    .mat-form-field {
+      font-size: 16px;
+      letter-spacing: 0.15px;
+      color: rgba(0, 0, 0, 0.76);
+    }
+
+    textarea {
+      letter-spacing: 0.15px;
     }
   }
 }

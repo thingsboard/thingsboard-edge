@@ -28,12 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
+package org.thingsboard.server.common.data;
 
-}
+public interface HasTitle {
 
-:host ::ng-deep {
-  .mat-form-field-infix {
-    border-top: none;
-  }
+    String getTitle();
+
 }

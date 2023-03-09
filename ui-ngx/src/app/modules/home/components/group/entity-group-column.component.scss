@@ -28,34 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
 
+@import "../../../../../scss/constants";
+
+:host {
+  .tb-entity-group-column {
+    @media #{$mat-gt-xl} {
+      .tb-column-type {
+        min-width: 180px;
+        max-width: 180px;
+      }
+      .tb-column-value {
+        min-width: 200px;
+        max-width: 200px;
+      }
+      .tb-column-sort-order {
+        min-width: 150px;
+        max-width: 150px;
+      }
+    }
+  }
 }
 
 :host ::ng-deep {
   .tb-entity-group-column {
-    mat-select {
-      margin: 0;
-    }
-
-    mat-checkbox {
-      width: 20px;
-      margin-bottom: 0;
-    }
-
-    button.mat-icon-button {
-      margin: 0;
-    }
-
-    mat-form-field {
-      .mat-form-field-infix {
-        border-top: 0;
-      }
-      .mat-form-field-underline {
-        bottom: 0;
-      }
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
+    .mat-mdc-form-field {
+      .mat-mdc-form-field-infix {
+        width: 0;
       }
     }
   }
