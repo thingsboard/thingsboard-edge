@@ -147,7 +147,6 @@ public class DataConstants {
     public static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix_";
 
     public static final String LAST_CONNECTED_GATEWAY = "lastConnectedGateway";
-    public static final String LAST_CONNECTED_SPARKPLUG = "lastConnectedSparkplug";
 
     public static final String MAIN_QUEUE_NAME = "Main";
     public static final String MAIN_QUEUE_TOPIC = "tb_rule_engine.main";

@@ -43,8 +43,8 @@ public class MqttTestConfigProperties {
 
     String deviceName;
     String gatewayName;
-    boolean isSparkPlug;
-    Set<String> sparkPlugAttributesMetricNames;
+    boolean isSparkplug;
+    Set<String> sparkplugAttributesMetricNames;
 
     TransportPayloadType transportPayloadType;
 

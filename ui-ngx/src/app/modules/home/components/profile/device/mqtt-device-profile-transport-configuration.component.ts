@@ -111,8 +111,8 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
     this.mqttDeviceProfileTransportConfigurationFormGroup = this.fb.group({
         deviceAttributesTopic: [null, [Validators.required, this.validationMQTTTopic()]],
         deviceTelemetryTopic: [null, [Validators.required, this.validationMQTTTopic()]],
-        sparkPlug: [false],
-        sparkPlugAttributesMetricNames: [null],
+        sparkplug: [false],
+        sparkplugAttributesMetricNames: [null],
         sendAckOnValidationException: [false, Validators.required],
         transportPayloadTypeConfiguration: this.fb.group({
           transportPayloadType: [TransportPayloadType.JSON, Validators.required],
@@ -138,13 +138,13 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
           .patchValue(false, {emitEvent: false});
       }
     });
-    this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlug').valueChanges.pipe(
+    this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplug').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
       if (value) {
         this.mqttDeviceProfileTransportConfigurationFormGroup.disable({emitEvent: false});
-        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlug').enable({emitEvent: false});
-        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlugAttributesMetricNames').enable({emitEvent: false});
+        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplug').enable({emitEvent: false});
+        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplugAttributesMetricNames').enable({emitEvent: false});
       } else {
         this.mqttDeviceProfileTransportConfigurationFormGroup.enable({emitEvent: false});
       }
@@ -167,7 +167,7 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
       this.mqttDeviceProfileTransportConfigurationFormGroup.disable({emitEvent: false});
     } else {
       this.mqttDeviceProfileTransportConfigurationFormGroup.enable({emitEvent: false});
-      this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlug').updateValueAndValidity({onlySelf: true});
+      this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplug').updateValueAndValidity({onlySelf: true});
     }
   }
 
@@ -185,17 +185,17 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
       this.mqttDeviceProfileTransportConfigurationFormGroup.patchValue(value, {emitEvent: false});
       this.updateTransportPayloadBasedControls(value.transportPayloadTypeConfiguration?.transportPayloadType);
       if (!this.disabled) {
-        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlug').updateValueAndValidity({onlySelf: true});
+        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplug').updateValueAndValidity({onlySelf: true});
       }
     }
   }
 
   removeAttributeMetricName(name: string): void {
-    const names: string[] = this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlugAttributesMetricNames').value;
+    const names: string[] = this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplugAttributesMetricNames').value;
     const index = names.indexOf(name);
     if (index >= 0) {
       names.splice(index, 1);
-      this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlugAttributesMetricNames').setValue(names);
+      this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplugAttributesMetricNames').setValue(names);
     }
   }
 
@@ -204,13 +204,13 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
     let value = event.value;
     if ((value || '').trim()) {
       value = value.trim();
-      let names: string[] = this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlugAttributesMetricNames').value;
+      let names: string[] = this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplugAttributesMetricNames').value;
       if (!names || names.indexOf(value) === -1) {
         if (!names) {
           names = [];
         }
         names.push(value);
-        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkPlugAttributesMetricNames').setValue(names, {emitEvent: true});
+        this.mqttDeviceProfileTransportConfigurationFormGroup.get('sparkplugAttributesMetricNames').setValue(names, {emitEvent: true});
       }
     }
     if (input) {
