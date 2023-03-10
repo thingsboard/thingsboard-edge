@@ -33,7 +33,7 @@ package org.thingsboard.server.msa.ui.tests.customerSmoke;
 import io.qameta.allure.Description;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -46,8 +46,6 @@ import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_ENTITY_GROUP_MESSAGE;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
 
@@ -55,7 +53,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);

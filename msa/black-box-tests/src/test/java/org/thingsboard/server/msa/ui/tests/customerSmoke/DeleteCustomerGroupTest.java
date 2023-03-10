@@ -32,6 +32,7 @@ package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,7 +52,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private RuleChainsPageHelper ruleChainsPage;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -66,7 +67,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        String deletedCustomerGroup = customerPage.deleteTrash(customerGroupName);
+        String deletedCustomerGroup = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomerGroup));
@@ -107,7 +108,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        String deletedCustomer = customerPage.deleteTrash(customerGroupName);
+        String deletedCustomer = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomer));

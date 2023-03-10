@@ -184,7 +184,6 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
-        customerPage.doneBtnEditView().click();
 
         Assert.assertTrue(customerPage.phoneNumberEntityView().getAttribute("value").contains(number));
     }
@@ -200,7 +199,6 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
-        customerPage.doneBtnEditViewVisible().click();
 
         Assert.assertFalse(customerPage.doneBtnIsEnable());
         Assert.assertNotNull(customerPage.errorMessage());

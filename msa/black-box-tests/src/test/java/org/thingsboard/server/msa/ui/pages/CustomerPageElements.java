@@ -49,7 +49,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span";
     private static final String MANAGE_CUSTOMERS_USERS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' account_circle')]";
     private static final String MANAGE_CUSTOMERS_ASSETS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' domain')]/parent::button";
-    private static final String MANAGE_CUSTOMERS_GROUPS_BTN = ENTITY + "/../..//mat-icon[contains(text(),'supervisor_account')]/../..";
+    private static final String MANAGE_CUSTOMERS_GROUPS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' supervisor_account')]/parent::button";
     private static final String MANAGE_CUSTOMER_ENTITY_VIEW_BTN = ENTITY + "/../..//mat-icon[contains(text(),'view_quilt')]/../..";
     private static final String MANAGE_CUSTOMERS_DEVICES_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'devices_other')]/parent::button";
     private static final String MANAGE_CUSTOMERS_DASHBOARDS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'dashboard')]/parent::button";

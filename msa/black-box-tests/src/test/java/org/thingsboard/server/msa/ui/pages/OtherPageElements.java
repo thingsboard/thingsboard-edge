@@ -59,7 +59,7 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String DELETE_BTNS = "//mat-icon[contains(text(),' delete')]/../..";
     private static final String MARKS_CHECKBOX = "//mat-row[contains (@class,'mat-selected')]//mat-checkbox[contains(@class, 'checked')]";
     private static final String SELECT_ALL_CHECKBOX = "//thead//mat-checkbox";
-    private static final String ALL_ENTITY = "//mat-row[@class='mat-row cdk-row mat-row-select ng-star-inserted']";
+    private static final String ALL_ENTITY = "//tbody/mat-row";
     private static final String EDIT_PENCIL_BTN = "//mat-drawer-content//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
     private static final String ENTITY_GROUP_EDIT_PENCIL_BTN = "//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
     private static final String NAME_FIELD_EDIT_VIEW = "//input[@formcontrolname='name']";
@@ -83,7 +83,7 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String ENTITY_VIEW_TITLE = "//mat-drawer-container[contains(@class,'has-open')]//div[@class='tb-details-title']//span";
     private static final String LIST_OF_ENTITY = "//div[@role='listbox']/mat-option";
     protected static final String ADD_ENTITY_VIEW = "//mat-dialog-container";
-    private static final String SEARCH_FIELD = "//input[contains (@data-placeholder,'Search')]";
+    private static final String SEARCH_FIELD = "//input[contains (@placeholder,'Search')]";
     private static final String ADD_ENTITY_GROUP_VIEW = "//tb-entity-group-wizard";
     private static final String ADD_TO_GROUP_VIEW = "//tb-select-entity-group-dialog";
     private static final String NAME_FIELD_ADD_ENTITY_GROUP = ADD_ENTITY_GROUP_VIEW + "//input[@formcontrolname='name']";

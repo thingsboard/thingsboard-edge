@@ -65,7 +65,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        String deletedCustomer = customerPage.deleteTrash(customer);
+        String deletedCustomer = customerPage.deleteRuleChainTrash(customer);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomer));
@@ -106,7 +106,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        String deletedCustomer = customerPage.deleteTrash(customer);
+        String deletedCustomer = customerPage.deleteRuleChainTrash(customer);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomer));
