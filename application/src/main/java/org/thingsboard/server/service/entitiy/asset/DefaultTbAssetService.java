@@ -111,18 +111,6 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
     @Override
     public ListenableFuture<Void> delete(AssetId assetId, User user) {
         Asset asset = assetService.findAssetById(user.getTenantId(), assetId);
-        TenantId tenantId = asset.getTenantId();
-        try {
-            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, assetId);
-            assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(),
-                    ActionType.DELETED, relatedEdgeIds, user, assetId.toString());
-            tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetId, ComponentLifecycleEvent.DELETED);
-            return removeAlarmsByEntityId(tenantId, assetId);
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), ActionType.DELETED, user, e,
-                    assetId.toString());
-            throw e;
-        }
+        return delete(asset, user);
     }
 }
