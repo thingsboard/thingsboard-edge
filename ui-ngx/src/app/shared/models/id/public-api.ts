@@ -30,7 +30,6 @@
 ///
 
 export * from './alarm-id';
-export * from './alarm-rule-id';
 export * from './asset-id';
 export * from './audit-log-id';
 export * from './customer-id';

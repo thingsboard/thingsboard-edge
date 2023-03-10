@@ -492,40 +492,15 @@ export class MenuService {
         disabled: disabledItems.indexOf('home') > -1
       }
     );
-    const alarmPages: Array<MenuSection> = [];
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ALARM)) {
-      alarmPages.push(
-        {
-          id: guid(),
-          name: 'alarm.all-alarms',
-          type: 'link',
-          path: '/alarm/alarms',
-          icon: 'notifications',
-          disabled: disabledItems.indexOf('alarms') > -1
-        }
-      );
-    }
-    // if (this.userPermissionsService.hasReadGenericPermission(Resource.ALARM)) { TODO: Alarm Rules permissions
-      alarmPages.push(
-        {
-          id: guid(),
-          name: 'alarm-rule.rules',
-          type: 'link',
-          path: '/alarm/rules',
-          icon: 'edit_notifications',
-          disabled: disabledItems.indexOf('alarm_rules') > -1
-        }
-      );
-    // }
-    if (alarmPages.length) {
       sections.push(
         {
           id: guid(),
           name: 'alarm.alarms',
           type: 'link',
-          path: '/alarm',
+          path: '/alarms',
           icon: 'notifications',
-          pages: alarmPages
+          disabled: disabledItems.indexOf('alarms') > -1
         }
       );
     }

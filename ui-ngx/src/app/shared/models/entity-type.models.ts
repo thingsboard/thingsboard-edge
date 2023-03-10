@@ -43,7 +43,6 @@ export enum EntityType {
   DEVICE_PROFILE = 'DEVICE_PROFILE',
   ASSET_PROFILE = 'ASSET_PROFILE',
   ALARM = 'ALARM',
-  ALARM_RULE = 'ALARM_RULE',
   ENTITY_GROUP = 'ENTITY_GROUP',
   CONVERTER = 'CONVERTER',
   INTEGRATION = 'INTEGRATION',
@@ -328,18 +327,6 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         selectedEntities: 'alarm.selected-alarms'
       }
     ],
-    [ EntityType.ALARM_RULE,
-      {
-        type: 'entity.type-alarm-rule',
-        typePlural: 'entity.type-alarm-rules',
-        list: 'entity.list-of-alarm-rules',
-        nameStartsWith: 'entity.alarm-rule-name-starts-with',
-        details: 'alarm-rule.alarm-rule-details',
-        noEntities: 'alarm-rule.no-alarm-rules-prompt',
-        search: 'alarm-rule.search',
-        selectedEntities: 'alarm-rule.selected-alarm-rules'
-      }
-    ],
     [
       EntityType.ENTITY_GROUP,
       {
@@ -549,9 +536,9 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       }
     ],
     [
-      EntityType.ALARM_RULE,
+      EntityType.EDGE,
       {
-        helpLinkId: 'alarmRules'
+        helpLinkId: 'edges'
       }
     ],
     [
