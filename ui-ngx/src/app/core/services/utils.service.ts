@@ -40,7 +40,7 @@ import {
   createLabelFromDatasource,
   deepClone,
   deleteNullProperties,
-  guid,
+  guid, hashCode,
   isDefined,
   isDefinedAndNotNull,
   isString,
@@ -211,6 +211,8 @@ export class UtilsService {
           return alarmStatusTranslations.get(value) ? this.translate.instant(alarmStatusTranslations.get(value)) : value;
         } else if (alarmField === alarmFields.originatorType) {
           return this.translate.instant(entityTypeTranslations.get(value).type);
+        } else if (alarmField.value === alarmFields.assignee.value) {
+          return '';
         }
       }
       return value;
@@ -445,6 +447,13 @@ export class UtilsService {
         index++;
       });
     });
+  }
+
+  public stringToHslColor(str: string, saturationPercentage: number, lightnessPercentage: number): string {
+    if (str && str.length) {
+      let hue = hashCode(str) % 360;
+      return `hsl(${hue}, ${saturationPercentage}%, ${lightnessPercentage}%)`;
+    }
   }
 
   public currentPerfTime(): number {

@@ -43,7 +43,7 @@ import { AlarmConditionType } from '@shared/models/device.models';
 @Component({
   selector: 'tb-alarm-duration-predicate-value',
   templateUrl: './alarm-duration-predicate-value.component.html',
-  styleUrls: ['./alarm-duration-predicate-value.component.scss'],
+  styleUrls: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

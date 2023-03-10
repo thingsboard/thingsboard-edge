@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 
 @Data
 @NoArgsConstructor
@@ -50,6 +51,7 @@ public class EntityAlarm implements HasTenantId {
     private String alarmType;
 
     private CustomerId customerId;
+    private UserId assigneeId;
     private AlarmId alarmId;
 
 }

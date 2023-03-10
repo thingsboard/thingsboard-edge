@@ -220,6 +220,7 @@ import { ConverterTestDialogComponent } from '@home/components/converter/convert
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 
 @NgModule({
@@ -244,6 +245,7 @@ import { RouterTabsComponent } from '@home/components/router-tabs.component';
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -420,6 +422,7 @@ import { RouterTabsComponent } from '@home/components/router-tabs.component';
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,

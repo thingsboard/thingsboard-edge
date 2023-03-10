@@ -48,7 +48,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @ApiModel
-public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
+public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle {
 
     private TenantId tenantId;
 

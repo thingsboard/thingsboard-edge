@@ -148,8 +148,9 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           queryParams = section.queryParams;
         } else {
           if (breadcrumbConfig.labelFunction) {
-            labelFunction = () => breadcrumbConfig.labelFunction(route, this.translate,
-              this.activeComponentValue, lastChild.data, this.utils);
+            labelFunction = () => this.activeComponentValue ?
+              breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils) :
+              breadcrumbConfig.label;
             ignoreTranslate = true;
           } else {
             label = breadcrumbConfig.label || 'home.home';

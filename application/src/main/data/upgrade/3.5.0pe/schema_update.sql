@@ -226,3 +226,21 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
                   ORDER BY last_update_ts
                  LIMIT 1) END) as status
 FROM integration i;
+
+CREATE OR REPLACE VIEW dashboard_info_view as
+SELECT d.*, c.title as owner_name FROM dashboard d LEFT JOIN customer c ON c.id = d.customer_id;
+
+CREATE OR REPLACE VIEW asset_info_view as
+SELECT a.*, c.title as owner_name FROM asset a LEFT JOIN customer c ON c.id = a.customer_id;
+
+CREATE OR REPLACE VIEW device_info_view as
+SELECT d.*, c.title as owner_name FROM device d LEFT JOIN customer c ON c.id = d.customer_id;
+
+CREATE OR REPLACE VIEW entity_view_info_view as
+SELECT e.*, c.title as owner_name FROM entity_view e LEFT JOIN customer c ON c.id = e.customer_id;
+
+CREATE OR REPLACE VIEW customer_info_view as
+SELECT c.*, c.title as owner_name FROM customer c LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
+
+CREATE OR REPLACE VIEW user_info_view as
+SELECT u.*, c.title as owner_name FROM tb_user u LEFT JOIN customer c ON c.id = u.customer_id;

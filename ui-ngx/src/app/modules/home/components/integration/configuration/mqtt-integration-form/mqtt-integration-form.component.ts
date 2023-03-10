@@ -82,6 +82,7 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
         host: ['', Validators.required],
         port: [1883, [Validators.min(1), Validators.max(65535)]],
         cleanSession: [true],
+        retainedMessage: [false],
         ssl: [false],
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],

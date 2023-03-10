@@ -30,8 +30,6 @@
  */
 @use '@angular/material' as mat;
 
-@include mat.core();
-
 :root {
   --tb-login-primary-50: #{map_get(mat.$teal-palette, 50)};
   --tb-login-primary-100: #{map_get(mat.$teal-palette, 100)};

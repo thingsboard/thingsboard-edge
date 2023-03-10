@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -103,7 +104,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         deleteDevice(tenantId, device);
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDevicesWithMaxDeviceOutOfLimit() {
         TenantProfile defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(tenantId);
         defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxDevices(1).build());
@@ -114,7 +115,9 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         this.saveDevice(tenantId, "My first device");
         Assert.assertEquals(1, deviceService.countByTenantId(tenantId));
 
-        this.saveDevice(tenantId, "My second device that out of maxDeviceCount limit");
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            this.saveDevice(tenantId, "My second device that out of maxDeviceCount limit");
+        });
     }
 
     @Test
@@ -258,29 +261,35 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         deviceService.saveDevice(savedDevice);
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDeviceWithEmptyName() {
         Device device = new Device();
         device.setType("default");
         device.setTenantId(tenantId);
-        deviceService.saveDevice(device);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            deviceService.saveDevice(device);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDeviceWithEmptyTenant() {
         Device device = new Device();
         device.setName("My device");
         device.setType("default");
-        deviceService.saveDevice(device);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            deviceService.saveDevice(device);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDeviceWithInvalidTenant() {
         Device device = new Device();
         device.setName("My device");
         device.setType("default");
         device.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        deviceService.saveDevice(device);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            deviceService.saveDevice(device);
+        });
     }
 
     @Test

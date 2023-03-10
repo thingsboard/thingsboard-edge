@@ -1289,7 +1289,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private void deleteEntity(TenantId tenantId, EntityId entityId) {
         try {
-            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, false))
+            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false))
                     .get().getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
             alarmIds.forEach(alarmId -> {
                 alarmService.deleteAlarm(tenantId, alarmId);
