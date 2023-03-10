@@ -1,6 +1,6 @@
 <!--
 
-    Copyright © 2016-2022 The Thingsboard Authors
+    Copyright © 2016-2023 The Thingsboard Authors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -40,13 +40,14 @@
     </properties>
 
     <modules>
-<!--        <module>tb</module>-->
-<!--        <module>vc-executor</module>-->
-<!--        <module>vc-executor-docker</module>-->
-<!--        <module>js-executor</module>-->
-<!--        <module>web-ui</module>-->
-<!--        <module>tb-node</module>-->
-<!--        <module>transport</module>-->
+        <!--Modules order is important to speedup parallel build and avoid yarn pgk parallel execution-->
+        <!-- <module>tb</module>
+        <module>web-ui</module>
+        <module>vc-executor</module>
+        <module>vc-executor-docker</module>
+        <module>tb-node</module>
+        <module>transport</module>
+        <module>js-executor</module> -->
         <module>tb-edge</module>
         <module>edge-black-box-tests</module>
     </modules>
