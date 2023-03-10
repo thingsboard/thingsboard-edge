@@ -38,7 +38,7 @@ import { NotificationTargetId } from '@shared/models/id/notification-target-id';
 import { NotificationTemplateId } from '@shared/models/id/notification-template-id';
 import { EntityId } from '@shared/models/id/entity-id';
 import { NotificationRuleId } from '@shared/models/id/notification-rule-id';
-import { AlarmSeverity, AlarmStatus } from '@shared/models/alarm.models';
+import { AlarmSearchStatus, AlarmSeverity, AlarmStatus } from '@shared/models/alarm.models';
 import { EntityType } from '@shared/models/entity-type.models';
 
 export interface Notification {
@@ -60,6 +60,7 @@ export interface NotificationInfo {
   alarmSeverity?: AlarmSeverity;
   alarmStatus?: AlarmStatus;
   alarmType?: string;
+  originatorId?: EntityId;
 }
 
 export interface NotificationRequest extends Omit<BaseData<NotificationRequestId>, 'label'> {
@@ -88,7 +89,7 @@ export interface NotificationRequestPreview {
 
 export interface NotificationRequestStats {
   sent: Map<NotificationDeliveryMethod, any>;
-  errors: Map<NotificationDeliveryMethod, Map<string, string>>;
+  errors: { [key in NotificationDeliveryMethod]: {[key in string]: string}};
   processedRecipients: Map<NotificationDeliveryMethod, Set<UserId>>;
 }
 
@@ -126,7 +127,10 @@ export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'la
 export interface NotificationRuleTriggerConfig {
   alarmTypes?: Array<string>;
   alarmSeverities?: Array<AlarmSeverity>;
-  clearRule?: AlarmStatus;
+  alarmStatus?: Array<AlarmSearchStatus>;
+  clearRule?: {
+    alarmStatus: Array<AlarmSearchStatus>;
+  };
   devices?: Array<string>;
   deviceProfiles?: Array<string>;
   entityType?: EntityType;
@@ -228,11 +232,11 @@ interface PushDeliveryMethodAdditionalConfig {
   actionButtonConfig: {
     enabled: boolean;
     text: string;
-    color: string;
     linkType: ActionButtonLinkType;
     link?: string;
     dashboardId?: string;
     dashboardState?: string;
+    setEntityIdInState?: boolean;
   };
 }
 

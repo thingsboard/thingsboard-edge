@@ -64,8 +64,11 @@ import {
 import { EscalationsComponent } from '@home/pages/notification-center/rule-table/escalations.component';
 import { EscalationFormComponent } from '@home/pages/notification-center/rule-table/escalation-form.component';
 import {
-  AlarmSeveritiesListComponent
-} from '@home/pages/notification-center/rule-table/alarm-severities-list.component';
+  InboxNotificationDialogComponent
+} from '@home/pages/notification-center/inbox-table/inbox-notification-dialog.component';
+import {
+  NotificationRequestErrorDialogComponent
+} from '@home/pages/notification-center/request-table/notification-request-error-dialog.component';
 
 @NgModule({
   declarations: [
@@ -82,7 +85,8 @@ import {
     RuleNotificationDialogComponent,
     EscalationsComponent,
     EscalationFormComponent,
-    AlarmSeveritiesListComponent
+    InboxNotificationDialogComponent,
+    NotificationRequestErrorDialogComponent
   ],
   imports: [
     CommonModule,
