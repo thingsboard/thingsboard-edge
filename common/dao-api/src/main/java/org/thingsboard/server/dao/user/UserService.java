@@ -83,7 +83,7 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
-	void deleteTenantAdmins(TenantId tenantId);
+    void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 
