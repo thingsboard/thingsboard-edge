@@ -78,7 +78,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
                                                              @Param("searchText") String searchText,
                                                              Pageable pageable);
 
-    @Query(value = "SELECT e.*, e.owner_name as ownername " +
+    @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select d.*, c.title as owner_name from dashboard d LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +

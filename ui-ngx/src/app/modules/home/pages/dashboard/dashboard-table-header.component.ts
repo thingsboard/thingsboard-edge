@@ -29,32 +29,35 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
 import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
-
-export interface DashboardsTableFilter {
-  includeCustomers: boolean;
-}
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
-  selector: 'tb-dashboards-table-filter',
-  templateUrl: './dashboards-table-filter.component.html',
+  selector: 'tb-dashboard-table-header',
+  templateUrl: './dashboard-table-header.component.html',
   styleUrls: []
 })
-export class DashboardsTableFilterComponent implements OnInit {
+export class DashboardTableHeaderComponent extends EntityTableHeaderComponent<DashboardInfo | Dashboard> implements OnInit {
 
-  @Input()
-  filter: DashboardsTableFilter;
+  includeCustomersLabel: string;
 
-  @Input()
-  tableConfig: EntityTableConfig<DashboardInfo | Dashboard>;
-
-  ngOnInit(): void {
+  constructor(protected store: Store<AppState>) {
+    super(store);
   }
 
-  dashboardsTableFilterChanged() {
-    this.tableConfig.componentsData.dashboardsTableFilterChanged(this.filter);
+  ngOnInit() {
+    super.ngOnInit();
+    this.includeCustomersLabel = (getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER ||
+      this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
+  }
+
+  includeCustomersChanged(includeCustomers: boolean) {
+    this.entitiesTableConfig.componentsData.includeCustomersChanged(includeCustomers);
   }
 
 }

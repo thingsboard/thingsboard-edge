@@ -41,14 +41,14 @@ import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-gro
 import { DashboardRoutingModule } from '@home/pages/dashboard/dashboard-routing.module';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
 import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
-import { DashboardsTableFilterComponent } from '@home/pages/dashboard/dashboards-table-filter.component';
+import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-table-header.component';
 
 @NgModule({
   declarations: [
     GroupDashboardFormComponent,
     DashboardFormComponent,
     DashboardTabsComponent,
-    DashboardsTableFilterComponent,
+    DashboardTableHeaderComponent,
     PublicDashboardLinkDialogComponent
   ],
   imports: [

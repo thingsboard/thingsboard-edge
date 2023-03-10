@@ -30,11 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<span class="mat-h2">Dashboards filter</span>
-<div style="padding-top: 20px;">
-  <mat-slide-toggle
-    [(ngModel)]="filter.includeCustomers"
-    (ngModelChange)="dashboardsTableFilterChanged()">
-    Include customer entities
-  </mat-slide-toggle>
-</div>
+<mat-slide-toggle
+  style="margin-left: 32px;"
+  [ngModel]="entitiesTableConfig.componentsData.includeCustomers"
+  (ngModelChange)="includeCustomersChanged($event)">
+  {{ includeCustomersLabel | translate }}
+</mat-slide-toggle>

@@ -84,6 +84,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       display: inline-flex;
+      align-items: center;
       & > span {
         overflow: hidden;
         text-overflow: ellipsis;

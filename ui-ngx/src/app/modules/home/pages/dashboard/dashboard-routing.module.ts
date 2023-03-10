@@ -183,8 +183,7 @@ export const dashboardsRoute: Route = {
           component: EntitiesTableComponent,
           data: {
             auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'dashboard.dashboards',
-            dashboardsType: 'tenant'
+            title: 'dashboard.dashboards'
           },
           resolve: {
             entitiesTableConfig: DashboardsTableConfigResolver,

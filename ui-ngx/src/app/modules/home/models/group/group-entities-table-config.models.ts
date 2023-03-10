@@ -88,8 +88,6 @@ export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityG
 
 export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTableConfig<T, PageLink, ShortEntityView> {
 
-  customerId: string;
-
   settings = groupSettingsDefaults(this.entityGroup.type, this.entityGroup.configuration.settings);
   actionDescriptorsBySourceId: {[actionSourceId: string]: Array<WidgetActionDescriptor>} = {};
 
@@ -110,8 +108,7 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
 
   constructor(public entityGroup: EntityGroupStateInfo<T>,
               public groupParams: EntityGroupParams) {
-    super();
-    this.customerId = groupParams.customerId;
+    super(groupParams.customerId);
     this.entityType = entityGroup.type;
     this.entityTranslations = entityTypeTranslations.get(this.entityType);
     this.entityResources = entityTypeResources.get(this.entityType);

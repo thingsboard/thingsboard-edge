@@ -2263,7 +2263,9 @@
         "type-tb-resource": "Resource",
         "type-ota-package": "OTA package",
         "customer-name": "Customer name",
-        "sub-customer-name": "Sub-customer name"
+        "sub-customer-name": "Sub-customer name",
+        "include-customer-entities": "Include customer entities",
+        "include-sub-customer-entities": "Include sub-customer entities"
     },
     "entity-group": {
         "entity-group": "Entity group",

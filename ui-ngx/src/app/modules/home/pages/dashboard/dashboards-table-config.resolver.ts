@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, Renderer2 } from '@angular/core';
+import { Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
@@ -45,14 +45,13 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Observable, of } from 'rxjs';
-import { select, Store } from '@ngrx/store';
-import { getCurrentAuthUser, selectAuthUser } from '@core/auth/auth.selectors';
-import { map, mergeMap, take } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { map } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
 import { Customer } from '@app/shared/models/customer.model';
-import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { Dashboard, DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@app/core/http/dashboard.service';
@@ -65,19 +64,15 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { AuthUser } from '@shared/models/user.model';
-import { TbPopoverService } from '@shared/components/popover.service';
-import {
-  DashboardsTableFilter,
-  DashboardsTableFilterComponent
-} from '@home/pages/dashboard/dashboards-table-filter.component';
-import { MatButton } from '@angular/material/button';
+import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-table-header.component';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
 
-  private readonly config: EntityTableConfig<DashboardInfo | Dashboard> = new EntityTableConfig<DashboardInfo | Dashboard>();
-
-  constructor(private store: Store<AppState>,
+  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DashboardInfo | Dashboard>,
+              private store: Store<AppState>,
               private userPermissionsService: UserPermissionsService,
               private dashboardService: DashboardService,
               private customerService: CustomerService,
@@ -87,148 +82,105 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
-              private utils: UtilsService,
-              private popoverService: TbPopoverService,
-              private dialog: MatDialog) {
-
-    this.config.entityType = EntityType.DASHBOARD;
-    this.config.entityComponent = DashboardFormComponent;
-    this.config.entityTabsComponent = DashboardTabsComponent;
-    this.config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
-    this.config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
-
-    this.config.entityTitle = (dashboard) => dashboard ?
-      this.utils.customTranslation(dashboard.title, dashboard.title) : '';
-
-    this.config.rowPointer = true;
-
-    this.config.deleteEntityTitle = dashboard =>
-      this.translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: dashboard.title});
-    this.config.deleteEntityContent = () => this.translate.instant('dashboard.delete-dashboard-text');
-    this.config.deleteEntitiesTitle = count => this.translate.instant('dashboard.delete-dashboards-title', {count});
-    this.config.deleteEntitiesContent = () => this.translate.instant('dashboard.delete-dashboards-text');
-
-    this.config.loadEntity = id => this.dashboardService.getDashboard(id.id);
-    this.config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard as Dashboard);
-    this.config.onEntityAction = action => this.onDashboardAction(action);
-    this.config.headerActionDescriptors.push({
-      name: this.translate.instant('filter.filter'),
-      icon: 'filter_list',
-      onAction: ($event, headerButton) => {
-        this.toggleFilter($event, headerButton);
-      },
-      isEnabled: () => true
-    });
+              private utils: UtilsService) {
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DashboardInfo | Dashboard>> {
-    const routeParams = route.params;
-    this.config.componentsData = {
-      dashboardScope: route.data.dashboardsType,
-      customerId: routeParams.customerId,
+    const groupParams = resolveGroupParams(route);
+    const config = new EntityTableConfig<DashboardInfo | Dashboard>(groupParams.customerId);
+    this.configDefaults(config);
+    const authUser = getCurrentAuthUser(this.store);
+    config.componentsData = {
       includeCustomers: true,
-      dashboardsTableFilterChanged: (filter: DashboardsTableFilter) => {
-        this.config.componentsData.includeCustomers = filter.includeCustomers;
-        const authUser = getCurrentAuthUser(this.store);
-        this.config.columns = this.configureColumns(authUser);
-        this.config.getTable().columnsUpdated();
-        this.config.getTable().resetSortAndFilter(true);
+      includeCustomersChanged: (includeCustomers: boolean) => {
+        config.componentsData.includeCustomers = includeCustomers;
+        config.columns = this.configureColumns(authUser, config);
+        config.getTable().columnsUpdated();
+        config.getTable().resetSortAndFilter(true);
       }
     };
     if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ) &&
       this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
-      this.config.handleRowClick = ($event, dashboard) => {
-        if (this.config.isDetailsOpen()) {
-          this.config.toggleEntityDetails($event, dashboard);
+      config.handleRowClick = ($event, dashboard) => {
+        if (config.isDetailsOpen()) {
+          config.toggleEntityDetails($event, dashboard);
         } else {
-          this.openDashboard($event, dashboard);
+          this.openDashboard($event, dashboard, config);
         }
         return true;
       };
     } else {
-      this.config.handleRowClick = () => false;
+      config.handleRowClick = () => false;
     }
-    defaultEntityTablePermissions(this.userPermissionsService, this.config);
-    return this.store.pipe(select(selectAuthUser), take(1)).pipe(
-      /* tap((authUser) => {
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          if (route.data.dashboardsType === 'edge') {
-            this.config.componentsData.dashboardScope = 'edge_customer_user';
-          } else {
-            this.config.componentsData.dashboardScope = 'customer_user';
-          }
-          this.config.componentsData.customerId = authUser.customerId;
-        }
-      }), */
-      mergeMap((authUser) =>
-          (this.config.componentsData.customerId ?
-          this.customerService.getCustomer(this.config.componentsData.customerId) : of(null as Customer)).pipe(
-            map((customer) => [authUser, customer])
-          )
-      ),
-      map(([authUser, parentCustomer]: [AuthUser, Customer]) => {
+    return (config.customerId ?
+      this.customerService.getCustomer(config.customerId) : of(null as Customer)).pipe(
+      map((parentCustomer) => {
         if (parentCustomer) {
-          this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('dashboard.dashboards');
+          config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('dashboard.dashboards');
         } else {
-          this.config.tableTitle = this.translate.instant('dashboard.dashboards');
+          config.tableTitle = this.translate.instant('dashboard.dashboards');
         }
-        this.config.columns = this.configureColumns(authUser);
-        this.configureEntityFunctions();
-        this.config.cellActionDescriptors = this.configureCellActions();
-        this.config.groupActionDescriptors = this.configureGroupActions();
-        this.config.addActionDescriptors = this.configureAddActions();
-        return this.config;
+        config.columns = this.configureColumns(authUser, config);
+        this.configureEntityFunctions(config);
+        config.cellActionDescriptors = this.configureCellActions(config);
+        config.groupActionDescriptors = this.configureGroupActions(config);
+        config.addActionDescriptors = this.configureAddActions(config);
+        return this.allEntitiesTableConfigService.prepareConfiguration(config);
       })
     );
   }
 
-  toggleFilter($event: MouseEvent, headerButton: MatButton) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    const trigger = headerButton._elementRef.nativeElement;
-    if (this.popoverService.hasPopover(trigger)) {
-      this.popoverService.hidePopover(trigger);
-    } else {
-      const filter: DashboardsTableFilter = {
-        includeCustomers: this.config.componentsData.includeCustomers
-      };
-      this.popoverService.displayPopover(trigger, this.config.getTable().renderer,
-        this.config.getTable().viewContainerRef, DashboardsTableFilterComponent, 'bottomRight', true, null,
-        {
-          filter,
-          tableConfig: this.config
-        }, {}, {}, {}, true);
-    }
+  configDefaults(config: EntityTableConfig<DashboardInfo | Dashboard>) {
+    config.entityType = EntityType.DASHBOARD;
+    config.entityComponent = DashboardFormComponent;
+    config.entityTabsComponent = DashboardTabsComponent;
+    config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
+    config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
+
+    config.entityTitle = (dashboard) => dashboard ?
+      this.utils.customTranslation(dashboard.title, dashboard.title) : '';
+
+    config.rowPointer = true;
+
+    config.deleteEntityTitle = dashboard =>
+      this.translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: dashboard.title});
+    config.deleteEntityContent = () => this.translate.instant('dashboard.delete-dashboard-text');
+    config.deleteEntitiesTitle = count => this.translate.instant('dashboard.delete-dashboards-title', {count});
+    config.deleteEntitiesContent = () => this.translate.instant('dashboard.delete-dashboards-text');
+
+    config.loadEntity = id => this.dashboardService.getDashboard(id.id);
+    config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard as Dashboard);
+    config.onEntityAction = action => this.onDashboardAction(action, config);
+    config.headerComponent = DashboardTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser): Array<EntityTableColumn<DashboardInfo>> {
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<DashboardInfo | Dashboard>): Array<EntityTableColumn<DashboardInfo>> {
     const columns: Array<EntityTableColumn<DashboardInfo>> = [
       new DateEntityTableColumn<DashboardInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<DashboardInfo>('title', 'dashboard.title',
-        this.config.componentsData.includeCustomers ? '50%' : '100%', this.config.entityTitle)
+        config.componentsData.includeCustomers ? '50%' : '100%', config.entityTitle)
     ];
-    if (this.config.componentsData.includeCustomers) {
-      const title = (authUser.authority === Authority.CUSTOMER_USER || this.config.componentsData.customerId)
+    if (config.componentsData.includeCustomers) {
+      const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
       columns.push(new EntityTableColumn<DashboardInfo>('ownerName', title, '50%'));
     }
     return columns;
   }
 
-  configureEntityFunctions(): void {
-    if (this.config.componentsData.customerId) {
-      this.config.entitiesFetchFunction = pageLink =>
-        this.dashboardService.getCustomerDashboards(this.config.componentsData.includeCustomers,
-          this.config.componentsData.customerId, pageLink);
+  configureEntityFunctions(config: EntityTableConfig<DashboardInfo | Dashboard>): void {
+    if (config.customerId) {
+      config.entitiesFetchFunction = pageLink =>
+        this.dashboardService.getCustomerDashboards(config.componentsData.includeCustomers,
+          config.customerId, pageLink);
     } else {
-      this.config.entitiesFetchFunction = pageLink =>
-        this.dashboardService.getAllDashboards(this.config.componentsData.includeCustomers, pageLink);
+      config.entitiesFetchFunction = pageLink =>
+        this.dashboardService.getAllDashboards(config.componentsData.includeCustomers, pageLink);
     }
-    this.config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
+    config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
   }
 
-  configureCellActions(): Array<CellActionDescriptor<DashboardInfo>> {
+  configureCellActions(config: EntityTableConfig<DashboardInfo | Dashboard>): Array<CellActionDescriptor<DashboardInfo>> {
     const actions: Array<CellActionDescriptor<DashboardInfo>> = [];
     actions.push(
       {
@@ -243,50 +195,50 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         name: this.translate.instant('dashboard.dashboard-details'),
         icon: 'edit',
         isEnabled: () => true,
-        onAction: ($event, entity) => this.config.toggleEntityDetails($event, entity)
+        onAction: ($event, entity) => config.toggleEntityDetails($event, entity)
       }
     );
     return actions;
   }
 
-  configureGroupActions(): Array<GroupActionDescriptor<DashboardInfo>> {
+  configureGroupActions(config: EntityTableConfig<DashboardInfo | Dashboard>): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
     return actions;
   }
 
-  configureAddActions(): Array<HeaderActionDescriptor> {
+  configureAddActions(config: EntityTableConfig<DashboardInfo | Dashboard>): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     actions.push(
       {
         name: this.translate.instant('dashboard.create-new-dashboard'),
         icon: 'insert_drive_file',
         isEnabled: () => true,
-        onAction: ($event) => this.config.getTable().addEntity($event)
+        onAction: ($event) => config.getTable().addEntity($event)
       },
       {
         name: this.translate.instant('dashboard.import'),
         icon: 'file_upload',
         isEnabled: () => true,
-        onAction: ($event) => this.importDashboard($event)
+        onAction: ($event) => this.importDashboard($event, config)
       }
     );
     return actions;
   }
 
-  openDashboard($event: Event, dashboard: DashboardInfo) {
+  openDashboard($event: Event, dashboard: DashboardInfo, config: EntityTableConfig<DashboardInfo | Dashboard>) {
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: this.config.getTable().route});
+    const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: config.getTable().route});
     this.router.navigateByUrl(url);
   }
 
-  importDashboard($event: Event) {
-    const customerId = this.config.componentsData.customerId ? new CustomerId(this.config.componentsData.customerId) : null;
+  importDashboard($event: Event, config: EntityTableConfig<DashboardInfo | Dashboard>) {
+    const customerId = config.customerId ? new CustomerId(config.customerId) : null;
     this.importExport.importDashboard(customerId).subscribe(
       (dashboard) => {
         if (dashboard) {
-          this.config.updateData();
+          config.updateData();
         }
       }
     );
@@ -299,10 +251,10 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.exportDashboard(dashboard.id.id);
   }
 
-  onDashboardAction(action: EntityAction<DashboardInfo>): boolean {
+  onDashboardAction(action: EntityAction<DashboardInfo>, config: EntityTableConfig<DashboardInfo | Dashboard>): boolean {
     switch (action.action) {
       case 'open':
-        this.openDashboard(action.event, action.entity);
+        this.openDashboard(action.event, action.entity, config);
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);

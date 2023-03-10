@@ -50,6 +50,7 @@ import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 import { IEntityDetailsPageComponent } from '@home/models/entity/entity-details-page-component.models';
 import { MatButton } from '@angular/material/button';
+import { EntityGroupParams } from '@shared/models/entity-group.models';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -166,7 +167,11 @@ export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | Ent
 
 export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = PageLink, L extends BaseData<HasId> = T> {
 
-  constructor() {}
+  customerId: string;
+
+  constructor(customerId?: string) {
+    this.customerId = customerId;
+  }
 
   private table: IEntitiesTableComponent = null;
   private entityDetailsPage: IEntityDetailsPageComponent = null;
