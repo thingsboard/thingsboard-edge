@@ -30,43 +30,23 @@
  */
 package org.thingsboard.server.transport.mqtt.session;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
-import org.thingsboard.server.common.transport.session.DeviceAwareSessionContext;
-import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.transport.TransportService;
+import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
 /**
- * Created by ashvayka on 30.08.18.
+ * Created by nickAS21 on 26.12.22
  */
-public abstract class MqttDeviceAwareSessionContext extends DeviceAwareSessionContext {
+public class GatewayDeviceSessionContext extends AbstractGatewayDeviceSessionContext<GatewaySessionHandler> {
 
-    private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
-
-    public MqttDeviceAwareSessionContext(UUID sessionId, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap) {
-        super(sessionId);
-        this.mqttQoSMap = mqttQoSMap;
+    public GatewayDeviceSessionContext(GatewaySessionHandler parent,
+                                       TransportDeviceInfo deviceInfo,
+                                       DeviceProfile deviceProfile,
+                                       ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap,
+                                       TransportService transportService) {
+        super(parent, deviceInfo, deviceProfile, mqttQoSMap, transportService);
     }
 
-    public ConcurrentMap<MqttTopicMatcher, Integer> getMqttQoSMap() {
-        return mqttQoSMap;
-    }
-
-    public MqttQoS getQoSForTopic(String topic) {
-        List<Integer> qosList = mqttQoSMap.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey().matches(topic))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
-        if (!qosList.isEmpty()) {
-            return MqttQoS.valueOf(qosList.get(0));
-        } else {
-            return MqttQoS.AT_LEAST_ONCE;
-        }
-    }
 }

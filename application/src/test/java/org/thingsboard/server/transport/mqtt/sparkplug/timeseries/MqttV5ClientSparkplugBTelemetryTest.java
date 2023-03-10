@@ -28,45 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt.sparkplug.timeseries;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
-import org.thingsboard.server.common.transport.session.DeviceAwareSessionContext;
-import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
+import org.eclipse.paho.mqttv5.common.MqttException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 /**
- * Created by ashvayka on 30.08.18.
+ * Created by nickAS21 on 12.01.23
  */
-public abstract class MqttDeviceAwareSessionContext extends DeviceAwareSessionContext {
+@DaoSqlTest
+public class MqttV5ClientSparkplugBTelemetryTest extends AbstractMqttV5ClientSparkplugTelemetryTest {
 
-    private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
-
-    public MqttDeviceAwareSessionContext(UUID sessionId, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap) {
-        super(sessionId);
-        this.mqttQoSMap = mqttQoSMap;
+    @Before
+    public void beforeTest() throws Exception {
+        beforeSparkplugTest();
     }
 
-    public ConcurrentMap<MqttTopicMatcher, Integer> getMqttQoSMap() {
-        return mqttQoSMap;
+    @After
+    public void afterTest () throws MqttException {
+        if (client.isConnected()) {
+            client.disconnect();        }
     }
 
-    public MqttQoS getQoSForTopic(String topic) {
-        List<Integer> qosList = mqttQoSMap.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey().matches(topic))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
-        if (!qosList.isEmpty()) {
-            return MqttQoS.valueOf(qosList.get(0));
-        } else {
-            return MqttQoS.AT_LEAST_ONCE;
-        }
+    @Test
+    public void testClientWithCorrectAccessTokenPublishNBIRTH() throws Exception {
+        processClientWithCorrectAccessTokenPublishNBIRTH();
     }
+
+    @Test
+    public void testClientWithCorrectAccessTokenPushNodeMetricBuildPrimitiveSimple() throws Exception {
+        processClientWithCorrectAccessTokenPushNodeMetricBuildPrimitiveSimple();
+    }
+
+    @Test
+    public void testClientWithCorrectAccessTokenPushNodeMetricBuildPArraysPrimitiveSimple() throws Exception {
+        processClientWithCorrectAccessTokenPushNodeMetricBuildArraysPrimitiveSimple();
+    }
+
 }

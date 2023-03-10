@@ -28,45 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.session;
+package org.thingsboard.server.transport.mqtt.util.sparkplug;
 
-import io.netty.handler.codec.mqtt.MqttQoS;
-import org.thingsboard.server.common.transport.session.DeviceAwareSessionContext;
-import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
+import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
+@Data
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SparkplugRpcResponseBody {
 
-/**
- * Created by ashvayka on 30.08.18.
- */
-public abstract class MqttDeviceAwareSessionContext extends DeviceAwareSessionContext {
+    private String result;
+    private String value;
+    private String error;
 
-    private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
-
-    public MqttDeviceAwareSessionContext(UUID sessionId, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap) {
-        super(sessionId);
-        this.mqttQoSMap = mqttQoSMap;
-    }
-
-    public ConcurrentMap<MqttTopicMatcher, Integer> getMqttQoSMap() {
-        return mqttQoSMap;
-    }
-
-    public MqttQoS getQoSForTopic(String topic) {
-        List<Integer> qosList = mqttQoSMap.entrySet()
-                .stream()
-                .filter(entry -> entry.getKey().matches(topic))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
-        if (!qosList.isEmpty()) {
-            return MqttQoS.valueOf(qosList.get(0));
-        } else {
-            return MqttQoS.AT_LEAST_ONCE;
-        }
-    }
 }
