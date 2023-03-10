@@ -75,7 +75,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void reLogin() {
-        if (getUrl().contains("/login")) {
+        if (getJwtTokenFromLocalStorage() == null) {
             loginPage.authorizationTenant();
         }
     }

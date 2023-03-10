@@ -33,7 +33,6 @@ package org.thingsboard.server.msa.ui.base;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.qameta.allure.Allure;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -65,7 +64,6 @@ import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
@@ -90,6 +88,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         ChromeOptions options = new ChromeOptions();
         options.setAcceptInsecureCerts(true);
+        options.addArguments("-remote-allow-origins=*"); //temporary fix after updating google chrome
         if (instance.isActive()) {
             RemoteWebDriver remoteWebDriver = new RemoteWebDriver(new URL(REMOTE_WEBDRIVER_HOST), options);
             remoteWebDriver.setFileDetector(new LocalFileDetector());
@@ -104,7 +103,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
 
     @BeforeMethod
     public void open() {
-        openHomePage();
+        openLocalhost();
     }
 
     @AfterMethod
@@ -118,12 +117,13 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         driver.quit();
     }
 
-    public void openLocalhost() {
-        driver.get(getBaseUiUrl());
+    public String getJwtTokenFromLocalStorage() {
+        js = (JavascriptExecutor) driver;
+        return (String) js.executeScript("return window.localStorage.getItem('jwt_token');");
     }
 
-    public void openHomePage() {
-        driver.get(getBaseUiUrl() + "/home");
+    public void openLocalhost() {
+        driver.get(getBaseUiUrl());
     }
 
     public String getUrl() {
