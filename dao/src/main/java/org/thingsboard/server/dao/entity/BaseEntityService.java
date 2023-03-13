@@ -368,7 +368,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
             dashboard.setMobileHide(row.get("mobile_hide") != null ? (Boolean) row.get("mobile_hide") : false);
             dashboard.setMobileOrder(row.get("mobile_order") != null ? (Integer) row.get("mobile_order") : null);
-            dashboard.setOwnerName(row.get("owner_name").toString());
             return dashboard;
         };
     }
