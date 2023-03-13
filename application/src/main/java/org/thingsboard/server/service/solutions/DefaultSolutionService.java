@@ -112,7 +112,6 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -170,6 +169,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -838,6 +838,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Device, DeviceDefinition> provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
         Map<Device, DeviceDefinition> result = new HashMap<>();
+        Set<String> deviceTypeSet = new HashSet<>();
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
 
@@ -847,6 +848,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setTenantId(ctx.getTenantId());
             entity.setName(entityDef.getName());
             entity.setLabel(entityDef.getLabel());
+            ensureDeviceProfileExists(ctx, deviceTypeSet, entityDef);
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
             entity = deviceService.saveDevice(entity);
@@ -873,6 +875,18 @@ public class DefaultSolutionService implements SolutionService {
             tbClusterService.onDeviceUpdated(entity, null);
         }
         return result;
+    }
+
+    private void ensureDeviceProfileExists(SolutionInstallContext ctx, Set<String> deviceTypeSet, DeviceDefinition entityDef) {
+        if (!deviceTypeSet.contains(entityDef.getType())){
+            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileByName(ctx.getTenantId(), entityDef.getType());
+            if (deviceProfile == null) {
+                DeviceProfile created = deviceProfileService.findOrCreateDeviceProfile(ctx.getTenantId(), entityDef.getType());
+                ctx.register(created.getId());
+                log.info("Saved device profile: {}", created.getId());
+                deviceTypeSet.add(entityDef.getType());
+            }
+        }
     }
 
     private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
@@ -959,6 +973,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) throws ThingsboardException {
         Map<Asset, AssetDefinition> result = new HashMap<>();
+        Set<String> assetTypeSet = new HashSet<>();
         List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
@@ -968,6 +983,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setLabel(entityDef.getLabel());
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            ensureAssetProfileExists(ctx, assetTypeSet, entityDef);
             entity = assetService.saveAsset(entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved asset: {}", entity.getId(), entity);
@@ -979,6 +995,18 @@ public class DefaultSolutionService implements SolutionService {
             result.put(entity, entityDef);
         }
         return result;
+    }
+
+    private void ensureAssetProfileExists(SolutionInstallContext ctx, Set<String> assetTypeSet, AssetDefinition entityDef) {
+        if (!assetTypeSet.contains(entityDef.getType())){
+            AssetProfile assetProfile = assetProfileService.findAssetProfileByName(ctx.getTenantId(), entityDef.getType());
+            if (assetProfile == null) {
+                AssetProfile created = assetProfileService.findOrCreateAssetProfile(ctx.getTenantId(), entityDef.getType());
+                ctx.register(created.getId());
+                log.info("Saved asset profile: {}", created.getId());
+                assetTypeSet.add(entityDef.getType());
+            }
+        }
     }
 
     private void provisionCustomers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
