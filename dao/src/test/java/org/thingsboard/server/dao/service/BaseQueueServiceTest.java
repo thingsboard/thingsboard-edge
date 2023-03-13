@@ -35,6 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -49,6 +50,8 @@ import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -56,6 +59,11 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class BaseQueueServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    TenantProfileService tenantProfileService;
+    @Autowired
+    QueueService queueService;
 
     private IdComparator<Queue> idComparator = new IdComparator<>();
 
@@ -98,7 +106,7 @@ public abstract class BaseQueueServiceTest extends AbstractServiceTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        tenant.setTenantProfileId(tenantProfileId);
+        tenant.setTenantProfileId(tenantProfileId); //custom profile
         Tenant savedTenant = tenantService.saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
