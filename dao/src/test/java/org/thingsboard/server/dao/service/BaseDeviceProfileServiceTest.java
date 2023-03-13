@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Getter;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,6 +53,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -69,9 +72,15 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 public abstract class BaseDeviceProfileServiceTest extends AbstractServiceTest {
 
     @Autowired
+    DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+    @Autowired
     DeviceProfileService deviceProfileService;
+    @Getter
     @Autowired
     DeviceService deviceService;
+    @Getter
+    @Autowired
+    EntityGroupService entityGroupService;
     @Autowired
     OtaPackageService otaPackageService;
 

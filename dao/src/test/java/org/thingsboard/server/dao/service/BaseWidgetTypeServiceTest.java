@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseWidgetTypeServiceTest extends AbstractBeforeTest {
+public abstract class BaseWidgetTypeServiceTest extends AbstractServiceTest {
 
     @Autowired
     WidgetsBundleService widgetsBundleService;

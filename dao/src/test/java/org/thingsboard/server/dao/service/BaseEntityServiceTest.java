@@ -99,6 +99,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -137,6 +138,8 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     AttributesService attributesService;
     @Autowired
     BlobEntityService blobEntityService;
+    @Autowired
+    CustomerService customerService;
     @Autowired
     DeviceService deviceService;
     @Autowired

@@ -34,7 +34,9 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -95,6 +97,10 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(savedDeviceProfile);
         deviceProfileId = savedDeviceProfile.getId();
     }
+
+    @SuppressWarnings("deprecation")
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @After
     public void after() {

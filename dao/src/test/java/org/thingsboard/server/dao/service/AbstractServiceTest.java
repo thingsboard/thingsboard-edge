@@ -34,11 +34,10 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -77,6 +76,8 @@ import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelMask;
 import org.thingsboard.server.dao.audit.AuditLogLevelProperties;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.io.IOException;
@@ -237,6 +238,10 @@ public abstract class AbstractServiceTest {
         return createEntityGroup(tenantId, EntityType.DEVICE, name);
     }
 
+    protected EntityGroupService getEntityGroupService() {
+        throw new NotImplementedException("getEntityGroupService not implemented");
+    }
+
     protected EntityGroup createEntityGroup(TenantId tenantId, EntityType groupType, String name) {
         EntityGroup testDevicesGroup = new EntityGroup();
         testDevicesGroup.setType(groupType);
@@ -254,9 +259,13 @@ public abstract class AbstractServiceTest {
         jsonConfiguration.putObject("settings");
         jsonConfiguration.putObject("actions");
         testDevicesGroup.setConfiguration(jsonConfiguration);
-        EntityGroup savedGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, testDevicesGroup);
+        EntityGroup savedGroup = getEntityGroupService().saveEntityGroup(tenantId, tenantId, testDevicesGroup);
         Assert.assertNotNull(savedGroup);
         return savedGroup;
+    }
+
+    protected DeviceService getDeviceService() {
+        throw new NotImplementedException("getDeviceService not implemented");
     }
 
     protected Device createDevice(TenantId tenantId, String name, DeviceProfileId deviceProfileId) {
@@ -264,7 +273,7 @@ public abstract class AbstractServiceTest {
         device.setTenantId(tenantId);
         device.setName(name);
         device.setDeviceProfileId(deviceProfileId);
-        Device savedDevice = deviceService.saveDevice(device);
+        Device savedDevice = getDeviceService().saveDevice(device);
         Assert.assertNotNull(savedDevice);
         return savedDevice;
     }
