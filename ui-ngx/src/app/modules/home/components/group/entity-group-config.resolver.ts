@@ -40,7 +40,7 @@ import {
 } from '@shared/models/entity-group.models';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
-import { EntityType } from '@shared/models/entity-type.models';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import {
   EntityGroupStateConfigFactory,
   EntityGroupStateInfo,
@@ -96,7 +96,7 @@ export class EntityGroupConfigResolver {
       const groupType: EntityType = params.childGroupType || params.groupType;
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
-            entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(groupType));
+            entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityTypeTranslations.get(groupType).typePlural);
             const tasks = [];
             if (params.childEntityGroupId) {
               tasks.push(this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(

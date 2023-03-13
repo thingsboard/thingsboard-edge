@@ -102,10 +102,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
 
     config.onEntityAction = action => this.onCustomerAction(action, config, params);
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.USER_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.USER, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-user-groups'),
+          name: this.translate.instant('customer.manage-customer-users'),
           icon: 'account_circle',
           isEnabled: config.manageUsersEnabled,
           onAction: ($event, entity) => this.manageUsers($event, entity, config, params)
@@ -113,10 +113,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-groups'),
+          name: this.translate.instant('customer.manage-customers'),
           icon: 'supervisor_account',
           isEnabled: config.manageCustomersEnabled,
           onAction: ($event, entity) => this.manageCustomers($event, entity, config, params)
@@ -124,10 +124,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-asset-groups'),
+          name: this.translate.instant('customer.manage-customer-assets'),
           icon: 'domain',
           isEnabled: config.manageAssetsEnabled,
           onAction: ($event, entity) => this.manageAssets($event, entity, config, params)
@@ -135,10 +135,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-device-groups'),
+          name: this.translate.instant('customer.manage-customer-devices'),
           icon: 'devices_other',
           isEnabled: config.manageDevicesEnabled,
           onAction: ($event, entity) => this.manageDevices($event, entity, config, params)
@@ -146,10 +146,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-entity-view-groups'),
+          name: this.translate.instant('customer.manage-customer-entity-views'),
           icon: 'view_quilt',
           isEnabled: config.manageEntityViewsEnabled,
           onAction: ($event, entity) => this.manageEntityViews($event, entity, config, params)
@@ -157,10 +157,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ) && authState.edgesSupportEnabled) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-edge-groups'),
+          name: this.translate.instant('customer.manage-customer-edges'),
           icon: 'router',
           isEnabled: config.manageEdgesEnabled,
           onAction: ($event, entity) => this.manageEdges($event, entity, config, params)
@@ -168,10 +168,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-dashboard-groups'),
+          name: this.translate.instant('customer.manage-customer-dashboards'),
           icon: 'dashboard',
           isEnabled: config.manageDashboardsEnabled,
           onAction: ($event, entity) => this.manageDashboards($event, entity, config, params)

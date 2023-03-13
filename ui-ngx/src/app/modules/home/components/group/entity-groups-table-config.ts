@@ -67,6 +67,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   customerId: string;
   edgeId: string;
   groupType: EntityType;
+  shared: boolean;
 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
@@ -94,6 +95,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     } else {
       this.groupType = params.groupType;
     }
+    this.shared = params.shared;
 
     this.entityType = EntityType.ENTITY_GROUP;
     this.entityComponent = EntityGroupComponent;
@@ -137,8 +139,10 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
       } else if (this.isEdgeGroup()) {
         fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
+      } else if (this.shared) {
+        fetchObservable = this.entityGroupService.getSharedEntityGroups(this.groupType);
       } else {
-        fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
+        fetchObservable = this.entityGroupService.getEntityGroups(this.groupType, false);
       }
       return fetchObservable.pipe(
         map((entityGroups) => pageLink.filterData(entityGroups, this.groupPageLinkSearchFunction())
@@ -188,21 +192,22 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       return true;
     };
 
-    this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
+    this.deleteEnabled = (entityGroup) => entityGroup && !this.shared && !entityGroup.groupAll &&
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
     this.detailsReadonly = (entityGroup) =>
-      !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
+      this.shared || !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
     this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
 
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType) || this.shared) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.shared) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
-      isGroupEntitiesView: false
+      isGroupEntitiesView: false,
+      shared: this.shared
     };
     this.updateActionCellDescriptors();
     this.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType));
@@ -246,7 +251,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   private updateActionCellDescriptors() {
     this.cellActionDescriptors.splice(0);
     if (sharableGroupTypes.has(this.groupType) &&
-      this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
+      this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE) && !this.shared) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('action.share'),
@@ -256,7 +261,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         }
       );
     }
-    if (publicGroupTypes.has(this.groupType)) {
+    if (publicGroupTypes.has(this.groupType) && !this.shared) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('action.make-public'),

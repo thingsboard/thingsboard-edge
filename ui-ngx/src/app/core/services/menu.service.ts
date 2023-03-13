@@ -517,7 +517,7 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD)) {
+    if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.DASHBOARD)) {
       dashboardPages.push(
         {
           id: guid(),
@@ -526,6 +526,19 @@ export class MenuService {
           path: '/dashboards/groups',
           icon: 'dashboard',
           disabled: disabledItems.indexOf('dashboard_groups') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DASHBOARD)) {
+      dashboardPages.push(
+        {
+          id: guid(),
+          name: 'dashboard.shared',
+          type: 'link',
+          path: '/dashboards/shared',
+          icon: 'dashboard',
+          rootOnly: true,
+          disabled: disabledItems.indexOf('dashboard_shared') > -1
         }
       );
     }

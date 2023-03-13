@@ -773,7 +773,7 @@ const routes: Routes = [
               }
             }
           },
-          { ...dashboardsRoute, ...{
+          { ...dashboardsRoute(), ...{
               path: ':customerId/dashboards',
               data: {
                 breadcrumb: {
@@ -906,7 +906,7 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {...dashboardsRoute, ...{
+                  {...dashboardsRoute(), ...{
                       path: ':edgeId/dashboards',
                       data: {
                         edgeEntitiesType: EntityType.DASHBOARD,
@@ -1087,7 +1087,7 @@ const routes: Routes = [
               }
             }
           },
-          { ...dashboardsRoute, ...{
+          { ...dashboardsRoute(), ...{
               path: ':edgeId/dashboards',
               data: {
                 breadcrumb: {

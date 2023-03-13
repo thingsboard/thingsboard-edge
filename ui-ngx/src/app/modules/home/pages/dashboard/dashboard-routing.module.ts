@@ -97,6 +97,47 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false): Route =>
     }
   });
 
+const dashboardGroupsChildrenRoutes: Route[] = [
+  {
+    path: '',
+    component: EntitiesTableComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'entity-group.dashboard-groups',
+      groupType: EntityType.DASHBOARD
+    },
+    resolve: {
+      entityGroup: EntityGroupResolver,
+      entitiesTableConfig: EntityGroupsTableConfigResolver
+    }
+  },
+  {
+    path: ':entityGroupId',
+    data: {
+      groupType: EntityType.DASHBOARD,
+      breadcrumb: {
+        icon: 'dashboard',
+        labelFunction: groupEntitiesLabelFunction
+      } as BreadCrumbConfig<GroupEntitiesTableComponent>
+    },
+    children: [
+      {
+        path: '',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.dashboard-group',
+          groupType: EntityType.DASHBOARD
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      },
+      dashboardRoute(EntityGroupResolver, false)
+    ]
+  }
+];
+
 const dashboardGroupsRoute: Route = {
   path: 'groups',
   data: {
@@ -106,101 +147,81 @@ const dashboardGroupsRoute: Route = {
       icon: 'dashboard'
     }
   },
-  children: [
-    {
-      path: '',
-      component: EntitiesTableComponent,
-      data: {
-        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        title: 'entity-group.dashboard-groups',
-        groupType: EntityType.DASHBOARD
-      },
-      resolve: {
-        entityGroup: EntityGroupResolver,
-        entitiesTableConfig: EntityGroupsTableConfigResolver
-      }
-    },
-    {
-      path: ':entityGroupId',
-      data: {
-        groupType: EntityType.DASHBOARD,
-        breadcrumb: {
-          icon: 'dashboard',
-          labelFunction: groupEntitiesLabelFunction
-        } as BreadCrumbConfig<GroupEntitiesTableComponent>
-      },
-      children: [
-        {
-          path: '',
-          component: GroupEntitiesTableComponent,
-          data: {
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'entity-group.dashboard-group',
-            groupType: EntityType.DASHBOARD
-          },
-          resolve: {
-            entityGroup: EntityGroupResolver
-          }
-        },
-        dashboardRoute(EntityGroupResolver, false)
-      ]
-    }
-  ]
+  children: dashboardGroupsChildrenRoutes
 };
 
-export const dashboardsRoute: Route = {
-  path: 'dashboards',
-  component: RouterTabsComponent,
+const dashboardSharedGroupsRoute: Route = {
+  path: 'shared',
   data: {
-    auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+    groupType: EntityType.DASHBOARD,
+    shared: true,
     breadcrumb: {
-      label: 'dashboard.dashboards',
-      icon: 'dashboards'
+      label: 'dashboard.shared',
+      icon: 'dashboard'
     }
   },
-  children: [
-    {
-      path: '',
-      children: [],
-      data: {
-        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        redirectTo: 'all'
+  children: dashboardGroupsChildrenRoutes
+};
+
+export const dashboardsRoute = (includeShared = false): Route => {
+  const routeConfig: Route = {
+    path: 'dashboards',
+    component: RouterTabsComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      breadcrumb: {
+        label: 'dashboard.dashboards',
+        icon: 'dashboards'
       }
     },
-    {
-      path: 'all',
-      data: {
-        groupType: EntityType.DASHBOARD,
-        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        breadcrumb: {
-          label: 'dashboard.all',
-          icon: 'dashboards'
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: 'all'
         }
       },
-      children: [
-        {
-          path: '',
-          component: EntitiesTableComponent,
-          data: {
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'dashboard.dashboards'
-          },
-          resolve: {
-            entitiesTableConfig: DashboardsTableConfigResolver,
-            entityGroup: EntityGroupResolver
+      {
+        path: 'all',
+        data: {
+          groupType: EntityType.DASHBOARD,
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          breadcrumb: {
+            label: 'dashboard.all',
+            icon: 'dashboards'
           }
         },
-        dashboardRoute(EntityGroupResolver, false)
-      ]
-    },
-    dashboardGroupsRoute,
-    dashboardRoute('emptyEntityGroupResolver', true)
-  ]
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+              title: 'dashboard.dashboards'
+            },
+            resolve: {
+              entitiesTableConfig: DashboardsTableConfigResolver,
+              entityGroup: EntityGroupResolver
+            }
+          },
+          dashboardRoute(EntityGroupResolver, false)
+        ]
+      },
+      dashboardGroupsRoute
+    ]
+  };
+  if (includeShared) {
+    routeConfig.children.push(dashboardSharedGroupsRoute);
+  }
+  routeConfig.children.push(dashboardRoute('emptyEntityGroupResolver', true));
+  return routeConfig;
 };
 
 // @dynamic
 @NgModule({
-  imports: [RouterModule.forChild([dashboardsRoute])],
+  imports: [RouterModule.forChild([dashboardsRoute(true)])],
   exports: [RouterModule],
   providers: [
     DashboardsTableConfigResolver,

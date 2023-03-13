@@ -524,6 +524,7 @@ export interface EntityGroupParams {
   childEntityGroupId?: string;
   groupType?: EntityType;
   childGroupType?: EntityType;
+  shared?: boolean;
   hierarchyView?: boolean;
   nodeId?: string;
   internalId?: string;
@@ -565,6 +566,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     customerId: routeParams.customerId,
     entityGroupId: routeParams.entityGroupId,
     groupType: routeData.groupType,
+    shared: routeData.shared,
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
     edgeId: routeParams.edgeId,

@@ -174,7 +174,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   public loadNodes: LoadNodesCallback = (node: CustomersHierarchyNode, cb) => {
     if (node.id === '#') {
-      this.entityGroupService.getEntityGroups(EntityType.CUSTOMER, {ignoreLoading: true}).subscribe((entityGroups) => {
+      this.entityGroupService.getEntityGroups(EntityType.CUSTOMER, true, {ignoreLoading: true}).subscribe((entityGroups) => {
         cb(this.entityGroupsToNodes(node.id, null, entityGroups));
         this.entityGroupParams.nodeId = node.id;
       });
