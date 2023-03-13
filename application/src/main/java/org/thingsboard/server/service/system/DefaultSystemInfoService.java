@@ -32,10 +32,13 @@ package org.thingsboard.server.service.system;
 
 import com.google.protobuf.ProtocolStringList;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.SystemInfo;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
@@ -56,12 +59,13 @@ public class DefaultSystemInfoService implements SystemInfoService {
 
     private final TbServiceInfoProvider serviceInfoProvider;
     private final PartitionService partitionService;
+    private final AdminSettingsService adminSettingsService;
+    private final OAuth2Service oAuth2Service;
 
     @Value("${zk.enabled:false}")
     private boolean zkEnabled;
 
     @Override
-    @SneakyThrows
     public SystemInfo getSystemInfo() {
         SystemInfo systemInfo = new SystemInfo();
 
@@ -82,6 +86,18 @@ public class DefaultSystemInfoService implements SystemInfoService {
         }
 
         return systemInfo;
+    }
+
+    @Override
+    public FeaturesInfo getFeaturesInfo() {
+        FeaturesInfo featuresInfo = new FeaturesInfo();
+        featuresInfo.setWhiteLabelingEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "whiteLabelParams") != null);
+        featuresInfo.setEmailEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail") != null);
+        featuresInfo.setSmsEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "sms") != null);
+        featuresInfo.setOauthEnabled(oAuth2Service.findOAuth2Info().isEnabled());
+        featuresInfo.setTwoFaEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "twoFaSettings") != null);
+//        featuresInfo.setNotificationEnabled(false);
+        return featuresInfo;
     }
 
     private void addServiceInfo(Map<String, String> serviceInfos, TransportProtos.ServiceInfo serviceInfo) {

@@ -58,6 +58,7 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.UpdateMessage;
@@ -546,6 +547,16 @@ public class AdminController extends BaseController {
     @ResponseBody
     public SystemInfo getSystemInfo() throws ThingsboardException {
         return systemInfoService.getSystemInfo();
+    }
+
+    @ApiOperation(value = "Get features info (getFeaturesInfo)",
+            notes = "Get information about enabled/disabled features. "
+                    + SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/featuresInfo", method = RequestMethod.GET)
+    @ResponseBody
+    public FeaturesInfo getFeaturesInfo() {
+        return systemInfoService.getFeaturesInfo();
     }
 
 }

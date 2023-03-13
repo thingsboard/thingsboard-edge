@@ -28,13 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.system;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.FeaturesInfo;
-import org.thingsboard.server.common.data.SystemInfo;
+import lombok.Data;
 
-public interface SystemInfoService {
-    SystemInfo getSystemInfo();
-
-    FeaturesInfo getFeaturesInfo();
+@Data
+public class FeaturesInfo {
+    boolean isWhiteLabelingEnabled;
+    boolean isEmailEnabled;
+    boolean isSmsEnabled;
+    boolean isNotificationEnabled;
+    boolean isOauthEnabled;
+    boolean isTwoFaEnabled;
 }
