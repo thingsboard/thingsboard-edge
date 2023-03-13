@@ -110,6 +110,7 @@ import org.thingsboard.server.dao.sql.role.RoleRepository;
 import org.thingsboard.server.dao.sql.scheduler.SchedulerEventRepository;
 import org.thingsboard.server.dao.sql.user.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -595,6 +596,61 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query) {
         return findEntityDataByQuery(tenantId, customerId, userPermissions, query, false);
+    }
+
+    @Override
+    public Map<EntityType, Long> countEntitiesByTypes(TenantId tenantId, CustomerId customerId, List<EntityType> entityTypes) {
+        int size = entityTypes.size();
+
+        QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, null, null, null));
+        ctx.append("select ");
+
+        for (int i = 0; i < size; i++) {
+            ctx.append("(select count(*) from ");
+            ctx.append(getTableName(entityTypes.get(i)));
+            ctx.append(")");
+            if (i < size - 1) {
+                ctx.append(", ");
+            }
+        }
+
+        return transactionTemplate.execute(status -> {
+            long startTs = System.currentTimeMillis();
+            try {
+                List<Long> counts = jdbcTemplate.query(ctx.getQuery(), rs -> {
+                    List<Long> result = new ArrayList<>();
+                    if (rs.next()) {
+                        for (int i = 1; i <= size; i++) {
+                            result.add(rs.getLong(i));
+                        }
+                    }
+                    return result;
+                });
+
+                Map<EntityType, Long> result = new HashMap<>(size);
+                for (int i = 0; i < size; i++) {
+                    result.put(entityTypes.get(i), counts.get(i));
+                }
+                return result;
+            } finally {
+                queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+            }
+        });
+    }
+
+    private String getTableName(EntityType entityType) {
+        switch (entityType) {
+            case TENANT:
+            case TENANT_PROFILE:
+            case CUSTOMER:
+            case DEVICE:
+            case ASSET:
+                return entityType.name().toLowerCase();
+            case USER:
+                return "tb_user";
+            default:
+                throw new IllegalArgumentException("Not supported entity type: " + entityType + "!");
+        }
     }
 
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck) {

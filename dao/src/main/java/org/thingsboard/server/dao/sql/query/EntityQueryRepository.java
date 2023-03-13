@@ -56,4 +56,6 @@ public interface EntityQueryRepository {
 
     PageData<EntityData> findEntityDataByQueryInternal(EntityDataQuery query);
 
+    Map<EntityType, Long> countEntitiesByTypes(TenantId tenantId, CustomerId customerId, List<EntityType> entityTypes);
+
 }

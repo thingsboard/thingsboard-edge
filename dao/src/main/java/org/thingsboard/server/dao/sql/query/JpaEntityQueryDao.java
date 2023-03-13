@@ -68,4 +68,9 @@ public class JpaEntityQueryDao implements EntityQueryDao {
     public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType, String type, List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile) {
         return entityQueryRepository.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(tenantId, customerId, entityType, type, groupIds, pageLink, rowMapping, mobile);
     }
+
+    @Override
+    public Map<EntityType, Long> countEntitiesByTypes(TenantId tenantId, CustomerId customerId, List<EntityType> entityTypes) {
+        return entityQueryRepository.countEntitiesByTypes(tenantId, customerId, entityTypes);
+    }
 }
