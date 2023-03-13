@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, ElementRef, forwardRef, Input, ViewChild } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR, ValidationErrors, Validator,
   Validators
@@ -77,14 +77,14 @@ export class Lwm2mObjectAddInstancesListComponent implements ControlValueAccesso
 
   @ViewChild('instanceId') instanceId: ElementRef<HTMLInputElement>;
 
-  instancesListFormGroup: FormGroup;
+  instancesListFormGroup: UntypedFormGroup;
   instancesId = new Set<number>();
   separatorKeysCodes = [ENTER, COMMA, SEMICOLON];
   instanceIdValueMax = INSTANCES_ID_VALUE_MAX;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     this.instancesListFormGroup = this.fb.group({
       instanceList: [null],
       instanceId: [null, [

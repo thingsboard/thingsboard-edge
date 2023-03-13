@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 
 public interface IntegrationRpcClient {
 
-    void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate,
+    void connect(String integrationKey, String integrationSecret, String serviceId, Consumer<IntegrationConfigurationProto> onIntegrationUpdate,
                  Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<DeviceDownlinkDataProto> onDownlink, Consumer<Exception> onError);
 
     void disconnect() throws InterruptedException;

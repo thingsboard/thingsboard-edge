@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
@@ -75,7 +76,6 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.data.RecaptchaValidationResult;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.JwtTokenPair;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
@@ -384,7 +384,7 @@ public class SignUpController extends BaseController {
     @RequestMapping(value = "/noauth/activateByEmailCode", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
-    public JwtTokenPair activateUserByEmailCode(
+    public JwtPair activateUserByEmailCode(
             @ApiParam(value = "Activation token.", required = true)
             @RequestParam(value = "emailCode") String emailCode,
             @ApiParam(value = "Optional package name of the mobile application.")
@@ -470,7 +470,7 @@ public class SignUpController extends BaseController {
         user = userService.saveUser(user);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-        JwtTokenPair tokenPair = tokenFactory.createTokenPair(securityUser);
+        JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode tokenObject = objectMapper.createObjectNode();
@@ -520,7 +520,7 @@ public class SignUpController extends BaseController {
         user = userService.saveUser(user);
         UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
         securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-        JwtTokenPair tokenPair = tokenFactory.createTokenPair(securityUser);
+        JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode tokenObject = objectMapper.createObjectNode();

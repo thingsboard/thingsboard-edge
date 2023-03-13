@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -41,12 +40,12 @@ import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface UserService {
+public interface UserService extends EntityDaoService {
 	
 	User findUserById(TenantId tenantId, UserId userId);
 
@@ -57,6 +56,8 @@ public interface UserService {
 	User findUserByEmail(TenantId tenantId, String email);
 
     User findUserByTenantIdAndEmail(TenantId tenantId, String email);
+
+    User changeOwner(User user, EntityId targetOwnerId);
 
 	User saveUser(User user);
 
@@ -82,7 +83,7 @@ public interface UserService {
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
-	void deleteTenantAdmins(TenantId tenantId);
+    void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
@@ -48,12 +49,18 @@ public class TenantSolutionTemplateInstructions {
     private EntityGroupId dashboardGroupId;
     @ApiModelProperty(position = 2, value = "Id of the main dashboard of the solution")
     private DashboardId dashboardId;
-    @ApiModelProperty(position = 3, value = "Markdown with solution usage instructions")
+    @ApiModelProperty(position = 3, value = "Id of the public customer if solution has public entities")
+    private CustomerId publicId;
+    @ApiModelProperty(position = 4, value = "Is the main dashboard public")
+    private boolean mainDashboardPublic;
+    @ApiModelProperty(position = 5, value = "Markdown with solution usage instructions")
     private String details;
 
     public TenantSolutionTemplateInstructions(TenantSolutionTemplateInstructions instructions) {
         this.dashboardGroupId = instructions.getDashboardGroupId();
         this.dashboardId = instructions.getDashboardId();
+        this.publicId = instructions.getPublicId();
+        this.mainDashboardPublic = instructions.isMainDashboardPublic();
         this.details = instructions.getDetails();
     }
 }

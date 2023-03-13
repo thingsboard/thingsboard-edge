@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,9 @@ import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 @Slf4j
 public class DefaultEdgeLicenseService implements EdgeLicenseService {
 
+    private static final int CONNECT_TIMEOUT = 30000; // Default connect timeout in ms (30 seconds)
+    private static final int READ_TIMEOUT = 30000; // Default read timeout in ms (30 seconds)
+
     private RestTemplate restTemplate;
 
     private static final String EDGE_LICENSE_SERVER_ENDPOINT = "https://license.thingsboard.io";
@@ -67,7 +70,7 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
     @PostConstruct
     public void init() {
         if (edgesEnabled) {
-            initRestTemplate();
+            this.restTemplate = initRestTemplate();
         }
     }
 
@@ -84,10 +87,11 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
         return this.restTemplate.postForEntity(EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/activateInstance?licenseSecret={licenseSecret}&releaseDate={releaseDate}", null, JsonNode.class, params);
     }
 
-    private void initRestTemplate() {
+    private RestTemplate initRestTemplate() {
         boolean jdkHttpClientEnabled = isNotEmpty(System.getProperty("tb.proxy.jdk")) && System.getProperty("tb.proxy.jdk").equalsIgnoreCase("true");
         boolean systemProxyEnabled = isNotEmpty(System.getProperty("tb.proxy.system")) && System.getProperty("tb.proxy.system").equalsIgnoreCase("true");
         boolean proxyEnabled = isNotEmpty(System.getProperty("tb.proxy.host")) && isNotEmpty(System.getProperty("tb.proxy.port"));
+        CloseableHttpClient httpClient;
         if (jdkHttpClientEnabled) {
             log.warn("Going to use plain JDK Http Client!");
             SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
@@ -95,29 +99,34 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
                 log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
                 factory.setProxy(new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")))));
             }
-
-            this.restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory());
+            factory.setConnectTimeout(CONNECT_TIMEOUT);
+            factory.setReadTimeout(READ_TIMEOUT);
+            return new RestTemplate(factory);
+        } else if (systemProxyEnabled) {
+            log.warn("Going to use System Proxy Server!");
+            httpClient = HttpClients.createSystem();
+            HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+            factory.setHttpClient(httpClient);
+            factory.setConnectTimeout(CONNECT_TIMEOUT);
+            factory.setReadTimeout(READ_TIMEOUT);
+            return new RestTemplate(factory);
+        } else if (proxyEnabled) {
+            log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
+            httpClient = HttpClients.custom()
+                    .setSSLHostnameVerifier(new DefaultHostnameVerifier())
+                    .setProxy(new HttpHost(System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")), "https")).build();
+            HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+            factory.setHttpClient(httpClient);
+            factory.setConnectTimeout(CONNECT_TIMEOUT);
+            factory.setReadTimeout(READ_TIMEOUT);
+            return new RestTemplate(factory);
         } else {
-            CloseableHttpClient httpClient;
-            HttpComponentsClientHttpRequestFactory requestFactory;
-            if (systemProxyEnabled) {
-                log.warn("Going to use System Proxy Server!");
-                httpClient = HttpClients.createSystem();
-                requestFactory = new HttpComponentsClientHttpRequestFactory();
-                requestFactory.setHttpClient(httpClient);
-                this.restTemplate = new RestTemplate(requestFactory);
-            } else if (proxyEnabled) {
-                log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
-                httpClient = HttpClients.custom().setSSLHostnameVerifier(new DefaultHostnameVerifier()).setProxy(new HttpHost(System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")), "https")).build();
-                requestFactory = new HttpComponentsClientHttpRequestFactory();
-                requestFactory.setHttpClient(httpClient);
-                this.restTemplate = new RestTemplate(requestFactory);
-            } else {
-                httpClient = HttpClients.custom().setSSLHostnameVerifier(new DefaultHostnameVerifier()).build();
-                requestFactory = new HttpComponentsClientHttpRequestFactory();
-                requestFactory.setHttpClient(httpClient);
-                this.restTemplate = new RestTemplate(requestFactory);
-            }
+            httpClient = HttpClients.custom().setSSLHostnameVerifier(new DefaultHostnameVerifier()).build();
+            HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+            factory.setHttpClient(httpClient);
+            factory.setConnectTimeout(CONNECT_TIMEOUT);
+            factory.setReadTimeout(READ_TIMEOUT);
+            return new RestTemplate(factory);
         }
     }
 }

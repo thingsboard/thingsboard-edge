@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -97,6 +97,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeInstallInstructions;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.event.EventType;
@@ -175,6 +176,8 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
@@ -333,6 +336,23 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         return restTemplate.postForEntity(baseURL + "/api/admin/securitySettings", securitySettings, SecuritySettings.class).getBody();
     }
 
+    public Optional<JwtSettings> getJwtSettings() {
+        try {
+            ResponseEntity<JwtSettings> jwtSettings = restTemplate.getForEntity(baseURL + "/api/admin/jwtSettings", JwtSettings.class);
+            return Optional.ofNullable(jwtSettings.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public JwtPair saveJwtSettings(JwtSettings jwtSettings) {
+        return restTemplate.postForEntity(baseURL + "/api/admin/jwtSettings", jwtSettings, JwtPair.class).getBody();
+    }
+
     public Optional<RepositorySettings> getRepositorySettings() {
         try {
             ResponseEntity<RepositorySettings> repositorySettings = restTemplate.getForEntity(baseURL + "/api/admin/repositorySettings", RepositorySettings.class);
@@ -442,6 +462,14 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         restTemplate.postForLocation(baseURL + "/api/alarm/{alarmId}/clear", null, alarmId.getId());
     }
 
+    public void assignAlarm(AlarmId alarmId, UserId userId) {
+        restTemplate.postForLocation(baseURL + "/api/alarm/{alarmId}/assign/{userId}", null, alarmId.getId(), userId.getId());
+    }
+
+    public void unassignAlarm(AlarmId alarmId) {
+        restTemplate.delete(baseURL + "/api/alarm/{alarmId}/assign", alarmId.getId());
+    }
+
     public PageData<AlarmInfo> getAlarms(EntityId entityId, AlarmSearchStatus searchStatus, AlarmStatus status, TimePageLink pageLink, Boolean fetchOriginator) {
         String urlSecondPart = "/api/alarm/{entityType}/{entityId}?fetchOriginator={fetchOriginator}";
         Map<String, String> params = new HashMap<>();
@@ -505,7 +533,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Asset saveAsset(Asset asset) {
-        return restTemplate.postForEntity(baseURL + "/api/asset", asset, Asset.class).getBody();
+        return saveAsset(asset, null);
+    }
+
+    public Asset saveAsset(Asset asset, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/asset", asset, Asset.class).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/asset?entityGroupId={entityGroupId}",
+                    asset, Asset.class, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteAsset(AssetId assetId) {
@@ -921,7 +958,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Dashboard saveDashboard(Dashboard dashboard) {
-        return restTemplate.postForEntity(baseURL + "/api/dashboard", dashboard, Dashboard.class).getBody();
+        return saveDashboard(dashboard, null);
+    }
+
+    public Dashboard saveDashboard(Dashboard dashboard, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/dashboard", dashboard, Dashboard.class).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/dashboard?entityGroupId={entityGroupId}",
+                    dashboard, Dashboard.class, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteDashboard(DashboardId dashboardId) {
@@ -972,7 +1018,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Device saveDevice(Device device, String accessToken) {
-        return restTemplate.postForEntity(baseURL + "/api/device?accessToken={accessToken}", device, Device.class, accessToken).getBody();
+        return saveDevice(device, accessToken, null);
+    }
+
+    public Device saveDevice(Device device, String accessToken, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/device?accessToken={accessToken}", device, Device.class, accessToken).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/device?accessToken={accessToken}&entityGroupId={entityGroupId}",
+                    device, Device.class, accessToken, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteDevice(DeviceId deviceId) {
@@ -1497,7 +1552,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public EntityView saveEntityView(EntityView entityView) {
-        return restTemplate.postForEntity(baseURL + "/api/entityView", entityView, EntityView.class).getBody();
+        return saveEntityView(entityView, null);
+    }
+
+    public EntityView saveEntityView(EntityView entityView, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/entityView", entityView, EntityView.class).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/entityView?entityGroupId={entityGroupId}",
+                    entityView, EntityView.class, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteEntityView(EntityViewId entityViewId) {
@@ -1704,10 +1768,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public PageData<RuleChain> getRuleChains(PageLink pageLink) {
+        return getRuleChains(RuleChainType.CORE, pageLink);
+    }
+
+    public PageData<RuleChain> getRuleChains(RuleChainType ruleChainType, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
+        params.put("type", ruleChainType.name());
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/ruleChains?" + getUrlParams(pageLink),
+                baseURL + "/api/ruleChains?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<RuleChain>>() {
@@ -2152,7 +2221,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public User saveUser(User user, boolean sendActivationMail) {
-        return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}", user, User.class, sendActivationMail).getBody();
+        return saveUser(user, sendActivationMail, null);
+    }
+
+    public User saveUser(User user, boolean sendActivationMail, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}", user, User.class, sendActivationMail).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}&entityGroupId={entityGroupId}", user, User.class, sendActivationMail, entityGroupId.getId()).getBody();
+        }
     }
 
     public void sendActivationEmail(String email) {
@@ -2626,6 +2703,12 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }).getBody();
     }
 
+    public Optional<EdgeInstallInstructions> getEdgeDockerInstallInstructions(EdgeId edgeId) {
+        ResponseEntity<EdgeInstallInstructions> edgeInstallInstructionsResult =
+                restTemplate.getForEntity(baseURL + "/api/edge/instructions/{edgeId}", EdgeInstallInstructions.class, edgeId.getId());
+        return Optional.ofNullable(edgeInstallInstructionsResult.getBody());
+    }
+
     public UUID saveEntitiesVersion(VersionCreateRequest request) {
         return restTemplate.postForEntity(baseURL + "/api/entities/vc/version", request, UUID.class).getBody();
     }
@@ -2642,6 +2725,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
             }
         }
     }
+
     public PageData<EntityVersion> listEntityVersions(EntityId externalEntityId, EntityId internalEntityId, String branch, PageLink pageLink) {
         String url = baseURL + "/api/entities/vc/version/{entityType}/{externalEntityUuid}?branch={branch}&" + getUrlParams(pageLink);
         Map<String, String> params = new HashMap<>();

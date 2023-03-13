@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -101,12 +101,13 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
     }
 
     @Override
-    public PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, PageLink pageLink) {
+    public PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, boolean isEdgeTemplate, PageLink pageLink) {
         log.debug("Try to find integrations with stats by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
         return DaoUtil.toPageData(integrationInfoRepository
                 .findAllIntegrationInfosWithStats(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
+                        isEdgeTemplate,
                         DaoUtil.toPageable(pageLink)));
     }
 

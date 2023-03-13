@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -67,15 +67,15 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
 
   @Input() disabled: boolean;
 
-  rateLimitsListFormGroup: FormGroup;
+  rateLimitsListFormGroup: UntypedFormGroup;
 
   rateLimitsArray: Array<RateLimits>;
 
   private valueChangeSubscription: Subscription = null;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: UntypedFormBuilder) {}
 
   ngOnInit(): void {
     this.rateLimitsListFormGroup = this.fb.group({
@@ -90,7 +90,7 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
   }
 
   public removeRateLimits(index: number) {
-    (this.rateLimitsListFormGroup.get('rateLimits') as FormArray).removeAt(index);
+    (this.rateLimitsListFormGroup.get('rateLimits') as UntypedFormArray).removeAt(index);
   }
 
   public addRateLimits() {
@@ -100,8 +100,8 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
     }));
   }
 
-  get rateLimitsFormArray(): FormArray {
-    return this.rateLimitsListFormGroup.get('rateLimits') as FormArray;
+  get rateLimitsFormArray(): UntypedFormArray {
+    return this.rateLimitsListFormGroup.get('rateLimits') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -127,7 +127,7 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
   }
 
   writeValue(rateLimits: string) {
-    const rateLimitsControls: Array<FormGroup> = [];
+    const rateLimitsControls: Array<UntypedFormGroup> = [];
     if (rateLimits) {
       const rateLimitsArray = rateLimits.split(',');
       for (let i = 0; i < rateLimitsArray.length; i++) {

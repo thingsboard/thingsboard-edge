@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -72,8 +74,8 @@ public abstract class BaseTenantProfileServiceTest extends AbstractServiceTest {
         tenantProfile.setIsolatedTbRuleEngine(true);
 
         TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
-        mainQueueConfiguration.setName("Main");
-        mainQueueConfiguration.setTopic("tb_rule_engine.main");
+        mainQueueConfiguration.setName(DataConstants.MAIN_QUEUE_NAME);
+        mainQueueConfiguration.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
         mainQueueConfiguration.setPollInterval(25);
         mainQueueConfiguration.setPartitions(10);
         mainQueueConfiguration.setConsumerPerPartition(true);
@@ -168,30 +170,36 @@ public abstract class BaseTenantProfileServiceTest extends AbstractServiceTest {
         Assert.assertEquals(savedTenantProfile2.getId(), defaultTenantProfile.getId());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveTenantProfileWithEmptyName() {
         TenantProfile tenantProfile = new TenantProfile();
-        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveTenantProfileWithSameName() {
         TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
         tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
         TenantProfile tenantProfile2 = this.createTenantProfile("Tenant Profile");
-        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile2);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile2);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveSameTenantProfileWithDifferentIsolatedTbRuleEngine() {
         TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
         TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
         savedTenantProfile.setIsolatedTbRuleEngine(true);
         addMainQueueConfig(savedTenantProfile);
-        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testDeleteTenantProfileWithExistingTenant() {
         TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
         TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
@@ -200,7 +208,9 @@ public abstract class BaseTenantProfileServiceTest extends AbstractServiceTest {
         tenant.setTenantProfileId(savedTenantProfile.getId());
         tenant = tenantService.saveTenant(tenant);
         try {
-            tenantProfileService.deleteTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+            Assertions.assertThrows(DataValidationException.class, () -> {
+                tenantProfileService.deleteTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+            });
         } finally {
             tenantService.deleteTenant(tenant.getId());
         }
@@ -308,10 +318,10 @@ public abstract class BaseTenantProfileServiceTest extends AbstractServiceTest {
         return tenantProfile;
     }
 
-    private void addMainQueueConfig(TenantProfile tenantProfile) {
+    public static void addMainQueueConfig(TenantProfile tenantProfile) {
         TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
-        mainQueueConfiguration.setName("Main");
-        mainQueueConfiguration.setTopic("tb_rule_engine.main");
+        mainQueueConfiguration.setName(DataConstants.MAIN_QUEUE_NAME);
+        mainQueueConfiguration.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
         mainQueueConfiguration.setPollInterval(25);
         mainQueueConfiguration.setPartitions(10);
         mainQueueConfiguration.setConsumerPerPartition(true);

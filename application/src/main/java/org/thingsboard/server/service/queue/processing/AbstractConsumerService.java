@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -91,11 +92,13 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
     protected final PartitionService partitionService;
 
     protected final TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer;
+    protected final Optional<JwtSettingsService> jwtSettingsService;
+
 
     public AbstractConsumerService(ActorSystemContext actorContext, DataDecodingEncodingService encodingService,
                                    TbTenantProfileCache tenantProfileCache, TbDeviceProfileCache deviceProfileCache,
                                    TbAssetProfileCache assetProfileCache, TbApiUsageStateService apiUsageStateService,
-                                   PartitionService partitionService, TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer) {
+                                   PartitionService partitionService, TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer, Optional<JwtSettingsService> jwtSettingsService) {
         this.actorContext = actorContext;
         this.encodingService = encodingService;
         this.tenantProfileCache = tenantProfileCache;
@@ -104,6 +107,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         this.apiUsageStateService = apiUsageStateService;
         this.partitionService = partitionService;
         this.nfConsumer = nfConsumer;
+        this.jwtSettingsService = jwtSettingsService;
     }
 
     public void init(String mainConsumerThreadName, String nfConsumerThreadName) {
@@ -187,12 +191,17 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
                         apiUsageStateService.onTenantProfileUpdate(tenantProfileId);
                     }
                 } else if (EntityType.TENANT.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    tenantProfileCache.evict(componentLifecycleMsg.getTenantId());
-                    partitionService.removeTenant(componentLifecycleMsg.getTenantId());
-                    if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {
-                        apiUsageStateService.onTenantUpdate(componentLifecycleMsg.getTenantId());
-                    } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {
-                        apiUsageStateService.onTenantDelete((TenantId) componentLifecycleMsg.getEntityId());
+                    if (TenantId.SYS_TENANT_ID.equals(componentLifecycleMsg.getTenantId())) {
+                        jwtSettingsService.ifPresent(JwtSettingsService::reloadJwtSettings);
+                        return;
+                    } else {
+                        tenantProfileCache.evict(componentLifecycleMsg.getTenantId());
+                        partitionService.removeTenant(componentLifecycleMsg.getTenantId());
+                        if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {
+                            apiUsageStateService.onTenantUpdate(componentLifecycleMsg.getTenantId());
+                        } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {
+                            apiUsageStateService.onTenantDelete((TenantId) componentLifecycleMsg.getEntityId());
+                        }
                     }
                 } else if (EntityType.DEVICE_PROFILE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
                     deviceProfileCache.evict(componentLifecycleMsg.getTenantId(), new DeviceProfileId(componentLifecycleMsg.getEntityId().getId()));

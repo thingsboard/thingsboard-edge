@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -100,7 +101,12 @@ public class EntityQueryController extends BaseController {
             @ApiParam(value = "A JSON value representing the alarm data query. See API call notes above for more details.")
             @RequestBody AlarmDataQuery query) throws ThingsboardException {
         checkNotNull(query);
+        checkNotNull(query.getPageLink());
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
+        UserId assigneeId = query.getPageLink().getAssigneeId();
+        if (assigneeId != null) {
+            checkUserId(assigneeId, Operation.READ);
+        }
         return this.entityQueryService.findAlarmDataByQuery(getCurrentUser(), query);
     }
 

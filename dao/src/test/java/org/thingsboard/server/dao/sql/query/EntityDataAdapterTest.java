@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ public class EntityDataAdapterTest {
     public void testConvertValue() {
         assertThat(EntityDataAdapter.convertValue("500")).isEqualTo("500");
         assertThat(EntityDataAdapter.convertValue("500D")).isEqualTo("500D"); //do not convert to Double !!!
-        assertThat(EntityDataAdapter.convertValue("0101010521130565")).isEqualTo("0101010521130565");
+        assertThat(EntityDataAdapter.convertValue("0101010521130565")).isEqualTo("0101010521130565"); //do not convert to Double !!!
+        assertThat(EntityDataAdapter.convertValue("89010303310033979663")).isEqualTo("89010303310033979663"); //do not convert to Double !!!
     }
 }

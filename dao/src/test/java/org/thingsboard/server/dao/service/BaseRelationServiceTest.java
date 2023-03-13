@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -365,28 +366,34 @@ public abstract class BaseRelationServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveRelationWithEmptyFrom() throws ExecutionException, InterruptedException {
         EntityRelation relation = new EntityRelation();
         relation.setTo(new AssetId(Uuids.timeBased()));
         relation.setType(EntityRelation.CONTAINS_TYPE);
-        Assert.assertTrue(saveRelation(relation));
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            Assert.assertTrue(saveRelation(relation));
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveRelationWithEmptyTo() throws ExecutionException, InterruptedException {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(new AssetId(Uuids.timeBased()));
         relation.setType(EntityRelation.CONTAINS_TYPE);
-        Assert.assertTrue(saveRelation(relation));
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            Assert.assertTrue(saveRelation(relation));
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveRelationWithEmptyType() throws ExecutionException, InterruptedException {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(new AssetId(Uuids.timeBased()));
         relation.setTo(new AssetId(Uuids.timeBased()));
-        Assert.assertTrue(saveRelation(relation));
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            Assert.assertTrue(saveRelation(relation));
+        });
     }
 
     @Test

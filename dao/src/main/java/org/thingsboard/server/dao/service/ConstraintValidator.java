@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
+import com.google.common.collect.Iterators;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.HibernateValidatorConfiguration;
@@ -38,11 +39,10 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 import org.thingsboard.server.exception.DataValidationException;
 
-import javax.validation.ConstraintViolation;
+import javax.validation.Path;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -55,14 +55,30 @@ public class ConstraintValidator {
     }
 
     public static void validateFields(Object data) {
-        Set<ConstraintViolation<Object>> constraintsViolations = fieldsValidator.validate(data);
-        List<String> validationErrors = constraintsViolations.stream()
-                .map(ConstraintViolation::getMessage)
+        validateFields(data, "Validation error: ");
+    }
+
+    public static void validateFields(Object data, String errorPrefix) {
+        List<String> constraintsViolations = getConstraintsViolations(data);
+        if (!constraintsViolations.isEmpty()) {
+            throw new DataValidationException(errorPrefix + String.join(", ", constraintsViolations));
+        }
+    }
+
+    public static List<String> getConstraintsViolations(Object data) {
+        return fieldsValidator.validate(data).stream()
+                .map(constraintViolation -> {
+                    String property;
+                    if (constraintViolation.getConstraintDescriptor().getAttributes().containsKey("fieldName")) {
+                        property = constraintViolation.getConstraintDescriptor().getAttributes().get("fieldName").toString();
+                    } else {
+                        Path propertyPath = constraintViolation.getPropertyPath();
+                        property = Iterators.getLast(propertyPath.iterator()).toString();
+                    }
+                    return property + " " + constraintViolation.getMessage();
+                })
                 .distinct()
                 .collect(Collectors.toList());
-        if (!validationErrors.isEmpty()) {
-            throw new DataValidationException("Validation error: " + String.join(", ", validationErrors));
-        }
     }
 
     private static void initializeValidators() {
@@ -75,4 +91,5 @@ public class ConstraintValidator {
 
         fieldsValidator = validatorConfiguration.buildValidatorFactory().getValidator();
     }
+
 }

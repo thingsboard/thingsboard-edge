@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,8 +41,6 @@ import { DashboardResolver } from '@app/modules/home/pages/dashboard/dashboard-r
 import { UtilsService } from '@core/services/utils.service';
 import { Widget } from '@app/shared/models/widget.models';
 import { Operation, Resource } from '@shared/models/security.models';
-import { MODULES_MAP } from '../../shared/models/constants';
-import { modulesMap } from '../common/modules-map';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType } from '@shared/models/entity-type.models';
 
@@ -125,10 +123,6 @@ const routes: Routes = [
     {
       provide: 'entityGroupResolver',
       useValue: (route: ActivatedRouteSnapshot) => null
-    },
-    {
-      provide: MODULES_MAP,
-      useValue: modulesMap
     }
   ]
 })

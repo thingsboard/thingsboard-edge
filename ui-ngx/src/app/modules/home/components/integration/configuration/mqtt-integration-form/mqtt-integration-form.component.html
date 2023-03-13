@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,11 @@
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>integration.host</mat-label>
         <input matInput required formControlName="host">
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">integration.host-required
+        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">
+          integration.host-required
+        </mat-error>
+        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('privateNetwork')">
+          integration.host-private
         </mat-error>
       </mat-form-field>
       <mat-form-field fxFlex class="mat-block">
@@ -48,7 +52,7 @@
         <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.port').hasError('max')">integration.port-range</mat-error>
       </mat-form-field>
     </div>
-    <tb-integration-credentials formControlName="credentials"
+    <tb-integration-credentials formControlName="credentials" passwordOptional
       [allowCredentialTypes]="[IntegrationCredentialType.Anonymous, IntegrationCredentialType.Basic, IntegrationCredentialType.CertPEM]">
       <mat-slide-toggle class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
         {{ 'integration.enable-ssl' | translate }}
@@ -66,10 +70,16 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
-                        formControlName="cleanSession">
-        {{ 'integration.clean-session' | translate }}
-      </mat-slide-toggle>
+      <div class="row" fxLayout="column" fxLayoutGap="8px">
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
+                          formControlName="cleanSession" style="padding: 16px;">
+          {{ 'integration.clean-session' | translate }}
+        </mat-slide-toggle>
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.retained-message' | translate"
+                          formControlName="retainedMessage" style="padding: 16px;">
+          {{ 'integration.retained-message' | translate }}
+        </mat-slide-toggle>
+      </div>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormattedData } from '@shared/models/widget.models';
 
 export interface SelectEntityDialogData {
@@ -49,13 +49,13 @@ export interface SelectEntityDialogData {
 })
 export class SelectEntityDialogComponent extends DialogComponent<SelectEntityDialogComponent, FormattedData> {
 
-  selectEntityFormGroup: FormGroup;
+  selectEntityFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: SelectEntityDialogData,
               public dialogRef: MatDialogRef<SelectEntityDialogComponent, FormattedData>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.selectEntityFormGroup = this.fb.group(

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -1134,7 +1134,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             entitiesQuery.append(readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead() ? "true" : "false");
             entitiesQuery.append(")");
         } else {
-            entitiesQuery.append("(e.entity_type = 'ROLE' AND ");
+            entitiesQuery.append("(e.entity_type = '").append(entityType.name()).append("' AND ");
             if (readPermMap.get(Resource.resourceFromEntityType(entityType)).isHasGenericRead()) {
                 entitiesQuery.append("e.customer_id in ").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY);
             } else {
@@ -1230,13 +1230,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     hasFilters = true;
                 }
                 if (!ctx.getEntityType().equals(EntityType.CUSTOMER)) {
-                    entityFlagsQuery.append("select re.to_id, ")
+                    entityFlagsQuery.append("select e.id to_id, ")
                             .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
                             .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
                             .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
-                    entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
-                    entityFlagsQuery.append(" AND re.from_id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
-                    entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
+                    entityFlagsQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
+                    entityFlagsQuery.append(" where ").append(entityWhereClause);
+                    entityFlagsQuery.append(" AND e.customer_id in (").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY).append(")");
                 } else {
                     entityFlagsQuery.append("select c.id to_id, ")
                             .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
@@ -1654,7 +1654,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 " FROM entity_group WHERE type = :entity_group_type";
         ctx.addStringParameter("entity_group_type", entityType.name());
         if (StringUtils.isNotEmpty(entityFilter.getEntityGroupNameFilter())) {
-            select = select + " and LOWER(name) LIKE concat(:entity_group_name_prefix, '%%')";
+            select = select + " and LOWER(name) LIKE LOWER(concat(:entity_group_name_prefix, '%%'))";
             ctx.addStringParameter("entity_group_name_prefix", entityFilter.getEntityGroupNameFilter());
         }
         return "(" + select + ")";
@@ -1928,6 +1928,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private String entityNameQuery(QueryContext ctx, EntityNameFilter filter) {
         if (!StringUtils.isEmpty(filter.getEntityNameFilter())) {
             ctx.addStringParameter("entity_filter_name_filter", filter.getEntityNameFilter());
+            if (filter.getEntityNameFilter().startsWith("%") || filter.getEntityNameFilter().endsWith("%")) {
+                return "lower(e.search_text) like lower(:entity_filter_name_filter)";
+            }
             return "lower(e.search_text) like lower(concat(:entity_filter_name_filter, '%%'))";
         } else {
             return "";
@@ -1936,6 +1939,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private String entityGroupNameQuery(QueryContext ctx, EntityGroupNameFilter filter) {
         ctx.addStringParameter("entity_filter_group_name_filter", filter.getEntityGroupNameFilter());
+        if (filter.getEntityGroupNameFilter().startsWith("%") || filter.getEntityGroupNameFilter().endsWith("%")) {
+            return "lower(e.name) like lower(:entity_filter_group_name_filter)";
+        }
         return "lower(e.name) like lower(concat(:entity_filter_group_name_filter, '%%'))";
     }
 
@@ -1966,6 +1972,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         ctx.addStringParameter("entity_filter_type_query_type", type);
         if (!StringUtils.isEmpty(name)) {
             ctx.addStringParameter("entity_filter_type_query_name", name);
+            if (name.startsWith("%") || name.endsWith("%")) {
+                return typeFilter + " and lower(e.search_text) like lower(:entity_filter_type_query_name)";
+            }
             return typeFilter + " and lower(e.search_text) like lower(concat(:entity_filter_type_query_name, '%%'))";
         } else {
             return typeFilter;

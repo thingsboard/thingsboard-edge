@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -49,8 +49,8 @@ public class ScriptDownlinkDataConverter extends AbstractDownlinkDataConverter {
 
     private ScriptDownlinkEvaluator evaluator;
 
-    public ScriptDownlinkDataConverter(JsInvokeService jsInvokeService, MvelInvokeService mvelInvokeService, LogSettingsComponent logSettings) {
-        super(jsInvokeService, mvelInvokeService);
+    public ScriptDownlinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
+        super(jsInvokeService, tbelInvokeService);
         this.logSettings = logSettings;
     }
 
@@ -58,7 +58,7 @@ public class ScriptDownlinkDataConverter extends AbstractDownlinkDataConverter {
     public void init(Converter configuration) {
         super.init(configuration);
         ScriptInvokeService scriptInvokeService = getScriptInvokeService(configuration);
-        String encoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "encoder" : "mvelEncoder";
+        String encoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "encoder" : "tbelEncoder";
         String encoder = configuration.getConfiguration().get(encoderField).asText();
         this.evaluator = new ScriptDownlinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), encoder);
     }

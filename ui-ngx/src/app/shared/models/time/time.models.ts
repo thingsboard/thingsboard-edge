@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -253,7 +253,7 @@ export function initModelFromDefaultTimewindow(value: Timewindow, quickIntervalO
     model.hideAggInterval = value.hideAggInterval;
     model.hideTimezone = value.hideTimezone;
     model.selectedTab = getTimewindowType(value);
-    if (model.selectedTab === TimewindowType.REALTIME) {
+    if (isDefined(value.realtime)) {
       if (isDefined(value.realtime.interval)) {
         model.realtime.interval = value.realtime.interval;
       }
@@ -266,12 +266,14 @@ export function initModelFromDefaultTimewindow(value: Timewindow, quickIntervalO
       } else {
         model.realtime.realtimeType = value.realtime.realtimeType;
       }
-      if (model.realtime.realtimeType === RealtimeWindowType.INTERVAL) {
+      if (isDefined(value.realtime.quickInterval)) {
         model.realtime.quickInterval = value.realtime.quickInterval;
-      } else {
+      }
+      if (isDefined(value.realtime.timewindowMs)) {
         model.realtime.timewindowMs = value.realtime.timewindowMs;
       }
-    } else {
+    }
+    if (isDefined(value.history)) {
       if (isDefined(value.history.interval)) {
         model.history.interval = value.history.interval;
       }
@@ -286,13 +288,19 @@ export function initModelFromDefaultTimewindow(value: Timewindow, quickIntervalO
       } else {
         model.history.historyType = value.history.historyType;
       }
-      if (model.history.historyType === HistoryWindowType.LAST_INTERVAL) {
+      if (isDefined(value.history.timewindowMs)) {
         model.history.timewindowMs = value.history.timewindowMs;
-      } else if (model.history.historyType === HistoryWindowType.INTERVAL) {
+      }
+      if (isDefined(value.history.quickInterval)) {
         model.history.quickInterval = value.history.quickInterval;
-      } else {
-        model.history.fixedTimewindow.startTimeMs = value.history.fixedTimewindow.startTimeMs;
-        model.history.fixedTimewindow.endTimeMs = value.history.fixedTimewindow.endTimeMs;
+      }
+      if (isDefined(value.history.fixedTimewindow)) {
+        if (isDefined(value.history.fixedTimewindow.startTimeMs)) {
+          model.history.fixedTimewindow.startTimeMs = value.history.fixedTimewindow.startTimeMs;
+        }
+        if (isDefined(value.history.fixedTimewindow.endTimeMs)) {
+          model.history.fixedTimewindow.endTimeMs = value.history.fixedTimewindow.endTimeMs;
+        }
       }
     }
     if (value.aggregation) {

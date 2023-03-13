@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,20 +37,24 @@ import java.util.concurrent.atomic.AtomicLong;
 @ToString
 public class IntegrationStatistics {
 
-    private AtomicLong messagesProcessed;
-    private AtomicLong errorsOccurred;
+    private final IntegrationContext ctx;
+    private final AtomicLong messagesProcessed;
+    private final AtomicLong errorsOccurred;
 
-    public IntegrationStatistics() {
-        messagesProcessed = new AtomicLong(0);
-        errorsOccurred = new AtomicLong(0);
+    public IntegrationStatistics(IntegrationContext ctx) {
+        this.ctx = ctx;
+        this.messagesProcessed = new AtomicLong(0);
+        this.errorsOccurred = new AtomicLong(0);
     }
 
     public void incMessagesProcessed() {
         messagesProcessed.incrementAndGet();
+        ctx.onUplinkMessageProcessed(true);
     }
 
     public void incErrorsOccurred() {
         errorsOccurred.incrementAndGet();
+        ctx.onUplinkMessageProcessed(false);
     }
 
     public long getMessagesProcessed() {
@@ -59,6 +63,10 @@ public class IntegrationStatistics {
 
     public long getErrorsOccurred() {
         return errorsOccurred.get();
+    }
+
+    public boolean isEmpty() {
+        return getMessagesProcessed() == 0 && getErrorsOccurred() == 0;
     }
 
 }

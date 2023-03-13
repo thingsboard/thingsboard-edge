@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -44,9 +44,9 @@ import {
 } from '@shared/models/converter.models';
 
 import jsDecoderTemplate from '!raw-loader!./js-decoder.raw';
-import mvelDecoderTemplate from '!raw-loader!./mvel-decoder.raw';
+import tbelDecoderTemplate from '!raw-loader!./tbel-decoder.raw';
 import jsEncoderTemplate from '!raw-loader!./js-encoder.raw';
-import mvelEncoderTemplate from '!raw-loader!./mvel-encoder.raw';
+import tbelEncoderTemplate from '!raw-loader!./tbel-encoder.raw';
 import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -73,7 +73,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
 
   converterTypeTranslations = converterTypeTranslationMap;
 
-  mvelEnabled: boolean;
+  tbelEnabled: boolean;
 
   scriptLanguage = ScriptLanguage;
 
@@ -83,7 +83,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
               private dialog: MatDialog,
               @Optional() @Inject('entity') protected entityValue: Converter,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -100,8 +100,8 @@ export class ConverterComponent extends EntityComponent<Converter> {
     }
   }
 
-  buildForm(entity: Converter): FormGroup {
-    this.mvelEnabled = getCurrentAuthState(this.store).mvelEnabled;
+  buildForm(entity: Converter): UntypedFormGroup {
+    this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
@@ -111,9 +111,9 @@ export class ConverterComponent extends EntityComponent<Converter> {
           {
             scriptLang: [entity && entity.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
             decoder: [entity && entity.configuration ? entity.configuration.decoder : null],
-            mvelDecoder: [entity && entity.configuration ? entity.configuration.mvelDecoder : null],
+            tbelDecoder: [entity && entity.configuration ? entity.configuration.tbelDecoder : null],
             encoder: [entity && entity.configuration ? entity.configuration.encoder : null],
-            mvelEncoder: [entity && entity.configuration ? entity.configuration.mvelEncoder : null],
+            tbelEncoder: [entity && entity.configuration ? entity.configuration.tbelEncoder : null],
           }
         ),
         additionalInfo: this.fb.group(
@@ -133,42 +133,42 @@ export class ConverterComponent extends EntityComponent<Converter> {
     return form;
   }
 
-  private checkIsNewConverter(entity: Converter, form: FormGroup) {
+  private checkIsNewConverter(entity: Converter, form: UntypedFormGroup) {
     if (entity && !entity.id) {
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
       form.get('configuration').get('scriptLang').patchValue(
-        this.mvelEnabled ? ScriptLanguage.MVEL : ScriptLanguage.JS, {emitEvent: false});
+        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: false});
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
     } else {
       form.get('type').disable({emitEvent: false});
       let scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
-      if (scriptLang === ScriptLanguage.MVEL && !this.mvelEnabled) {
+      if (scriptLang === ScriptLanguage.TBEL && !this.tbelEnabled) {
         scriptLang = ScriptLanguage.JS;
         form.get('configuration').get('scriptLang').patchValue(scriptLang, {emitEvent: true});
       }
     }
   }
 
-  private converterTypeChanged(form: FormGroup) {
+  private converterTypeChanged(form: UntypedFormGroup) {
     const converterType: ConverterType = form.get('type').value;
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
         form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
-        form.get('configuration').get('mvelEncoder').patchValue(null, {emitEvent: false});
+        form.get('configuration').get('tbelEncoder').patchValue(null, {emitEvent: false});
       } else {
         form.get('configuration').get('decoder').patchValue(null, {emitEvent: false});
-        form.get('configuration').get('mvelDecoder').patchValue(null, {emitEvent: false});
+        form.get('configuration').get('tbelDecoder').patchValue(null, {emitEvent: false});
       }
       this.setupDefaultScriptBody(form, converterType);
     }
   }
 
-  private converterScriptLangChanged(form: FormGroup) {
+  private converterScriptLangChanged(form: UntypedFormGroup) {
     const converterType: ConverterType = form.get('type').value;
     this.setupDefaultScriptBody(form, converterType);
   }
 
-  private setupDefaultScriptBody(form: FormGroup, converterType: ConverterType) {
+  private setupDefaultScriptBody(form: UntypedFormGroup, converterType: ConverterType) {
     const scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
     let targetField: string;
     let targetTemplate: string;
@@ -176,8 +176,8 @@ export class ConverterComponent extends EntityComponent<Converter> {
       targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
       targetTemplate = converterType === ConverterType.UPLINK ? jsDecoderTemplate : jsEncoderTemplate;
     } else {
-      targetField = converterType === ConverterType.UPLINK ? 'mvelDecoder' : 'mvelEncoder';
-      targetTemplate = converterType === ConverterType.UPLINK ? mvelDecoderTemplate : mvelEncoderTemplate;
+      targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
+      targetTemplate = converterType === ConverterType.UPLINK ? tbelDecoderTemplate : tbelEncoderTemplate;
     }
     const scriptBody: string = form.get('configuration').get(targetField).value;
     if (!scriptBody || !scriptBody.length) {
@@ -194,9 +194,9 @@ export class ConverterComponent extends EntityComponent<Converter> {
         {
           scriptLang,
           decoder: entity.configuration ? entity.configuration.decoder : null,
-          mvelDecoder: entity.configuration ? entity.configuration.mvelDecoder : null,
+          tbelDecoder: entity.configuration ? entity.configuration.tbelDecoder : null,
           encoder: entity.configuration ? entity.configuration.encoder : null,
-          mvelEncoder: entity.configuration ? entity.configuration.mvelEncoder : null
+          tbelEncoder: entity.configuration ? entity.configuration.tbelEncoder : null
         }
     });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
@@ -232,7 +232,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
     if (scriptLang === ScriptLanguage.JS) {
       targetField = isDecoder ? 'decoder' : 'encoder';
     } else {
-      targetField = isDecoder ? 'mvelDecoder' : 'mvelEncoder';
+      targetField = isDecoder ? 'tbelDecoder' : 'tbelEncoder';
     }
     const funcBody = this.entityForm.get('configuration').get(targetField).value;
     this.dialog.open<ConverterTestDialogComponent, ConverterTestDialogData, string>(ConverterTestDialogComponent,

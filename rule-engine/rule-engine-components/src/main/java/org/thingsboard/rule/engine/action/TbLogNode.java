@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -71,7 +71,7 @@ public class TbLogNode implements TbNode {
         this.config = TbNodeUtils.convert(configuration, TbLogNodeConfiguration.class);
         this.standard = new TbLogNodeConfiguration().defaultConfiguration().getJsScript().equals(config.getJsScript());
         this.scriptEngine = this.standard ? null : ctx.createScriptEngine(config.getScriptLang(),
-                ScriptLanguage.MVEL.equals(config.getScriptLang()) ? config.getMvelScript() : config.getJsScript());
+                ScriptLanguage.TBEL.equals(config.getScriptLang()) ? config.getTbelScript() : config.getJsScript());
     }
 
     @Override

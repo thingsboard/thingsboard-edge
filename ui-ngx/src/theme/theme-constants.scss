@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,9 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '~@angular/material' as mat;
-
-@include mat.core();
+@use '@angular/material' as mat;
 
 :root {
   --tb-primary-50: #{map_get(mat.$teal-palette, 50)};
@@ -215,14 +213,14 @@ $mat-tb-accent: (
     mat-toolbar {
       &.mat-primary {
         @include _mat-toolbar-inverse-color($primary);
-        button.mat-icon-button {
+        button.mat-mdc-icon-button {
           mat-icon {
             color: mat.get-color-from-palette($primary);
           }
         }
       }
     }
-    .mat-fab {
+    .mat-mdc-fab {
       &.mat-primary {
         background: #fff;
         color: mat.get-color-from-palette($primary);
@@ -246,11 +244,5 @@ $mat-tb-accent: (
 
   div.tb-dashboard-page.mobile-app {
     @include mat-fab-toolbar-inverse-theme($theme);
-  }
-
-  .same-color.mat-form-field-invalid {
-    .mat-form-field-suffix {
-      color: mat.get-color-from-palette($warn, text);
-    }
   }
 }

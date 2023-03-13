@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -57,8 +57,8 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractDownlinkDataConverter extends AbstractDataConverter implements TBDownlinkDataConverter {
 
-    public AbstractDownlinkDataConverter(JsInvokeService jsInvokeService, MvelInvokeService mvelInvokeService) {
-        super(jsInvokeService, mvelInvokeService);
+    public AbstractDownlinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
+        super(jsInvokeService, tbelInvokeService);
     }
 
     @Override

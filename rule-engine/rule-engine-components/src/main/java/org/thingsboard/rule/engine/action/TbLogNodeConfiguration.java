@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,14 +39,14 @@ public class TbLogNodeConfiguration implements NodeConfiguration {
 
     private ScriptLanguage scriptLang;
     private String jsScript;
-    private String mvelScript;
+    private String tbelScript;
 
     @Override
     public TbLogNodeConfiguration defaultConfiguration() {
         TbLogNodeConfiguration configuration = new TbLogNodeConfiguration();
-        configuration.setScriptLang(ScriptLanguage.MVEL);
+        configuration.setScriptLang(ScriptLanguage.TBEL);
         configuration.setJsScript("return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);");
-        configuration.setMvelScript("return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);");
+        configuration.setTbelScript("return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);");
         return configuration;
     }
 }

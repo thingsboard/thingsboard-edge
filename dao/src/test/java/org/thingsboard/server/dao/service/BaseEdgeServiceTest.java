@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.StringUtils;
@@ -99,29 +100,35 @@ public abstract class BaseEdgeServiceTest extends AbstractServiceTest {
         edgeService.deleteEdge(tenantId, savedEdge.getId());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveEdgeWithEmptyName() {
         Edge edge = new Edge();
         edge.setType("default");
         edge.setTenantId(tenantId);
-        edgeService.saveEdge(edge);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            edgeService.saveEdge(edge);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveEdgeWithEmptyTenant() {
         Edge edge = new Edge();
         edge.setName("My edge");
         edge.setType("default");
-        edgeService.saveEdge(edge);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            edgeService.saveEdge(edge);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveEdgeWithInvalidTenant() {
         Edge edge = new Edge();
         edge.setName("My edge");
         edge.setType("default");
         edge.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        edgeService.saveEdge(edge);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            edgeService.saveEdge(edge);
+        });
     }
 
     @Test

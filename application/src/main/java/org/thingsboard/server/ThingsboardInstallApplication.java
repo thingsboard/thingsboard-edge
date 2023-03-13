@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import java.util.Arrays;
 @ComponentScan({"org.thingsboard.server.install",
         "org.thingsboard.server.service.component",
         "org.thingsboard.server.service.install",
+        "org.thingsboard.server.service.security.auth.jwt.settings",
         "org.thingsboard.server.dao",
         "org.thingsboard.js",
         "org.thingsboard.integration",

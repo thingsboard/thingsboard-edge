@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,11 +91,13 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
 
     @Override
     public Device saveDeviceWithCredentials(Device device, DeviceCredentials credentials, EntityGroup entityGroup, User user) throws ThingsboardException {
-        ActionType actionType = device.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        boolean isCreate = device.getId() == null;
+        ActionType actionType = isCreate ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = device.getTenantId();
+        Device oldDevice = isCreate ? null : deviceService.findDeviceById(tenantId, device.getId());
         Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
         createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
-        tbClusterService.onDeviceUpdated(savedDevice, device, false);
+        tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false);
         return savedDevice;
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,8 +49,10 @@ public class ConverterProtoConstructor {
                 .setName(converter.getName())
                 .setType(converter.getType().name())
                 .setDebugMode(converter.isDebugMode())
-                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
+        if (converter.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        }
         return builder.build();
     }
 }

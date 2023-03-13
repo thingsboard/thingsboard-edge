@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,23 +30,20 @@
  */
 package org.thingsboard.server.dao.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.integration.Integration;
 
-import javax.validation.ConstraintValidatorContext;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class NoXssValidatorTest {
-    private static NoXssValidator validator;
-
-    @BeforeAll
-    public static void beforeAll() {
-        validator = new NoXssValidator();
-        validator.initialize(null);
-    }
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -59,9 +56,42 @@ public class NoXssValidatorTest {
             "   <img src= \"http://site.com/\"  >  ",
             "123 <input type=text value=a onfocus=alert(1337) AUTOFOCUS>bebe"
     })
-    public void testIsNotValid(String stringWithXss) {
-        boolean isValid = validator.isValid(stringWithXss, mock(ConstraintValidatorContext.class));
-        assertFalse(isValid);
+    public void givenEntityWithMaliciousPropertyValue_thenReturnValidationError(String maliciousString) {
+        Asset invalidAsset = new Asset();
+        invalidAsset.setName(maliciousString);
+
+        assertThatThrownBy(() -> {
+            ConstraintValidator.validateFields(invalidAsset);
+        }).hasMessageContaining("is malformed");
+    }
+
+    @Test
+    public void givenEntityWithMaliciousValueInAdditionalInfo_thenReturnValidationError() {
+        String maliciousValue = "qwerty<script>alert(document.cookie)</script>qwerty";
+        JsonNode description = JacksonUtil.newObjectNode()
+                .set("description", new TextNode(maliciousValue));
+
+        Asset invalidAsset = new Asset();
+        invalidAsset.setAdditionalInfo(description);
+        assetEntityFieldIsMalformed(invalidAsset);
+
+        EntityGroup invalidEntityGroup = new EntityGroup();
+        invalidEntityGroup.setAdditionalInfo(description);
+        assetEntityFieldIsMalformed(invalidEntityGroup);
+
+        Converter invalidConverter = new Converter();
+        invalidConverter.setAdditionalInfo(description);
+        assetEntityFieldIsMalformed(invalidConverter);
+
+        Integration invalidIntegration = new Integration();
+        invalidIntegration.setAdditionalInfo(description);
+        assetEntityFieldIsMalformed(invalidIntegration);
+    }
+
+    private void assetEntityFieldIsMalformed(Object data) {
+        assertThatThrownBy(() -> {
+            ConstraintValidator.validateFields(data);
+        }).hasMessageContaining("is malformed");
     }
 
 }

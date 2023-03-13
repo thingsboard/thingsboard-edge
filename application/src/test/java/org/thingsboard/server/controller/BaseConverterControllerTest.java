@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,11 +35,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.collect.Streams;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.data.util.Pair;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
@@ -55,14 +58,20 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.exception.DataValidationException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "js.evaluator=local",
+        "service.integrations.supported=ALL",
+})
 public abstract class BaseConverterControllerTest extends AbstractControllerTest {
 
     private IdComparator<Converter> idComparator = new IdComparator<>();
@@ -402,42 +411,52 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
     }
 
     @Test
-    public void testUplinkConverterSpecialCharactersDecoding() {
+    public void givenUplinkPayloadWithUtf8Chars_testConverting() {
+        String textPayload = "Привіт,Genève Hôpital Etterbeek-Ixelles,我们一起去玩吧。,اللغة العربية";
+        String base64Payload = Base64Utils.encodeToString(textPayload.getBytes(StandardCharsets.UTF_8));
+
+        String actualPayload = convertForPayload(base64Payload).getFirst();
+        assertThat(actualPayload).isEqualTo(textPayload);
+    }
+
+    @Test
+    public void givenUplinkWithBinaryPayload_testConverting() {
+        Map<String, int[]> expectedResults = Map.of(
+                "ALxhTl8OTGM=", new int[]{0, 188, 97, 78, 95, 14, 76, 99},
+                "f5bI+g==", new int[]{127, 150, 200, 250}
+        );
+        expectedResults.forEach((base64Payload, bytes) -> {
+            int[] actualCharCodes = convertForPayload(base64Payload).getSecond();
+            assertThat(actualCharCodes).containsExactly(bytes);
+        });
+    }
+
+    private Pair<String, int[]> convertForPayload(String base64Payload) {
         String decoderConfiguration = "" +
                 "var payloadStr = decodeToString(payload);\n" +
-                "var data = decodeToJson(payload);\n" +
                 "var result = {\n" +
                 "   telemetry: {\n" +
-                "       name: data.name\n" +
+                "       payload: payload," +
+                "       payloadStr: payloadStr\n" +
                 "   }\n" +
                 "};" +
                 "function decodeToString(payload) {\n" +
                 "   return String.fromCharCode.apply(String, payload);\n" +
                 "}\n" +
-                "\n" +
-                "function decodeToJson(payload) {\n" +
-                "   // covert payload to string.\n" +
-                "   var str = decodeToString(payload);\n" +
-                "\n" +
-                "   // parse string to JSON\n" +
-                "   var data = JSON.parse(str);\n" +
-                "   return data;\n" +
-                "}\n" +
-                "\n" +
                 "return result;";
-
-        ObjectNode payload = JacksonUtil.newObjectNode();
-        String specialCharacters = "Привіт,Genève Hôpital Etterbeek-Ixelles,我们一起去玩吧。,اللغة العربية";
-        payload.set("name", new TextNode(specialCharacters));
 
         ObjectNode inputParams = JacksonUtil.newObjectNode();
         inputParams.set("decoder", new TextNode(decoderConfiguration));
-        inputParams.set("payload", new TextNode(Base64Utils.encodeToString(payload.toString().getBytes())));
+        inputParams.set("payload", new TextNode(base64Payload));
         inputParams.set("metadata", JacksonUtil.newObjectNode());
 
         JsonNode output = doPost("/api/converter/testUpLink", inputParams, JsonNode.class);
         JsonNode telemetry = JacksonUtil.toJsonNode(output.get("output").asText()).get("telemetry");
-        assertThat(telemetry.get("name").asText()).isEqualTo(specialCharacters);
+        String payloadStr = telemetry.get("payloadStr").asText();
+        int[] payloadCharCodes = Streams.stream(telemetry.get("payload").iterator())
+                .mapToInt(JsonNode::asInt)
+                .toArray();
+        return Pair.of(payloadStr, payloadCharCodes);
     }
 
 }

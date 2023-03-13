@@ -54,9 +54,9 @@
         "name": "To Irrigation Start",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n}\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};",
-          "mvelScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes != null ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n};\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};"
+          "tbelScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes != null ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n};\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};"
         },
         "externalId": null
       },
@@ -161,9 +161,9 @@
         "name": "To Turn On RPC call",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "mvelScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: Date.now() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
+          "tbelScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: Date.now() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
         },
         "externalId": null
       },
@@ -233,9 +233,9 @@
         "name": "Should Turn Off?",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}",
-          "mvelScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif (irrigationTask == null || irrigationTask.value == null) {\n    return true;\n}\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}"
+          "tbelScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif (irrigationTask == null || irrigationTask.value == null) {\n    return true;\n}\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}"
         },
         "externalId": null
       },
@@ -290,9 +290,9 @@
         "name": "To Turn Off RPC call",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "mvelScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: Date.now() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
+          "tbelScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: Date.now() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
         },
         "externalId": null
       },
@@ -306,9 +306,9 @@
         "name": "To stopped state",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};",
-          "mvelScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
+          "tbelScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
         },
         "externalId": null
       },
@@ -322,9 +322,9 @@
         "name": "Update state",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};",
-          "mvelScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
+          "tbelScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
         },
         "externalId": null
       },
@@ -375,9 +375,9 @@
         "name": "Is Irrigation On?",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "return metadata.irrigationState === 'ON';",
-          "mvelScript": "return metadata.irrigationState === 'ON';"
+          "tbelScript": "return metadata.irrigationState === 'ON';"
         },
         "externalId": null
       },
@@ -451,9 +451,9 @@
         "name": "To Attributes Update",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var newMsg = {};\nif(msg.maxMoistureThreshold !== undefined) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold !== undefined) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
-          "mvelScript": "var newMsg = {};\nif(msg.maxMoistureThreshold != null) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold != null) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
+          "tbelScript": "var newMsg = {};\nif(msg.maxMoistureThreshold != null) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold != null) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
         "externalId": null
       },
@@ -483,9 +483,9 @@
         "configuration": {
           "msgCount": 0,
           "periodInSeconds": 60,
-          "scriptLang": "JS",
-          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "mvelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = {waterConsumption: 60};\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {waterConsumption: 60};\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
           "originatorId": "f19a9530-38d6-11ed-af17-3d7337747e91",
           "originatorType": "ASSET"
         },
@@ -503,9 +503,9 @@
         "configuration": {
           "msgCount": 0,
           "periodInSeconds": 60,
-          "scriptLang": "JS",
-          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "mvelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = { waterConsumption: 60 };\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
           "originatorId": "f19a9530-38d6-11ed-af17-3d7337747e92",
           "originatorType": "ASSET"
         },
@@ -542,9 +542,9 @@
         "name": "Is Irrigation On?",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "return metadata.irrigationState === 'ON';",
-          "mvelScript": "return metadata.irrigationState === 'ON';"
+          "tbelScript": "return metadata.irrigationState === 'ON';"
         },
         "externalId": null
       },

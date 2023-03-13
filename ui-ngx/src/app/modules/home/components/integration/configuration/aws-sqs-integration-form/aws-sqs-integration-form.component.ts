@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -44,6 +44,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { AwsSqsIntegration } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-aws-sqs-integration-form',
@@ -62,11 +63,11 @@ import { AwsSqsIntegration } from '@shared/models/integration.models';
 })
 export class AwsSqsIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  awsSqsIntegrationConfigForm: FormGroup;
+  awsSqsIntegrationConfigForm: UntypedFormGroup;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.awsSqsIntegrationConfigForm = this.fb.group({
       queueUrl: ['', [Validators.required]],
@@ -111,5 +112,14 @@ export class AwsSqsIntegrationFormComponent extends IntegrationForm implements C
     return this.awsSqsIntegrationConfigForm.valid ? null : {
       awsSqsIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.awsSqsIntegrationConfigForm.get('queueUrl').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.awsSqsIntegrationConfigForm.get('queueUrl').addValidators(privateNetworkAddressValidator);
+    }
+    this.awsSqsIntegrationConfigForm.get('queueUrl').updateValueAndValidity({emitEvent: false});
   }
 }

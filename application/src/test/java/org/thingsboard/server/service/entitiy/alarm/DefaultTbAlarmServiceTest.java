@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,8 +42,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -52,6 +55,8 @@ import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
+
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -78,6 +83,8 @@ public class DefaultTbAlarmServiceTest {
     @MockBean
     protected AlarmService alarmService;
     @MockBean
+    protected AlarmCommentService alarmCommentService;
+    @MockBean
     protected AlarmSubscriptionService alarmSubscriptionService;
     @MockBean
     protected CustomerService customerService;
@@ -93,34 +100,41 @@ public class DefaultTbAlarmServiceTest {
 
     @Test
     public void testSave() throws ThingsboardException {
-        var alarm = new Alarm();
-        when(alarmSubscriptionService.createOrUpdateAlarm(alarm)).thenReturn(alarm);
+        var alarm = new AlarmInfo();
+        when(alarmSubscriptionService.createAlarm(any())).thenReturn(AlarmApiCallResult.builder()
+                .successful(true)
+                .modified(true)
+                .alarm(alarm)
+                .build());
         service.save(alarm, new User());
 
         verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
-        verify(alarmSubscriptionService, times(1)).createOrUpdateAlarm(eq(alarm));
+        verify(alarmSubscriptionService, times(1)).createAlarm(any());
     }
 
     @Test
-    public void testAck() {
+    public void testAck() throws ThingsboardException {
         var alarm = new Alarm();
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
-        when(alarmSubscriptionService.ackAlarm(any(), any(), anyLong())).thenReturn(Futures.immediateFuture(true));
-        service.ack(alarm, new User());
+        when(alarmSubscriptionService.acknowledgeAlarm(any(), any(), anyLong()))
+                .thenReturn(AlarmApiCallResult.builder().successful(true).modified(true).build());
+        service.ack(alarm, new User(new UserId(UUID.randomUUID())));
 
+        verify(alarmCommentService, times(1)).createOrUpdateAlarmComment(any(), any());
         verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
-        verify(alarmSubscriptionService, times(1)).ackAlarm(any(), any(), anyLong());
+        verify(alarmSubscriptionService, times(1)).acknowledgeAlarm(any(), any(), anyLong());
     }
 
     @Test
-    public void testClear() {
+    public void testClear() throws ThingsboardException {
         var alarm = new Alarm();
-        alarm.setStatus(AlarmStatus.ACTIVE_ACK);
-        when(alarmSubscriptionService.clearAlarm(any(), any(), any(), anyLong())).thenReturn(Futures.immediateFuture(true));
-        service.clear(alarm, new User());
+        alarm.setAcknowledged(true);
+        when(alarmSubscriptionService.clearAlarm(any(), any(), anyLong(), any()))
+                .thenReturn(AlarmApiCallResult.builder().successful(true).cleared(true).build());
+        service.clear(alarm, new User(new UserId(UUID.randomUUID())));
 
+        verify(alarmCommentService, times(1)).createOrUpdateAlarmComment(any(), any());
         verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
-        verify(alarmSubscriptionService, times(1)).clearAlarm(any(), any(), any(), anyLong());
+        verify(alarmSubscriptionService, times(1)).clearAlarm(any(), any(), anyLong(), any());
     }
 
     @Test

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,21 +34,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 @Slf4j
-public class OpcUaIntegrationTest extends AbstractContainerTest {
+public class OpcUaIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-opc-ua";
     private static final String SECRET_KEY = "secret-key-opc-ua";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"applicationName\":\"\"," +
             "\"applicationUri\":\"\"," +
@@ -105,12 +100,9 @@ public class OpcUaIntegrationTest extends AbstractContainerTest {
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("opc_ua_");
-
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
+        integration = createIntegration(
                 IntegrationType.OPC_UA, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -120,8 +112,10 @@ public class OpcUaIntegrationTest extends AbstractContainerTest {
 
         Assert.assertEquals(1, actualLatestTelemetry.getData().size());
         Assert.assertEquals(Sets.newHashSet("boilerStatus"), actualLatestTelemetry.getLatestValues().keySet());
-
-        deleteAllObject(device, integration);
     }
 
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "opc_ua_";
+    }
 }

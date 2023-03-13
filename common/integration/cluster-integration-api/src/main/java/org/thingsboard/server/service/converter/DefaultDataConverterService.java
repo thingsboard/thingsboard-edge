@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -67,7 +67,7 @@ public class DefaultDataConverterService implements DataConverterService {
     private JsInvokeService jsInvokeService;
 
     @Autowired(required = false)
-    private MvelInvokeService mvelInvokeService;
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     private LogSettingsComponent logSettingsComponent;
@@ -139,11 +139,11 @@ public class DefaultDataConverterService implements DataConverterService {
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
             case UPLINK:
-                ScriptUplinkDataConverter uplink = new ScriptUplinkDataConverter(jsInvokeService, mvelInvokeService, logSettingsComponent);
+                ScriptUplinkDataConverter uplink = new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
                 uplink.init(converter);
                 return uplink;
             case DOWNLINK:
-                ScriptDownlinkDataConverter downlink = new ScriptDownlinkDataConverter(jsInvokeService, mvelInvokeService, logSettingsComponent);
+                ScriptDownlinkDataConverter downlink = new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
                 downlink.init(converter);
                 return downlink;
             default:

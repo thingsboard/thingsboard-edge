@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -64,17 +64,17 @@ import { isNumber } from '@core/utils';
 })
 export class MqttTopicFiltersComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  mqttTopicFiltersForm: FormGroup;
+  mqttTopicFiltersForm: UntypedFormGroup;
   mqttQosTypes = Object.values(MqttQos).filter(v => isNumber(v));
   MqttQosTranslation = MqttQosTranslation;
 
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     this.mqttTopicFiltersForm = this.fb.group({
       filters: this.fb.array([], Validators.required)
     });
@@ -127,8 +127,8 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
     }
   }
 
-  get mqttFiltersFromArray(): FormArray {
-    return this.mqttTopicFiltersForm.get('filters') as FormArray;
+  get mqttFiltersFromArray(): UntypedFormArray {
+    return this.mqttTopicFiltersForm.get('filters') as UntypedFormArray;
   }
 
   addTopicFilter() {

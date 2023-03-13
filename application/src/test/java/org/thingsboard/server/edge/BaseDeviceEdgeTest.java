@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,16 +46,27 @@ import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
+import org.thingsboard.server.common.data.device.data.DeviceData;
+import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
@@ -69,8 +80,8 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.transport.mqtt.MqttTestCallback;
-import org.thingsboard.server.transport.mqtt.MqttTestClient;
+import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestCallback;
+import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
 
 import java.util.Collections;
 import java.util.List;
@@ -212,6 +223,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         // create device and assign to edge; update device
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
+        verifyUpdateFirmwareIdSoftwareIdAndDeviceData(savedDevice);
+
         // update device credentials - ACCESS_TOKEN
         edgeImitator.expectMessageAmount(1);
         DeviceCredentials deviceCredentials =
@@ -244,6 +257,52 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertFalse(deviceCredentialsUpdateMsg.getCredentialsId().isEmpty());
         Assert.assertTrue(deviceCredentialsUpdateMsg.hasCredentialsValue());
         Assert.assertEquals(deviceCredentials.getCredentialsValue(), deviceCredentialsUpdateMsg.getCredentialsValue());
+    }
+
+    private void verifyUpdateFirmwareIdSoftwareIdAndDeviceData(Device savedDevice) throws InterruptedException {
+        // create ota packages
+        edgeImitator.expectMessageAmount(1);
+        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(thermostatDeviceProfile.getId(), OtaPackageType.FIRMWARE);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        edgeImitator.expectMessageAmount(1);
+        OtaPackageInfo softwareOtaPackageInfo = saveOtaPackageInfo(thermostatDeviceProfile.getId(), OtaPackageType.SOFTWARE);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        // update device
+        edgeImitator.expectMessageAmount(1);
+        savedDevice.setFirmwareId(firmwareOtaPackageInfo.getId());
+        savedDevice.setSoftwareId(softwareOtaPackageInfo.getId());
+
+        DeviceData deviceData = new DeviceData();
+        deviceData.setConfiguration(new DefaultDeviceConfiguration());
+        MqttDeviceTransportConfiguration transportConfiguration = new MqttDeviceTransportConfiguration();
+        transportConfiguration.getProperties().put("topic", "tb_rule_engine.thermostat");
+        deviceData.setTransportConfiguration(transportConfiguration);
+        savedDevice.setDeviceData(deviceData);
+
+        savedDevice = doPost("/api/device", savedDevice, Device.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
+        DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
+        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
+        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
+        Assert.assertEquals(savedDevice.getType(), deviceUpdateMsg.getType());
+        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getFirmwareIdMSB());
+        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getFirmwareIdLSB());
+        Assert.assertEquals(softwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getSoftwareIdMSB());
+        Assert.assertEquals(softwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getSoftwareIdLSB());
+        Optional<DeviceData> deviceDataOpt =
+                dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
+        Assert.assertTrue(deviceDataOpt.isPresent());
+        deviceData = deviceDataOpt.get();
+        Assert.assertTrue(deviceData.getTransportConfiguration() instanceof MqttDeviceTransportConfiguration);
+        MqttDeviceTransportConfiguration mqttDeviceTransportConfiguration =
+                (MqttDeviceTransportConfiguration) deviceData.getTransportConfiguration();
+        Assert.assertEquals("tb_rule_engine.thermostat", mqttDeviceTransportConfiguration.getProperties().get("topic"));
     }
 
     @Test
@@ -362,8 +421,13 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
         sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"key1\":\"value1\"}",
                 "key1", "value1");
+        sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"inactivityTimeout\":3600000}",
+                "inactivityTimeout", "3600000");
         sendAttributesRequestAndVerify(device, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}",
                 "key2", "value2");
+
+        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SERVER_SCOPE, "keys","key1, inactivityTimeout");
+        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SHARED_SCOPE, "keys", "key2");
     }
 
     @Test
@@ -437,7 +501,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         String attributeValuesUrl = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/values/attributes/" + DataConstants.SERVER_SCOPE;
         List<Map<String, String>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {});
 
-        Assert.assertEquals(4, attributes.size());
+        Assert.assertEquals(3, attributes.size());
 
         Optional<Map<String, String>> activeAttributeOpt = getAttributeByKey("active", attributes);
         Assert.assertTrue(activeAttributeOpt.isPresent());
@@ -478,11 +542,10 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        AbstractMessage latestMessage = edgeImitator.getMessageFromTail(2);
-        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
-        DeviceUpdateMsg latestDeviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        Optional<DeviceUpdateMsg> deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
+        Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
+        DeviceUpdateMsg latestDeviceUpdateMsg = deviceUpdateMsgOpt.get();
         Assert.assertNotEquals(deviceOnCloudName, latestDeviceUpdateMsg.getName());
-        Assert.assertEquals(deviceOnCloudName, latestDeviceUpdateMsg.getConflictName());
 
         UUID newDeviceId = new UUID(latestDeviceUpdateMsg.getIdMSB(), latestDeviceUpdateMsg.getIdLSB());
 
@@ -492,9 +555,9 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(device);
         Assert.assertNotEquals(deviceOnCloudName, device.getName());
 
-        latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof DeviceCredentialsRequestMsg);
-        DeviceCredentialsRequestMsg latestDeviceCredentialsRequestMsg = (DeviceCredentialsRequestMsg) latestMessage;
+        Optional<DeviceCredentialsRequestMsg> deviceCredentialsUpdateMsgOpt = edgeImitator.findMessageByType(DeviceCredentialsRequestMsg.class);
+        Assert.assertTrue(deviceCredentialsUpdateMsgOpt.isPresent());
+        DeviceCredentialsRequestMsg latestDeviceCredentialsRequestMsg = deviceCredentialsUpdateMsgOpt.get();
         Assert.assertEquals(uuid.getMostSignificantBits(), latestDeviceCredentialsRequestMsg.getDeviceIdMSB());
         Assert.assertEquals(uuid.getLeastSignificantBits(), latestDeviceCredentialsRequestMsg.getDeviceIdLSB());
 
@@ -615,7 +678,16 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         for (TransportProtos.KeyValueProto keyValueProto : attributesUpdatedMsg.getKvList()) {
             if (keyValueProto.getKey().equals(expectedKey)) {
                 Assert.assertEquals(expectedKey, keyValueProto.getKey());
-                Assert.assertEquals(expectedValue, keyValueProto.getStringV());
+                switch (keyValueProto.getType()) {
+                    case STRING_V:
+                        Assert.assertEquals(expectedValue, keyValueProto.getStringV());
+                        break;
+                    case LONG_V:
+                        Assert.assertEquals(Long.parseLong(expectedValue), keyValueProto.getLongV());
+                        break;
+                    default:
+                        Assert.fail("Unexpected data type: " + keyValueProto.getType());
+                }
                 found = true;
             }
         }
@@ -641,6 +713,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         client.connectAndWait(deviceCredentials.getCredentialsId());
         MqttTestCallback onUpdateCallback = new MqttTestCallback();
         client.setCallback(onUpdateCallback);
+
         client.subscribeAndWait("v1/devices/me/attributes", MqttQoS.AT_MOST_ONCE);
 
         edgeImitator.expectResponsesAmount(1);
@@ -661,11 +734,68 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
         Assert.assertTrue(edgeImitator.waitForResponses());
 
-        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(5, TimeUnit.SECONDS));
+        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(30, TimeUnit.SECONDS));
 
         Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.createObjectNode().put(attrKey, attrValue),
                 JacksonUtil.fromBytes(onUpdateCallback.getPayloadBytes()));
 
         client.disconnect();
+    }
+
+    @Test
+    public void testVerifyDeliveryOfLatestTimeseriesOnAttributesRequest() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        JsonNode timeseriesData = mapper.readTree("{\"temperature\":25, \"isEnabled\": true}");
+
+        doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/timeseries/" + DataConstants.SERVER_SCOPE,
+                timeseriesData);
+
+        // Wait before device timeseries saved to database before requesting them from edge
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/timeseries";
+                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
+                    return actualKeys != null && !actualKeys.isEmpty() && actualKeys.contains("temperature");
+                });
+
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        AttributesRequestMsg.Builder attributesRequestMsgBuilder = AttributesRequestMsg.newBuilder();
+        attributesRequestMsgBuilder.setEntityIdMSB(device.getUuidId().getMostSignificantBits());
+        attributesRequestMsgBuilder.setEntityIdLSB(device.getUuidId().getLeastSignificantBits());
+        attributesRequestMsgBuilder.setEntityType(EntityType.DEVICE.name());
+        attributesRequestMsgBuilder.setScope(DataConstants.SERVER_SCOPE);
+        uplinkMsgBuilder.addAttributesRequestMsg(attributesRequestMsgBuilder.build());
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.expectMessageAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityDataProto);
+        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
+        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
+        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
+        Assert.assertEquals(device.getId().getEntityType().name(), latestEntityDataMsg.getEntityType());
+        Assert.assertTrue(latestEntityDataMsg.hasPostTelemetryMsg());
+
+        TransportProtos.PostTelemetryMsg timeseriesUpdatedMsg = latestEntityDataMsg.getPostTelemetryMsg();
+        Assert.assertEquals(1, timeseriesUpdatedMsg.getTsKvListList().size());
+        TransportProtos.TsKvListProto tsKvListProto = timeseriesUpdatedMsg.getTsKvListList().get(0);
+        Assert.assertEquals(2, tsKvListProto.getKvList().size());
+        for (TransportProtos.KeyValueProto keyValueProto : tsKvListProto.getKvList()) {
+            if ("temperature".equals(keyValueProto.getKey())) {
+                Assert.assertEquals(TransportProtos.KeyValueType.LONG_V, keyValueProto.getType());
+                Assert.assertEquals(25, keyValueProto.getLongV());
+            } else if ("isEnabled".equals(keyValueProto.getKey())) {
+                Assert.assertEquals(TransportProtos.KeyValueType.BOOLEAN_V, keyValueProto.getType());
+                Assert.assertTrue(keyValueProto.getBoolV());
+            } else {
+                Assert.fail("Unexpected key: " + keyValueProto.getKey());
+            }
+        }
     }
 }

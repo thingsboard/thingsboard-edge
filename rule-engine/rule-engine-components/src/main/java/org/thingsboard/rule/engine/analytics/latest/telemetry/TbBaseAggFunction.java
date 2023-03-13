@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,7 +62,7 @@ public abstract class TbBaseAggFunction implements TbAggFunction {
 
     private double extractDoubleValue(Optional<KvEntry> entry, double defaultValue) {
         double result = defaultValue;
-        if (entry.isPresent()) {
+        if (entry.isPresent() && entry.get().getValue() != null) {
             KvEntry kvEntry = entry.get();
             switch (kvEntry.getDataType()) {
                 case LONG:

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.common.data.EventInfo;
@@ -87,7 +87,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.rule.TbRuleChainService;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -162,7 +162,7 @@ public class RuleChainController extends BaseController {
     private JsInvokeService jsInvokeService;
 
     @Autowired(required = false)
-    private MvelInvokeService mvelInvokeService;
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired(required = false)
     private ActorSystemContext actorContext;
@@ -170,8 +170,8 @@ public class RuleChainController extends BaseController {
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled}")
     private boolean debugPerTenantEnabled;
 
-    @Value("${mvel.enabled:true}")
-    private boolean mvelEnabled;
+    @Value("${tbel.enabled:true}")
+    private boolean tbelEnabled;
 
     @ApiOperation(value = "Get Rule Chain (getRuleChainById)",
             notes = "Fetch the Rule Chain object based on the provided Rule Chain Id. " + RULE_CHAIN_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
@@ -371,13 +371,13 @@ public class RuleChainController extends BaseController {
         return result;
     }
 
-    @ApiOperation(value = "Is MVEL script executor enabled",
-            notes = "Returns 'True' if the MVEL script execution is enabled" + TENANT_AUTHORITY_PARAGRAPH)
+    @ApiOperation(value = "Is TBEL script executor enabled",
+            notes = "Returns 'True' if the TBEL script execution is enabled" + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/ruleChain/mvelEnabled", method = RequestMethod.GET)
+    @RequestMapping(value = "/ruleChain/tbelEnabled", method = RequestMethod.GET)
     @ResponseBody
-    public Boolean isMvelEnabled() {
-        return mvelEnabled;
+    public Boolean isTbelEnabled() {
+        return tbelEnabled;
     }
 
     @ApiOperation(value = "Test Script function",
@@ -386,7 +386,7 @@ public class RuleChainController extends BaseController {
     @RequestMapping(value = "/ruleChain/testScript", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testScript(
-            @ApiParam(value = "Script language: JS or MVEL")
+            @ApiParam(value = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
             @ApiParam(value = "Test JS request. See API call description above.")
             @RequestBody JsonNode inputParams) throws ThingsboardException, JsonProcessingException {
@@ -411,10 +411,10 @@ public class RuleChainController extends BaseController {
                 if (ScriptLanguage.JS.equals(scriptLang)) {
                     engine = new RuleNodeJsScriptEngine(getTenantId(), jsInvokeService, script, argNames);
                 } else {
-                    if (mvelInvokeService == null) {
-                        throw new IllegalArgumentException("MVEL script engine is disabled!");
+                    if (tbelInvokeService == null) {
+                        throw new IllegalArgumentException("TBEL script engine is disabled!");
                     }
-                    engine = new RuleNodeMvelScriptEngine(getTenantId(), mvelInvokeService, script, argNames);
+                    engine = new RuleNodeTbelScriptEngine(getTenantId(), tbelInvokeService, script, argNames);
                 }
                 TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadata), TbMsgDataType.JSON, data);
                 switch (scriptType) {

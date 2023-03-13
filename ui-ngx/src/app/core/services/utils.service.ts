@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-// tslint:disable-next-line:no-reference
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../src/typings/rawloader.typings.d.ts" />
 
 import { Inject, Injectable, NgZone } from '@angular/core';
@@ -40,7 +40,7 @@ import {
   createLabelFromDatasource,
   deepClone,
   deleteNullProperties,
-  guid,
+  guid, hashCode,
   isDefined,
   isDefinedAndNotNull,
   isString,
@@ -211,6 +211,8 @@ export class UtilsService {
           return alarmStatusTranslations.get(value) ? this.translate.instant(alarmStatusTranslations.get(value)) : value;
         } else if (alarmField === alarmFields.originatorType) {
           return this.translate.instant(entityTypeTranslations.get(value).type);
+        } else if (alarmField.value === alarmFields.assignee.value) {
+          return '';
         }
       }
       return value;
@@ -445,6 +447,13 @@ export class UtilsService {
         index++;
       });
     });
+  }
+
+  public stringToHslColor(str: string, saturationPercentage: number, lightnessPercentage: number): string {
+    if (str && str.length) {
+      let hue = hashCode(str) % 360;
+      return `hsl(${hue}, ${saturationPercentage}%, ${lightnessPercentage}%)`;
+    }
   }
 
   public currentPerfTime(): number {

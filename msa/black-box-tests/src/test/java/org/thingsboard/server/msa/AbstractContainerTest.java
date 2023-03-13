@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,135 +37,79 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
-import org.awaitility.Awaitility;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Listeners;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.CheckPreProvisionedDevicesDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
-import org.thingsboard.server.common.data.event.EventType;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import javax.net.ssl.SSLContext;
 import java.net.URI;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
+
 
 @Slf4j
+@Listeners(TestListener.class)
 public abstract class AbstractContainerTest {
     protected static final String HTTPS_URL = "https://localhost";
-    protected static final String WSS_URL = "wss://localhost";
-    protected static String rpcURLHttp;
-    protected static String TB_TOKEN;
-    protected static RestClient restClient;
-    protected static RestClient rpcHTTPRestClient;
 
+    protected final static String TEST_PROVISION_DEVICE_KEY = "test_provision_key";
+    protected final static String TEST_PROVISION_DEVICE_SECRET = "test_provision_secret";
     protected static long timeoutMultiplier = 1;
-
     protected ObjectMapper mapper = new ObjectMapper();
-    protected JsonParser jsonParser = new JsonParser();
     protected static final String TELEMETRY_KEY = "temperature";
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;
     protected static final int CONNECT_TIMEOUT_MS = 500;
+    protected static final ContainerTestSuite containerTestSuite = ContainerTestSuite.getInstance();
+    protected static TestRestClient testRestClient;
+    protected static TestRestClient remoteHttpClient;
 
-    @BeforeClass
-    public static void before() throws Exception {
-        String rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
-        Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
-        rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
-        rpcHTTPRestClient = new RestClient(rpcURLHttp);
-
-        restClient = new RestClient(HTTPS_URL);
-        restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
-
+    @BeforeSuite
+    public void beforeSuite() {
+        if ("false".equals(System.getProperty("runLocal", "false"))) {
+            containerTestSuite.start();
+        }
+        testRestClient = new TestRestClient(TestProperties.getBaseUrl());
+        remoteHttpClient = new TestRestClient(TestProperties.getRemoteHttpUrl());
         if (!"kafka".equals(System.getProperty("blackBoxTests.queue", "kafka"))) {
             timeoutMultiplier = 10;
         }
     }
 
-    @Rule
-    public TestRule watcher = new TestWatcher() {
-        protected void starting(Description description) {
-            log.info("=================================================");
-            log.info("STARTING TEST: {}", description.getMethodName());
-            log.info("=================================================");
+    @AfterSuite
+    public void afterSuite() {
+        if (containerTestSuite.isActive()) {
+            containerTestSuite.stop();
         }
-
-        /**
-         * Invoked when a test succeeds
-         */
-        protected void succeeded(Description description) {
-            log.info("=================================================");
-            log.info("SUCCEEDED TEST: {}", description.getMethodName());
-            log.info("=================================================");
-        }
-
-        /**
-         * Invoked when a test fails
-         */
-        protected void failed(Throwable e, Description description) {
-            log.info("=================================================");
-            log.info("FAILED TEST: {}", description.getMethodName(), e);
-            log.info("=================================================");
-        }
-    };
-
-    protected Device createGatewayDevice() throws JsonProcessingException {
-        String isGateway = "{\"gateway\":true}";
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode additionalInfo = objectMapper.readTree(isGateway);
-        Device gatewayDeviceTemplate = new Device();
-        gatewayDeviceTemplate.setName("mqtt_gateway");
-        gatewayDeviceTemplate.setType("gateway");
-        gatewayDeviceTemplate.setAdditionalInfo(additionalInfo);
-        return restClient.saveDevice(gatewayDeviceTemplate);
-    }
-
-    protected Device createDevice(String name) {
-        Device device = new Device();
-        device.setName(name + StringUtils.randomAlphanumeric(7));
-        device.setType("DEFAULT");
-        return restClient.saveDevice(device);
     }
 
     protected WsClient subscribeToWebSocket(DeviceId deviceId, String scope, CmdsType property) throws Exception {
-        WsClient wsClient = new WsClient(new URI(WSS_URL + "/api/ws/plugins/telemetry?token=" + restClient.getToken()), timeoutMultiplier);
-        SSLContextBuilder builder = SSLContexts.custom();
-        builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        wsClient.setSocketFactory(builder.build().getSocketFactory());
+        String webSocketUrl = TestProperties.getWebSocketUrl();
+        WsClient wsClient = new WsClient(new URI(webSocketUrl + "/api/ws/plugins/telemetry?token=" + testRestClient.getToken()), timeoutMultiplier);
+        if (webSocketUrl.matches("^(wss)://.*$")) {
+            SSLContextBuilder builder = SSLContexts.custom();
+            builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
+            wsClient.setSocketFactory(builder.build().getSocketFactory());
+        }
         wsClient.connectBlocking();
 
         JsonObject cmdsObject = new JsonObject();
@@ -235,7 +179,7 @@ public abstract class AbstractContainerTest {
         JsonObject values = new JsonObject();
         values.addProperty("stringKey", "value1");
         values.addProperty("booleanKey", true);
-        values.addProperty("doubleKey", 42.0);
+        values.addProperty("doubleKey", 42.6);
         values.addProperty("longKey", 73L);
 
         return values;
@@ -246,14 +190,7 @@ public abstract class AbstractContainerTest {
         converter.setName("My converter" + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(config);
-        return restClient.saveConverter(converter);
-    }
-
-    protected void deleteAllObject(Device device, Integration integration) {
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integration.getId());
-        restClient.deleteConverter(idForDelete);
+        return testRestClient.postConverter(converter);
     }
 
     protected enum CmdsType {
@@ -273,20 +210,12 @@ public abstract class AbstractContainerTest {
         }
     }
 
-    private static HttpComponentsClientHttpRequestFactory getRequestFactoryForSelfSignedCert() throws Exception {
-        SSLContextBuilder builder = SSLContexts.custom();
-        builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        SSLContext sslContext = builder.build();
-        SSLConnectionSocketFactory sslSelfSigned = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
-
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
-                .<ConnectionSocketFactory>create()
-                .register("https", sslSelfSigned)
-                .build();
-
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
-        return new HttpComponentsClientHttpRequestFactory(httpClient);
+    protected JsonNode createPayloadForUplink(Device device, String temperatureValue) throws JsonProcessingException {
+        JsonObject values = new JsonObject();
+        values.addProperty("deviceName", device.getName());
+        values.addProperty("deviceType", device.getType());
+        values.addProperty(TELEMETRY_KEY, temperatureValue);
+        return mapper.readTree(values.toString());
     }
 
     protected JsonNode createPayloadForUplink() {
@@ -294,43 +223,28 @@ public abstract class AbstractContainerTest {
         values.put(TELEMETRY_KEY, TELEMETRY_VALUE);
         return values;
     }
-
-    protected Integration createIntegration(IntegrationType type, String config, JsonNode converterConfig,
-                                            String routingKey, String secretKey, boolean isRemote) {
-        Integration integration = new Integration();
-        JsonNode conf = JacksonUtil.toJsonNode(config);
-        integration.setConfiguration(conf);
-        integration.setDefaultConverterId(createUplink(converterConfig).getId());
-        integration.setName(type.name().toLowerCase());
-        integration.setType(type);
-        integration.setRoutingKey(routingKey);
-        integration.setSecret(secretKey);
-        integration.setEnabled(true);
-        integration.setRemote(isRemote);
-        integration.setDebugMode(true);
-        integration.setAllowCreateDevicesOrAssets(true);
-
-        integration = restClient.saveIntegration(integration);
-
-        IntegrationId integrationId = integration.getId();
-        TenantId tenantId = integration.getTenantId();
-
-        Awaitility
-                .await()
-                .alias("Get integration events")
-                .atMost(10, TimeUnit.SECONDS)
-                .until(() -> {
-                    PageData<EventInfo> events = restClient.getEvents(integrationId, EventType.LC_EVENT, tenantId, new TimePageLink(1024));
-                    if (events.getData().isEmpty()) {
-                        return false;
-                    }
-
-                    EventInfo event = events.getData().stream().max(Comparator.comparingLong(EventInfo::getCreatedTime)).orElse(null);
-                    return event != null
-                            && "STARTED".equals(event.getBody().get("event").asText())
-                            && "true".equals(event.getBody().get("success").asText());
-                });
-
-        return integration;
+    protected DeviceProfile updateDeviceProfileWithProvisioningStrategy(DeviceProfile deviceProfile, DeviceProfileProvisionType provisionType) {
+        DeviceProfileProvisionConfiguration provisionConfiguration;
+        String testProvisionDeviceKey = TEST_PROVISION_DEVICE_KEY;
+        deviceProfile.setProvisionType(provisionType);
+        switch(provisionType) {
+            case ALLOW_CREATE_NEW_DEVICES:
+                provisionConfiguration = new AllowCreateNewDevicesDeviceProfileProvisionConfiguration(TEST_PROVISION_DEVICE_SECRET);
+                break;
+            case CHECK_PRE_PROVISIONED_DEVICES:
+                provisionConfiguration = new CheckPreProvisionedDevicesDeviceProfileProvisionConfiguration(TEST_PROVISION_DEVICE_SECRET);
+                break;
+            default:
+            case DISABLED:
+                testProvisionDeviceKey = null;
+                provisionConfiguration = new DisabledDeviceProfileProvisionConfiguration(null);
+                break;
+        }
+        DeviceProfileData deviceProfileData = deviceProfile.getProfileData();
+        deviceProfileData.setProvisionConfiguration(provisionConfiguration);
+        deviceProfile.setProfileData(deviceProfileData);
+        deviceProfile.setProvisionDeviceKey(testProvisionDeviceKey);
+        return testRestClient.postDeviceProfile(deviceProfile);
     }
+
 }

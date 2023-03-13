@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,15 +31,15 @@
 
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
   Validator,
   Validators
 } from '@angular/forms';
-import { Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationCredentialType, IntegrationCredentialTypeTranslation } from '@shared/models/integration.models';
@@ -60,9 +60,9 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
     multi: true,
   }]
 })
-export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator {
+export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
-  integrationCredentialForm: FormGroup;
+  integrationCredentialForm: UntypedFormGroup;
   hideSelectType = false;
 
   private allowCredentialTypesValue: IntegrationCredentialType[] = [];
@@ -80,7 +80,7 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input()
   set ignoreCaCert(value: boolean) {
     const newVal = coerceBooleanProperty(value);
-    if (this.ignoreCaCertValue !== newVal) {
+    if (this.ignoreCaCertValue !== newVal && this.integrationCredentialForm) {
       this.ignoreCaCertValue = newVal;
       if (newVal) {
         this.integrationCredentialForm.get('caCertFileName').clearValidators();
@@ -102,6 +102,14 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input() userNameRequired = 'integration.username-required';
   @Input() passwordLabel = 'integration.password';
   @Input() passwordRequired = 'integration.password-required';
+  private passwordOptionalValue = false;
+  get passwordOptional(): boolean {
+    return this.passwordOptionalValue;
+  }
+  @Input()
+  set passwordOptional(value: boolean) {
+    this.passwordOptionalValue = coerceBooleanProperty(value);
+  }
 
   IntegrationCredentialTypeTranslation = IntegrationCredentialTypeTranslation;
   IntegrationCredentialType = IntegrationCredentialType;
@@ -109,16 +117,19 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
+  }
+
+  ngOnInit() {
     this.integrationCredentialForm = this.fb.group({
       type: ['', Validators.required],
       username: [{value: '', disabled: true}, Validators.required],
-      password: [{value: '', disabled: true}, Validators.required],
-      caCertFileName: [{value: '', disabled: true}, Validators.required],
-      caCert: [{value: '', disabled: true}, Validators.required],
+      password: [{value: '', disabled: true}, this.passwordOptional ? null : Validators.required],
+      caCertFileName: [{value: '', disabled: true}, this.ignoreCaCert ? null : Validators.required],
+      caCert: [{value: '', disabled: true},  this.ignoreCaCert ? null : Validators.required],
       certFileName: [{value: '', disabled: true}, Validators.required],
       cert: [{value: '', disabled: true}, Validators.required],
       privateKeyFileName: [{value: '', disabled: true}, Validators.required],
@@ -133,6 +144,11 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
     this.integrationCredentialForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModel(value));
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   registerOnChange(fn: any) {

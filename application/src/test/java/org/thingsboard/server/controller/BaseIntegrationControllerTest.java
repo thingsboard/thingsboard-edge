@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -63,12 +65,17 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "js.evaluator=local",
+        "service.integrations.supported=ALL",
+})
 public abstract class BaseIntegrationControllerTest extends AbstractControllerTest {
 
     @Autowired
     IntegrationManagerService integrationManagerService;
 
     private IdComparator<Integration> idComparator = new IdComparator<>();
+    private IdComparator<IntegrationInfo> infosIdComparator = new IdComparator<>();
 
     private Tenant savedTenant;
     private Converter savedConverter;
@@ -79,6 +86,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
     private static final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
             .createObjectNode();
+
     static {
         INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
     }
@@ -233,6 +241,54 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Collections.sort(integrationList, idComparator);
         Collections.sort(loadedIntegrations, idComparator);
+
+        Assert.assertEquals(integrationList, loadedIntegrations);
+    }
+
+    @Test
+    public void testFindIntegrationInfos() throws Exception {
+        List<IntegrationInfo> integrationList = new ArrayList<>();
+        for (int i = 0; i < 33; i++) {
+            Integration integration = new Integration();
+            integration.setName("Integration" + i);
+            integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+            integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
+            integration.setDefaultConverterId(savedConverter.getId());
+            integrationList.add(toInfo(doPost("/api/integration", integration, Integration.class)));
+        }
+
+        Converter edgeConverter = new Converter();
+        edgeConverter.setName("My edge converter");
+        edgeConverter.setType(ConverterType.UPLINK);
+        edgeConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        edgeConverter.setEdgeTemplate(true);
+        edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
+
+        Integration edgeIntegration = new Integration();
+        edgeIntegration.setName("edge integration");
+        edgeIntegration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+        edgeIntegration.setType(IntegrationType.OCEANCONNECT);
+        edgeIntegration.setConfiguration(INTEGRATION_CONFIGURATION);
+        edgeIntegration.setDefaultConverterId(edgeConverter.getId());
+        edgeIntegration.setEdgeTemplate(true);
+        toInfo(doPost("/api/integration", edgeIntegration, Integration.class));
+
+        List<IntegrationInfo> loadedIntegrations = new ArrayList<>();
+        PageLink pageLink = new PageLink(23);
+        PageData<IntegrationInfo> pageData = null;
+        do {
+            pageData = doGetTypedWithPageLink("/api/integrationInfos?",
+                    new TypeReference<PageData<IntegrationInfo>>() {
+                    }, pageLink);
+            loadedIntegrations.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(integrationList, infosIdComparator);
+        Collections.sort(loadedIntegrations, infosIdComparator);
 
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
@@ -456,7 +512,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setEdgeTemplate(true);
             Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
             doPost("/api/edge/" + savedEdge.getId().getId().toString()
-            + "/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
+                    + "/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
             edgeIntegrations.add(savedIntegration);
         }
 
@@ -563,6 +619,20 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertTrue(missingAttributesForEdge1.contains("Edge integration #2"));
         Assert.assertTrue(missingAttributesForEdge1.contains("HTTPS_URL"));
         Assert.assertFalse(missingAttributesForEdge1.contains("HTTP_URL"));
+    }
+
+    private IntegrationInfo toInfo(Integration integration) {
+        IntegrationInfo integrationInfo = new IntegrationInfo(integration.getId());
+        integrationInfo.setCreatedTime(integration.getCreatedTime());
+        integrationInfo.setTenantId(integration.getTenantId());
+        integrationInfo.setName(integration.getName());
+        integrationInfo.setType(integration.getType());
+        integrationInfo.setEnabled(integration.isEnabled());
+        integrationInfo.setEdgeTemplate(integration.isEdgeTemplate());
+        integrationInfo.setRemote(integration.isRemote());
+        integrationInfo.setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets());
+
+        return integrationInfo;
     }
 
 }

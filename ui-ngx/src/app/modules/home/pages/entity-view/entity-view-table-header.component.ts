@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import { EntityView } from '@app/shared/models/entity-view.models';
 @Component({
   selector: 'tb-entity-view-table-header',
   templateUrl: './entity-view-table-header.component.html',
-  styleUrls: ['./entity-view-table-header.component.scss']
+  styleUrls: []
 })
 export class EntityViewTableHeaderComponent extends EntityTableHeaderComponent<EntityView> {
 

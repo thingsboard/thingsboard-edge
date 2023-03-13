@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import { DeviceProfileId } from '../../../../shared/models/id/device-profile-id'
 @Component({
   selector: 'tb-device-table-header',
   templateUrl: './device-table-header.component.html',
-  styleUrls: ['./device-table-header.component.scss']
+  styleUrls: []
 })
 export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Device> {
 

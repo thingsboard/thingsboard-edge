@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { LabelWidgetLabel } from '@home/components/widget/lib/settings/cards/label-widget-label.component';
@@ -44,14 +44,14 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 })
 export class LabelWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  labelWidgetSettingsForm: FormGroup;
+  labelWidgetSettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.labelWidgetSettingsForm;
   }
 
@@ -69,11 +69,11 @@ export class LabelWidgetSettingsComponent extends WidgetSettingsComponent {
     });
   }
 
-  protected doUpdateSettings(settingsForm: FormGroup, settings: WidgetSettings) {
+  protected doUpdateSettings(settingsForm: UntypedFormGroup, settings: WidgetSettings) {
     settingsForm.setControl('labels', this.prepareLabelsFormArray(settings.labels), {emitEvent: false});
   }
 
-  private prepareLabelsFormArray(labels: LabelWidgetLabel[] | undefined): FormArray {
+  private prepareLabelsFormArray(labels: LabelWidgetLabel[] | undefined): UntypedFormArray {
     const labelsControls: Array<AbstractControl> = [];
     if (labels) {
       labels.forEach((label) => {
@@ -83,8 +83,8 @@ export class LabelWidgetSettingsComponent extends WidgetSettingsComponent {
     return this.fb.array(labelsControls);
   }
 
-  labelsFormArray(): FormArray {
-    return this.labelWidgetSettingsForm.get('labels') as FormArray;
+  labelsFormArray(): UntypedFormArray {
+    return this.labelWidgetSettingsForm.get('labels') as UntypedFormArray;
   }
 
   public trackByLabelControl(index: number, labelControl: AbstractControl): any {
@@ -92,7 +92,7 @@ export class LabelWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   public removeLabel(index: number) {
-    (this.labelWidgetSettingsForm.get('labels') as FormArray).removeAt(index);
+    (this.labelWidgetSettingsForm.get('labels') as UntypedFormArray).removeAt(index);
   }
 
   public addLabel() {
@@ -109,7 +109,7 @@ export class LabelWidgetSettingsComponent extends WidgetSettingsComponent {
         color: '#fff'
       }
     };
-    const labelsArray = this.labelWidgetSettingsForm.get('labels') as FormArray;
+    const labelsArray = this.labelWidgetSettingsForm.get('labels') as UntypedFormArray;
     const labelControl = this.fb.control(label, [Validators.required]);
     (labelControl as any).new = true;
     labelsArray.push(labelControl);
@@ -117,7 +117,7 @@ export class LabelWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   labelDrop(event: CdkDragDrop<string[]>) {
-    const labelsArray = this.labelWidgetSettingsForm.get('labels') as FormArray;
+    const labelsArray = this.labelWidgetSettingsForm.get('labels') as UntypedFormArray;
     const label = labelsArray.at(event.previousIndex);
     labelsArray.removeAt(event.previousIndex);
     labelsArray.insert(event.currentIndex, label);

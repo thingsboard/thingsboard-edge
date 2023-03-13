@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { AfterViewInit, Directive, EventEmitter, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
@@ -646,6 +646,7 @@ export interface WidgetConfig {
   showLegend?: boolean;
   legendConfig?: LegendConfig;
   timewindow?: Timewindow;
+  desktopHide?: boolean;
   mobileHide?: boolean;
   mobileHeight?: number;
   mobileOrder?: number;
@@ -745,7 +746,7 @@ function removeEmptyWidgetSettings(settings: WidgetSettings): WidgetSettings {
 }
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class WidgetSettingsComponent extends PageComponent implements
   IWidgetSettingsComponent, OnInit, AfterViewInit {
 
@@ -841,7 +842,7 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
     }
   }
 
-  protected doUpdateSettings(settingsForm: FormGroup, settings: WidgetSettings) {
+  protected doUpdateSettings(settingsForm: UntypedFormGroup, settings: WidgetSettings) {
   }
 
   protected prepareInputSettings(settings: WidgetSettings): WidgetSettings {
@@ -858,7 +859,7 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
 
   protected onValidate() {}
 
-  protected abstract settingsForm(): FormGroup;
+  protected abstract settingsForm(): UntypedFormGroup;
 
   protected abstract onSettingsSet(settings: WidgetSettings);
 

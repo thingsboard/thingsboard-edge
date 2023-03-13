@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@
 <form class="tb-converter-test-dialog"
       [formGroup]="converterTestFormGroup" (ngSubmit)="save()">
   <mat-toolbar fxLayout="row" color="primary">
-    <h2>{{ (isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-mvel') | translate }})</h2>
+    <h2>{{ (isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
     <span fxFlex></span>
-    <button mat-button mat-icon-button
+    <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
@@ -86,12 +86,14 @@
             </div>
             <div fxFlex tb-toast toastTarget="metadataPanel">
               <tb-key-val-map
+                subscriptSizing="dynamic"
                 formControlName="metadata"
                 titleText="converter.metadata">
               </tb-key-val-map>
             </div>
             <div fxFlex *ngIf="!isDecoder" tb-toast toastTarget="integrationMetadataPanel">
               <tb-key-val-map
+                subscriptSizing="dynamic"
                 formControlName="integrationMetadata"
                 titleText="converter.integration-metadata">
               </tb-key-val-map>
@@ -115,9 +117,9 @@
                                              converterTestFormGroup.get('metadata').value,
                                              converterTestFormGroup.get('payload').get('msgType').value,
                                              converterTestFormGroup.get('integrationMetadata').value]"
-              [disableUndefinedCheck]="scriptLang === scriptLanguage.MVEL"
+              [disableUndefinedCheck]="scriptLang === scriptLanguage.TBEL"
               resultType="object"
-              helpId="{{isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn'}}"
+              helpId="{{scriptLang === scriptLanguage.TBEL ? (isDecoder ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn') : (isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn')}}"
               [fillHeight]="true">
             </tb-js-func>
           </div>

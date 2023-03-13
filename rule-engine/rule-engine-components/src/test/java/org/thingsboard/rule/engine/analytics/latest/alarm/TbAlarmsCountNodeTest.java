@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -361,7 +361,9 @@ public class TbAlarmsCountNodeTest {
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
             int alarmStatusOrdinal = (int)Math.floor(Math.random() * AlarmStatus.values().length);
-            alarm.setStatus(AlarmStatus.values()[alarmStatusOrdinal]);
+            var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
+            alarm.setCleared(alarmStatus.isCleared());
+            alarm.setAcknowledged(alarmStatus.isAck());
             alarm.setStartTs(createdTime);
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
@@ -442,7 +444,7 @@ public class TbAlarmsCountNodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null, false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

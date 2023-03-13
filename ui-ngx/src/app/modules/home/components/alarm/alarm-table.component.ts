@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -42,6 +42,9 @@ import { AlarmService } from '@app/core/http/alarm.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { Overlay } from '@angular/cdk/overlay';
+import { UtilsService } from '@core/services/utils.service';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'tb-alarm-table',
@@ -78,6 +81,16 @@ export class AlarmTableComponent implements OnInit {
     }
   }
 
+  private readonlyValue: boolean;
+  get readonly(): boolean {
+    return this.readonlyValue;
+  }
+
+  @Input()
+  set readonly(value: boolean) {
+    this.readonlyValue = coerceBooleanProperty(value);
+  }
+
   @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
 
   alarmTableConfig: AlarmTableConfig;
@@ -88,7 +101,11 @@ export class AlarmTableComponent implements OnInit {
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
-              private store: Store<AppState>) {
+              private store: Store<AppState>,
+              private overlay: Overlay,
+              private viewContainerRef: ViewContainerRef,
+              private cd: ChangeDetectorRef,
+              private utilsService: UtilsService) {
   }
 
   ngOnInit() {
@@ -102,7 +119,12 @@ export class AlarmTableComponent implements OnInit {
       this.dialog,
       this.entityIdValue,
       AlarmSearchStatus.ANY,
-      this.store
+      this.store,
+      this.viewContainerRef,
+      this.overlay,
+      this.cd,
+      this.utilsService,
+      this.readonly
     );
   }
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -44,6 +44,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { RabbitMqIntegration } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-rabbit-mq-integration-form',
@@ -62,11 +63,11 @@ import { RabbitMqIntegration } from '@shared/models/integration.models';
 })
 export class RabbitMqIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  rabbitMqIntegrationConfigForm: FormGroup;
+  rabbitMqIntegrationConfigForm: UntypedFormGroup;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.rabbitMqIntegrationConfigForm = this.fb.group({
       exchangeName: ['', []],
@@ -121,5 +122,14 @@ export class RabbitMqIntegrationFormComponent extends IntegrationForm implements
     return this.rabbitMqIntegrationConfigForm.valid ? null : {
       rabbitMqIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.rabbitMqIntegrationConfigForm.get('host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.rabbitMqIntegrationConfigForm.get('host').addValidators(privateNetworkAddressValidator);
+    }
+    this.rabbitMqIntegrationConfigForm.get('host').updateValueAndValidity({emitEvent: false});
   }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -134,7 +135,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveIntegrationWithEmptyRoutingKey() {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
@@ -142,10 +143,12 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setName("My integration");
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
-        integrationService.saveIntegration(integration);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            integrationService.saveIntegration(integration);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveIntegrationWithEmptyTenant() {
         Integration integration = new Integration();
         integration.setDefaultConverterId(converterId);
@@ -153,10 +156,12 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
-        integrationService.saveIntegration(integration);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            integrationService.saveIntegration(integration);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveIntegrationWithInvalidTenant() {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -165,10 +170,12 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         integration.setTenantId(new TenantId(Uuids.timeBased()));
-        integrationService.saveIntegration(integration);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            integrationService.saveIntegration(integration);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveIntegrationWithEmptyConverterId() {
         Integration integration = new Integration();
         integration.setName("My integration");
@@ -176,10 +183,12 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setTenantId(tenantId);
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
-        integrationService.saveIntegration(integration);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            integrationService.saveIntegration(integration);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testUpdateIntegrationType() {
         Integration integration = new Integration();
         integration.setTenantId(tenantId);
@@ -190,7 +199,9 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         Integration savedIntegration = integrationService.saveIntegration(integration);
         savedIntegration.setType(IntegrationType.HTTP);
-        integrationService.saveIntegration(savedIntegration);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            integrationService.saveIntegration(savedIntegration);
+        });
     }
 
     @Test
