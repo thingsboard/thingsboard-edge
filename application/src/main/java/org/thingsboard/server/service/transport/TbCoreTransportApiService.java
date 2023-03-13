@@ -54,7 +54,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by ashvayka on 05.10.18.
