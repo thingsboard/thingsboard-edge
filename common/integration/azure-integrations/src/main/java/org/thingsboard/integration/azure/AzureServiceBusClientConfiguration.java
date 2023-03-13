@@ -38,6 +38,9 @@ import lombok.Data;
 public class AzureServiceBusClientConfiguration {
 
     private String connectionString;
-    private String queueName;
+    private String topicName;
+    private String subName;
+    private String downlinkConnectionString;
+    private String downlinkTopicName;
 
 }

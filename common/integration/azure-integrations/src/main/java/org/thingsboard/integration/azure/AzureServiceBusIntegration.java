@@ -35,6 +35,7 @@ import com.azure.messaging.servicebus.ServiceBusErrorContext;
 import com.azure.messaging.servicebus.ServiceBusException;
 import com.azure.messaging.servicebus.ServiceBusFailureReason;
 import com.azure.messaging.servicebus.ServiceBusMessage;
+import com.azure.messaging.servicebus.ServiceBusMessageBatch;
 import com.azure.messaging.servicebus.ServiceBusProcessorClient;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
@@ -69,13 +70,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AzureServiceBusIntegration extends AbstractIntegration<AzureServiceBusIntegrationMsg> {
 
+    private AzureServiceBusClientConfiguration clientConfiguration;
     private ServiceBusSenderClient senderClient;
     private ServiceBusProcessorClient receiverClient;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        AzureServiceBusClientConfiguration clientConfiguration = getClientConfiguration(configuration, AzureServiceBusClientConfiguration.class);
+        clientConfiguration = getClientConfiguration(configuration, AzureServiceBusClientConfiguration.class);
 
         initReceiver(clientConfiguration);
 
@@ -206,12 +208,27 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
             return false;
         }
         Map<String, List<ServiceBusMessage>> deviceIdToMessage = convertDownLinkMsg(context, msg);
+        ServiceBusMessageBatch messageBatch = senderClient.createMessageBatch();
         for (Map.Entry<String, List<ServiceBusMessage>> messageEntry : deviceIdToMessage.entrySet()) {
             for (ServiceBusMessage message : messageEntry.getValue()) {
                 logServiceBusDownlink(context, message, messageEntry.getKey(), message.getContentType());
-                senderClient.sendMessage(message);
+                if (messageBatch.tryAddMessage(message)) {
+                    continue;
+                }
+
+                senderClient.sendMessages(messageBatch);
+                log.debug("Sent a batch of messages to the queue [{}]", clientConfiguration.getDownlinkTopicName());
+
+                messageBatch = senderClient.createMessageBatch();
+                if (!messageBatch.tryAddMessage(message)) {
+                    log.error("Message is too large for an empty batch. Skipping. Max size: [{}].", messageBatch.getMaxSizeInBytes());
+                }
                 log.debug("[{}][{}] Sent downlink [{}] successfully.", configuration.getId(), message.getTo(), message.getMessageId());
             }
+        }
+        if (messageBatch.getCount() > 0) {
+            senderClient.sendMessages(messageBatch);
+            log.debug("Sent a batch of messages to the queue [{}]", clientConfiguration.getDownlinkTopicName());
         }
         return !deviceIdToMessage.isEmpty();
     }
@@ -247,7 +264,8 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
         return new ServiceBusClientBuilder()
                 .connectionString(configuration.getConnectionString())
                 .processor()
-                .queueName(configuration.getQueueName())
+                .topicName(configuration.getTopicName())
+                .subscriptionName(configuration.getSubName())
                 .processMessage(this::processMessage)
                 .processError(context -> processError(context, countdownLatch))
                 .buildProcessorClient();
@@ -255,9 +273,9 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
 
     private ServiceBusSenderClient initSenderClient(AzureServiceBusClientConfiguration clientConfiguration) throws Exception {
         return new ServiceBusClientBuilder()
-                .connectionString(clientConfiguration.getConnectionString())
+                .connectionString(clientConfiguration.getDownlinkConnectionString())
                 .sender()
-                .queueName(clientConfiguration.getQueueName())
+                .topicName(clientConfiguration.getDownlinkTopicName())
                 .buildClient();
     }
 
