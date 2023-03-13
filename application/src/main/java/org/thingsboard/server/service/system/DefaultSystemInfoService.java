@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.service.system;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.ProtocolStringList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -92,12 +94,23 @@ public class DefaultSystemInfoService implements SystemInfoService {
     public FeaturesInfo getFeaturesInfo() {
         FeaturesInfo featuresInfo = new FeaturesInfo();
         featuresInfo.setWhiteLabelingEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "whiteLabelParams") != null);
-        featuresInfo.setEmailEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail") != null);
+        featuresInfo.setEmailEnabled(isEmailEnabled());
         featuresInfo.setSmsEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "sms") != null);
         featuresInfo.setOauthEnabled(oAuth2Service.findOAuth2Info().isEnabled());
         featuresInfo.setTwoFaEnabled(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "twoFaSettings") != null);
 //        featuresInfo.setNotificationEnabled(false);
         return featuresInfo;
+    }
+
+    private boolean isEmailEnabled() {
+        AdminSettings mailSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
+        if (mailSettings != null) {
+            JsonNode mailFrom = mailSettings.getJsonValue().get("mailFrom");
+            if (mailFrom != null) {
+                return !"ThingsBoard <sysadmin@localhost.localdomain>".equals(mailFrom.asText());
+            }
+        }
+        return false;
     }
 
     private void addServiceInfo(Map<String, String> serviceInfos, TransportProtos.ServiceInfo serviceInfo) {
