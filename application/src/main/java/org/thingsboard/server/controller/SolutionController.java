@@ -134,7 +134,7 @@ public class SolutionController extends BaseController {
             @PathVariable(name = "solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
         checkAllPermissions();
-        solutionService.deleteSolution(getTenantId(), solutionTemplateId);
+        solutionService.deleteSolution(getTenantId(), solutionTemplateId, getCurrentUser());
     }
 
     private void checkAllPermissions() throws ThingsboardException {

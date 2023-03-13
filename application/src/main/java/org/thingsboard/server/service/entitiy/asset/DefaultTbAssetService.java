@@ -102,4 +102,10 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
             throw e;
         }
     }
+
+    @Override
+    public ListenableFuture<Void> delete(AssetId assetId, User user) {
+        Asset asset = assetService.findAssetById(user.getTenantId(), assetId);
+        return delete(asset, user);
+    }
 }

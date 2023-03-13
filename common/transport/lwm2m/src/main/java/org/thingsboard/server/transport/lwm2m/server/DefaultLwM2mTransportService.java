@@ -40,6 +40,7 @@ import org.eclipse.leshan.core.node.codec.DefaultLwM2mEncoder;
 import org.eclipse.leshan.server.californium.LeshanServer;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
 import org.eclipse.leshan.server.californium.registration.CaliforniumRegistrationStore;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.cache.ota.OtaPackageDataCache;
 import org.thingsboard.server.common.data.DataConstants;
@@ -50,7 +51,7 @@ import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
 import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MAuthorizer;
 import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MDtlsCertificateVerifier;
 import org.thingsboard.server.transport.lwm2m.server.store.TbSecurityStore;
-import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
+import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 import org.thingsboard.server.transport.lwm2m.utils.LwM2mValueConverterImpl;
 
 import javax.annotation.PreDestroy;
@@ -71,6 +72,7 @@ import static org.thingsboard.server.transport.lwm2m.server.ota.DefaultLwM2MOtaU
 
 @Slf4j
 @Component
+@DependsOn({"lwM2mDownlinkMsgHandler", "lwM2mUplinkMsgHandler"})
 @TbLwM2mTransportComponent
 @RequiredArgsConstructor
 public class DefaultLwM2mTransportService implements LwM2MTransportService {
@@ -81,7 +83,7 @@ public class DefaultLwM2mTransportService implements LwM2MTransportService {
     private final LwM2mTransportContext context;
     private final LwM2MTransportServerConfig config;
     private final OtaPackageDataCache otaPackageDataCache;
-    private final DefaultLwM2mUplinkMsgHandler handler;
+    private final LwM2mUplinkMsgHandler handler;
     private final CaliforniumRegistrationStore registrationStore;
     private final TbSecurityStore securityStore;
     private final TbLwM2MDtlsCertificateVerifier certificateVerifier;
