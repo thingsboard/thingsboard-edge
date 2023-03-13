@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import com.google.common.collect.MapMaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -41,6 +40,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -49,7 +49,7 @@ import java.util.Map;
 public class DefaultEntityServiceRegistry implements EntityServiceRegistry {
 
     private final ApplicationContext applicationContext;
-    private final Map<EntityType, EntityDaoService> entityDaoServicesMap = new MapMaker().weakValues().makeMap();
+    private final Map<EntityType, EntityDaoService> entityDaoServicesMap = new HashMap<>();
 
     @EventListener(ContextRefreshedEvent.class)
     @Order(Ordered.HIGHEST_PRECEDENCE)
