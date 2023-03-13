@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Edge } from '@shared/models/edge.models';
+import { Edge, EdgeInstallInstructions } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { EdgeComponent } from '@home/pages/edge/edge.component';
 import { Router } from '@angular/router';
@@ -60,6 +60,10 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { WINDOW } from '@core/services/window.service';
+import {
+  EdgeInstructionsData,
+  EdgeInstructionsDialogComponent
+} from '@home/pages/edge/edge-instructions-dialog.component';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
@@ -266,6 +270,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'syncEdge':
         this.syncEdge(action.event, action.entity);
         return true;
+      case 'openInstructions':
+        this.openInstructions(action.event, action.entity);
+        return true;
     }
     return false;
   }
@@ -410,6 +417,23 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
             verticalPosition: 'bottom',
             horizontalPosition: 'right'
           }));
+      }
+    );
+  }
+
+  openInstructions($event, edge) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.edgeService.getEdgeDockerInstallInstructions(edge.id.id).subscribe(
+      (edgeInstructionsTemplate: EdgeInstallInstructions) => {
+        this.dialog.open<EdgeInstructionsDialogComponent, EdgeInstructionsData>(EdgeInstructionsDialogComponent, {
+          disableClose: false,
+          panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+          data: {
+            instructions: edgeInstructionsTemplate.dockerInstallInstructions
+          }
+        });
       }
     );
   }

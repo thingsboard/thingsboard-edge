@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,7 +67,7 @@ public class DefaultDeviceSessionCacheService implements DeviceSessionCacheServi
     @Override
     public DeviceSessionsCacheEntry put(DeviceId deviceId, DeviceSessionsCacheEntry sessions) {
         log.debug("[{}] Pushing session data to cache: {}", deviceId, sessions);
-        cache.putIfAbsent(deviceId, sessions);
+        cache.put(deviceId, sessions);
         return sessions;
     }
 }

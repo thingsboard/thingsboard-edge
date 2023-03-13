@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,10 @@ public class CustomerEdgeEventFetcher extends BasePageableEdgeEventFetcher<Custo
         List<Customer> result = new ArrayList<>();
         Customer customerById = customerService.findCustomerById(tenantId, customerId);
         result.add(customerById);
+        if (customerById != null && customerById.isPublic()) {
+            return result;
+        }
+        result.add(customerService.findOrCreatePublicCustomer(tenantId, customerId));
         if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             result.addAll(getCustomersHierarchy(tenantId, customerById.getParentCustomerId()));
         }

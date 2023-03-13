@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 public abstract class AbstractScriptEvaluator {
@@ -79,7 +80,9 @@ public abstract class AbstractScriptEvaluator {
                 try {
                     this.scriptId = this.scriptInvokeService.eval(tenantId, scriptType, script, this.getArgNames()).get();
                 } catch (Exception e) {
-                    isErrorScript = true;
+                    if (!(e.getCause() instanceof TimeoutException)) {
+                        isErrorScript = true;
+                    }
                     throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
                 }
             }

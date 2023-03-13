@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import {
   AccountTwoFaSettings,
@@ -57,8 +57,8 @@ export class SMSAuthDialogComponent extends DialogComponent<SMSAuthDialogCompone
 
   phoneNumberPattern = phoneNumberPattern;
 
-  smsConfigForm: FormGroup;
-  smsVerificationForm: FormGroup;
+  smsConfigForm: UntypedFormGroup;
+  smsVerificationForm: UntypedFormGroup;
 
   @ViewChild('stepper', {static: false}) stepper: MatStepper;
 
@@ -66,7 +66,7 @@ export class SMSAuthDialogComponent extends DialogComponent<SMSAuthDialogCompone
               protected router: Router,
               private twoFaService: TwoFactorAuthenticationService,
               public dialogRef: MatDialogRef<SMSAuthDialogComponent>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.smsConfigForm = this.fb.group({
@@ -117,7 +117,7 @@ export class SMSAuthDialogComponent extends DialogComponent<SMSAuthDialogCompone
     return this.dialogRef.close(this.config);
   }
 
-  private showFormErrors(form: FormGroup) {
+  private showFormErrors(form: UntypedFormGroup) {
     Object.keys(form.controls).forEach(field => {
       const control = form.get(field);
       control.markAsTouched({onlySelf: true});

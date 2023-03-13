@@ -30,7 +30,7 @@ As result, in REPOSITORY column, next images should be present:
         thingsboard/tb-pe-http-integration
         thingsboard/tb-pe-mqtt-integration
 
-- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis standalone:
+- Run the black box tests (without ui tests) in the [msa/black-box-tests](../black-box-tests) directory with Redis standalone:
 
         mvn clean install -DblackBoxTests.skip=false
 
@@ -43,6 +43,7 @@ As result, in REPOSITORY column, next images should be present:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.hybridMode=true
 
+- To run the black box tests with using local env run tests in the [msa/black-box-tests](../black-box-tests) directory with runLocal property:
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with integrations:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.integrations.skip=false
@@ -66,7 +67,36 @@ As result, in REPOSITORY column, next images should be present:
 
   -DblackBoxTests.azureEventHubConnectionString=YOUR_CONNECTION_STRING
 
-To run the black box tests with using local env run tests in the [msa/black-box-tests](../black-box-tests) directory with runLocal property:
+- To run the black box tests with using local env run tests in the [msa/black-box-tests](../black-box-tests) directory with runLocal property:
 
         mvn clean install -DblackBoxTests.skip=false -DrunLocal=true
+
+- To run only integrations tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=integrations
+
+- To run only connectivity tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=connectivity
+
+- To run only ui tests in the [msa/black-box-tests](../black-box-tests) directory: 
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=uiTests
+
+- To run only ui smoke rule chains tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=smokesRuleChain
+
+- To run only ui smoke customers tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=smokesCustomer
+
+- To run only ui smoke profiles tests in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=smokesPrifiles
+
+- To run all tests (black-box and ui) in the [msa/black-box-tests](../black-box-tests) directory:
+
+        mvn clean install -DblackBoxTests.skip=false -Dsuite=all 
+
 

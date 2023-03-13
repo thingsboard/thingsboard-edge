@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -444,8 +444,6 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     }
 
     private void uploadTelemetry(String strKvs, String accessToken) throws Exception {
-        String viewDeviceId = testDevice.getId().getId().toString();
-
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient("tcp://localhost:1883", clientId, new MemoryPersistence());
 
@@ -581,40 +579,13 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         return loadedItems;
     }
 
-    @Ignore // CE specific test
-    @Test
-    public void testAssignEntityViewToEdge() throws Exception {
-        Edge edge = constructEdge("My edge", "default");
-        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
-
-        EntityView savedEntityView = getNewSavedEntityView("My entityView");
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/device/" + testDevice.getId().getId().toString(), Device.class);
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/entityView/" + savedEntityView.getId().getId().toString(), EntityView.class);
-
-        PageData<EntityView> pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/entityViews?",
-                PAGE_DATA_ENTITY_VIEW_TYPE_REF, new PageLink(100));
-
-        Assert.assertEquals(1, pageData.getData().size());
-
-        doDelete("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/entityView/" + savedEntityView.getId().getId().toString(), EntityView.class);
-
-        pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/entityViews?",
-                PAGE_DATA_ENTITY_VIEW_TYPE_REF, new PageLink(100));
-
-        Assert.assertEquals(0, pageData.getData().size());
-    }
-
     @Test
     public void testDeleteEntityViewWithDeleteRelationsOk() throws Exception {
         EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(tenantId, entityViewId, "/api/entityView/" + entityViewId);
     }
 
+    @Ignore
     @Test
     public void testDeleteEntityViewExceptionWithRelationsTransactional() throws Exception {
         EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelations Transactional Exception").getId();

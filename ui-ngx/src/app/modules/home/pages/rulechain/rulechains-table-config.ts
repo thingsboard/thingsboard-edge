@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -107,7 +107,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       if (this.isDetailsOpen()) {
         this.toggleEntityDetails($event, ruleChain);
       } else {
-        this.openRuleChain($event, ruleChain);
+        this.openRuleChain($event, ruleChain, this.componentsData);
       }
       return true;
     };

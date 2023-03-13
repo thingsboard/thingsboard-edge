@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa;
 
 import lombok.extern.slf4j.Slf4j;
+import org.testcontainers.DockerClientFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +52,15 @@ public class TestProperties {
             return HTTPS_URL;
         }
         return getProperties().getProperty("tb.baseUrl");
+    }
+
+    public static String getBaseUiUrl() {
+        if (instance.isActive()) {
+            //return "https://host.docker.internal" // this alternative requires docker-selenium.yml extra_hosts: - "host.docker.internal:host-gateway"
+            //return "https://" + DockerClientFactory.instance().dockerHostIpAddress(); //this alternative will get Docker IP from testcontainers
+            return "https://haproxy"; //communicate inside current docker-compose network to the load balancer container
+        }
+        return getProperties().getProperty("tb.baseUiUrl");
     }
 
     public static String getWebSocketUrl() {
@@ -76,6 +86,20 @@ public class TestProperties {
             return "tcp://" + host + ":" + port;
         }
         return getProperties().getProperty("mqtt.broker");
+    }
+
+    public static String getRemoteCoapHost(){
+        if (instance.isActive()) {
+            return "localhost";
+        }
+        return getProperties().getProperty("remote.coap.host");
+    }
+
+    public static int getRemoteCoapPort(){
+        if (instance.isActive()) {
+            return 15683;
+        }
+        return Integer.parseInt(getProperties().getProperty("remote.coap.port"));
     }
 
     private static Properties getProperties() {

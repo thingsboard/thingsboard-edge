@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -32,15 +32,13 @@
 -->
 <div class="markdown-content" [ngClass]="{'tb-edit-mode': !readonly}"
      tb-fullscreen [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()">
-  <div fxLayout="row" fxLayoutAlign="start center" style="height: 40px;">
+  <div fxLayout="row" fxLayoutAlign="start center" style="height: 40px;" class="markdown-editor-toolbar">
     <label class="tb-title no-padding" [ngClass]="{'tb-error': !disabled && required && !markdownValue, 'tb-required': !disabled && required}">{{ label }}</label>
     <span fxFlex></span>
     <button [fxShow]="!editorMode"
-            class="panel-button"
             type="button"
             mat-button (click)="toggleEditMode()">{{ 'markdown.edit' | translate }}</button>
     <button [fxShow]="editorMode"
-            class="panel-button"
             type="button"
             mat-button (click)="toggleEditMode()">{{ 'markdown.preview' | translate }}</button>
     <div *ngIf = "helpId" [tb-help-popup]="helpId"></div>
@@ -49,7 +47,7 @@
            matTooltipPosition="above"
            style="border-radius: 50%"
            (click)="fullscreen = !fullscreen">
-        <button type='button' mat-button mat-icon-button class="tb-mat-32 panel-button">
+        <button type='button' mat-icon-button class="tb-mat-32">
           <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
         </button>
       </div>

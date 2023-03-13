@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -141,9 +141,9 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           queryParams = section.queryParams;
         } else {
           if (breadcrumbConfig.labelFunction) {
-            labelFunction = () => {
-              return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils);
-            };
+            labelFunction = () => this.activeComponentValue ?
+              breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils) :
+              breadcrumbConfig.label;
             ignoreTranslate = true;
           } else {
             label = breadcrumbConfig.label || 'home.home';
