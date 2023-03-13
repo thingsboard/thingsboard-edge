@@ -165,16 +165,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
@@ -837,7 +828,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Device, DeviceDefinition> provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
         Map<Device, DeviceDefinition> result = new HashMap<>();
-        Map<String, DeviceProfile> deviceProfileMap = new HashMap<>();
+        Set<String> deviceTypeSet = new HashSet<>();
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
 
@@ -847,7 +838,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setTenantId(ctx.getTenantId());
             entity.setName(entityDef.getName());
             entity.setLabel(entityDef.getLabel());
-            ensureDeviceProfileExists(ctx, deviceProfileMap, entityDef);
+            ensureDeviceProfileExists(ctx, deviceTypeSet, entityDef);
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
             entity = deviceService.saveDevice(entity);
@@ -876,14 +867,14 @@ public class DefaultSolutionService implements SolutionService {
         return result;
     }
 
-    private void ensureDeviceProfileExists(SolutionInstallContext ctx, Map<String, DeviceProfile> deviceProfileMap, DeviceDefinition entityDef) {
-        if (!deviceProfileMap.containsKey(entityDef.getType())){
+    private void ensureDeviceProfileExists(SolutionInstallContext ctx, Set<String> deviceTypeSet, DeviceDefinition entityDef) {
+        if (!deviceTypeSet.contains(entityDef.getType())){
             DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileByName(ctx.getTenantId(), entityDef.getType());
             if (deviceProfile == null) {
                 DeviceProfile created = deviceProfileService.findOrCreateDeviceProfile(ctx.getTenantId(), entityDef.getType());
                 ctx.register(created.getId());
                 log.info("Saved device profile: {}", created.getId());
-                deviceProfileMap.put(entityDef.getType(), created);
+                deviceTypeSet.add(entityDef.getType());
             }
         }
     }
@@ -972,7 +963,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) throws ThingsboardException {
         Map<Asset, AssetDefinition> result = new HashMap<>();
-        Map<String, AssetProfile> assetProfileMap = new HashMap<>();
+        Set<String> assetTypeSet = new HashSet<>();
         List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
@@ -982,7 +973,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setLabel(entityDef.getLabel());
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
-            ensureAssetProfileExists(ctx, assetProfileMap, entityDef);
+            ensureAssetProfileExists(ctx, assetTypeSet, entityDef);
             entity = assetService.saveAsset(entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved asset: {}", entity.getId(), entity);
@@ -996,14 +987,14 @@ public class DefaultSolutionService implements SolutionService {
         return result;
     }
 
-    private void ensureAssetProfileExists(SolutionInstallContext ctx, Map<String, AssetProfile> assetProfileMap, AssetDefinition entityDef) {
-        if (!assetProfileMap.containsKey(entityDef.getType())){
+    private void ensureAssetProfileExists(SolutionInstallContext ctx, Set<String> assetTypeSet, AssetDefinition entityDef) {
+        if (!assetTypeSet.contains(entityDef.getType())){
             AssetProfile assetProfile = assetProfileService.findAssetProfileByName(ctx.getTenantId(), entityDef.getType());
             if (assetProfile == null) {
                 AssetProfile created = assetProfileService.findOrCreateAssetProfile(ctx.getTenantId(), entityDef.getType());
                 ctx.register(created.getId());
                 log.info("Saved asset profile: {}", created.getId());
-                assetProfileMap.put(entityDef.getType(), created);
+                assetTypeSet.add(entityDef.getType());
             }
         }
     }
