@@ -46,7 +46,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String CITY = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column4')]/span";
     private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
     protected static final String EDIT_MENU_DASHBOARD_FIELD = "//input[@formcontrolname='dashboard']";
-    private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span";
+    private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span[contains(text(),'%s')]";
     private static final String MANAGE_CUSTOMERS_USERS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' account_circle')]";
     private static final String MANAGE_CUSTOMERS_ASSETS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' domain')]/parent::button";
     private static final String MANAGE_CUSTOMERS_GROUPS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' supervisor_account')]/parent::button";
@@ -124,8 +124,8 @@ public class CustomerPageElements extends OtherPageElementsHelper {
         return waitUntilVisibilityOfElementLocated(EDIT_MENU_DASHBOARD_FIELD);
     }
 
-    public WebElement editMenuDashboard() {
-        return waitUntilElementToBeClickable(EDIT_MENU_DASHBOARD);
+    public WebElement editMenuDashboard(String dashboardName) {
+        return waitUntilElementToBeClickable(String.format(EDIT_MENU_DASHBOARD, dashboardName));
     }
 
     public WebElement phoneNumberEntityView() {
