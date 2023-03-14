@@ -71,7 +71,7 @@ public class ManageCustomersDevicesTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersDeviceGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersDeviceGroupsBtnView());
 
         Assert.assertTrue(urlContains("deviceGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

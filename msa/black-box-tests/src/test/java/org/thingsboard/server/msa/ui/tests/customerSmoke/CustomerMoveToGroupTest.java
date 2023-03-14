@@ -33,7 +33,7 @@ package org.thingsboard.server.msa.ui.tests.customerSmoke;
 import io.qameta.allure.Description;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -56,7 +56,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
     private String groupName1;
     private String groupName2;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -91,7 +91,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
-        customerPage.selectGroupViewExistField().click();
+        jsClick(customerPage.selectGroupViewExistField());
         customerPage.entityFromDropDown(groupName2).click();
         customerPage.selectGroupViewSubmitBtn().click();
         sideBarMenuView.customerGroupsBtn().click();
