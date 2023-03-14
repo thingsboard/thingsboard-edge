@@ -51,6 +51,8 @@ import { IEntitiesTableComponent } from '@home/models/entity/entity-table-compon
 import { IEntityDetailsPageComponent } from '@home/models/entity/entity-details-page-component.models';
 import { MatButton } from '@angular/material/button';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -194,8 +196,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   actionsColumnTitle = null;
   entityTranslations: EntityTypeTranslation;
   entityResources: EntityTypeResource<T>;
-  entityComponent: Type<EntityComponent<T, P, L>>;
-  entityTabsComponent: Type<EntityTabsComponent<T, P, L>>;
+  entityComponent: Type<EntityComponent<T, P, L> | GroupEntityComponent<T>>;
+  entityTabsComponent: Type<EntityTabsComponent<T, P, L> | GroupEntityTabsComponent<T>>;
   addDialogStyle = {};
   defaultSortOrder: SortOrder = {property: 'createdTime', direction: Direction.DESC};
   displayPagination = true;

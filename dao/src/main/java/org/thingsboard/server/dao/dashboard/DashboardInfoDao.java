@@ -74,7 +74,7 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
      */
     PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
 
-    PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(UUID tenantId, UUID customerId, PageLink pageLink);
+    PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink);
 
     /**
      * Find dashboards not hidden for mobile by tenantId, customerId and page link.

@@ -73,7 +73,7 @@ public interface DashboardService extends EntityDaoService {
 
     PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
-    PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+    PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     PageData<DashboardInfo> findMobileDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 

@@ -85,7 +85,7 @@ public class JpaDashboardInfoDaoTest extends AbstractJpaDaoTest {
     }
 
     @Test
-    public void testFindDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers() {
+    public void testFindDashboardsByTenantIdAndCustomerIdIncludingSubCustomers() {
         UUID tenantId1 = Uuids.timeBased();
         Customer customer1 = createCustomer(tenantId1, null, 0);
         Customer subCustomer2 = createCustomer(tenantId1, customer1.getUuidId(),1);
@@ -96,14 +96,14 @@ public class JpaDashboardInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         PageLink pageLink = new PageLink(30, 0, "DASHBOARD", new SortOrder("ownerName", SortOrder.Direction.ASC));
-        PageData<DashboardInfo> dashboardInfos1 = dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(tenantId1, customer1.getUuidId(), pageLink);
+        PageData<DashboardInfo> dashboardInfos1 = dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId1, customer1.getUuidId(), pageLink);
         Assert.assertEquals(30, dashboardInfos1.getData().size());
         dashboardInfos1.getData().forEach(dashboardInfo -> Assert.assertNotEquals("CUSTOMER_0", dashboardInfo.getOwnerName()));
 
-        PageData<DashboardInfo> dashboardInfos2 = dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(tenantId1, customer1.getUuidId(), pageLink.nextPageLink());
+        PageData<DashboardInfo> dashboardInfos2 = dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId1, customer1.getUuidId(), pageLink.nextPageLink());
         Assert.assertEquals(10, dashboardInfos2.getData().size());
 
-        PageData<DashboardInfo> dashboardInfos3 = dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(tenantId1, subCustomer2.getUuidId(), pageLink);
+        PageData<DashboardInfo> dashboardInfos3 = dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId1, subCustomer2.getUuidId(), pageLink);
         Assert.assertEquals(20, dashboardInfos3.getData().size());
     }
 

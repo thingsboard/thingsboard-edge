@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { RouterModule, Routes } from '@angular/router';
+import { Route, RouterModule } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
+import { devicesRoute } from '@home/pages/device/device-routing.module';
 
-const routes: Routes = [
-  {
+export const entitiesRoute = (includeShared = false): Route => ({
     path: 'entities',
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
@@ -52,15 +52,14 @@ const routes: Routes = [
           redirectTo: '/entities/devices'
         }
       },
-     // ...deviceRoutes,
+     devicesRoute(includeShared),
      // ...assetRoutes,
      // ...entityViewRoutes
     ]
-  }
-];
+  });
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
+  imports: [RouterModule.forChild([entitiesRoute(true)])],
   exports: [RouterModule]
 })
 export class EntitiesRoutingModule { }

@@ -138,7 +138,7 @@ import {
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { AuthState } from '@app/core/auth/auth.models';
 import { ReportService } from '@core/http/report.service';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { EntityGroupInfo, resolveGroupParams } from '@shared/models/entity-group.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
 import { ReportType } from '@shared/models/report.models';
@@ -177,6 +177,7 @@ import { tap } from 'rxjs/operators';
 import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-page/layout/layout.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { EntityType } from '@shared/models/entity-type.models';
 
 // @dynamic
 @Component({
@@ -194,6 +195,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   entityGroup: EntityGroupInfo;
   entityGroupId: string;
+  customerId: string;
 
   @HostBinding('class')
   dashboardPageClass: string;
@@ -413,15 +415,18 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
             currentDashboardId: this.dashboard.id ? this.dashboard.id.id : null,
             widgetEditMode: false,
             singlePageMode: false,
-            entityGroup: null
+            entityGroup: null,
+            customerId: null
           };
         } else {
+          const groupParams = resolveGroupParams(this.route.snapshot);
           dashboardPageInitData = {
             dashboard: data.dashboard,
             currentDashboardId: this.route.snapshot.params.dashboardId,
             widgetEditMode: data.widgetEditMode,
             singlePageMode: data.singlePageMode,
-            entityGroup: data.entityGroup
+            entityGroup: data.entityGroup,
+            customerId: groupParams.customerId
           };
         }
         this.init(dashboardPageInitData);
@@ -471,7 +476,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
     this.dashboard = data.dashboard;
     this.translatedDashboardTitle = this.getTranslatedDashboardTitle();
-    this.entityGroup = data.entityGroup;
+    if (data.entityGroup && data.entityGroup.type === EntityType.DASHBOARD) {
+      this.entityGroup = data.entityGroup;
+    }
+    this.customerId = data.customerId;
     if (!this.embedded && this.dashboard.id) {
       this.setStateDashboardId = true;
     }

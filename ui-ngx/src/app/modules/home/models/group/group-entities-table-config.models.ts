@@ -112,7 +112,7 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
     this.entityType = entityGroup.type;
     this.entityTranslations = entityTypeTranslations.get(this.entityType);
     this.entityResources = entityTypeResources.get(this.entityType);
-    this.entityTabsComponent = GroupEntityTabsComponent;
+    this.entityTabsComponent = GroupEntityTabsComponent<T>;
     this.headerComponent = GroupEntityTableHeaderComponent;
     this.entitiesDeleteEnabled = this.settings.enableDelete;
     this.searchEnabled = this.settings.enableSearch;

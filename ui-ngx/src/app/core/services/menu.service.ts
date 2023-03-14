@@ -550,7 +550,8 @@ export class MenuService {
           type: 'link',
           path: '/dashboards',
           icon: 'dashboards',
-          pages: dashboardPages
+          pages: dashboardPages,
+          disabled: disabledItems.indexOf('dashboards') > -1
         }
       );
     }
@@ -564,6 +565,173 @@ export class MenuService {
           icon: 'apps',
           disabled: disabledItems.indexOf('solution_templates') > -1,
           isNew: true
+        }
+      );
+    }
+    const entityPages: Array<MenuSection> = [];
+    const devicesPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE)) {
+      devicesPages.push(
+        {
+          id: guid(),
+          name: 'device.all',
+          type: 'link',
+          path: '/entities/devices/all',
+          icon: 'devices_other',
+          disabled: disabledItems.indexOf('device_all') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.DEVICE)) {
+      devicesPages.push(
+        {
+          id: guid(),
+          name: 'device.groups',
+          type: 'link',
+          path: '/entities/devices/groups',
+          icon: 'devices_other',
+          disabled: disabledItems.indexOf('device_groups') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DEVICE)) {
+      devicesPages.push(
+        {
+          id: guid(),
+          name: 'device.shared',
+          type: 'link',
+          path: '/entities/devices/shared',
+          icon: 'devices_other',
+          rootOnly: true,
+          disabled: disabledItems.indexOf('device_shared') > -1
+        }
+      );
+    }
+    if (devicesPages.length) {
+      entityPages.push(
+        {
+          id: guid(),
+          name: 'device.devices',
+          type: 'link',
+          path: '/entities/devices',
+          icon: 'devices_other',
+          pages: devicesPages,
+          disabled: disabledItems.indexOf('devices') > -1
+        }
+      );
+    }
+    const assetsPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET)) {
+      assetsPages.push(
+        {
+          id: guid(),
+          name: 'asset.all',
+          type: 'link',
+          path: '/entities/assets/all',
+          icon: 'domain',
+          disabled: disabledItems.indexOf('asset_all') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.ASSET)) {
+      assetsPages.push(
+        {
+          id: guid(),
+          name: 'asset.groups',
+          type: 'link',
+          path: '/entities/assets/groups',
+          icon: 'domain',
+          disabled: disabledItems.indexOf('asset_groups') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.ASSET)) {
+      assetsPages.push(
+        {
+          id: guid(),
+          name: 'asset.shared',
+          type: 'link',
+          path: '/entities/assets/shared',
+          icon: 'domain',
+          rootOnly: true,
+          disabled: disabledItems.indexOf('asset_shared') > -1
+        }
+      );
+    }
+    if (assetsPages.length) {
+      entityPages.push(
+        {
+          id: guid(),
+          name: 'asset.assets',
+          type: 'link',
+          path: '/entities/assets',
+          icon: 'domain',
+          pages: assetsPages,
+          disabled: disabledItems.indexOf('assets') > -1
+        }
+      );
+    }
+    const entityViewsPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.ENTITY_VIEW)) {
+      entityViewsPages.push(
+        {
+          id: guid(),
+          name: 'entity-view.all',
+          type: 'link',
+          path: '/entities/entityViews/all',
+          icon: 'view_quilt',
+          disabled: disabledItems.indexOf('entity_view_all') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.ENTITY_VIEW)) {
+      entityViewsPages.push(
+        {
+          id: guid(),
+          name: 'entity-view.groups',
+          type: 'link',
+          path: '/entities/entityViews/groups',
+          icon: 'view_quilt',
+          disabled: disabledItems.indexOf('entity_view_groups') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)) {
+      entityViewsPages.push(
+        {
+          id: guid(),
+          name: 'entity-view.shared',
+          type: 'link',
+          path: '/entities/entityViews/shared',
+          icon: 'view_quilt',
+          rootOnly: true,
+          disabled: disabledItems.indexOf('entity_view_shared') > -1
+        }
+      );
+    }
+    if (entityViewsPages.length) {
+      entityPages.push(
+        {
+          id: guid(),
+          name: 'entity-view.entity-views',
+          type: 'link',
+          path: '/entities/entityViews',
+          icon: 'view_quilt',
+          pages: entityViewsPages,
+          disabled: disabledItems.indexOf('assets') > -1
+        }
+      );
+    }
+    if (entityPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'entity.entities',
+          type: 'toggle',
+          path: '/entities',
+          icon: 'category',
+          pages: entityPages,
+          disabled: disabledItems.indexOf('entities') > -1
         }
       );
     }

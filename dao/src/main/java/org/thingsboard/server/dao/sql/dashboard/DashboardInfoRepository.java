@@ -89,10 +89,10 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
                     "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             nativeQuery = true)
-    Page<DashboardInfoEntity> findByTenantIdAndCustomerIdIncludingSubsCustomers(@Param("tenantId") UUID tenantId,
-                                                                                @Param("customerId") UUID customerId,
-                                                                                @Param("searchText") String searchText,
-                                                                                Pageable pageable);
+    Page<DashboardInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
+                                                                               @Param("customerId") UUID customerId,
+                                                                               @Param("searchText") String searchText,
+                                                                               Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di, RelationEntity re WHERE di.tenantId = :tenantId " +
             "AND di.mobileHide = false " +

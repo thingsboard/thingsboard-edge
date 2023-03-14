@@ -722,11 +722,9 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   additionalInfo?: any;
 }
 
-/*export interface DeviceInfo extends Device {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  deviceProfileName: string;
-}*/
+export interface DeviceInfo extends Device {
+  ownerName?: string;
+}
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',

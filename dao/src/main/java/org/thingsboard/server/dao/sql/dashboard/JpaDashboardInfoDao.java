@@ -87,7 +87,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                 .findTenantDashboardsByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
     @Override
@@ -101,7 +101,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                 .findMobileByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink, sortOrders)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
     @Override
@@ -111,13 +111,13 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                         tenantId,
                         customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
     @Override
-    public PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(UUID tenantId, UUID customerId, PageLink pageLink) {
+    public PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink) {
         return DaoUtil.toPageData(dashboardInfoRepository
-                .findByTenantIdAndCustomerIdIncludingSubsCustomers(
+                .findByTenantIdAndCustomerIdIncludingSubCustomers(
                         tenantId,
                         customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
@@ -136,7 +136,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                         tenantId,
                         customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink, sortOrders)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
     @Override

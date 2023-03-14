@@ -385,7 +385,7 @@ public class DashboardController extends BaseController {
             } else {
                 CustomerId customerId = getCurrentUser().getCustomerId();
                 if (includeCustomers != null && includeCustomers) {
-                    return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(tenantId, customerId, pageLink));
+                    return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
                 } else {
                     return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
                 }
@@ -425,7 +425,7 @@ public class DashboardController extends BaseController {
             checkCustomerId(customerId, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (includeCustomers != null && includeCustomers) {
-                return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(tenantId, customerId, pageLink));
+                return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
             } else {
                 return checkNotNull(dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
             }

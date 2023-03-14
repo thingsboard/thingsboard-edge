@@ -33,21 +33,17 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { GroupDashboardFormComponent } from '@modules/home/pages/dashboard/group-dashboard-form.component';
+import { DashboardFormComponent } from '@modules/home/pages/dashboard/dashboard-form.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
 import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
 import { DashboardRoutingModule } from '@home/pages/dashboard/dashboard-routing.module';
-import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-table-header.component';
 
 @NgModule({
   declarations: [
-    GroupDashboardFormComponent,
     DashboardFormComponent,
-    DashboardTabsComponent,
     DashboardTableHeaderComponent,
     PublicDashboardLinkDialogComponent
   ],

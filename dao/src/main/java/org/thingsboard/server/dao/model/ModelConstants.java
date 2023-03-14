@@ -195,6 +195,8 @@ public class ModelConstants {
     public static final String DEVICE_BY_TENANT_AND_NAME_VIEW_NAME = "device_by_tenant_and_name";
     public static final String DEVICE_TYPES_BY_TENANT_VIEW_NAME = "device_types_by_tenant";
 
+    public static final String DEVICE_INFO_VIEW_COLUMN_FAMILY_NAME = "device_info_view";
+
     /**
      * Device profile constants.
      */

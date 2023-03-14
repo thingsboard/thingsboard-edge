@@ -48,7 +48,7 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
-import { GroupDashboardFormComponent } from '@home/pages/dashboard/group-dashboard-form.component';
+import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { ActivatedRoute, Router, UrlTree } from '@angular/router';
@@ -78,7 +78,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Dashboard>): Observable<GroupEntityTableConfig<Dashboard>> {
     const config = new GroupEntityTableConfig<Dashboard>(entityGroup, params);
 
-    config.entityComponent = GroupDashboardFormComponent;
+    config.entityComponent = DashboardFormComponent;
 
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';

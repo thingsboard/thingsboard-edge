@@ -59,7 +59,6 @@ import { ImportExportService } from '@home/components/import-export/import-expor
 import { UtilsService } from '@core/services/utils.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -67,6 +66,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-table-header.component';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
@@ -133,7 +133,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
   configDefaults(config: EntityTableConfig<DashboardInfo | Dashboard>) {
     config.entityType = EntityType.DASHBOARD;
     config.entityComponent = DashboardFormComponent;
-    config.entityTabsComponent = DashboardTabsComponent;
+    config.entityTabsComponent = GroupEntityTabsComponent<Dashboard>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
 

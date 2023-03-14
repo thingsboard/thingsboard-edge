@@ -76,6 +76,7 @@ import { entityIdEquals } from '@shared/models/id/entity-id';
 import { IntegrationsTableConfigResolver } from '@home/pages/integration/integrations-table-config.resolver';
 import { dashboardsRoute } from '@home/pages/dashboard/dashboard-routing.module';
 import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/group/entity-group.shared';
+import { entitiesRoute } from '@home/pages/entities/entities-routing.module';
 
 @Injectable()
 export class RedirectToEntityGroup implements CanActivate {
@@ -262,72 +263,6 @@ const ASSET_GROUPS_ROUTE: Route =
     ]
   };
 
-const DEVICE_GROUPS_ROUTE: Route = {
-  path: 'deviceGroups',
-  data: {
-    groupType: EntityType.DEVICE,
-    breadcrumb: {
-      label: 'entity-group.device-groups',
-      icon: 'devices_other'
-    }
-  },
-  children: [
-    {
-      path: '',
-      component: EntitiesTableComponent,
-      data: {
-        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        title: 'entity-group.device-groups',
-        groupType: EntityType.DEVICE
-      },
-      resolve: {
-        entityGroup: EntityGroupResolver,
-        entitiesTableConfig: EntityGroupsTableConfigResolver
-      }
-    },
-    {
-      path: ':entityGroupId',
-      data: {
-        breadcrumb: {
-          icon: 'devices_other',
-          labelFunction: groupEntitiesLabelFunction
-        } as BreadCrumbConfig<GroupEntitiesTableComponent>
-      },
-      children: [
-        {
-          path: '',
-          component: GroupEntitiesTableComponent,
-          data: {
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'entity-group.device-group',
-            groupType: EntityType.DEVICE
-          },
-          resolve: {
-            entityGroup: EntityGroupResolver
-          }
-        },
-        {
-          path: ':entityId',
-          component: EntityDetailsPageComponent,
-          canDeactivate: [ConfirmOnExitGuard],
-          data: {
-            breadcrumb: {
-              labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-              icon: 'devices_other'
-            } as BreadCrumbConfig<EntityDetailsPageComponent>,
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'entity-group.device-group',
-            groupType: EntityType.DEVICE
-          },
-          resolve: {
-            entityGroup: EntityGroupResolver
-          }
-        }
-      ]
-    }
-  ]
-};
-
 const ENTITY_VIEW_GROUPS_ROUTE: Route = {
   path: 'entityViewGroups',
   data: {
@@ -474,6 +409,23 @@ const redirectDashboardGroupsRoutes: Routes = [
   {
     path: 'dashboardGroups/:entityGroupId/:dashboardId',
     redirectTo: '/dashboards/groups/:entityGroupId/:dashboardId'
+  }
+];
+
+const redirectDeviceGroupsRoutes: Routes = [
+  {
+    path: 'deviceGroups',
+    pathMatch: 'full',
+    redirectTo: '/entities/devices/groups'
+  },
+  {
+    path: 'deviceGroups/:entityGroupId',
+    pathMatch: 'full',
+    redirectTo: '/entities/devices/groups/:entityGroupId'
+  },
+  {
+    path: 'deviceGroups/:entityGroupId/:entityId',
+    redirectTo: '/entities/devices/groups/:entityGroupId/:entityId'
   }
 ];
 
@@ -737,8 +689,8 @@ const routes: Routes = [
               }
             }
           },
-          { ...DEVICE_GROUPS_ROUTE, ...{
-              path: ':customerId/deviceGroups',
+          { ...entitiesRoute(), ...{
+              path: ':customerId/entities',
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
@@ -878,8 +830,8 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {...DEVICE_GROUPS_ROUTE, ...{
-                      path: ':edgeId/deviceGroups',
+                  {...entitiesRoute(), ...{
+                      path: ':edgeId/entities',
                       data: {
                         edgeEntitiesType: EntityType.DEVICE,
                         groupType: EntityType.DEVICE,
@@ -1063,8 +1015,8 @@ const routes: Routes = [
               }
             }
           },
-          { ...DEVICE_GROUPS_ROUTE, ...{
-              path: ':edgeId/deviceGroups',
+          { ...entitiesRoute(), ...{
+              path: ':edgeId/entities',
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
@@ -1107,10 +1059,10 @@ const routes: Routes = [
     ]
   },
   ASSET_GROUPS_ROUTE,
-  DEVICE_GROUPS_ROUTE,
   ENTITY_VIEW_GROUPS_ROUTE,
   USER_GROUPS_ROUTE,
   ...redirectDashboardGroupsRoutes,
+  ...redirectDeviceGroupsRoutes,
   {
     path: 'customersHierarchy',
     component: CustomersHierarchyComponent,

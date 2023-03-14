@@ -44,10 +44,41 @@
           [fxShow]="!isEdit">
     {{'dashboard.export' | translate }}
   </button>
+  <!--button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'makePublic')"
+          [fxShow]="!isEdit && dashboardScope === 'tenant' && !isPublic(entity)">
+    {{'dashboard.make-public' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'makePrivate')"
+          [fxShow]="!isEdit && (dashboardScope === 'tenant' && isPublic(entity)
+                                || dashboardScope === 'customer' && isCurrentPublicCustomer(entity))">
+    {{'dashboard.make-private' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageAssignedCustomers')"
+          [fxShow]="!isEdit && dashboardScope === 'tenant'">
+    {{'dashboard.manage-assigned-customers' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'unassignFromCustomer')"
+          [fxShow]="!isEdit && dashboardScope === 'customer' && !isCurrentPublicCustomer(entity)">
+    {{ 'dashboard.unassign-from-customer' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'unassignFromEdge')"
+          [fxShow]="!isEdit && dashboardScope === 'edge'">
+    {{ 'edge.unassign-from-edge' | translate }}
+  </button-->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          *ngIf="resource.DASHBOARD | hasGenericPermission: operation.DELETE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.DASHBOARD : operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit">
     {{'dashboard.delete' | translate }}
   </button>
@@ -63,6 +94,28 @@
   </button>
 </div>
 <div class="mat-padding" fxLayout="column">
+  <div fxLayout="column" [fxShow]="!isEdit && isPublic">
+    <tb-social-share-panel style="padding-bottom: 1.25em;"
+                           shareTitle="{{ 'dashboard.socialshare-title' | translate:{dashboardTitle: entity?.title} }}"
+                           shareText="{{ 'dashboard.socialshare-text' | translate:{dashboardTitle: entity?.title} }}"
+                           shareLink="{{ publicLink }}"
+                           shareHashTags="thingsboard, iot">
+    </tb-social-share-panel>
+    <div fxLayout="row">
+      <mat-form-field class="mat-block" fxFlex>
+        <mat-label translate>dashboard.public-link</mat-label>
+        <input matInput disabled [ngModel]="publicLink">
+      </mat-form-field>
+      <button mat-icon-button style="margin-top: 8px;"
+              ngxClipboard
+              (cbOnSuccess)="onPublicLinkCopied($event)"
+              cbContent="{{ publicLink }}"
+              matTooltipPosition="above"
+              matTooltip="{{ 'dashboard.copy-public-link' | translate }}">
+        <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      </button>
+    </div>
+  </div>
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">

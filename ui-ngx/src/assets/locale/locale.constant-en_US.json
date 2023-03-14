@@ -604,6 +604,9 @@
         "scheduler-event-type": "Scheduler event type"
     },
     "asset": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "asset": "Asset",
         "assets": "Assets",
         "management": "Asset management",
@@ -1301,6 +1304,9 @@
         "toggle-edit-mode": "Toggle edit mode"
     },
     "device": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "device": "Device",
         "device-required": "Device is required.",
         "devices": "Devices",
@@ -2439,6 +2445,9 @@
         "originatorType": "Originator Type"
     },
     "entity-view": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "entity-view": "Entity View",
         "entity-view-required": "Entity view is required.",
         "entity-views": "Entity Views",

@@ -248,12 +248,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     @Override
-    public PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+    public PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validateId(customerId, "Incorrect customerId " + customerId);
         Validator.validatePageLink(pageLink);
-        return dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubsCustomers(tenantId.getId(), customerId.getId(), pageLink);
+        return dashboardInfoDao.findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
     }
 
     @Override
