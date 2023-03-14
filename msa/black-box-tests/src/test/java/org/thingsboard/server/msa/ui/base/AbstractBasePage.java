@@ -147,7 +147,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOf(element)));
         } catch (WebDriverException e) {
-            log.error(element.getTagName() + "is visibility");
+            fail(element.getTagName() + "is visibility");
         }
     }
 
@@ -187,7 +187,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.attributeContains(element, attribute, value));
         } catch (WebDriverException e) {
-            log.error("Miss locator, attribute or value");
+            fail("Miss locator, attribute or value");
         }
     }
 
@@ -195,7 +195,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {
-            log.error("Element is visible");
+            fail("Element is visible");
         }
     }
 
