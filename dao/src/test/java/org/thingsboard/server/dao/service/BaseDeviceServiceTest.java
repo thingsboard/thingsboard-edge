@@ -34,10 +34,8 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -66,6 +64,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
@@ -100,10 +99,6 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         tenantProfileService.deleteTenantProfiles(tenantId);
         tenantProfileService.deleteTenantProfiles(anotherTenantId);
     }
-
-    @SuppressWarnings("deprecation")
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testSaveDevicesWithoutMaxDeviceLimit() {
@@ -273,9 +268,9 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
 
         savedDevice.setFirmwareId(savedFirmware.getId());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("Can't assign firmware with different deviceProfile!");
-        deviceService.saveDevice(savedDevice);
+        assertThatThrownBy(() -> deviceService.saveDevice(savedDevice))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Can't assign firmware with different deviceProfile!");
     }
 
     @Test
