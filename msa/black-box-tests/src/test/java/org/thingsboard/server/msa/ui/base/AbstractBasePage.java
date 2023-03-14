@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.ui.base;
 
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
@@ -49,7 +48,8 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
+import static org.assertj.core.api.Assertions.fail;
+
 abstract public class AbstractBasePage {
     public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     protected WebDriver driver;
@@ -73,8 +73,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
-            log.error("No visibility element: " + locator);
-            return null;
+            return fail("No visibility element: " + locator);
         }
     }
 
@@ -82,8 +81,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
-            log.error("No presence element: " + locator);
-            return null;
+            return fail("No presence element: " + locator);
         }
     }
 
@@ -91,8 +89,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
         } catch (WebDriverException e) {
-            log.error("No clickable element: " + locator);
-            return null;
+            return fail("No clickable element: " + locator);
         }
     }
 
@@ -101,8 +98,7 @@ abstract public class AbstractBasePage {
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
             return driver.findElements(By.xpath(locator));
         } catch (WebDriverException e) {
-            log.error("No visibility elements: " + locator);
-            return null;
+            return fail("No visibility elements: " + locator);
         }
     }
 
@@ -111,8 +107,7 @@ abstract public class AbstractBasePage {
             wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locator)));
             return driver.findElements(By.xpath(locator));
         } catch (WebDriverException e) {
-            log.error("No clickable elements: " + locator);
-            return null;
+            return fail("No clickable elements: " + locator);
         }
     }
 
@@ -120,7 +115,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.urlContains(urlPath));
         } catch (WebDriverException e) {
-            log.error("This URL path is missing");
+            fail("This URL path is missing");
         }
     }
 
@@ -136,7 +131,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator))));
         } catch (WebDriverException e) {
-            throw new AssertionError("Element is present");
+            return fail("Element is present");
         }
     }
 
@@ -160,7 +155,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(locator))));
         } catch (WebDriverException e) {
-            throw new AssertionError("Elements is present");
+            return fail("Elements is present");
         }
     }
 
@@ -168,7 +163,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.numberOfWindowsToBe(tabNumber));
         } catch (WebDriverException e) {
-            log.error("No tabs with this number");
+            fail("No tabs with this number: " + tabNumber);
         }
     }
 
