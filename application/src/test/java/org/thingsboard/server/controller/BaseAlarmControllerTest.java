@@ -590,6 +590,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
         Mockito.reset(tbClusterService, auditLogService);
         long beforeAssignmentTs = System.currentTimeMillis();
+        Thread.sleep(2);
 
         doPost("/api/alarm/" + alarm.getId() + "/assign/" + tenantAdminUserId.getId()).andExpect(status().isOk());
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + alarm.getId(), AlarmInfo.class);
@@ -619,6 +620,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
         Mockito.reset(tbClusterService, auditLogService);
         long beforeAssignmentTs = System.currentTimeMillis();
+        Thread.sleep(2);
 
         doPost("/api/alarm/" + alarm.getId() + "/assign/" + tenantAdminUserId.getId()).andExpect(status().isOk());
 
@@ -635,6 +637,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginCustomerAdministrator();
         Mockito.reset(tbClusterService, auditLogService);
         beforeAssignmentTs = System.currentTimeMillis();
+        Thread.sleep(2);
 
         doPost("/api/alarm/" + alarm.getId() + "/assign/" + customerAdminUserId.getId()).andExpect(status().isOk());
 
@@ -653,6 +656,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
         Mockito.reset(tbClusterService, auditLogService);
         long beforeAssignmentTs = System.currentTimeMillis();
+        Thread.sleep(2);
 
         doPost("/api/alarm/" + alarm.getId() + "/assign/" + tenantAdminUserId.getId()).andExpect(status().isOk());
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + alarm.getId(), AlarmInfo.class);
@@ -664,7 +668,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ALARM_ASSIGN);
 
         beforeAssignmentTs = System.currentTimeMillis();
-
+        Thread.sleep(2);
         doDelete("/api/alarm/" + alarm.getId() + "/assign").andExpect(status().isOk());
         foundAlarm = doGet("/api/alarm/info/" + alarm.getId(), AlarmInfo.class);
         Assert.assertNotNull(foundAlarm);
@@ -681,6 +685,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
         Mockito.reset(tbClusterService, auditLogService);
         long beforeAssignmentTs = System.currentTimeMillis();
+        Thread.sleep(2);
 
         doPost("/api/alarm/" + alarm.getId() + "/assign/" + tenantAdminUserId.getId()).andExpect(status().isOk());
         AlarmInfo foundAlarm = doGet("/api/alarm/info/" + alarm.getId(), AlarmInfo.class);
@@ -696,6 +701,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
         beforeAssignmentTs = System.currentTimeMillis();
+        Thread.sleep(2);
 
         doDelete("/api/alarm/" + alarm.getId() + "/assign").andExpect(status().isOk());
         foundAlarm = doGet("/api/alarm/info/" + alarm.getId(), AlarmInfo.class);

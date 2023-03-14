@@ -47,12 +47,14 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportC
 import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
+import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
@@ -136,13 +138,16 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     // subscribe to attributes updates from server methods
 
     protected void processJsonTestSubscribeToAttributesUpdates(String attrSubTopic) throws Exception {
+        DeviceId deviceId = savedDevice.getId();
+
         MqttTestClient client = new MqttTestClient();
         client.connectAndWait(accessToken);
         MqttTestCallback onUpdateCallback = new MqttTestCallback();
         client.setCallback(onUpdateCallback);
-        client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
 
-        doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
+        subscribeAndWait(client, attrSubTopic, deviceId, FeatureType.ATTRIBUTES);
+
+        doPostAsync("/api/plugins/telemetry/DEVICE/" + deviceId.getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                 .as("await onUpdateCallback").isTrue();
 
@@ -150,7 +155,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
 
         MqttTestCallback onDeleteCallback = new MqttTestCallback();
         client.setCallback(onDeleteCallback);
-        doDelete("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
+        doDelete("/api/plugins/telemetry/DEVICE/" + deviceId.getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
         assertThat(onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                 .as("await onDeleteCallback").isTrue();
         validateUpdateAttributesJsonResponse(onDeleteCallback, SHARED_ATTRIBUTES_DELETED_RESPONSE);
@@ -162,7 +167,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         client.connectAndWait(accessToken);
         MqttTestCallback onUpdateCallback = new MqttTestCallback();
         client.setCallback(onUpdateCallback);
-        client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
+        subscribeAndWait(client, attrSubTopic, savedDevice.getId(), FeatureType.ATTRIBUTES);
 
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
@@ -228,7 +233,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
 
         assertNotNull(savedDevice);
 
-        client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
+        subscribeAndCheckSubscription(client, GATEWAY_ATTRIBUTES_TOPIC, savedDevice.getId(), FeatureType.ATTRIBUTES);
 
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
@@ -259,7 +264,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 20,
                 100);
         assertNotNull(device);
-        client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
+
+        subscribeAndCheckSubscription(client, GATEWAY_ATTRIBUTES_TOPIC, device.getId(), FeatureType.ATTRIBUTES);
         doPostAsync("/api/plugins/telemetry/DEVICE/" + device.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         validateProtoGatewayUpdateAttributesResponse(onUpdateCallback, deviceName);
         MqttTestCallback onDeleteCallback = new MqttTestCallback();
@@ -424,7 +430,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         Awaitility.await()
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
-                    List<Map<String, Object>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {});
+                    List<Map<String, Object>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {
+                    });
                     return attributes.size() == 5;
                 });
 

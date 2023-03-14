@@ -28,20 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service;
+package org.thingsboard.server.transport.mqtt.session;
 
-import org.junit.Assert;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.transport.TransportService;
+import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 
-public abstract class AbstractBeforeTest extends AbstractServiceTest {
+import java.util.concurrent.ConcurrentMap;
 
-    public TenantId before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        TenantId tenantId = savedTenant.getId();
-        return tenantId;
+/**
+ * Created by nickAS21 on 26.12.22
+ */
+public class GatewayDeviceSessionContext extends AbstractGatewayDeviceSessionContext<GatewaySessionHandler> {
+
+    public GatewayDeviceSessionContext(GatewaySessionHandler parent,
+                                       TransportDeviceInfo deviceInfo,
+                                       DeviceProfile deviceProfile,
+                                       ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap,
+                                       TransportService transportService) {
+        super(parent, deviceInfo, deviceProfile, mqttQoSMap, transportService);
     }
+
 }

@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.hamcrest.Matchers;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +45,6 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -98,10 +96,16 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.sql.relation.RelationRepository;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
@@ -129,44 +133,38 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     static final int ENTITY_COUNT = 5;
 
     @Autowired
-    private AttributesService attributesService;
-
+    AssetService assetService;
     @Autowired
-    private BlobEntityService blobEntityService;
-
+    AttributesService attributesService;
     @Autowired
-    private EntityGroupService entityGroupService;
-
+    BlobEntityService blobEntityService;
     @Autowired
-    private TimeseriesService timeseriesService;
-
-    private TenantId tenantId;
+    CustomerService customerService;
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    EdgeService edgeService;
+    @Autowired
+    EntityGroupService entityGroupService;
+    @Autowired
+    EntityService entityService;
+    @Autowired
+    RelationRepository relationRepository;
+    @Autowired
+    RelationService relationService;
+    @Autowired
+    TimeseriesService timeseriesService;
 
     private MergedUserPermissions mergedUserPermissionsPE;
 
-    @Autowired
-    private RelationRepository relationRepository;
-
     @Before
     public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
         mergedUserPermissionsPE = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
-
 
     @Test
     public void testCountEntitiesByQuery() throws InterruptedException {
