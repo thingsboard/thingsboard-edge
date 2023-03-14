@@ -472,6 +472,26 @@ public class AdminController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get system info (getSystemInfo)",
+            notes = "Get main information about system. "
+                    + SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/systemInfo", method = RequestMethod.GET)
+    @ResponseBody
+    public SystemInfo getSystemInfo() throws ThingsboardException {
+        return systemInfoService.getSystemInfo();
+    }
+
+    @ApiOperation(value = "Get features info (getFeaturesInfo)",
+            notes = "Get information about enabled/disabled features. "
+                    + SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/featuresInfo", method = RequestMethod.GET)
+    @ResponseBody
+    public FeaturesInfo getFeaturesInfo() {
+        return systemInfoService.getFeaturesInfo();
+    }
+
     private AdminSettings getTenantAdminSettings(String key, boolean systemByDefault) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
         String jsonString = getEntityAttributeValue(getTenantId(), key);
@@ -537,26 +557,6 @@ public class AdminController extends BaseController {
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
         attributesService.save(getTenantId(), entityId, DataConstants.SERVER_SCOPE, attributes).get();
-    }
-
-    @ApiOperation(value = "Get system info (getSystemInfo)",
-            notes = "Get main information about system. "
-                    + SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/systemInfo", method = RequestMethod.GET)
-    @ResponseBody
-    public SystemInfo getSystemInfo() throws ThingsboardException {
-        return systemInfoService.getSystemInfo();
-    }
-
-    @ApiOperation(value = "Get features info (getFeaturesInfo)",
-            notes = "Get information about enabled/disabled features. "
-                    + SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/featuresInfo", method = RequestMethod.GET)
-    @ResponseBody
-    public FeaturesInfo getFeaturesInfo() {
-        return systemInfoService.getFeaturesInfo();
     }
 
 }
