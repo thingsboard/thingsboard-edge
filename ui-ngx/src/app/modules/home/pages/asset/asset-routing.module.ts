@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -39,11 +39,105 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/group/entity-group.shared';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
 
-export const assetRoutes: Routes = [
-  {
-    path: 'assets',
+const assetRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
+  ({
+    path: ':entityId',
+    component: EntityDetailsPageComponent,
+    canDeactivate: [ConfirmOnExitGuard],
     data: {
+      groupType: EntityType.ASSET,
+      breadcrumb: {
+        labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+        icon: 'domain'
+      } as BreadCrumbConfig<EntityDetailsPageComponent>,
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'asset.asset',
+      hideTabs: true
+    },
+    resolve: {
+      entityGroup,
+      entitiesTableConfig
+    }
+  });
+
+const assetGroupsChildrenRoutes: Route[] = [
+  {
+    path: '',
+    component: EntitiesTableComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'entity-group.asset-groups',
+      groupType: EntityType.ASSET
+    },
+    resolve: {
+      entityGroup: EntityGroupResolver,
+      entitiesTableConfig: EntityGroupsTableConfigResolver
+    }
+  },
+  {
+    path: ':entityGroupId',
+    data: {
+      groupType: EntityType.ASSET,
+      breadcrumb: {
+        icon: 'domain',
+        labelFunction: groupEntitiesLabelFunction
+      } as BreadCrumbConfig<GroupEntitiesTableComponent>
+    },
+    children: [
+      {
+        path: '',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.asset-group',
+          groupType: EntityType.ASSET
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      },
+      assetRoute(EntityGroupResolver, 'emptyAssetTableConfigResolver')
+    ]
+  }
+];
+
+const assetGroupsRoute: Route = {
+  path: 'groups',
+  data: {
+    groupType: EntityType.ASSET,
+    breadcrumb: {
+      label: 'asset.groups',
+      icon: 'domain'
+    }
+  },
+  children: assetGroupsChildrenRoutes
+};
+
+const assetSharedGroupsRoute: Route = {
+  path: 'shared',
+  data: {
+    groupType: EntityType.ASSET,
+    shared: true,
+    breadcrumb: {
+      label: 'asset.shared',
+      icon: 'domain'
+    }
+  },
+  children: assetGroupsChildrenRoutes
+};
+
+export const assetsRoute = (includeShared = false): Route => {
+  const routeConfig: Route = {
+    path: 'assets',
+    component: RouterTabsComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'asset.assets',
         icon: 'domain'
@@ -52,54 +146,57 @@ export const assetRoutes: Routes = [
     children: [
       {
         path: '',
-        component: EntitiesTableComponent,
+        children: [],
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'asset.assets',
-          assetsType: 'tenant'
-        },
-        resolve: {
-          entitiesTableConfig: AssetsTableConfigResolver
+          redirectTo: 'all'
         }
       },
       {
-        path: ':entityId',
-        component: EntityDetailsPageComponent,
-        canDeactivate: [ConfirmOnExitGuard],
+        path: 'all',
         data: {
-          breadcrumb: {
-            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-            icon: 'domain'
-          } as BreadCrumbConfig<EntityDetailsPageComponent>,
+          groupType: EntityType.ASSET,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'asset.assets',
-          assetsType: 'tenant'
+          breadcrumb: {
+            label: 'asset.all',
+            icon: 'domain'
+          }
         },
-        resolve: {
-          entitiesTableConfig: AssetsTableConfigResolver
-        }
-      }
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+              title: 'asset.assets'
+            },
+            resolve: {
+              entitiesTableConfig: AssetsTableConfigResolver,
+              entityGroup: EntityGroupResolver
+            }
+          },
+          assetRoute(EntityGroupResolver, AssetsTableConfigResolver)
+        ]
+      },
+      assetGroupsRoute
     ]
+  };
+  if (includeShared) {
+    routeConfig.children.push(assetSharedGroupsRoute);
   }
-];
-
-const routes: Routes = [
-  {
-    path: 'assets',
-    pathMatch: 'full',
-    redirectTo: '/entities/assets'
-  },
-  {
-    path: 'assets/:entityId',
-    redirectTo: '/entities/assets/:entityId'
-  }
-];
+  routeConfig.children.push(assetRoute(EntityGroupResolver, AssetsTableConfigResolver));
+  return routeConfig;
+};
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+  imports: [],
+  exports: [],
   providers: [
-    AssetsTableConfigResolver
+    AssetsTableConfigResolver,
+    {
+      provide: 'emptyAssetTableConfigResolver',
+      useValue: (route: ActivatedRouteSnapshot) => null
+    }
   ]
 })
 export class AssetRoutingModule { }

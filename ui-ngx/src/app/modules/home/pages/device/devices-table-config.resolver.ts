@@ -68,7 +68,6 @@ import { UtilsService } from '@core/services/utils.service';
 import { isDefinedAndNotNull } from '@core/utils';
 import { DeviceComponent } from './device.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
-import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { AuthUser } from '@shared/models/user.model';
@@ -177,7 +176,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     return columns;
   }
 
-  configureEntityFunctions(config: EntityTableConfig<DashboardInfo | Dashboard>): void {
+  configureEntityFunctions(config: EntityTableConfig<DeviceInfo | Device>): void {
     if (config.customerId) {
       config.entitiesFetchFunction = pageLink =>
         this.deviceService.getCustomerDeviceInfos(config.componentsData.includeCustomers,

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.asset;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -38,18 +38,18 @@ import javax.validation.Valid;
 
 @ApiModel
 @Data
-public class DeviceInfo extends Device {
+public class AssetInfo extends Asset {
 
     @Valid
-    @ApiModelProperty(position = 14, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @ApiModelProperty(position = 10, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String ownerName;
 
-    public DeviceInfo() {
+    public AssetInfo() {
         super();
     }
 
-    public DeviceInfo(Device device, String ownerName) {
-        super(device);
+    public AssetInfo(Asset asset, String ownerName) {
+        super(asset);
         this.ownerName = ownerName;
     }
 }

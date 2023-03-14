@@ -42,7 +42,7 @@ import {
 
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
-import { EntityType } from '@shared/models/entity-type.models';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { of } from 'rxjs';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
@@ -195,73 +195,6 @@ const ENTITY_RUTE_ROUTE: Routes = [
     }
   }
 ];
-
-const ASSET_GROUPS_ROUTE: Route =
-  {
-    path: 'assetGroups',
-    data: {
-      groupType: EntityType.ASSET,
-      breadcrumb: {
-        label: 'entity-group.asset-groups',
-        icon: 'domain'
-      }
-    },
-    children: [
-      {
-        path: '',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'entity-group.asset-groups',
-          groupType: EntityType.ASSET
-        },
-        resolve: {
-          entityGroup: EntityGroupResolver,
-          entitiesTableConfig: EntityGroupsTableConfigResolver
-        }
-      },
-      {
-        path: ':entityGroupId',
-        data: {
-          breadcrumb: {
-            icon: 'domain',
-            labelFunction: groupEntitiesLabelFunction
-          } as BreadCrumbConfig<GroupEntitiesTableComponent>
-        },
-        children: [
-          {
-            path: '',
-            component: GroupEntitiesTableComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-              title: 'entity-group.asset-group',
-              groupType: EntityType.ASSET
-            },
-            resolve: {
-              entityGroup: EntityGroupResolver
-            }
-          },
-          {
-            path: ':entityId',
-            component: EntityDetailsPageComponent,
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              breadcrumb: {
-                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-                icon: 'domain'
-              } as BreadCrumbConfig<EntityDetailsPageComponent>,
-              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-              title: 'entity-group.asset-group',
-              groupType: EntityType.ASSET
-            },
-            resolve: {
-              entityGroup: EntityGroupResolver
-            }
-          }
-        ]
-      }
-    ]
-  };
 
 const ENTITY_VIEW_GROUPS_ROUTE: Route = {
   path: 'entityViewGroups',
@@ -426,6 +359,23 @@ const redirectDeviceGroupsRoutes: Routes = [
   {
     path: 'deviceGroups/:entityGroupId/:entityId',
     redirectTo: '/entities/devices/groups/:entityGroupId/:entityId'
+  }
+];
+
+const redirectAssetGroupsRoutes: Routes = [
+  {
+    path: 'assetGroups',
+    pathMatch: 'full',
+    redirectTo: '/entities/assets/groups'
+  },
+  {
+    path: 'assetGroups/:entityGroupId',
+    pathMatch: 'full',
+    redirectTo: '/entities/assets/groups/:entityGroupId'
+  },
+  {
+    path: 'assetGroups/:entityGroupId/:entityId',
+    redirectTo: '/entities/assets/groups/:entityGroupId/:entityId'
   }
 ];
 
@@ -677,26 +627,14 @@ const routes: Routes = [
               }
             ]
           },
-          { ...ASSET_GROUPS_ROUTE, ...{
-              path: ':customerId/assetGroups',
-              data: {
-                breadcrumb: {
-                  labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.customerGroupsTitle;
-                  },
-                  icon: 'domain'
-                }
-              }
-            }
-          },
           { ...entitiesRoute(), ...{
               path: ':customerId/entities',
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.customerGroupsTitle;
+                    return data.entityGroup.customerTitle + ': ' + translate.instant('entity.entities');
                   },
-                  icon: 'devices_other'
+                  icon: 'category'
                 }
               }
             }
@@ -812,20 +750,6 @@ const routes: Routes = [
                             return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'account_circle'
-                        }
-                      }
-                    }
-                  },
-                  {...ASSET_GROUPS_ROUTE, ...{
-                      path: ':edgeId/assetGroups',
-                      data: {
-                        edgeEntitiesType: EntityType.ASSET,
-                        groupType: EntityType.ASSET,
-                        breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeEntitiesTitle;
-                          },
-                          icon: 'domain'
                         }
                       }
                     }
@@ -1003,18 +927,6 @@ const routes: Routes = [
               }
             }
           },
-          { ...ASSET_GROUPS_ROUTE, ...{
-              path: ':edgeId/assetGroups',
-              data: {
-                breadcrumb: {
-                  labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeEntitiesTitle;
-                  },
-                  icon: 'domain'
-                }
-              }
-            }
-          },
           { ...entitiesRoute(), ...{
               path: ':edgeId/entities',
               data: {
@@ -1058,11 +970,11 @@ const routes: Routes = [
       }
     ]
   },
-  ASSET_GROUPS_ROUTE,
   ENTITY_VIEW_GROUPS_ROUTE,
   USER_GROUPS_ROUTE,
   ...redirectDashboardGroupsRoutes,
   ...redirectDeviceGroupsRoutes,
+  ...redirectAssetGroupsRoutes,
   {
     path: 'customersHierarchy',
     component: CustomersHierarchyComponent,

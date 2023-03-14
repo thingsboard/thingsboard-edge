@@ -28,28 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.asset;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import org.thingsboard.server.common.data.asset.AssetInfo;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.Dao;
 
-import javax.validation.Valid;
+import java.util.UUID;
 
-@ApiModel
-@Data
-public class DeviceInfo extends Device {
+public interface AssetInfoDao extends Dao<AssetInfo> {
 
-    @Valid
-    @ApiModelProperty(position = 14, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
+    PageData<AssetInfo> findAssetsByTenantId(UUID tenantId, PageLink pageLink);
 
-    public DeviceInfo() {
-        super();
-    }
+    PageData<AssetInfo> findAssetsByTenantIdAndAssetProfileId(UUID tenantId, UUID assetProfileId, PageLink pageLink);
 
-    public DeviceInfo(Device device, String ownerName) {
-        super(device);
-        this.ownerName = ownerName;
-    }
+    PageData<AssetInfo> findTenantAssetsByTenantId(UUID tenantId, PageLink pageLink);
+
+    PageData<AssetInfo> findTenantAssetsByTenantIdAndAssetProfileId(UUID tenantId, UUID assetProfileId, PageLink pageLink);
+
+    PageData<AssetInfo> findAssetsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
+
+    PageData<AssetInfo> findAssetsByTenantIdAndCustomerIdAndAssetProfileId(UUID tenantId, UUID customerId, UUID assetProfileId, PageLink pageLink);
+
+    PageData<AssetInfo> findAssetsByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink);
+
+    PageData<AssetInfo> findAssetsByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(UUID tenantId, UUID customerId, UUID assetProfileId, PageLink pageLink);
 }

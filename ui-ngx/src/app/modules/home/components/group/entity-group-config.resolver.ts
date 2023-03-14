@@ -96,6 +96,7 @@ export class EntityGroupConfigResolver {
       const groupType: EntityType = params.childGroupType || params.groupType;
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
+            entityGroup.customerTitle = info.title;
             entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityTypeTranslations.get(groupType).typePlural);
             const tasks = [];
             if (params.childEntityGroupId) {

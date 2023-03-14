@@ -80,6 +80,7 @@ export interface EntityGroupStateConfigFactory<T extends BaseData<HasId>> {
 export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityGroupInfo {
   // origEntityGroup?: EntityGroupInfo;
   customerGroupsTitle?: string;
+  customerTitle?: string;
   parentEntityGroup?: EntityGroupInfo;
   entityGroupConfig?: GroupEntityTableConfig<T>;
   edgeEntitiesTitle?: string;

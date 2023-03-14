@@ -28,28 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.model.sql;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.thingsboard.server.common.data.asset.AssetInfo;
+import org.thingsboard.server.dao.model.ModelConstants;
 
-import javax.validation.Valid;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-@ApiModel
 @Data
-public class DeviceInfo extends Device {
+@Slf4j
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Immutable
+@Table(name = ModelConstants.ASSET_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class AssetInfoEntity extends AbstractAssetEntity<AssetInfo> {
 
-    @Valid
-    @ApiModelProperty(position = 14, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
-    public DeviceInfo() {
+    public AssetInfoEntity() {
         super();
     }
 
-    public DeviceInfo(Device device, String ownerName) {
-        super(device);
-        this.ownerName = ownerName;
+    @Override
+    public AssetInfo toData() {
+        return new AssetInfo(super.toAsset(), this.ownerName);
     }
+
 }

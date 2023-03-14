@@ -298,6 +298,8 @@ public class ModelConstants {
     public static final String ASSET_BY_TENANT_AND_NAME_VIEW_NAME = "asset_by_tenant_and_name";
     public static final String ASSET_TYPES_BY_TENANT_VIEW_NAME = "asset_types_by_tenant";
 
+    public static final String ASSET_INFO_VIEW_COLUMN_FAMILY_NAME = "asset_info_view";
+
     /**
      * Cassandra converter constants.
      */
