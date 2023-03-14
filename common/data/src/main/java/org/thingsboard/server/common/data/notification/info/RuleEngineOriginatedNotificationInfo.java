@@ -58,4 +58,9 @@ public class RuleEngineOriginatedNotificationInfo implements NotificationInfo {
         return templateData;
     }
 
+    @Override
+    public EntityId getStateEntityId() {
+        return msgOriginator;
+    }
+
 }

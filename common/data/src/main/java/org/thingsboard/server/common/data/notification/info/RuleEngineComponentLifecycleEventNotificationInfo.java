@@ -68,4 +68,9 @@ public class RuleEngineComponentLifecycleEventNotificationInfo implements Notifi
         );
     }
 
+    @Override
+    public EntityId getStateEntityId() {
+        return ruleChainId;
+    }
+
 }

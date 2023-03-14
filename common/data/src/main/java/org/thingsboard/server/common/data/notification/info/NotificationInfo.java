@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.notification.info;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.Map;
 
@@ -42,5 +43,9 @@ public interface NotificationInfo {
 
     @JsonIgnore
     Map<String, String> getTemplateData();
+
+    default EntityId getStateEntityId() {
+        return null;
+    }
 
 }

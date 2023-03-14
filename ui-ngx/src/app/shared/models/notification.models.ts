@@ -60,7 +60,7 @@ export interface NotificationInfo {
   alarmSeverity?: AlarmSeverity;
   alarmStatus?: AlarmStatus;
   alarmType?: string;
-  originatorId?: EntityId;
+  stateEntityId?: EntityId;
 }
 
 export interface NotificationRequest extends Omit<BaseData<NotificationRequestId>, 'label'> {
@@ -127,9 +127,9 @@ export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'la
 export interface NotificationRuleTriggerConfig {
   alarmTypes?: Array<string>;
   alarmSeverities?: Array<AlarmSeverity>;
-  alarmStatus?: Array<AlarmSearchStatus>;
+  alarmStatuses?: Array<AlarmSearchStatus>;
   clearRule?: {
-    alarmStatus: Array<AlarmSearchStatus>;
+    alarmStatuses: Array<AlarmSearchStatus>;
   };
   devices?: Array<string>;
   deviceProfiles?: Array<string>;
@@ -265,7 +265,7 @@ export const NotificationDeliveryMethodTranslateMap = new Map<NotificationDelive
   [NotificationDeliveryMethod.PUSH, 'notification.delivery-method-type.push'],
   [NotificationDeliveryMethod.SMS, 'notification.delivery-method-type.sms'],
   [NotificationDeliveryMethod.EMAIL, 'notification.delivery-method-type.email'],
-  [NotificationDeliveryMethod.SLACK, 'notification.delivery-method-type.slack'],
+  [NotificationDeliveryMethod.SLACK, 'notification.delivery-method-type.slack']
 ]);
 
 export enum NotificationRequestStatus {
@@ -380,7 +380,7 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       name: 'notification.template-type.alarm-comment',
       hint: 'notification.template-hint.alarm-comment'
     }
-  ],
+  ]
 ]);
 
 export enum TriggerType {

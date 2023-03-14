@@ -35,6 +35,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.Map;
 import java.util.UUID;
@@ -62,6 +64,11 @@ public class DeviceInactivityNotificationInfo implements RuleOriginatedNotificat
                 "deviceName", deviceName,
                 "deviceType", deviceType
         );
+    }
+
+    @Override
+    public EntityId getStateEntityId() {
+        return new DeviceId(deviceId);
     }
 
 }
