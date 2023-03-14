@@ -30,23 +30,27 @@
  */
 package org.thingsboard.server.dao.service;
 
-import org.junit.After;
+import lombok.Getter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
@@ -67,26 +71,27 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     private static final String CHECKSUM = "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a";
     private static final ByteBuffer DATA = ByteBuffer.wrap(new byte[]{1});
 
-    private TenantId tenantId;
+    @Getter
+    @Autowired
+    EntityGroupService entityGroupService;
+    @Autowired
+    DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+    @Autowired
+    DeviceProfileService deviceProfileService;
+    @Getter
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    OtaPackageService otaPackageService;
+
     private DeviceProfileId deviceProfileId;
 
     @Before
     public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-
         DeviceProfile deviceProfile = this.createDeviceProfile(tenantId, "Device Profile");
         DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile);
         Assert.assertNotNull(savedDeviceProfile);
         deviceProfileId = savedDeviceProfile.getId();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
     }
 
     private OtaPackageInfo createOtaPackage(String title, DeviceProfileId deviceProfileId) {
