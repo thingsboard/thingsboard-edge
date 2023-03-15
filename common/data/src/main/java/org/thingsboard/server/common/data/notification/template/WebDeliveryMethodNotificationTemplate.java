@@ -28,26 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.server.common.data.notification.template;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
-import org.thingsboard.server.common.data.notification.rule.NotificationRule;
-
-import java.io.Serializable;
-import java.util.List;
+import lombok.ToString;
+import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class NotificationRequestCacheValue implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class WebDeliveryMethodNotificationTemplate extends DeliveryMethodNotificationTemplate implements HasSubject {
 
-    private static final long serialVersionUID = 950211234585105415L;
+    private String subject;
+    private JsonNode additionalConfig;
 
-    private List<NotificationRequest> notificationRequests;
+    public WebDeliveryMethodNotificationTemplate(WebDeliveryMethodNotificationTemplate other) {
+        super(other);
+        this.subject = other.subject;
+        this.additionalConfig = other.additionalConfig;
+    }
+
+    @Override
+    public NotificationDeliveryMethod getMethod() {
+        return NotificationDeliveryMethod.WEB;
+    }
+
+    @Override
+    public WebDeliveryMethodNotificationTemplate copy() {
+        return new WebDeliveryMethodNotificationTemplate(this);
+    }
 
 }

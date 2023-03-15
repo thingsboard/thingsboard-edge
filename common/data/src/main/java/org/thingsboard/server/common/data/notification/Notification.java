@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.notification;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,15 +59,5 @@ public class Notification extends BaseData<NotificationId> {
     private NotificationInfo info;
 
     private NotificationStatus status;
-
-    @JsonProperty("text")
-    public String getProcessedText() {
-        return NotificationProcessingContext.processTemplate(text, info);
-    }
-
-    @JsonProperty("subject")
-    public String getProcessedSubject() {
-        return NotificationProcessingContext.processTemplate(subject, info);
-    }
 
 }

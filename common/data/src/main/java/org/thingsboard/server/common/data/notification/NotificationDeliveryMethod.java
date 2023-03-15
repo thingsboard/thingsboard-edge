@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum NotificationDeliveryMethod {
 
-    PUSH("push-notification"),
+    WEB("web"),
     EMAIL("email"),
     SMS("SMS"),
     SLACK("Slack");

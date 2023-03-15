@@ -60,7 +60,7 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.common.data.notification.template.PushDeliveryMethodNotificationTemplate;
+import org.thingsboard.server.common.data.notification.template.WebDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -97,7 +97,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @SuppressWarnings({"UnstableApiUsage", "rawtypes"})
-public class DefaultNotificationCenter extends AbstractSubscriptionService implements NotificationCenter, NotificationChannel<User, PushDeliveryMethodNotificationTemplate> {
+public class DefaultNotificationCenter extends AbstractSubscriptionService implements NotificationCenter, NotificationChannel<User, WebDeliveryMethodNotificationTemplate> {
 
     private final NotificationTargetService notificationTargetService;
     private final NotificationRequestService notificationRequestService;
@@ -108,6 +108,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     private final DbCallbackExecutorService dbCallbackExecutorService;
     private final NotificationsTopicService notificationsTopicService;
     private final TbQueueProducerProvider producerProvider;
+
     private Map<NotificationDeliveryMethod, NotificationChannel> channels;
 
 
@@ -259,7 +260,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     }
 
     @Override
-    public ListenableFuture<Void> sendNotification(User recipient, PushDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) {
+    public ListenableFuture<Void> sendNotification(User recipient, WebDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) {
         NotificationRequest request = ctx.getRequest();
         Notification notification = Notification.builder()
                 .requestId(request.getId())
@@ -279,8 +280,8 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         }
 
         NotificationUpdate update = NotificationUpdate.builder()
+                .created(true)
                 .notification(notification)
-                .updateType(ComponentLifecycleEvent.CREATED)
                 .build();
         return onNotificationUpdate(recipient.getTenantId(), recipient.getId(), update);
     }
@@ -297,8 +298,8 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         notification = notificationService.saveNotification(TenantId.SYS_TENANT_ID, notification);
 
         NotificationUpdate update = NotificationUpdate.builder()
+                .created(true)
                 .notification(notification)
-                .updateType(ComponentLifecycleEvent.CREATED)
                 .build();
         onNotificationUpdate(tenantId, recipientId, update);
     }
@@ -309,9 +310,9 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         if (updated) {
             log.trace("Marked notification {} as read (recipient id: {}, tenant id: {})", notificationId, recipientId, tenantId);
             NotificationUpdate update = NotificationUpdate.builder()
+                    .updated(true)
                     .notificationId(notificationId)
-                    .updatedStatus(NotificationStatus.READ)
-                    .updateType(ComponentLifecycleEvent.UPDATED)
+                    .newStatus(NotificationStatus.READ)
                     .build();
             onNotificationUpdate(tenantId, recipientId, update);
         }
@@ -323,9 +324,9 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         if (updatedCount > 0) {
             log.trace("Marked all notifications as read (recipient id: {}, tenant id: {})", recipientId, tenantId);
             NotificationUpdate update = NotificationUpdate.builder()
+                    .updated(true)
                     .allNotifications(true)
-                    .updatedStatus(NotificationStatus.READ)
-                    .updateType(ComponentLifecycleEvent.UPDATED)
+                    .newStatus(NotificationStatus.READ)
                     .build();
             onNotificationUpdate(tenantId, recipientId, update);
         }
@@ -337,43 +338,28 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         boolean deleted = notificationService.deleteNotification(tenantId, recipientId, notificationId);
         if (deleted) {
             NotificationUpdate update = NotificationUpdate.builder()
+                    .deleted(true)
                     .notification(notification)
-                    .updateType(ComponentLifecycleEvent.DELETED)
                     .build();
             onNotificationUpdate(tenantId, recipientId, update);
         }
     }
 
     @Override
-    public NotificationRequest updateNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest) {
-        log.debug("Updating notification request {}", notificationRequest.getId());
-        notificationRequest = notificationRequestService.saveNotificationRequest(tenantId, notificationRequest);
-        // marking related notifications as unread: TODO: causes each subscription to fetch notifications on each request update
-        notificationService.updateNotificationsStatusByRequestId(tenantId, notificationRequest.getId(), NotificationStatus.SENT);
-
-        // TODO: no need to send request update for other than PLATFORM_USERS target type
-        onNotificationRequestUpdate(tenantId, NotificationRequestUpdate.builder()
-                .notificationRequestId(notificationRequest.getId())
-                .notificationInfo(notificationRequest.getInfo())
-                .deleted(false)
-                .build());
-        return notificationRequest;
-    }
-
-    @Override
     public void deleteNotificationRequest(TenantId tenantId, NotificationRequestId notificationRequestId) {
         log.debug("Deleting notification request {}", notificationRequestId);
         NotificationRequest notificationRequest = notificationRequestService.findNotificationRequestById(tenantId, notificationRequestId);
-        notificationRequestService.deleteNotificationRequest(tenantId, notificationRequest);
+        notificationRequestService.deleteNotificationRequest(tenantId, notificationRequestId);
 
-        // TODO: no need to send request update for other than PLATFORM_USERS target type
         if (notificationRequest.isSent()) {
+            // TODO: no need to send request update for other than PLATFORM_USERS target type
             onNotificationRequestUpdate(tenantId, NotificationRequestUpdate.builder()
                     .notificationRequestId(notificationRequestId)
                     .deleted(true)
                     .build());
+        } else if (notificationRequest.isScheduled()) {
+            clusterService.broadcastEntityStateChangeEvent(tenantId, notificationRequestId, ComponentLifecycleEvent.DELETED);
         }
-        clusterService.broadcastEntityStateChangeEvent(tenantId, notificationRequestId, ComponentLifecycleEvent.DELETED);
     }
 
     private void forwardToNotificationSchedulerService(TenantId tenantId, NotificationRequestId notificationRequestId) {
@@ -412,7 +398,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
 
     @Override
     public NotificationDeliveryMethod getDeliveryMethod() {
-        return NotificationDeliveryMethod.PUSH;
+        return NotificationDeliveryMethod.WEB;
     }
 
     @Override
@@ -421,9 +407,9 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     }
 
     @Autowired
-    public void setChannels(List<NotificationChannel> channels, NotificationCenter websocketNotificationChannel) {
+    public void setChannels(List<NotificationChannel> channels, NotificationCenter webNotificationChannel) {
         this.channels = channels.stream().collect(Collectors.toMap(NotificationChannel::getDeliveryMethod, c -> c));
-        this.channels.put(NotificationDeliveryMethod.PUSH, (NotificationChannel) websocketNotificationChannel);
+        this.channels.put(NotificationDeliveryMethod.WEB, (NotificationChannel) webNotificationChannel);
     }
 
 }

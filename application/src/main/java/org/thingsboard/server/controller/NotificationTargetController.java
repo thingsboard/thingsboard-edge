@@ -49,15 +49,19 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -178,28 +182,22 @@ public class NotificationTargetController extends BaseController {
         }
         accessControlService.checkPermission(user, Resource.USER, Operation.READ);
         UsersFilter usersFilter = ((PlatformUsersNotificationTargetConfig) targetConfig).getUsersFilter();
-        switch (usersFilter.getType()) {
-            case USER_LIST:
-                PageDataIterable<User> recipients = new PageDataIterable<>(pageLink -> {
-                    return notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(), null, targetConfig, pageLink);
-                }, 200);
-                for (User recipient : recipients) {
-                    checkEntity(user, recipient, Operation.READ);
-                }
-                break;
-            case CUSTOMER_USERS:
-                CustomerId customerId = new CustomerId(((CustomerUsersFilter) usersFilter).getCustomerId());
-                checkEntityId(customerId, Operation.READ);
-                break;
-            case USER_GROUP_LIST:
-                for (EntityGroupId groupId : fromUUIDs(((UserGroupListFilter) usersFilter).getGroupsIds(), EntityGroupId::new)) {
-                    checkEntityGroupId(groupId, Operation.READ);
-                }
-                break;
-            case USER_ROLE:
-                accessControlService.checkPermission(user, Resource.GROUP_PERMISSION, Operation.READ);
-                accessControlService.checkPermission(user, Resource.ROLE, Operation.READ);
-                break;
+        if (usersFilter.getType() == UsersFilterType.USER_LIST) {
+            for (UUID recipientId : ((UserListFilter) usersFilter).getUsersIds()) {
+                checkUserId(new UserId(recipientId), Operation.READ);
+            }
+        } else if (usersFilter.getType() == UsersFilterType.CUSTOMER_USERS) {
+            CustomerId customerId = new CustomerId(((CustomerUsersFilter) usersFilter).getCustomerId());
+            checkEntityId(customerId, Operation.READ);
+        } else if (usersFilter.getType() == UsersFilterType.USER_GROUP_LIST) {
+            for (EntityGroupId groupId : fromUUIDs(((UserGroupListFilter) usersFilter).getGroupsIds(), EntityGroupId::new)) {
+                checkEntityGroupId(groupId, Operation.READ);
+            }
+        } else if (usersFilter.getType() == UsersFilterType.USER_ROLE) {
+            accessControlService.checkPermission(user, Resource.GROUP_PERMISSION, Operation.READ);
+            for (UUID roleId : ((UserRoleFilter) usersFilter).getRolesIds()) {
+                checkRoleId(new RoleId(roleId), Operation.READ);
+            }
         }
     }
 

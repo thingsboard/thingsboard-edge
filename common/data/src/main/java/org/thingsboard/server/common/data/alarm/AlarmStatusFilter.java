@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.alarm;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 

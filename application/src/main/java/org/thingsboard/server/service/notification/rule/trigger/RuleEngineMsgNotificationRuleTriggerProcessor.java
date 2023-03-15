@@ -28,31 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.server.service.notification.rule.trigger;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.NotificationRuleId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
+import org.thingsboard.server.common.msg.TbMsg;
 
-import java.io.Serializable;
+import java.util.Set;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class NotificationRequestCacheKey implements Serializable {
+public interface RuleEngineMsgNotificationRuleTriggerProcessor<C extends NotificationRuleTriggerConfig> extends NotificationRuleTriggerProcessor<TbMsg, C> {
 
-    private static final long serialVersionUID = 59871139005482170L;
-
-    private EntityId originatorEntityId;
-    private NotificationRuleId ruleId;
-
-    @Override
-    public String toString() {
-        return ruleId + "_" + originatorEntityId;
-    }
+    Set<String> getSupportedMsgTypes();
 
 }
