@@ -112,6 +112,7 @@
         <winsw.version>2.0.1</winsw.version>
         <postgresql.driver.version>42.5.0</postgresql.driver.version>
         <azure-messaging-eventhubs.version>5.15.0</azure-messaging-eventhubs.version>
+        <azure-messaging-servicebus.version>7.7.0</azure-messaging-servicebus.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <proton-j.version>0.33.2</proton-j.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
@@ -1960,6 +1961,11 @@
                 <groupId>com.microsoft.azure.sdk.iot</groupId>
                 <artifactId>iot-service-client</artifactId>
                 <version>${azure-iot-service-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-messaging-servicebus</artifactId>
+                <version>${azure-messaging-servicebus.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.elasticsearch.client</groupId>

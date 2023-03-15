@@ -35,14 +35,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
+import org.thingsboard.common.util.JacksonUtil;
 
 import java.io.IOException;
 import java.util.Map;
 
 @Data
 public class AzureServiceBusIntegrationMsg {
-
-    private static ObjectMapper mapper = new ObjectMapper();
 
     private final ServiceBusReceivedMessageContext context;
 
@@ -59,9 +58,9 @@ public class AzureServiceBusIntegrationMsg {
     }
 
     public JsonNode toJson() {
-        ObjectNode json = mapper.createObjectNode();
+        ObjectNode json = JacksonUtil.newObjectNode();
         Map<String, Object> properties = this.context.getMessage().getApplicationProperties();
-        ObjectNode sysPropsJson = mapper.createObjectNode();
+        ObjectNode sysPropsJson =  JacksonUtil.newObjectNode();
         properties.forEach(
                 (key, val) -> {
                     if (val != null) {
@@ -70,11 +69,7 @@ public class AzureServiceBusIntegrationMsg {
                 }
         );
         json.set("systemProperties", sysPropsJson);
-        JsonNode payloadJson = null;
-        try {
-            payloadJson = mapper.readTree(this.context.getMessage().getBody().toBytes());
-        } catch (IOException e) {
-        }
+        JsonNode payloadJson = JacksonUtil.fromBytes(this.context.getMessage().getBody().toBytes());
         if (payloadJson != null) {
             json.set("payload", payloadJson);
         } else {
