@@ -85,7 +85,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EntityViewInfo | EntityView>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<EntityViewInfo | EntityView>(groupParams.customerId);
+    const config = new EntityTableConfig<EntityViewInfo | EntityView>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {

@@ -29,39 +29,36 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Route, RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
+import { EntityType } from '@shared/models/entity-type.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { NgModule } from '@angular/core';
-import { devicesRoute } from '@home/pages/device/device-routing.module';
-import { assetsRoute } from '@home/pages/asset/asset-routing.module';
-import { entityViewsRoute } from '@home/pages/entity-view/entity-view-routing.module';
+import { Customer, CustomerInfo } from '@shared/models/customer.model';
 
-export const entitiesRoute = (root = false): Route => ({
-    path: 'entities',
-    data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      breadcrumb: {
-        label: 'entity.entities',
-        icon: 'category'
-      }
-    },
-    children: [
-      {
-        path: '',
-        children: [],
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          redirectTo: 'devices'
-        }
-      },
-      devicesRoute(root),
-      assetsRoute(root),
-      entityViewsRoute(root)
-    ]
-  });
-
-@NgModule({
-  imports: [RouterModule.forChild([entitiesRoute(true)])],
-  exports: [RouterModule]
+@Component({
+  selector: 'tb-customer-table-header',
+  templateUrl: './customer-table-header.component.html',
+  styleUrls: []
 })
-export class EntitiesRoutingModule { }
+export class CustomerTableHeaderComponent extends EntityTableHeaderComponent<CustomerInfo | Customer> implements OnInit {
+
+  includeCustomersLabel: string;
+
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+    this.includeCustomersLabel = (getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER ||
+      this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
+  }
+
+  includeCustomersChanged(includeCustomers: boolean) {
+    this.entitiesTableConfig.componentsData.includeCustomersChanged(includeCustomers);
+  }
+
+}

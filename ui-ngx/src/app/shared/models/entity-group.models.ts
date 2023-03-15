@@ -533,6 +533,7 @@ export interface EntityGroupParams {
   edgeId?: string;
   edgeEntitiesType?: EntityType;
   edgeEntitiesGroupId?: string;
+  backNavigationCommands?: any[];
 }
 
 export interface ShareGroupRequest {
@@ -546,6 +547,10 @@ export interface ShareGroupRequest {
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
   let routeParams = {...route.params};
   let routeData = {...route.data};
+  let backNavigationCommands: any[];
+  if (route.data.backNavigationCommands) {
+    backNavigationCommands = routeData.backNavigationCommands;
+  }
   while (route.parent !== null) {
     route = route.parent;
     if (routeParams.entityGroupId && route.params.entityGroupId &&
@@ -561,6 +566,9 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     }
     routeParams = {...routeParams, ...route.params};
     routeData = { ...routeData, ...route.data };
+    if (route.data.backNavigationCommands && !backNavigationCommands) {
+      backNavigationCommands = routeData.backNavigationCommands;
+    }
   }
   return {
     customerId: routeParams.customerId,
@@ -571,6 +579,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     childGroupType: routeData.childGroupType,
     edgeId: routeParams.edgeId,
     edgeEntitiesType: routeData.edgeEntitiesType,
-    edgeEntitiesGroupId: routeData.edgeEntitiesGroupId
+    edgeEntitiesGroupId: routeData.edgeEntitiesGroupId,
+    backNavigationCommands
   };
 }

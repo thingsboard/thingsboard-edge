@@ -53,6 +53,7 @@ import { MatButton } from '@angular/material/button';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -170,9 +171,15 @@ export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | Ent
 export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = PageLink, L extends BaseData<HasId> = T> {
 
   customerId: string;
+  backNavigationCommands?: any[];
 
-  constructor(customerId?: string) {
-    this.customerId = customerId;
+  constructor(public groupParams?: EntityGroupParams) {
+    this.customerId = groupParams?.customerId;
+    this.backNavigationCommands = groupParams?.backNavigationCommands;
+  }
+
+  displayBackButton(): boolean {
+    return isDefinedAndNotNull(this.backNavigationCommands);
   }
 
   private table: IEntitiesTableComponent = null;

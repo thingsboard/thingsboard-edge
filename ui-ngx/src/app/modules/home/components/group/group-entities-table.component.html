@@ -47,13 +47,6 @@
   </mat-drawer>
   <mat-drawer-content>
     <tb-entities-table #entitiesTable [entitiesTableConfig]="entityGroupConfig">
-      <button mat-icon-button class="table-header-prefix"
-              matTooltip="{{ 'action.back' | translate }}"
-              matTooltipPosition="above"
-              (click)="goBack()"
-              style="margin-right: 8px;">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
     </tb-entities-table>
   </mat-drawer-content>
 </mat-drawer-container>

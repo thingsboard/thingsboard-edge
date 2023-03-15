@@ -97,7 +97,8 @@ const entityViewGroupsChildrenRoutes: Route[] = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'entity-group.entity-view-group',
-          groupType: EntityType.ENTITY_VIEW
+          groupType: EntityType.ENTITY_VIEW,
+          backNavigationCommands: ['../']
         },
         resolve: {
           entityGroup: EntityGroupResolver
@@ -133,7 +134,7 @@ const entityViewSharedGroupsRoute: Route = {
   children: entityViewGroupsChildrenRoutes
 };
 
-export const entityViewsRoute = (includeShared = false): Route => {
+export const entityViewsRoute = (root = false): Route => {
   const routeConfig: Route = {
     path: 'entityViews',
     component: RouterTabsComponent,
@@ -182,7 +183,7 @@ export const entityViewsRoute = (includeShared = false): Route => {
       entityViewGroupsRoute
     ]
   };
-  if (includeShared) {
+  if (root) {
     routeConfig.children.push(entityViewSharedGroupsRoute);
   }
   routeConfig.children.push(entityViewRoute(EntityGroupResolver, EntityViewsTableConfigResolver));

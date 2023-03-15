@@ -189,10 +189,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.customerId !== null) {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'customerGroups', params.childEntityGroupId, customer.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'customers', 'groups', params.childEntityGroupId, customer.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, customer.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId, customer.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
@@ -221,7 +221,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.CUSTOMER);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/customerGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/customers/all');
     }
   }
 
@@ -233,7 +233,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ASSET);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entities/assets`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/assets');
     }
   }
 
@@ -245,7 +245,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.DEVICE);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entities/devices`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/devices');
     }
   }
 
@@ -257,7 +257,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ENTITY_VIEW);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entities/entityViews`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/entityViews');
     }
   }
 
@@ -281,8 +281,13 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.DASHBOARD);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/dashboards`);
+      this.navigateToChildCustomerPage(config, customer, '/dashboards');
     }
+  }
+
+  private navigateToChildCustomerPage(config: GroupEntityTableConfig<Customer>, customer: Customer | ShortEntityView, page: string) {
+    const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+    this.router.navigateByUrl(`customers/${targetGroups}/${config.entityGroup.id.id}/${customer.id.id}${page}`);
   }
 
   onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {

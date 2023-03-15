@@ -99,7 +99,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DeviceInfo | Device>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<DeviceInfo | Device>(groupParams.customerId);
+    const config = new EntityTableConfig<DeviceInfo | Device>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {

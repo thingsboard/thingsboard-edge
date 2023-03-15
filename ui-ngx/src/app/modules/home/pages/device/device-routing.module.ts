@@ -96,7 +96,8 @@ const deviceGroupsChildrenRoutes: Route[] = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'entity-group.device-group',
-          groupType: EntityType.DEVICE
+          groupType: EntityType.DEVICE,
+          backNavigationCommands: ['../']
         },
         resolve: {
           entityGroup: EntityGroupResolver
@@ -132,7 +133,7 @@ const deviceSharedGroupsRoute: Route = {
   children: deviceGroupsChildrenRoutes
 };
 
-export const devicesRoute = (includeShared = false): Route => {
+export const devicesRoute = (root = false): Route => {
   const routeConfig: Route = {
     path: 'devices',
     component: RouterTabsComponent,
@@ -181,7 +182,7 @@ export const devicesRoute = (includeShared = false): Route => {
       deviceGroupsRoute
     ]
   };
-  if (includeShared) {
+  if (root) {
     routeConfig.children.push(deviceSharedGroupsRoute);
   }
   routeConfig.children.push(deviceRoute(EntityGroupResolver, DevicesTableConfigResolver));

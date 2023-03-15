@@ -87,7 +87,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DashboardInfo | Dashboard>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<DashboardInfo | Dashboard>(groupParams.customerId);
+    const config = new EntityTableConfig<DashboardInfo | Dashboard>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {

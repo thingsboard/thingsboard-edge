@@ -53,7 +53,13 @@
         <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
           <div class="mat-toolbar-tools">
             <div fxLayout="row" fxLayoutAlign="start center" fxLayout.xs="column" fxLayoutAlign.xs="center start" class="title-container">
-              <ng-content select=".table-header-prefix"></ng-content>
+              <button *ngIf="entitiesTableConfig.displayBackButton()" mat-icon-button
+                      matTooltip="{{ 'action.back' | translate }}"
+                      matTooltipPosition="above"
+                      (click)="goBack()"
+                      style="margin-right: 8px;">
+                <mat-icon>arrow_back</mat-icon>
+              </button>
               <span *ngIf="entitiesTableConfig.tableTitle" class="tb-entity-table-title">{{ entitiesTableConfig.tableTitle }}</span>
               <tb-anchor #entityTableHeader></tb-anchor>
               <tb-timewindow *ngIf="entitiesTableConfig.useTimePageLink" [(ngModel)]="timewindow"

@@ -169,10 +169,6 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
     }
   }
 
-  goBack(): void {
-    this.router.navigate(['../'], { relativeTo: this.route });
-  }
-
   private reloadEntityGroup() {
     this.entityGroupService.getEntityGroup(this.entityGroup.id.id).subscribe(
       (entityGroup) => {

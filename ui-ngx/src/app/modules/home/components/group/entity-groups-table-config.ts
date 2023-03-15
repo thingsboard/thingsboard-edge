@@ -64,7 +64,6 @@ import { PageLinkSearchFunction } from '@shared/models/page/page-link';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
-  customerId: string;
   edgeId: string;
   groupType: EntityType;
   shared: boolean;
@@ -81,12 +80,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private params: EntityGroupParams) {
-    super();
+    super(params);
 
     if (params.hierarchyView) {
       this.pageMode = false;
     }
-    this.customerId = params.customerId;
     this.edgeId = params.edgeId;
     if ((this.customerId || this.edgeId) && params.edgeEntitiesType) {
       this.groupType = params.edgeEntitiesType;

@@ -47,7 +47,6 @@ import { of } from 'rxjs';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { map, switchMap } from 'rxjs/operators';
-import { CustomersHierarchyComponent } from '@home/pages/group/customers-hierarchy.component';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
@@ -327,6 +326,31 @@ const redirectEntityViewGroupsRoutes: Routes = [
   {
     path: 'entityViewGroups/:entityGroupId/:entityId',
     redirectTo: '/entities/entityViews/groups/:entityGroupId/:entityId'
+  }
+];
+
+const redirectCustomerGroupsRoutes: Routes = [
+  {
+    path: 'customerGroups',
+    pathMatch: 'full',
+    redirectTo: '/customers/groups'
+  },
+  {
+    path: 'customerGroups/:entityGroupId',
+    pathMatch: 'full',
+    redirectTo: '/customers/groups/:entityGroupId'
+  },
+  {
+    path: 'customerGroups/:entityGroupId/:entityId',
+    redirectTo: '/customers/groups/:entityGroupId/:entityId'
+  }
+];
+
+const redirectCustomersHierarchyRoutes: Routes = [
+  {
+    path: 'customersHierarchy',
+    pathMatch: 'full',
+    redirectTo: '/customers/hierarchy'
   }
 ];
 
@@ -888,18 +912,8 @@ const routes: Routes = [
   ...redirectDeviceGroupsRoutes,
   ...redirectAssetGroupsRoutes,
   ...redirectEntityViewGroupsRoutes,
-  {
-    path: 'customersHierarchy',
-    component: CustomersHierarchyComponent,
-    data: {
-      breadcrumb: {
-        label: 'customers-hierarchy.customers-hierarchy',
-        icon: 'sort'
-      },
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'customers-hierarchy.customers-hierarchy'
-    }
-  },
+  ...redirectCustomerGroupsRoutes,
+  ...redirectCustomersHierarchyRoutes,
   ...ENTITY_RUTE_ROUTE
 ];
 

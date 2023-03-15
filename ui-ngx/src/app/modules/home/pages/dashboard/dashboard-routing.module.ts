@@ -127,7 +127,8 @@ const dashboardGroupsChildrenRoutes: Route[] = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'entity-group.dashboard-group',
-          groupType: EntityType.DASHBOARD
+          groupType: EntityType.DASHBOARD,
+          backNavigationCommands: ['../']
         },
         resolve: {
           entityGroup: EntityGroupResolver
@@ -163,7 +164,7 @@ const dashboardSharedGroupsRoute: Route = {
   children: dashboardGroupsChildrenRoutes
 };
 
-export const dashboardsRoute = (includeShared = false): Route => {
+export const dashboardsRoute = (root = false): Route => {
   const routeConfig: Route = {
     path: 'dashboards',
     component: RouterTabsComponent,
@@ -212,7 +213,7 @@ export const dashboardsRoute = (includeShared = false): Route => {
       dashboardGroupsRoute
     ]
   };
-  if (includeShared) {
+  if (root) {
     routeConfig.children.push(dashboardSharedGroupsRoute);
   }
   routeConfig.children.push(dashboardRoute('emptyEntityGroupResolver', true));

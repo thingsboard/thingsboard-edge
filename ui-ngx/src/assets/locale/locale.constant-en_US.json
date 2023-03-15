@@ -936,6 +936,10 @@
         "binary": "Binary (Base64)"
     },
     "customer": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
+        "hierarchy": "Hierarchy",
         "customer": "Customer",
         "customers": "Customers",
         "management": "Customer management",
@@ -985,6 +989,7 @@
         "manage-assets": "Manage assets",
         "manage-devices": "Manage devices",
         "manage-dashboards": "Manage dashboards",
+        "manage-entity-views": "Manage entity views",
         "title": "Title",
         "title-required": "Title is required.",
         "title-max-length": "Title should be less than 256",
@@ -2272,6 +2277,8 @@
         "type-ota-package": "OTA package",
         "customer-name": "Customer name",
         "sub-customer-name": "Sub-customer name",
+        "parent-customer-name": "Parent customer name",
+        "parent-sub-customer-name": "Parent sub-customer name",
         "include-customer-entities": "Include customer entities",
         "include-sub-customer-entities": "Include sub-customer entities"
     },

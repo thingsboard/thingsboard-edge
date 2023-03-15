@@ -183,7 +183,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'deviceGroups', params.edgeEntitiesGroupId, device.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
           params.customerId, 'entities', 'devices', 'groups', params.childEntityGroupId, device.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');

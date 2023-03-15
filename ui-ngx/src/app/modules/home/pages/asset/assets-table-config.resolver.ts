@@ -86,7 +86,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<AssetInfo | Asset>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<AssetInfo | Asset>(groupParams.customerId);
+    const config = new EntityTableConfig<AssetInfo | Asset>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {

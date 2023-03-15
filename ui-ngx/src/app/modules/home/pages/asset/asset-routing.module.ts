@@ -96,7 +96,8 @@ const assetGroupsChildrenRoutes: Route[] = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'entity-group.asset-group',
-          groupType: EntityType.ASSET
+          groupType: EntityType.ASSET,
+          backNavigationCommands: ['../']
         },
         resolve: {
           entityGroup: EntityGroupResolver
@@ -132,7 +133,7 @@ const assetSharedGroupsRoute: Route = {
   children: assetGroupsChildrenRoutes
 };
 
-export const assetsRoute = (includeShared = false): Route => {
+export const assetsRoute = (root = false): Route => {
   const routeConfig: Route = {
     path: 'assets',
     component: RouterTabsComponent,
@@ -181,7 +182,7 @@ export const assetsRoute = (includeShared = false): Route => {
       assetGroupsRoute
     ]
   };
-  if (includeShared) {
+  if (root) {
     routeConfig.children.push(assetSharedGroupsRoute);
   }
   routeConfig.children.push(assetRoute(EntityGroupResolver, AssetsTableConfigResolver));

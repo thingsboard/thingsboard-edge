@@ -32,32 +32,33 @@ package org.thingsboard.server.dao.model.sql;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.Customer;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Data
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME)
-public final class CustomerEntity extends AbstractCustomerEntity<Customer> {
+@Immutable
+@Table(name = ModelConstants.CUSTOMER_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class CustomerInfoEntity extends AbstractCustomerEntity<CustomerInfo> {
 
-    public CustomerEntity() {
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
+    private String ownerName;
+
+    public CustomerInfoEntity() {
         super();
     }
 
-    public CustomerEntity(Customer customer) {
-        super(customer);
-    }
-
     @Override
-    public Customer toData() {
-        return super.toCustomer();
+    public CustomerInfo toData() {
+        return new CustomerInfo(super.toCustomer(), this.ownerName);
     }
 
 }

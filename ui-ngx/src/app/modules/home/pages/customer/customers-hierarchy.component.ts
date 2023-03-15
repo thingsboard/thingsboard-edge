@@ -56,7 +56,7 @@ import {
   entityGroupNodeText,
   EntityGroupsNodeData,
   entityGroupsNodeText
-} from '@home/pages/group/customers-hierarchy.models';
+} from '@home/pages/customer/customers-hierarchy.models';
 import { EntityService } from '@core/http/entity.service';
 import { Customer } from '@shared/models/customer.model';
 import { UserPermissionsService } from '@core/http/user-permissions.service';

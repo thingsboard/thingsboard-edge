@@ -167,7 +167,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'dashboardGroups', params.edgeEntitiesGroupId, dashboard.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
           params.customerId, 'dashboards', 'groups', params.childEntityGroupId, dashboard.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');

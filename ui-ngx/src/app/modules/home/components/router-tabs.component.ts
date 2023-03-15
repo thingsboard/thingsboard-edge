@@ -51,6 +51,8 @@ import { ActiveComponentService } from '@core/services/active-component.service'
 })
 export class RouterTabsComponent extends PageComponent implements AfterViewInit, OnInit {
 
+  hideCurrentTabs = false;
+
   tabs$: Observable<Array<MenuSection>> = this.menuService.menuSections().pipe(
     map(sections => {
       const sectionPath = '/' + this.activatedRoute.pathFromRoot.map(r => r.snapshot.url)
@@ -80,6 +82,20 @@ export class RouterTabsComponent extends PageComponent implements AfterViewInit,
 
   activeComponentChanged(activeComponent: any) {
     this.activeComponentService.setCurrentActiveComponent(activeComponent);
+    let snapshot = this.router.routerState.snapshot.root;
+    this.hideCurrentTabs = false;
+    let found = false;
+    while (snapshot.children.length) {
+      if (snapshot.component && snapshot.component === RouterTabsComponent) {
+        if (this.activatedRoute.snapshot === snapshot) {
+          found = true;
+        } else if (found) {
+          this.hideCurrentTabs = true;
+          break;
+        }
+      }
+      snapshot = snapshot.children[0];
+    }
   }
 
   private findRootSection(sections: MenuSection[], sectionPath: string): MenuSection {

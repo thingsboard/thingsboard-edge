@@ -28,36 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.dao.customer;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.common.data.CustomerInfo;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.Dao;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import java.util.UUID;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME)
-public final class CustomerEntity extends AbstractCustomerEntity<Customer> {
+public interface CustomerInfoDao extends Dao<CustomerInfo> {
 
-    public CustomerEntity() {
-        super();
-    }
+    PageData<CustomerInfo> findCustomersByTenantId(UUID tenantId, PageLink pageLink);
 
-    public CustomerEntity(Customer customer) {
-        super(customer);
-    }
+    PageData<CustomerInfo> findTenantCustomersByTenantId(UUID tenantId, PageLink pageLink);
 
-    @Override
-    public Customer toData() {
-        return super.toCustomer();
-    }
+    PageData<CustomerInfo> findCustomersByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
+
+    PageData<CustomerInfo> findCustomersByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink);
 
 }

@@ -172,6 +172,8 @@ public class ModelConstants {
     public static final String CUSTOMER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "customer_by_tenant_and_search_text";
     public static final String CUSTOMER_BY_TENANT_AND_TITLE_VIEW_NAME = "customer_by_tenant_and_title";
 
+    public static final String CUSTOMER_INFO_VIEW_COLUMN_FAMILY_NAME = "customer_info_view";
+
     /**
      * Cassandra device constants.
      */
@@ -902,6 +904,11 @@ public class ModelConstants {
     }
 
     public static final String SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
+            "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
+            "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
+            "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
+    public static final String CUSTOMERS_SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.parent_customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
             "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
             "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
             "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
