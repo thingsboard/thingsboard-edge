@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -69,8 +71,10 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Remove customer from group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove the customer from group")
     public void removeFromGroup() {
         String groupName = "group" + random();
         title = ENTITY_NAME + random();
@@ -87,8 +91,10 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.elementIsNotPresent(customerPage.getEntity(title)));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Remove customer from group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Cancel remove the customer from group")
     public void cancelRemoveFromGroup() {
         String groupName = "group" + random();
         title = ENTITY_NAME + random();

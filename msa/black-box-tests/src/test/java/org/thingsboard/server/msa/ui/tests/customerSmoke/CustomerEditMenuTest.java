@@ -166,8 +166,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getDescription(), finalDescription);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add country")
     public void addCountry() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
