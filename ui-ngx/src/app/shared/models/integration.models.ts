@@ -45,6 +45,7 @@ export enum IntegrationType {
   TTI = 'TTI',
   CHIRPSTACK = 'CHIRPSTACK',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
+  AZURE_SERVICE_BUS = 'AZURE_SERVICE_BUS',
   COAP = 'COAP',
   OPC_UA = 'OPC_UA',
   APACHE_PULSAR = 'APACHE_PULSAR',
@@ -223,6 +224,15 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
         name: 'integration.type-azure-event-hub',
         description: 'integration.type-azure-event-hub-description',
         icon: 'assets/integration-icon/azure-event-hub.svg',
+        checkConnection: true
+      }
+    ],
+    [
+      IntegrationType.AZURE_SERVICE_BUS,
+      {
+        name: 'integration.type-azure-service-bus',
+        description: 'integration.type-azure-service-bus-description',
+        icon: 'assets/integration-icon/azure-service-bus.svg',
         checkConnection: true
       }
     ],
@@ -641,6 +651,16 @@ export interface AzureEventHubIntegration {
     consumerGroup?: string;
     iotHubName?: string;
   };
+}
+
+export interface AzureServicesBusIntegration {
+  clientConfiguration: {
+    connectionString: string;
+    topicName: string;
+    subName: string;
+    downlinkConnectionString: string;
+    downlinkTopicName: string;
+  }
 }
 
 export interface AzureIotHubIntegration{
