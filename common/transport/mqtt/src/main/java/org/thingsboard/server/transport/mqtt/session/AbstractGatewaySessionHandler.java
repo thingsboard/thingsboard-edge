@@ -236,7 +236,7 @@ public abstract class AbstractGatewaySessionHandler<T extends AbstractGatewayDev
         }, context.getExecutor());
     }
 
-    ListenableFuture<T> onDeviceConnect(String deviceName, String deviceType) {
+    ListenableFuture<T> onDeviceConnect(String deviceName, String deviceType, String... entityGroup) {
         T result = devices.get(deviceName);
         if (result == null) {
             Lock deviceCreationLock = deviceCreationLockMap.computeIfAbsent(deviceName, s -> new ReentrantLock());
@@ -244,7 +244,7 @@ public abstract class AbstractGatewaySessionHandler<T extends AbstractGatewayDev
             try {
                 result = devices.get(deviceName);
                 if (result == null) {
-                    return getDeviceCreationFuture(deviceName, deviceType);
+                    return getDeviceCreationFuture(deviceName, deviceType, entityGroup);
                 } else {
                     return Futures.immediateFuture(result);
                 }
@@ -256,7 +256,7 @@ public abstract class AbstractGatewaySessionHandler<T extends AbstractGatewayDev
         }
     }
 
-    private ListenableFuture<T> getDeviceCreationFuture(String deviceName, String deviceType) {
+    private ListenableFuture<T> getDeviceCreationFuture(String deviceName, String deviceType, String... entityGroup) {
         final SettableFuture<T> futureToSet = SettableFuture.create();
         ListenableFuture<T> future = deviceFutures.putIfAbsent(deviceName, futureToSet);
         if (future != null) {
@@ -268,6 +268,7 @@ public abstract class AbstractGatewaySessionHandler<T extends AbstractGatewayDev
                             .setDeviceType(deviceType)
                             .setGatewayIdMSB(gateway.getDeviceId().getId().getMostSignificantBits())
                             .setGatewayIdLSB(gateway.getDeviceId().getId().getLeastSignificantBits())
+                            .setEntityGroup(entityGroup.length == 0 ? null : entityGroup[0])
                             .build(),
                     new TransportServiceCallback<>() {
                         @Override
