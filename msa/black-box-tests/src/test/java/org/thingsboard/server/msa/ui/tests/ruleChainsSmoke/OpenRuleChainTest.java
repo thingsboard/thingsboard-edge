@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.ruleChainsSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -68,8 +70,10 @@ public class OpenRuleChainTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Rule chains smoke tests")
+    @Feature("Open rule chain")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Open the rule chain by clicking on its name")
     public void openRuleChainByRightCornerBtn() {
         String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(EntityPrototypes.defaultRuleChainPrototype(ruleChainName));
@@ -85,8 +89,10 @@ public class OpenRuleChainTest extends AbstractDriverBaseTest {
         Assert.assertEquals(ruleChainName, openRuleChainPage.getHeadName());
     }
 
+    @Epic("Rule chains smoke tests")
+    @Feature("Open rule chain")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Open the rule chain by clicking on the 'Open rule chain' button in the entity view")
     public void openRuleChainByViewBtn() {
         String ruleChainName = ENTITY_NAME + random();
         testRestClient.postRuleChain(EntityPrototypes.defaultRuleChainPrototype(ruleChainName));
