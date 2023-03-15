@@ -32,7 +32,7 @@ package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
@@ -45,7 +45,7 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private final String iconText = ": Asset groups";
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -72,7 +72,7 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersAssetGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersAssetGroupsBtnView());
 
         Assert.assertTrue(urlContains("assetGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

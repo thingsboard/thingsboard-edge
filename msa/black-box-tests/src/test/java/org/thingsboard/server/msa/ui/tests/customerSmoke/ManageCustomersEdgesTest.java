@@ -32,7 +32,7 @@ package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
@@ -45,7 +45,7 @@ public class ManageCustomersEdgesTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private final String iconText = ": Edge groups";
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -72,7 +72,7 @@ public class ManageCustomersEdgesTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersEdgeGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersEdgeGroupsBtnView());
 
         Assert.assertTrue(urlContains("edgeGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

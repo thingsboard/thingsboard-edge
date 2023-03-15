@@ -125,6 +125,12 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
     }
 
     @Override
+    public ListenableFuture<Void> delete(DeviceId deviceId, User user) {
+        Device device = deviceService.findDeviceById(user.getTenantId(), deviceId);
+        return delete(device, user);
+    }
+
+    @Override
     public DeviceCredentials getDeviceCredentialsByDeviceId(Device device, User user) throws ThingsboardException {
         TenantId tenantId = device.getTenantId();
         DeviceId deviceId = device.getId();

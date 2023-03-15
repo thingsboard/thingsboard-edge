@@ -33,7 +33,7 @@ package org.thingsboard.server.msa.ui.tests.assetProfileSmoke;
 import io.qameta.allure.Description;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
@@ -52,7 +52,7 @@ public class CreateAssetProfileTest extends AbstractDriverBaseTest {
     private ProfilesPageHelper profilesPage;
     private String name;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewHelper(driver);
@@ -182,7 +182,7 @@ public class CreateAssetProfileTest extends AbstractDriverBaseTest {
         String urlPath = "docs/pe/user-guide/asset-profiles/";
 
         sideBarMenuView.openAssetProfiles();
-        profilesPage.allEntity().get(0).click();
+        profilesPage.profileNames().get(0).click();
         profilesPage.goToProfileHelpPage();
 
         Assert.assertTrue(urlContains(urlPath));

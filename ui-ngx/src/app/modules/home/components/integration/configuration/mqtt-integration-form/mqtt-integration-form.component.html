@@ -70,10 +70,16 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
-                        formControlName="cleanSession" style="padding: 16px;">
-        {{ 'integration.clean-session' | translate }}
-      </mat-slide-toggle>
+      <div class="row" fxLayout="column" fxLayoutGap="8px">
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
+                          formControlName="cleanSession" style="padding: 16px;">
+          {{ 'integration.clean-session' | translate }}
+        </mat-slide-toggle>
+        <mat-slide-toggle class="checkbox" [aria-label]="'integration.retained-message' | translate"
+                          formControlName="retainedMessage" style="padding: 16px;">
+          {{ 'integration.retained-message' | translate }}
+        </mat-slide-toggle>
+      </div>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">

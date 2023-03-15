@@ -30,12 +30,9 @@
  */
 package org.thingsboard.server.msa.ui.base;
 
-import com.google.common.io.Files;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import io.qameta.allure.Attachment;
-import lombok.SneakyThrows;
+import io.qameta.allure.Allure;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
@@ -49,7 +46,9 @@ import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
@@ -61,7 +60,8 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.ContainerTestSuite;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.stream.Collectors;
@@ -82,13 +82,13 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     private static final ContainerTestSuite instance = ContainerTestSuite.getInstance();
     private JavascriptExecutor js;
 
-    @SneakyThrows
-    @BeforeMethod
-    public void openBrowser() {
+    @BeforeClass
+    public void startUp() throws MalformedURLException {
         log.info("===>>> Setup driver");
         testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         ChromeOptions options = new ChromeOptions();
         options.setAcceptInsecureCerts(true);
+        options.addArguments("-remote-allow-origins=*"); //temporary fix after updating google chrome
         if (instance.isActive()) {
             RemoteWebDriver remoteWebDriver = new RemoteWebDriver(new URL(REMOTE_WEBDRIVER_HOST), options);
             remoteWebDriver.setFileDetector(new LocalFileDetector());
@@ -98,16 +98,31 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
             driver = new ChromeDriver(options);
         }
         driver.manage().window().setSize(dimension);
-        openLocalhost();
+        openBaseUiUrl();
+    }
+
+    @BeforeMethod
+    public void open() {
+        openBaseUiUrl();
     }
 
     @AfterMethod
-    public void closeBrowser() {
+    public void addScreenshotToReport() {
+        captureScreen(driver, "After test page screenshot");
+    }
+
+    @AfterClass
+    public void teardown() {
         log.info("<<<=== Teardown");
         driver.quit();
     }
 
-    public void openLocalhost() {
+    public String getJwtTokenFromLocalStorage() {
+        js = (JavascriptExecutor) driver;
+        return (String) js.executeScript("return window.localStorage.getItem('jwt_token');");
+    }
+
+    public void openBaseUiUrl() {
         driver.get(getBaseUiUrl());
     }
 
@@ -184,11 +199,10 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    @SneakyThrows
-    @Attachment(value = "Page screenshot", type = "image/png")
-    public static byte[] captureScreen(WebDriver driver, String dirPath) {
-        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-        FileUtils.copyFile(screenshot, new File("./target/allure-results/screenshots/" + dirPath + "//" + screenshot.getName()));
-        return Files.toByteArray(screenshot);
+    public void captureScreen(WebDriver driver, String screenshotName) {
+        if (driver instanceof TakesScreenshot) {
+            Allure.addAttachment(screenshotName,
+                    new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
+        }
     }
 }

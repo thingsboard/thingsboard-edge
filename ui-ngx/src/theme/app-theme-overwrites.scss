@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
+@use '@material/button/button-filled-theme' as mdc-button-filled-theme;
 @use '@material/button/button-protected-theme' as mdc-button-protected-theme;
 @use '@material/fab/fab-theme' as mdc-fab-theme;
 @use '@material/checkbox/checkbox-theme' as mdc-checkbox-theme;
@@ -45,6 +46,20 @@
 @mixin _mat-button-overwrites($primary, $config-or-theme) {
   $config: mat.get-color-config($config-or-theme);
   $accent: map_get($config, accent);
+  .mat-mdc-unelevated-button {
+    &.mat-primary {
+      @include _unelevated-button-variant(
+          mat.get-color-from-palette($primary, default-contrast),
+          mat.get-color-from-palette($primary)
+      );
+    }
+    &.mat-accent {
+      @include _unelevated-button-variant(
+          mat.get-color-from-palette($accent, default-contrast),
+          mat.get-color-from-palette($accent)
+      );
+    }
+  }
   .mat-mdc-raised-button {
     &.mat-primary {
       @include _raised-button-variant(
@@ -129,6 +144,13 @@
 
 @mixin _raised-button-variant($foreground, $background) {
   @include mdc-button-protected-theme.theme((
+    container-color: $background,
+    label-text-color: $foreground,
+  ));
+}
+
+@mixin _unelevated-button-variant($foreground, $background) {
+  @include mdc-button-filled-theme.theme((
     container-color: $background,
     label-text-color: $foreground,
   ));
