@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -39,11 +39,106 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/group/entity-group.shared';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { AssetsTableConfigResolver } from '@home/pages/asset/assets-table-config.resolver';
 
-export const entityViewRoutes: Routes = [
-  {
-    path: 'entityViews',
+const entityViewRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
+  ({
+    path: ':entityId',
+    component: EntityDetailsPageComponent,
+    canDeactivate: [ConfirmOnExitGuard],
     data: {
+      groupType: EntityType.ENTITY_VIEW,
+      breadcrumb: {
+        labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+        icon: 'view_quilt'
+      } as BreadCrumbConfig<EntityDetailsPageComponent>,
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'entity-view.entity-view',
+      hideTabs: true
+    },
+    resolve: {
+      entityGroup,
+      entitiesTableConfig
+    }
+  });
+
+const entityViewGroupsChildrenRoutes: Route[] = [
+  {
+    path: '',
+    component: EntitiesTableComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'entity-group.entity-view-groups',
+      groupType: EntityType.ENTITY_VIEW
+    },
+    resolve: {
+      entityGroup: EntityGroupResolver,
+      entitiesTableConfig: EntityGroupsTableConfigResolver
+    }
+  },
+  {
+    path: ':entityGroupId',
+    data: {
+      groupType: EntityType.ENTITY_VIEW,
+      breadcrumb: {
+        icon: 'view_quilt',
+        labelFunction: groupEntitiesLabelFunction
+      } as BreadCrumbConfig<GroupEntitiesTableComponent>
+    },
+    children: [
+      {
+        path: '',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.entity-view-group',
+          groupType: EntityType.ENTITY_VIEW
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      },
+      entityViewRoute(EntityGroupResolver, 'emptyEntityViewTableConfigResolver')
+    ]
+  }
+];
+
+const entityViewGroupsRoute: Route = {
+  path: 'groups',
+  data: {
+    groupType: EntityType.ENTITY_VIEW,
+    breadcrumb: {
+      label: 'entity-view.groups',
+      icon: 'view_quilt'
+    }
+  },
+  children: entityViewGroupsChildrenRoutes
+};
+
+const entityViewSharedGroupsRoute: Route = {
+  path: 'shared',
+  data: {
+    groupType: EntityType.ENTITY_VIEW,
+    shared: true,
+    breadcrumb: {
+      label: 'entity-view.shared',
+      icon: 'view_quilt'
+    }
+  },
+  children: entityViewGroupsChildrenRoutes
+};
+
+export const entityViewsRoute = (includeShared = false): Route => {
+  const routeConfig: Route = {
+    path: 'entityViews',
+    component: RouterTabsComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'entity-view.entity-views',
         icon: 'view_quilt'
@@ -52,54 +147,57 @@ export const entityViewRoutes: Routes = [
     children: [
       {
         path: '',
-        component: EntitiesTableComponent,
+        children: [],
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'entity-view.entity-views',
-          entityViewsType: 'tenant'
-        },
-        resolve: {
-          entitiesTableConfig: EntityViewsTableConfigResolver
+          redirectTo: 'all'
         }
       },
       {
-        path: ':entityId',
-        component: EntityDetailsPageComponent,
-        canDeactivate: [ConfirmOnExitGuard],
+        path: 'all',
         data: {
-          breadcrumb: {
-            labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-            icon: 'view_quilt'
-          } as BreadCrumbConfig<EntityDetailsPageComponent>,
+          groupType: EntityType.ENTITY_VIEW,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'entity-view.entity-views',
-          entityViewsType: 'tenant'
+          breadcrumb: {
+            label: 'entity-view.all',
+            icon: 'view_quilt'
+          }
         },
-        resolve: {
-          entitiesTableConfig: EntityViewsTableConfigResolver
-        }
-      }
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+              title: 'entity-view.entity-views'
+            },
+            resolve: {
+              entitiesTableConfig: EntityViewsTableConfigResolver,
+              entityGroup: EntityGroupResolver
+            }
+          },
+          entityViewRoute(EntityGroupResolver, EntityViewsTableConfigResolver)
+        ]
+      },
+      entityViewGroupsRoute
     ]
+  };
+  if (includeShared) {
+    routeConfig.children.push(entityViewSharedGroupsRoute);
   }
-];
-
-const routes: Routes = [
-  {
-    path: 'entityViews',
-    pathMatch: 'full',
-    redirectTo: '/entities/entityViews'
-  },
-  {
-    path: 'entityViews/:entityId',
-    redirectTo: '/entities/entityViews/:entityId'
-  }
-];
+  routeConfig.children.push(entityViewRoute(EntityGroupResolver, EntityViewsTableConfigResolver));
+  return routeConfig;
+};
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
+  imports: [],
+  exports: [],
   providers: [
-    EntityViewsTableConfigResolver
+    EntityViewsTableConfigResolver,
+    {
+      provide: 'emptyEntityViewTableConfigResolver',
+      useValue: (route: ActivatedRouteSnapshot) => null
+    }
   ]
 })
 export class EntityViewRoutingModule { }

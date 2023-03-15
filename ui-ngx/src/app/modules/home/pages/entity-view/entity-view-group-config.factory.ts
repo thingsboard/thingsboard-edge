@@ -107,7 +107,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'entityViewGroups', params.edgeEntitiesGroupId, entityView.id.id]);
       } else {
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+          params.customerId, 'entities', 'entityViews', 'groups', params.childEntityGroupId, entityView.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {

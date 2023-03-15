@@ -257,7 +257,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ENTITY_VIEW);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entityViewGroups`);
+      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entities/entityViews`);
     }
   }
 

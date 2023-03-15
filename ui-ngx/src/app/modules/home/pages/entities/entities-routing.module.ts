@@ -34,6 +34,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
 import { devicesRoute } from '@home/pages/device/device-routing.module';
 import { assetsRoute } from '@home/pages/asset/asset-routing.module';
+import { entityViewsRoute } from '@home/pages/entity-view/entity-view-routing.module';
 
 export const entitiesRoute = (includeShared = false): Route => ({
     path: 'entities',
@@ -55,7 +56,7 @@ export const entitiesRoute = (includeShared = false): Route => ({
       },
       devicesRoute(includeShared),
       assetsRoute(includeShared),
-      // ...entityViewRoutes
+      entityViewsRoute(includeShared)
     ]
   });
 

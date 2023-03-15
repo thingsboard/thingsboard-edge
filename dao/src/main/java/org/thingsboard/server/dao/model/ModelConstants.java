@@ -253,6 +253,8 @@ public class ModelConstants {
     public static final String ENTITY_VIEW_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF = "entity_view_by_tenant_by_type_and_search_text";
     public static final String ENTITY_VIEW_BY_TENANT_AND_NAME = "entity_view_by_tenant_and_name";
 
+    public static final String ENTITY_VIEW_INFO_VIEW_COLUMN_FAMILY_NAME = "entity_view_info_view";
+
     /**
      * Cassandra audit log constants.
      */

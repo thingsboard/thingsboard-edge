@@ -196,72 +196,6 @@ const ENTITY_RUTE_ROUTE: Routes = [
   }
 ];
 
-const ENTITY_VIEW_GROUPS_ROUTE: Route = {
-  path: 'entityViewGroups',
-  data: {
-    groupType: EntityType.ENTITY_VIEW,
-    breadcrumb: {
-      label: 'entity-group.entity-view-groups',
-      icon: 'view_quilt'
-    }
-  },
-  children: [
-    {
-      path: '',
-      component: EntitiesTableComponent,
-      data: {
-        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        title: 'entity-group.entity-view-groups',
-        groupType: EntityType.ENTITY_VIEW
-      },
-      resolve: {
-        entityGroup: EntityGroupResolver,
-        entitiesTableConfig: EntityGroupsTableConfigResolver
-      }
-    },
-    {
-      path: ':entityGroupId',
-      data: {
-        breadcrumb: {
-          icon: 'view_quilt',
-          labelFunction: groupEntitiesLabelFunction
-        } as BreadCrumbConfig<GroupEntitiesTableComponent>
-      },
-      children: [
-        {
-          path: '',
-          component: GroupEntitiesTableComponent,
-          data: {
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'entity-group.entity-view-group',
-            groupType: EntityType.ENTITY_VIEW
-          },
-          resolve: {
-            entityGroup: EntityGroupResolver
-          }
-        },
-        {
-          path: ':entityId',
-          component: EntityDetailsPageComponent,
-          canDeactivate: [ConfirmOnExitGuard],
-          data: {
-            breadcrumb: {
-              labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-              icon: 'view_quilt'
-            } as BreadCrumbConfig<EntityDetailsPageComponent>,
-            auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-            title: 'entity-group.entity-view-group',
-            groupType: EntityType.ENTITY_VIEW
-          },
-          resolve: {
-            entityGroup: EntityGroupResolver
-          }
-        }
-      ]
-    }
-  ]
-};
-
 const USER_GROUPS_ROUTE: Route = {
   path: 'userGroups',
   data: {
@@ -376,6 +310,23 @@ const redirectAssetGroupsRoutes: Routes = [
   {
     path: 'assetGroups/:entityGroupId/:entityId',
     redirectTo: '/entities/assets/groups/:entityGroupId/:entityId'
+  }
+];
+
+const redirectEntityViewGroupsRoutes: Routes = [
+  {
+    path: 'entityViewGroups',
+    pathMatch: 'full',
+    redirectTo: '/entities/entityViews/groups'
+  },
+  {
+    path: 'entityViewGroups/:entityGroupId',
+    pathMatch: 'full',
+    redirectTo: '/entities/entityViews/groups/:entityGroupId'
+  },
+  {
+    path: 'entityViewGroups/:entityGroupId/:entityId',
+    redirectTo: '/entities/entityViews/groups/:entityGroupId/:entityId'
   }
 ];
 
@@ -639,18 +590,6 @@ const routes: Routes = [
               }
             }
           },
-          { ...ENTITY_VIEW_GROUPS_ROUTE, ...{
-              path: ':customerId/entityViewGroups',
-              data: {
-                breadcrumb: {
-                  labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.customerGroupsTitle;
-                  },
-                  icon: 'view_quilt'
-                }
-              }
-            }
-          },
           { ...USER_GROUPS_ROUTE, ...{
               path: ':customerId/userGroups',
               data: {
@@ -764,20 +703,6 @@ const routes: Routes = [
                             return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'devices_other'
-                        }
-                      }
-                    }
-                  },
-                  {...ENTITY_VIEW_GROUPS_ROUTE, ...{
-                      path: ':edgeId/entityViewGroups',
-                      data: {
-                        edgeEntitiesType: EntityType.ENTITY_VIEW,
-                        groupType: EntityType.ENTITY_VIEW,
-                        breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeEntitiesTitle;
-                          },
-                          icon: 'view_quilt'
                         }
                       }
                     }
@@ -939,18 +864,6 @@ const routes: Routes = [
               }
             }
           },
-          { ...ENTITY_VIEW_GROUPS_ROUTE, ...{
-              path: ':edgeId/entityViewGroups',
-              data: {
-                breadcrumb: {
-                  labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeEntitiesTitle;
-                  },
-                  icon: 'view_quilt'
-                }
-              }
-            }
-          },
           { ...dashboardsRoute(), ...{
               path: ':edgeId/dashboards',
               data: {
@@ -970,11 +883,11 @@ const routes: Routes = [
       }
     ]
   },
-  ENTITY_VIEW_GROUPS_ROUTE,
   USER_GROUPS_ROUTE,
   ...redirectDashboardGroupsRoutes,
   ...redirectDeviceGroupsRoutes,
   ...redirectAssetGroupsRoutes,
+  ...redirectEntityViewGroupsRoutes,
   {
     path: 'customersHierarchy',
     component: CustomersHierarchyComponent,
