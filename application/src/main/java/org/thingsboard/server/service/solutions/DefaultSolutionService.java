@@ -763,11 +763,12 @@ public class DefaultSolutionService implements SolutionService {
             schedulerEvent.setSchedule(entityDef.getSchedule());
             schedulerEvent.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
             if (entityDef.getOriginatorId() != null) {
-                String newId = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
-                if (newId != null) {
-                    schedulerEvent.setOriginatorId(new RuleChainId(UUID.fromString(newId)));
+                String newIdStr = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
+                if (newIdStr != null) {
+                    EntityId newId = EntityIdFactory.getByTypeAndUuid(entityDef.getOriginatorId().getEntityType(), UUID.fromString(newIdStr));
+                    schedulerEvent.setOriginatorId(newId);
                 } else {
-                    log.error("[{}][{}] Scheduler event: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
+                    log.error("[{}][{}] Scheduler event: {} references non existing entity.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
                     throw new ThingsboardRuntimeException();
                 }
             }
