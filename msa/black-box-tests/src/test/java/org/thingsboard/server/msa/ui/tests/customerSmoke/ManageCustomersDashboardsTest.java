@@ -71,7 +71,7 @@ public class ManageCustomersDashboardsTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersDashboardsBtnView().click();
+        jsClick(customerPage.manageCustomersDashboardsBtnView());
 
         Assert.assertTrue(urlContains("dashboardGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

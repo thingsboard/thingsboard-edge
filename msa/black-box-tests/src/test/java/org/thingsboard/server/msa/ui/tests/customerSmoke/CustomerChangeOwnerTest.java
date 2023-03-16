@@ -34,7 +34,7 @@ import io.qameta.allure.Description;
 import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
@@ -52,7 +52,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
     private final String title = ENTITY_NAME + random();
     private final String title1 = ENTITY_NAME + random() + '1';
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -92,7 +92,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().click();
         customerPage.changeOwnerViewField().sendKeys(Keys.ESCAPE);
-        customerPage.changeOwnerViewChangeOwnerBtnVisible().click();
+        jsClick(customerPage.changeOwnerViewChangeOwnerBtnVisible());
 
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
         Assert.assertNotNull(customerPage.errorMessage());

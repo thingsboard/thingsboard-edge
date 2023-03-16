@@ -64,9 +64,7 @@ public class DeleteSeveralRuleChainsTest extends AbstractDriverBaseTest {
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.clickOnCheckBoxes(2);
-        ruleChainsPage.deleteSelectedBtn().click();
-        ruleChainsPage.warningPopUpYesBtn().click();
+        ruleChainsPage.deleteSelected(2);
         ruleChainsPage.refreshBtn().click();
 
         Assert.assertTrue(ruleChainsPage.ruleChainsIsNotPresent(ruleChainName));
@@ -81,7 +79,7 @@ public class DeleteSeveralRuleChainsTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.selectAllCheckBox().click();
-        ruleChainsPage.deleteSelectedBtn().click();
+        jsClick(ruleChainsPage.deleteSelectedBtn());
         ruleChainsPage.warningPopUpYesBtn().click();
         ruleChainsPage.refreshBtn().click();
 
@@ -114,9 +112,7 @@ public class DeleteSeveralRuleChainsTest extends AbstractDriverBaseTest {
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.clickOnCheckBoxes(2);
-        ruleChainsPage.deleteSelectedBtn().click();
-        ruleChainsPage.warningPopUpYesBtn().click();
+        ruleChainsPage.deleteSelected(2);
 
         Assert.assertTrue(ruleChainsPage.ruleChainsIsNotPresent(ruleChainName));
     }
