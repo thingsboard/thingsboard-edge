@@ -72,7 +72,7 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersAssetGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersAssetGroupsBtnView());
 
         Assert.assertTrue(urlContains("assetGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

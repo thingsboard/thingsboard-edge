@@ -63,7 +63,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
-        String deletedRuleChain = ruleChainsPage.deleteTrash(ruleChainName);
+        String deletedRuleChain = ruleChainsPage.deleteRuleChainTrash(ruleChainName);
         ruleChainsPage.refreshBtn().click();
 
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
@@ -91,7 +91,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.detailsBtn(ruleChainName).click();
         String deletedRuleChain = ruleChainsPage.deleteRuleChainFromView(ruleChainName);
-        ruleChainsPage.refreshBtn().click();
+        jsClick(ruleChainsPage.refreshBtn());
 
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
     }
@@ -160,7 +160,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.detailsBtn(deletedRuleChain).click();
-        ruleChainsPage.deleteBtnFromView().click();
+        jsClick(ruleChainsPage.deleteBtnFromView());
         ruleChainsPage.warningPopUpYesBtn().click();
 
         Assert.assertNotNull(ruleChainsPage.entity(deletedRuleChain));
@@ -176,7 +176,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
-        String deletedRuleChain = ruleChainsPage.deleteTrash(ruleChainName);
+        String deletedRuleChain = ruleChainsPage.deleteRuleChainTrash(ruleChainName);
 
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
     }

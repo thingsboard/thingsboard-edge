@@ -48,8 +48,8 @@ public class DashboardPageHelper extends DashboardPageElements {
     }
 
     public void assignedCustomer(String title) {
-        manageAssignedEntityListField().click();
-        manageAssignedEntity(title).click();
-        manageAssignedUpdateBtn().click();
+        jsClick(manageAssignedEntityListField());
+        jsClick(manageAssignedEntity(title));
+        jsClick(manageAssignedUpdateBtn());
     }
 }
