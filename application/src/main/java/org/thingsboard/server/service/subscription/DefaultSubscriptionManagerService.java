@@ -60,7 +60,6 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.common.data.alarm.AlarmAssigneeUpdate;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
@@ -78,7 +77,6 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.notification.rule.NotificationRuleProcessingService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
@@ -118,7 +116,6 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     private final TbLocalSubscriptionService localSubscriptionService;
     private final DeviceStateService deviceStateService;
     private final TbClusterService clusterService;
-    private final NotificationRuleProcessingService notificationRuleProcessingService;
 
     private final Map<EntityId, Set<TbSubscription>> subscriptionsByEntityId = new ConcurrentHashMap<>();
     private final Map<String, Map<Integer, TbSubscription>> subscriptionsByWsSessionId = new ConcurrentHashMap<>();
@@ -329,7 +326,6 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 s -> alarm.getCreatedTime() >= s.getTs() || alarm.getAssignTs() >= s.getTs(),
                 alarm, false
         );
-        notificationRuleProcessingService.process(tenantId, alarm, false);
         callback.onSuccess();
     }
 
@@ -346,7 +342,6 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 s -> alarm.getCreatedTime() >= s.getTs(),
                 alarm, true
         );
-        notificationRuleProcessingService.process(tenantId, alarm, true);
         callback.onSuccess();
     }
 

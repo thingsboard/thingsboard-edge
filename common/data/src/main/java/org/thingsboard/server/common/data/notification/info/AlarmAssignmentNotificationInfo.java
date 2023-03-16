@@ -45,10 +45,15 @@ import java.util.UUID;
 import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class AlarmNotificationInfo implements RuleOriginatedNotificationInfo {
+public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificationInfo {
+
+    private String assigneeFirstName;
+    private String assigneeLastName;
+    private String assigneeEmail;
+    private String userName;
 
     private String alarmType;
     private UUID alarmId;
@@ -60,15 +65,18 @@ public class AlarmNotificationInfo implements RuleOriginatedNotificationInfo {
 
     @Override
     public Map<String, String> getTemplateData() {
-        // TODO: readable status change
         return mapOf(
+                "assigneeFirstName", assigneeFirstName,
+                "assigneeLastName", assigneeLastName,
+                "assigneeEmail", assigneeEmail,
+                "userName", userName,
                 "alarmType", alarmType,
                 "alarmId", alarmId.toString(),
                 "alarmSeverity", alarmSeverity.toString(),
                 "alarmStatus", alarmStatus.toString(),
                 "alarmOriginatorEntityType", alarmOriginator.getEntityType().toString(),
-                "alarmOriginatorName", alarmOriginatorName,
-                "alarmOriginatorId", alarmOriginator.getId().toString()
+                "alarmOriginatorId", alarmOriginator.getId().toString(),
+                "alarmOriginatorName", alarmOriginatorName
         );
     }
 

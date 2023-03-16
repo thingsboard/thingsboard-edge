@@ -3630,6 +3630,7 @@
         "add-target": "Add recipient",
         "add-template": "Add template",
         "after": "After",
+        "alarm-assignment-trigger-settings": "Alarm assignment trigger settings",
         "alarm-comment-trigger-settings": "Alarm comment trigger settings",
         "alarm-trigger-settings": "Alarm trigger settings",
         "all": "All",
@@ -3721,7 +3722,17 @@
         "notification-chain": "Notification chain",
         "notification-target": "Notification recipient",
         "notify": "notify",
+        "notify-alarm-action": {
+           "created": "Alarm created",
+           "severity-changed": "Alarm severity changed",
+           "acknowledged": "Alarm acknowledged",
+           "cleared": "Alarm cleared"
+        },
         "notify-again": "Notify again",
+        "notify-on": "Notify on",
+        "notify-on-required": "Notify on is required",
+        "notify-only-user-comments": "Notify only user comments",
+        "notify-on-unassign": "Notify on unassign",
         "platform-users": "Platform users",
         "recipient": "Recipient",
         "recipient-type": "Recipient type",
@@ -3775,6 +3786,7 @@
         "template": "Template",
         "template-hint": {
             "alarm": "Available params: ${alarmType}, ${alarmSeverity}, ${alarmStatus}, ${alarmOriginatorEntityType}, ${alarmOriginatorId}, ${alarmId}, ${alarmAction}",
+            "alarm-assignment": "Available params: ${assigneeFirstName}, ${assigneeLastName}, ${assigneeEmail}, ${assigneeFirstName}, ${userName}, ${alarmId}, ${alarmType}, ${alarmSeverity}, ${alarmStatus}, ${alarmOriginatorEntityType}, ${alarmOriginatorId}, ${alarmId}, ${alarmAction}",
             "alarm-comment": "Available params: ${comment}, ${alarmType}, ${alarmId}, ${alarmType}, ${alarmSeverity}, ${alarmStatus}, ${alarmOriginatorEntityType}, ${alarmOriginatorId}, ${alarmId}, ${alarmAction}",
             "device-inactivity": "Available params: ${deviceName}, ${deviceLabel}, ${deviceType}, ${deviceId}",
             "entity-action": "Available params: ${actionType}, ${entityType}, ${entityName}, ${entityId}, ${originatorUserName}, ${originatorUserId}",
@@ -3784,6 +3796,7 @@
         "template-required": "Template is required",
         "template-type": {
             "alarm": "Alarm",
+            "alarm-assignment": "Alarm assignment",
             "alarm-comment": "Alarm comment",
             "device-inactivity": "Device inactivity",
             "entity-action": "Entity action",
@@ -3793,6 +3806,7 @@
         "time": "Time",
         "trigger": {
             "alarm": "Alarm",
+            "alarm-assignment": "Alarm assignment",
             "alarm-comment": "Alarm comment",
             "device-inactivity": "Device inactivity",
             "entity-action": "Entity action",

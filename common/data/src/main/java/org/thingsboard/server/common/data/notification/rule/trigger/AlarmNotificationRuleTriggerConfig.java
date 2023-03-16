@@ -34,6 +34,7 @@ import lombok.Data;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.Set;
 
 @Data
@@ -41,6 +42,9 @@ public class AlarmNotificationRuleTriggerConfig implements NotificationRuleTrigg
 
     private Set<String> alarmTypes;
     private Set<AlarmSeverity> alarmSeverities;
+    @NotEmpty
+    private Set<AlarmAction> notifyOn;
+
     private ClearRule clearRule;
 
     @Override
@@ -51,6 +55,10 @@ public class AlarmNotificationRuleTriggerConfig implements NotificationRuleTrigg
     @Data
     public static class ClearRule {
         private Set<AlarmSearchStatus> alarmStatuses;
+    }
+
+    public enum AlarmAction {
+        CREATED, SEVERITY_CHANGED, ACKNOWLEDGED, CLEARED
     }
 
 }

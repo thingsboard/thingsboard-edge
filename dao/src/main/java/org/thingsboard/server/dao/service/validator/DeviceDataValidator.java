@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.service.validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
@@ -40,10 +39,8 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.device.data.DeviceTransportConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.device.DeviceDao;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -63,16 +60,9 @@ public class DeviceDataValidator extends AbstractHasOtaPackageValidator<Device> 
     @Autowired
     private CustomerDao customerDao;
 
-    @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
     @Override
     protected void validateCreate(TenantId tenantId, Device device) {
-        DefaultTenantProfileConfiguration profileConfiguration =
-                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-        long maxDevices = profileConfiguration.getMaxDevices();
-        validateNumberOfEntitiesPerTenant(tenantId, deviceDao, maxDevices, EntityType.DEVICE);
+        validateNumberOfEntitiesPerTenant(tenantId, EntityType.DEVICE);
     }
 
     @Override

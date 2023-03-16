@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,9 +79,9 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.UserSettings;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.user.TbUserService;
-import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -92,11 +91,10 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
@@ -139,7 +137,6 @@ public class UserController extends BaseController {
     public static final String ACTIVATE_URL_PATTERN = "%s/api/noauth/activate?activateToken=%s";
 
     @Value("${security.user_token_access_enabled}")
-    @Getter
     private boolean userTokenAccessEnabled;
 
     private final MailService mailService;

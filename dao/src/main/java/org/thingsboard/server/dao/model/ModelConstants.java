@@ -850,7 +850,6 @@ public class ModelConstants {
      * */
 
     public static final String NOTIFICATION_TARGET_TABLE_NAME = "notification_target";
-    public static final String NOTIFICATION_TARGET_TYPE_PROPERTY = "type";
     public static final String NOTIFICATION_TARGET_CONFIGURATION_PROPERTY = "configuration";
 
     public static final String NOTIFICATION_TABLE_NAME = "notification";
@@ -858,7 +857,7 @@ public class ModelConstants {
     public static final String NOTIFICATION_RECIPIENT_ID_PROPERTY = "recipient_id";
     public static final String NOTIFICATION_TYPE_PROPERTY = "type";
     public static final String NOTIFICATION_SUBJECT_PROPERTY = "subject";
-    public static final String NOTIFICATION_TEXT_PROPERTY = "text";
+    public static final String NOTIFICATION_TEXT_PROPERTY = "body";
     public static final String NOTIFICATION_ADDITIONAL_CONFIG_PROPERTY = "additional_config";
     public static final String NOTIFICATION_STATUS_PROPERTY = "status";
 

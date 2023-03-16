@@ -28,44 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service.validator;
+package org.thingsboard.server.service.notification.rule.trigger;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.dashboard.DashboardDao;
-import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.exception.DataValidationException;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.notification.info.NewPlatformVersionNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+import org.thingsboard.server.common.data.notification.rule.trigger.NewPlatformVersionNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
-@Component
-public class DashboardDataValidator extends DataValidator<Dashboard> {
-
-    @Autowired
-    private DashboardDao dashboardDao;
-
-    @Autowired
-    private TenantService tenantService;
+@Service
+public class NewPlatformVersionTriggerProcessor implements NotificationRuleTriggerProcessor<UpdateMessage, NewPlatformVersionNotificationRuleTriggerConfig> {
 
     @Override
-    protected void validateCreate(TenantId tenantId, Dashboard data) {
-        validateNumberOfEntitiesPerTenant(tenantId, EntityType.DASHBOARD);
+    public boolean matchesFilter(UpdateMessage triggerObject, NewPlatformVersionNotificationRuleTriggerConfig triggerConfig) {
+        return triggerObject.isUpdateAvailable();
     }
 
     @Override
-    protected void validateDataImpl(TenantId tenantId, Dashboard dashboard) {
-        if (StringUtils.isEmpty(dashboard.getTitle())) {
-            throw new DataValidationException("Dashboard title should be specified!");
-        }
-        if (dashboard.getTenantId() == null) {
-            throw new DataValidationException("Dashboard should be assigned to tenant!");
-        } else {
-            if (!tenantService.tenantExists(dashboard.getTenantId())) {
-                throw new DataValidationException("Dashboard is referencing to non-existent tenant!");
-            }
-        }
+    public NotificationInfo constructNotificationInfo(UpdateMessage updateMessage, NewPlatformVersionNotificationRuleTriggerConfig triggerConfig) {
+        return NewPlatformVersionNotificationInfo.builder()
+                .message(updateMessage.getMessage())
+                .build();
     }
+
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
+    }
+
 }

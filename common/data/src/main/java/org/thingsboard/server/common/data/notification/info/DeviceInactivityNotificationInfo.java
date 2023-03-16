@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.notification.info;
 
+import com.google.common.base.Strings;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,6 +42,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -49,6 +52,7 @@ public class DeviceInactivityNotificationInfo implements RuleOriginatedNotificat
 
     private UUID deviceId;
     private String deviceName;
+    private String deviceLabel;
     private String deviceType;
     private CustomerId deviceCustomerId;
 
@@ -59,9 +63,10 @@ public class DeviceInactivityNotificationInfo implements RuleOriginatedNotificat
 
     @Override
     public Map<String, String> getTemplateData() {
-        return Map.of(
+        return mapOf(
                 "deviceId", deviceId.toString(),
                 "deviceName", deviceName,
+                "deviceLabel", deviceLabel,
                 "deviceType", deviceType
         );
     }
