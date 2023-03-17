@@ -29,42 +29,27 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { UserComponent } from '@modules/home/pages/user/user.component';
-import { UserRoutingModule } from '@modules/home/pages/user/user-routing.module';
-import { AddUserDialogComponent } from '@modules/home/pages/user/add-user-dialog.component';
-import { ActivationLinkDialogComponent } from '@modules/home/pages/user/activation-link-dialog.component';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
-import { GroupUserComponent } from '@home/pages/user/group-user.component';
-import { AddGroupUserDialogComponent } from '@home/pages/user/add-group-user-dialog.component';
-import { USER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { UserGroupConfigFactory } from '@home/pages/user/user-group-config.factory';
-import { UserTableHeaderComponent } from '@home/pages/user/user-table-header.component';
+import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { CustomerService } from '@core/http/customer.service';
+import { Observable, of } from 'rxjs';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
+import { map } from 'rxjs/operators';
 
-@NgModule({
-  declarations: [
-    UserComponent,
-    UserTableHeaderComponent,
-    UserTabsComponent,
-    AddUserDialogComponent,
-    GroupUserComponent,
-    AddGroupUserDialogComponent,
-    ActivationLinkDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    UserRoutingModule
-  ],
-  providers: [
-    {
-      provide: USER_GROUP_CONFIG_FACTORY,
-      useClass: UserGroupConfigFactory
+@Injectable()
+export class CustomerTitleResolver implements Resolve<string> {
+
+  constructor(private customerService: CustomerService) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<string> {
+    const params = resolveGroupParams(route);
+    if (params.customerId) {
+      return this.customerService.getShortCustomerInfo(params.customerId).pipe(
+        map((info) => info.title)
+      );
+    } else {
+      return of(null);
     }
-  ]
-})
-export class UserModule { }
+  }
+}

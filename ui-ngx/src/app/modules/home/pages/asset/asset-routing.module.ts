@@ -44,6 +44,7 @@ import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/gro
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 
 const assetRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -140,9 +141,13 @@ export const assetsRoute = (root = false): Route => {
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'asset.assets',
+        labelFunction: (route, translate) =>
+          (route.data.customerTitle ? (route.data.customerTitle + ': ') : '') + translate.instant('asset.assets'),
         icon: 'domain'
       }
+    },
+    resolve: {
+      customerTitle: CustomerTitleResolver
     },
     children: [
       {

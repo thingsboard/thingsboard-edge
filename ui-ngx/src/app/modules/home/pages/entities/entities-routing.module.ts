@@ -41,8 +41,7 @@ export const entitiesRoute = (root = false): Route => ({
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'entity.entities',
-        icon: 'category'
+        skip: true
       }
     },
     children: [

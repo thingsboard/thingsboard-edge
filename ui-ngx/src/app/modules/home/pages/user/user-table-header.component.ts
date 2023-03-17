@@ -29,42 +29,35 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { UserComponent } from '@modules/home/pages/user/user.component';
-import { UserRoutingModule } from '@modules/home/pages/user/user-routing.module';
-import { AddUserDialogComponent } from '@modules/home/pages/user/add-user-dialog.component';
-import { ActivationLinkDialogComponent } from '@modules/home/pages/user/activation-link-dialog.component';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
-import { GroupUserComponent } from '@home/pages/user/group-user.component';
-import { AddGroupUserDialogComponent } from '@home/pages/user/add-group-user-dialog.component';
-import { USER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { UserGroupConfigFactory } from '@home/pages/user/user-group-config.factory';
-import { UserTableHeaderComponent } from '@home/pages/user/user-table-header.component';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
+import { User, UserInfo } from '@shared/models/user.model';
 
-@NgModule({
-  declarations: [
-    UserComponent,
-    UserTableHeaderComponent,
-    UserTabsComponent,
-    AddUserDialogComponent,
-    GroupUserComponent,
-    AddGroupUserDialogComponent,
-    ActivationLinkDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    UserRoutingModule
-  ],
-  providers: [
-    {
-      provide: USER_GROUP_CONFIG_FACTORY,
-      useClass: UserGroupConfigFactory
-    }
-  ]
+@Component({
+  selector: 'tb-user-table-header',
+  templateUrl: './user-table-header.component.html',
+  styleUrls: []
 })
-export class UserModule { }
+export class UserTableHeaderComponent extends EntityTableHeaderComponent<UserInfo | User> implements OnInit {
+
+  includeCustomersLabel: string;
+
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+    this.includeCustomersLabel = (getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER ||
+      this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
+  }
+
+  includeCustomersChanged(includeCustomers: boolean) {
+    this.entitiesTableConfig.componentsData.includeCustomersChanged(includeCustomers);
+  }
+
+}

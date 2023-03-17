@@ -295,17 +295,12 @@ export const defaultEntityTablePermissions = (userPermissionsService: UserPermis
   const resource = resourceByEntityType.get(entitiesTableConfig.entityType);
   entitiesTableConfig.addEnabled = userPermissionsService.hasGenericPermission(resource, Operation.CREATE);
 
-  if (userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
-    entitiesTableConfig.entitiesDeleteEnabled = true;
-    entitiesTableConfig.deleteEnabled = () => true;
-  } else {
+  if (!userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
     entitiesTableConfig.entitiesDeleteEnabled = false;
     entitiesTableConfig.deleteEnabled = () => false;
   }
 
-  if (userPermissionsService.hasGenericPermission(resource, Operation.WRITE)) {
-    entitiesTableConfig.detailsReadonly = () => false;
-  } else {
+  if (!userPermissionsService.hasGenericPermission(resource, Operation.WRITE)) {
     entitiesTableConfig.detailsReadonly = () => true;
   }
 };

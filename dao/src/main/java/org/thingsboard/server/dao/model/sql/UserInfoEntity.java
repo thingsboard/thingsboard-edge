@@ -32,32 +32,31 @@ package org.thingsboard.server.dao.model.sql;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.User;
+import org.hibernate.annotations.Immutable;
+import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME)
-public final class UserEntity extends AbstractUserEntity<User> {
+@Immutable
+@Table(name = ModelConstants.USER_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class UserInfoEntity extends AbstractUserEntity<UserInfo> {
 
-    public UserEntity() {
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
+    private String ownerName;
+
+    public UserInfoEntity() {
         super();
     }
 
-    public UserEntity(User user) {
-        super(user);
-    }
-
     @Override
-    public User toData() {
-       return super.toUser();
+    public UserInfo toData() {
+        return new UserInfo(super.toUser(), this.ownerName);
     }
 
 }

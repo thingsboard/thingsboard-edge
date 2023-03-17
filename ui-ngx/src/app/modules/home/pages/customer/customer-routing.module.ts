@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, Route, RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -46,29 +46,9 @@ import { GroupEntitiesTableComponent } from '@home/components/group/group-entiti
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { entitiesRoute } from '@home/pages/entities/entities-routing.module';
 import { dashboardsRoute } from '@home/pages/dashboard/dashboard-routing.module';
-import { Observable, of } from 'rxjs';
-import { resolveGroupParams } from '@shared/models/entity-group.models';
-import { CustomerService } from '@core/http/customer.service';
-import { map } from 'rxjs/operators';
 import { CustomersHierarchyComponent } from '@home/pages/customer/customers-hierarchy.component';
-
-@Injectable()
-export class CustomerTitleResolver implements Resolve<string> {
-
-  constructor(private customerService: CustomerService) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<string> {
-    const params = resolveGroupParams(route);
-    if (params.customerId) {
-      return this.customerService.getShortCustomerInfo(params.customerId).pipe(
-        map((info) => info.title)
-      );
-    } else {
-      return of(null);
-    }
-  }
-}
+import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
+import { usersRoute } from '@home/pages/user/user-routing.module';
 
 const customerRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -111,11 +91,6 @@ const customerChildrenRoutes = (): Routes =>
     { ...entitiesRoute(), ...{
         path: ':customerId/entities',
         data: {
-          breadcrumb: {
-            labelFunction: (route, translate) =>
-              route.data.customerTitle + ': ' + translate.instant('entity.entities'),
-            icon: 'category'
-          },
           backNavigationCommands: ['../../../..']
         },
         resolve: {
@@ -130,6 +105,21 @@ const customerChildrenRoutes = (): Routes =>
             labelFunction: (route, translate) =>
               route.data.customerTitle + ': ' + translate.instant('dashboard.dashboards'),
             icon: 'dashboards'
+          },
+          backNavigationCommands: ['../../..']
+        },
+        resolve: {
+          customerTitle: CustomerTitleResolver
+        }
+      }
+    },
+    { ...usersRoute(), ...{
+        path: ':customerId/users',
+        data: {
+          breadcrumb: {
+            labelFunction: (route, translate) =>
+              route.data.customerTitle + ': ' + translate.instant('user.users'),
+            icon: 'account_circle'
           },
           backNavigationCommands: ['../../..']
         },

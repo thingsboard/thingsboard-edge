@@ -45,6 +45,7 @@ import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-g
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { AssetsTableConfigResolver } from '@home/pages/asset/assets-table-config.resolver';
+import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 
 const entityViewRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -141,9 +142,13 @@ export const entityViewsRoute = (root = false): Route => {
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'entity-view.entity-views',
+        labelFunction: (route, translate) =>
+          (route.data.customerTitle ? (route.data.customerTitle + ': ') : '') + translate.instant('entity-view.entity-views'),
         icon: 'view_quilt'
       }
+    },
+    resolve: {
+      customerTitle: CustomerTitleResolver
     },
     children: [
       {

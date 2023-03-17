@@ -93,6 +93,8 @@ public class ModelConstants {
     public static final String USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_customer_and_search_text";
     public static final String USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_authority_and_search_text";
 
+    public static final String USER_INFO_VIEW_COLUMN_FAMILY_NAME = "user_info_view";
+
     /**
      * Cassandra user_credentials constants.
      */

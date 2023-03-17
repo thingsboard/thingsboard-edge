@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { User, UserEmailInfo } from '@shared/models/user.model';
+import { User, UserEmailInfo, UserInfo } from '@shared/models/user.model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
@@ -80,6 +80,26 @@ export class UserService {
   public getUserUsers(pageLink: PageLink,
                       config?: RequestConfig): Observable<PageData<User>> {
     return this.http.get<PageData<User>>(`/api/user/users${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllUserInfos(includeCustomers: boolean,
+                         pageLink: PageLink, config?: RequestConfig): Observable<PageData<UserInfo>> {
+    let url = `/api/userInfos/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<UserInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerUserInfos(includeCustomers: boolean, customerId: string,
+                              pageLink: PageLink, config?: RequestConfig): Observable<PageData<UserInfo>> {
+    let url = `/api/customer/${customerId}/userInfos${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<UserInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

@@ -840,6 +840,57 @@ export class MenuService {
         }
       );
     }
+    const userPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.USER)) {
+      userPages.push(
+        {
+          id: guid(),
+          name: 'user.all',
+          type: 'link',
+          path: '/users/all',
+          icon: 'account_circle',
+          disabled: disabledItems.indexOf('user_all') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.USER)) {
+      userPages.push(
+        {
+          id: guid(),
+          name: 'user.groups',
+          type: 'link',
+          path: '/users/groups',
+          icon: 'account_circle',
+          disabled: disabledItems.indexOf('user_groups') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.USER)) {
+      userPages.push(
+        {
+          id: guid(),
+          name: 'user.shared',
+          type: 'link',
+          path: '/users/shared',
+          icon: 'account_circle',
+          rootOnly: true,
+          disabled: disabledItems.indexOf('user_shared') > -1
+        }
+      );
+    }
+    if (userPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'user.users',
+          type: 'link',
+          path: '/users',
+          icon: 'account_circle',
+          pages: userPages,
+          disabled: disabledItems.indexOf('users') > -1
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       sections.push(
         {
@@ -2164,9 +2215,8 @@ export class MenuService {
     }
     return this.menuSections$.pipe(
       map((sections) => {
-        const filtered = sections.filter((section) => section.path === parentPath);
-        if (filtered && filtered.length) {
-          const parentSection = filtered[0];
+        const parentSection = this.findSectionByPath(sections, parentPath);
+        if (parentSection) {
           if (parentSection.pages) {
             const childPages = parentSection.pages;
             const filteredPages = childPages.filter((page) => !page.disabled);
@@ -2182,6 +2232,21 @@ export class MenuService {
         return redirectPath;
       })
     );
+  }
+
+  private findSectionByPath(sections: MenuSection[], sectionPath: string): MenuSection {
+    for (const section of sections) {
+      if (sectionPath === section.path && !section.disabled) {
+        return section;
+      }
+      if (section.pages?.length) {
+        const found = this.findSectionByPath(section.pages, sectionPath);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
   }
 }
 

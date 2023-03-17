@@ -95,7 +95,7 @@
         [selectDefaultProfile]="isAdd"
         required
         formControlName="deviceProfileId"
-        [showDetailsPageLink]="true"
+        [showDetailsPageLink]="(resource.DEVICE_PROFILE | hasGenericPermission : operation.READ)"
         (deviceProfileUpdated)="onDeviceProfileUpdated()"
         (deviceProfileChanged)="onDeviceProfileChanged($event)">
       </tb-device-profile-autocomplete>

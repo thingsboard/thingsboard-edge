@@ -28,36 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.common.data;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.validation.Valid;
 
+@ApiModel
 @Data
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME)
-public final class UserEntity extends AbstractUserEntity<User> {
+public class UserInfo extends User {
 
-    public UserEntity() {
+    @Valid
+    @ApiModelProperty(position = 12, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private String ownerName;
+
+    public UserInfo() {
         super();
     }
 
-    public UserEntity(User user) {
+    public UserInfo(User user, String ownerName) {
         super(user);
+        this.ownerName = ownerName;
     }
-
-    @Override
-    public User toData() {
-       return super.toUser();
-    }
-
 }

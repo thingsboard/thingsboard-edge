@@ -72,7 +72,7 @@
         [selectDefaultProfile]="isAdd"
         required
         formControlName="assetProfileId"
-        [showDetailsPageLink]="true"
+        [showDetailsPageLink]="resource.ASSET_PROFILE | hasGenericPermission : operation.READ"
         (assetProfileUpdated)="onAssetProfileUpdated()">
       </tb-asset-profile-autocomplete>
       <mat-form-field class="mat-block">
