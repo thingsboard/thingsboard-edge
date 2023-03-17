@@ -31,9 +31,11 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -56,7 +58,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
     private String groupName1;
     private String groupName2;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -76,8 +78,10 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Move customer from group to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Move customer to group")
     public void addGroup() {
         String groupName1 = "group1" + random();
         String groupName2 = "group2" + random();
@@ -91,7 +95,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
-        customerPage.selectGroupViewExistField().click();
+        jsClick(customerPage.selectGroupViewExistField());
         customerPage.entityFromDropDown(groupName2).click();
         customerPage.selectGroupViewSubmitBtn().click();
         sideBarMenuView.customerGroupsBtn().click();
@@ -101,8 +105,10 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entity(title).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Move customer from group to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Move customer to group without select")
     public void moveToGroupWithoutSelect() {
         String groupName = "group" + random();
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(groupName, EntityType.CUSTOMER));
@@ -117,8 +123,10 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.selectGroupViewSubmitBtnVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Move customer from group to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Create new customer group")
     public void createNewEntityGroup() {
         String groupName = "group1" + random();
         String newGroupName = "group2" + random();
@@ -140,8 +148,10 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entity(newGroupName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Move customer from group to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer's group without the name")
     public void createNewEntityGroupWithoutName() {
         String groupName = "group" + random();
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(groupName, EntityType.CUSTOMER));
@@ -157,8 +167,10 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.selectGroupViewSubmitBtnVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Move customer from group to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Create customer's group only with spase in name")
     public void createNewEntityGroupWithSpace() {
         String groupName = "group" + random();
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(groupName, EntityType.CUSTOMER));
@@ -180,8 +192,10 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.addToEntityGroupView().isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Move customer from group to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Create a customer's group with the same name")
     public void addGroupWithSameName() {
         String groupName = "group" + random();
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(groupName, EntityType.CUSTOMER));
