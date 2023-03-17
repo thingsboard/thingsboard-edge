@@ -35,6 +35,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -91,29 +92,35 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         assetService.deleteAsset(tenantId, savedAsset.getId());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveAssetWithEmptyName() {
         Asset asset = new Asset();
         asset.setTenantId(tenantId);
         asset.setType("default");
-        assetService.saveAsset(asset);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            assetService.saveAsset(asset);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveAssetWithEmptyTenant() {
         Asset asset = new Asset();
         asset.setName("My asset");
         asset.setType("default");
-        assetService.saveAsset(asset);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            assetService.saveAsset(asset);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveAssetWithInvalidTenant() {
         Asset asset = new Asset();
         asset.setName("My asset");
         asset.setType("default");
         asset.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        assetService.saveAsset(asset);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            assetService.saveAsset(asset);
+        });
     }
 
     @Test

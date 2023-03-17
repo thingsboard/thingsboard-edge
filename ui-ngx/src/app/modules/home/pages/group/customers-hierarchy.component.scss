@@ -42,7 +42,7 @@
       z-index: 3;
       pointer-events: none;
 
-      .mat-icon-button {
+      .mdc-fab {
         width: 36px;
         height: 36px;
         line-height: 36px;
@@ -51,7 +51,7 @@
 
       &.tb-nav-tree-open {
         left: 0;
-        .mat-icon-button.tb-btn-open-nav-tree {
+        .mdc-fab.tb-btn-open-nav-tree {
           top: 0;
           left: 0;
           margin: 4px 0 0 4px;
@@ -59,7 +59,7 @@
       }
 
       &.tb-customers-nav-tree-toolbar {
-        .mat-icon-button {
+        .mdc-fab {
           margin: 4px 8px 0 0;
         }
       }
@@ -95,17 +95,7 @@
 }
 
 :host ::ng-deep {
-
   .tb-customers-hierarchy {
-
-    section.tb-header-buttons.tb-customers-hierarchy-buttons {
-      .mat-fab {
-        .mat-button-wrapper {
-          padding: 0;
-        }
-      }
-    }
-
     .tb-nav-tree-container {
       &.jstree-proton {
         .jstree-anchor {

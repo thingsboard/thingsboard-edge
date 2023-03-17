@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.4.4PE-SNAPSHOT</version>
+        <version>3.5.0PE-SNAPSHOT</version>
         <artifactId>transport</artifactId>
     </parent>
     <groupId>org.thingsboard.common.transport</groupId>
@@ -112,5 +112,19 @@
             <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.xolstice.maven.plugins</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

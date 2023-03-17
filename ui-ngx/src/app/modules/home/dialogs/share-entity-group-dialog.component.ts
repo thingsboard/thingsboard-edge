@@ -34,7 +34,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { ShareGroupRequest } from '@shared/models/entity-group.models';
@@ -53,7 +53,7 @@ export interface ShareEntityGroupDialogData {
 export class ShareEntityGroupDialogComponent extends
   DialogComponent<ShareEntityGroupDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
 
-  shareEntityGroupFormGroup: FormGroup;
+  shareEntityGroupFormGroup: UntypedFormGroup;
 
   entityGroupId = this.data.entityGroupId;
 
@@ -65,7 +65,7 @@ export class ShareEntityGroupDialogComponent extends
               public dialogRef: MatDialogRef<ShareEntityGroupDialogComponent, boolean>,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               private entityGroupService: EntityGroupService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     const shareGroupRequest: ShareGroupRequest = {
@@ -83,7 +83,7 @@ export class ShareEntityGroupDialogComponent extends
 
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

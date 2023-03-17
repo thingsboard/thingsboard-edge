@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,14 +70,14 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 })
 export class ChirpStackIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
-  chirpStackIntegrationConfigForm: FormGroup;
+  chirpStackIntegrationConfigForm: UntypedFormGroup;
 
   @Input()
   routingKey: string;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private store: Store<AppState>,
               private translate: TranslateService) {
     super();

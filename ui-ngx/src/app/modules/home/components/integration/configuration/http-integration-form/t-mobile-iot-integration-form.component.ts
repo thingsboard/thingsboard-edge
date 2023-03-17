@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef } from '@angular/core';
-import { FormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { UntypedFormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -40,7 +40,7 @@ import { HttpIntegrationFormComponent } from './http-integration-form.component'
 @Component({
   selector: 'tb-t-mobile-iot-cdp-integration-form',
   templateUrl: 'http-integration-form.component.html',
-  styleUrls: [],
+  styleUrls: ['./http-integration-form.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => TMobileIotIntegrationFormComponent),
@@ -58,7 +58,7 @@ export class TMobileIotIntegrationFormComponent extends HttpIntegrationFormCompo
 
   protected integrationType = IntegrationType.TMOBILE_IOT_CDP;
 
-  constructor(protected fb: FormBuilder,
+  constructor(protected fb: UntypedFormBuilder,
               protected store: Store<AppState>,
               protected translate: TranslateService) {
     super(fb, store, translate);

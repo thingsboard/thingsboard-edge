@@ -37,6 +37,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -93,32 +94,38 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converterService.deleteConverter(savedConverter.getTenantId(), savedConverter.getId());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveConverterWithEmptyName() {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
         converter.setType(ConverterType.UPLINK);
-        converterService.saveConverter(converter);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            converterService.saveConverter(converter);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveConverterWithEmptyTenant() {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converterService.saveConverter(converter);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            converterService.saveConverter(converter);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveConverterWithInvalidTenant() {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
         converter.setTenantId(new TenantId(Uuids.timeBased()));
-        converterService.saveConverter(converter);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            converterService.saveConverter(converter);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testUpdateConverterType() {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);
@@ -127,7 +134,9 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = converterService.saveConverter(converter);
         savedConverter.setType(ConverterType.DOWNLINK);
-        converterService.saveConverter(savedConverter);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            converterService.saveConverter(savedConverter);
+        });
     }
 
     @Test

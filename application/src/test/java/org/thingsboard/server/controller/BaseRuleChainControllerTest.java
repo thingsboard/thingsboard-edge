@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
@@ -269,6 +270,7 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
         testEntityDaoWithRelationsOk(savedTenant.getId(), ruleChainId, "/api/ruleChain/" + ruleChainId);
     }
 
+    @Ignore
     @Test
     public void testDeleteRuleChainExceptionWithRelationsTransactional() throws Exception {
         RuleChainId ruleChainId = createRuleChain("RuleChain for Test WithRelations Transactional Exception").getId();

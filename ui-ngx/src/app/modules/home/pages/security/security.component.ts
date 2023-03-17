@@ -36,8 +36,8 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
   AbstractControl,
-  FormBuilder,
-  FormGroup, FormGroupDirective,
+  UntypedFormBuilder,
+  UntypedFormGroup, FormGroupDirective,
   NgForm,
   ValidationErrors,
   ValidatorFn,
@@ -68,6 +68,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { AuthService } from '@core/auth/auth.service';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   selector: 'tb-security',
@@ -79,8 +80,8 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
   private readonly destroy$ = new Subject<void>();
   private accountConfig: AccountTwoFaSettingProviders;
 
-  twoFactorAuth: FormGroup;
-  changePassword: FormGroup;
+  twoFactorAuth: UntypedFormGroup;
+  changePassword: UntypedFormGroup;
 
   user: User;
   passwordPolicy: UserPasswordPolicy;
@@ -105,7 +106,7 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
               private twoFaService: TwoFactorAuthenticationService,
               public dialog: MatDialog,
               public dialogService: DialogService,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               private datePipe: DatePipe,
               private userPermissionsService: UserPermissionsService,
               private authService: AuthService,
@@ -303,14 +304,14 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
     });
   }
 
-  changeDefaultProvider(event: MouseEvent, provider: TwoFactorAuthProviderType) {
-    event.stopPropagation();
-    event.preventDefault();
+  changeDefaultProvider(event: MatCheckboxChange, provider: TwoFactorAuthProviderType) {
     if (this.useByDefault !== provider) {
       this.twoFactorAuth.disable({emitEvent: false});
       this.twoFaService.updateTwoFaAccountConfig(provider, true)
         .pipe(tap(() => this.twoFactorAuth.enable({emitEvent: false})))
         .subscribe(data => this.processTwoFactorAuthConfig(data));
+    } else {
+      event.source.checked = true;
     }
   }
 

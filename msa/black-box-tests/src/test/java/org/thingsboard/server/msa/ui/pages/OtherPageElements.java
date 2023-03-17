@@ -51,7 +51,7 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String WARNING_DELETE_POPUP_NO = CONFIRM_DIALOG + "//button[1]";
     private static final String WARNING_DELETE_POPUP_TITLE = "//tb-confirm-dialog/h2";
     private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/..";
-    private static final String HELP_BTN = "(//mat-icon[contains(text(),'help')]/../..)[2]";
+    private static final String HELP_BTN = "//span[text()='Customer details']/ancestor::div/following-sibling::div[@class='details-buttons']";
     private static final String HELP_BTN_ENTITY_GROUP = "//mat-icon[contains(text(),'help')]/../..";
     private static final String CHECKBOX = "//mat-row//span[contains(text(),'%s')]/../..//mat-checkbox";
     private static final String CHECKBOXES = "//tbody//mat-checkbox";

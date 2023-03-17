@@ -35,6 +35,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -88,26 +89,32 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         dashboardService.deleteDashboard(tenantId, savedDashboard.getId());
     }
     
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDashboardWithEmptyTitle() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTenantId(tenantId);
-        dashboardService.saveDashboard(dashboard);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            dashboardService.saveDashboard(dashboard);
+        });
     }
     
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDashboardWithEmptyTenant() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
-        dashboardService.saveDashboard(dashboard);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            dashboardService.saveDashboard(dashboard);
+        });
     }
     
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDashboardWithInvalidTenant() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
         dashboard.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        dashboardService.saveDashboard(dashboard);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            dashboardService.saveDashboard(dashboard);
+        });
     }
 
     @Test

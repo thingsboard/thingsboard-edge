@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.4PE-SNAPSHOT</version>
+        <version>3.5.0PE-SNAPSHOT</version>
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.integration</groupId>
@@ -111,6 +111,10 @@
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>coap-integrations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>tuya-integrations</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

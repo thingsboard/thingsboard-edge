@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -41,12 +40,12 @@ import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface UserService {
+public interface UserService extends EntityDaoService {
 	
 	User findUserById(TenantId tenantId, UserId userId);
 
@@ -84,7 +83,7 @@ public interface UserService {
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
-	void deleteTenantAdmins(TenantId tenantId);
+    void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 

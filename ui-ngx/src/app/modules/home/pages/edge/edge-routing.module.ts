@@ -306,6 +306,7 @@ const routes: Routes = [
     children: [
       {
         path: '',
+        children: [],
         data: {
           auth: [Authority.TENANT_ADMIN],
           redirectTo: '/edgeManagement/ruleChains'

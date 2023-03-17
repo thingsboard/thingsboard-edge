@@ -40,7 +40,7 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
@@ -60,6 +60,7 @@ import { AssetProfileId } from '@shared/models/id/asset-profile-id';
 import { AssetProfile, AssetProfileInfo } from '@shared/models/asset.models';
 import { AssetProfileService } from '@core/http/asset-profile.service';
 import { AssetProfileDialogComponent, AssetProfileDialogData } from './asset-profile-dialog.component';
+import { SubscriptSizing } from '@angular/material/form-field';
 import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
@@ -78,9 +79,12 @@ export class AssetProfileAutocompleteComponent implements ControlValueAccessor, 
 
   operation = Operation;
 
-  selectAssetProfileFormGroup: FormGroup;
+  selectAssetProfileFormGroup: UntypedFormGroup;
 
   modelValue: AssetProfileId | null;
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
 
   @Input()
   selectDefaultProfile = false;
@@ -145,7 +149,7 @@ export class AssetProfileAutocompleteComponent implements ControlValueAccessor, 
               public translate: TranslateService,
               public truncate: TruncatePipe,
               private assetProfileService: AssetProfileService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private zone: NgZone,
               private dialog: MatDialog) {
     this.selectAssetProfileFormGroup = this.fb.group({

@@ -45,6 +45,7 @@ import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.IntegrationEventsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.OtaPackagesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.PublicCustomerUserGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.QueuesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.RuleChainsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SchedulerEventsEdgeEventFetcher;
@@ -60,9 +61,9 @@ import java.util.NoSuchElementException;
 
 public class EdgeSyncCursor {
 
-    List<EdgeEventFetcher> fetchers = new LinkedList<>();
+    private final List<EdgeEventFetcher> fetchers = new LinkedList<>();
 
-    int currentIdx = 0;
+    private int currentIdx = 0;
 
     public EdgeSyncCursor(EdgeContextComponent ctx, Edge edge, boolean fullSync) {
         if (fullSync) {
@@ -71,6 +72,10 @@ public class EdgeSyncCursor {
             fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
             fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
             fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
+            Customer publicCustomer = ctx.getCustomerService().findOrCreatePublicCustomer(edge.getTenantId(), edge.getTenantId());
+            fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), publicCustomer.getId()));
+            fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), publicCustomer.getId()));
+            fetchers.add(new PublicCustomerUserGroupEdgeEventFetcher(ctx.getCustomerService(), edge.getTenantId()));
             if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
                 CustomerId customerId = new CustomerId(edge.getOwnerId().getId());
                 fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), customerId));
@@ -96,6 +101,10 @@ public class EdgeSyncCursor {
 
     private void addCustomerRolesEdgeEventFetchers(EdgeContextComponent ctx, TenantId tenantId, CustomerId customerId) {
         fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), customerId));
+        Customer publicCustomer = ctx.getCustomerService().findOrCreatePublicCustomer(tenantId, customerId);
+        fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), publicCustomer.getId()));
+        fetchers.add(new PublicCustomerUserGroupEdgeEventFetcher(ctx.getCustomerService(), customerId));
+
         Customer customerById = ctx.getCustomerService().findCustomerById(tenantId, customerId);
         if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             addCustomerRolesEdgeEventFetchers(ctx, tenantId, customerById.getParentCustomerId());

@@ -30,7 +30,7 @@
 ///
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { ShareGroupRequest } from '@shared/models/entity-group.models';
@@ -54,7 +54,7 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
 
   roleType = RoleType;
 
-  shareEntityGroupFormGroup: FormGroup;
+  shareEntityGroupFormGroup: UntypedFormGroup;
 
   @Input()
   disabled: boolean;
@@ -64,7 +64,7 @@ export class ShareEntityGroupComponent implements ControlValueAccessor, OnInit {
   private propagateChangePending = false;
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
