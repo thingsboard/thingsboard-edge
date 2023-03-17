@@ -28,20 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service;
+package org.thingsboard.server.common.data;
 
-import org.junit.Assert;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.TenantId;
+public interface HasLabel extends HasName {
 
-public abstract class AbstractBeforeTest extends AbstractServiceTest {
+    String getLabel();
 
-    public TenantId before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        TenantId tenantId = savedTenant.getId();
-        return tenantId;
-    }
 }

@@ -44,6 +44,7 @@ public class ControllerConstants {
     protected static final String EDGE_ID = "edgeId";
     protected static final String RPC_ID = "rpcId";
     protected static final String ENTITY_ID = "entityId";
+    protected static final String ASSIGNEE_ID = "assigneeId";
 
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +
@@ -68,6 +69,7 @@ public class ControllerConstants {
     protected static final String CONVERTER_ID_PARAM_DESCRIPTION = "A string value representing the converter id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String INTEGRATION_ID_PARAM_DESCRIPTION = "A string value representing the integration id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String ASSIGN_ID_PARAM_DESCRIPTION = "A string value representing the user id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
 
     protected static final String ALARM_COMMENT_ID_PARAM_DESCRIPTION = "A string value representing the alarm comment id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";

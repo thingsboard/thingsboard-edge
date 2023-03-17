@@ -524,7 +524,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             });
         });
     }
-    
+
     private void updateDuplicateMsgRuleNode() {
         PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
                 link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
@@ -1216,7 +1216,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             };
 
     private void updateTenantAlarmsCustomer(TenantId tenantId, String name, AtomicLong processed) {
-        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(null, new TimePageLink(1024 * 4), null, null, null, false);
         PageData<AlarmInfo> alarms = alarmDao.findAlarms(tenantId, alarmQuery);
         boolean hasNext = true;
         while (hasNext) {
