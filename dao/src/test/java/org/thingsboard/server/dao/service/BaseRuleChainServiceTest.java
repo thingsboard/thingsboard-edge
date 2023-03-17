@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,13 +32,14 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.edge.Edge;
+import org.junit.jupiter.api.Assertions;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -101,19 +102,23 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         ruleChainService.deleteRuleChainById(tenantId, savedRuleChain.getId());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveRuleChainWithEmptyName() {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setTenantId(tenantId);
-        ruleChainService.saveRuleChain(ruleChain);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            ruleChainService.saveRuleChain(ruleChain);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveRuleChainWithInvalidTenant() {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("My RuleChain");
         ruleChain.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        ruleChainService.saveRuleChain(ruleChain);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            ruleChainService.saveRuleChain(ruleChain);
+        });
     }
 
     @Test
@@ -190,7 +195,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 123; i++) {
             RuleChain ruleChain = new RuleChain();
             ruleChain.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 17));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 17));
             String name = name1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             ruleChain.setName(name);
@@ -201,7 +206,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 193; i++) {
             RuleChain ruleChain = new RuleChain();
             ruleChain.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String name = name2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             ruleChain.setName(name);
@@ -336,14 +341,18 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         ruleChainService.deleteRuleChainById(tenantId, savedRuleChainMetaData.getRuleChainId());
     }
 
-    @Test(expected = DataValidationException.class)
-    public void testUpdateRuleChainMetaDataWithCirclingRelation() throws Exception {
-        ruleChainService.saveRuleChainMetaData(tenantId, createRuleChainMetadataWithCirclingRelation());
+    @Test
+    public void testUpdateRuleChainMetaDataWithCirclingRelation() {
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            ruleChainService.saveRuleChainMetaData(tenantId, createRuleChainMetadataWithCirclingRelation());
+        });
     }
 
-    @Test(expected = DataValidationException.class)
-    public void testUpdateRuleChainMetaDataWithCirclingRelation2() throws Exception {
-        ruleChainService.saveRuleChainMetaData(tenantId, createRuleChainMetadataWithCirclingRelation2());
+    @Test
+    public void testUpdateRuleChainMetaDataWithCirclingRelation2() {
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            ruleChainService.saveRuleChainMetaData(tenantId, createRuleChainMetadataWithCirclingRelation2());
+        });
     }
 
     @Test
@@ -517,7 +526,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 123; i++) {
             RuleChain ruleChain = new RuleChain();
             ruleChain.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 17));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 17));
             String name = name1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             ruleChain.setName(name);
@@ -531,7 +540,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 193; i++) {
             RuleChain ruleChain = new RuleChain();
             ruleChain.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String name = name2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             ruleChain.setName(name);

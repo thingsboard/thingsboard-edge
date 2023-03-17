@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,9 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -58,8 +57,6 @@ import java.util.Optional;
 @Slf4j
 public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     private final AdminSettingsService adminSettingsService;
     private final AttributesService attributesService;
 
@@ -76,7 +73,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
             AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (sysAdminMainSettings != null) {
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, mapper.valueToTree(sysAdminMainSettings)));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(sysAdminMainSettings)));
             }
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
@@ -84,9 +81,9 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
                 tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
                 String value = tenantMailSettingsAttr.get().getValueAsString();
-                tenantMailSettings.setJsonValue(mapper.readTree(value));
+                tenantMailSettings.setJsonValue(JacksonUtil.OBJECT_MAPPER.readTree(value));
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
-                        EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailSettings)));
+                        EdgeEventActionType.UPDATED, null, JacksonUtil.OBJECT_MAPPER.valueToTree(tenantMailSettings)));
             }
         }
         // @voba - returns PageData object to be in sync with other fetchers

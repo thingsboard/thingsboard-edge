@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,8 +55,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -103,6 +101,9 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
 
     @Override
     public void destroy() {
+        if (entityIdCache != null) {
+            entityIdCache.invalidateAll();
+        }
     }
 
     protected ListenableFuture<RelationContainer> processEntityRelationAction(TbContext ctx, TbMsg msg, String relationType) {
@@ -270,16 +271,14 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     break;
                 case DASHBOARD:
                     DashboardService dashboardService = ctx.getDashboardService();
-                    PageData<DashboardInfo> dashboardInfoTextPageData = dashboardService.findDashboardsByTenantId(ctx.getTenantId(), new PageLink(200, 0, entitykey.getEntityName()));
-                    for (DashboardInfo dashboardInfo : dashboardInfoTextPageData.getData()) {
-                        if (dashboardInfo.getTitle().equals(entitykey.getEntityName())) {
-                            targetEntity.setEntityId(dashboardInfo.getId());
-                        }
+                    DashboardInfo dashboardInfo = dashboardService.findFirstDashboardInfoByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
+                    if (dashboardInfo != null) {
+                        targetEntity.setEntityId(dashboardInfo.getId());
                     }
                     break;
                 case USER:
                     UserService userService = ctx.getUserService();
-                    User user = userService.findUserByEmail(ctx.getTenantId(), entitykey.getEntityName());
+                    User user = userService.findUserByTenantIdAndEmail(ctx.getTenantId(), entitykey.getEntityName());
                     if (user != null) {
                         targetEntity.setEntityId(user.getId());
                     }

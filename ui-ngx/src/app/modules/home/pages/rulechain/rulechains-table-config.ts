@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -86,6 +86,8 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.entityTranslations = entityTypeTranslations.get(EntityType.RULE_CHAIN);
     this.entityResources = entityTypeResources.get(EntityType.RULE_CHAIN);
 
+    this.rowPointer = true;
+
     this.componentsData = this.setComponentsData(this.params);
     this.columns = this.configureEntityTableColumns(this.componentsData.ruleChainScope);
     this.groupActionDescriptors = this.configureGroupActions(this.componentsData.ruleChainScope);
@@ -101,6 +103,14 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.saveEntity = ruleChain => this.saveRuleChain(ruleChain);
     this.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
     this.onEntityAction = action => this.onRuleChainAction(action, this.componentsData);
+    this.handleRowClick = ($event, ruleChain) => {
+      if (this.isDetailsOpen()) {
+        this.toggleEntityDetails($event, ruleChain);
+      } else {
+        this.openRuleChain($event, ruleChain, this.componentsData);
+      }
+      return true;
+    };
 
     this.configureRuleChainScope();
     defaultEntityTablePermissions(this.userPermissionsService, this);
@@ -197,7 +207,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.updateData();
+              this.checkMissingToRelatedRuleChains();
             }
           );
         }
@@ -253,6 +263,31 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     });
   }
 
+  private checkMissingToRelatedRuleChains() {
+    this.edgeService.findMissingToRelatedRuleChains(this.componentsData.edgeId).subscribe(
+      (missingRuleChains) => {
+        if (missingRuleChains && Object.keys(missingRuleChains).length > 0) {
+          const formattedMissingRuleChains: Array<string> = new Array<string>();
+          for (const missingRuleChain of Object.keys(missingRuleChains)) {
+            const arrayOfMissingRuleChains = missingRuleChains[missingRuleChain];
+            const tmp = '- \'' + missingRuleChain + '\': \'' + arrayOfMissingRuleChains.join('\', ') + '\'';
+            formattedMissingRuleChains.push(tmp);
+          }
+          const message = this.translate.instant('edge.missing-related-rule-chains-text',
+            {missingRuleChains: formattedMissingRuleChains.join('<br>')});
+          this.dialogService.alert(this.translate.instant('edge.missing-related-rule-chains-title'),
+            message, this.translate.instant('action.close'), true).subscribe(
+            () => {
+              this.updateData();
+            }
+          );
+        } else {
+          this.updateData();
+        }
+      }
+    );
+  }
+
   private assignRuleChainsToEdge($event: Event): void {
     if ($event) {
       $event.stopPropagation();
@@ -268,28 +303,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     }).afterClosed()
       .subscribe((res) => {
           if (res) {
-            this.edgeService.findMissingToRelatedRuleChains(this.componentsData.edgeId).subscribe(
-              (missingRuleChains) => {
-                if (missingRuleChains && Object.keys(missingRuleChains).length > 0) {
-                  const formattedMissingRuleChains: Array<string> = new Array<string>();
-                  for (const missingRuleChain of Object.keys(missingRuleChains)) {
-                    const arrayOfMissingRuleChains = missingRuleChains[missingRuleChain];
-                    const tmp = '- \'' + missingRuleChain + '\': \'' + arrayOfMissingRuleChains.join('\', ') + '\'';
-                    formattedMissingRuleChains.push(tmp);
-                  }
-                  const message = this.translate.instant('edge.missing-related-rule-chains-text',
-                    {missingRuleChains: formattedMissingRuleChains.join('<br>')});
-                  this.dialogService.alert(this.translate.instant('edge.missing-related-rule-chains-title'),
-                    message, this.translate.instant('action.close'), true).subscribe(
-                    () => {
-                      this.updateData();
-                    }
-                  );
-                } else {
-                  this.updateData();
-                }
-              }
-            );
+            this.checkMissingToRelatedRuleChains();
           }
         }
       );
@@ -298,12 +312,6 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
   private configureCellActions(params: RuleChainParams): Array<CellActionDescriptor<RuleChain>> {
     const actions: Array<CellActionDescriptor<RuleChain>> = [];
     actions.push(
-      {
-        name: this.translate.instant('rulechain.open-rulechain'),
-        icon: 'settings_ethernet',
-        isEnabled: () => true,
-        onAction: ($event, entity) => this.openRuleChain($event, entity, params)
-      },
       {
         name: this.translate.instant('rulechain.export'),
         icon: 'file_download',
@@ -365,6 +373,14 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         }
       );
     }
+    actions.push(
+      {
+        name: this.translate.instant('rulechain.rulechain-details'),
+        icon: 'edit',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.toggleEntityDetails($event, entity)
+      }
+    );
     return actions;
   }
 
@@ -545,7 +561,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.unassignRuleChainFromEdge(this.componentsData.edgeId, ruleChain.id.id).subscribe(
             () => {
-              this.updateData(this.componentsData.ruleChainScope !== 'tenant');
+              this.checkMissingToRelatedRuleChains();
             }
           );
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
@@ -55,6 +54,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -249,8 +249,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
         if (userCredentials != null && isPositiveInteger(passwordPolicy.getPasswordReuseFrequencyDays())) {
             long passwordReuseFrequencyTs = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(passwordPolicy.getPasswordReuseFrequencyDays());
-            User user = userService.findUserById(tenantId, userCredentials.getUserId());
-            JsonNode additionalInfo = user.getAdditionalInfo();
+            JsonNode additionalInfo = userCredentials.getAdditionalInfo();
             if (additionalInfo instanceof ObjectNode && additionalInfo.has(UserServiceImpl.USER_PASSWORD_HISTORY)) {
                 JsonNode userPasswordHistoryJson = additionalInfo.get(UserServiceImpl.USER_PASSWORD_HISTORY);
                 Map<String, String> userPasswordHistoryMap = JacksonUtil.convertValue(userPasswordHistoryJson, new TypeReference<>() {});
@@ -323,6 +322,11 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Override
     public void logLoginAction(User user, Object authenticationDetails, ActionType actionType, Exception e) {
+        logLoginAction(user, authenticationDetails, actionType, null, e);
+    }
+
+    @Override
+    public void logLoginAction(User user, Object authenticationDetails, ActionType actionType, String provider, Exception e) {
         String clientAddress = "Unknown";
         String browser = "Unknown";
         String os = "Unknown";
@@ -338,38 +342,38 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
                         browser += " " + userAgent.userAgent.major;
                         if (userAgent.userAgent.minor != null) {
                             browser += "." + userAgent.userAgent.minor;
-                                if (userAgent.userAgent.patch != null) {
-                                    browser += "." + userAgent.userAgent.patch;
-                                }
+                            if (userAgent.userAgent.patch != null) {
+                                browser += "." + userAgent.userAgent.patch;
                             }
                         }
-                    }
-                    if (userAgent.os != null) {
-                        os = userAgent.os.family;
-                        if (userAgent.os.major != null) {
-                            os += " " + userAgent.os.major;
-                            if (userAgent.os.minor != null) {
-                                os += "." + userAgent.os.minor;
-                                if (userAgent.os.patch != null) {
-                                    os += "." + userAgent.os.patch;
-                                    if (userAgent.os.patchMinor != null) {
-                                        os += "." + userAgent.os.patchMinor;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (userAgent.device != null) {
-                        device = userAgent.device.family;
                     }
                 }
+                if (userAgent.os != null) {
+                    os = userAgent.os.family;
+                    if (userAgent.os.major != null) {
+                        os += " " + userAgent.os.major;
+                        if (userAgent.os.minor != null) {
+                            os += "." + userAgent.os.minor;
+                            if (userAgent.os.patch != null) {
+                                os += "." + userAgent.os.patch;
+                                if (userAgent.os.patchMinor != null) {
+                                    os += "." + userAgent.os.patchMinor;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (userAgent.device != null) {
+                    device = userAgent.device.family;
+                }
             }
+        }
         if (actionType == ActionType.LOGIN && e == null) {
             userService.setLastLoginTs(user.getTenantId(), user.getId());
         }
         auditLogService.logEntityAction(
                 user.getTenantId(), user.getCustomerId(), user.getId(),
-                user.getName(), user.getId(), null, actionType, e, clientAddress, browser, os, device);
+                user.getName(), user.getId(), null, actionType, e, clientAddress, browser, os, device, provider);
     }
 
     private static boolean isPositiveInteger(Integer val) {

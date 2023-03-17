@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,11 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
@@ -87,7 +88,7 @@ public class TenantProfileDataValidator extends DataValidator<TenantProfile> {
             Optional<TenantProfileQueueConfiguration> mainQueueConfig =
                     queueConfiguration
                             .stream()
-                            .filter(q -> q.getName().equals("Main"))
+                            .filter(q -> q.getName().equals(DataConstants.MAIN_QUEUE_NAME))
                             .findAny();
             if (mainQueueConfig.isEmpty()) {
                 throw new DataValidationException("Main queue configuration should be specified!");

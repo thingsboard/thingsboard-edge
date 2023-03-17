@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.user.UserDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
  */
 @Component
 @Slf4j
+@SqlDao
 public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> implements UserDao {
 
     @Autowired
@@ -75,6 +77,11 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     @Override
     public User findByEmail(TenantId tenantId, String email) {
         return DaoUtil.getData(userRepository.findByEmail(email));
+    }
+
+    @Override
+    public User findByTenantIdAndEmail(TenantId tenantId, String email) {
+        return DaoUtil.getData(userRepository.findByTenantIdAndEmail(tenantId.getId(), email));
     }
 
     @Override

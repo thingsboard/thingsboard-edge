@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,30 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
+<mat-tab *ngIf="entity"
+         label="{{ 'integration.events' | translate }}" #eventsTab="matTab">
+  <tb-event-table [defaultEventType]="defaultEventType"
+                  [debugEventTypes]="[debugEventTypes.DEBUG_INTEGRATION]"
+                  [active]="eventsTab.isActive"
+                  [tenantId]="entity.tenantId.id"
+                  [entityId]="entity.id"></tb-event-table>
+</mat-tab>
+<mat-tab *ngIf="entity"
+         label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
+  <tb-relation-table [active]="relationsTab.isActive"
+                     [readonly]="!(resource.INTEGRATION | hasGenericPermission: operation.WRITE)"
+                     [entityId]="entity.id"></tb-relation-table>
+</mat-tab>
+<mat-tab *ngIf="entity && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)"
+         label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">
+  <tb-audit-log-table detailsMode="true" [active]="auditLogsTab.isActive" [auditLogMode]="auditLogModes.ENTITY" [entityId]="entity.id"></tb-audit-log-table>
+</mat-tab>
+<mat-tab *ngIf="entity && ([resource.VERSION_CONTROL, resource.INTEGRATION] | hasGenericPermission: operation.READ)"
+         label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
+  <tb-version-control detailsMode="true" singleEntityMode="true"
+                      (versionRestored)="entitiesTableConfig.updateData()"
+                      [active]="versionControlTab.isActive" [entityId]="entity.id" [entityName]="entity.name" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
+</mat-tab>
 <mat-tab *ngIf="entity && (resource.INTEGRATION | hasGenericPermission: operation.READ_ATTRIBUTES)"
          label="{{ 'attribute.attributes' | translate }}" #attributesTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="attributeScopes.SERVER_SCOPE"
@@ -52,28 +76,4 @@
 <mat-tab *ngIf="entity && (resource.ALARM | hasGenericPermission: operation.READ)"
          label="{{ 'alarm.alarms' | translate }}" #alarmsTab="matTab">
   <tb-alarm-table [active]="alarmsTab.isActive" [entityId]="entity.id"></tb-alarm-table>
-</mat-tab>
-<mat-tab *ngIf="entity"
-         label="{{ 'integration.events' | translate }}" #eventsTab="matTab">
-  <tb-event-table [defaultEventType]="debugEventTypes.DEBUG_INTEGRATION"
-                  [debugEventTypes]="[debugEventTypes.DEBUG_INTEGRATION]"
-                  [active]="eventsTab.isActive"
-                  [tenantId]="entity.tenantId.id"
-                  [entityId]="entity.id"></tb-event-table>
-</mat-tab>
-<mat-tab *ngIf="entity"
-         label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
-  <tb-relation-table [active]="relationsTab.isActive"
-                     [readonly]="!(resource.INTEGRATION | hasGenericPermission: operation.WRITE)"
-                     [entityId]="entity.id"></tb-relation-table>
-</mat-tab>
-<mat-tab *ngIf="entity && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)"
-         label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">
-  <tb-audit-log-table detailsMode="true" [active]="auditLogsTab.isActive" [auditLogMode]="auditLogModes.ENTITY" [entityId]="entity.id"></tb-audit-log-table>
-</mat-tab>
-<mat-tab *ngIf="entity && ([resource.VERSION_CONTROL, resource.INTEGRATION] | hasGenericPermission: operation.READ)"
-         label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
-  <tb-version-control detailsMode="true" singleEntityMode="true"
-                      (versionRestored)="entitiesTableConfig.updateData()"
-                      [active]="versionControlTab.isActive" [entityId]="entity.id" [entityName]="entity.name" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
 </mat-tab>

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,39 +36,46 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
+import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.common.data.StringUtils.generateSafeToken;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("UserDaoService")
 @Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl extends AbstractEntityService implements UserService {
@@ -90,6 +97,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     private final UserDao userDao;
     private final UserCredentialsDao userCredentialsDao;
     private final UserAuthSettingsDao userAuthSettingsDao;
+    private final UserSettingsDao userSettingsDao;
     private final DataValidator<User> userValidator;
     private final DataValidator<UserCredentials> userCredentialsValidator;
     private final ApplicationEventPublisher eventPublisher;
@@ -103,6 +111,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         } else {
             return userDao.findByEmail(tenantId, email.toLowerCase());
         }
+    }
+
+    @Override
+    public User findUserByTenantIdAndEmail(TenantId tenantId, String email) {
+        log.trace("Executing findUserByTenantIdAndEmail [{}][{}]", tenantId, email);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(email, "Incorrect email " + email);
+        return userDao.findByTenantIdAndEmail(tenantId, email);
     }
 
     @Override
@@ -128,6 +144,18 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public User changeOwner(User user, EntityId targetOwnerId) {
+        if (EntityType.CUSTOMER.equals(targetOwnerId.getEntityType())) {
+            user.setAuthority(Authority.CUSTOMER_USER);
+        } else if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
+            user.setAuthority(Authority.TENANT_ADMIN);
+        } else {
+            throw new DataValidationException("Invalid target owner id. Must be either CUSTOMER or TENANT!");
+        }
+        return userDao.save(user.getTenantId(), user);
+    }
+
+    @Override
     public User saveUser(User user) {
         log.trace("Executing saveUser [{}]", user);
         userValidator.validate(user, User::getTenantId);
@@ -138,9 +166,10 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         if (user.getId() == null) {
             UserCredentials userCredentials = new UserCredentials();
             userCredentials.setEnabled(false);
-            userCredentials.setActivateToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
+            userCredentials.setActivateToken(generateSafeToken(DEFAULT_TOKEN_LENGTH));
             userCredentials.setUserId(new UserId(savedUser.getUuidId()));
-            saveUserCredentialsAndPasswordHistory(user.getTenantId(), userCredentials);
+            userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
+            userCredentialsDao.save(user.getTenantId(), userCredentials);
             if (!user.getTenantId().isNullUid()) {
                 entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
             }
@@ -173,7 +202,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials) {
         log.trace("Executing saveUserCredentials [{}]", userCredentials);
         userCredentialsValidator.validate(userCredentials, data -> tenantId);
-        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials);
+        return userCredentialsDao.save(tenantId, userCredentials);
     }
 
     @Override
@@ -191,7 +220,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userCredentials.setEnabled(true);
         userCredentials.setActivateToken(null);
         userCredentials.setPassword(password);
-
+        if (userCredentials.getPassword() != null) {
+            updatePasswordHistory(userCredentials);
+        }
         return saveUserCredentials(tenantId, userCredentials);
     }
 
@@ -207,7 +238,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         if (!userCredentials.isEnabled()) {
             throw new DisabledException(String.format("User credentials not enabled [%s]", email));
         }
-        userCredentials.setResetToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
+        userCredentials.setResetToken(generateSafeToken(DEFAULT_TOKEN_LENGTH));
         return saveUserCredentials(tenantId, userCredentials);
     }
 
@@ -217,7 +248,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         if (!userCredentials.isEnabled()) {
             throw new IncorrectParameterException("Unable to reset password for inactive user");
         }
-        userCredentials.setResetToken(RandomStringUtils.randomAlphanumeric(DEFAULT_TOKEN_LENGTH));
+        userCredentials.setResetToken(generateSafeToken(DEFAULT_TOKEN_LENGTH));
         return saveUserCredentials(tenantId, userCredentials);
     }
 
@@ -227,10 +258,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userCredentialsValidator.validate(userCredentials, data -> tenantId);
         userCredentialsDao.removeById(tenantId, userCredentials.getUuidId());
         userCredentials.setId(null);
-        return saveUserCredentialsAndPasswordHistory(tenantId, userCredentials);
+        if (userCredentials.getPassword() != null) {
+            updatePasswordHistory(userCredentials);
+        }
+        return userCredentialsDao.save(tenantId, userCredentials);
     }
 
     @Override
+    @Transactional
     public void deleteUser(TenantId tenantId, UserId userId) {
         log.trace("Executing deleteUser [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);
@@ -239,7 +274,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userAuthSettingsDao.removeByUserId(userId);
         deleteEntityRelations(tenantId, userId);
         userDao.removeById(tenantId, userId.getId());
-        eventPublisher.publishEvent(new UserAuthDataChangedEvent(userId));
+        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
     }
 
     @Override
@@ -381,17 +416,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         return failedLoginAttempts;
     }
 
-    private UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials) {
-        UserCredentials result = userCredentialsDao.save(tenantId, userCredentials);
-        User user = findUserById(tenantId, userCredentials.getUserId());
-        if (userCredentials.getPassword() != null) {
-            updatePasswordHistory(user, userCredentials);
-        }
-        return result;
-    }
-
-    private void updatePasswordHistory(User user, UserCredentials userCredentials) {
-        JsonNode additionalInfo = user.getAdditionalInfo();
+    private void updatePasswordHistory(UserCredentials userCredentials) {
+        JsonNode additionalInfo = userCredentials.getAdditionalInfo();
         if (!(additionalInfo instanceof ObjectNode)) {
             additionalInfo = JacksonUtil.newObjectNode();
         }
@@ -412,8 +438,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
             userPasswordHistoryJson = JacksonUtil.valueToTree(userPasswordHistoryMap);
             ((ObjectNode) additionalInfo).set(USER_PASSWORD_HISTORY, userPasswordHistoryJson);
         }
-        user.setAdditionalInfo(additionalInfo);
-        saveUser(user);
+        userCredentials.setAdditionalInfo(additionalInfo);
     }
 
     private final PaginatedRemover<TenantId, User> tenantAdminsRemover = new PaginatedRemover<>() {
@@ -440,5 +465,15 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
             deleteUser(tenantId, new UserId(entity.getUuidId()));
         }
     };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findUserById(tenantId, new UserId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.USER;
+    }
 
 }

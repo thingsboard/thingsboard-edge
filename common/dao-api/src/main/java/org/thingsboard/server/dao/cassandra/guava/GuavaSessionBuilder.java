@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,18 +40,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class GuavaSessionBuilder extends SessionBuilder<GuavaSessionBuilder, GuavaSession> {
 
     @Override
-    protected DriverContext buildContext(
-            DriverConfigLoader configLoader,
-            ProgrammaticArguments programmaticArguments) {
-        return new GuavaDriverContext(
-                configLoader,
-                programmaticArguments.getTypeCodecs(),
-                programmaticArguments.getNodeStateListener(),
-                programmaticArguments.getSchemaChangeListener(),
-                programmaticArguments.getRequestTracker(),
-                programmaticArguments.getLocalDatacenters(),
-                programmaticArguments.getNodeFilters(),
-                programmaticArguments.getClassLoader());
+    protected DriverContext buildContext(DriverConfigLoader configLoader, ProgrammaticArguments programmaticArguments) {
+        return new GuavaDriverContext(configLoader, programmaticArguments);
     }
 
     @Override

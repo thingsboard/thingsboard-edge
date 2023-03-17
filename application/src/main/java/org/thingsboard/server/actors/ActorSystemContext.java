@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.actors;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -47,28 +46,35 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
-import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.event.ErrorEvent;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.event.RuleChainDebugEvent;
+import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -78,30 +84,36 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
-import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
+import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.rule.RuleNodeStateService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
@@ -113,6 +125,7 @@ import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.mail.MailExecutorService;
+import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRpcService;
@@ -129,9 +142,7 @@ import org.thingsboard.server.service.transport.TbCoreToTransportService;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Optional;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -140,6 +151,29 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class ActorSystemContext {
+
+    private static final FutureCallback<Void> RULE_CHAIN_DEBUG_EVENT_ERROR_CALLBACK = new FutureCallback<>() {
+        @Override
+        public void onSuccess(@Nullable Void event) {
+
+        }
+
+        @Override
+        public void onFailure(Throwable th) {
+            log.error("Could not save debug Event for Rule Chain", th);
+        }
+    };
+    private static final FutureCallback<Void> RULE_NODE_DEBUG_EVENT_ERROR_CALLBACK = new FutureCallback<>() {
+        @Override
+        public void onSuccess(@Nullable Void event) {
+
+        }
+
+        @Override
+        public void onFailure(Throwable th) {
+            log.error("Could not save debug Event for Node", th);
+        }
+    };
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
@@ -181,11 +215,27 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    @Getter
+    private AssetProfileService assetProfileService;
+
+    @Autowired
+    @Getter
+    private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    @Getter
     private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
     @Getter
     private TbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
+    @Getter
+    private TbAssetProfileCache assetProfileCache;
 
     @Autowired
     @Getter
@@ -269,7 +319,15 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private JsInvokeService jsSandbox;
+    private AlarmCommentService alarmCommentService;
+
+    @Autowired
+    @Getter
+    private JsInvokeService jsInvokeService;
+
+    @Autowired(required = false)
+    @Getter
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     @Getter
@@ -413,6 +471,21 @@ public class ActorSystemContext {
     @Getter
     private QueueService queueService;
 
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private WidgetsBundleService widgetsBundleService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private WidgetTypeService widgetTypeService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private SchedulerEventService schedulerEventService;
+
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
     private long maxConcurrentSessionsPerDevice;
@@ -532,29 +605,51 @@ public class ActorSystemContext {
     }
 
     public void persistError(TenantId tenantId, EntityId entityId, String method, Exception e) {
-        Event event = new Event();
-        event.setTenantId(tenantId);
-        event.setEntityId(entityId);
-        event.setType(DataConstants.ERROR);
-        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), method, EventUtil.toString(e)));
-        persistEvent(event);
+        eventService.saveAsync(ErrorEvent.builder()
+                .tenantId(tenantId)
+                .entityId(entityId.getId())
+                .serviceId(getServiceId())
+                .method(method)
+                .error(EventUtil.toString(e)).build());
     }
 
     public void persistLifecycleEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent lcEvent, Exception e) {
-        Event event = new Event();
-        event.setTenantId(tenantId);
-        event.setEntityId(entityId);
-        event.setType(DataConstants.LC_EVENT);
-        event.setBody(EventUtil.toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
-        persistEvent(event);
-    }
+        LifecycleEvent.LifecycleEventBuilder eventBuilder = LifecycleEvent.builder()
+                .tenantId(tenantId)
+                .entityId(entityId.getId())
+                .serviceId(getServiceId())
+                .lcEventType(lcEvent.name());
 
-    private void persistEvent(Event event) {
+        if (e != null) {
+            eventBuilder.success(false).error(EventUtil.toString(e));
+        } else {
+            eventBuilder.success(true);
+        }
+
+        LifecycleEvent event = eventBuilder.build();
+
         eventService.saveAsync(event);
-    }
 
-    private JsonNode toBodyJson(String serviceId, String method, String body) {
-        return mapper.createObjectNode().put("server", serviceId).put("method", method).put("error", body);
+        if (entityId.getEntityType().equals(EntityType.INTEGRATION)) {
+            String key = "integration_status_" + getServiceId().toLowerCase();
+
+            if (event.getLcEventType().equals("STARTED") || event.getLcEventType().equals("UPDATED")) {
+                ObjectNode value = JacksonUtil.newObjectNode();
+
+                if (e == null) {
+                    value.put("success", true);
+                } else {
+                    value.put("success", false);
+                    value.put("serviceId", getServiceId());
+                    value.put("error", event.getError());
+                }
+
+                AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+                attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+            } else if (event.getLcEventType().equals("STOPPED")) {
+                attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+            }
+        }
     }
 
     public TopicPartitionInfo resolve(ServiceType serviceType, TenantId tenantId, EntityId entityId) {
@@ -592,44 +687,27 @@ public class ActorSystemContext {
     private void persistDebugAsync(TenantId tenantId, EntityId entityId, String type, TbMsg tbMsg, String relationType, Throwable error, String failureMessage) {
         if (checkLimits(tenantId, tbMsg, error)) {
             try {
-                Event event = new Event();
-                event.setTenantId(tenantId);
-                event.setEntityId(entityId);
-                event.setType(DataConstants.DEBUG_RULE_NODE);
-
-                String metadata = mapper.writeValueAsString(tbMsg.getMetaData().getData());
-
-                ObjectNode node = mapper.createObjectNode()
-                        .put("type", type)
-                        .put("server", getServiceId())
-                        .put("entityId", tbMsg.getOriginator().getId().toString())
-                        .put("entityName", tbMsg.getOriginator().getEntityType().name())
-                        .put("msgId", tbMsg.getId().toString())
-                        .put("msgType", tbMsg.getType())
-                        .put("dataType", tbMsg.getDataType().name())
-                        .put("relationType", relationType)
-                        .put("data", tbMsg.getData())
-                        .put("metadata", metadata);
+                RuleNodeDebugEvent.RuleNodeDebugEventBuilder event = RuleNodeDebugEvent.builder()
+                        .tenantId(tenantId)
+                        .entityId(entityId.getId())
+                        .serviceId(getServiceId())
+                        .eventType(type)
+                        .eventEntity(tbMsg.getOriginator())
+                        .msgId(tbMsg.getId())
+                        .msgType(tbMsg.getType())
+                        .dataType(tbMsg.getDataType().name())
+                        .relationType(relationType)
+                        .data(tbMsg.getData())
+                        .metadata(mapper.writeValueAsString(tbMsg.getMetaData().getData()));
 
                 if (error != null) {
-                    node = node.put("error", EventUtil.toString(error));
+                    event.error(EventUtil.toString(error));
                 } else if (failureMessage != null) {
-                    node = node.put("error", failureMessage);
+                    event.error(failureMessage);
                 }
 
-                event.setBody(node);
-                ListenableFuture<Void> future = eventService.saveAsync(event);
-                Futures.addCallback(future, new FutureCallback<Void>() {
-                    @Override
-                    public void onSuccess(@Nullable Void event) {
-
-                    }
-
-                    @Override
-                    public void onFailure(Throwable th) {
-                        log.error("Could not save debug Event for Node", th);
-                    }
-                }, MoreExecutors.directExecutor());
+                ListenableFuture<Void> future = eventService.saveAsync(event.build());
+                Futures.addCallback(future, RULE_NODE_DEBUG_EVENT_ERROR_CALLBACK, MoreExecutors.directExecutor());
             } catch (IOException ex) {
                 log.warn("Failed to persist rule node debug message", ex);
             }
@@ -656,33 +734,17 @@ public class ActorSystemContext {
     }
 
     private void persistRuleChainDebugModeEvent(TenantId tenantId, EntityId entityId, Throwable error) {
-        Event event = new Event();
-        event.setTenantId(tenantId);
-        event.setEntityId(entityId);
-        event.setType(DataConstants.DEBUG_RULE_CHAIN);
-
-        ObjectNode node = mapper.createObjectNode()
-                //todo: what fields are needed here?
-                .put("server", getServiceId())
-                .put("message", "Reached debug mode rate limit!");
-
+        RuleChainDebugEvent.RuleChainDebugEventBuilder event = RuleChainDebugEvent.builder()
+                .tenantId(tenantId)
+                .entityId(entityId.getId())
+                .serviceId(getServiceId())
+                .message("Reached debug mode rate limit!");
         if (error != null) {
-            node = node.put("error", EventUtil.toString(error));
+            event.error(EventUtil.toString(error));
         }
 
-        event.setBody(node);
-        ListenableFuture<Void> future = eventService.saveAsync(event);
-        Futures.addCallback(future, new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(@Nullable Void event) {
-
-            }
-
-            @Override
-            public void onFailure(Throwable th) {
-                log.error("Could not save debug Event for Rule Chain", th);
-            }
-        }, MoreExecutors.directExecutor());
+        ListenableFuture<Void> future = eventService.saveAsync(event.build());
+        Futures.addCallback(future, RULE_CHAIN_DEBUG_EVENT_ERROR_CALLBACK, MoreExecutors.directExecutor());
     }
 
     public static Exception toException(Throwable error) {

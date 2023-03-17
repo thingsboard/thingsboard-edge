@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import {
   CircleData,
   defaultImageMapProviderSettings,
   MapImage,
-  PosFuncton,
+  PosFunction,
   WidgetUnitedMapSettings
 } from '../map-models';
 import { Observable, ReplaySubject } from 'rxjs';
@@ -45,7 +45,7 @@ import {
   calculateNewPointCoordinate
 } from '@home/components/widget/lib/maps/common-maps-utils';
 import { WidgetContext } from '@home/models/widget-component.models';
-import { DataSet, DatasourceType, widgetType } from '@shared/models/widget.models';
+import { DataSet, DatasourceType, FormattedData, widgetType } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { WidgetSubscriptionOptions } from '@core/api/widget-api.models';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr, parseFunction } from '@core/utils';
@@ -60,7 +60,7 @@ export class ImageMap extends LeafletMap {
     width = 0;
     height = 0;
     imageUrl: string;
-    posFunction: PosFuncton;
+    posFunction: PosFunction;
 
     private mapUuid: string;
 
@@ -69,7 +69,8 @@ export class ImageMap extends LeafletMap {
         if (this.ctx.reportService.reportView) {
           this.mapUuid = this.ctx.reportService.onWaitForMap();
         }
-        this.posFunction = parseFunction(options.posFunction, ['origXPos', 'origYPos']) as PosFuncton;
+        this.posFunction = parseFunction(options.posFunction,
+          ['origXPos', 'origYPos', 'data', 'dsData', 'dsIndex', 'aspect']) as PosFunction;
         this.mapImage(options).subscribe((mapImage) => {
           this.imageUrl = mapImage.imageUrl;
           this.aspect = mapImage.aspect;
@@ -268,23 +269,38 @@ export class ImageMap extends LeafletMap {
           zoom: 1,
           crs: L.CRS.Simple,
           attributionControl: false,
-          tap: L.Browser.safari && L.Browser.mobile,
           fadeAnimation: !this.ctx.reportService.reportView
         });
         this.updateBounds(updateImage);
       }
     }
 
-    convertPosition(expression): L.LatLng {
-      const xPos = expression[this.options.xPosKeyName];
-      const yPos = expression[this.options.yPosKeyName];
+    extractPosition(data: FormattedData): {x: number, y: number} {
+      if (!data) {
+        return null;
+      }
+      const xPos = data[this.options.xPosKeyName];
+      const yPos = data[this.options.yPosKeyName];
       if (!isDefinedAndNotNull(xPos) || isEmptyStr(xPos) || isNaN(xPos) || !isDefinedAndNotNull(yPos) || isEmptyStr(yPos) || isNaN(yPos)) {
         return null;
       }
-      Object.assign(expression, this.posFunction(xPos, yPos));
+      return {x: xPos, y: yPos};
+    }
+
+    positionToLatLng(position: {x: number, y: number}): L.LatLng {
       return this.pointToLatLng(
-        expression.x * this.width,
-        expression.y * this.height);
+        position.x * this.width,
+        position.y * this.height);
+    }
+
+    convertPosition(data, dsData: FormattedData[]): L.LatLng {
+      const position = this.extractPosition(data);
+      if (position) {
+        const converted = this.posFunction(position.x, position.y, data, dsData, data.dsIndex, this.aspect) || {x: 0, y: 0};
+        return this.positionToLatLng(converted);
+      } else {
+        return null;
+      }
     }
 
     convertPositionPolygon(expression: (LatLngTuple | LatLngTuple[] | LatLngTuple[][])[]){
@@ -380,7 +396,7 @@ export class ImageMap extends LeafletMap {
     }
 
     convertToCircleFormat(circle: CircleData, width = this.width, height = this.height): CircleData {
-      const centerPoint = this.pointToLatLng(circle.longitude * width, circle.latitude * height);
+      const centerPoint = this.pointToLatLng(circle.latitude * width, circle.longitude * height);
       circle.latitude = centerPoint.lat;
       circle.longitude = centerPoint.lng;
       circle.radius = circle.radius * width;

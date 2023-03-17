@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import java.util.Map;
 public class TbGetOriginatorFieldsConfiguration implements NodeConfiguration<TbGetOriginatorFieldsConfiguration> {
 
     private Map<String, String> fieldsMapping;
+    private boolean ignoreNullStrings;
 
     @Override
     public TbGetOriginatorFieldsConfiguration defaultConfiguration() {
@@ -48,6 +49,7 @@ public class TbGetOriginatorFieldsConfiguration implements NodeConfiguration<TbG
         fieldsMapping.put("name", "originatorName");
         fieldsMapping.put("type", "originatorType");
         configuration.setFieldsMapping(fieldsMapping);
+        configuration.setIgnoreNullStrings(false);
         return configuration;
     }
 }

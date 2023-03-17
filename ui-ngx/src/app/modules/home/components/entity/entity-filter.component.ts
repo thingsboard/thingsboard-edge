@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { AliasFilterType, aliasFilterTypeTranslationMap, EntityAliasFilter } from '@shared/models/alias.models';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -60,8 +60,8 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   @Output() resolveMultipleChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
 
-  entityFilterFormGroup: FormGroup;
-  filterFormGroup: FormGroup;
+  entityFilterFormGroup: UntypedFormGroup;
+  filterFormGroup: UntypedFormGroup;
 
   aliasFilterTypes: Array<AliasFilterType>;
   entityGroupTypes: Array<EntityType>;
@@ -78,7 +78,7 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   constructor(private translate: TranslateService,
               private entityService: EntityService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   ngOnInit(): void {
@@ -254,11 +254,17 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           } else if (type === AliasFilterType.entityViewSearchQuery) {
             this.filterFormGroup.addControl('entityViewTypes',
               this.fb.control(filter ? filter.entityViewTypes : [], [Validators.required]));
-          } else if (type === AliasFilterType.edgeSearchQuery) {
-            this.filterFormGroup.addControl('edgeTypes',
-              this.fb.control(filter ? filter.edgeTypes : [], [Validators.required]));
           }
         }
+        break;
+      case AliasFilterType.schedulerEvent:
+        this.filterFormGroup = this.fb.group({
+          originatorStateEntity: [filter ? filter.originatorStateEntity : false, []],
+          stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
+          defaultStateEntity: [filter ? filter.defaultStateEntity : null, []],
+          originator: [filter ? filter.originator : null, []],
+          eventType: [filter ? filter.eventType : null, []]
+        });
         break;
     }
     this.filterFormGroup.valueChanges.subscribe(() => {

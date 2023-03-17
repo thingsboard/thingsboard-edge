@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -86,10 +86,6 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         }
     }
 
-    @Override
-    public void destroy() {
-    }
-
     protected S buildEvent(TbMsg msg, TbContext ctx) {
         String msgType = msg.getType();
         if (DataConstants.ALARM.equals(msgType)) {
@@ -161,8 +157,11 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             actionType = EdgeEventActionType.ATTRIBUTES_UPDATED;
         } else if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)) {
             actionType = EdgeEventActionType.POST_ATTRIBUTES;
-        } else {
+        } else if (DataConstants.ATTRIBUTES_DELETED.equals(msgType)) {
             actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
+        } else {
+            log.warn("Unsupported msg type [{}]", msgType);
+            throw new IllegalArgumentException("Unsupported msg type: " + msgType);
         }
         return actionType;
     }
@@ -184,6 +183,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             case DASHBOARD:
             case TENANT:
             case CUSTOMER:
+            case USER:
             case EDGE:
             case ENTITY_GROUP:
                 return true;

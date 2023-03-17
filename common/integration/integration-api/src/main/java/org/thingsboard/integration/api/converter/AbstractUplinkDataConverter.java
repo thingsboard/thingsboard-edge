@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,8 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
@@ -61,6 +63,10 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
+    public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
+        super(jsInvokeService, tbelInvokeService);
+    }
+
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
@@ -70,9 +76,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
                                                             ExecutorService callBackExecutorService) throws Exception {
         long startTime = System.currentTimeMillis();
-        ListenableFuture<Object> convertFuture = doConvertUplink(data, metadata);
-        ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, convertResult -> {
-            String rawResult = (String) convertResult;
+        ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
+        ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, rawResult -> {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
             }
@@ -103,7 +108,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return result;
     }
 
-    protected abstract ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
+    protected abstract ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
     protected UplinkData parseUplinkData(JsonObject src) {
         boolean isAsset = getIsAssetAndVerify(src);

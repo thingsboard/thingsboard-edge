@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,12 +48,15 @@ public class OtaPackageMsgConstructor {
                 .setMsgType(msgType)
                 .setIdMSB(otaPackage.getId().getId().getMostSignificantBits())
                 .setIdLSB(otaPackage.getId().getId().getLeastSignificantBits())
-                .setDeviceProfileIdMSB(otaPackage.getDeviceProfileId().getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(otaPackage.getDeviceProfileId().getId().getLeastSignificantBits())
                 .setType(otaPackage.getType().name())
                 .setTitle(otaPackage.getTitle())
                 .setVersion(otaPackage.getVersion())
                 .setTag(otaPackage.getTag());
+
+        if (otaPackage.getDeviceProfileId() != null) {
+            builder.setDeviceProfileIdMSB(otaPackage.getDeviceProfileId().getId().getMostSignificantBits())
+                    .setDeviceProfileIdLSB(otaPackage.getDeviceProfileId().getId().getLeastSignificantBits());
+        }
 
         if (otaPackage.getUrl() != null) {
             builder.setUrl(otaPackage.getUrl());

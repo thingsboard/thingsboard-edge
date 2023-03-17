@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,12 +30,11 @@
  */
 package org.thingsboard.server.msa;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.thingsboard.server.common.data.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
-public class ThingsBoardDbInstaller extends ExternalResource {
+public class ThingsBoardDbInstaller {
 
     final static boolean IS_REDIS_CLUSTER = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisCluster"));
     final static boolean IS_HYBRID_MODE = Boolean.parseBoolean(System.getProperty("blackBoxTests.hybridMode"));
@@ -102,6 +101,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         ));
         if (IS_HYBRID_MODE) {
             composeFiles.add(new File("./../../docker/advanced/docker-compose.cassandra.volumes.yml"));
+            composeFiles.add(new File("src/test/resources/docker-compose.hybrid-test-extras.yml"));
+        } else {
+            composeFiles.add(new File("src/test/resources/docker-compose.postgres-test-extras.yml"));
         }
 
         String identifier = Base58.randomString(6).toLowerCase();
@@ -159,8 +161,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         return env;
     }
 
-    @Override
-    protected void before() throws Throwable {
+    public void createVolumes()  {
         try {
 
             dockerCompose.withCommand("volume create " + postgresDataVolume);
@@ -230,8 +231,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         }
     }
 
-    @Override
-    protected void after() {
+    public void savaLogsAndRemoveVolumes() {
         copyLogs(tbLogVolume, "./target/tb-logs/");
         copyLogs(tbIntegrationExecutorLogVolume, "./target/tb-integration-executor-logs/");
         copyLogs(tbCoapTransportLogVolume, "./target/tb-coap-transport-logs/");
@@ -255,7 +255,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         File tbLogsDir = new File(targetDir);
         tbLogsDir.mkdirs();
 
-        String logsContainerName = "tb-logs-container-" + RandomStringUtils.randomAlphanumeric(10);
+        String logsContainerName = "tb-logs-container-" + StringUtils.randomAlphanumeric(10);
 
         dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
         dockerCompose.invokeDocker();

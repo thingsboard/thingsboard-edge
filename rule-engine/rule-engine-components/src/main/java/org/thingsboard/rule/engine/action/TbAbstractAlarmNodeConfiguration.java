@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,8 @@
 package org.thingsboard.rule.engine.action;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 public abstract class TbAbstractAlarmNodeConfiguration {
@@ -47,7 +49,23 @@ public abstract class TbAbstractAlarmNodeConfiguration {
             "\n" +
             "return details;";
 
+    static final String ALARM_DETAILS_BUILD_TBEL_TEMPLATE = "" +
+            "var details = {};\n" +
+            "if (metadata.prevAlarmDetails != null) {\n" +
+            "    details = JSON.parse(metadata.prevAlarmDetails);\n" +
+            "    //remove prevAlarmDetails from metadata\n" +
+            "    metadata.remove('prevAlarmDetails');\n" +
+            "    //now metadata is the same as it comes IN this rule node\n" +
+            "}\n" +
+            "\n" +
+            "\n" +
+            "return details;";
+
+
+    @NoXss
     private String alarmType;
+    private ScriptLanguage scriptLang;
     private String alarmDetailsBuildJs;
+    private String alarmDetailsBuildTbel;
 
 }

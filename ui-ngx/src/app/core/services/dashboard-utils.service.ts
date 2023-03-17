@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import { Datasource, DatasourceType, Widget, widgetType } from '@app/shared/mode
 import { EntityType } from '@shared/models/entity-type.models';
 import { AliasFilterType, EntityAlias, EntityAliasFilter } from '@app/shared/models/alias.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
+import { initModelFromDefaultTimewindow } from '@shared/models/time/time.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -234,6 +235,9 @@ export class DashboardUtilsService {
         delete datasource.deviceAliasId;
       }
     });
+    if (widget.type === widgetType.latest) {
+      widget.config.timewindow = initModelFromDefaultTimewindow(widget.config.timewindow, true, this.timeService);
+    }
     // Temp workaround
     if (widget.isSystemType  && widget.bundleAlias === 'charts' && widget.typeAlias === 'timeseries') {
       widget.typeAlias = 'basic_timeseries';
@@ -423,7 +427,8 @@ export class DashboardUtilsService {
       sizeY: originalSize ? originalSize.sizeY : widget.sizeY,
       mobileOrder: widget.config.mobileOrder,
       mobileHeight: widget.config.mobileHeight,
-      mobileHide: widget.config.mobileHide
+      mobileHide: widget.config.mobileHide,
+      desktopHide: widget.config.desktopHide
     };
     if (isUndefined(originalColumns)) {
       originalColumns = 24;

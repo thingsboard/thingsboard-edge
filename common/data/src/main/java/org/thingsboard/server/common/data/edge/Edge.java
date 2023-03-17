@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
+import org.thingsboard.server.common.data.HasLabel;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -52,7 +53,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ToString
 @Setter
 public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
-        implements GroupEntity<EdgeId> {
+        implements HasLabel, GroupEntity<EdgeId> {
 
     private static final long serialVersionUID = 4934987555236873728L;
 

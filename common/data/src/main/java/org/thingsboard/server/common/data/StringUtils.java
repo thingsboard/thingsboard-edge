@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,15 @@
 package org.thingsboard.server.common.data;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.lang3.RandomStringUtils;
+
+import java.security.SecureRandom;
+import java.util.Base64;
 
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class StringUtils {
+    public static final SecureRandom RANDOM = new SecureRandom();
 
     public static final String EMPTY = "";
 
@@ -60,7 +65,7 @@ public class StringUtils {
         if (isEmpty(str) || isEmpty(remove)) {
             return str;
         }
-        if (str.startsWith(remove)){
+        if (str.startsWith(remove)) {
             return str.substring(remove.length());
         }
         return str;
@@ -115,6 +120,99 @@ public class StringUtils {
 
     public static Iterable<String> split(String value, int maxPartSize) {
         return Splitter.fixedLength(maxPartSize).split(value);
+    }
+
+    public static boolean equalsIgnoreCase(String str1, String str2) {
+        return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
+    }
+
+    public static String join(String[] keyArray, String lwm2mSeparatorPath) {
+        return org.apache.commons.lang3.StringUtils.join(keyArray, lwm2mSeparatorPath);
+    }
+
+    public static String trimToNull(String toString) {
+        return org.apache.commons.lang3.StringUtils.trimToNull(toString);
+    }
+
+    public static boolean isNoneEmpty(String str) {
+        return org.apache.commons.lang3.StringUtils.isNoneEmpty(str);
+    }
+
+    public static boolean endsWith(String str, String suffix) {
+        return org.apache.commons.lang3.StringUtils.endsWith(str, suffix);
+    }
+
+    public static boolean hasLength(String str) {
+        return org.springframework.util.StringUtils.hasLength(str);
+    }
+
+    public static boolean isNoneBlank(String... str) {
+        return org.apache.commons.lang3.StringUtils.isNoneBlank(str);
+    }
+
+    public static boolean hasText(String str) {
+        return org.springframework.util.StringUtils.hasText(str);
+    }
+
+    public static String defaultString(String s, String defaultValue) {
+        return org.apache.commons.lang3.StringUtils.defaultString(s, defaultValue);
+    }
+
+    public static boolean isNumeric(String str) {
+        return org.apache.commons.lang3.StringUtils.isNumeric(str);
+    }
+
+    public static boolean equals(String str1, String str2) {
+        return org.apache.commons.lang3.StringUtils.equals(str1, str2);
+    }
+
+    public static String substringAfterLast(String str, String sep) {
+        return org.apache.commons.lang3.StringUtils.substringAfterLast(str, sep);
+    }
+
+    public static String removeEnd(String str, String suffix) {
+        return org.apache.commons.lang3.StringUtils.removeEnd(str, suffix);
+    }
+
+    public static boolean containedByAny(String searchString, String... strings) {
+        if (searchString == null) return false;
+        for (String string : strings) {
+            if (string != null && string.contains(searchString)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean contains(final CharSequence seq, final CharSequence searchSeq) {
+        return org.apache.commons.lang3.StringUtils.contains(seq, searchSeq);
+    }
+
+    public static String randomNumeric(int length) {
+        return RandomStringUtils.randomNumeric(length);
+    }
+
+    public static String random(int length) {
+        return RandomStringUtils.random(length);
+    }
+
+    public static String random(int length, String chars) {
+        return RandomStringUtils.random(length, chars);
+    }
+
+    public static String randomAlphanumeric(int count) {
+        return RandomStringUtils.randomAlphanumeric(count);
+    }
+
+    public static String randomAlphabetic(int count) {
+        return RandomStringUtils.randomAlphabetic(count);
+    }
+
+    public static String generateSafeToken(int length) {
+        byte[] bytes = new byte[length];
+        RANDOM.nextBytes(bytes);
+        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        return encoder.encodeToString(bytes);
     }
 
 }

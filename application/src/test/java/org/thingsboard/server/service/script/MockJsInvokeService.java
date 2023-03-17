@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,8 +35,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.script.api.ScriptType;
+import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -48,13 +48,13 @@ import java.util.UUID;
 public class MockJsInvokeService implements JsInvokeService {
 
     @Override
-    public ListenableFuture<UUID> eval(TenantId tenantId, JsScriptType scriptType, String scriptBody, String... argNames) {
+    public ListenableFuture<UUID> eval(TenantId tenantId, ScriptType scriptType, String scriptBody, String... argNames) {
         log.warn("eval {} {} {} {}", tenantId, scriptType, scriptBody, argNames);
         return Futures.immediateFuture(UUID.randomUUID());
     }
 
     @Override
-    public ListenableFuture<Object> invokeFunction(TenantId tenantId, CustomerId customerId, UUID scriptId, Object... args) {
+    public ListenableFuture<Object> invokeScript(TenantId tenantId, CustomerId customerId, UUID scriptId, Object... args) {
         log.warn("invokeFunction {} {} {} {}", tenantId, customerId, scriptId, args);
         return Futures.immediateFuture("{}");
     }

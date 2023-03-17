@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,12 +40,14 @@ public class TbMsgAttributesNodeConfiguration implements NodeConfiguration<TbMsg
     private String scope;
 
     private Boolean notifyDevice;
+    private boolean sendAttributesUpdatedNotification;
 
     @Override
     public TbMsgAttributesNodeConfiguration defaultConfiguration() {
         TbMsgAttributesNodeConfiguration configuration = new TbMsgAttributesNodeConfiguration();
         configuration.setScope(DataConstants.SERVER_SCOPE);
         configuration.setNotifyDevice(false);
+        configuration.setSendAttributesUpdatedNotification(false);
         return configuration;
     }
 }

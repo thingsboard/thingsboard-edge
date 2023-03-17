@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -97,7 +97,7 @@ export class ServiceBusTemplate implements IQueue {
         this.receiver.subscribe({processMessage: messageHandler, processError: errorHandler})
     }
 
-    async send(responseTopic: string, scriptId: string, rawResponse: Buffer, headers: any): Promise<any> {
+    async send(responseTopic: string, msgKey: string, rawResponse: Buffer, headers: any): Promise<any> {
         if (!this.queues.includes(this.requestTopic)) {
             await this.createQueueIfNotExist(this.requestTopic);
             this.queues.push(this.requestTopic);
@@ -111,7 +111,7 @@ export class ServiceBusTemplate implements IQueue {
         }
 
         let data = {
-            key: scriptId,
+            key: msgKey,
             data: [...rawResponse],
             headers: headers
         };

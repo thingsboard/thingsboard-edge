@@ -1,0 +1,228 @@
+{
+  "firstNodeIndex": 9,
+  "nodes": [
+    {
+      "additionalInfo": {
+        "layoutX": 999,
+        "layoutY": 271
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save Timeseries",
+      "debugMode": false,
+      "configuration": {
+        "defaultTTL": 0
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 1000,
+        "layoutY": 167
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save Attributes",
+      "debugMode": false,
+      "configuration": {
+        "scope": "CLIENT_SCOPE",
+        "notifyDevice": "false"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 566,
+        "layoutY": 302
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+      "name": "Message Type Switch",
+      "debugMode": false,
+      "configuration": {
+        "version": 0
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 1000,
+        "layoutY": 381
+      },
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log RPC from Device",
+      "debugMode": false,
+      "configuration": {
+        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 1000,
+        "layoutY": 494
+      },
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log Other",
+      "debugMode": false,
+      "configuration": {
+        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 1000,
+        "layoutY": 583
+      },
+      "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+      "name": "RPC Call Request",
+      "debugMode": false,
+      "configuration": {
+        "timeoutInSeconds": 60
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 255,
+        "layoutY": 301
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
+      "name": "Is Entity Group",
+      "debugMode": false,
+      "configuration": {
+        "originatorTypes": [
+          "ENTITY_GROUP"
+        ]
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 319,
+        "layoutY": 109
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
+      "name": "Post attributes or RPC request",
+      "debugMode": false,
+      "configuration": {
+        "messageTypes": [
+          "POST_ATTRIBUTES_REQUEST",
+          "RPC_CALL_FROM_SERVER_TO_DEVICE"
+        ]
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 627,
+        "layoutY": 108
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode",
+      "name": "Duplicate To Group Entities",
+      "debugMode": false,
+      "configuration": {
+        "entityGroupId": null,
+        "entityGroupIsMessageOriginator": true
+      }
+    },
+    {
+      "additionalInfo": {
+        "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
+        "layoutX": 137,
+        "layoutY": 415
+      },
+      "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+      "name": "Device Profile Node",
+      "debugMode": false,
+      "configuration": {
+        "persistAlarmRulesState": false,
+        "fetchAlarmRulesStateOnStart": false
+      }
+    },
+    {
+      "additionalInfo": {
+        "description": "Forwards message to the \"Generate Report\" rule chain",
+        "layoutX": 1004,
+        "layoutY": 690
+      },
+      "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+      "name": "Generate Report",
+      "debugMode": false,
+      "configuration": {
+        "ruleChainId": "242ca320-59f8-11ed-b51b-0ffc9b098df8"
+      }
+    },
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 370,
+        "layoutY": 461
+      },
+      "type": "org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode",
+      "name": "Send message",
+      "debugMode": true,
+      "configuration": {
+        "integrationId": "d8eb67d0-550f-11ed-bb6e-8f34ea6bbc86"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromIndex": 2,
+      "toIndex": 0,
+      "type": "Post telemetry"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 1,
+      "type": "Post attributes"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 3,
+      "type": "RPC Request from Device"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 4,
+      "type": "Other"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 5,
+      "type": "RPC Request to Device"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 10,
+      "type": "Generate Report"
+    },
+    {
+      "fromIndex": 6,
+      "toIndex": 2,
+      "type": "False"
+    },
+    {
+      "fromIndex": 6,
+      "toIndex": 7,
+      "type": "True"
+    },
+    {
+      "fromIndex": 7,
+      "toIndex": 2,
+      "type": "False"
+    },
+    {
+      "fromIndex": 7,
+      "toIndex": 8,
+      "type": "True"
+    },
+    {
+      "fromIndex": 8,
+      "toIndex": 2,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 9,
+      "toIndex": 6,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 11,
+      "type": "Attributes Updated"
+    }
+  ],
+  "ruleChainConnections": null
+}

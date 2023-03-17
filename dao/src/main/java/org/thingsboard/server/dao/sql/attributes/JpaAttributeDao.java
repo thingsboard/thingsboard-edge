@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,6 +52,7 @@ import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -65,6 +66,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@SqlDao
 public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService implements AttributesDao {
 
     @Autowired
@@ -91,7 +93,7 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
     @Value("${sql.attributes.batch_threads:4}")
     private int batchThreads;
 
-    @Value("${sql.batch_sort:false}")
+    @Value("${sql.batch_sort:true}")
     private boolean batchSortEnabled;
 
     private TbSqlBlockingQueueWrapper<AttributeKvEntity> queue;

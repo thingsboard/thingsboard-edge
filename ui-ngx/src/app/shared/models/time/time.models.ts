@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -111,6 +111,8 @@ export interface Timewindow {
   displayValue?: string;
   displayTimezoneAbbr?: string;
   hideInterval?: boolean;
+  hideQuickInterval?: boolean;
+  hideLastInterval?: boolean;
   hideAggregation?: boolean;
   hideAggInterval?: boolean;
   hideTimezone?: boolean;
@@ -204,6 +206,8 @@ export function defaultTimewindow(timeService: TimeService): Timewindow {
   return {
     displayValue: '',
     hideInterval: false,
+    hideLastInterval: false,
+    hideQuickInterval: false,
     hideAggregation: false,
     hideAggInterval: false,
     hideTimezone: false,
@@ -239,15 +243,17 @@ function getTimewindowType(timewindow: Timewindow): TimewindowType {
   }
 }
 
-export function initModelFromDefaultTimewindow(value: Timewindow, timeService: TimeService): Timewindow {
+export function initModelFromDefaultTimewindow(value: Timewindow, quickIntervalOnly: boolean, timeService: TimeService): Timewindow {
   const model = defaultTimewindow(timeService);
   if (value) {
     model.hideInterval = value.hideInterval;
+    model.hideLastInterval = value.hideLastInterval;
+    model.hideQuickInterval = value.hideQuickInterval;
     model.hideAggregation = value.hideAggregation;
     model.hideAggInterval = value.hideAggInterval;
     model.hideTimezone = value.hideTimezone;
     model.selectedTab = getTimewindowType(value);
-    if (model.selectedTab === TimewindowType.REALTIME) {
+    if (isDefined(value.realtime)) {
       if (isDefined(value.realtime.interval)) {
         model.realtime.interval = value.realtime.interval;
       }
@@ -260,12 +266,14 @@ export function initModelFromDefaultTimewindow(value: Timewindow, timeService: T
       } else {
         model.realtime.realtimeType = value.realtime.realtimeType;
       }
-      if (model.realtime.realtimeType === RealtimeWindowType.INTERVAL) {
+      if (isDefined(value.realtime.quickInterval)) {
         model.realtime.quickInterval = value.realtime.quickInterval;
-      } else {
+      }
+      if (isDefined(value.realtime.timewindowMs)) {
         model.realtime.timewindowMs = value.realtime.timewindowMs;
       }
-    } else {
+    }
+    if (isDefined(value.history)) {
       if (isDefined(value.history.interval)) {
         model.history.interval = value.history.interval;
       }
@@ -280,13 +288,19 @@ export function initModelFromDefaultTimewindow(value: Timewindow, timeService: T
       } else {
         model.history.historyType = value.history.historyType;
       }
-      if (model.history.historyType === HistoryWindowType.LAST_INTERVAL) {
+      if (isDefined(value.history.timewindowMs)) {
         model.history.timewindowMs = value.history.timewindowMs;
-      } else if (model.history.historyType === HistoryWindowType.INTERVAL) {
+      }
+      if (isDefined(value.history.quickInterval)) {
         model.history.quickInterval = value.history.quickInterval;
-      } else {
-        model.history.fixedTimewindow.startTimeMs = value.history.fixedTimewindow.startTimeMs;
-        model.history.fixedTimewindow.endTimeMs = value.history.fixedTimewindow.endTimeMs;
+      }
+      if (isDefined(value.history.fixedTimewindow)) {
+        if (isDefined(value.history.fixedTimewindow.startTimeMs)) {
+          model.history.fixedTimewindow.startTimeMs = value.history.fixedTimewindow.startTimeMs;
+        }
+        if (isDefined(value.history.fixedTimewindow.endTimeMs)) {
+          model.history.fixedTimewindow.endTimeMs = value.history.fixedTimewindow.endTimeMs;
+        }
       }
     }
     if (value.aggregation) {
@@ -296,6 +310,9 @@ export function initModelFromDefaultTimewindow(value: Timewindow, timeService: T
       model.aggregation.limit = value.aggregation.limit || Math.floor(timeService.getMaxDatapointsLimit() / 2);
     }
     model.timezone = value.timezone;
+  }
+  if (quickIntervalOnly) {
+    model.realtime.realtimeType = RealtimeWindowType.INTERVAL;
   }
   return model;
 }
@@ -320,6 +337,8 @@ export function toHistoryTimewindow(timewindow: Timewindow, startTimeMs: number,
   }
   return {
     hideInterval: timewindow.hideInterval || false,
+    hideLastInterval: timewindow.hideLastInterval || false,
+    hideQuickInterval: timewindow.hideQuickInterval || false,
     hideAggregation: timewindow.hideAggregation || false,
     hideAggInterval: timewindow.hideAggInterval || false,
     hideTimezone: timewindow.hideTimezone || false,
@@ -710,6 +729,8 @@ export function createTimewindowForComparison(subscriptionTimewindow: Subscripti
 export function cloneSelectedTimewindow(timewindow: Timewindow): Timewindow {
   const cloned: Timewindow = {};
   cloned.hideInterval = timewindow.hideInterval || false;
+  cloned.hideLastInterval = timewindow.hideLastInterval || false;
+  cloned.hideQuickInterval = timewindow.hideQuickInterval || false;
   cloned.hideAggregation = timewindow.hideAggregation || false;
   cloned.hideAggInterval = timewindow.hideAggInterval || false;
   cloned.hideTimezone = timewindow.hideTimezone || false;

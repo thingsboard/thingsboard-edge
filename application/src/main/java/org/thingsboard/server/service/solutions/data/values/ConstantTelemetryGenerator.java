@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,5 +48,19 @@ public class ConstantTelemetryGenerator extends TelemetryGenerator {
     @Override
     public void addValue(long ts, ObjectNode values) {
         values.set(key, value);
+    }
+
+    @Override
+    public double getValue() {
+        if (value != null && value.isNumber()) {
+            return value.doubleValue();
+        } else {
+            return super.getValue();
+        }
+    }
+
+    @Override
+    public void setValue(double value) {
+        // do nothing;
     }
 }

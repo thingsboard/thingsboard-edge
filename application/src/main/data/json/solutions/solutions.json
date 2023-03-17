@@ -24,6 +24,16 @@
     "imageUrls": ["https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-1.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-2.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-3.png"]
   },
   {
+    "id": "air_quality_index",
+    "title": "Air Quality Monitoring",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 5000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/air_quality_index/aqi-dashboard-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-2.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-1.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-3.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-4.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-5.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
     "id": "water_metering",
     "title": "Water metering",
     "level": "PROTOTYPE",
@@ -41,6 +51,26 @@
     "previewImageUrl": "https://thingsboard.io/images/solutions/smart_retail/smart-retail-preview.png",
     "imageUrls": ["https://thingsboard.io/images/solutions/smart_retail/smart-retail-1.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-2.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-3.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-4.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-5.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-6.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-7.png"],
     "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
+    "tenantAttributeKeys": []
+  },
+  {
+    "id": "smart_irrigation",
+    "title": "Smart Irrigation",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 10000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-1.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-2.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-3.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-4.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-5.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
+    "id": "assisted_living",
+    "title": "Assisted Living",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 5000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/assisted_living/assisted-living-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/assisted_living/assisted-living-1.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-2.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-3.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-4.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-5.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-6.png"],
+    "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
   }
 ]

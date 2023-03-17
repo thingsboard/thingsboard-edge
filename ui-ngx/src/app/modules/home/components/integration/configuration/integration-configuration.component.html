@@ -1,0 +1,233 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="integrationConfigurationForm" class="tb-integration-configuration">
+  <ng-container [ngSwitch]="integrationType">
+    <ng-container *ngSwitchCase="integrationTypes.MQTT">
+      <tb-mqtt-integration-form formControlName="configuration"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                [isEdgeTemplate]="isEdgeTemplate"
+                                [allowLocalNetwork]="allowLocalNetwork">
+      </tb-mqtt-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.HTTP">
+      <tb-http-integration-form formControlName="configuration"
+                                [routingKey]="routingKey"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                [allowLocalNetwork]="allowLocalNetwork">
+      </tb-http-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TTN">
+      <tb-ttn-integration-form formControlName="configuration"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                               [allowLocalNetwork]="allowLocalNetwork">
+      </tb-ttn-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AWS_IOT">
+      <tb-aws-iot-integration-form formControlName="configuration"
+                                   [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                   [allowLocalNetwork]="allowLocalNetwork">
+      </tb-aws-iot-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TTI">
+      <tb-tti-integration-form formControlName="configuration"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                               [allowLocalNetwork]="allowLocalNetwork">
+      </tb-tti-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.SIGFOX">
+      <tb-sigfox-integration-form formControlName="configuration"
+                                  [routingKey]="routingKey"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                  [allowLocalNetwork]="allowLocalNetwork">
+      </tb-sigfox-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.OCEANCONNECT">
+      <tb-ocean-connect-integration-form formControlName="configuration"
+                                         [routingKey]="routingKey"
+                                         [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                         [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                         [allowLocalNetwork]="allowLocalNetwork">
+      </tb-ocean-connect-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TMOBILE_IOT_CDP">
+      <tb-t-mobile-iot-cdp-integration-form formControlName="configuration"
+                                            [routingKey]="routingKey"
+                                            [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                            [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                            [allowLocalNetwork]="allowLocalNetwork">
+      </tb-t-mobile-iot-cdp-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.OPC_UA">
+      <tb-opc-ua-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                  [allowLocalNetwork]="allowLocalNetwork">
+      </tb-opc-ua-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.LORIOT">
+      <tb-loriot-integration-form formControlName="configuration"
+                                  [routingKey]="routingKey"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                  [allowLocalNetwork]="allowLocalNetwork">
+      </tb-loriot-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.CHIRPSTACK">
+      <tb-chirp-stack-integration-form formControlName="configuration"
+                                       [routingKey]="routingKey"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                       [allowLocalNetwork]="allowLocalNetwork">
+      </tb-chirp-stack-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.PUB_SUB">
+      <tb-pubsub-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-pubsub-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.APACHE_PULSAR">
+      <tb-apache-pulsar-integration-form formControlName="configuration"
+                                         [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                         [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                         [allowLocalNetwork]="allowLocalNetwork">
+      </tb-apache-pulsar-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AWS_KINESIS">
+      <tb-aws-kinesis-integration-form formControlName="configuration"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-aws-kinesis-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TCP">
+      <tb-tcp-integration-form formControlName="configuration"
+                               [isSetDownlink]="isSetDownlink"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-tcp-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.UDP">
+      <tb-udp-integration-form formControlName="configuration"
+                               [isSetDownlink]="isSetDownlink"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-udp-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.THINGPARK">
+      <tb-thing-spark-integration-form formControlName="configuration"
+                                       [routingKey]="routingKey"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                       [allowLocalNetwork]="allowLocalNetwork">
+      </tb-thing-spark-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TPE">
+      <tb-thing-spark-enterprise-integration-form formControlName="configuration"
+                                                  [routingKey]="routingKey"
+                                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                                  [allowLocalNetwork]="allowLocalNetwork">
+      </tb-thing-spark-enterprise-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.IBM_WATSON_IOT">
+      <tb-ibm-watson-iot-integration-form formControlName="configuration"
+                                          [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                          [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                          [isEdgeTemplate]="isEdgeTemplate">
+      </tb-ibm-watson-iot-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.CUSTOM">
+      <tb-custom-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-custom-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AZURE_EVENT_HUB">
+      <tb-azure-event-hub-integration-form formControlName="configuration"
+                                           [isSetDownlink]="isSetDownlink"
+                                           [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                           [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-azure-event-hub-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AZURE_IOT_HUB">
+      <tb-azure-iot-hub-integration-form formControlName="configuration"
+                                         [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                         [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                         [allowLocalNetwork]="allowLocalNetwork">
+      </tb-azure-iot-hub-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.COAP">
+      <tb-coap-integration-form formControlName="configuration"
+                                [routingKey]="routingKey"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-coap-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AWS_SQS">
+      <tb-aws-sqs-integration-form formControlName="configuration"
+                                   [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                   [allowLocalNetwork]="allowLocalNetwork">
+      </tb-aws-sqs-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.KAFKA">
+      <tb-kafka-integration-form formControlName="configuration"
+                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                 [allowLocalNetwork]="allowLocalNetwork">
+      </tb-kafka-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.RABBITMQ">
+      <tb-rabbit-mq-integration-form formControlName="configuration"
+                                     [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                     [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                     [allowLocalNetwork]="allowLocalNetwork">
+      </tb-rabbit-mq-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TUYA">
+      <tb-tuya-integration-form formControlName="configuration"
+                                     [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                     [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-tuya-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchDefault>
+      Not Found!!
+    </ng-container>
+  </ng-container>
+</section>

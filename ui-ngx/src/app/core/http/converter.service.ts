@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import {
 } from '@shared/models/converter.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { ScriptLanguage } from '@shared/models/rule-node.models';
 
 @Injectable({
   providedIn: 'root'
@@ -82,12 +83,22 @@ export class ConverterService {
     return this.http.delete(`/api/converter/${converterId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public testUpLink(inputParams: TestUpLinkInputParams, config?: RequestConfig): Observable<TestConverterResult> {
-    return this.http.post<TestConverterResult>('/api/converter/testUpLink', inputParams, defaultHttpOptionsFromConfig(config));
+  public testUpLink(inputParams: TestUpLinkInputParams, scriptLang?: ScriptLanguage,
+                    config?: RequestConfig): Observable<TestConverterResult> {
+    let url = '/api/converter/testUpLink';
+    if (scriptLang) {
+      url += `?scriptLang=${scriptLang}`;
+    }
+    return this.http.post<TestConverterResult>(url, inputParams, defaultHttpOptionsFromConfig(config));
   }
 
-  public testDownLink(inputParams: TestDownLinkInputParams, config?: RequestConfig): Observable<TestConverterResult> {
-    return this.http.post<TestConverterResult>('/api/converter/testDownLink', inputParams, defaultHttpOptionsFromConfig(config));
+  public testDownLink(inputParams: TestDownLinkInputParams, scriptLang?: ScriptLanguage,
+                      config?: RequestConfig): Observable<TestConverterResult> {
+    let url = '/api/converter/testDownLink';
+    if (scriptLang) {
+      url += `?scriptLang=${scriptLang}`;
+    }
+    return this.http.post<TestConverterResult>(url, inputParams, defaultHttpOptionsFromConfig(config));
   }
 
   public getLatestConverterDebugInput(converterId: string, config?: RequestConfig): Observable<ConverterDebugInput> {

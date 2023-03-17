@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,7 @@ export class TbWebReportPage {
     private session: CDPSession;
     private currentBaseUrl: string;
     private lastReportResult: ReportResultMessage | null;
+    private pageHeight = 1080;
 
     constructor(private browser: Browser,
                 private id: number) {
@@ -69,7 +70,7 @@ export class TbWebReportPage {
             isMobile: false,
             viewport: {
                 width: 1920,
-                height: 1080
+                height: this.pageHeight
             }
         }
         const context = await this.browser.newContext(config);
@@ -113,19 +114,21 @@ export class TbWebReportPage {
         }
         let buffer: Buffer;
         try {
+
+            await this.setPageHeight(1080);
+
             await this.openReport(request);
             if (dashboardIdleWaitTime > 0) {
                 await this.page.waitForTimeout(dashboardIdleWaitTime);
             }
             const fullHeight: number = await this.page.evaluate(heightCalculationScript);
 
-            await this.page.setViewportSize({
-                width: 1920,
-                height: fullHeight || 1080
-            });
+            const newHeight = fullHeight || 1080;
+
+            await this.setPageHeight(newHeight);
 
             if (request.type === 'pdf') {
-                buffer = await this.page.pdf({printBackground: true, width: '1920px', height: fullHeight + 'px'});
+                buffer = await this.page.pdf({printBackground: true, width: '1920px', height: this.pageHeight + 'px'});
             } else {
                 const options: PageScreenshotOptions = {omitBackground: false, fullPage: true, type: request.type};
                 if (request.type === 'jpeg') {
@@ -198,6 +201,16 @@ export class TbWebReportPage {
                 }
             }
         );
+    }
+
+    async setPageHeight(height: number): Promise<void> {
+        if (this.pageHeight !== height) {
+            this.pageHeight = height;
+            await this.page.setViewportSize({
+                width: 1920,
+                height: this.pageHeight
+            });
+        }
     }
 
 }

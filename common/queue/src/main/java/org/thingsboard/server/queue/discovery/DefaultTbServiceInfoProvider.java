@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -84,7 +84,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
             try {
                 serviceId = InetAddress.getLocalHost().getHostName();
             } catch (UnknownHostException e) {
-                serviceId = org.apache.commons.lang3.RandomStringUtils.randomAlphabetic(10);
+                serviceId = StringUtils.randomAlphabetic(10);
             }
         }
         log.info("Current Service ID: {}", serviceId);

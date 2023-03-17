@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
+import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.List;
 import java.util.UUID;
@@ -52,7 +53,6 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
                                      @Param("textSearch") String textSearch,
                                      Pageable pageable);
 
-
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
@@ -60,6 +60,14 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
                                                   @Param("customerId") UUID customerId,
                                                   @Param("textSearch") String textSearch,
                                                   Pageable pageable);
+
+    @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
+            "AND a.assetProfileId = :profileId " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<AssetEntity> findByTenantIdAndProfileId(@Param("tenantId") UUID tenantId,
+                                                 @Param("profileId") UUID profileId,
+                                                 @Param("searchText") String searchText,
+                                                 Pageable pageable);
 
     @Query("SELECT a FROM AssetEntity a, " +
             "RelationEntity re " +
@@ -123,6 +131,8 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
     @Query("SELECT DISTINCT a.type FROM AssetEntity a WHERE a.tenantId = :tenantId")
     List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
 
+    Long countByAssetProfileId(UUID assetProfileId);
+
     Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
 
     @Query("SELECT a.id FROM AssetEntity a WHERE a.tenantId = :tenantId AND (a.customerId is null OR a.customerId = '13814000-1dd2-11b2-8080-808080808080')")
@@ -135,5 +145,8 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
 
     @Query("SELECT externalId FROM AssetEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+    @Query(value = "SELECT DISTINCT new org.thingsboard.server.common.data.util.TbPair(a.tenantId , a.type) FROM  AssetEntity a")
+    Page<TbPair<UUID, String>> getAllAssetTypes(Pageable pageable);
 
 }

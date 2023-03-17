@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Irrigation Management",
+    "file": "irrigation_management_dashboard.json",
+    "group": "Smart Irrigation",
+    "main": true
+  }
+]

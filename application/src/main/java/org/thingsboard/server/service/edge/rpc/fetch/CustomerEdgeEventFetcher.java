@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,33 +32,51 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.customer.CustomerService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@AllArgsConstructor
 @Slf4j
-public class CustomerEdgeEventFetcher implements EdgeEventFetcher {
+@AllArgsConstructor
+public class CustomerEdgeEventFetcher extends BasePageableEdgeEventFetcher<Customer> {
+
+    private final CustomerService customerService;
+    private final CustomerId ownerId;
 
     @Override
-    public PageLink getPageLink(int pageSize) {
-        return null;
+    PageData<Customer> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+        List<Customer> customersHierarchy = getCustomersHierarchy(tenantId, ownerId);
+        return new PageData<>(customersHierarchy, 1, customersHierarchy.size(), false);
+    }
+
+    List<Customer> getCustomersHierarchy(TenantId tenantId, CustomerId customerId) {
+        List<Customer> result = new ArrayList<>();
+        Customer customerById = customerService.findCustomerById(tenantId, customerId);
+        result.add(customerById);
+        if (customerById != null && customerById.isPublic()) {
+            return result;
+        }
+        result.add(customerService.findOrCreatePublicCustomer(tenantId, customerId));
+        if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
+            result.addAll(getCustomersHierarchy(tenantId, customerById.getParentCustomerId()));
+        }
+        return result;
     }
 
     @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        List<EdgeEvent> result = new ArrayList<>();
-        result.add(EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(),
-                EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getCustomerId(), null));
-        // @voba - returns PageData object to be in sync with other fetchers
-        return new PageData<>(result, 1, result.size(), false);
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, Customer customer) {
+        return EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER,
+                EdgeEventActionType.ADDED, customer.getId(), null);
     }
 }

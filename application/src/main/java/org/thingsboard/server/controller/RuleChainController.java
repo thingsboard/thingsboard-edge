@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,14 +51,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -77,6 +78,7 @@ import org.thingsboard.server.common.data.rule.RuleChainImportResult;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainOutputLabelsUsage;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -84,8 +86,8 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.rule.TbRuleChainService;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -133,10 +135,10 @@ public class RuleChainController extends BaseController {
     private static final String RULE_CHAIN_DESCRIPTION = "The rule chain object is lightweight and contains general information about the rule chain. " +
             "List of rule nodes and their connection is stored in a separate 'metadata' object.";
     private static final String RULE_CHAIN_METADATA_DESCRIPTION = "The metadata object contains information about the rule nodes and their connections.";
-    private static final String TEST_JS_FUNCTION = "Execute the JavaScript function and return the result. The format of request: \n\n"
+    private static final String TEST_SCRIPT_FUNCTION = "Execute the Script function and return the result. The format of request: \n\n"
             + MARKDOWN_CODE_BLOCK_START
             + "{\n" +
-            "  \"script\": \"Your JS Function as String\",\n" +
+            "  \"script\": \"Your Function as String\",\n" +
             "  \"scriptType\": \"One of: update, generate, filter, switch, json, string\",\n" +
             "  \"argNames\": [\"msg\", \"metadata\", \"type\"],\n" +
             "  \"msg\": \"{\\\"temperature\\\": 42}\", \n" +
@@ -159,10 +161,16 @@ public class RuleChainController extends BaseController {
     private JsInvokeService jsInvokeService;
 
     @Autowired(required = false)
+    private TbelInvokeService tbelInvokeService;
+
+    @Autowired(required = false)
     private ActorSystemContext actorContext;
 
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled}")
     private boolean debugPerTenantEnabled;
+
+    @Value("${tbel.enabled:true}")
+    private boolean tbelEnabled;
 
     @ApiOperation(value = "Get Rule Chain (getRuleChainById)",
             notes = "Fetch the Rule Chain object based on the provided Rule Chain Id. " + RULE_CHAIN_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
@@ -369,10 +377,10 @@ public class RuleChainController extends BaseController {
             RuleNodeId ruleNodeId = new RuleNodeId(toUUID(strRuleNodeId));
             checkRuleNode(ruleNodeId, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            List<Event> events = eventService.findLatestEvents(tenantId, ruleNodeId, DataConstants.DEBUG_RULE_NODE, 2);
+            List<EventInfo> events = eventService.findLatestEvents(tenantId, ruleNodeId, EventType.DEBUG_RULE_NODE, 2);
             JsonNode result = null;
             if (events != null) {
-                for (Event event : events) {
+                for (EventInfo event : events) {
                     JsonNode body = event.getBody();
                     if (body.has("type") && body.get("type").asText().equals("IN")) {
                         result = body;
@@ -386,13 +394,23 @@ public class RuleChainController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Is TBEL script executor enabled",
+            notes = "Returns 'True' if the TBEL script execution is enabled" + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/tbelEnabled", method = RequestMethod.GET)
+    @ResponseBody
+    public Boolean isTbelEnabled() {
+        return tbelEnabled;
+    }
 
-    @ApiOperation(value = "Test JavaScript function",
-            notes = TEST_JS_FUNCTION + TENANT_AUTHORITY_PARAGRAPH)
+    @ApiOperation(value = "Test Script function",
+            notes = TEST_SCRIPT_FUNCTION + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/ruleChain/testScript", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testScript(
+            @ApiParam(value = "Script language: JS or TBEL")
+            @RequestParam(required = false) ScriptLanguage scriptLang,
             @ApiParam(value = "Test JS request. See API call description above.")
             @RequestBody JsonNode inputParams) throws ThingsboardException {
         try {
@@ -410,7 +428,17 @@ public class RuleChainController extends BaseController {
             String errorText = "";
             ScriptEngine engine = null;
             try {
-                engine = new RuleNodeJsScriptEngine(getTenantId(), jsInvokeService, getCurrentUser().getId(), script, argNames);
+                if (scriptLang == null) {
+                    scriptLang = ScriptLanguage.JS;
+                }
+                if (ScriptLanguage.JS.equals(scriptLang)) {
+                    engine = new RuleNodeJsScriptEngine(getTenantId(), jsInvokeService, script, argNames);
+                } else {
+                    if (tbelInvokeService == null) {
+                        throw new IllegalArgumentException("TBEL script engine is disabled!");
+                    }
+                    engine = new RuleNodeTbelScriptEngine(getTenantId(), tbelInvokeService, script, argNames);
+                }
                 TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadata), TbMsgDataType.JSON, data);
                 switch (scriptType) {
                     case "update":

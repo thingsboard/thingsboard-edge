@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -218,7 +218,7 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
 
             List<EdgeId> relatedEdgeIds = null;
             if (RuleChainType.EDGE.equals(ruleChain.getType())) {
-                relatedEdgeIds = findRelatedEdgeIds(tenantId, ruleChainId);
+                relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, ruleChainId);
             }
 
             ruleChainService.deleteRuleChainById(tenantId, ruleChainId);

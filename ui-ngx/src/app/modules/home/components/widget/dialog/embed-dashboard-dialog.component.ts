@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Dashboard } from '@shared/models/dashboard.models';
+import { IDashboardComponent } from '@home/models/dashboard-component.models';
 
 export interface EmbedDashboardDialogData {
   dashboard: Dashboard;
@@ -52,6 +53,7 @@ export interface EmbedDashboardDialogData {
   hideToolbar: boolean;
   width?: number;
   height?: number;
+  parentDashboard?: IDashboardComponent;
 }
 
 @Component({
@@ -68,6 +70,7 @@ export class EmbedDashboardDialogComponent extends DialogComponent<EmbedDashboar
   state = this.data.state;
   title = this.data.title;
   hideToolbar = this.data.hideToolbar;
+  parentDashboard = this.data.parentDashboard;
 
   dialogStyle: any = {};
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import { EntitySearchQuery } from '@shared/models/relation.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
-import { EntityType } from "@shared/models/entity-type.models";
+import { EntityType } from '@shared/models/entity-type.models';
 
 export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;
@@ -63,60 +63,61 @@ export interface EdgeSearchQuery extends EntitySearchQuery {
 }
 
 export enum EdgeEventType {
-  DASHBOARD = "DASHBOARD",
-  ASSET = "ASSET",
-  DEVICE = "DEVICE",
-  DEVICE_PROFILE = "DEVICE_PROFILE",
-  ENTITY_VIEW = "ENTITY_VIEW",
-  ALARM = "ALARM",
-  RULE_CHAIN = "RULE_CHAIN",
-  RULE_CHAIN_METADATA = "RULE_CHAIN_METADATA",
-  EDGE = "EDGE",
-  USER = "USER",
-  CUSTOMER = "CUSTOMER",
-  RELATION = "RELATION",
-  TENANT = "TENANT",
-  WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
-  WIDGET_TYPE = "WIDGET_TYPE",
-  ADMIN_SETTINGS = "ADMIN_SETTINGS",
-  ENTITY_GROUP = "ENTITY_GROUP",
-  SCHEDULER_EVENT = "SCHEDULER_EVENT",
-  WHITE_LABELING = "WHITE_LABELING",
-  LOGIN_WHITE_LABELING = "LOGIN_WHITE_LABELING",
-  CUSTOM_TRANSLATION = "CUSTOM_TRANSLATION",
-  ROLE = "ROLE",
-  GROUP_PERMISSION = "GROUP_PERMISSION",
-  INTEGRATION = "INTEGRATION",
-  CONVERTER = "CONVERTER",
+  DASHBOARD = 'DASHBOARD',
+  ASSET = 'ASSET',
+  DEVICE = 'DEVICE',
+  DEVICE_PROFILE = 'DEVICE_PROFILE',
+  ASSET_PROFILE = 'ASSET_PROFILE',
+  ENTITY_VIEW = 'ENTITY_VIEW',
+  ALARM = 'ALARM',
+  RULE_CHAIN = 'RULE_CHAIN',
+  RULE_CHAIN_METADATA = 'RULE_CHAIN_METADATA',
+  EDGE = 'EDGE',
+  USER = 'USER',
+  CUSTOMER = 'CUSTOMER',
+  RELATION = 'RELATION',
+  TENANT = 'TENANT',
+  WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
+  WIDGET_TYPE = 'WIDGET_TYPE',
+  ADMIN_SETTINGS = 'ADMIN_SETTINGS',
+  ENTITY_GROUP = 'ENTITY_GROUP',
+  SCHEDULER_EVENT = 'SCHEDULER_EVENT',
+  WHITE_LABELING = 'WHITE_LABELING',
+  LOGIN_WHITE_LABELING = 'LOGIN_WHITE_LABELING',
+  CUSTOM_TRANSLATION = 'CUSTOM_TRANSLATION',
+  ROLE = 'ROLE',
+  GROUP_PERMISSION = 'GROUP_PERMISSION',
+  INTEGRATION = 'INTEGRATION',
+  CONVERTER = 'CONVERTER',
 }
 
 export enum EdgeEventActionType {
-  ADDED = "ADDED",
-  DELETED = "DELETED",
-  UPDATED = "UPDATED",
-  POST_ATTRIBUTES = "POST_ATTRIBUTES",
-  ATTRIBUTES_UPDATED = "ATTRIBUTES_UPDATED",
-  ATTRIBUTES_DELETED = "ATTRIBUTES_DELETED",
-  TIMESERIES_UPDATED = "TIMESERIES_UPDATED",
-  CREDENTIALS_UPDATED = "CREDENTIALS_UPDATED",
-  RELATION_ADD_OR_UPDATE = "RELATION_ADD_OR_UPDATE",
-  RELATION_DELETED = "RELATION_DELETED",
-  RPC_CALL = "RPC_CALL",
-  ALARM_ACK = "ALARM_ACK",
-  ALARM_CLEAR = "ALARM_CLEAR",
-  ASSIGNED_TO_EDGE = "ASSIGNED_TO_EDGE",
-  UNASSIGNED_FROM_EDGE = "UNASSIGNED_FROM_EDGE",
-  CREDENTIALS_REQUEST = "CREDENTIALS_REQUEST",
-  ENTITY_MERGE_REQUEST = "ENTITY_MERGE_REQUEST",
-  ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP",
-  REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP",
-  CHANGE_OWNER = "CHANGE_OWNER",
-  RELATIONS_DELETED = "RELATIONS_DELETED"
+  ADDED = 'ADDED',
+  DELETED = 'DELETED',
+  UPDATED = 'UPDATED',
+  POST_ATTRIBUTES = 'POST_ATTRIBUTES',
+  ATTRIBUTES_UPDATED = 'ATTRIBUTES_UPDATED',
+  ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
+  TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
+  CREDENTIALS_UPDATED = 'CREDENTIALS_UPDATED',
+  RELATION_ADD_OR_UPDATE = 'RELATION_ADD_OR_UPDATE',
+  RELATION_DELETED = 'RELATION_DELETED',
+  RPC_CALL = 'RPC_CALL',
+  ALARM_ACK = 'ALARM_ACK',
+  ALARM_CLEAR = 'ALARM_CLEAR',
+  ASSIGNED_TO_EDGE = 'ASSIGNED_TO_EDGE',
+  UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE',
+  CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
+  ENTITY_MERGE_REQUEST = 'ENTITY_MERGE_REQUEST',
+  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
+  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
+  CHANGE_OWNER = 'CHANGE_OWNER',
+  RELATIONS_DELETED = 'RELATIONS_DELETED'
 }
 
 export enum EdgeEventStatus {
-  DEPLOYED = "DEPLOYED",
-  PENDING = "PENDING"
+  DEPLOYED = 'DEPLOYED',
+  PENDING = 'PENDING'
 }
 
 export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
@@ -125,6 +126,7 @@ export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
     [EdgeEventType.ASSET, 'edge-event.type-asset'],
     [EdgeEventType.DEVICE, 'edge-event.type-device'],
     [EdgeEventType.DEVICE_PROFILE, 'edge-event.type-device-profile'],
+    [EdgeEventType.ASSET_PROFILE, 'edge-event.type-asset-profile'],
     [EdgeEventType.ENTITY_VIEW, 'edge-event.type-entity-view'],
     [EdgeEventType.ALARM, 'edge-event.type-alarm'],
     [EdgeEventType.RULE_CHAIN, 'edge-event.type-rule-chain'],
@@ -207,6 +209,10 @@ export interface EdgeEvent extends BaseData<EventId> {
   body: string;
 }
 
+export interface EdgeInstallInstructions {
+  dockerInstallInstructions: string;
+}
+
 export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.USER,
   EntityType.ASSET,
@@ -214,3 +220,4 @@ export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD
 ];
+

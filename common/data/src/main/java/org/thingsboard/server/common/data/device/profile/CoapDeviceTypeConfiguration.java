@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.server.common.data.CoapDeviceType;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -44,7 +46,7 @@ import org.thingsboard.server.common.data.CoapDeviceType;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = DefaultCoapDeviceTypeConfiguration.class, name = "DEFAULT"),
         @JsonSubTypes.Type(value = EfentoCoapDeviceTypeConfiguration.class, name = "EFENTO")})
-public interface CoapDeviceTypeConfiguration {
+public interface CoapDeviceTypeConfiguration extends Serializable {
 
     @JsonIgnore
     CoapDeviceType getCoapDeviceType();

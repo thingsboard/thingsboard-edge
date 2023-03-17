@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @ApiModel
-public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
+public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle {
 
     private TenantId tenantId;
 

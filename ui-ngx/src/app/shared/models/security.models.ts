@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -80,6 +80,7 @@ export enum Resource {
   ALARM = 'ALARM',
   DEVICE = 'DEVICE',
   DEVICE_PROFILE = 'DEVICE_PROFILE',
+  ASSET_PROFILE = 'ASSET_PROFILE',
   ASSET = 'ASSET',
   CUSTOMER = 'CUSTOMER',
   DASHBOARD = 'DASHBOARD',
@@ -124,6 +125,7 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.ALARM, Resource.ALARM],
     [EntityType.DEVICE, Resource.DEVICE],
     [EntityType.DEVICE_PROFILE, Resource.DEVICE_PROFILE],
+    [EntityType.ASSET_PROFILE, Resource.ASSET_PROFILE],
     [EntityType.ASSET, Resource.ASSET],
     [EntityType.CUSTOMER, Resource.CUSTOMER],
     [EntityType.DASHBOARD, Resource.DASHBOARD],

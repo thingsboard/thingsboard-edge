@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ package org.thingsboard.server.transport.lwm2m.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.eclipse.leshan.core.attributes.Attribute;
 import org.eclipse.leshan.core.attributes.AttributeSet;
 import org.eclipse.leshan.core.model.LwM2mModel;
@@ -67,7 +67,7 @@ import org.thingsboard.server.transport.lwm2m.server.ota.firmware.FirmwareUpdate
 import org.thingsboard.server.transport.lwm2m.server.ota.firmware.FirmwareUpdateState;
 import org.thingsboard.server.transport.lwm2m.server.ota.software.SoftwareUpdateResult;
 import org.thingsboard.server.transport.lwm2m.server.ota.software.SoftwareUpdateState;
-import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
+import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -304,12 +304,12 @@ public class LwM2MTransportUtil {
      * Attribute pmax = new Attribute(MAXIMUM_PERIOD, "60");
      * Attribute [] attrs = {gt, st};
      */
-    public static SimpleDownlinkRequest createWriteAttributeRequest(String target, Object params, DefaultLwM2mUplinkMsgHandler serviceImpl) {
+    public static SimpleDownlinkRequest createWriteAttributeRequest(String target, Object params, LwM2mUplinkMsgHandler serviceImpl) {
         AttributeSet attrSet = new AttributeSet(createWriteAttributes(params, serviceImpl, target));
         return attrSet.getAttributes().size() > 0 ? new WriteAttributesRequest(target, attrSet) : null;
     }
 
-    private static Attribute[] createWriteAttributes(Object params, DefaultLwM2mUplinkMsgHandler serviceImpl, String target) {
+    private static Attribute[] createWriteAttributes(Object params, LwM2mUplinkMsgHandler serviceImpl, String target) {
         List<Attribute> attributeLists = new ArrayList<>();
         Map<String, Object> map = JacksonUtil.convertValue(params, new TypeReference<>() {
         });
@@ -381,19 +381,19 @@ public class LwM2MTransportUtil {
         return newValues;
     }
 
-    public static Object convertWriteAttributes(String type, Object value, DefaultLwM2mUplinkMsgHandler serviceImpl, String target) {
+    public static Object convertWriteAttributes(String type, Object value, LwM2mUplinkMsgHandler serviceImpl, String target) {
         switch (type) {
             /** Integer [0:255]; */
             case DIMENSION:
-                Long dim = (Long) serviceImpl.converter.convertValue(value, equalsResourceTypeGetSimpleName(value), INTEGER, new LwM2mPath(target));
+                Long dim = (Long) serviceImpl.getConverter().convertValue(value, equalsResourceTypeGetSimpleName(value), INTEGER, new LwM2mPath(target));
                 return dim >= 0 && dim <= 255 ? dim : null;
             /**String;*/
             case OBJECT_VERSION:
-                return serviceImpl.converter.convertValue(value, equalsResourceTypeGetSimpleName(value), STRING, new LwM2mPath(target));
+                return serviceImpl.getConverter().convertValue(value, equalsResourceTypeGetSimpleName(value), STRING, new LwM2mPath(target));
             /**INTEGER */
             case MINIMUM_PERIOD:
             case MAXIMUM_PERIOD:
-                return serviceImpl.converter.convertValue(value, equalsResourceTypeGetSimpleName(value), INTEGER, new LwM2mPath(target));
+                return serviceImpl.getConverter().convertValue(value, equalsResourceTypeGetSimpleName(value), INTEGER, new LwM2mPath(target));
             /**Float; */
             case GREATER_THAN:
             case LESSER_THAN:
@@ -401,7 +401,7 @@ public class LwM2MTransportUtil {
                 if (value.getClass().getSimpleName().equals("String")) {
                     value = Double.valueOf((String) value);
                 }
-                return serviceImpl.converter.convertValue(value, equalsResourceTypeGetSimpleName(value), FLOAT, new LwM2mPath(target));
+                return serviceImpl.getConverter().convertValue(value, equalsResourceTypeGetSimpleName(value), FLOAT, new LwM2mPath(target));
             default:
                 return null;
         }

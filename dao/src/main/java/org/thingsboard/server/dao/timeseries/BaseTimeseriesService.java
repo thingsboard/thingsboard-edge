@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.kv.BaseDeleteTsKvQuery;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -60,13 +61,15 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.thingsboard.server.common.data.StringUtils.isBlank;
 
 /**
  * @author Andrew Shvayka
  */
+@SuppressWarnings("UnstableApiUsage")
 @Service
 @Slf4j
 public class BaseTimeseriesService implements TimeseriesService {
@@ -74,7 +77,7 @@ public class BaseTimeseriesService implements TimeseriesService {
     private static final int INSERTS_PER_ENTRY = 3;
     private static final int INSERTS_PER_ENTRY_WITHOUT_LATEST = 2;
     private static final int DELETES_PER_ENTRY = INSERTS_PER_ENTRY;
-    public static final Function<List<Integer>, Integer> SUM_ALL_INTEGERS = new Function<List<Integer>, Integer>() {
+    public static final Function<List<Integer>, Integer> SUM_ALL_INTEGERS = new Function<>() {
         @Override
         public @Nullable Integer apply(@Nullable List<Integer> input) {
             int result = 0;
@@ -107,7 +110,8 @@ public class BaseTimeseriesService implements TimeseriesService {
         return timeseriesDao.findOneAsync(tenantId, entityId, ts, key);
     }
 
-    public ListenableFuture<List<TsKvEntry>> findAll(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
+    @Override
+    public ListenableFuture<List<ReadTsKvQueryResult>> findAllByQueries(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
         validate(entityId);
         queries.forEach(this::validate);
         if (entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {
@@ -121,6 +125,23 @@ public class BaseTimeseriesService implements TimeseriesService {
             return timeseriesDao.findAllAsync(tenantId, entityView.getEntityId(), updateQueriesForEntityView(entityView, filteredQueries));
         }
         return timeseriesDao.findAllAsync(tenantId, entityId, queries);
+    }
+
+    @Override
+    public ListenableFuture<List<TsKvEntry>> findAll(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
+        return Futures.transform(findAllByQueries(tenantId, entityId, queries),
+                result -> {
+                    if (result != null && !result.isEmpty()) {
+                        return result.stream().map(ReadTsKvQueryResult::getData).flatMap(Collection::stream).collect(Collectors.toList());
+                    }
+                    return Collections.emptyList();
+                }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public ListenableFuture<Optional<TsKvEntry>> findLatest(TenantId tenantId, EntityId entityId, String key) {
+        validate(entityId);
+        return timeseriesLatestDao.findLatestOpt(tenantId, entityId, key);
     }
 
     @Override
@@ -234,7 +255,7 @@ public class BaseTimeseriesService implements TimeseriesService {
             } else {
                 endTs = query.getEndTs();
             }
-            return new BaseReadTsKvQuery(query.getKey(), startTs, endTs, query.getInterval(), query.getLimit(), query.getAggregation(), query.getOrder());
+            return new BaseReadTsKvQuery(query, startTs, endTs);
         }).collect(Collectors.toList());
     }
 
@@ -264,7 +285,7 @@ public class BaseTimeseriesService implements TimeseriesService {
     public ListenableFuture<Collection<String>> removeAllLatest(TenantId tenantId, EntityId entityId) {
         validate(entityId);
         return Futures.transformAsync(this.findAllLatest(tenantId, entityId), latest -> {
-            if (!latest.isEmpty()) {
+            if (latest != null && !latest.isEmpty()) {
                 Collection<String> keys = latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList());
                 return Futures.transform(this.removeLatest(tenantId, entityId, keys), res -> keys, MoreExecutors.directExecutor());
             } else {
@@ -276,7 +297,6 @@ public class BaseTimeseriesService implements TimeseriesService {
     private void deleteAndRegisterFutures(TenantId tenantId, List<ListenableFuture<TsKvLatestRemovingResult>> futures, EntityId entityId, DeleteTsKvQuery query) {
         futures.add(Futures.transform(timeseriesDao.remove(tenantId, entityId, query), v -> null, MoreExecutors.directExecutor()));
         futures.add(timeseriesLatestDao.removeLatest(tenantId, entityId, query));
-        futures.add(Futures.transform(timeseriesDao.removePartition(tenantId, entityId, query), v -> null, MoreExecutors.directExecutor()));
     }
 
     private static void validate(EntityId entityId) {

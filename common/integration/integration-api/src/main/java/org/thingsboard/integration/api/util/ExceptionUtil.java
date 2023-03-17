@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,16 @@ import java.io.StringWriter;
 @Slf4j
 public class ExceptionUtil {
 
+    @SuppressWarnings("unchecked")
+    public static <T extends Exception> T lookupException(Throwable source, Class<T> clazz) {
+        Exception e = lookupExceptionInCause(source, clazz);
+        if (e != null) {
+            return (T) e;
+        } else {
+            return null;
+        }
+    }
+
     public static Exception lookupExceptionInCause(Throwable source, Class<? extends Exception>... clazzes) {
         if (source == null) {
             return null;
@@ -64,7 +74,7 @@ public class ExceptionUtil {
                 e.printStackTrace(new PrintWriter(sw));
                 return sw.toString();
             } else {
-                log.warn("[{}] Unknown error during message processing", componentId, e);
+                log.debug("[{}] Unknown error during message processing", componentId, e);
                 return "Please contact system administrator";
             }
         }

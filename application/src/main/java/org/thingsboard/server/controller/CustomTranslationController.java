@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -144,6 +146,8 @@ public class CustomTranslationController extends BaseController {
             } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
             }
+            notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
+                    getCurrentUser().getOwnerId(), EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED);
             return savedCustomTranslation;
         } catch (Exception e) {
             throw handleException(e);

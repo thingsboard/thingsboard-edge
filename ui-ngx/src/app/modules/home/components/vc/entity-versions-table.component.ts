@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -72,6 +72,7 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityType } from '@app/shared/models/entity-type.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { AdminService } from "@core/http/admin.service";
 
 @Component({
   selector: 'tb-entity-versions-table',
@@ -106,6 +107,8 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
   viewsInited = false;
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE);
+
+  isReadOnly: Observable<boolean>;
 
   private componentResize$: ResizeObserver;
 
@@ -152,6 +155,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
 
   constructor(protected store: Store<AppState>,
               private entitiesVersionControlService: EntitiesVersionControlService,
+              private adminService: AdminService,
               private popoverService: TbPopoverService,
               private userPermissionsService: UserPermissionsService,
               private renderer: Renderer2,
@@ -174,6 +178,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
       }
     });
     this.componentResize$.observe(this.elementRef.nativeElement);
+    this.isReadOnly = this.adminService.getRepositorySettingsInfo().pipe(map(settings => settings.readOnly));
   }
 
   ngOnDestroy() {

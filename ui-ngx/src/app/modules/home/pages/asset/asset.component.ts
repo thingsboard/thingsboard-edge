@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -56,7 +56,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Asset,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Asset>,
-              protected fb: FormBuilder,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -78,11 +78,11 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Asset): FormGroup {
+  buildForm(entity: Asset): UntypedFormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
-        type: [entity ? entity.type : null, [Validators.required, Validators.maxLength(255)]],
+        assetProfileId: [entity ? entity.assetProfileId : null, [Validators.required]],
         label: [entity ? entity.label : '', Validators.maxLength(255)],
         additionalInfo: this.fb.group(
           {
@@ -95,7 +95,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
 
   updateForm(entity: Asset) {
     this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({type: entity.type});
+    this.entityForm.patchValue({assetProfileId: entity.assetProfileId});
     this.entityForm.patchValue({label: entity.label});
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
   }
@@ -110,5 +110,9 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  onAssetProfileUpdated() {
+    this.entitiesTableConfig.updateData(false);
   }
 }

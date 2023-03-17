@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -225,6 +225,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
 
   ngOnDestroy(): void {
     this.window.removeEventListener('message', this.onWindowMessageListener);
+    this.aceEditors.forEach(editor => editor.destroy());
     this.aceResize$.disconnect();
     this.rxSubscriptions.forEach((subscription) => {
       subscription.unsubscribe();
@@ -614,6 +615,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     config.title = this.widget.widgetName;
     this.widget.defaultConfig = JSON.stringify(config);
     this.iframe.attr('data-widget', JSON.stringify(this.widget));
+    // @ts-ignore
     this.iframe[0].contentWindow.location.reload(true);
   }
 

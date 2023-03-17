@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,13 +37,14 @@ import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapObserveRelation;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DynamicProtoUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceTypeConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
@@ -93,7 +94,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         CoapObserveRelation observeRelation = client.getObserveRelation(callbackCoap);
         String awaitAlias = "await One Way Rpc (client.getObserveRelation)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.VALID.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
@@ -104,7 +105,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         String result = doPostAsync("/api/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isOk());
         awaitAlias = "await One Way Rpc setGpio(method, params, value)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveCountAfterGpioRequest == callbackCoap.getObserve().intValue());
@@ -121,7 +122,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         CoapObserveRelation observeRelation = client.getObserveRelation(callbackCoap);
         String awaitAlias = "await Two Way Rpc (client.getObserveRelation)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.VALID.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
@@ -133,7 +134,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         String actualResult = doPostAsync("/api/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isOk());
         awaitAlias = "await Two Way Rpc (setGpio(method, params, value) first";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveCountAfterGpioRequest1 == callbackCoap.getObserve().intValue());
@@ -143,7 +144,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
         actualResult = doPostAsync("/api/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isOk());
         awaitAlias = "await Two Way Rpc (setGpio(method, params, value) first";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveCountAfterGpioRequest2 == callbackCoap.getObserve().intValue());
@@ -173,8 +174,8 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
 
     protected void processOnLoadProtoResponse(CoapResponse response, CoapTestClient client, Integer observe, CountDownLatch latch) {
         ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration = getProtoTransportPayloadConfiguration();
-        ProtoFileElement rpcRequestProtoSchemaFile = protoTransportPayloadConfiguration.getTransportProtoSchema(RPC_REQUEST_PROTO_SCHEMA);
-        DynamicSchema rpcRequestProtoSchema = protoTransportPayloadConfiguration.getDynamicSchema(rpcRequestProtoSchemaFile, ProtoTransportPayloadConfiguration.RPC_REQUEST_PROTO_SCHEMA);
+        ProtoFileElement rpcRequestProtoFileElement = DynamicProtoUtils.getProtoFileElement(protoTransportPayloadConfiguration.getDeviceRpcRequestProtoSchema());
+        DynamicSchema rpcRequestProtoSchema = DynamicProtoUtils.getDynamicSchema(rpcRequestProtoFileElement, ProtoTransportPayloadConfiguration.RPC_REQUEST_PROTO_SCHEMA);
 
         byte[] requestPayload = response.getPayload();
         DynamicMessage.Builder rpcRequestMsg = rpcRequestProtoSchema.newMessageBuilder("RpcRequestMsg");
@@ -183,8 +184,8 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
             DynamicMessage dynamicMessage = DynamicMessage.parseFrom(rpcRequestMsgDescriptor, requestPayload);
             Descriptors.FieldDescriptor requestIdDescriptor = rpcRequestMsgDescriptor.findFieldByName("requestId");
             int requestId = (int) dynamicMessage.getField(requestIdDescriptor);
-            ProtoFileElement rpcResponseProtoSchemaFile = protoTransportPayloadConfiguration.getTransportProtoSchema(DEVICE_RPC_RESPONSE_PROTO_SCHEMA);
-            DynamicSchema rpcResponseProtoSchema = protoTransportPayloadConfiguration.getDynamicSchema(rpcResponseProtoSchemaFile, ProtoTransportPayloadConfiguration.RPC_RESPONSE_PROTO_SCHEMA);
+            ProtoFileElement rpcResponseProtoSchemaFile = DynamicProtoUtils.getProtoFileElement(protoTransportPayloadConfiguration.getDeviceRpcResponseProtoSchema());
+            DynamicSchema rpcResponseProtoSchema = DynamicProtoUtils.getDynamicSchema(rpcResponseProtoSchemaFile, ProtoTransportPayloadConfiguration.RPC_RESPONSE_PROTO_SCHEMA);
             DynamicMessage.Builder rpcResponseBuilder = rpcResponseProtoSchema.newMessageBuilder("RpcResponseMsg");
             Descriptors.Descriptor rpcResponseMsgDescriptor = rpcResponseBuilder.getDescriptorForType();
             DynamicMessage rpcResponseMsg = rpcResponseBuilder

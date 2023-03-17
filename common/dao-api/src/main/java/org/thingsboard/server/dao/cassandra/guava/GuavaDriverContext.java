@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,26 +55,8 @@ import java.util.function.Predicate;
  */
 public class GuavaDriverContext extends DefaultDriverContext {
 
-    public GuavaDriverContext(
-            DriverConfigLoader configLoader,
-            List<TypeCodec<?>> typeCodecs,
-            NodeStateListener nodeStateListener,
-            SchemaChangeListener schemaChangeListener,
-            RequestTracker requestTracker,
-            Map<String, String> localDatacenters,
-            Map<String, Predicate<Node>> nodeFilters,
-            ClassLoader classLoader) {
-        super(
-                configLoader,
-                ProgrammaticArguments.builder()
-                        .addTypeCodecs(typeCodecs.toArray(new TypeCodec<?>[0]))
-                        .withNodeStateListener(nodeStateListener)
-                        .withSchemaChangeListener(schemaChangeListener)
-                        .withRequestTracker(requestTracker)
-                        .withLocalDatacenters(localDatacenters)
-                        .withNodeFilters(nodeFilters)
-                        .withClassLoader(classLoader)
-                        .build());
+    public GuavaDriverContext(DriverConfigLoader configLoader, ProgrammaticArguments programmaticArguments) {
+        super(configLoader, programmaticArguments);
     }
 
     @Override

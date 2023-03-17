@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,8 @@ import org.thingsboard.server.common.data.transport.snmp.config.RepeatingQueryin
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class TelemetryQueryingSnmpCommunicationConfig extends RepeatingQueryingSnmpCommunicationConfig {
+
+    private static final long serialVersionUID = -1367743866881596885L;
 
     @Override
     public SnmpCommunicationSpec getSpec() {

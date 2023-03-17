@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,8 @@ import {
     Producer,
     TopicMessages
 } from 'kafkajs';
+
+import process, { kill, exit } from 'process';
 
 export class KafkaTemplate implements IQueue {
 
@@ -137,6 +139,7 @@ export class KafkaTemplate implements IQueue {
             this.logger.error(`Got consumer CRASH event, should restart: ${e.payload.restart}`);
             if (!e.payload.restart) {
                 this.logger.error('Going to exit due to not retryable error!');
+                kill(process.pid, 'SIGTERM'); //sending signal to myself process to trigger the handler
                 await this.destroy();
             }
         });
@@ -164,12 +167,11 @@ export class KafkaTemplate implements IQueue {
         });
 }
 
-    async send(responseTopic: string, scriptId: string, rawResponse: Buffer, headers: any): Promise<any> {
-        this.logger.debug('Pending queue response, scriptId: [%s]', scriptId);
+    async send(responseTopic: string, msgKey: string, rawResponse: Buffer, headers: any): Promise<any> {
         const message = {
             topic: responseTopic,
             messages: [{
-                key: scriptId,
+                key: msgKey,
                 value: rawResponse,
                 headers: headers.data
             }]
@@ -269,6 +271,7 @@ export class KafkaTemplate implements IQueue {
             }
         }
         this.logger.info('Kafka resources stopped.');
+        exit(0); //same as in version before
     }
 
     private async disconnectProducer(): Promise<void> {

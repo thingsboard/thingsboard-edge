@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,14 +35,20 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -53,8 +59,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.exception.DataValidationException;
 
+import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.customer.CustomerDao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -64,6 +71,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration(classes = {BaseCustomerControllerTest.Config.class})
 public abstract class BaseCustomerControllerTest extends AbstractControllerTest {
     static final TypeReference<PageData<Customer>> PAGE_DATA_CUSTOMER_TYPE_REFERENCE = new TypeReference<>() {
     };
@@ -73,6 +81,18 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
     private Tenant savedTenant;
     private User tenantAdmin;
     private final String classNameCustomer = "Customer";
+
+    @Autowired
+    private CustomerDao customerDao;
+
+    static class Config {
+        @Bean
+        @Primary
+        public CustomerDao customerDao(CustomerDao customerDao) {
+            return Mockito.mock(CustomerDao.class, AdditionalAnswers.delegatesTo(customerDao));
+        }
+    }
+
 
     @Before
     public void beforeTest() throws Exception {
@@ -114,9 +134,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedCustomer, savedCustomer.getId(), savedCustomer.getId(),
-                savedCustomer.getTenantId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED);
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(savedCustomer, savedCustomer,
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, 1);
 
         Assert.assertNotNull(savedCustomer);
         Assert.assertNotNull(savedCustomer.getId());
@@ -141,7 +161,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
     @Test
     public void testSaveCustomerWithViolationOfValidation() throws Exception {
         Customer customer = new Customer();
-        customer.setTitle(RandomStringUtils.randomAlphabetic(300));
+        customer.setTitle(StringUtils.randomAlphabetic(300));
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -157,7 +177,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         Mockito.reset(tbClusterService, auditLogService);
 
         customer.setTitle("Normal title");
-        customer.setCity(RandomStringUtils.randomAlphabetic(300));
+        customer.setCity(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("city");
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -173,7 +193,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         Mockito.reset(tbClusterService, auditLogService);
 
         customer.setCity("Normal city");
-        customer.setCountry(RandomStringUtils.randomAlphabetic(300));
+        customer.setCountry(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("country");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
@@ -186,7 +206,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         Mockito.reset(tbClusterService, auditLogService);
 
         customer.setCountry("Ukraine");
-        customer.setPhone(RandomStringUtils.randomAlphabetic(300));
+        customer.setPhone(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("phone");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
@@ -199,7 +219,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         Mockito.reset(tbClusterService, auditLogService);
 
         customer.setPhone("+3892555554512");
-        customer.setState(RandomStringUtils.randomAlphabetic(300));
+        customer.setState(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("state");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
@@ -212,7 +232,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         Mockito.reset(tbClusterService, auditLogService);
 
         customer.setState("Normal state");
-        customer.setZip(RandomStringUtils.randomAlphabetic(300));
+        customer.setZip(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("zip or postal code");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
@@ -259,6 +279,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isOk());
 
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(),
+                savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
+                tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
     }
 
     @Test
@@ -286,7 +309,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityOneBroadcastEntityStateChangeEventTimeMsgToEdgeServiceNever(savedCustomer, savedCustomer.getId(),
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(),
                 savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
                 tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
 
@@ -350,9 +373,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         }
         List<Customer> customers = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Customer(), new Customer(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Customer(), new Customer(),
                 tenantId, tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity);
 
         List<Customer> loadedCustomers = new ArrayList<>(135);
         PageLink pageLink = new PageLink(23);
@@ -379,7 +402,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         for (int i = 0; i < 143; i++) {
             Customer customer = new Customer();
             customer.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
+            String suffix = StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
             String title = title1 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             customer.setTitle(title);
@@ -393,7 +416,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         for (int i = 0; i < 175; i++) {
             Customer customer = new Customer();
             customer.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
+            String suffix = StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
             String title = title2 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             customer.setTitle(title);
@@ -441,5 +464,24 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         pageData = doGetTypedWithPageLink("/api/customers?", PAGE_DATA_CUSTOMER_TYPE_REFERENCE, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Test
+    public void testDeleteCustomerWithDeleteRelationsOk() throws Exception {
+        CustomerId customerId = createCustomer("Customer for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), customerId, "/api/customer/" + customerId);
+    }
+
+    @Ignore
+    @Test
+    public void testDeleteCustomerExceptionWithRelationsTransactional() throws Exception {
+        CustomerId customerId = createCustomer("Customer for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(customerDao, savedTenant.getId(), customerId, "/api/customer/" + customerId);
+    }
+
+    private Customer createCustomer(String title) {
+        Customer customer = new Customer();
+        customer.setTitle(title);
+        return doPost("/api/customer", customer, Customer.class);
     }
 }

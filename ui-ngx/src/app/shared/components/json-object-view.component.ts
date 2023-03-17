@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, forwardRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Ace } from 'ace-builds';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
@@ -51,7 +51,7 @@ import { getAce } from '@shared/models/ace/ace.models';
     }
   ]
 })
-export class JsonObjectViewComponent implements OnInit {
+export class JsonObjectViewComponent implements OnInit, OnDestroy {
 
   @ViewChild('jsonViewer', {static: true})
   jsonViewerElmRef: ElementRef;
@@ -125,6 +125,12 @@ export class JsonObjectViewComponent implements OnInit {
         }
       }
     );
+  }
+
+  ngOnDestroy(): void {
+    if (this.jsonViewer) {
+      this.jsonViewer.destroy();
+    }
   }
 
   updateEditorSize(editorElement: any, content: string, editor: Ace.Editor) {

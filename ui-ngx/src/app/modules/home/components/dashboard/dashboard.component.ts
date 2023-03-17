@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,9 @@
 ///
 
 import {
-  AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   DoCheck,
   HostBinding,
@@ -65,10 +67,7 @@ import { animatedScroll, deepClone, isDefined } from '@app/core/utils';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { IAliasController, IStateController } from '@app/core/api/widget-api.models';
-import {
-  Widget,
-  WidgetPosition
-} from '@app/shared/models/widget.models';
+import { Widget, WidgetPosition } from '@app/shared/models/widget.models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { SafeStyle } from '@angular/platform-browser';
 import { distinct } from 'rxjs/operators';
@@ -76,6 +75,7 @@ import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { UtilsService } from '@core/services/utils.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { WidgetComponentAction, WidgetComponentActionType } from '@home/components/widget/widget-container.component';
+import { TbPopoverComponent } from '@shared/components/popover.component';
 
 @Component({
   selector: 'tb-dashboard',
@@ -164,6 +164,9 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   @Input()
   parentDashboard?: IDashboardComponent = null;
 
+  @Input()
+  popoverComponent?: TbPopoverComponent = null;
+
   embeddedDashboardBackground = this.whiteLabelingService.getPrimaryColor('A100');
 
   dashboardTimewindowChangedSubject: Subject<Timewindow> = new ReplaySubject<Timewindow>();
@@ -190,7 +193,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   @ViewChild('widgetMenuTrigger', {static: true}) widgetMenuTrigger: MatMenuTrigger;
 
   widgetMenuPosition = { x: '0px', y: '0px' };
-
   widgetContextMenuEvent: MouseEvent;
 
   dashboardWidgets = new DashboardWidgets(this,
@@ -222,6 +224,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   ngOnInit(): void {
     this.dashboardWidgets.parentDashboard = this.parentDashboard;
+    this.dashboardWidgets.popoverComponent = this.popoverComponent;
     if (!this.dashboardTimewindow) {
       this.dashboardTimewindow = this.timeService.defaultTimewindow();
     }

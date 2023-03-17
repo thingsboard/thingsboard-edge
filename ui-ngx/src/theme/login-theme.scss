@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -28,7 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '~@angular/material' as mat;
+@use '@angular/material' as mat;
+@use 'login-theme-overwrites' as overwrites;
+@use 'app-theme-overwrites' as app-overwrites;
 @import 'login-theme-constants';
 
 @include mat.core();
@@ -36,45 +38,27 @@
 @function get-tb-dark-theme($primary, $accent, $dark-foreground: false, $warn: mat.define-palette(mat.$red-palette)) {
 
   $backgroundContrastColor: map-get($primary, if($dark-foreground, 900, 200));
-  $backgroundColor: map-get($primary, 500);
 
   $tb-primary-palette-colors: map_merge($primary, (
     500: $backgroundContrastColor
   ));
 
-  $tb-background-palette-colors: map_merge($tb-primary-palette-colors, (
-    800: $backgroundColor
-  ));
-
   $tb-primary: mat.define-palette($tb-primary-palette-colors);
   $tb-accent: mat.define-palette($accent);
 
-  $tb-dark-theme-background: (
-    status-bar: black,
-    app-bar:    map_get($tb-background-palette-colors, 900),
-    background: map_get($tb-background-palette-colors, 800),
-    hover:      rgba(white, 0.04),
-    card:       map_get($tb-background-palette-colors, 800),
-    dialog:     map_get($tb-background-palette-colors, 800),
-    disabled-button: rgba(white, 0.12),
-    raised-button: map-get($tb-background-palette-colors, 50),
-    focused-button: rgba(white, 0.12),
-    selected-button: map_get($tb-background-palette-colors, 900),
-    selected-disabled-button: map_get($tb-background-palette-colors, 800),
-    disabled-button-toggle: black,
-    unselected-chip: map_get($tb-background-palette-colors, 700),
-    disabled-list-option: black,
-    tooltip: map_get(mat.$grey-palette, 700)
+  $tb-login-theme-config: (
+    color: (
+      primary: $tb-primary,
+      accent: $tb-accent,
+      warn: $warn
+    ),
+    typography: mat.define-typography-config(),
+    density: 0
   );
 
-  @return (
-    primary: $tb-primary,
-    accent: $tb-accent,
-    warn: $warn,
-    is-dark: true,
-    foreground: if($dark-foreground, mat.$light-theme-foreground-palette, mat.$dark-theme-foreground-palette),
-    background: $tb-dark-theme-background
-  );
+  $tb-login-theme: if($dark-foreground, mat.define-light-theme($tb-login-theme-config), mat.define-dark-theme($tb-login-theme-config));
+
+  @return $tb-login-theme;
 }
 
 $tb-theme: get-tb-dark-theme(
@@ -89,9 +73,15 @@ $tb-dark-foreground-theme: get-tb-dark-theme(
     true
 );
 
+$tb-primary: mat.define-palette($mat-tb-primary);
+
 .tb-dark {
-  @include mat.all-component-themes($tb-theme);
+  @include mat.all-component-colors($tb-theme);
+  @include overwrites.login-theme-overwrites($tb-primary, $tb-theme);
+  @include app-overwrites.app-theme-overwrites($tb-primary, $tb-theme);
   &.dark-foreground {
-    @include mat.all-component-themes($tb-dark-foreground-theme);
+    @include mat.all-component-colors($tb-dark-foreground-theme);
+    @include overwrites.login-theme-overwrites($tb-primary, $tb-dark-foreground-theme);
+    @include app-overwrites.app-theme-overwrites($tb-primary, $tb-dark-foreground-theme);
   }
 }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -88,7 +88,7 @@ export class AlarmRuleComponent implements ControlValueAccessor, OnInit, Validat
 
   private modelValue: AlarmRule;
 
-  alarmRuleFormGroup: FormGroup;
+  alarmRuleFormGroup: UntypedFormGroup;
 
   expandAlarmDetails = false;
 
@@ -96,7 +96,7 @@ export class AlarmRuleComponent implements ControlValueAccessor, OnInit, Validat
 
   constructor(private dialog: MatDialog,
               private utils: UtilsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -155,7 +155,7 @@ export class AlarmRuleComponent implements ControlValueAccessor, OnInit, Validat
     });
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return (!this.required && !this.modelValue || this.alarmRuleFormGroup.valid) ? null : {
       alarmRule: {
         valid: false,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,11 +42,11 @@ public class DeviceDefinition extends CustomerEntityDefinition {
 
     private String type;
     private String label;
-    private String profile;
+    private String emulator;
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.ASSET;
+        return EntityType.DEVICE;
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -57,6 +56,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -66,18 +66,16 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.data.security.model.JwtToken;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.config.SignUpConfig;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.data.RecaptchaValidationResult;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
-import org.thingsboard.server.service.security.model.JwtTokenPair;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
@@ -116,9 +114,6 @@ public class SignUpController extends BaseController {
 
     @Autowired
     private JwtTokenFactory tokenFactory;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private SelfRegistrationService selfRegistrationService;
@@ -226,9 +221,13 @@ public class SignUpController extends BaseController {
                 permission.setUserGroupId(usersEntityGroup.getId());
                 if (permission.getEntityGroupId() != null) {
                     EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
-                    permission.setEntityGroupType(entityGroup.getType());
+                    if (entityGroup != null) {
+                        permission.setEntityGroupType(entityGroup.getType());
+                        groupPermissionService.saveGroupPermission(tenantId, permission);
+                    }
+                } else {
+                    groupPermissionService.saveGroupPermission(tenantId, permission);
                 }
-                groupPermissionService.saveGroupPermission(tenantId, permission);
             }
 
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
@@ -393,7 +392,7 @@ public class SignUpController extends BaseController {
     @RequestMapping(value = "/noauth/activateByEmailCode", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
-    public JwtTokenPair activateUserByEmailCode(
+    public JwtPair activateUserByEmailCode(
             @ApiParam(value = "Activation token.", required = true)
             @RequestParam(value = "emailCode") String emailCode,
             @ApiParam(value = "Optional package name of the mobile application.")
@@ -441,9 +440,7 @@ public class SignUpController extends BaseController {
 
             sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
 
-            JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
-            JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
-            return new JwtTokenPair(accessToken.getToken(), refreshToken.getToken());
+            return tokenFactory.createTokenPair(securityUser);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -494,13 +491,12 @@ public class SignUpController extends BaseController {
             user = userService.saveUser(user);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-            JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
-            JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
+            JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode tokenObject = objectMapper.createObjectNode();
-            tokenObject.put("token", accessToken.getToken());
-            tokenObject.put("refreshToken", refreshToken.getToken());
+            tokenObject.put("token", tokenPair.getToken());
+            tokenObject.put("refreshToken", tokenPair.getRefreshToken());
             return tokenObject;
         } catch (Exception e) {
             throw handleException(e);
@@ -553,13 +549,12 @@ public class SignUpController extends BaseController {
             user = userService.saveUser(user);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-            JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
-            JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
+            JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode tokenObject = objectMapper.createObjectNode();
-            tokenObject.put("token", accessToken.getToken());
-            tokenObject.put("refreshToken", refreshToken.getToken());
+            tokenObject.put("token", tokenPair.getToken());
+            tokenObject.put("refreshToken", tokenPair.getRefreshToken());
             return tokenObject;
         } catch (Exception e) {
             throw handleException(e);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -40,12 +41,12 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.translation.CustomTranslationService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.customer.CustomerService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +56,7 @@ import java.util.List;
 @Slf4j
 public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
 
-    private final WhiteLabelingService whiteLabelingService;
-    private final CustomTranslationService customTranslationService;
+    private final CustomerService customerService;
 
     @Override
     public PageLink getPageLink(int pageSize) {
@@ -64,7 +64,7 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
     }
 
     @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
         List<EdgeEvent> result = new ArrayList<>();
         List<EdgeEvent> loginWhiteLabelingEdgeEvents = getLoginWhiteLabelingEdgeEvents(tenantId, edge);
         if (!loginWhiteLabelingEdgeEvents.isEmpty()) {
@@ -94,6 +94,10 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
                 CustomerId customerId = new CustomerId(ownerId.getId());
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
                         EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
+                Customer customer = customerService.findCustomerById(tenantId, customerId);
+                if (customer.isSubCustomer()) {
+                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), EdgeEventType.LOGIN_WHITE_LABELING, result);
+                }
             }
             return result;
         } catch (Exception e) {
@@ -114,6 +118,10 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
                 CustomerId customerId = new CustomerId(ownerId.getId());
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
                         EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
+                Customer customer = customerService.findCustomerById(tenantId, customerId);
+                if (customer.isSubCustomer()) {
+                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), EdgeEventType.WHITE_LABELING, result);
+                }
             }
             return result;
         } catch (Exception e) {
@@ -135,6 +143,10 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
                 CustomerId customerId = new CustomerId(ownerId.getId());
                 result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
                         EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
+                Customer customer = customerService.findCustomerById(tenantId, customerId);
+                if (customer.isSubCustomer()) {
+                    getParentCustomerEvents(tenantId, edge.getId(), customer.getParentCustomerId(), EdgeEventType.CUSTOM_TRANSLATION, result);
+                }
             }
             return result;
         } catch (Exception e) {
@@ -143,6 +155,13 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
         }
     }
 
+    private void getParentCustomerEvents(TenantId tenantId, EdgeId edgeId, CustomerId customerId, EdgeEventType eventType, List<EdgeEvent> events) {
+        events.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, eventType, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            getParentCustomerEvents(tenantId, edgeId, customer.getParentCustomerId(), eventType, events);
+        }
+    }
 }
 
 

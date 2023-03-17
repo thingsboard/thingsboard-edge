@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,8 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, NgZone, OnInit, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -53,11 +54,14 @@ import { deepClone } from '@core/utils';
 })
 export class TimezoneSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit {
 
-  selectTimezoneFormGroup: FormGroup;
+  selectTimezoneFormGroup: UntypedFormGroup;
 
   modelValue: string | null;
 
   defaultTimezoneId: string = null;
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
 
   @Input()
   set defaultTimezone(timezone: string) {
@@ -115,7 +119,7 @@ export class TimezoneSelectComponent implements ControlValueAccessor, OnInit, Af
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private ngZone: NgZone,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectTimezoneFormGroup = this.fb.group({
       timezone: [null]
     });

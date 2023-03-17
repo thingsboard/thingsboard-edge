@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,10 +37,13 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -57,6 +60,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -66,12 +70,13 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterableByTenantIdEntityId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -100,7 +105,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("EdgeDaoService")
 @Slf4j
 public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, Edge, EdgeCacheEvictEvent> implements EdgeService {
 
@@ -130,6 +135,10 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Autowired
     private DataValidator<Edge> edgeValidator;
+
+    @Value("${edges.enabled}")
+    @Getter
+    private boolean edgesEnabled;
 
     @TransactionalEventListener(classes = EdgeCacheEvictEvent.class)
     @Override
@@ -195,6 +204,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
+    @Transactional
     public void deleteEdge(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing deleteEdge [{}]", edgeId);
         validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
@@ -267,6 +277,14 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         validateIds(edgeIds, "Incorrect edgeIds " + edgeIds);
         return edgeDao.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId.getId(),
                 customerId.getId(), toUUIDs(edgeIds));
+    }
+
+    @Override
+    public void deleteEdgesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteEdgesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerEdgesRemover.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -359,6 +377,15 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
+    public void assignCustomerAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, CustomerId parentCustomerId) {
+        log.trace("Executing assignCustomerAdministratorsAndUsersGroupToEdge, tenantId [{}], edgeId [{}], customerId [{}]", tenantId, edgeId, customerId);
+        EntityGroup customerAdmins = entityGroupService.findOrCreateCustomerAdminsGroup(tenantId, customerId, parentCustomerId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, customerAdmins.getId(), edgeId, customerAdmins.getType());
+        EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(tenantId, customerId, parentCustomerId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, customerUsers.getId(), edgeId, customerUsers.getType());
+    }
+
+    @Override
     public PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
         log.trace("Executing findEdgesByTenantIdAndEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
@@ -401,6 +428,36 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 }
             };
 
+    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<CustomerId, Edge>() {
+
+        @Override
+        protected PageData<Edge> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
+            return edgeDao.findEdgesByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, Edge entity) {
+            deleteEdge(tenantId, new EdgeId(entity.getUuidId()));
+        }
+    };
+
+    @Override
+    public List<EdgeId> findAllRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        if (!edgesEnabled) {
+            return null;
+        }
+        if (EntityType.EDGE.equals(entityId.getEntityType())) {
+            return Collections.singletonList(new EdgeId(entityId.getId()));
+        }
+        PageDataIterableByTenantIdEntityId<EdgeId> relatedEdgeIdsIterator =
+                new PageDataIterableByTenantIdEntityId<>(edgeService::findRelatedEdgeIdsByEntityId, tenantId, entityId, DEFAULT_PAGE_SIZE);
+        List<EdgeId> result = new ArrayList<>();
+        for (EdgeId edgeId : relatedEdgeIdsIterator) {
+            result.add(edgeId);
+        }
+        return result;
+    }
+
     @Override
     public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
         return findRelatedEdgeIdsByEntityId(tenantId, entityId, null, pageLink);
@@ -412,6 +469,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         switch (entityId.getEntityType()) {
             case TENANT:
             case DEVICE_PROFILE:
+            case ASSET_PROFILE:
             case OTA_PACKAGE:
                 return convertToEdgeIds(findEdgesByTenantId(tenantId, pageLink));
             case CUSTOMER:
@@ -603,6 +661,16 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             array.add(missingAttributeKey);
         }
         return array;
+    }
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findEdgeById(tenantId, new EdgeId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.EDGE;
     }
 
 }

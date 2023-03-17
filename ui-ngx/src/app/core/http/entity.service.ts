@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -119,6 +119,7 @@ import { RuleChain, RuleChainMetaData, RuleChainType } from '@shared/models/rule
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { QueueService } from '@core/http/queue.service';
+import { AssetProfileService } from '@core/http/asset-profile.service';
 
 @Injectable({
   providedIn: 'root'
@@ -142,6 +143,7 @@ export class EntityService {
     private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
+    private assetProfileService: AssetProfileService,
     private converterService: ConverterService,
     private integrationService: IntegrationService,
     private schedulerEventService: SchedulerEventService,
@@ -415,6 +417,12 @@ export class EntityService {
       case EntityType.ROLE:
         observable = this.roleService.getRolesByIds(entityIds, config);
         break;
+      case EntityType.ASSET_PROFILE:
+        observable = this.assetProfileService.getAssetProfilesByIds(entityIds, config);
+        break;
+      case EntityType.WIDGETS_BUNDLE:
+        observable = this.widgetService.getWidgetsBundlesByIds(entityIds, config);
+        break;
     }
     return observable;
   }
@@ -567,6 +575,14 @@ export class EntityService {
       case EntityType.DEVICE_PROFILE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.deviceProfileService.getDeviceProfileInfos(pageLink, null, config);
+        break;
+      case EntityType.ASSET_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.assetProfileService.getAssetProfileInfos(pageLink, config);
+        break;
+      case EntityType.WIDGETS_BUNDLE:
+        pageLink.sortOrder.property = 'title';
+        entitiesObservable = this.widgetService.getWidgetBundles(pageLink, config);
         break;
     }
     return entitiesObservable;
@@ -872,6 +888,8 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
         case AliasFilterType.edgeSearchQuery:
           return entityTypes.indexOf(EntityType.EDGE) > -1;
+        case AliasFilterType.schedulerEvent:
+          return entityTypes.indexOf(EntityType.SCHEDULER_EVENT) > -1;
       }
     }
     return false;
@@ -930,6 +948,8 @@ export class EntityService {
         return entityType === EntityType.ENTITY_VIEW;
       case AliasFilterType.edgeSearchQuery:
         return entityType === EntityType.EDGE;
+      case AliasFilterType.schedulerEvent:
+        return entityType === EntityType.SCHEDULER_EVENT;
     }
     return false;
   }
@@ -1044,7 +1064,6 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
       case EntityType.INTEGRATION:
-      case EntityType.SCHEDULER_EVENT:
       case EntityType.BLOB_ENTITY:
       case EntityType.ROLE:
         entityFieldKeys.push(entityFields.name.keyName);
@@ -1056,6 +1075,14 @@ export class EntityService {
         break;
       case EntityType.API_USAGE_STATE:
         entityFieldKeys.push(entityFields.name.keyName);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        entityFieldKeys.push(entityFields.configuration.keyName);
+        entityFieldKeys.push(entityFields.schedule.keyName);
+        entityFieldKeys.push(entityFields.originatorId.keyName);
+        entityFieldKeys.push(entityFields.originatorType.keyName);
         break;
     }
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;
@@ -1178,8 +1205,26 @@ export class EntityService {
         };
         aliasInfo.currentEntity = null;
         if (!aliasInfo.resolveMultiple && aliasInfo.entityFilter) {
-          return this.findSingleEntityInfoByEntityFilter(aliasInfo.entityFilter,
-            {ignoreLoading: true, ignoreErrors: true}).pipe(
+          let currentEntity: EntityInfo = null;
+          if (result.stateEntity && aliasInfo.entityFilter.type === AliasFilterType.singleEntity) {
+            if (stateParams) {
+              let targetParams = stateParams;
+              if (result.entityParamName && result.entityParamName.length) {
+                targetParams = stateParams[result.entityParamName];
+              }
+              if (targetParams && targetParams.entityId && targetParams.entityName) {
+                currentEntity = {
+                  id: targetParams.entityId.id,
+                  entityType: targetParams.entityId.entityType as EntityType,
+                  name: targetParams.entityName,
+                  label: targetParams.entityLabel
+                };
+              }
+            }
+          }
+          const entityInfoObservable = currentEntity ? of(currentEntity) : this.findSingleEntityInfoByEntityFilter(aliasInfo.entityFilter,
+            {ignoreLoading: true, ignoreErrors: true});
+          return entityInfoObservable.pipe(
             map((entity) => {
               aliasInfo.currentEntity = entity;
               return aliasInfo;
@@ -1304,6 +1349,25 @@ export class EntityService {
           const queryRootEntityId = this.resolveAliasEntityId(rootEntityType, rootEntityId);
           result.entityFilter = deepClone(filter);
           result.entityFilter.rootEntity = queryRootEntityId;
+          return of(result);
+        } else {
+          return of(result);
+        }
+      case AliasFilterType.schedulerEvent:
+        let originatorType;
+        let originatorId;
+        result.stateEntity = filter.originatorStateEntity;
+        result.entityFilter = deepClone(filter);
+        if (result.stateEntity && stateEntityId) {
+          originatorType = stateEntityId.entityType;
+          originatorId = stateEntityId.id;
+        } else if (!result.stateEntity && filter.originator) {
+          originatorType = filter.originator.entityType;
+          originatorId = filter.originator.id;
+        }
+        if (originatorType && originatorId) {
+          const queryOriginatorId = this.resolveAliasEntityId(originatorType, originatorId);
+          result.entityFilter.originator = queryOriginatorId;
           return of(result);
         } else {
           return of(result);
@@ -1843,6 +1907,9 @@ export class EntityService {
         break;
       case EdgeEventType.GROUP_PERMISSION:
         entityObservable = this.roleService.getGroupPermissionInfo(entityId, false);
+        break;
+      case EdgeEventType.ASSET_PROFILE:
+        entityObservable = this.assetProfileService.getAssetProfile(entityId);
         break;
       case EdgeEventType.RELATION:
         entityObservable = of(entity.body);

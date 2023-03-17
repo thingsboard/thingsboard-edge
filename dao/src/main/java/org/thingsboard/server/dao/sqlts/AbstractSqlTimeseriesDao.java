@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
@@ -53,6 +54,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("UnstableApiUsage")
 @Slf4j
 public abstract class AbstractSqlTimeseriesDao extends BaseAbstractSqlTimeseriesDao implements AggregationTimeseriesDao {
 
@@ -76,7 +78,7 @@ public abstract class AbstractSqlTimeseriesDao extends BaseAbstractSqlTimeseries
     @Value("${sql.timescale.batch_threads:4}")
     protected int timescaleBatchThreads;
 
-    @Value("${sql.batch_sort:false}")
+    @Value("${sql.batch_sort:true}")
     protected boolean batchSortEnabled;
 
     @Value("${sql.ttl.ts.ts_key_value_ttl:0}")
@@ -101,22 +103,19 @@ public abstract class AbstractSqlTimeseriesDao extends BaseAbstractSqlTimeseries
         }
     }
 
-    protected ListenableFuture<List<TsKvEntry>> processFindAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
-        List<ListenableFuture<List<TsKvEntry>>> futures = queries
+    protected ListenableFuture<List<ReadTsKvQueryResult>> processFindAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
+        List<ListenableFuture<ReadTsKvQueryResult>> futures = queries
                 .stream()
                 .map(query -> findAllAsync(tenantId, entityId, query))
                 .collect(Collectors.toList());
         return Futures.transform(Futures.allAsList(futures), new Function<>() {
             @Nullable
             @Override
-            public List<TsKvEntry> apply(@Nullable List<List<TsKvEntry>> results) {
+            public List<ReadTsKvQueryResult> apply(@Nullable List<ReadTsKvQueryResult> results) {
                 if (results == null || results.isEmpty()) {
                     return null;
                 }
-                return results.stream()
-                        .filter(Objects::nonNull)
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                return results.stream().filter(Objects::nonNull).collect(Collectors.toList());
             }
         }, service);
     }

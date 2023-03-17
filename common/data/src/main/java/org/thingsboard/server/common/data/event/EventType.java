@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,33 @@
  */
 package org.thingsboard.server.common.data.event;
 
+import lombok.Getter;
+
 public enum EventType {
-    ERROR, LC_EVENT, STATS, DEBUG_RULE_NODE, DEBUG_RULE_CHAIN, DEBUG_INTEGRATION, DEBUG_CONVERTER
+    ERROR("error_event", "ERROR"),
+    LC_EVENT("lc_event", "LC_EVENT"),
+    STATS("stats_event", "STATS"),
+    RAW_DATA("raw_data_event", "RAW_DATA"),
+    DEBUG_RULE_NODE("rule_node_debug_event", "DEBUG_RULE_NODE", true),
+    DEBUG_RULE_CHAIN("rule_chain_debug_event", "DEBUG_RULE_CHAIN", true),
+    DEBUG_CONVERTER("converter_debug_event", "DEBUG_CONVERTER", true),
+    DEBUG_INTEGRATION("integration_debug_event", "DEBUG_INTEGRATION", true);
+
+    @Getter
+    private final String table;
+    @Getter
+    private final String oldName;
+    @Getter
+    private final boolean debug;
+
+    EventType(String table, String oldName) {
+        this(table, oldName, false);
+    }
+
+    EventType(String table, String oldName, boolean debug) {
+        this.table = table;
+        this.oldName = oldName;
+        this.debug = debug;
+    }
+
 }

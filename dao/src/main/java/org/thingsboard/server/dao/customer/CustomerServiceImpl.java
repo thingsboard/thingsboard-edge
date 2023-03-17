@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,12 +37,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -75,7 +77,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("CustomerDaoService")
 @Slf4j
 public class CustomerServiceImpl extends AbstractEntityService implements CustomerService {
 
@@ -188,6 +190,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
+    @Transactional
     public void deleteCustomer(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteCustomer [{}]", customerId);
         Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
@@ -215,6 +218,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         entityViewService.deleteEntityViewsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         assetService.deleteAssetsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         deviceService.deleteDevicesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
+        edgeService.deleteEdgesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
         schedulerEventService.deleteSchedulerEventsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         blobEntityService.deleteBlobEntitiesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
@@ -342,4 +346,15 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     deleteCustomer(tenantId, new CustomerId(entity.getUuidId()), false);
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CUSTOMER;
+    }
+
 }

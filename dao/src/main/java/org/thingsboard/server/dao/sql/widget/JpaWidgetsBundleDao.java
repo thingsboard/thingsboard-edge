@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.widget;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -43,8 +44,10 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.WidgetsBundleEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,6 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
  * Created by Valerii Sosliuk on 4/23/2017.
  */
 @Component
+@SqlDao
 public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleEntity, WidgetsBundle> implements WidgetsBundleDao {
 
     @Autowired
@@ -104,6 +108,17 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
                                 NULL_UUID,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findSystemWidgetBundlesByIdsAsync(UUID tenantId, List<UUID> widgetsBundleIds) {
+        return service.submit(() -> DaoUtil.convertDataList(widgetsBundleRepository.findSystemWidgetsBundlesByIdIn(NULL_UUID, widgetsBundleIds)));
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetBundlesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> widgetsBundleIds) {
+        return service.submit(() -> DaoUtil.convertDataList(widgetsBundleRepository
+                .findAllTenantWidgetsBundlesByTenantIdAndIdIn(tenantId, NULL_UUID, widgetsBundleIds)));
     }
 
     @Override

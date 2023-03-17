@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.HasId;
@@ -92,6 +93,7 @@ import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadConfig
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.owner.OwnerService;
@@ -144,6 +146,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final EntitiesExportImportService exportImportService;
     private final ExportableEntitiesService exportableEntitiesService;
     private final TbNotificationEntityService entityNotificationService;
+    private final EdgeService edgeService;
     private final TransactionTemplate transactionTemplate;
     private final CustomerService customerService;
     private final OwnerService ownersService;
@@ -724,11 +727,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         DaoUtil.processInBatches(pageLink ->
                 exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
+                List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(ctx.getTenantId(), entity.getId());
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
                 ctx.addEventCallback(() -> {
                     entityNotificationService.notifyDeleteEntity(ctx.getTenantId(), entity.getId(),
-                            entity, null, ActionType.DELETED, null, ctx.getUser());
+                            entity, null, ActionType.DELETED, relatedEdgeIds, ctx.getUser());
                 });
                 ctx.registerDeleted(entityType, false);
             }
@@ -740,11 +744,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 return;
             }
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
+                List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(ctx.getTenantId(), entity.getId());
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
                 ctx.addEventCallback(() -> {
                     entityNotificationService.notifyDeleteEntity(ctx.getTenantId(), entity.getId(),
-                            entity, null, ActionType.DELETED, null, ctx.getUser());
+                            entity, null, ActionType.DELETED, relatedEdgeIds, ctx.getUser());
                 });
                 ctx.registerDeleted(entityType, true);
             }
@@ -869,7 +874,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     @Override
     public ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {
         var repositorySettings = repositorySettingsService.get(user.getTenantId());
-        if (repositorySettings == null) {
+        if (repositorySettings == null || repositorySettings.isReadOnly()) {
             return Futures.immediateFuture(null);
         }
         var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());
@@ -896,7 +901,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     @Override
     public ListenableFuture<UUID> autoCommit(User user, EntityType entityType, EntityGroupId groupId) throws Exception {
         var repositorySettings = repositorySettingsService.get(user.getTenantId());
-        if (repositorySettings == null) {
+        if (repositorySettings == null || repositorySettings.isReadOnly()) {
             return Futures.immediateFuture(null);
         }
         var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());
@@ -924,7 +929,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     @Override
     public ListenableFuture<UUID> autoCommit(User user, EntityType entityType, List<UUID> entityIds) throws Exception {
         var repositorySettings = repositorySettingsService.get(user.getTenantId());
-        if (repositorySettings == null) {
+        if (repositorySettings == null || repositorySettings.isReadOnly()) {
             return Futures.immediateFuture(null);
         }
         var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());

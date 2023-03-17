@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 
 @Slf4j
@@ -62,14 +63,15 @@ import org.thingsboard.server.common.msg.TbMsg;
 public class TbLogNode implements TbNode {
 
     private TbLogNodeConfiguration config;
-    private ScriptEngine jsEngine;
+    private ScriptEngine scriptEngine;
     private boolean standard;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbLogNodeConfiguration.class);
         this.standard = new TbLogNodeConfiguration().defaultConfiguration().getJsScript().equals(config.getJsScript());
-        this.jsEngine = this.standard ? null : ctx.createJsScriptEngine(config.getJsScript());
+        this.scriptEngine = this.standard ? null : ctx.createScriptEngine(config.getScriptLang(),
+                ScriptLanguage.TBEL.equals(config.getScriptLang()) ? config.getTbelScript() : config.getJsScript());
     }
 
     @Override
@@ -80,7 +82,7 @@ public class TbLogNode implements TbNode {
         }
 
         ctx.logJsEvalRequest();
-        Futures.addCallback(jsEngine.executeToStringAsync(msg), new FutureCallback<String>() {
+        Futures.addCallback(scriptEngine.executeToStringAsync(msg), new FutureCallback<String>() {
             @Override
             public void onSuccess(@Nullable String result) {
                 ctx.logJsEvalResponse();
@@ -109,8 +111,8 @@ public class TbLogNode implements TbNode {
 
     @Override
     public void destroy() {
-        if (jsEngine != null) {
-            jsEngine.destroy();
+        if (scriptEngine != null) {
+            scriptEngine.destroy();
         }
     }
 }

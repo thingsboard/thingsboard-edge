@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,7 @@ import {
 } from '@angular/core';
 
 @Directive({
-  // tslint:disable-next-line:directive-selector
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[tbComponentOutlet]',
   exportAs: 'tbComponentOutlet'
 })
@@ -55,9 +55,9 @@ export class TbComponentOutletDirective<_T = unknown> implements OnChanges {
   @Output() componentChange = new EventEmitter<ComponentRef<any>>();
 
   static ngTemplateContextGuard<T>(
-    // tslint:disable-next-line:variable-name
+    // eslint-disable-next-line @typescript-eslint/naming-convention,no-underscore-dangle,id-blacklist,id-match
     _dir: TbComponentOutletDirective<T>,
-    // tslint:disable-next-line:variable-name
+    // eslint-disable-next-line @typescript-eslint/naming-convention, no-underscore-dangle, id-blacklist, id-match
     _ctx: any
   ): _ctx is TbComponentOutletContext {
     return true;

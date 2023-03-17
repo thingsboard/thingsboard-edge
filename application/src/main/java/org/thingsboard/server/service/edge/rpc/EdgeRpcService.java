@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,14 +33,19 @@ package org.thingsboard.server.service.edge.rpc;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.edge.EdgeSessionMsg;
+import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
+import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
+
+import java.util.function.Consumer;
 
 public interface EdgeRpcService {
+
+    void onToEdgeSessionMsg(TenantId tenantId, EdgeSessionMsg msg);
 
     void updateEdge(TenantId tenantId, Edge edge);
 
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
-    void onEdgeEvent(TenantId tenantId, EdgeId edgeId);
-
-    void startSyncProcess(TenantId tenantId, EdgeId edgeId);
+    void processSyncRequest(ToEdgeSyncRequest request, Consumer<FromEdgeSyncResponse> responseConsumer);
 }

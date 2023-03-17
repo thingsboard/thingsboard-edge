@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.metadata;
 
 import com.google.common.util.concurrent.Futures;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -99,7 +98,6 @@ public class TbGetRelatedAttributeNodeTest extends AbstractAttributeNodeTest {
         return getConfig(true);
     }
 
-    @NotNull
     private TbGetEntityAttrNodeConfiguration getConfig(boolean isTelemetry) {
         TbGetRelatedAttrNodeConfiguration config = new TbGetRelatedAttrNodeConfiguration();
         config = config.defaultConfiguration();

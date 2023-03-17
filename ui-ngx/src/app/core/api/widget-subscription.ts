@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import {
   DataSetHolder,
   Datasource,
   DatasourceData,
+  datasourcesHasAggregation,
   DatasourceType,
   LegendConfig,
   LegendData,
@@ -97,8 +98,62 @@ import { distinct, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { AlarmDataListener } from '@core/api/alarm-data.service';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { RpcStatus } from '@shared/models/rpc.models';
+import { EventEmitter } from '@angular/core';
 
 const moment = moment_;
+
+
+const calculateMin = (data: DataSet): number => {
+  if (data.length > 0) {
+    let result = Number(data[0][1]);
+    for (let i = 1; i < data.length; i++) {
+      result = Math.min(result, Number(data[i][1]));
+    }
+    return result;
+  } else {
+    return null;
+  }
+};
+
+const calculateMax = (data: DataSet): number => {
+  if (data.length > 0) {
+    let result = Number(data[0][1]);
+    for (let i = 1; i < data.length; i++) {
+      result = Math.max(result, Number(data[i][1]));
+    }
+    return result;
+  } else {
+    return null;
+  }
+};
+
+const calculateTotal = (data: DataSet): number => {
+  if (data.length > 0) {
+    let result = 0;
+    data.forEach((dataRow) => {
+      result += Number(dataRow[1]);
+    });
+    return result;
+  } else {
+    return null;
+  }
+};
+
+const calculateAvg = (data: DataSet): number => {
+  if (data.length > 0) {
+    return calculateTotal(data) / data.length;
+  } else {
+    return null;
+  }
+};
+
+const calculateLatest = (data: DataSet): number => {
+  if (data.length > 0) {
+    return Number(data[data.length - 1][1]);
+  } else {
+    return null;
+  }
+};
 
 export class WidgetSubscription implements IWidgetSubscription {
 
@@ -113,6 +168,8 @@ export class WidgetSubscription implements IWidgetSubscription {
   timezone: string;
   subscriptionTimewindow: SubscriptionTimewindow;
   useDashboardTimewindow: boolean;
+  useTimewindow: boolean;
+  onTimewindowChangeFunction: (timewindow: Timewindow) => Timewindow;
   tsOffset = 0;
 
   hasDataPageLink: boolean;
@@ -166,7 +223,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   targetDeviceAliasId: string;
   targetDeviceId: string;
   targetDeviceName: string;
-  executingSubjects: Array<Subject<any>>;
+  executingSubjects: Array<Subject<void>>;
 
   subscribed = false;
   hasLatestData = false;
@@ -175,6 +232,8 @@ export class WidgetSubscription implements IWidgetSubscription {
   widgetTimewindowChanged$ = this.widgetTimewindowChangedSubject.asObservable().pipe(
     distinct()
   );
+
+  paginatedDataSubscriptionUpdated = new EventEmitter<void>();
 
   constructor(subscriptionContext: WidgetSubscriptionContext, public options: WidgetSubscriptionOptions) {
     const subscriptionSubject = new ReplaySubject<IWidgetSubscription>();
@@ -218,6 +277,8 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.originalTimewindow = null;
       this.timeWindow = {};
       this.useDashboardTimewindow = options.useDashboardTimewindow;
+      this.useTimewindow = true;
+      this.onTimewindowChangeFunction = options.onTimewindowChangeFunction || ((timewindow) => timewindow);
       if (this.useDashboardTimewindow) {
         this.timeWindowConfig = deepClone(options.dashboardTimewindow);
       } else {
@@ -262,15 +323,17 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.originalTimewindow = null;
       this.timeWindow = {};
       this.useDashboardTimewindow = options.useDashboardTimewindow;
+      this.onTimewindowChangeFunction = options.onTimewindowChangeFunction || ((timewindow) => timewindow);
       this.stateData = options.stateData;
-      if (this.type === widgetType.latest) {
-        this.timezone = options.dashboardTimewindow.timezone;
-        this.updateTsOffset();
-      }
+      this.useTimewindow = this.type === widgetType.timeseries || datasourcesHasAggregation(this.configuredDatasources);
       if (this.useDashboardTimewindow) {
         this.timeWindowConfig = deepClone(options.dashboardTimewindow);
       } else {
         this.timeWindowConfig = deepClone(options.timeWindowConfig);
+      }
+      if (this.type === widgetType.latest) {
+        this.timezone = this.useTimewindow ? this.timeWindowConfig.timezone : options.dashboardTimewindow.timezone;
+        this.updateTsOffset();
       }
 
       this.subscriptionTimewindow = null;
@@ -316,7 +379,7 @@ export class WidgetSubscription implements IWidgetSubscription {
  }
 
   private initRpc(): Observable<any> {
-    const initRpcSubject = new ReplaySubject();
+    const initRpcSubject = new ReplaySubject<void>();
     if (this.targetDeviceAliasIds && this.targetDeviceAliasIds.length > 0) {
       this.targetDeviceAliasId = this.targetDeviceAliasIds[0];
       this.ctx.aliasController.resolveSingleEntityInfo(this.targetDeviceAliasId).subscribe(
@@ -365,7 +428,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   private initAlarmSubscription(): Observable<any> {
-    const initAlarmSubscriptionSubject = new ReplaySubject(1);
+    const initAlarmSubscriptionSubject = new ReplaySubject<void>(1);
     this.loadStDiff().subscribe(() => {
       if (!this.ctx.aliasController) {
         this.hasResolvedData = true;
@@ -398,7 +461,7 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   private initDataSubscription(): Observable<any> {
     this.notifyDataLoading();
-    const initDataSubscriptionSubject = new ReplaySubject(1);
+    const initDataSubscriptionSubject = new ReplaySubject<void>(1);
     this.loadStDiff().subscribe(() => {
       if (!this.ctx.aliasController) {
         this.configuredDatasources = deepClone(this.configuredDatasources);
@@ -461,6 +524,7 @@ export class WidgetSubscription implements IWidgetSubscription {
     const resolveResultObservables = this.configuredDatasources.map((datasource, index) => {
       const listener: EntityDataListener = {
         subscriptionType: this.type,
+        useTimewindow: this.useTimewindow,
         configDatasource: datasource,
         configDatasourceIndex: index,
         dataLoaded: (pageData, data1, datasourceIndex, pageLink) => {
@@ -469,9 +533,7 @@ export class WidgetSubscription implements IWidgetSubscription {
         initialPageDataChanged: this.initialPageDataChanged.bind(this),
         forceReInit: this.forceReInit.bind(this),
         dataUpdated: this.dataUpdated.bind(this),
-        updateRealtimeSubscription: () => {
-          return this.updateRealtimeSubscription();
-        },
+        updateRealtimeSubscription: () => this.updateRealtimeSubscription(),
         setRealtimeSubscription: (subscriptionTimewindow) => {
           this.updateRealtimeSubscription(deepClone(subscriptionTimewindow));
         }
@@ -644,21 +706,30 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   onDashboardTimewindowChanged(newDashboardTimewindow: Timewindow) {
-    if (this.type === widgetType.timeseries || this.type === widgetType.alarm) {
+    let doUpdate = false;
+    let isTimewindowTypeChanged = false;
+    if (this.useTimewindow) {
       if (this.useDashboardTimewindow) {
+        if (this.type === widgetType.latest) {
+          if (newDashboardTimewindow && this.timezone !== newDashboardTimewindow.timezone) {
+            this.timezone = newDashboardTimewindow.timezone;
+            doUpdate = this.updateTsOffset();
+          }
+        }
         if (!isEqual(this.timeWindowConfig, newDashboardTimewindow) && newDashboardTimewindow) {
-          const isTimewindowTypeChanged = timewindowTypeChanged(this.timeWindowConfig, newDashboardTimewindow);
+          isTimewindowTypeChanged = timewindowTypeChanged(this.timeWindowConfig, newDashboardTimewindow);
           this.timeWindowConfig = deepClone(newDashboardTimewindow);
-          this.update(isTimewindowTypeChanged);
+          doUpdate = true;
         }
       }
     } else if (this.type === widgetType.latest) {
       if (newDashboardTimewindow && this.timezone !== newDashboardTimewindow.timezone) {
         this.timezone = newDashboardTimewindow.timezone;
-        if (this.updateTsOffset()) {
-          this.update();
-        }
+        doUpdate = this.updateTsOffset();
       }
+    }
+    if (doUpdate) {
+      this.update(isTimewindowTypeChanged);
     }
   }
 
@@ -678,6 +749,12 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   updateTimewindowConfig(newTimewindow: Timewindow): void {
     if (!this.useDashboardTimewindow) {
+      if (this.type === widgetType.latest) {
+        if (newTimewindow && this.timezone !== newTimewindow.timezone) {
+          this.timezone = newTimewindow.timezone;
+          this.updateTsOffset();
+        }
+      }
       const isTimewindowTypeChanged = timewindowTypeChanged(this.timeWindowConfig, newTimewindow);
       this.timeWindowConfig = newTimewindow;
       this.update(isTimewindowTypeChanged);
@@ -757,7 +834,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       if (timeout && timeout > 0) {
         requestBody.timeout = timeout;
       }
-      const rpcSubject: Subject<any> = new Subject<any>();
+      const rpcSubject: Subject<any | void> = oneWayElseTwoWay ? new Subject<void>() : new Subject<any>();
       this.executingRpcRequest = true;
       this.callbacks.rpcStateChanged(this);
       if (this.ctx.utils.widgetEditMode) {
@@ -765,7 +842,7 @@ export class WidgetSubscription implements IWidgetSubscription {
           this.executingRpcRequest = false;
           this.callbacks.rpcStateChanged(this);
           if (oneWayElseTwoWay) {
-            rpcSubject.next();
+            (rpcSubject as Subject<void>).next();
             rpcSubject.complete();
           } else {
             rpcSubject.next(requestBody);
@@ -883,6 +960,13 @@ export class WidgetSubscription implements IWidgetSubscription {
     }
   }
 
+  stopSubscription(datasourceIndex: number) {
+    const entityDataListener = this.entityDataListeners[datasourceIndex];
+    if (entityDataListener) {
+      this.ctx.entityDataService.stopSubscription(entityDataListener);
+    }
+  }
+
   subscribeForPaginatedData(datasourceIndex: number,
                             pageLink: EntityDataPageLink,
                             keyFilters: KeyFilter[]): Observable<any> {
@@ -892,11 +976,12 @@ export class WidgetSubscription implements IWidgetSubscription {
     }
     const datasource = this.configuredDatasources[datasourceIndex];
     if (datasource) {
-      if (this.type === widgetType.timeseries && this.timeWindowConfig) {
+      if (this.useTimewindow && this.timeWindowConfig) {
         this.updateRealtimeSubscription();
       }
       entityDataListener = {
         subscriptionType: this.type,
+        useTimewindow: this.useTimewindow,
         configDatasource: datasource,
         configDatasourceIndex: datasourceIndex,
         subscriptionTimewindow: this.subscriptionTimewindow,
@@ -905,9 +990,7 @@ export class WidgetSubscription implements IWidgetSubscription {
           this.dataLoaded(pageData, data1, datasourceIndex1, pageLink1, true);
         },
         dataUpdated: this.dataUpdated.bind(this),
-        updateRealtimeSubscription: () => {
-          return this.updateRealtimeSubscription();
-        },
+        updateRealtimeSubscription: () => this.updateRealtimeSubscription(),
         setRealtimeSubscription: (subscriptionTimewindow) => {
           this.updateRealtimeSubscription(deepClone(subscriptionTimewindow));
         }
@@ -958,7 +1041,7 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   private updateDataTimewindow() {
     if (!this.hasDataPageLink) {
-      if (this.type === widgetType.timeseries && this.timeWindowConfig) {
+      if (this.useTimewindow && this.timeWindowConfig) {
         this.updateRealtimeSubscription();
         if (this.comparisonEnabled) {
           this.updateSubscriptionForComparison();
@@ -970,11 +1053,11 @@ export class WidgetSubscription implements IWidgetSubscription {
   private dataSubscribe() {
     this.updateDataTimewindow();
     if (!this.hasDataPageLink) {
-      if (this.type === widgetType.timeseries && this.timeWindowConfig && this.subscriptionTimewindow.fixedWindow) {
+      if (this.useTimewindow && this.timeWindowConfig && this.subscriptionTimewindow.fixedWindow) {
           this.onDataUpdated();
       }
       const forceUpdate = !this.datasources.length;
-      const notifyDataLoaded = !this.entityDataListeners.filter((listener) => listener.subscription ? true : false).length;
+      const notifyDataLoaded = !this.entityDataListeners.filter((listener) => !!listener.subscription).length;
       this.entityDataListeners.forEach((listener) => {
         if (this.comparisonEnabled && listener.configDatasource.isAdditional) {
           listener.subscriptionTimewindow = this.timewindowForComparison;
@@ -1139,6 +1222,10 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   private updatePaginatedDataSubscriptions() {
     for (let datasourceIndex = 0; datasourceIndex < this.entityDataListeners.length; datasourceIndex++) {
+      this.stopSubscription(datasourceIndex);
+    }
+    this.paginatedDataSubscriptionUpdated.emit();
+    for (let datasourceIndex = 0; datasourceIndex < this.entityDataListeners.length; datasourceIndex++) {
       const entityDataListener = this.entityDataListeners[datasourceIndex];
       if (entityDataListener) {
         const pageLink = entityDataListener.subscriptionOptions.pageLink;
@@ -1158,7 +1245,19 @@ export class WidgetSubscription implements IWidgetSubscription {
       if (this.data.length) {
         const tsRows: {[ts: string]: {[key: string]: any}} = {};
         const allKeys: {[key: string]: boolean} = {};
-        this.data.forEach((datasourceData) => {
+        let latest: {[datasourceName: string]: {[key: string]: any}} = {};
+        if (this.latestData.length) {
+          this.latestData.forEach(latestRow => {
+            if (!latest[latestRow.datasource.name]) {
+              latest[latestRow.datasource.name] = {};
+            }
+            latest[latestRow.datasource.name][latestRow.dataKey.label] = latestRow.data[0][1];
+            if (!allKeys[latestRow.dataKey.label]) {
+              allKeys[latestRow.dataKey.label] = true;
+            }
+          });
+        }
+        this.data.forEach((datasourceData, index) => {
           datasourceData.data.forEach((row) => {
             let key = datasourceData.dataKey.label;
             const ts = row[0];
@@ -1169,7 +1268,7 @@ export class WidgetSubscription implements IWidgetSubscription {
             const value = row[1];
             let tsRow = tsRows[tsKey];
             if (!tsRow) {
-              tsRow = {};
+              tsRow = this.latestData.length ? deepClone(latest[datasourceData.datasource.name]) : {};
               tsRow.Timestamp = this.ctx.datePipe.transform(ts, 'yyyy-MM-dd HH:mm:ss');
               tsRow['Entity Name'] = datasourceData.datasource.entityName;
               tsRows[tsKey] = tsRow;
@@ -1502,6 +1601,7 @@ export class WidgetSubscription implements IWidgetSubscription {
     }));
     if (datasource.latestDataKeys) {
       datasourceDataArray = datasourceDataArray.concat(datasource.latestDataKeys.map((dataKey, latestKeyIndex) => {
+        dataKey.label = this.ctx.utils.customTranslation(dataKey.label, dataKey.label);
         const datasourceData: DatasourceData = {
           datasource,
           dataKey,
@@ -1659,7 +1759,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   private loadStDiff(): Observable<any> {
-    const loadSubject = new ReplaySubject(1);
+    const loadSubject = new ReplaySubject<void>(1);
     if (this.ctx.getServerTimeDiff && this.timeWindow) {
       this.ctx.getServerTimeDiff().subscribe(
         (stDiff) => {
@@ -1681,57 +1781,5 @@ export class WidgetSubscription implements IWidgetSubscription {
       loadSubject.complete();
     }
     return loadSubject.asObservable();
-  }
-}
-
-function calculateMin(data: DataSet): number {
-  if (data.length > 0) {
-    let result = Number(data[0][1]);
-    for (let i = 1; i < data.length; i++) {
-      result = Math.min(result, Number(data[i][1]));
-    }
-    return result;
-  } else {
-    return null;
-  }
-}
-
-function calculateMax(data: DataSet): number {
-  if (data.length > 0) {
-    let result = Number(data[0][1]);
-    for (let i = 1; i < data.length; i++) {
-      result = Math.max(result, Number(data[i][1]));
-    }
-    return result;
-  } else {
-    return null;
-  }
-}
-
-function calculateAvg(data: DataSet): number {
-  if (data.length > 0) {
-    return calculateTotal(data) / data.length;
-  } else {
-    return null;
-  }
-}
-
-function calculateTotal(data: DataSet): number {
-  if (data.length > 0) {
-    let result = 0;
-    data.forEach((dataRow) => {
-      result += Number(dataRow[1]);
-    });
-    return result;
-  } else {
-    return null;
-  }
-}
-
-function calculateLatest(data: DataSet): number {
-  if (data.length > 0) {
-    return Number(data[data.length - 1][1]);
-  } else {
-    return null;
   }
 }

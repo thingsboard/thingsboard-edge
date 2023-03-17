@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,16 +31,17 @@
 package org.thingsboard.server.service.security.auth.mfa.provider.impl;
 
 import lombok.Data;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.security.model.mfa.account.OtpBasedTwoFaAccountConfig;
 import org.thingsboard.server.common.data.security.model.mfa.provider.OtpBasedTwoFaProviderConfig;
 import org.thingsboard.server.service.security.auth.mfa.provider.TwoFaProvider;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 public abstract class OtpBasedTwoFaProvider<C extends OtpBasedTwoFaProviderConfig, A extends OtpBasedTwoFaAccountConfig> implements TwoFaProvider<C, A> {
@@ -54,7 +55,7 @@ public abstract class OtpBasedTwoFaProvider<C extends OtpBasedTwoFaProviderConfi
 
     @Override
     public final void prepareVerificationCode(SecurityUser user, C providerConfig, A accountConfig) throws ThingsboardException {
-        String verificationCode = RandomStringUtils.randomNumeric(6);
+        String verificationCode = StringUtils.randomNumeric(6);
         sendVerificationCode(user, verificationCode, providerConfig, accountConfig);
         verificationCodesCache.put(user.getId(), new Otp(System.currentTimeMillis(), verificationCode, accountConfig));
     }
@@ -82,7 +83,7 @@ public abstract class OtpBasedTwoFaProvider<C extends OtpBasedTwoFaProviderConfi
 
 
     @Data
-    public static class Otp {
+    public static class Otp implements Serializable {
         private final long timestamp;
         private final String value;
         private final OtpBasedTwoFaAccountConfig accountConfig;

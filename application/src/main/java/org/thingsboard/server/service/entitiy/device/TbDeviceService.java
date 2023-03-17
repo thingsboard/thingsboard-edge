@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
@@ -51,6 +52,8 @@ public interface TbDeviceService {
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials, EntityGroup entityGroup, User user) throws ThingsboardException;
 
     ListenableFuture<Void> delete(Device device, User user);
+
+    ListenableFuture<Void> delete(DeviceId deviceId, User user);
 
     DeviceCredentials getDeviceCredentialsByDeviceId(Device device, User user) throws ThingsboardException;
 

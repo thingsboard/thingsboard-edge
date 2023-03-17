@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
 import org.thingsboard.server.dao.sqlts.insert.AbstractInsertRepository;
 import org.thingsboard.server.dao.sqlts.insert.latest.InsertLatestTsRepository;
+import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.dao.util.SqlTsLatestAnyDao;
 
 import java.sql.PreparedStatement;
@@ -51,6 +52,7 @@ import java.util.List;
 @SqlTsLatestAnyDao
 @Repository
 @Transactional
+@SqlDao
 public class SqlLatestInsertTsRepository extends AbstractInsertRepository implements InsertLatestTsRepository {
 
     @Value("${sql.ts_latest.update_by_latest_ts:true}")

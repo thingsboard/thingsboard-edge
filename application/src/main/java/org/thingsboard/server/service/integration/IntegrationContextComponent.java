@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -141,16 +143,21 @@ public class IntegrationContextComponent {
     @Autowired
     private LogSettingsComponent logSettingsComponent;
 
+    @Lazy
+    @Autowired
+    private IntegrationStatisticsService integrationStatisticsService;
+
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService callBackExecutorService;
+    private ExecutorService generalExecutorService;
 
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
         scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
-        callBackExecutorService = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("integration-callback"));
+        callBackExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "integration-callback");
+        generalExecutorService = ThingsBoardExecutors.newWorkStealingPool(20, "integration-general");
     }
 
     @PreDestroy
@@ -162,6 +169,9 @@ public class IntegrationContextComponent {
         if (callBackExecutorService != null) {
             callBackExecutorService.shutdownNow();
         }
+        if (generalExecutorService != null) {
+            generalExecutorService.shutdownNow();
+        }
     }
 
     ScheduledExecutorService getScheduledExecutorService() {
@@ -170,6 +180,10 @@ public class IntegrationContextComponent {
 
     ExecutorService getCallBackExecutorService() {
         return callBackExecutorService;
+    }
+
+    ExecutorService getGeneralExecutorService() {
+        return generalExecutorService;
     }
 
     public boolean isExceptionStackTraceEnabled() {

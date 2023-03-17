@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -211,7 +211,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree(['deviceProfiles', deviceProfile.id.id]);
+    const url = this.router.createUrlTree(['profiles', 'deviceProfiles', deviceProfile.id.id]);
     this.router.navigateByUrl(url);
   }
 

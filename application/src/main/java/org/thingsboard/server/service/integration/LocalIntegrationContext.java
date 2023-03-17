@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,12 +39,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
+import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -100,15 +102,22 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(configuration.getId(), type, uid, body, callback);
+    public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
+        doSaveEvent(event, callback);
     }
 
     @Override
     public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            saveEvent(device.getId(), type, uid, body, callback);
+            doSaveEvent(RawDataEvent.builder()
+                    .tenantId(configuration.getTenantId())
+                    .entityId(device.getId().getId())
+                    .serviceId(getServiceId())
+                    .uuid(uid)
+                    .messageType(type)
+                    .message(body.toString())
+                    .build(), callback);
         }
     }
 
@@ -140,13 +149,7 @@ public class LocalIntegrationContext implements IntegrationContext {
         return false;
     }
 
-    private void saveEvent(EntityId entityId, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        Event event = new Event();
-        event.setTenantId(configuration.getTenantId());
-        event.setEntityId(entityId);
-        event.setType(type);
-        event.setUid(uid);
-        event.setBody(body);
+    private void doSaveEvent(Event event, IntegrationCallback<Void> callback) {
         DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 
@@ -166,6 +169,11 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
+    public ExecutorService getExecutorService() {
+        return ctx.getGeneralExecutorService();
+    }
+
+    @Override
     public ExecutorService getCallBackExecutorService() {
         return ctx.getCallBackExecutorService();
     }
@@ -173,5 +181,19 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public boolean isExceptionStackTraceEnabled() {
         return ctx.isExceptionStackTraceEnabled();
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            ctx.getIntegrationStatisticsService().onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            ctx.getIntegrationStatisticsService().onUplinkMsg(configuration.getType(), success);
+        }
     }
 }

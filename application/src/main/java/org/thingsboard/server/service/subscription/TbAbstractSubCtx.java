@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,6 +94,7 @@ public abstract class TbAbstractSubCtx<T extends EntityCountQuery> {
     protected T query;
     @Setter
     protected volatile ScheduledFuture<?> refreshTask;
+    protected volatile boolean stopped;
 
     public TbAbstractSubCtx(String serviceId, TelemetryWebSocketService wsService,
                             EntityService entityService, TbLocalSubscriptionService localSubscriptionService,
@@ -203,6 +204,12 @@ public abstract class TbAbstractSubCtx<T extends EntityCountQuery> {
 
     public void clearSubscriptions() {
         clearDynamicValueSubscriptions();
+    }
+
+    public void stop() {
+        stopped = true;
+        cancelTasks();
+        clearSubscriptions();
     }
 
     @Data
@@ -319,7 +326,11 @@ public abstract class TbAbstractSubCtx<T extends EntityCountQuery> {
     }
 
     public void setRefreshTask(ScheduledFuture<?> task) {
-        this.refreshTask = task;
+        if (!stopped) {
+            this.refreshTask = task;
+        } else {
+            task.cancel(true);
+        }
     }
 
     public void cancelTasks() {

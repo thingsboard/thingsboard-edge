@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -47,18 +46,25 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.objects.AttributesEntityView;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,6 +73,7 @@ import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -93,6 +100,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
         "js.evaluator=mock",
 })
 @Slf4j
+@ContextConfiguration(classes = {BaseEntityViewControllerTest.Config.class})
 public abstract class BaseEntityViewControllerTest extends AbstractControllerTest {
     static final TypeReference<PageData<EntityView>> PAGE_DATA_ENTITY_VIEW_TYPE_REF = new TypeReference<>() {
     };
@@ -102,6 +110,17 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
     List<ListenableFuture<ResultActions>> deleteFutures = new ArrayList<>();
     ListeningExecutorService executor;
+
+    @Autowired
+    private EntityViewDao entityViewDao;
+
+    static class Config {
+        @Bean
+        @Primary
+        public EntityViewDao entityViewDao(EntityViewDao entityViewDao) {
+            return Mockito.mock(EntityViewDao.class, AdditionalAnswers.delegatesTo(entityViewDao));
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -180,7 +199,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
     @Test
     public void testSaveEntityViewWithViolationOfValidation() throws Exception {
-        EntityView entityView = createEntityView(RandomStringUtils.randomAlphabetic(300), 0, 0);
+        EntityView entityView = createEntityView(StringUtils.randomAlphabetic(300), 0, 0);
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -196,7 +215,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
         entityView.setName("Normal name");
         msgError = msgErrorFieldLength("type");
-        entityView.setType(RandomStringUtils.randomAlphabetic(300));
+        entityView.setType(StringUtils.randomAlphabetic(300));
         doPost("/api/entityView", entityView)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -425,8 +444,6 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     }
 
     private void uploadTelemetry(String strKvs, String accessToken) throws Exception {
-        String viewDeviceId = testDevice.getId().getId().toString();
-
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient("tcp://localhost:1883", clientId, new MemoryPersistence());
 
@@ -538,7 +555,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
             });
 
             viewNameFutures.add(Futures.transform(customerFuture, customerId -> {
-                String fullName = partOfName + ' ' + RandomStringUtils.randomAlphanumeric(15);
+                String fullName = partOfName + ' ' + StringUtils.randomAlphanumeric(15);
                 fullName = even ? fullName.toLowerCase() : fullName.toUpperCase();
                 EntityView view = getNewSavedEntityView(fullName);
                 view.setCustomerId(customerId);
@@ -562,31 +579,16 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         return loadedItems;
     }
 
-    @Ignore // CE specific test
     @Test
-    public void testAssignEntityViewToEdge() throws Exception {
-        Edge edge = constructEdge("My edge", "default");
-        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+    public void testDeleteEntityViewWithDeleteRelationsOk() throws Exception {
+        EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(tenantId, entityViewId, "/api/entityView/" + entityViewId);
+    }
 
-        EntityView savedEntityView = getNewSavedEntityView("My entityView");
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/device/" + testDevice.getId().getId().toString(), Device.class);
-
-        doPost("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/entityView/" + savedEntityView.getId().getId().toString(), EntityView.class);
-
-        PageData<EntityView> pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/entityViews?",
-                PAGE_DATA_ENTITY_VIEW_TYPE_REF, new PageLink(100));
-
-        Assert.assertEquals(1, pageData.getData().size());
-
-        doDelete("/api/edge/" + savedEdge.getId().getId().toString()
-                + "/entityView/" + savedEntityView.getId().getId().toString(), EntityView.class);
-
-        pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId().toString() + "/entityViews?",
-                PAGE_DATA_ENTITY_VIEW_TYPE_REF, new PageLink(100));
-
-        Assert.assertEquals(0, pageData.getData().size());
+    @Ignore
+    @Test
+    public void testDeleteEntityViewExceptionWithRelationsTransactional() throws Exception {
+        EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(entityViewDao, tenantId, entityViewId, "/api/entityView/" + entityViewId);
     }
 }

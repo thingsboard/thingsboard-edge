@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.CoAP;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DynamicProtoUtils;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceTypeConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
@@ -139,7 +140,6 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
     }
 
     private byte[] getAttributesProtoPayloadBytes() {
-
         DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();
         assertTrue(transportConfiguration instanceof CoapDeviceProfileTransportConfiguration);
         CoapDeviceProfileTransportConfiguration coapTransportConfiguration = (CoapDeviceProfileTransportConfiguration) transportConfiguration;
@@ -149,8 +149,8 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         TransportPayloadTypeConfiguration transportPayloadTypeConfiguration = defaultCoapDeviceTypeConfiguration.getTransportPayloadTypeConfiguration();
         assertTrue(transportPayloadTypeConfiguration instanceof ProtoTransportPayloadConfiguration);
         ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration = (ProtoTransportPayloadConfiguration) transportPayloadTypeConfiguration;
-        ProtoFileElement transportProtoSchema = protoTransportPayloadConfiguration.getTransportProtoSchema(ATTRIBUTES_SCHEMA_STR);
-        DynamicSchema attributesSchema = protoTransportPayloadConfiguration.getDynamicSchema(transportProtoSchema, ProtoTransportPayloadConfiguration.ATTRIBUTES_PROTO_SCHEMA);
+        ProtoFileElement protoFileElement = DynamicProtoUtils.getProtoFileElement(protoTransportPayloadConfiguration.getDeviceAttributesProtoSchema());
+        DynamicSchema attributesSchema = DynamicProtoUtils.getDynamicSchema(protoFileElement, ProtoTransportPayloadConfiguration.ATTRIBUTES_PROTO_SCHEMA);
 
         DynamicMessage.Builder nestedJsonObjectBuilder = attributesSchema.newMessageBuilder("PostAttributes.JsonObject.NestedJsonObject");
         Descriptors.Descriptor nestedJsonObjectBuilderDescriptor = nestedJsonObjectBuilder.getDescriptorForType();
@@ -252,7 +252,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         CoapObserveRelation observeRelation = client.getObserveRelation(callbackCoap);
         String awaitAlias = "await Json Test Subscribe To AttributesUpdates (client.getObserveRelation)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
@@ -266,7 +266,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         awaitAlias = "await Json Test Subscribe To AttributesUpdates (add attributes)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveForAttributesUpdate == callbackCoap.getObserve().intValue());
@@ -276,7 +276,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         doDelete("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
         awaitAlias = "await Json Test Subscribe To AttributesUpdates (deleted attributes)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveForAttributesDelete == callbackCoap.getObserve().intValue());
@@ -299,7 +299,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         String awaitAlias = "await Proto Test Subscribe To Attributes Updates (add attributes)";
         CoapObserveRelation observeRelation = client.getObserveRelation(callbackCoap);
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
@@ -314,7 +314,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         awaitAlias = "await Proto Test Subscribe To Attributes Updates (add attributes)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveForAttributesUpdate == callbackCoap.getObserve().intValue());
@@ -324,7 +324,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
         doDelete("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
         awaitAlias = "await Proto Test Subscribe To Attributes Updates (deleted attributes)";
         await(awaitAlias)
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveForAttributesDelete == callbackCoap.getObserve().intValue());
@@ -419,7 +419,7 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
     private void awaitClientAfterCancelObserve() {
         Awaitility.await("awaitClientAfterCancelObserve")
                 .pollInterval(10, TimeUnit.MILLISECONDS)
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .until(() -> {
                     log.trace("awaiting defaultTransportService.sessions is empty");
                     return defaultTransportService.sessions.isEmpty();

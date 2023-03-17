@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,7 @@ import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { fromEvent, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, first, tap } from 'rxjs/operators';
 import {
   toWidgetActionDescriptor,
   WidgetActionCallbacks,
@@ -69,6 +69,7 @@ import {
 import { deepClone } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'tb-manage-widget-actions',
@@ -104,6 +105,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   viewsInited = false;
   dirtyValue = false;
+  dragDisabled = true;
 
   private widgetResize$: ResizeObserver;
 
@@ -125,7 +127,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     const sortOrder: SortOrder = { property: 'actionSourceName', direction: Direction.ASC };
     this.pageLink = new PageLink(10, 0, null, sortOrder);
     this.dataSource = new WidgetActionsDatasource(this.translate, this.utils);
-    this.displayedColumns = ['actionSourceName', 'name', 'icon', 'typeName', 'actions'];
+    this.displayedColumns = ['actionSourceId', 'actionSourceName', 'name', 'icon', 'typeName', 'actions'];
   }
 
   ngOnInit(): void {
@@ -180,6 +182,23 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
     this.pageLink.sortOrder.property = this.sort.active;
     this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
     this.dataSource.loadActions(this.pageLink, reload);
+  }
+
+  dropAction(event: CdkDragDrop<WidgetActionsDatasource>) {
+    this.dragDisabled = true;
+    const droppedAction: WidgetActionDescriptorInfo = event.item.data;
+    this.dataSource.pageData$.pipe(
+      first()
+    ).subscribe((actions) => {
+      const action = actions.data;
+      let startActionSourceIndex = action.findIndex(element => element.actionSourceId === droppedAction.actionSourceId);
+      const targetActions = this.getOrCreateTargetActions(droppedAction.actionSourceId);
+      if (startActionSourceIndex === 0) {
+        startActionSourceIndex -= targetActions.findIndex(element => element.id === action[0].id);
+      }
+      moveItemInArray(targetActions, event.previousIndex - startActionSourceIndex, event.currentIndex - startActionSourceIndex);
+      this.onActionsUpdated();
+    });
   }
 
   addAction($event: Event) {

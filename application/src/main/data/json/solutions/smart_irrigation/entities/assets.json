@@ -1,0 +1,34 @@
+[
+  {
+    "name": "SI Field 1",
+    "label": "Wheat",
+    "type": "SI Field",
+    "group": "Smart Irrigation",
+    "emulator": "Field",
+    "attributes": {
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0,
+      "cropType" : "wheat",
+      "perimeter" : [[49.348444078486665,32.113723756657556],[49.35782580854662,32.10142806361495],[49.36209942574998,32.110204693549484],[49.35267945867829,32.122306811750974]]
+    },
+    "relations": [
+    ],
+    "jsonId": "f19a9530-38d6-11ed-af17-3d7337747e91"
+  },
+  {
+    "name": "SI Field 2",
+    "label": "Corn",
+    "type": "SI Field",
+    "group": "Smart Irrigation",
+    "emulator": "Field",
+    "attributes": {
+      "maxMoistureThreshold": 80.0,
+      "minMoistureThreshold": 23.0,
+      "cropType" : "corn",
+      "perimeter" : [[49.35733376286064,32.099990847388675],[49.36462881286005,32.09157942926953],[49.3693518503928,32.1008920749419],[49.362018441924455,32.10958265164581]]
+    },
+    "relations": [
+    ],
+    "jsonId": "f19a9530-38d6-11ed-af17-3d7337747e92"
+  }
+]

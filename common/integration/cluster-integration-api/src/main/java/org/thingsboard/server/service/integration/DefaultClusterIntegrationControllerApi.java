@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,19 +34,34 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.AbstractIntegrationControllerApi;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
 @Component
 public class DefaultClusterIntegrationControllerApi extends AbstractIntegrationControllerApi {
 
-    @Autowired
-    private IntegrationContextProvider context;
+    private ExecutorService callbackExecutorService;
+
+    @PostConstruct
+    public void init() {
+        callbackExecutorService = ThingsBoardExecutors.newWorkStealingPool(20, "integration-controller-callback");
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (callbackExecutorService != null) {
+            callbackExecutorService.shutdownNow();
+        }
+    }
 
     @Autowired
     private IntegrationManagerService integrationService;
@@ -54,7 +69,7 @@ public class DefaultClusterIntegrationControllerApi extends AbstractIntegrationC
 
     @Override
     public Executor getCallbackExecutor() {
-        return context.getCallbackExecutor();
+        return callbackExecutorService;
     }
 
     @SuppressWarnings({"rawtypes"})

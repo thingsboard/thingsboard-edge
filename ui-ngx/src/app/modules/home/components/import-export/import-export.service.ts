@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -78,7 +78,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { WidgetService } from '@core/http/widget.service';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
-import { ImportEntityData, ImportEntitiesResultInfo } from '@shared/models/entity.models';
+import { ImportEntitiesResultInfo, ImportEntityData } from '@shared/models/entity.models';
 import { RequestConfig } from '@core/http/http-utils';
 import { RuleChain, RuleChainImport, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
@@ -94,6 +94,8 @@ import { DeviceService } from '@core/http/device.service';
 import { AssetService } from '@core/http/asset.service';
 import { EdgeService } from '@core/http/edge.service';
 import { RuleNode } from '@shared/models/rule-node.models';
+import { AssetProfileService } from '@core/http/asset-profile.service';
+import { AssetProfile } from '@shared/models/asset.models';
 
 import { Borders, Column, Workbook } from 'exceljs';
 import * as moment_ from 'moment';
@@ -112,6 +114,7 @@ export class ImportExportService {
               private dashboardUtils: DashboardUtilsService,
               private widgetService: WidgetService,
               private deviceProfileService: DeviceProfileService,
+              private assetProfileService: AssetProfileService,
               private tenantProfileService: TenantProfileService,
               private entityService: EntityService,
               private ruleChainService: RuleChainService,
@@ -628,6 +631,37 @@ export class ImportExportService {
     );
   }
 
+  public exportAssetProfile(assetProfileId: string) {
+    this.assetProfileService.getAssetProfile(assetProfileId).subscribe(
+      (assetProfile) => {
+        let name = assetProfile.name;
+        name = name.toLowerCase().replace(/\W/g, '_');
+        this.exportToPc(this.prepareProfileExport(assetProfile), name);
+      },
+      (e) => {
+        this.handleExportError(e, 'asset-profile.export-failed-error');
+      }
+    );
+  }
+
+  public importAssetProfile(): Observable<AssetProfile> {
+    return this.openImportDialog('asset-profile.import', 'asset-profile.asset-profile-file').pipe(
+      mergeMap((assetProfile: AssetProfile) => {
+        if (!this.validateImportedAssetProfile(assetProfile)) {
+          this.store.dispatch(new ActionNotificationShow(
+            {message: this.translate.instant('asset-profile.invalid-asset-profile-file-error'),
+              type: 'error'}));
+          throw new Error('Invalid asset profile file');
+        } else {
+          return this.assetProfileService.saveAssetProfile(assetProfile);
+        }
+      }),
+      catchError((err) => {
+        return of(null);
+      })
+    );
+  }
+
   private processCSVCell(cellData: any): any {
     if (isString(cellData)) {
       let result = cellData.replace(/"/g, '""');
@@ -719,7 +753,7 @@ export class ImportExportService {
           if (item.Timestamp) {
             item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
           }
-          sheet.addRow(item).eachCell((cell) => {
+          sheet.addRow(item).eachCell({ includeEmpty: true }, cell => {
             cell.border = cellBorderStyle;
           });
         });
@@ -823,6 +857,13 @@ export class ImportExportService {
       || isUndefined(deviceProfile.transportType)
       || isUndefined(deviceProfile.provisionType)
       || isUndefined(deviceProfile.profileData)) {
+      return false;
+    }
+    return true;
+  }
+
+  private validateImportedAssetProfile(assetProfile: AssetProfile): boolean {
+    if (isUndefined(assetProfile.name)) {
       return false;
     }
     return true;
@@ -1122,7 +1163,9 @@ export class ImportExportService {
     }
     filename += '.' + fileType.extension;
     const blob = new Blob([data], {type: fileType.mimeType});
+    // @ts-ignore
     if (this.window.navigator && this.window.navigator.msSaveOrOpenBlob) {
+      // @ts-ignore
       this.window.navigator.msSaveOrOpenBlob(blob, filename);
     } else {
       const e = this.document.createEvent('MouseEvents');
@@ -1137,7 +1180,7 @@ export class ImportExportService {
     }
   }
 
-  private prepareProfileExport<T extends DeviceProfile|TenantProfile>(profile: T): T {
+  private prepareProfileExport<T extends DeviceProfile|AssetProfile|TenantProfile>(profile: T): T {
     profile = this.prepareExport(profile);
     profile.default = false;
     return profile;

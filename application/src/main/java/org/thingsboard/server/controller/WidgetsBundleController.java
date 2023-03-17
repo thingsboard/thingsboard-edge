@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,12 +56,16 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.widgets.bundle.TbWidgetsBundleService;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
@@ -182,6 +187,34 @@ public class WidgetsBundleController extends BaseController {
             } else {
                 TenantId tenantId = getCurrentUser().getTenantId();
                 return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Widgets Bundles By Ids (getWidgetsBundlesByIds)",
+            notes = "Requested widgets bundles must be system level or owned by tenant of the user which is performing the request. " +
+                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/widgetsBundles", params = {"widgetsBundleIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<WidgetsBundle> getWidgetsBundlesByIds(
+            @ApiParam(value = "A list of widgets bundle ids, separated by comma ','", required = true)
+            @RequestParam("widgetsBundleIds") String[] strWidgetsBundleIds) throws ThingsboardException {
+        checkArrayParameter("widgetsBundleIds", strWidgetsBundleIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            List<WidgetsBundleId> widgetsBundleIds = new ArrayList<>();
+            for (String strWidgetsBundleId : strWidgetsBundleIds) {
+                widgetsBundleIds.add(new WidgetsBundleId(toUUID(strWidgetsBundleId)));
+            }
+            if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
+                return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByIdsAsync(getTenantId(), widgetsBundleIds).get());
+            } else {
+                return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByIdsAsync(getTenantId(), widgetsBundleIds).get());
             }
         } catch (Exception e) {
             throw handleException(e);

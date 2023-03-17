@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,7 +68,9 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                     oldEdgeName = edgeById.getName();
                 }
             }
-
+            if (actionType == ActionType.ADDED && edge.getRootRuleChainId() == null) {
+                edge.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
+            }
             Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
             EdgeId edgeId = savedEdge.getId();
 
@@ -87,7 +89,7 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                 edgeService.renameDeviceEdgeAllGroup(tenantId, savedEdge, oldEdgeName);
             }
 
-            notificationEntityService.notifyEdge(tenantId, edgeId, savedEdge.getCustomerId(), savedEdge, actionType, user);
+            notificationEntityService.notifyCreateOrUpdateOrDeleteEdge(tenantId, edgeId, savedEdge.getCustomerId(), savedEdge, actionType, user);
 
             return savedEdge;
         } catch (Exception e) {
@@ -102,7 +104,7 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
         TenantId tenantId = edge.getTenantId();
         try {
             edgeService.deleteEdge(tenantId, edgeId);
-            notificationEntityService.notifyEdge(tenantId, edgeId, edge.getCustomerId(), edge, ActionType.DELETED, user, edgeId.toString());
+            notificationEntityService.notifyCreateOrUpdateOrDeleteEdge(tenantId, edgeId, edge.getCustomerId(), edge, ActionType.DELETED, user, edgeId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.EDGE), ActionType.DELETED,
                     user, e, edgeId.toString());
@@ -116,7 +118,7 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
         EdgeId edgeId = edge.getId();
         try {
             Edge updatedEdge = edgeNotificationService.setEdgeRootRuleChain(tenantId, edge, ruleChainId);
-            notificationEntityService.notifyEdge(tenantId, edgeId, null, updatedEdge, ActionType.UPDATED, user);
+            notificationEntityService.logEntityAction(tenantId, edgeId, edge, null, ActionType.UPDATED, user);
             return updatedEdge;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.EDGE),

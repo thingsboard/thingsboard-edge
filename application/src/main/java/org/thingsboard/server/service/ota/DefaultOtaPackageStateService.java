@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -299,12 +299,11 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
     private void update(TenantId tenantId, DeviceProfile deviceProfile, OtaPackageType otaPackageType) {
         Consumer<Device> updateConsumer;
+        OtaPackageId packageId = OtaPackageUtil.getOtaPackageId(deviceProfile, otaPackageType);
 
-        OtaPackageId firmwareId = OtaPackageUtil.getOtaPackageId(deviceProfile, otaPackageType);
-
-        if (firmwareId != null) {
+        if (packageId != null) {
             long ts = System.currentTimeMillis();
-            updateConsumer = d -> send(d.getTenantId(), d.getId(), firmwareId, ts, otaPackageType);
+            updateConsumer = d -> send(d.getTenantId(), d.getId(), packageId, ts, otaPackageType);
         } else {
             updateConsumer = d -> remove(d, otaPackageType);
         }
@@ -496,15 +495,13 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     private void remove(Device device, OtaPackageType otaPackageType) {
         remove(device, otaPackageType, OtaPackageUtil.getAttributeKeys(otaPackageType));
         String idKey = OtaPackageUtil.getAttributeKey(otaPackageType, ID);
-
-        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(idKey),
+        List<String> idKeyList = Collections.singletonList(idKey);
+        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, idKeyList,
                 new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         log.trace("[{}] Success remove OtaPackage id attribute!", device.getId());
-                        Set<AttributeKey> keysToNotify = new HashSet<>();
-                        keysToNotify.add(new AttributeKey(DataConstants.SERVER_SCOPE, idKey));
-                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), keysToNotify), null);
+                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, idKeyList), null);
                     }
 
                     @Override
@@ -520,9 +517,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         log.trace("[{}] Success remove target {} attributes!", device.getId(), otaPackageType);
-                        Set<AttributeKey> keysToNotify = new HashSet<>();
-                        attributesKeys.forEach(key -> keysToNotify.add(new AttributeKey(DataConstants.SHARED_SCOPE, key)));
-                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), keysToNotify), null);
+                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), DataConstants.SHARED_SCOPE, attributesKeys), null);
                     }
 
                     @Override

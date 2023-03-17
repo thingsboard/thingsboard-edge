@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,6 +58,15 @@ public interface UserDao extends Dao<User>, TenantEntityDao {
      * @return the user entity
      */
     User findByEmail(TenantId tenantId, String email);
+
+    /**
+     * Find user by tenant id and email.
+     *
+     * @param tenantId the tenant id
+     * @param email the email
+     * @return the user entity
+     */
+    User findByTenantIdAndEmail(TenantId tenantId, String email);
 
     /**
      * Find users by tenantId and page link.

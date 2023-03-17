@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,11 +45,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
-        name = "aggregate latest",
+        name = "aggregate latest (deprecated)",
         configClazz = TbAggLatestTelemetryNodeConfiguration.class,
         nodeDescription = "Periodically aggregates entities attributes or latest timeseries",
         nodeDetails = "Performs aggregation of attributes or latest timeseries fetched from child entities with configurable period. " +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with aggregated values for each parent entity.",
+                "Generates outgoing messages with aggregated values for each parent entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
+                "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         inEnabled = false,
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateLatestConfig",

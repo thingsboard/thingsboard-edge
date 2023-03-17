@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.thingsboard.server.common.data.security.Authority;
 import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
 
 public abstract class BaseAuthControllerTest extends AbstractControllerTest {
 
@@ -72,9 +74,13 @@ public abstract class BaseAuthControllerTest extends AbstractControllerTest {
         .andExpect(jsonPath("$.authority",is(Authority.SYS_ADMIN.name())))
         .andExpect(jsonPath("$.email",is(SYS_ADMIN_EMAIL)));
 
+        TimeUnit.SECONDS.sleep(1); //We need to make sure that event for invalidating token was successfully processed;
+
         logout();
         doGet("/api/auth/user")
         .andExpect(status().isUnauthorized());
+
+        resetTokens();
     }
 
     @Test

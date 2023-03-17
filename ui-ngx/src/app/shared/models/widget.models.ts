@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
-import { Timewindow } from '@shared/models/time/time.models';
+import { AggregationType, ComparisonDuration, Timewindow } from '@shared/models/time/time.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { AlarmSearchStatus, AlarmSeverity } from '@shared/models/alarm.models';
 import { DataKeyType } from './telemetry/telemetry.models';
@@ -44,7 +44,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { AfterViewInit, Directive, EventEmitter, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
@@ -188,7 +188,7 @@ export interface WidgetTypeParameters {
   hasAdditionalLatestDataKeys?: boolean;
   warnOnPageDataOverflow?: boolean;
   ignoreDataUpdateOnIntervalTick?: boolean;
-
+  processNoDataByWidget?: boolean;
 }
 
 export interface WidgetControllerDescriptor {
@@ -274,8 +274,27 @@ export function defaultLegendConfig(wType: widgetType): LegendConfig {
   };
 }
 
+export enum ComparisonResultType {
+  PREVIOUS_VALUE = 'PREVIOUS_VALUE',
+  DELTA_ABSOLUTE = 'DELTA_ABSOLUTE',
+  DELTA_PERCENT = 'DELTA_PERCENT'
+}
+
+export const comparisonResultTypeTranslationMap = new Map<ComparisonResultType, string>(
+  [
+    [ComparisonResultType.PREVIOUS_VALUE, 'datakey.delta-calculation-result-previous-value'],
+    [ComparisonResultType.DELTA_ABSOLUTE, 'datakey.delta-calculation-result-delta-absolute'],
+    [ComparisonResultType.DELTA_PERCENT, 'datakey.delta-calculation-result-delta-percent']
+  ]
+);
+
 export interface KeyInfo {
   name: string;
+  aggregationType?: AggregationType;
+  comparisonEnabled?: boolean;
+  timeForComparison?: ComparisonDuration;
+  comparisonCustomIntervalValue?: number;
+  comparisonResultType?: ComparisonResultType;
   label?: string;
   color?: string;
   funcBody?: string;
@@ -283,6 +302,18 @@ export interface KeyInfo {
   units?: string;
   decimals?: number;
 }
+
+export const dataKeyAggregationTypeHintTranslationMap = new Map<AggregationType, string>(
+  [
+    [AggregationType.MIN, 'datakey.aggregation-type-min-hint'],
+    [AggregationType.MAX, 'datakey.aggregation-type-max-hint'],
+    [AggregationType.AVG, 'datakey.aggregation-type-avg-hint'],
+    [AggregationType.SUM, 'datakey.aggregation-type-sum-hint'],
+    [AggregationType.COUNT, 'datakey.aggregation-type-count-hint'],
+    [AggregationType.NONE, 'datakey.aggregation-type-none-hint'],
+  ]
+);
+
 
 export interface DataKey extends KeyInfo {
   type: DataKeyType;
@@ -336,6 +367,37 @@ export interface Datasource {
   dataKeyStartIndex?: number;
   latestDataKeyStartIndex?: number;
   [key: string]: any;
+}
+
+export function datasourcesHasAggregation(datasources?: Array<Datasource>): boolean {
+  if (datasources) {
+    const foundDatasource = datasources.find(datasource => {
+      const found = datasource.dataKeys && datasource.dataKeys.find(key => key.type === DataKeyType.timeseries &&
+        key.aggregationType && key.aggregationType !== AggregationType.NONE);
+      return !!found;
+    });
+    if (foundDatasource) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function datasourcesHasOnlyComparisonAggregation(datasources?: Array<Datasource>): boolean {
+  if (!datasourcesHasAggregation(datasources)) {
+    return false;
+  }
+  if (datasources) {
+    const foundDatasource = datasources.find(datasource => {
+      const found = datasource.dataKeys && datasource.dataKeys.find(key => key.type === DataKeyType.timeseries &&
+        key.aggregationType && key.aggregationType !== AggregationType.NONE && !key.comparisonEnabled);
+      return !!found;
+    });
+    if (foundDatasource) {
+      return false;
+    }
+  }
+  return true;
 }
 
 export interface FormattedData {
@@ -584,6 +646,7 @@ export interface WidgetConfig {
   showLegend?: boolean;
   legendConfig?: LegendConfig;
   timewindow?: Timewindow;
+  desktopHide?: boolean;
   mobileHide?: boolean;
   mobileHeight?: number;
   mobileOrder?: number;
@@ -683,7 +746,7 @@ function removeEmptyWidgetSettings(settings: WidgetSettings): WidgetSettings {
 }
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class WidgetSettingsComponent extends PageComponent implements
   IWidgetSettingsComponent, OnInit, AfterViewInit {
 
@@ -779,7 +842,7 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
     }
   }
 
-  protected doUpdateSettings(settingsForm: FormGroup, settings: WidgetSettings) {
+  protected doUpdateSettings(settingsForm: UntypedFormGroup, settings: WidgetSettings) {
   }
 
   protected prepareInputSettings(settings: WidgetSettings): WidgetSettings {
@@ -796,7 +859,7 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
 
   protected onValidate() {}
 
-  protected abstract settingsForm(): FormGroup;
+  protected abstract settingsForm(): UntypedFormGroup;
 
   protected abstract onSettingsSet(settings: WidgetSettings);
 

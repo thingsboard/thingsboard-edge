@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,13 +32,14 @@ package org.thingsboard.server.service.converter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.JSUplinkDataConverter;
+import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
+import org.thingsboard.integration.api.converter.ScriptUplinkDataConverter;
 import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
-import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,7 +64,10 @@ public class DefaultDataConverterService implements DataConverterService {
     private ConverterLookupService converterService;
 
     @Autowired
-    private JsInvokeService jsService;
+    private JsInvokeService jsInvokeService;
+
+    @Autowired(required = false)
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     private LogSettingsComponent logSettingsComponent;
@@ -135,11 +139,11 @@ public class DefaultDataConverterService implements DataConverterService {
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
             case UPLINK:
-                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsService, logSettingsComponent);
+                ScriptUplinkDataConverter uplink = new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
                 uplink.init(converter);
                 return uplink;
             case DOWNLINK:
-                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsService, logSettingsComponent);
+                ScriptDownlinkDataConverter downlink = new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
                 downlink.init(converter);
                 return downlink;
             default:

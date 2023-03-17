@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import {
   twoFactorAuthProvidersLoginData,
@@ -45,6 +45,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { interval, Subscription } from 'rxjs';
 import { isEqual } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-two-factor-auth-login',
@@ -52,6 +53,8 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
   styleUrls: ['./two-factor-auth-login.component.scss']
 })
 export class TwoFactorAuthLoginComponent extends PageComponent implements OnInit, OnDestroy {
+
+  @HostBinding('class') class = 'tb-custom-css';
 
   private providersInfo: TwoFaProviderInfo[];
   private prevProvider: TwoFactorAuthProviderType;
@@ -85,7 +88,8 @@ export class TwoFactorAuthLoginComponent extends PageComponent implements OnInit
               private twoFactorAuthService: TwoFactorAuthenticationService,
               private authService: AuthService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder,
+              public wl: WhiteLabelingService) {
     super(store);
   }
 
@@ -202,8 +206,7 @@ export class TwoFactorAuthLoginComponent extends PageComponent implements OnInit
 
   cancelLogin() {
     if (this.prevProvider) {
-      this.selectedProvider = this.prevProvider;
-      this.prevProvider = null;
+      this.selectProvider(this.prevProvider);
     } else {
       this.authService.logout();
     }

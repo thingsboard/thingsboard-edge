@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -196,15 +197,8 @@ public class ThingsboardSecurityConfiguration {
     private OAuth2AuthorizationRequestResolver oAuth2AuthorizationRequestResolver;
 
     @Bean
-    @Order(0)
-    SecurityFilterChain resources(HttpSecurity http) throws Exception {
-        http
-                .requestMatchers((matchers) -> matchers.antMatchers("/*.js","/*.css","/*.ico","/assets/**","/static/**"))
-                .authorizeHttpRequests((authorize) -> authorize.anyRequest().permitAll())
-                .requestCache().disable()
-                .securityContext().disable()
-                .sessionManagement().disable();
-        return http.build();
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().antMatchers("/*.js","/*.css","/*.ico","/assets/**","/static/**");
     }
 
     @Bean

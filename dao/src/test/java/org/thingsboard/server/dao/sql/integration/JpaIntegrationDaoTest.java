@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,10 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -108,8 +108,8 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         saveConverter(converterId1, tenantId1, "TEST_CONVERTER_1", ConverterType.UPLINK).getUuidId();
         saveConverter(converterId2, tenantId1, "TEST_CONVERTER_2", ConverterType.UPLINK).getUuidId();
 
-        String routingKey = RandomStringUtils.randomAlphanumeric(15);
-        String routingKey2 = RandomStringUtils.randomAlphanumeric(15);
+        String routingKey = StringUtils.randomAlphanumeric(15);
+        String routingKey2 = StringUtils.randomAlphanumeric(15);
         savedIntegrations.add(saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT));
         savedIntegrations.add(saveIntegration(integrationId2, tenantId2, converterId2, "TEST_INTEGRATION", routingKey2, IntegrationType.OCEANCONNECT));
 
@@ -131,7 +131,7 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
             UUID integrationId = Uuids.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             UUID converterId = i % 2 == 0 ? converterId1 : saveConverter(Uuids.timeBased(), tenantId1, "TEST_CONVERTER_" + i, ConverterType.UPLINK).getUuidId();
-            savedIntegrations.add(saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),
+            savedIntegrations.add(saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, StringUtils.randomAlphanumeric(15),
                     IntegrationType.OCEANCONNECT));
         }
     }

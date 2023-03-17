@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -94,6 +93,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
         put(Resource.AUDIT_LOG, genericPermissionChecker);
         put(Resource.DEVICE_PROFILE, tenantStandaloneEntityPermissionChecker);
+        put(Resource.ASSET_PROFILE, tenantStandaloneEntityPermissionChecker);
         put(Resource.API_USAGE_STATE, tenantStandaloneEntityPermissionChecker);
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, tenantStandaloneEntityPermissionChecker);

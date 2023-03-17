@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@
       [formGroup]="multipleInputFormGroup"
       tb-toast toastTarget="{{ toastTargetId }}"
       (ngSubmit)="saveForm()" novalidate autocomplete="off">
-  <div style="padding: 0 8px;" *ngIf="entityDetected && isAllParametersValid">
+  <div class="tb-multiple-input-container" *ngIf="entityDetected && isAllParametersValid">
     <fieldset *ngFor="let source of sources" [ngClass]="{'fields-group': settings.showGroupTitle}">
       <legend class="group-title" *ngIf="settings.showGroupTitle">{{ getGroupTitle(source.datasource) }}
       </legend>
@@ -117,7 +117,7 @@
                                                     (key.settings.dataKeyValueType === 'date') ||
                                                     (key.settings.dataKeyValueType === 'time')" fxLayout="column">
             <mat-form-field>
-              <mat-placeholder>{{key.label}}</mat-placeholder>
+              <mat-label>{{key.label}}</mat-label>
               <mat-datetimepicker-toggle [for]="datePicker" matPrefix></mat-datetimepicker-toggle>
               <mat-datetimepicker #datePicker type="{{datePickerType(key.settings.dataKeyValueType)}}"
                                   openOnFocus="true"></mat-datetimepicker>
@@ -157,19 +157,19 @@
         </div>
       </div>
     </fieldset>
-    <div class="mat-padding" fxLayout="row" fxLayoutAlign="end center"
-         *ngIf="entityDetected && settings.showActionButtons">
-      <button mat-button color="primary" type="button"
-              (click)="discardAll()" style="max-height: 50px; margin-right:20px;"
-              [disabled]="!multipleInputFormGroup.dirty">
-        {{ resetButtonLabel }}
-      </button>
-      <button mat-button mat-raised-button color="primary" type="submit"
-                 style="max-height: 50px; margin-right:20px;"
-                 [disabled]="!multipleInputFormGroup.dirty || multipleInputFormGroup.invalid">
-        {{ saveButtonLabel }}
-      </button>
-    </div>
+  </div>
+  <div class="mat-padding" fxLayout="row" fxLayoutAlign="end center"
+       *ngIf="entityDetected && isAllParametersValid && settings.showActionButtons">
+    <button mat-button color="primary" type="button"
+            (click)="discardAll()" style="max-height: 50px; margin-right:20px;"
+            [disabled]="!multipleInputFormGroup.dirty">
+      {{ resetButtonLabel }}
+    </button>
+    <button mat-button mat-raised-button color="primary" type="submit"
+            style="max-height: 50px; margin-right:20px;"
+            [disabled]="!multipleInputFormGroup.dirty || multipleInputFormGroup.invalid">
+      {{ saveButtonLabel }}
+    </button>
   </div>
   <div class="tb-multiple-input__errors" fxLayout="column" fxLayoutAlign="center center" style="height: 100%;"
        *ngIf="(!entityDetected || !isAllParametersValid) && datasourceDetected">

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.4.1PE-SNAPSHOT</version>
+    <version>3.5.0PE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard PE</name>
@@ -66,11 +66,10 @@
         <log4j.version>2.17.1</log4j.version>
         <logback.version>1.2.10</logback.version>
         <rat.version>0.10</rat.version>
-        <cassandra.version>4.10.0</cassandra.version>
+        <cassandra.version>4.15.0</cassandra.version>
         <metrics.version>4.0.5</metrics.version>
-        <cassandra-all.version>3.11.10</cassandra-all.version>
-        <cassandra-driver-core.version>3.11.0</cassandra-driver-core.version>
-        <guava.version>30.0-jre</guava.version>
+        <cassandra-all.version>3.11.14</cassandra-all.version>
+        <guava.version>31.1-jre</guava.version>
         <caffeine.version>2.6.1</caffeine.version>
         <commons-lang3.version>3.4</commons-lang3.version>
         <commons-codec.version>1.15</commons-codec.version>
@@ -79,9 +78,10 @@
         <commons-csv.version>1.4</commons-csv.version>
         <apache-httpclient.version>4.5.13</apache-httpclient.version>
         <apache-httpcore.version>4.4.14</apache-httpcore.version>
-        <apache-pulsar.version>2.6.0</apache-pulsar.version>
+        <apache-pulsar.version>2.10.1</apache-pulsar.version>
         <joda-time.version>2.8.1</joda-time.version>
-        <jackson.version>2.13.2</jackson.version>
+        <jackson.version>2.13.4</jackson.version>
+        <jackson-databind.version>2.13.4.2</jackson-databind.version>
         <fasterxml-classmate.version>1.3.4</fasterxml-classmate.version>
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
         <milo.version>0.6.3</milo.version>
@@ -92,24 +92,26 @@
         <mail.version>1.6.2</mail.version>
         <curator.version>4.2.0</curator.version>
         <zookeeper.version>3.5.5</zookeeper.version>
-        <protobuf.version>3.17.2</protobuf.version>
+        <protobuf.version>3.21.9</protobuf.version>
         <grpc.version>1.42.1</grpc.version>
+        <tbel.version>1.0.5</tbel.version>
         <lombok.version>1.18.18</lombok.version>
         <paho.client.version>1.2.4</paho.client.version>
+        <paho.mqttv5.client.version>1.2.5</paho.mqttv5.client.version>
         <netty.version>4.1.75.Final</netty.version>
         <netty-tcnative.version>2.0.51.Final</netty-tcnative.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <rabbitmq.version>4.8.0</rabbitmq.version>
-        <surefire.version>3.0.0-M6</surefire.version>
+        <surefire.version>3.0.0-M9</surefire.version>
         <jar-plugin.version>3.0.2</jar-plugin.version>
         <springfox-swagger.version>3.0.4</springfox-swagger.version>
         <swagger-annotations.version>1.6.3</swagger-annotations.version>
         <spatial4j.version>0.7</spatial4j.version>
         <jts.version>1.18.2</jts.version>
-        <bouncycastle.version>1.67</bouncycastle.version>
+        <bouncycastle.version>1.69</bouncycastle.version>
         <winsw.version>2.0.1</winsw.version>
-        <postgresql.driver.version>42.2.20</postgresql.driver.version>
-        <azure-messaging-eventhubs.version>5.5.0</azure-messaging-eventhubs.version>
+        <postgresql.driver.version>42.5.0</postgresql.driver.version>
+        <azure-messaging-eventhubs.version>5.15.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <proton-j.version>0.33.2</proton-j.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
@@ -136,7 +138,7 @@
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <micrometer.version>1.9.0</micrometer.version>
-        <protobuf-dynamic.version>1.0.3TB</protobuf-dynamic.version>
+        <protobuf-dynamic.version>1.0.4TB</protobuf-dynamic.version>
         <wire-schema.version>3.4.0</wire-schema.version>
         <twilio.version>8.17.0</twilio.version>
         <hibernate-validator.version>6.0.20.Final</hibernate-validator.version>
@@ -146,7 +148,6 @@
         <snmp4j.version>2.8.5</snmp4j.version>
         <!--         TEST SCOPE         -->
         <awaitility.version>4.1.0</awaitility.version>
-        <cassandra-unit.version>4.3.1.0</cassandra-unit.version>
         <dbunit.version>2.7.2</dbunit.version>
         <java-websocket.version>1.5.2</java-websocket.version>
         <jupiter.version>5.8.2</jupiter.version> <!-- keep the same version as spring-boot-starter-test depend on jupiter-->
@@ -155,12 +156,23 @@
         <spring-test-dbunit.version>1.3.0</spring-test-dbunit.version> <!-- 2016 -->
         <takari-cpsuite.version>1.2.7</takari-cpsuite.version> <!-- 2015 -->
         <!--      BLACKBOX TEST SCOPE     -->
-        <testcontainers.version>1.16.0</testcontainers.version>
+        <testng.version>7.6.1</testng.version>
+        <assertj.version>3.23.1</assertj.version>
+        <rest-assured.version>5.2.0</rest-assured.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
         <zeroturnaround.version>1.12</zeroturnaround.version>
         <dotenv-java.version>2.2.0</dotenv-java.version>
         <opensmpp.version>3.0.0</opensmpp.version>
         <jgit.version>6.1.0.202203080745-r</jgit.version>
+        <exp4j.version>0.4.8</exp4j.version>
         <aerogear-otp.version>1.0.0</aerogear-otp.version>
+        <aws-iot-device-sdk.version>1.3.9</aws-iot-device-sdk.version>
+        <aws-iot-device-sdk-samples.version>1.2.0</aws-iot-device-sdk-samples.version>
+        <selenium.version>4.6.0</selenium.version>
+        <webdrivermanager.version>5.2.0</webdrivermanager.version>
+        <allure-testng.version>2.21.0</allure-testng.version>
+        <allure-maven.version>2.12.0</allure-maven.version>
     </properties>
 
     <modules>
@@ -678,7 +690,7 @@
                     <version>${surefire.version}</version>
                     <configuration>
                         <argLine>
-                            --illegal-access=permit
+                            --illegal-access=permit -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=20
                         </argLine>
                     </configuration>
                 </plugin>
@@ -839,8 +851,10 @@
                             <exclude>docker/haproxy/**</exclude>
                             <exclude>docker/tb-node/**</exclude>
                             <exclude>ui/**</exclude>
-                            <exclude>src/.browserslistrc</exclude>
+                            <exclude>**/.browserslistrc</exclude>
                             <exclude>**/yarn.lock</exclude>
+                            <exclude>**/.yarnrc</exclude>
+                            <exclude>**/.angular/**</exclude>
                             <exclude>**/*.raw</exclude>
                             <exclude>.run/**</exclude>
                             <exclude>docker/**</exclude>
@@ -938,16 +952,6 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.thingsboard.common.js</groupId>
-                <artifactId>js-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thingsboard.common.js</groupId>
-                <artifactId>remote-js-client</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>integration-api</artifactId>
                 <version>${project.version}</version>
@@ -983,8 +987,8 @@
                 <version>${apache-pulsar.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>javax.validation</groupId>
-                        <artifactId>validation-api</artifactId>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1021,6 +1025,11 @@
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>coap-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>tuya-integrations</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1102,6 +1111,16 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>coap-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.script</groupId>
+                <artifactId>script-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.script</groupId>
+                <artifactId>remote-js-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1356,7 +1375,6 @@
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>json-path</artifactId>
                 <version>${json-path.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
@@ -1462,11 +1480,6 @@
                 <version>${cassandra.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.datastax.cassandra</groupId>
-                <artifactId>cassandra-driver-core</artifactId>
-                <version>${cassandra-driver-core.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jmx</artifactId>
                 <version>${metrics.version}</version>
@@ -1514,7 +1527,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson-databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -1603,12 +1616,24 @@
                 <groupId>org.eclipse.milo</groupId>
                 <artifactId>sdk-client</artifactId>
                 <version>${milo.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.milo</groupId>
                 <artifactId>sdk-server</artifactId>
                 <version>${milo.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.californium</groupId>
@@ -1718,6 +1743,11 @@
                 <version>${grpc.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard</groupId>
+                <artifactId>tbel</artifactId>
+                <version>${tbel.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-test</artifactId>
                 <version>${spring.version}</version>
@@ -1736,28 +1766,13 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.cassandraunit</groupId>
-                <artifactId>cassandra-unit</artifactId>
-                <version>${cassandra-unit.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.hamcrest</groupId>
-                        <artifactId>hamcrest-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.hamcrest</groupId>
-                        <artifactId>hamcrest-library</artifactId>
-                    </exclusion>
-                </exclusions>
+                <groupId>org.apache.cassandra</groupId>
+                <artifactId>cassandra-all</artifactId>
+                <version>${cassandra-all.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cassandra</groupId>
-                <artifactId>cassandra-all</artifactId>
+                <artifactId>cassandra-thrift</artifactId>
                 <version>${cassandra-all.version}</version>
             </dependency>
             <dependency>
@@ -1771,6 +1786,54 @@
                         <artifactId>hamcrest-core</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>${testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.rest-assured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${rest-assured.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-java</artifactId>
+                <version>${selenium.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.github.bonigarcia</groupId>
+                <artifactId>webdrivermanager</artifactId>
+                <version>${webdrivermanager.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-testng</artifactId>
+                <version>${allure-testng.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>${allure-maven.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-all</artifactId>
+                <version>${hamcrest.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.awaitility</groupId>
@@ -1796,6 +1859,11 @@
                 <version>${paho.client.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.eclipse.paho</groupId>
+                <artifactId>org.eclipse.paho.mqttv5.client</artifactId>
+                <version>${paho.mqttv5.client.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-x-discovery</artifactId>
                 <version>${curator.version}</version>
@@ -1817,8 +1885,25 @@
             </dependency>
             <dependency>
                 <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-ext-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
                 <artifactId>bcpkix-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>cassandra</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.testcontainers</groupId>
@@ -2092,6 +2177,12 @@
                 <artifactId>mockserver-netty</artifactId>
                 <version>${mock-server.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.mock-server</groupId>
@@ -2113,6 +2204,23 @@
                 <groupId>org.eclipse.jgit</groupId>
                 <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
                 <version>${jgit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.objecthunter</groupId>
+                <artifactId>exp4j</artifactId>
+                <version>${exp4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-iot-device-sdk-java</artifactId>
+                <version>${aws-iot-device-sdk.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-iot-device-sdk-java-samples</artifactId>
+                <version>${aws-iot-device-sdk.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

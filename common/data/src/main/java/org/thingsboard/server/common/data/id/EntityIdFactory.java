@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,14 @@ import java.util.UUID;
  * Created by ashvayka on 25.04.17.
  */
 public class EntityIdFactory {
+
+    public static EntityId getByTypeAndUuid(int type, String uuid) {
+        return getByTypeAndUuid(EntityType.values()[type], UUID.fromString(uuid));
+    }
+
+    public static EntityId getByTypeAndUuid(String type, String uuid) {
+        return getByTypeAndUuid(EntityType.valueOf(type), UUID.fromString(uuid));
+    }
 
     public static EntityId getByTypeAndId(String type, String uuid) {
         return getByTypeAndUuid(EntityType.valueOf(type), UUID.fromString(uuid));
@@ -98,6 +106,8 @@ public class EntityIdFactory {
                 return new WidgetTypeId(uuid);
             case DEVICE_PROFILE:
                 return new DeviceProfileId(uuid);
+            case ASSET_PROFILE:
+                return new AssetProfileId(uuid);
             case TENANT_PROFILE:
                 return new TenantProfileId(uuid);
             case API_USAGE_STATE:
@@ -118,6 +128,8 @@ public class EntityIdFactory {
 
     public static EntityId getByEdgeEventTypeAndUuid(EdgeEventType edgeEventType, UUID uuid) {
         switch (edgeEventType) {
+            case TENANT:
+                return new TenantId(uuid);
             case CUSTOMER:
                 return new CustomerId(uuid);
             case USER:
@@ -128,6 +140,8 @@ public class EntityIdFactory {
                 return new DeviceId(uuid);
             case DEVICE_PROFILE:
                 return new DeviceProfileId(uuid);
+            case ASSET_PROFILE:
+                return new AssetProfileId(uuid);
             case ASSET:
                 return new AssetId(uuid);
             case ALARM:

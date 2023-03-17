@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   DEFAULT_EDRX_CYCLE,
   DEFAULT_PAGING_TRANSMISSION_WINDOW, DEFAULT_PSM_ACTIVITY_TIMER,
@@ -50,10 +50,10 @@ export class PowerModeSettingComponent implements OnInit, OnDestroy {
   powerMods = Object.values(PowerMode);
   powerModeTranslationMap = PowerModeTranslationMap;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   @Input()
-  parentForm: FormGroup;
+  parentForm: UntypedFormGroup;
 
   @Input()
   isDeviceSetting = false;

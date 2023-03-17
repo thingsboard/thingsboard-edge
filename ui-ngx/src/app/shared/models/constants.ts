@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -101,6 +101,9 @@ export const HelpLinks = {
     ruleNodeGpsGeofencingFilter: helpBaseUrl + '/docs//pe/user-guide/rule-engine-2-0/filter-nodes/#gps-geofencing-filter-node',
     ruleNodeJsFilter: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#script-filter-node',
     ruleNodeJsSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#switch-node',
+    ruleNodeAssetProfileSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#asset-profile-switch',
+    ruleNodeDeviceProfileSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#device-profile-switch',
+    ruleNodeCheckAlarmStatus: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#check-alarm-status',
     ruleNodeMessageTypeFilter: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#message-type-filter-node',
     ruleNodeMessageTypeSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#message-type-switch-node',
     ruleNodeOriginatorTypeFilter: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#originator-type-filter-node',
@@ -143,6 +146,7 @@ export const HelpLinks = {
     ruleNodeRestApiCall: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#rest-api-call-node',
     ruleNodeSendEmail: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
     ruleNodeSendSms: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
+    ruleNodeMath: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#math-function-node',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#remove-from-group-node',
@@ -162,6 +166,7 @@ export const HelpLinks = {
     users: helpBaseUrl + '/docs/pe/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/pe/user-guide/ui/devices',
     deviceProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/device-profiles',
+    assetProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/asset-profiles',
     edges: helpBaseUrl + '/docs/user-guide/ui/edges',
     assets: helpBaseUrl + '/docs/pe/user-guide/ui/assets',
     entityViews: helpBaseUrl + '/docs/pe/user-guide/ui/entity-views',
@@ -207,7 +212,7 @@ export const HelpLinks = {
     integrationRabbitmq:  helpBaseUrl +  '/docs/user-guide/integrations/rabbitmq',
     integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
     integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
-    integrationCoAP:  helpBaseUrl +  '/docs/user-guide/integrations/coap-integration',
+    integrationCoAP:  helpBaseUrl +  '/docs/user-guide/integrations/coap',
     integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/pe/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/pe/user-guide/groups',

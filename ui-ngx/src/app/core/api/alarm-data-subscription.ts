@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -77,6 +77,7 @@ export class AlarmDataSubscription {
   private alarmDataCommand: AlarmDataCmd;
 
   private pageData: PageData<AlarmData>;
+  private prematureUpdates: Array<Array<AlarmData>>;
   private alarmIdToDataIndex: {[id: string]: number};
 
   private subsTw: SubscriptionTimewindow;
@@ -151,8 +152,21 @@ export class AlarmDataSubscription {
       this.subscriber.alarmData$.subscribe((alarmDataUpdate) => {
         if (alarmDataUpdate.data) {
           this.onPageData(alarmDataUpdate.data, alarmDataUpdate.allowedEntities, alarmDataUpdate.totalEntities);
+          if (this.prematureUpdates) {
+            for (const update of this.prematureUpdates) {
+              this.onDataUpdate(update);
+            }
+            this.prematureUpdates = null;
+          }
         } else if (alarmDataUpdate.update) {
-          this.onDataUpdate(alarmDataUpdate.update);
+          if (!this.pageData) {
+            if (!this.prematureUpdates) {
+              this.prematureUpdates = [];
+            }
+            this.prematureUpdates.push(alarmDataUpdate.update);
+          } else {
+            this.onDataUpdate(alarmDataUpdate.update);
+          }
         }
       });
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,13 +31,13 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.thingsboard.server.common.data.ResourceType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
@@ -133,7 +133,7 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
     public void saveResourceInfoWithViolationOfLengthValidation() throws Exception {
         TbResource resource = new TbResource();
         resource.setResourceType(ResourceType.JKS);
-        resource.setTitle(RandomStringUtils.randomAlphabetic(300));
+        resource.setTitle(StringUtils.randomAlphabetic(300));
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setData("Test Data");
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,8 +37,6 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
-import java.util.concurrent.Executor;
-
 @TbCoreComponent
 @RequiredArgsConstructor
 @Service
@@ -52,8 +50,4 @@ public class TbCoreIntegrationContextProvider implements IntegrationContextProvi
         return new LocalIntegrationContext(contextComponent, configuration);
     }
 
-    @Override
-    public Executor getCallbackExecutor() {
-        return callbackExecutorService;
-    }
 }

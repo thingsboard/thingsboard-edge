@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,9 +31,9 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
 import org.thingsboard.server.common.data.query.ComplexFilterPredicate;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
@@ -88,6 +88,10 @@ public class EntityKeyMapping {
     public static final String PHONE = "phone";
     public static final String ADDITIONAL_INFO = "additionalInfo";
     public static final String RELATED_PARENT_ID = "parentId";
+    public static final String CONFIGURATION = "configuration";
+    public static final String SCHEDULE = "schedule";
+    public static final String ORIGINATOR_ID = "originatorId";
+    public static final String ORIGINATOR_TYPE = "originatorType";
 
 
     public static final List<String> typedEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE, ADDITIONAL_INFO);
@@ -123,12 +127,19 @@ public class EntityKeyMapping {
         allowedEntityFieldMap.put(EntityType.WIDGETS_BUNDLE, new HashSet<>(widgetEntityFields));
         allowedEntityFieldMap.put(EntityType.CONVERTER, new HashSet<>(typedEntityFields));
         allowedEntityFieldMap.put(EntityType.INTEGRATION, new HashSet<>(typedEntityFields));
+
         allowedEntityFieldMap.put(EntityType.SCHEDULER_EVENT, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.get(EntityType.SCHEDULER_EVENT).add(CONFIGURATION);
+        allowedEntityFieldMap.get(EntityType.SCHEDULER_EVENT).add(SCHEDULE);
+        allowedEntityFieldMap.get(EntityType.SCHEDULER_EVENT).add(ORIGINATOR_ID);
+        allowedEntityFieldMap.get(EntityType.SCHEDULER_EVENT).add(ORIGINATOR_TYPE);
+
         allowedEntityFieldMap.put(EntityType.BLOB_ENTITY, new HashSet<>(typedEntityFields));
         allowedEntityFieldMap.put(EntityType.ROLE, new HashSet<>(typedEntityFields));
         allowedEntityFieldMap.put(EntityType.ENTITY_GROUP, new HashSet<>(entityGroupFields));
         allowedEntityFieldMap.put(EntityType.API_USAGE_STATE, apiUsageStateEntityFields);
         allowedEntityFieldMap.put(EntityType.DEVICE_PROFILE, Set.of(CREATED_TIME, NAME, TYPE));
+        allowedEntityFieldMap.put(EntityType.ASSET_PROFILE, Set.of(CREATED_TIME, NAME));
 
         entityFieldColumnMap.put(CREATED_TIME, ModelConstants.CREATED_TIME_PROPERTY);
         entityFieldColumnMap.put(ENTITY_TYPE, ModelConstants.ENTITY_TYPE_PROPERTY);
@@ -149,6 +160,10 @@ public class EntityKeyMapping {
         entityFieldColumnMap.put(PHONE, ModelConstants.PHONE_PROPERTY);
         entityFieldColumnMap.put(ADDITIONAL_INFO, ModelConstants.ADDITIONAL_INFO_PROPERTY);
         entityFieldColumnMap.put(RELATED_PARENT_ID, "parent_id");
+        entityFieldColumnMap.put(CONFIGURATION, ModelConstants.CONFIGURATION_PROPERTY);
+        entityFieldColumnMap.put(SCHEDULE, ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY);
+        entityFieldColumnMap.put(ORIGINATOR_ID, ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY);
+        entityFieldColumnMap.put(ORIGINATOR_TYPE, ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY);
 
         Map<String, String> contactBasedAliases = new HashMap<>();
         contactBasedAliases.put(NAME, TITLE);

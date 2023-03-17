@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
@@ -45,11 +47,15 @@ import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
@@ -65,6 +71,13 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
 
     @Column(name = SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY)
     private UUID customerId;
+
+    @Column(name = SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY)
+    private UUID originatorId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY)
+    private EntityType originatorType;
 
     @Column(name = SCHEDULER_EVENT_NAME_PROPERTY)
     private String name;
@@ -98,6 +111,10 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         if (schedulerEventInfo.getCustomerId() != null) {
             this.customerId = schedulerEventInfo.getCustomerId().getId();
         }
+        if (schedulerEventInfo.getOriginatorId() != null) {
+            this.originatorId = schedulerEventInfo.getOriginatorId().getId();
+            this.originatorType = schedulerEventInfo.getOriginatorId().getEntityType();
+        }
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
         this.additionalInfo = schedulerEventInfo.getAdditionalInfo();
@@ -109,6 +126,8 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.setCreatedTime(schedulerEventInfoEntity.getCreatedTime());
         this.tenantId = schedulerEventInfoEntity.getTenantId();
         this.customerId = schedulerEventInfoEntity.getCustomerId();
+        this.originatorId = schedulerEventInfoEntity.getOriginatorId();
+        this.originatorType = schedulerEventInfoEntity.getOriginatorType();
         this.type = schedulerEventInfoEntity.getType();
         this.name = schedulerEventInfoEntity.getName();
         this.searchText = schedulerEventInfoEntity.getSearchText();
@@ -138,6 +157,9 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         }
         if (customerId != null) {
             schedulerEventInfo.setCustomerId(new CustomerId(customerId));
+        }
+        if (originatorId != null && originatorType != null) {
+            schedulerEventInfo.setOriginatorId(EntityIdFactory.getByTypeAndUuid(originatorType, originatorId));
         }
         schedulerEventInfo.setName(name);
         schedulerEventInfo.setType(type);

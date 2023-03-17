@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -116,6 +116,10 @@ public class WsClient extends WebSocketClient {
             log.error("Timeout, ws message wasn't received");
             throw new RuntimeException(e);
         }
+    }
+
+    public WsTelemetryResponse getMessage() {
+        return this.message;
     }
 
     @Override

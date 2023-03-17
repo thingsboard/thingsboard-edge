@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ package org.thingsboard.server.dao.service.validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,10 +43,10 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
@@ -57,6 +57,7 @@ public class AssetDataValidator extends DataValidator<Asset> {
     private AssetDao assetDao;
 
     @Autowired
+    @Lazy
     private TenantService tenantService;
 
     @Autowired
@@ -87,9 +88,6 @@ public class AssetDataValidator extends DataValidator<Asset> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, Asset asset) {
-        if (StringUtils.isEmpty(asset.getType())) {
-            throw new DataValidationException("Asset type should be specified!");
-        }
         if (StringUtils.isEmpty(asset.getName())) {
             throw new DataValidationException("Asset name should be specified!");
         }

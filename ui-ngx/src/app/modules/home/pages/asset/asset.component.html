@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -102,12 +102,13 @@
           {{ 'asset.name-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <tb-entity-subtype-autocomplete
-        formControlName="type"
-        [required]="true"
-        [entityType]="entityType.ASSET"
-      >
-      </tb-entity-subtype-autocomplete>
+      <tb-asset-profile-autocomplete
+        [selectDefaultProfile]="isAdd"
+        required
+        formControlName="assetProfileId"
+        [showDetailsPageLink]="true"
+        (assetProfileUpdated)="onAssetProfileUpdated()">
+      </tb-asset-profile-autocomplete>
       <mat-form-field class="mat-block">
         <mat-label translate>asset.label</mat-label>
         <input matInput formControlName="label">

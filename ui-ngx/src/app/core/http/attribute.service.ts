@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -58,7 +58,7 @@ export class AttributeService {
 
   public deleteEntityAttributes(entityId: EntityId, attributeScope: AttributeScope, attributes: Array<AttributeData>,
                                 config?: RequestConfig): Observable<any> {
-    const keys = attributes.map(attribute => encodeURI(attribute.key)).join(',');
+    const keys = attributes.map(attribute => encodeURIComponent(attribute.key)).join(',');
     return this.http.delete(`/api/plugins/telemetry/${entityId.entityType}/${entityId.id}/${attributeScope}` +
       `?keys=${keys}`,
       defaultHttpOptionsFromConfig(config));
@@ -66,7 +66,7 @@ export class AttributeService {
 
   public deleteEntityTimeseries(entityId: EntityId, timeseries: Array<AttributeData>, deleteAllDataForKeys = false,
                                 startTs?: number, endTs?: number, config?: RequestConfig): Observable<any> {
-    const keys = timeseries.map(attribute => encodeURI(attribute.key)).join(',');
+    const keys = timeseries.map(attribute => encodeURIComponent(attribute.key)).join(',');
     let url = `/api/plugins/telemetry/${entityId.entityType}/${entityId.id}/timeseries/delete` +
       `?keys=${keys}&deleteAllDataForKeys=${deleteAllDataForKeys}`;
     if (isDefinedAndNotNull(startTs)) {

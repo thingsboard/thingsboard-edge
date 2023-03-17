@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -46,12 +48,16 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
@@ -68,6 +74,13 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
 
     @Column(name = SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY)
     private UUID customerId;
+
+    @Column(name = SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY)
+    private UUID originatorId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY)
+    private EntityType originatorType;
 
     @Column(name = SCHEDULER_EVENT_NAME_PROPERTY)
     private String name;
@@ -105,6 +118,10 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         if (schedulerEvent.getCustomerId() != null) {
             this.customerId = schedulerEvent.getCustomerId().getId();
         }
+        if (schedulerEvent.getOriginatorId() != null) {
+            this.originatorId = schedulerEvent.getOriginatorId().getId();
+            this.originatorType = schedulerEvent.getOriginatorId().getEntityType();
+        }
         this.name = schedulerEvent.getName();
         this.type = schedulerEvent.getType();
         this.additionalInfo = schedulerEvent.getAdditionalInfo();
@@ -135,6 +152,9 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         }
         if (customerId != null) {
             schedulerEvent.setCustomerId(new CustomerId(customerId));
+        }
+        if (originatorId != null && originatorType != null) {
+            schedulerEvent.setOriginatorId(EntityIdFactory.getByTypeAndUuid(originatorType, originatorId));
         }
         schedulerEvent.setName(name);
         schedulerEvent.setType(type);

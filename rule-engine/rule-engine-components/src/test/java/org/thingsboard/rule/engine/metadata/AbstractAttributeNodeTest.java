@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,6 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
-import org.jetbrains.annotations.NotNull;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -220,7 +219,6 @@ public abstract class AbstractAttributeNodeTest {
         return getConfig(true);
     }
 
-    @NotNull
     private TbGetEntityAttrNodeConfiguration getConfig(boolean isTelemetry) {
         TbGetEntityAttrNodeConfiguration config = new TbGetEntityAttrNodeConfiguration();
         Map<String, String> conf = new HashMap<>();

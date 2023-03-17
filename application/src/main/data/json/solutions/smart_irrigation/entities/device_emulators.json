@@ -1,0 +1,156 @@
+[
+  {
+    "name": "Soil Moisture",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "moisture",
+        "valueStrategy": {
+          "type": "schedule",
+          "timeZone": "America/New_York",
+          "schedule": [
+            {
+              "startHour": 6,
+              "startMinute": 0,
+              "endHour": 7,
+              "endMinute": 30,
+              "definition": {
+                "type": "inc",
+                "precision": 2,
+                "minStartValue": 20,
+                "maxStartValue": 50,
+                "minEndValue": 70,
+                "maxEndValue": 75,
+                "minIncrement": 2,
+                "maxIncrement": 4
+              }
+            }
+          ],
+          "defaultDefinition": {
+            "type": "dec",
+            "precision": 2,
+            "minStartValue": 70,
+            "maxStartValue": 75,
+            "minEndValue": 20,
+            "maxEndValue": 30,
+            "minDecrement": 0.1,
+            "maxDecrement": 0.4
+          }
+        }
+      },
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 25,
+          "maxStartValue": 75,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smart Valve",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 25,
+          "maxStartValue": 75,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Water Meter",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 25,
+          "maxStartValue": 75,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulseCounter",
+        "valueStrategy": {
+          "type": "schedule",
+          "timeZone": "America/New_York",
+          "schedule": [
+            {
+              "startHour": 6,
+              "startMinute": 0,
+              "endHour": 7,
+              "endMinute": 30,
+              "definition": {
+                "type": "inc",
+                "precision": 2,
+                "minStartValue": 1,
+                "maxStartValue": 1,
+                "minEndValue": 100500,
+                "maxEndValue": 100500,
+                "minIncrement": 150,
+                "maxIncrement": 150
+              }
+            }
+          ],
+          "defaultDefinition": {
+            "type": "constant",
+            "value": 0
+          }
+        }
+      }
+    ]
+  }
+]

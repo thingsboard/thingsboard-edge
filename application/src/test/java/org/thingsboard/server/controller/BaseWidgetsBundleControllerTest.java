@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,13 +31,13 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -124,7 +124,7 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
      @Test
      public void testSaveWidgetBundleWithViolationOfLengthValidation() throws Exception {
          WidgetsBundle widgetsBundle = new WidgetsBundle();
-         widgetsBundle.setTitle(RandomStringUtils.randomAlphabetic(300));
+         widgetsBundle.setTitle(StringUtils.randomAlphabetic(300));
 
          Mockito.reset(tbClusterService);
 
@@ -207,7 +207,7 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
         WidgetsBundle savedWidgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
         savedWidgetsBundle.setAlias("new_alias");
 
-        Mockito.reset(tbClusterService);
+        Mockito.clearInvocations(tbClusterService);
 
         doPost("/api/widgetsBundle", savedWidgetsBundle)
                 .andExpect(status().isBadRequest())

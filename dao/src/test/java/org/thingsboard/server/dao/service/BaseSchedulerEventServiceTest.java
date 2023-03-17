@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,11 @@
 package org.thingsboard.server.dao.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -80,7 +80,7 @@ public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest 
         for (int i = 0; i < 123; i++) {
             SchedulerEvent schedulerEvent = createSchedulerEvent();
             schedulerEvent.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = name1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             schedulerEvent.setName(name);
@@ -94,7 +94,7 @@ public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest 
         for (int i = 0; i < 193; i++) {
             SchedulerEvent schedulerEvent = createSchedulerEvent();
             schedulerEvent.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = name2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             schedulerEvent.setName(name);

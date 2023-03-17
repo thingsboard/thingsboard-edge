@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,10 @@ import java.util.List;
 @ConditionalOnExpression("('${service.type:null}'=='tb-transport' || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core')  && '${transport.lwm2m.enabled:false}'=='true'")
 @ConfigurationProperties(prefix = "transport.lwm2m")
 public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
+
+    @Getter
+    @Value("${transport.lwm2m.dtls.retransmission_timeout:9000}")
+    private int dtlsRetransmissionTimeout;
 
     @Getter
     @Value("${transport.lwm2m.timeout:}")

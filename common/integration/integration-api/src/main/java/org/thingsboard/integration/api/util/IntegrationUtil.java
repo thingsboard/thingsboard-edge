@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -81,6 +81,8 @@ public class IntegrationUtil {
                 return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
+            case TUYA:
+                return newInstance("org.thingsboard.integration.tuya.TuyaIntegration");
             case COAP:
                 return newInstance("org.thingsboard.integration.coap.CoapIntegration", param);
             case TCP:

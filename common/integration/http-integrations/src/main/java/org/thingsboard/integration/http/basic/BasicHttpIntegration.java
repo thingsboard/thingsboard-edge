@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -70,6 +70,7 @@ public class BasicHttpIntegration<T extends HttpIntegrationMsg<?>> extends Abstr
         JsonNode json = configuration.getConfiguration();
         securityEnabled = json.has("enableSecurity") && json.get("enableSecurity").asBoolean();
         replaceNoContentToOk = json.has("replaceNoContentToOk") && json.get("replaceNoContentToOk").asBoolean();
+        headersFilter.clear();
         if (securityEnabled && json.has("headersFilter")) {
             JsonNode headersFilterNode = json.get("headersFilter");
             for (Iterator<Map.Entry<String, JsonNode>> it = headersFilterNode.fields(); it.hasNext(); ) {

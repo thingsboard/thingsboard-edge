@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,7 +50,6 @@ import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -76,7 +75,8 @@ import java.util.function.Consumer;
                 "State of the Intervals are persisted as timeseries entities based on <b>\"state persistence policy\"</b> and <b>\"state persistence value\"</b>.<br/><br/>" +
                 "In case there is no data for certain entity, it might be useful to generate default values for those entities. " +
                 "To lookup those entities one may select <b>\"Create intervals automatically\"</b> checkbox and configure <b>\"Interval entities\"</b>.<br/><br/>" +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with the results of the aggregation for particular interval.",
+                "Generates outgoing messages with the results of the aggregation for particular interval. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
+                "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
@@ -103,6 +103,7 @@ public class TbSimpleAggMsgNode implements TbNode {
     private long statePersistCheckPeriod;
     private long entitiesCheckPeriod;
     private String queueName;
+    private String outMsgType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -113,6 +114,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
         this.intervalReportCheckPeriod = Math.max(TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue()), TimeUnit.MINUTES.toMillis(1));
         this.statePersistCheckPeriod = Math.max(TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue()), TimeUnit.MINUTES.toMillis(1));
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
         scheduleReportTickMsg(ctx, null);
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
             scheduleStatePersistTickMsg(ctx, null);
@@ -202,7 +204,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         log.trace("Reporting interval: [{}][{}]", ts, interval);
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
+        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, outMsgType, entityId, metaData,
                 interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
     }
 
@@ -305,8 +307,4 @@ public class TbSimpleAggMsgNode implements TbNode {
         return je;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

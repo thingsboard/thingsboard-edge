@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,13 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section fxLayout="row">
-  <section fxLayout="column" [fxShow]="isEdit">
+<section fxLayout="row" fxLayoutAlign="start start" fxLayoutGap="8px">
+  <section fxLayout="column" fxLayoutAlign="start center" [fxShow]="isEdit">
     <label class="tb-small hide-label" translate>timewindow.hide</label>
     <mat-checkbox [(ngModel)]="hideFlag" (ngModelChange)="onHideFlagChange()"></mat-checkbox>
   </section>
   <section class="interval-section" fxLayout="column" fxFlex [fxShow]="advanced && (isEdit || !hideFlag)">
-    <label class="tb-small interval-label" translate>{{ predefinedName }}</label>
     <section fxLayout="row wrap" fxLayoutAlign="start start" fxFlex fxLayoutGap="6px">
       <mat-form-field class="number-input">
         <mat-label translate>timeinterval.days</mat-label>

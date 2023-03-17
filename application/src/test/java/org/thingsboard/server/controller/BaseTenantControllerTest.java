@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -45,6 +44,8 @@ import org.mockito.Mockito;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -133,7 +134,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
     public void testSaveTenantWithViolationOfValidation() throws Exception {
         loginSysAdmin();
         Tenant tenant = new Tenant();
-        tenant.setTitle(RandomStringUtils.randomAlphanumeric(300));
+        tenant.setTitle(StringUtils.randomAlphanumeric(300));
 
         Mockito.reset(tbClusterService);
 
@@ -270,7 +271,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         List<ListenableFuture<Tenant>> createFutures = new ArrayList<>(134);
         for (int i = 0; i < 134; i++) {
             Tenant tenant = new Tenant();
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
+            String suffix = StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
             String title = title1 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             tenant.setTitle(title);
@@ -284,7 +285,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         createFutures = new ArrayList<>(127);
         for (int i = 0; i < 127; i++) {
             Tenant tenant = new Tenant();
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
+            String suffix = StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
             String title = title2 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             tenant.setTitle(title);
@@ -425,7 +426,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         tenantProfileData.setConfiguration(new DefaultTenantProfileConfiguration());
         tenantProfile.setProfileData(tenantProfileData);
         tenantProfile.setIsolatedTbRuleEngine(true);
-        addQueueConfig(tenantProfile, "Main");
+        addQueueConfig(tenantProfile, DataConstants.MAIN_QUEUE_NAME);
         addQueueConfig(tenantProfile, "Test");
         tenantProfile = doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
 
@@ -454,7 +455,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         tenantProfileData2.setConfiguration(new DefaultTenantProfileConfiguration());
         tenantProfile2.setProfileData(tenantProfileData2);
         tenantProfile2.setIsolatedTbRuleEngine(true);
-        addQueueConfig(tenantProfile2, "Main");
+        addQueueConfig(tenantProfile2, DataConstants.MAIN_QUEUE_NAME);
         addQueueConfig(tenantProfile2, "Test");
         addQueueConfig(tenantProfile2, "Test2");
         tenantProfile2 = doPost("/api/tenantProfile", tenantProfile2, TenantProfile.class);

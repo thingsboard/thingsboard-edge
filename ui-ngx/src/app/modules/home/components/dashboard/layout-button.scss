@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,17 +32,16 @@
   button.tb-layout-button {
     width: 100%;
     height: 100%;
-    padding: 40px 20px;
-  }
+    padding: 40px 10px;
+    cursor: default;
+    border-radius: 5px;
 
-  &::ng-deep {
-    .mat-button-wrapper {
-      line-height: 18px;
-      span {
-        font-size: 18px;
-        font-weight: 400;
-        white-space: normal;
-      }
+    &-right {
+      border-radius: 0 5px 5px 0;
+    }
+
+    &-main {
+      border-radius: 5px 0 0 5px;
     }
   }
 }

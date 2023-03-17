@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -60,6 +60,7 @@ import { ActivatedRoute, QueryParamsHandling, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   CellActionDescriptorType,
+  ChartEntityTableColumn,
   EntityActionTableColumn,
   EntityColumn,
   EntityTableColumn,
@@ -74,7 +75,7 @@ import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-co
 import { calculateIntervalStartEndTime, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
-import { isDefined, isEmptyStr, isEqual, isUndefined } from '@core/utils';
+import { isDefined, isEmptyStr, isEqual, isString, isUndefined } from '@core/utils';
 import { HasUUID } from '@shared/models/id/has-uuid';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
@@ -297,7 +298,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         distinctUntilChanged(),
         tap(() => {
           const queryParams: PageQueryParam = {
-            textSearch: encodeURI(this.pageLink.textSearch) || null
+            textSearch: isString(this.pageLink.textSearch) && this.pageLink.textSearch !== '' ? encodeURI(this.pageLink.textSearch) : null
           };
           if (this.displayPagination) {
             this.paginator.pageIndex = 0;
@@ -320,7 +321,6 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
           this.textSearchMode = true;
           this.pageLink.textSearch = decodeURI(params.textSearch);
         } else {
-          this.textSearchMode = false;
           this.pageLink.textSearch = null;
         }
         this.updateData();
@@ -582,7 +582,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
-      (column) => column instanceof EntityTableColumn)
+      (column) => column instanceof EntityTableColumn || column instanceof ChartEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)
@@ -634,7 +634,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.cellStyleCache[index] = undefined;
   }
 
-  cellContent(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
+  cellContent(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number): any {
     if (column instanceof EntityTableColumn) {
       const col = this.entitiesTableConfig.columns.indexOf(column);
       const index = row * this.entitiesTableConfig.columns.length + col;
@@ -644,9 +644,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         this.cellContentCache[index] = res;
       }
       return res;
-    } else {
-      return '';
+    } else if (column instanceof ChartEntityTableColumn) {
+      return column.cellContentFunction(entity, column.key);
     }
+    return '';
   }
 
   cellTooltip(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
@@ -686,6 +687,14 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     return res;
   }
 
+  cellChartStyle(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
+    let res;
+    if (column instanceof ChartEntityTableColumn) {
+      res = column.chartStyleFunction(entity, column.key);
+    }
+    return res;
+  }
+
   trackByColumnKey(index, column: EntityTableColumn<BaseData<HasId>>) {
     return column.key;
   }
@@ -707,5 +716,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     } else {
       this.updateData();
     }
+  }
+
+  detectChanges() {
+    this.cd.markForCheck();
   }
 }

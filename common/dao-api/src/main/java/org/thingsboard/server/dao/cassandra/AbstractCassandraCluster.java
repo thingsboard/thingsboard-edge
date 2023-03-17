@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,11 +39,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.dao.cassandra.guava.GuavaSession;
 import org.thingsboard.server.dao.cassandra.guava.GuavaSessionBuilder;
 import org.thingsboard.server.dao.cassandra.guava.GuavaSessionUtils;
 
 import javax.annotation.PreDestroy;
+import java.nio.file.Paths;
 
 @Slf4j
 public abstract class AbstractCassandraCluster {
@@ -54,6 +56,13 @@ public abstract class AbstractCassandraCluster {
     private Boolean metrics;
     @Value("${cassandra.local_datacenter:datacenter1}")
     private String localDatacenter;
+
+    @Value("${cassandra.cloud.secure_connect_bundle_path:}")
+    private String cloudSecureConnectBundlePath;
+    @Value("${cassandra.cloud.client_id:}")
+    private String cloudClientId;
+    @Value("${cassandra.cloud.client_secret:}")
+    private String cloudClientSecret;
 
     @Autowired
     private CassandraDriverOptions driverOptions;
@@ -101,7 +110,14 @@ public abstract class AbstractCassandraCluster {
             this.sessionBuilder.withKeyspace(this.keyspaceName);
         }
         this.sessionBuilder.withLocalDatacenter(localDatacenter);
+
+        if (StringUtils.isNotBlank(cloudSecureConnectBundlePath)) {
+            this.sessionBuilder.withCloudSecureConnectBundle(Paths.get(cloudSecureConnectBundlePath));
+            this.sessionBuilder.withAuthCredentials(cloudClientId, cloudClientSecret);
+        }
+
         session = sessionBuilder.build();
+
         if (this.metrics && this.jmx) {
             MetricRegistry registry =
                     session.getMetrics().orElseThrow(

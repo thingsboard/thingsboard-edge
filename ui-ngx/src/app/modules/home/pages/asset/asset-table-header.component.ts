@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,11 +35,12 @@ import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Asset } from '@shared/models/asset.models';
+import { AssetProfileId } from '@shared/models/id/asset-profile-id';
 
 @Component({
   selector: 'tb-asset-table-header',
   templateUrl: './asset-table-header.component.html',
-  styleUrls: ['./asset-table-header.component.scss']
+  styleUrls: []
 })
 export class AssetTableHeaderComponent extends EntityTableHeaderComponent<Asset> {
 
@@ -49,8 +50,8 @@ export class AssetTableHeaderComponent extends EntityTableHeaderComponent<Asset>
     super(store);
   }
 
-  assetTypeChanged(assetType: string) {
-    this.entitiesTableConfig.componentsData.assetType = assetType;
+  assetProfileChanged(assetProfileId: AssetProfileId) {
+    this.entitiesTableConfig.componentsData.assetProfileId = assetProfileId;
     this.entitiesTableConfig.getTable().resetSortAndFilter(true);
   }
 

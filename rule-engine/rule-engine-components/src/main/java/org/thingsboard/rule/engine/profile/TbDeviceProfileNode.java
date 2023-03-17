@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -225,9 +225,13 @@ public class TbDeviceProfileNode implements TbNode {
         DeviceState deviceState = deviceStates.get(deviceId);
         if (deviceState != null) {
             DeviceProfileId currentProfileId = deviceState.getProfileId();
-            Device device = JacksonUtil.fromString(deviceJson, Device.class);
-            if (!currentProfileId.equals(device.getDeviceProfileId())) {
-                removeDeviceState(deviceId);
+            try {
+                Device device = JacksonUtil.fromString(deviceJson, Device.class);
+                if (!currentProfileId.equals(device.getDeviceProfileId())) {
+                    removeDeviceState(deviceId);
+                }
+            } catch (IllegalArgumentException e) {
+                log.debug("[{}] Received device update notification with non-device msg body: [{}][{}]", ctx.getSelfId(), deviceId, e);
             }
         }
     }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
@@ -48,7 +49,6 @@ import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -62,7 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @RuleNode(
@@ -71,39 +70,68 @@ import java.util.UUID;
         configClazz = TbAlarmsCountNodeV2Configuration.class,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
+                "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
+                "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountV2Config",
         icon = "functions"
 )
 public class TbAlarmsCountNodeV2 implements TbNode {
 
+    private static final List<String> ALARM_FIELDS = List.of("originator", "severity", "status", "ackTs", "clearTs", "details");
+
     private TbAlarmsCountNodeV2Configuration config;
     private String queueName;
+    private String outMsgType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
         this.queueName = config.getQueueName();
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         String msgType = msg.getType();
         EntityType entityType = msg.getOriginator().getEntityType();
-        if ((msgType.equals(DataConstants.ENTITY_CREATED) && entityType.equals(EntityType.ALARM))
-                || (msgType.equals(DataConstants.ENTITY_UPDATED) && entityType.equals(EntityType.ALARM))
-                || msgType.equals(DataConstants.ALARM)
-                || msgType.equals(DataConstants.ALARM_ACK)
-                || msgType.equals(DataConstants.ALARM_CLEAR)) {
-            process(ctx, msg);
+
+        Alarm alarm = null;
+        var processAlarmsCount = false;
+        if (msgType.equals(DataConstants.ENTITY_CREATED) || msgType.equals(DataConstants.ENTITY_UPDATED)) {
+            if (entityType.equals(EntityType.ALARM)) {
+                alarm = convertMsgDataToAlarm(msg);
+                processAlarmsCount = true;
+            } else {
+                JsonNode jsonData = JacksonUtil.toJsonNode(msg.getData());
+                var msgDataHasAlarmFields = ALARM_FIELDS.stream().allMatch(jsonData::has);
+                if (msgDataHasAlarmFields) {
+                    alarm = JacksonUtil.treeToValue(jsonData, AlarmInfo.class);
+                    log.debug("[{}] Msg data was successfully parsed to alarm object {}", ctx.getTenantId(), alarm);
+                    processAlarmsCount = true;
+                }
+            }
+        } else if (msgType.equals(DataConstants.ALARM) || msgType.equals(DataConstants.ALARM_ACK) || msgType.equals(DataConstants.ALARM_CLEAR)) {
+            alarm = convertMsgDataToAlarm(msg);
+            processAlarmsCount = true;
+        }
+
+        if (processAlarmsCount) {
+            process(ctx, msg, alarm);
         } else {
             ctx.tellSuccess(msg);
         }
     }
 
-    private void process(TbContext ctx, TbMsg msg) {
-        Alarm alarm = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
+    private AlarmInfo convertMsgDataToAlarm(TbMsg msg) {
+        return JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
+    }
+
+    private void process(TbContext ctx, TbMsg msg, Alarm alarm) {
+        if (alarm == null) {
+            ctx.tellFailure(msg, new RuntimeException("Failed to process alarms count since the msg data could not be converted to alarm!"));
+            return;
+        }
         Map<EntityId, ObjectNode> result = new HashMap<>();
         getPropagationEntityIds(ctx, alarm).forEach(entityId -> result.put(entityId, countAlarms(ctx, entityId)));
 
@@ -112,7 +140,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+            TbMsg newMsg = TbMsg.newMsg(queueName, outMsgType,
                     entityId, metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
         });
@@ -151,7 +179,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         } else {
             pageLink = new TimePageLink(alarmSearchPageLink, null, null);
         }
-        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, null,false);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         ObjectNode obj = JacksonUtil.newObjectNode();
         for (int i = 0; i < mappings.size(); i++) {
@@ -160,8 +188,4 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         return obj;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

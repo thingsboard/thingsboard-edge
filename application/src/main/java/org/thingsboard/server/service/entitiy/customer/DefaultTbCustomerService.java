@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,11 +38,8 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -69,10 +66,9 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
         TenantId tenantId = customer.getTenantId();
         CustomerId customerId = customer.getId();
         try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, customerId);
             customerService.deleteCustomer(tenantId, customerId);
             notificationEntityService.notifyDeleteEntity(tenantId, customerId, customer, customerId,
-                    actionType, relatedEdgeIds, user, customerId.toString());
+                    actionType, null, user, customerId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), actionType,
                     user, e, customerId.toString());

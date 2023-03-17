@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { HttpClient } from '@angular/common/http';
 import { UtilsService } from '@core/services/utils.service';
 import { ReportParams, ReportType } from '@shared/models/report.models';
 import { getDefaultTimezone, Timewindow } from '@shared/models/time/time.models';
-import { from, Observable, of } from 'rxjs';
+import { from, Observable, of, Subject } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
@@ -51,6 +51,7 @@ export class ReportService {
 
   reportView = false;
   reportTimewindow: Timewindow = null;
+  openReportSubject: Subject<void> = new Subject<void>();
 
   accessToken: string;
   publicId: string;
@@ -120,7 +121,7 @@ export class ReportService {
   }
 
   public onDashboardLoaded(widgetsCount: number) {
-    this.waitForWidgets += widgetsCount;
+    this.waitForWidgets = widgetsCount;
     this.lastWaitWidgetsTimeMs = this.utils.currentPerfTime();
   }
 
@@ -218,6 +219,7 @@ export class ReportService {
             if (params.length) {
               url += `?${params.join('&')}`;
             }
+            this.openReportSubject.next();
             this.waitForWidgets = 0;
             this.receiveWsData.clear();
             this.waitForMaps.clear();

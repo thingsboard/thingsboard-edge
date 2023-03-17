@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,8 +36,6 @@ import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -54,7 +52,7 @@ import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
@@ -86,7 +84,7 @@ import java.util.stream.Collectors;
 public class DefaultClusterIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements ClusterIntegrationService {
 
     private final TbServiceInfoProvider serviceInfoProvider;
-    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationExecutorSettings integrationNotificationSettings;
     private final TbCoreIntegrationExecutorQueueFactory queueFactory;
     private final IntegrationManagerService integrationManagerService;
     private final DataDecodingEncodingService encodingService;
@@ -141,10 +139,16 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        if (!supportedIntegrationTypes.isEmpty()) {
+        boolean supported = !supportedIntegrationTypes.isEmpty();
+
+        if (supported || serviceInfoProvider.isService(ServiceType.TB_CORE)) {
             log.info("Subscribing to notifications: {}", nfConsumer.getTopic());
             this.nfConsumer.subscribe();
             launchNotificationsConsumer();
+        }
+
+        if (supported) {
+            log.info("Launch main consumers");
             launchMainConsumers();
         }
     }

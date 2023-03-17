@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,8 +34,32 @@ package org.thingsboard.server.common.data;
  * @author Andrew Shvayka
  */
 public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ENTITY_GROUP,
-    CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY,
-    ENTITY_VIEW, WIDGETS_BUNDLE, WIDGET_TYPE, ROLE, GROUP_PERMISSION, TENANT_PROFILE,
-    DEVICE_PROFILE, API_USAGE_STATE, TB_RESOURCE, OTA_PACKAGE, EDGE, RPC, QUEUE;
+    TENANT,
+    CUSTOMER,
+    USER,
+    DASHBOARD,
+    ASSET,
+    DEVICE,
+    ALARM,
+    ENTITY_GROUP,
+    CONVERTER,
+    INTEGRATION,
+    RULE_CHAIN,
+    RULE_NODE,
+    SCHEDULER_EVENT,
+    BLOB_ENTITY,
+    ENTITY_VIEW,
+    WIDGETS_BUNDLE,
+    WIDGET_TYPE,
+    ROLE,
+    GROUP_PERMISSION,
+    TENANT_PROFILE,
+    DEVICE_PROFILE,
+    ASSET_PROFILE,
+    API_USAGE_STATE,
+    TB_RESOURCE,
+    OTA_PACKAGE,
+    EDGE,
+    RPC,
+    QUEUE;
 }

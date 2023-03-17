@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,17 +33,18 @@ package org.thingsboard.server.common.data.translation;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.thingsboard.server.common.data.JacksonUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,22 +54,21 @@ import java.util.Map;
 @Slf4j
 public class CustomTranslation {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     @ApiModelProperty(value = "Map of locale IDs to stringified json object with custom translations", required = true)
     private Map<String, String> translationMap = new HashMap<>();
 
-    private static ObjectMapper mapper = new ObjectMapper();
-
     public CustomTranslation merge(CustomTranslation otherCL) {
-        List<String> languages = new ArrayList<>();
-        languages.addAll(translationMap.keySet());
+        List<String> languages = new ArrayList<>(translationMap.keySet());
         if (otherCL != null && otherCL.getTranslationMap() != null) {
             languages.addAll(otherCL.getTranslationMap().keySet());
             for (String lang : languages) {
                 JsonNode node = safeParse(translationMap.get(lang));
                 JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
-                node = JacksonUtils.merge(node, otherNode);
+                merge(node, otherNode);
                 try {
-                    translationMap.put(lang, mapper.writeValueAsString(node));
+                    translationMap.put(lang, OBJECT_MAPPER.writeValueAsString(node));
                 } catch (JsonProcessingException e) {
                     log.warn("Can't write object as json string", e);
                 }
@@ -78,14 +78,41 @@ public class CustomTranslation {
     }
 
     private JsonNode safeParse(String jsonStr) {
-        JsonNode node = mapper.createObjectNode();
+        JsonNode node = OBJECT_MAPPER.createObjectNode();
         try {
             if (StringUtils.isNoneBlank(jsonStr)) {
-                node = mapper.readTree(jsonStr);
+                node = OBJECT_MAPPER.readTree(jsonStr);
             }
         } catch (IOException e) {
             log.warn("Can't read json string", e);
         }
         return node;
     }
+
+    private void merge(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    merge(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    if (value.isNull()) {
+                        continue;
+                    }
+                    ((ObjectNode) mainNode).set(fieldName, value);
+                }
+            }
+        }
+    }
+
 }

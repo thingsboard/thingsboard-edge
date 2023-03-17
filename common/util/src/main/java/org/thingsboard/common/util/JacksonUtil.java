@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,9 @@
  */
 package org.thingsboard.common.util;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,6 +43,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import org.thingsboard.server.common.data.kv.DataType;
+import org.thingsboard.server.common.data.kv.KvEntry;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +67,10 @@ public class JacksonUtil {
             .enable(SerializationFeature.INDENT_OUTPUT)
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
             .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+            .build();
+    public static ObjectMapper ALLOW_UNQUOTED_FIELD_NAMES_MAPPER = JsonMapper.builder()
+            .configure(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature(), false)
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
 
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
@@ -145,12 +153,24 @@ public class JacksonUtil {
         }
     }
 
+    public static <T> T treeToValue(JsonNode node, Class<T> clazz) {
+        try {
+            return OBJECT_MAPPER.treeToValue(node, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't convert value: " + node.toString(), e);
+        }
+    }
+
     public static JsonNode toJsonNode(String value) {
+        return toJsonNode(value, OBJECT_MAPPER);
+    }
+
+    public static JsonNode toJsonNode(String value, ObjectMapper mapper) {
         if (value == null || value.isEmpty()) {
             return null;
         }
         try {
-            return OBJECT_MAPPER.readTree(value);
+            return mapper.readTree(value);
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
@@ -189,16 +209,20 @@ public class JacksonUtil {
         }
     }
 
-    public static <T> T treeToValue(JsonNode node, Class<T> clazz) {
-        try {
-            return OBJECT_MAPPER.treeToValue(node, clazz);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Can't convert value: " + node.toString(), e);
-        }
+    public static ObjectNode newObjectNode() {
+        return newObjectNode(OBJECT_MAPPER);
     }
 
-    public static ObjectNode newObjectNode() {
-        return OBJECT_MAPPER.createObjectNode();
+    public static ObjectNode newObjectNode(ObjectMapper mapper) {
+        return mapper.createObjectNode();
+    }
+
+    public static ArrayNode newArrayNode() {
+        return newArrayNode(OBJECT_MAPPER);
+    }
+
+    public static ArrayNode newArrayNode(ObjectMapper mapper) {
+        return mapper.createArrayNode();
     }
 
     public static <T> T clone(T value) {
@@ -273,4 +297,29 @@ public class JacksonUtil {
             }
         }
     }
+
+    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) {
+        addKvEntry(entityNode, kvEntry, kvEntry.getKey());
+    }
+
+    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry, String key) {
+        addKvEntry(entityNode, kvEntry, key, OBJECT_MAPPER);
+    }
+
+    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry, String key, ObjectMapper mapper) {
+        if (kvEntry.getDataType() == DataType.BOOLEAN) {
+            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(key, value));
+        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
+            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(key, value));
+        } else if (kvEntry.getDataType() == DataType.LONG) {
+            kvEntry.getLongValue().ifPresent(value -> entityNode.put(key, value));
+        } else if (kvEntry.getDataType() == DataType.JSON) {
+            if (kvEntry.getJsonValue().isPresent()) {
+                entityNode.set(key, toJsonNode(kvEntry.getJsonValue().get(), mapper));
+            }
+        } else {
+            entityNode.put(key, kvEntry.getValueAsString());
+        }
+    }
+
 }

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@
   </tb-timezone-select>
   <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutAlign.gt-sm="start start" fxLayoutGap="16px">
     <mat-form-field>
-      <mat-placeholder translate>scheduler.start-time</mat-placeholder>
+      <mat-label translate>scheduler.start-time</mat-label>
       <mat-datetimepicker-toggle [for]="startDatePicker" matPrefix></mat-datetimepicker-toggle>
       <mat-datetimepicker #startDatePicker type="datetime" openOnFocus="true"></mat-datetimepicker>
       <input required matInput formControlName="startDate" [matDatetimepicker]="startDatePicker">
@@ -56,6 +56,26 @@
           {{ schedulerRepeatTypeTranslations.get(repeatType) | translate }}
         </mat-option>
       </mat-select>
+    </mat-form-field>
+    <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_DAYS">
+      <mat-label translate>scheduler.repeat-every-n-days</mat-label>
+      <input type="number" min="1" step="1" matInput formControlName="days" required>
+      <mat-error *ngIf="scheduleConfigFormGroup.get('days').hasError('required')">
+        {{ 'scheduler.repeat-days-required' | translate }}
+      </mat-error>
+      <mat-error *ngIf="scheduleConfigFormGroup.get('days').hasError('min')">
+        {{ 'scheduler.invalid-repeat-days-value' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_WEEKS">
+      <mat-label translate>scheduler.repeat-every-n-weeks</mat-label>
+      <input type="number" min="1" step="1" matInput formControlName="weeks" required>
+      <mat-error *ngIf="scheduleConfigFormGroup.get('weeks').hasError('required')">
+        {{ 'scheduler.repeat-weeks-required' | translate }}
+      </mat-error>
+      <mat-error *ngIf="scheduleConfigFormGroup.get('days').hasError('min')">
+        {{ 'scheduler.invalid-repeat-weeks-value' | translate }}
+      </mat-error>
     </mat-form-field>
     <div [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.TIMER"
          formGroupName="timerRepeat"
@@ -129,7 +149,7 @@
     </div>
     <section fxLayout="row" fxLayoutAlign="start start">
       <mat-form-field>
-        <mat-placeholder translate>scheduler.ends-on</mat-placeholder>
+        <mat-label translate>scheduler.ends-on</mat-label>
         <mat-datetimepicker-toggle [for]="endDatePicker" matPrefix></mat-datetimepicker-toggle>
         <mat-datetimepicker #endDatePicker type="date" openOnFocus="true"></mat-datetimepicker>
         <input required matInput formControlName="endsOnDate" [matDatetimepicker]="endDatePicker" [errorStateMatcher]="endsOnDateMatcher">

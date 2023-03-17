@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.sync.vc;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -47,6 +46,8 @@ public class RepositorySettings implements Serializable {
     private String privateKey;
     private String privateKeyPassword;
     private String defaultBranch;
+    private boolean readOnly;
+    private boolean showMergeCommits;
 
     public RepositorySettings() {
     }
@@ -60,5 +61,7 @@ public class RepositorySettings implements Serializable {
         this.privateKey = settings.getPrivateKey();
         this.privateKeyPassword = settings.getPrivateKeyPassword();
         this.defaultBranch = settings.getDefaultBranch();
+        this.readOnly = settings.isReadOnly();
+        this.showMergeCommits = settings.isShowMergeCommits();
     }
 }

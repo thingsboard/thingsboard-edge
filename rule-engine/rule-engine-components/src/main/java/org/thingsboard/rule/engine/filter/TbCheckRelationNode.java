@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,19 +61,23 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         name = "check relation",
         configClazz = TbCheckRelationNodeConfiguration.class,
         relationTypes = {"True", "False"},
-        nodeDescription = "Checks the relation from the selected entity to the originator of the message by type and direction" +
-                " if 'Check for single entity' is set to true, otherwise rule node will check if exist" +
-                " any relation to the originator of the message by type and direction.",
-        nodeDetails = "If at least one relation exists - send Message via <b>True</b> chain, otherwise <b>False</b> chain is used.",
+        nodeDescription = "Checks the presence of the relation between the originator of the message and other entities.",
+        nodeDetails = "If 'check relation to specific entity' is selected, one must specify a related entity. " +
+                "Otherwise, the rule node checks the presence of a relation to any entity that matches the direction and relation type criteria.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbFilterNodeCheckRelationConfig")
 public class TbCheckRelationNode implements TbNode {
 
     private TbCheckRelationNodeConfiguration config;
+    private EntityId singleEntityId;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbCheckRelationNodeConfiguration.class);
+        if (config.isCheckForSingleEntity()) {
+            this.singleEntityId = EntityIdFactory.getByTypeAndId(config.getEntityType(), config.getEntityId());
+            ctx.checkTenantEntity(singleEntityId);
+        }
     }
 
     @Override
@@ -91,10 +95,10 @@ public class TbCheckRelationNode implements TbNode {
         EntityId from;
         EntityId to;
         if (EntitySearchDirection.FROM.name().equals(config.getDirection())) {
-            from = EntityIdFactory.getByTypeAndId(config.getEntityType(), config.getEntityId());
+            from = singleEntityId;
             to = msg.getOriginator();
         } else {
-            to = EntityIdFactory.getByTypeAndId(config.getEntityType(), config.getEntityId());
+            to = singleEntityId;
             from = msg.getOriginator();
         }
         return ctx.getRelationService().checkRelationAsync(ctx.getTenantId(), from, to, config.getRelationType(), RelationTypeGroup.COMMON);
@@ -118,8 +122,4 @@ public class TbCheckRelationNode implements TbNode {
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

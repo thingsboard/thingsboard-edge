@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -117,6 +117,13 @@ export interface UserPasswordPolicy {
 
 export interface SecuritySettings {
   passwordPolicy: UserPasswordPolicy;
+}
+
+export interface JwtSettings {
+  tokenIssuer: string;
+  tokenSigningKey: string;
+  tokenExpirationTime: number;
+  refreshTokenExpTime: number;
 }
 
 export interface UpdateMessage {
@@ -468,12 +475,18 @@ export const repositoryAuthMethodTranslationMap = new Map<RepositoryAuthMethod, 
 export interface RepositorySettings {
   repositoryUri: string;
   defaultBranch: string;
+  showMergeCommits: boolean;
   authMethod: RepositoryAuthMethod;
   username: string;
   password: string;
   privateKeyFileName: string;
   privateKey: string;
   privateKeyPassword: string;
+}
+
+export interface RepositorySettingsInfo {
+  configured: boolean;
+  readOnly: boolean;
 }
 
 export interface AutoVersionCreateConfig extends VersionCreateConfig {

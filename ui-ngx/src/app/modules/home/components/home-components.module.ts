@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -155,6 +155,7 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
+import { AddConverterDialogComponent } from '@home/components/converter/add-converter-dialog.component';
 import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
 import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
 import { PermissionListComponent } from '@home/components/role/permission-list.component';
@@ -206,6 +207,20 @@ import { ComplexVersionLoadComponent } from '@home/components/vc/complex-version
 import { RemoveOtherEntitiesConfirmComponent } from '@home/components/vc/remove-other-entities-confirm.component';
 import { AutoCommitSettingsComponent } from '@home/components/vc/auto-commit-settings.component';
 import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-group-list.component';
+import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits/rate-limits.component';
+import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
+import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
+import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
+import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
+import { AssetProfileDialogComponent } from '@home/components/profile/asset-profile-dialog.component';
+import { AssetProfileAutocompleteComponent } from '@home/components/profile/asset-profile-autocomplete.component';
+import { IntegrationWizardDialogComponent } from '@home/components/wizard/integration-wizard-dialog.component';
+import { ConverterComponent } from '@home/components/converter/converter.component';
+import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
+import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import { MODULES_MAP } from '@shared/models/constants';
+import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
 
 @NgModule({
   declarations:
@@ -228,6 +243,7 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -262,6 +278,7 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
       AddWidgetToDashboardDialogComponent,
       TableColumnsAssignmentComponent,
       ConverterAutocompleteComponent,
+      AddConverterDialogComponent,
       OperationTypeListComponent,
       ResourceTypeAutocompleteComponent,
       PermissionListComponent,
@@ -318,6 +335,9 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
       DeviceProfileComponent,
       DeviceProfileDialogComponent,
       AddDeviceProfileDialogComponent,
+      AssetProfileComponent,
+      AssetProfileDialogComponent,
+      AssetProfileAutocompleteComponent,
       RuleChainAutocompleteComponent,
       AlarmScheduleInfoComponent,
       DeviceProfileProvisionConfigurationComponent,
@@ -363,7 +383,14 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
       ComplexVersionLoadComponent,
       RemoveOtherEntitiesConfirmComponent,
       AutoCommitSettingsComponent,
-      OwnerEntityGroupListComponent
+      OwnerEntityGroupListComponent,
+      RateLimitsDetailsDialogComponent,
+      RateLimitsComponent,
+      RateLimitsListComponent,
+      RateLimitsTextComponent,
+      IntegrationWizardDialogComponent,
+      ConverterComponent,
+      ConverterTestDialogComponent
     ],
   imports: [
     CommonModule,
@@ -375,7 +402,8 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     SnmpDeviceProfileTransportModule,
     StatesControllerModule,
     DeviceCredentialsModule,
-    DeviceProfileCommonModule
+    DeviceProfileCommonModule,
+    IntegrationComponentModule
   ],
   exports: [
     SharedHomeComponentsModule,
@@ -391,6 +419,7 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
@@ -473,6 +502,9 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     AddDeviceProfileDialogComponent,
     RuleChainAutocompleteComponent,
     DeviceWizardDialogComponent,
+    AssetProfileComponent,
+    AssetProfileDialogComponent,
+    AssetProfileAutocompleteComponent,
     AlarmScheduleInfoComponent,
     AlarmScheduleComponent,
     AlarmDynamicValue,
@@ -516,7 +548,12 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     ComplexVersionLoadComponent,
     RemoveOtherEntitiesConfirmComponent,
     AutoCommitSettingsComponent,
-    OwnerEntityGroupListComponent
+    OwnerEntityGroupListComponent,
+    RateLimitsDetailsDialogComponent,
+    RateLimitsComponent,
+    RateLimitsListComponent,
+    RateLimitsTextComponent,
+    IntegrationWizardDialogComponent
   ],
   providers: [
     WidgetComponentService,
@@ -528,7 +565,8 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
-    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule }
+    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule },
+    {provide: MODULES_MAP, useValue: modulesMap}
   ]
 })
 export class HomeComponentsModule {

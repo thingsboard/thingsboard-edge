@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import {
   EntityGroupInfo,
   EntityGroupParams,
-  HierarchyCallbacks
+  HierarchyCallbacks, prepareEntityGroupConfiguration
 } from '@shared/models/entity-group.models';
 import {
   CustomerNodeData,
@@ -419,6 +419,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       nodesMap = {};
       this.entityGroupNodesMap[parentNodeId] = nodesMap;
     }
+    entityGroup.configuration = prepareEntityGroupConfiguration(entityGroup.type, entityGroup.configuration);
     const node: CustomersHierarchyNode = {
       id: (++this.nodeIdCounter) + '',
       icon: false,

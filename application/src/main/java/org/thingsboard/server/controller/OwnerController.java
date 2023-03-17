@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -114,7 +114,7 @@ public class OwnerController extends AutoCommitController {
         sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
     }
 
-    @ApiOperation(value = "Change owner to tenant (changeOwnerToCustomer)",
+    @ApiOperation(value = "Change owner to customer (changeOwnerToCustomer)",
             notes = "Tenant/Customer changes Owner to Customer or sub-Customer. " +
                     "Sub-Customer can`t perform this operation! " + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

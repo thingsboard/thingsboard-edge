@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,25 +32,23 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
-import { integrations } from './configurations';
+import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 
 @NgModule({
   declarations: [
     IntegrationComponent,
-    IntegrationTabsComponent,
-    ...integrations
+    IntegrationTabsComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule,
-    IntegrationRoutingModule
+    IntegrationRoutingModule,
+    IntegrationComponentModule
   ]
 })
 export class IntegrationModule { }

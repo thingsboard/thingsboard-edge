@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 
 import java.util.Collection;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,6 +57,9 @@ public class SecurityUser extends User {
     @Getter
     @Setter
     private MergedUserPermissions userPermissions;
+    @Getter
+    @Setter
+    private String sessionId;
 
     public SecurityUser() {
         super();
@@ -70,6 +74,7 @@ public class SecurityUser extends User {
         this.enabled = enabled;
         this.userPrincipal = userPrincipal;
         this.userPermissions = userPermissions;
+        this.sessionId = UUID.randomUUID().toString();
     }
 
     public Collection<GrantedAuthority> getAuthorities() {

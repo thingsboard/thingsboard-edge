@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,12 +63,12 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.asset.AssetBulkImportService;
 import org.thingsboard.server.service.entitiy.asset.TbAssetService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
-import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +77,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_INFO_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_NAME_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_TYPE_DESCRIPTION;
@@ -144,9 +145,6 @@ public class AssetController extends BaseController {
             @RequestBody Asset asset,
             @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        if (TB_SERVICE_QUEUE.equals(asset.getType())) {
-            throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
             try {
@@ -273,6 +271,8 @@ public class AssetController extends BaseController {
             @RequestParam int page,
             @ApiParam(value = ASSET_TYPE_DESCRIPTION)
             @RequestParam(required = false) String type,
+            @ApiParam(value = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
+            @RequestParam(required = false) String assetProfileId,
             @ApiParam(value = ASSET_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
             @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ASSET_SORT_PROPERTY_ALLOWABLE_VALUES)

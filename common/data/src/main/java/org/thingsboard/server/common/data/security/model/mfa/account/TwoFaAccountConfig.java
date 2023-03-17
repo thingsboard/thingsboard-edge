@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -49,7 +51,7 @@ import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProvi
         @Type(name = "BACKUP_CODE", value = BackupCodeTwoFaAccountConfig.class)
 })
 @Data
-public abstract class TwoFaAccountConfig {
+public abstract class TwoFaAccountConfig implements Serializable {
 
     private boolean useByDefault;
 

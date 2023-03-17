@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,11 @@ package org.thingsboard.server.service.sms.twilio;
 import com.twilio.http.TwilioRestClient;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
-import org.apache.commons.lang3.StringUtils;
-import org.thingsboard.rule.engine.api.sms.exception.SmsParseException;
-import org.thingsboard.server.common.data.sms.config.TwilioSmsProviderConfiguration;
 import org.thingsboard.rule.engine.api.sms.exception.SmsException;
+import org.thingsboard.rule.engine.api.sms.exception.SmsParseException;
 import org.thingsboard.rule.engine.api.sms.exception.SmsSendException;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.sms.config.TwilioSmsProviderConfiguration;
 import org.thingsboard.server.service.sms.AbstractSmsSender;
 
 import java.util.regex.Pattern;

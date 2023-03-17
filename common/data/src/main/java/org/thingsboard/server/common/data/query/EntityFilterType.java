@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,8 @@ public enum EntityFilterType {
     DEVICE_SEARCH_QUERY("deviceSearchQuery"),
     ENTITY_VIEW_SEARCH_QUERY("entityViewSearchQuery"),
     EDGE_SEARCH_QUERY("edgeSearchQuery"),
-    API_USAGE_STATE("apiUsageState");
+    API_USAGE_STATE("apiUsageState"),
+    SCHEDULER_EVENT("schedulerEvent");
 
     private final String label;
 

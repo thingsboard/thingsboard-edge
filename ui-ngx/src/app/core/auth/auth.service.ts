@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -219,18 +219,22 @@ export class AuthService {
       ));
   }
 
-  public logout(captureLastUrl: boolean = false) {
+  public logout(captureLastUrl: boolean = false, ignoreRequest = false) {
     if (captureLastUrl) {
       this.redirectUrl = this.router.url;
     }
-    this.http.post('/api/auth/logout', null, defaultHttpOptions(true, true))
-      .subscribe(() => {
-          this.clearJwtToken();
-        },
-        () => {
-          this.clearJwtToken();
-        }
-      );
+    if (!ignoreRequest) {
+      this.http.post('/api/auth/logout', null, defaultHttpOptions(true, true))
+        .subscribe(() => {
+            this.clearJwtToken();
+          },
+          () => {
+            this.clearJwtToken();
+          }
+        );
+    } else {
+      this.clearJwtToken();
+    }
   }
 
   private notifyUserLoaded(isUserLoaded: boolean) {
@@ -292,7 +296,9 @@ export class AuthService {
   public defaultUrl(isAuthenticated: boolean, authState?: AuthState, path?: string, params?: any, data?: any): UrlTree {
     let result: UrlTree = null;
     if (isAuthenticated) {
-      if (!path || path === 'login' || this.forceDefaultPlace(authState, path, params)) {
+      if (authState.authUser.authority === Authority.PRE_VERIFICATION_TOKEN) {
+        result = this.router.parseUrl('login/mfa');
+      } else if (!path || path === 'login' || this.forceDefaultPlace(authState, path, params)) {
         if (this.redirectUrl) {
           const redirectUrl = this.redirectUrl;
           this.redirectUrl = null;
@@ -475,13 +481,6 @@ export class AuthService {
           this.userService.getUser(authPayload.authUser.userId).subscribe(
             (user) => {
               authPayload.userDetails = user;
-              let userLang;
-              if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
-                userLang = authPayload.userDetails.additionalInfo.lang;
-              } else {
-                userLang = null;
-              }
-              this.notifyUserLang(userLang);
               authPayload.forceFullscreen = false;
               if (this.userForceFullscreen(authPayload)) {
                 authPayload.forceFullscreen = true;
@@ -489,6 +488,13 @@ export class AuthService {
               this.loadSystemParams(authPayload).subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
+                  let userLang;
+                  if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
+                    userLang = authPayload.userDetails.additionalInfo.lang;
+                  } else {
+                    userLang = null;
+                  }
+                  this.notifyUserLang(userLang);
                   loadUserSubject.next(authPayload);
                   loadUserSubject.complete();
                 },
@@ -556,11 +562,20 @@ export class AuthService {
     }
   }
 
+  private loadTbelEnabled(authUser: AuthUser): Observable<boolean> {
+    if (authUser.authority === Authority.TENANT_ADMIN) {
+      return this.http.get<boolean>('/api/ruleChain/tbelEnabled', defaultHttpOptions());
+    } else {
+      return of(false);
+    }
+  }
+
   private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
                      this.loadIsEdgesSupportEnabled(),
                      this.loadHasRepository(authPayload.authUser),
+                     this.loadTbelEnabled(authPayload.authUser),
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
@@ -573,8 +588,9 @@ export class AuthService {
         const allowedDashboardIds: string[] = data[1] as string[];
         const edgesSupportEnabled: boolean = data[2] as boolean;
         const hasRepository: boolean = data[3] as boolean;
-        const whiteLabelingAllowedInfo = data[4] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, ...whiteLabelingAllowedInfo};
+        const tbelEnabled: boolean = data[4] as boolean;
+        const whiteLabelingAllowedInfo = data[5] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, tbelEnabled, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
       })));

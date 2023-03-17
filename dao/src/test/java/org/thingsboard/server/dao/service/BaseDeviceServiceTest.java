@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,17 +31,18 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.rules.ExpectedException;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -103,7 +104,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         deleteDevice(tenantId, device);
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDevicesWithMaxDeviceOutOfLimit() {
         TenantProfile defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(tenantId);
         defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxDevices(1).build());
@@ -114,7 +115,9 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         this.saveDevice(tenantId, "My first device");
         Assert.assertEquals(1, deviceService.countByTenantId(tenantId));
 
-        this.saveDevice(tenantId, "My second device that out of maxDeviceCount limit");
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            this.saveDevice(tenantId, "My second device that out of maxDeviceCount limit");
+        });
     }
 
     @Test
@@ -258,29 +261,35 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         deviceService.saveDevice(savedDevice);
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDeviceWithEmptyName() {
         Device device = new Device();
         device.setType("default");
         device.setTenantId(tenantId);
-        deviceService.saveDevice(device);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            deviceService.saveDevice(device);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDeviceWithEmptyTenant() {
         Device device = new Device();
         device.setName("My device");
         device.setType("default");
-        deviceService.saveDevice(device);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            deviceService.saveDevice(device);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDeviceWithInvalidTenant() {
         Device device = new Device();
         device.setName("My device");
         device.setType("default");
         device.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        deviceService.saveDevice(device);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            deviceService.saveDevice(device);
+        });
     }
 
     @Test
@@ -400,7 +409,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -412,7 +421,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -480,7 +489,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -493,7 +502,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -553,8 +562,8 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
 
     @Test
     public void testCleanCacheIfDeviceRenamed() {
-        String deviceNameBeforeRename = RandomStringUtils.randomAlphanumeric(15);
-        String deviceNameAfterRename = RandomStringUtils.randomAlphanumeric(15);
+        String deviceNameBeforeRename = StringUtils.randomAlphanumeric(15);
+        String deviceNameAfterRename = StringUtils.randomAlphanumeric(15);
 
         Device device = new Device();
         device.setTenantId(tenantId);

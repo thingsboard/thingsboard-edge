@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -58,30 +59,32 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
-import org.thingsboard.server.common.data.security.model.JwtToken;
+import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
+import org.thingsboard.server.common.data.security.event.UserSessionInvalidationEvent;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
+import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.model.ActivateUserRequest;
 import org.thingsboard.server.service.security.model.ChangePasswordRequest;
-import org.thingsboard.server.service.security.model.JwtTokenPair;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.service.security.model.ResetPasswordEmailRequest;
 import org.thingsboard.server.service.security.model.ResetPasswordRequest;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
-import ua_parser.Client;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @RestController
 @TbCoreComponent
@@ -89,9 +92,12 @@ import java.net.URISyntaxException;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthController extends BaseController {
+
+    @Value("${server.rest.rate_limits.reset_password_per_user:5:3600}")
+    private String defaultLimitsConfiguration;
+    private final ConcurrentMap<UserId, TbRateLimits> resetPasswordRateLimits = new ConcurrentHashMap<>();
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtTokenFactory tokenFactory;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final MailService mailService;
     private final SystemSecurityService systemSecurityService;
     private final AuditLogService auditLogService;
@@ -147,7 +153,7 @@ public class AuthController extends BaseController {
 
             sendEntityNotificationMsg(getTenantId(), userCredentials.getUserId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
-            eventPublisher.publishEvent(new UserAuthDataChangedEvent(securityUser.getId()));
+            eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
             ObjectNode response = JacksonUtil.newObjectNode();
             response.put("token", tokenFactory.createAccessJwtToken(securityUser).getToken());
             response.put("refreshToken", tokenFactory.createRefreshToken(securityUser).getToken());
@@ -240,7 +246,12 @@ public class AuthController extends BaseController {
         HttpStatus responseStatus;
         String resetURI = "/login/resetPassword";
         UserCredentials userCredentials = userService.findUserCredentialsByResetToken(TenantId.SYS_TENANT_ID, resetToken);
+
         if (userCredentials != null) {
+            TbRateLimits tbRateLimits = getTbRateLimits(userCredentials.getUserId());
+            if (!tbRateLimits.tryConsume()) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+            }
             try {
                 URI location = new URI(resetURI + "?resetToken=" + resetToken);
                 headers.setLocation(location);
@@ -265,7 +276,7 @@ public class AuthController extends BaseController {
     @RequestMapping(value = "/noauth/activate", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
-    public JwtTokenPair activateUser(
+    public JwtPair activateUser(
             @ApiParam(value = "Activate user request.")
             @RequestBody ActivateUserRequest activateRequest,
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
@@ -294,10 +305,7 @@ public class AuthController extends BaseController {
 
             sendEntityNotificationMsg(user.getTenantId(), user.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
-            JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
-            JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
-
-            return new JwtTokenPair(accessToken.getToken(), refreshToken.getToken());
+            return tokenFactory.createTokenPair(securityUser);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -310,7 +318,7 @@ public class AuthController extends BaseController {
     @RequestMapping(value = "/noauth/resetPassword", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
-    public JwtTokenPair resetPassword(
+    public JwtPair resetPassword(
             @ApiParam(value = "Reset password request.")
             @RequestBody ResetPasswordRequest resetPasswordRequest,
             HttpServletRequest request) throws ThingsboardException {
@@ -335,11 +343,9 @@ public class AuthController extends BaseController {
                 String email = user.getEmail();
                 mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
 
-                eventPublisher.publishEvent(new UserAuthDataChangedEvent(securityUser.getId()));
-                JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
-                JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
+                eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
 
-                return new JwtTokenPair(accessToken.getToken(), refreshToken.getToken());
+                return tokenFactory.createTokenPair(securityUser);
             } else {
                 throw new ThingsboardException("Invalid reset token!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
@@ -350,51 +356,16 @@ public class AuthController extends BaseController {
 
     private void logLogoutAction(HttpServletRequest request) throws ThingsboardException {
         try {
-            SecurityUser user = getCurrentUser();
-            RestAuthenticationDetails details = new RestAuthenticationDetails(request);
-            String clientAddress = details.getClientAddress();
-            String browser = "Unknown";
-            String os = "Unknown";
-            String device = "Unknown";
-            if (details.getUserAgent() != null) {
-                Client userAgent = details.getUserAgent();
-                if (userAgent.userAgent != null) {
-                    browser = userAgent.userAgent.family;
-                    if (userAgent.userAgent.major != null) {
-                        browser += " " + userAgent.userAgent.major;
-                        if (userAgent.userAgent.minor != null) {
-                            browser += "." + userAgent.userAgent.minor;
-                            if (userAgent.userAgent.patch != null) {
-                                browser += "." + userAgent.userAgent.patch;
-                            }
-                        }
-                    }
-                }
-                if (userAgent.os != null) {
-                    os = userAgent.os.family;
-                    if (userAgent.os.major != null) {
-                        os += " " + userAgent.os.major;
-                        if (userAgent.os.minor != null) {
-                            os += "." + userAgent.os.minor;
-                            if (userAgent.os.patch != null) {
-                                os += "." + userAgent.os.patch;
-                                if (userAgent.os.patchMinor != null) {
-                                    os += "." + userAgent.os.patchMinor;
-                                }
-                            }
-                        }
-                    }
-                }
-                if (userAgent.device != null) {
-                    device = userAgent.device.family;
-                }
-            }
-            auditLogService.logEntityAction(
-                    user.getTenantId(), user.getCustomerId(), user.getId(),
-                    user.getName(), user.getId(), null, ActionType.LOGOUT, null, clientAddress, browser, os, device);
-
+            var user = getCurrentUser();
+            systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(request), ActionType.LOGOUT, null);
+            eventPublisher.publishEvent(new UserSessionInvalidationEvent(user.getSessionId()));
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private TbRateLimits getTbRateLimits(UserId userId) {
+        return resetPasswordRateLimits.computeIfAbsent(userId,
+                key -> new TbRateLimits(defaultLimitsConfiguration, true));
     }
 }

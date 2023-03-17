@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableNoTenantIdEntity;
 import org.thingsboard.server.common.data.HasName;
@@ -76,8 +77,8 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     public static final String GROUP_CUSTOMER_ADMINS_NAME = "Customer Administrators";
     public static final String GROUP_PUBLIC_USERS_NAME = "Public Users";
 
-    private static final String GROUP_EDGE_ALL_STARTS_WITH = "[Edge]";
-    private static final String GROUP_EDGE_ALL_ENDS_WITH = "All";
+    public static final String GROUP_EDGE_ALL_STARTS_WITH = "[Edge]";
+    public static final String GROUP_EDGE_ALL_ENDS_WITH = "All";
     public static final String GROUP_EDGE_ALL_NAME_PATTERN = GROUP_EDGE_ALL_STARTS_WITH + " %s " + GROUP_EDGE_ALL_ENDS_WITH;
     public static final String ENTITY_GROUP_TYPE_ALLOWABLE_VALUES = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD,EDGE";
     public static final String EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES = "ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD";
@@ -93,6 +94,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     @ApiModelProperty(position = 3, value = "JSON object with the owner of the group - Tenant or Customer Id.")
     private EntityId ownerId;
 
+    @NoXss
     @ApiModelProperty(position = 6, value = "Arbitrary JSON with additional information about the group")
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode additionalInfo;
@@ -133,9 +135,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         return GROUP_ALL_NAME.equals(name);
     }
 
-    @ApiModelProperty(position = 9, value = "Indicates special edge group 'All' that contains all entities and can't be deleted.")
+    @ApiModelProperty(position = 9, value = "Indicates special edge group 'All' that contains all entities and can't be deleted.",
+            accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public boolean isEdgeGroupAll() {
-        return name.startsWith(GROUP_EDGE_ALL_STARTS_WITH) && name.endsWith(GROUP_EDGE_ALL_ENDS_WITH);
+        return EdgeUtils.isEdgeGroupAll(name);
     }
 
     @JsonIgnore

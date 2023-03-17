@@ -1,0 +1,94 @@
+[
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e91"
+    },
+    "name": "Morning",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664877600000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "durationInMinutes": 60
+      },
+      "metadata": {}
+    }
+  },
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e92"
+    },
+    "name": "Morning",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664877600000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "durationInMinutes": 60
+      },
+      "metadata": {}
+    }
+  },
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e91"
+    },
+    "name": "Evening",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664924400000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "volumeInLitters": 1000
+      },
+      "metadata": {}
+    }
+  },
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e92"
+    },
+    "name": "Evening",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664924400000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "volumeInLitters": 500
+      },
+      "metadata": {}
+    }
+  }
+]

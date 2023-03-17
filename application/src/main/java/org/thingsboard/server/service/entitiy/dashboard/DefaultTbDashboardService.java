@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -74,7 +74,7 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
         DashboardId dashboardId = dashboard.getId();
         TenantId tenantId = dashboard.getTenantId();
         try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, dashboardId);
+            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, dashboardId);
             dashboardService.deleteDashboard(tenantId, dashboardId);
             notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
                     ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());

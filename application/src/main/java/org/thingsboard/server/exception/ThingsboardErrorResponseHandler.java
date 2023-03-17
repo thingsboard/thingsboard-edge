@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@ package org.thingsboard.server.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -154,12 +153,11 @@ public class ThingsboardErrorResponseHandler extends ResponseEntityExceptionHand
         }
     }
 
-    @NotNull
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(
-            @NotNull Exception ex, @Nullable Object body,
-            @NotNull HttpHeaders headers, @NotNull HttpStatus status,
-            @NotNull WebRequest request) {
+            Exception ex, @Nullable Object body,
+            HttpHeaders headers, HttpStatus status,
+            WebRequest request) {
         if (HttpStatus.INTERNAL_SERVER_ERROR.equals(status)) {
             request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
         }

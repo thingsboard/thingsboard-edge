@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,6 +46,7 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.CUSTOMER,
   EntityType.USER,
   EntityType.DEVICE_PROFILE,
+  EntityType.ASSET_PROFILE,
   EntityType.RULE_CHAIN,
   EntityType.WIDGETS_BUNDLE,
   EntityType.CONVERTER,

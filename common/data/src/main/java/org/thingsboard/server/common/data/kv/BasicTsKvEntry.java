@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import java.util.Optional;
 
 public class BasicTsKvEntry implements TsKvEntry {
     private static final int MAX_CHARS_PER_DATA_POINT = 512;
-    private final long ts;
+    protected final long ts;
     private final KvEntry kv;
 
     public BasicTsKvEntry(long ts, KvEntry kv) {

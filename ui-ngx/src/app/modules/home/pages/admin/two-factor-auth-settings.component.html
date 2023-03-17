@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 
 -->
 <div>
-  <mat-card class="settings-card">
-    <mat-card-title>
-      <div fxLayout="row">
-        <span class="mat-headline" translate>admin.2fa.2fa</span>
-        <span fxFlex></span>
-        <div tb-help="twoFactorAuthentication"></div>
-      </div>
-    </mat-card-title>
+  <mat-card appearance="outlined" class="settings-card">
+    <mat-card-header>
+      <mat-card-title>
+        <span class="mat-headline-5" translate>admin.2fa.2fa</span>
+      </mat-card-title>
+      <span fxFlex></span>
+      <div tb-help="twoFactorAuthentication"></div>
+    </mat-card-header>
     <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
@@ -56,10 +56,10 @@
                   <mat-expansion-panel-header>
                     <mat-panel-title fxLayoutAlign="start center">
                       <mat-slide-toggle
-                        (click)="toggleExtensionPanel($event, i, provider.get('enable').value)"
+                        (mousedown)="toggleExtensionPanel($event, i, provider.get('enable').value)"
                         formControlName="enable">
+                        {{ twoFactorAuthProvidersData.get(provider.value.providerType).name | translate }}
                       </mat-slide-toggle>
-                      {{ twoFactorAuthProvidersData.get(provider.value.providerType).name | translate }}
                     </mat-panel-title>
                   </mat-expansion-panel-header>
 
@@ -171,7 +171,7 @@
               <mat-expansion-panel class="provider">
                 <mat-expansion-panel-header>
                   <mat-panel-title fxLayoutAlign="start center">
-                    <mat-slide-toggle (click)="toggleExtensionPanel($event, providersForm.length, twoFaFormGroup.get('verificationCodeCheckRateLimitEnable').value)"
+                    <mat-slide-toggle (mousedown)="toggleExtensionPanel($event, providersForm.length, twoFaFormGroup.get('verificationCodeCheckRateLimitEnable').value)"
                                       formControlName="verificationCodeCheckRateLimitEnable">
                     </mat-slide-toggle>
                     {{ 'admin.2fa.verification-code-check-rate-limit' | translate }}

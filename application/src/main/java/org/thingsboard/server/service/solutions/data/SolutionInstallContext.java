@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.solutions.data;
 
 import lombok.Data;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
@@ -64,6 +65,7 @@ public class SolutionInstallContext {
 
     private final TenantId tenantId;
     private final String solutionId;
+    private final User user;
     private final TenantSolutionTemplateInstructions solutionInstructions;
     private final List<EntityId> createdEntitiesList = new ArrayList<>();
     private final Map<String, String> realIds = new HashMap<>();
@@ -76,9 +78,10 @@ public class SolutionInstallContext {
     private final Map<String, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
     private final List<DashboardLinkInfo> dashboardLinks = new ArrayList<>();
 
-    public SolutionInstallContext(TenantId tenantId, String solutionId, TenantSolutionTemplateInstructions solutionInstructions) {
+    public SolutionInstallContext(TenantId tenantId, String solutionId, User user, TenantSolutionTemplateInstructions solutionInstructions) {
         this.tenantId = tenantId;
         this.solutionId = solutionId;
+        this.user = user;
         this.solutionInstructions = solutionInstructions;
         put(new EntitySearchKey(tenantId, EntityType.TENANT, null, false), tenantId);
     }
@@ -137,6 +140,11 @@ public class SolutionInstallContext {
     public void register(DeviceProfile deviceProfile) {
         register(deviceProfile.getId());
         createdEntities.put(deviceProfile.getName(), new CreatedEntityInfo(deviceProfile.getName(), "Device profile", "Tenant"));
+    }
+
+    public void register(AssetProfile assetProfile) {
+        register(assetProfile.getId());
+        createdEntities.put(assetProfile.getName(), new CreatedEntityInfo(assetProfile.getName(), "Asset profile", "Tenant"));
     }
 
     public void put(EntitySearchKey entitySearchKey, EntityId entityId) {

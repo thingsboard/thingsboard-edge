@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,13 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -106,7 +106,7 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, SchedulerEvent schedulerEvent) {
-        if (org.springframework.util.StringUtils.isEmpty(schedulerEvent.getType())) {
+        if (StringUtils.isEmpty(schedulerEvent.getType())) {
             throw new DataValidationException("SchedulerEvent type should be specified!");
         }
         if (StringUtils.isEmpty(schedulerEvent.getName())) {
@@ -156,7 +156,7 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
                 throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
             }
 
-            EntityId originatorId = getOriginatorId(schedulerEvent.getId(), schedulerEvent.getConfiguration());
+            EntityId originatorId = getOriginatorId(schedulerEvent);
 
             if (originatorId == null) {
                 throw new DataValidationException("SchedulerEvent originatorId should be specified!");

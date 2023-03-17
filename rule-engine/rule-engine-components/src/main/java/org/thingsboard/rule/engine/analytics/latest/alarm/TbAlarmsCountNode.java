@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,7 +62,8 @@ import java.util.Optional;
         configClazz = TbAlarmsCountNodeConfiguration.class,
         nodeDescription = "Periodically counts alarms for entities",
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
+                "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
+                "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         inEnabled = false,
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
@@ -94,7 +94,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
                         parentEntityId, new TbMsgMetaData(), "");
                 ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
@@ -131,17 +131,13 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
         } else {
             pageLink = new TimePageLink(alarmSearchPageLink, null, null);
         }
-        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, null, false);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         JsonObject obj = new JsonObject();
         for (int i = 0; i < mappings.size(); i++) {
             obj.addProperty(mappings.get(i).getTarget(), alarmCounts.get(i));
         }
         return obj;
-    }
-
-    @Override
-    public void destroy() {
     }
 
 }

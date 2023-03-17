@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,11 +37,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -52,6 +53,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,11 +66,15 @@ import java.util.UUID;
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 @Component
+@SqlDao
 @Slf4j
 public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device> implements DeviceDao {
 
     @Autowired
     private DeviceRepository deviceRepository;
+
+    @Autowired
+    private NativeDeviceRepository nativeDeviceRepository;
 
     @Override
     protected Class<DeviceEntity> getEntityClass() {
@@ -136,6 +142,16 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public List<Device> findDevicesByIds(List<UUID> deviceIds) {
+        return DaoUtil.convertDataList(deviceRepository.findDevicesByIdIn(deviceIds));
+    }
+
+    @Override
+    public ListenableFuture<List<Device>> findDevicesByIdsAsync(List<UUID> deviceIds) {
+        return service.submit(() -> findDevicesByIds(deviceIds));
     }
 
     @Override
@@ -282,6 +298,12 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                 () -> deviceRepository.countByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId),
                 () -> deviceRepository.countByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId),
                 type);
+    }
+
+    @Override
+    public PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink) {
+        log.debug("Try to find tenant device id infos by pageLink [{}]", pageLink);
+        return nativeDeviceRepository.findDeviceIdInfos(DaoUtil.toPageable(pageLink));
     }
 
     @Override

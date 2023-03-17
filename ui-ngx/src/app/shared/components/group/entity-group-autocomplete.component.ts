@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { merge, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, map, publishReplay, refCount, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -67,7 +67,7 @@ import { isEqual, isString } from '@core/utils';
 })
 export class EntityGroupAutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges, OnDestroy {
 
-  selectEntityGroupFormGroup: FormGroup;
+  selectEntityGroupFormGroup: UntypedFormGroup;
 
   modelValue: string | null = null;
 
@@ -80,10 +80,10 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   @Input()
-  set ownerId(value: EntityId) {
+  set ownerId(value: EntityId | null) {
     if (!isEqual(this.ownerIdValue, value)) {
       const currentEntityGroup = this.getCurrentEntityGroup();
-      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
+      const keepEntityGroup = currentEntityGroup?.ownerId?.id === value?.id || currentEntityGroup === null;
       this.reset(keepEntityGroup);
     }
     this.ownerIdValue = value;
@@ -135,7 +135,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityGroupService: EntityGroupService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.selectEntityGroupFormGroup = this.fb.group({
       entityGroup: [null]
     });

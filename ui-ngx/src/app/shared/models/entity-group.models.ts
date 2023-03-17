@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -166,6 +166,10 @@ export const entityGroupEntityFields: {[fieldName: string]: EntityGroupEntityFie
     name: 'entity-group.entity-field.device_profile',
     value: 'device_profile'
   },
+  asset_profile: {
+    name: 'entity-group.entity-field.asset_profile',
+    value: 'asset_profile'
+  },
   assigned_customer: {
     name: 'entity-group.entity-field.assigned_customer',
     value: 'assigned_customer'
@@ -229,7 +233,8 @@ export const entityGroupEntityFieldsToKeysMap: {[keyName: string]: string} = {
   assigned_customer: 'assignedCustomer',
   first_name: 'firstName',
   last_name: 'lastName',
-  device_profile: 'type'
+  device_profile: 'type',
+  asset_profile: 'type'
 };
 
 export interface EntityGroupColumn {
@@ -277,6 +282,14 @@ export function prepareEntityGroupConfiguration(groupType: EntityType,
         configuration.columns.filter(c => c.key === 'type').forEach(
           typeCol => {
             typeCol.key = 'device_profile';
+          }
+        );
+      }
+    } else if (groupType === EntityType.ASSET) {
+      if (configuration.columns) {
+        configuration.columns.filter(c => c.key === 'type').forEach(
+          typeCol => {
+            typeCol.key = 'asset_profile';
           }
         );
       }
