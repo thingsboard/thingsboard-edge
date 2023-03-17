@@ -54,7 +54,7 @@ export interface AssetProfile extends BaseData<AssetProfileId>, ExportableEntity
 }
 
 export interface AssetProfileInfo extends EntityInfoData {
-  tenantId: TenantId;
+  tenantId?: TenantId;
   image?: string;
   defaultDashboardId?: DashboardId;
 }
