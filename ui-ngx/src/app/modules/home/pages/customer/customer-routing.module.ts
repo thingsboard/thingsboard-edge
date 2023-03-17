@@ -49,6 +49,7 @@ import { dashboardsRoute } from '@home/pages/dashboard/dashboard-routing.module'
 import { CustomersHierarchyComponent } from '@home/pages/customer/customers-hierarchy.component';
 import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 import { usersRoute } from '@home/pages/user/user-routing.module';
+import { entityGroupsTitle } from '@shared/models/entity-group.models';
 
 const customerRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -130,14 +131,14 @@ const customerChildrenRoutes = (): Routes =>
     }
 ]);
 
-const customerGroupsChildrenRoutesTemplate = (root: boolean): Routes => {
+const customerGroupsChildrenRoutesTemplate = (root: boolean, shared: boolean): Routes => {
   const routes: Routes = [];
   const groupsRoute: Route = {
     path: '',
     component: EntitiesTableComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.customer-groups',
+      title: entityGroupsTitle(EntityType.CUSTOMER, shared),
       groupType: EntityType.CUSTOMER
     },
     resolve: {
@@ -199,7 +200,7 @@ const customerGroupsRoute = (root: boolean): Route => ({
       icon: 'supervisor_account'
     }
   },
-  children: customerGroupsChildrenRoutesTemplate(root)
+  children: customerGroupsChildrenRoutesTemplate(root, false)
 });
 
 const customerSharedGroupsRoute = (root: boolean): Route => ({
@@ -212,7 +213,7 @@ const customerSharedGroupsRoute = (root: boolean): Route => ({
       icon: 'supervisor_account'
     }
   },
-  children: customerGroupsChildrenRoutesTemplate(root)
+  children: customerGroupsChildrenRoutesTemplate(root, true)
 });
 
 const customersHierarchyRoute: Route = {

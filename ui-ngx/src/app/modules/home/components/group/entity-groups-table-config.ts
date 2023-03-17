@@ -208,7 +208,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       shared: this.shared
     };
     this.updateActionCellDescriptors();
-    this.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType));
+    this.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType, this.shared));
     if (sharableGroupTypes.has(this.groupType) &&
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.addEntity = () => this.entityGroupWizard();

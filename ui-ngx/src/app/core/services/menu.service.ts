@@ -865,19 +865,6 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.USER)) {
-      userPages.push(
-        {
-          id: guid(),
-          name: 'user.shared',
-          type: 'link',
-          path: '/users/shared',
-          icon: 'account_circle',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('user_shared') > -1
-        }
-      );
-    }
     if (userPages.length) {
       sections.push(
         {

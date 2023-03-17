@@ -51,6 +51,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { entityGroupsTitle } from '@shared/models/entity-group.models';
 
 @Injectable()
 export class DashboardResolver implements Resolve<Dashboard> {
@@ -97,13 +98,13 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false): Route =>
     }
   });
 
-const dashboardGroupsChildrenRoutes: Route[] = [
+const dashboardGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   {
     path: '',
     component: EntitiesTableComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.dashboard-groups',
+      title: entityGroupsTitle(EntityType.DASHBOARD, shared),
       groupType: EntityType.DASHBOARD
     },
     resolve: {
@@ -148,7 +149,7 @@ const dashboardGroupsRoute: Route = {
       icon: 'dashboard'
     }
   },
-  children: dashboardGroupsChildrenRoutes
+  children: dashboardGroupsChildrenRoutesTemplate(false)
 };
 
 const dashboardSharedGroupsRoute: Route = {
@@ -161,7 +162,7 @@ const dashboardSharedGroupsRoute: Route = {
       icon: 'dashboard'
     }
   },
-  children: dashboardGroupsChildrenRoutes
+  children: dashboardGroupsChildrenRoutesTemplate(true)
 };
 
 export const dashboardsRoute = (root = false): Route => {

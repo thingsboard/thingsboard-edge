@@ -274,8 +274,8 @@ export interface EntityGroupInfo extends EntityGroup {
   firmwareGroup?: DeviceGroupOtaPackage;
 }
 
-export function prepareEntityGroupConfiguration(groupType: EntityType,
-                                                configuration: EntityGroupConfiguration): EntityGroupConfiguration {
+export const prepareEntityGroupConfiguration = (groupType: EntityType,
+                                                configuration: EntityGroupConfiguration): EntityGroupConfiguration => {
   if (configuration) {
     if (groupType === EntityType.DEVICE) {
       if (configuration.columns) {
@@ -296,7 +296,7 @@ export function prepareEntityGroupConfiguration(groupType: EntityType,
     }
   }
   return configuration;
-}
+};
 
 export interface ShortEntityView {
   id: EntityId;
@@ -304,7 +304,7 @@ export interface ShortEntityView {
   [key: string]: any;
 }
 
-export function groupColumnTypeToEntityKeyType(groupColumnType: EntityGroupColumnType): EntityKeyType {
+export const groupColumnTypeToEntityKeyType = (groupColumnType: EntityGroupColumnType): EntityKeyType => {
   switch (groupColumnType) {
     case EntityGroupColumnType.CLIENT_ATTRIBUTE:
       return EntityKeyType.CLIENT_ATTRIBUTE;
@@ -317,43 +317,40 @@ export function groupColumnTypeToEntityKeyType(groupColumnType: EntityGroupColum
     case EntityGroupColumnType.ENTITY_FIELD:
       return EntityKeyType.ENTITY_FIELD;
   }
-}
+};
 
-export function entityGroupColumnKeyToEntityKey(column: EntityGroupColumn): string {
+export const entityGroupColumnKeyToEntityKey = (column: EntityGroupColumn): string => {
   if (column.type === EntityGroupColumnType.ENTITY_FIELD) {
     const mappedKey = entityGroupEntityFieldsToKeysMap[column.key];
     return mappedKey ? mappedKey : column.key;
   } else {
     return column.key;
   }
-}
+};
 
-export function entityGroupColumnToEntityKey(column: EntityGroupColumn): EntityKey {
-  return {
-    type: groupColumnTypeToEntityKeyType(column.type),
-    key: entityGroupColumnKeyToEntityKey(column)
-  };
-}
+export const entityGroupColumnToEntityKey = (column: EntityGroupColumn): EntityKey => ({
+  type: groupColumnTypeToEntityKeyType(column.type),
+  key: entityGroupColumnKeyToEntityKey(column)
+});
 
-export function prepareEntityDataColumnMap(columns: EntityGroupColumn[]): {[entityKeyType: string]: EntityGroupColumn[]} {
+export const prepareEntityDataColumnMap = (columns: EntityGroupColumn[]): { [entityKeyType: string]: EntityGroupColumn[] } => {
   const result: {[entityKeyType: string]: EntityGroupColumn[]} = {};
   for (const typeKey of Object.keys(EntityGroupColumnType)) {
     const type: EntityGroupColumnType = EntityGroupColumnType[typeKey];
     let typeColumns = columns.filter(c => c.type === type);
     if (typeColumns.length) {
-      typeColumns = typeColumns.filter((c, pos, columnsArray) => {
-        return columnsArray.map(mapCol => mapCol.property).indexOf(c.property) === pos;
-      });
+      typeColumns = typeColumns.filter((c, pos, columnsArray) =>
+        columnsArray.map(mapCol => mapCol.property).indexOf(c.property) === pos);
       const entityKeyType = groupColumnTypeToEntityKeyType(type);
       result[entityKeyType] = typeColumns;
     }
   }
   return result;
-}
+};
 
-export function entityDataToShortEntityView(entityData: EntityData,
+export const entityDataToShortEntityView = (entityData: EntityData,
                                             columnsMap: {[entityKeyType: string]: EntityGroupColumn[]},
-                                            isUpdate = false): ShortEntityView {
+                                            isUpdate = false): ShortEntityView => {
   const entityView: ShortEntityView = {
     id: entityData.entityId,
     name: ''
@@ -389,10 +386,11 @@ export function entityDataToShortEntityView(entityData: EntityData,
     }
   }
   return entityView;
-}
+};
 
-export function groupEntitiesPageLinkToEntityDataPageLink(pageLink: PageLink,
-                                                          columnKeyToEntityKeyMap: {[columnKey: string]: EntityKey}): EntityDataPageLink {
+export const groupEntitiesPageLinkToEntityDataPageLink =
+                              (pageLink: PageLink,
+                               columnKeyToEntityKeyMap: {[columnKey: string]: EntityKey}): EntityDataPageLink => {
   const entityDataPageLink: EntityDataPageLink = {
     dynamic: false,
     pageSize: pageLink.pageSize,
@@ -410,9 +408,9 @@ export function groupEntitiesPageLinkToEntityDataPageLink(pageLink: PageLink,
     }
   }
   return entityDataPageLink;
-}
+};
 
-export function groupSettingsDefaults(entityType: EntityType, settings: EntityGroupSettings): EntityGroupSettings {
+export const groupSettingsDefaults = (entityType: EntityType, settings: EntityGroupSettings): EntityGroupSettings => {
   settings = {...{
       groupTableTitle: '',
       enableSearch: true,
@@ -460,28 +458,29 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
       }, ...settings};
   }
   return settings;
-}
+};
 
-export function entityGroupsTitle(groupType: EntityType) {
+export const entityGroupsTitle = (groupType: EntityType, shared = false) => {
+  const prefix = shared ? 'shared-' : '';
   switch (groupType) {
     case EntityType.ASSET:
-      return 'entity-group.asset-groups';
+      return `entity-group.${prefix}asset-groups`;
     case EntityType.DEVICE:
-      return 'entity-group.device-groups';
+      return `entity-group.${prefix}device-groups`;
     case EntityType.CUSTOMER:
-      return 'entity-group.customer-groups';
+      return `entity-group.${prefix}customer-groups`;
     case EntityType.USER:
-      return 'entity-group.user-groups';
+      return `entity-group.user-groups`;
     case EntityType.ENTITY_VIEW:
-      return 'entity-group.entity-view-groups';
+      return `entity-group.${prefix}entity-view-groups`;
     case EntityType.DASHBOARD:
-      return 'entity-group.dashboard-groups';
+      return `entity-group.${prefix}dashboard-groups`;
     case EntityType.EDGE:
-      return 'entity-group.edge-groups';
+      return `entity-group.${prefix}edge-groups`;
   }
-}
+};
 
-export function edgeEntitiesTitle(entityType: EntityType) {
+export const edgeEntitiesTitle = (entityType: EntityType) => {
   switch (entityType) {
     case EntityType.ASSET:
     case EntityType.DEVICE:
@@ -498,7 +497,7 @@ export function edgeEntitiesTitle(entityType: EntityType) {
     case EntityType.INTEGRATION:
       return 'edge.integrations';
   }
-}
+};
 
 export interface HierarchyCallbacks {
   groupSelected?: (parentNodeId: string, groupId: string) => void;
@@ -544,7 +543,7 @@ export interface ShareGroupRequest {
   roleIds?: RoleId[];
 }
 
-export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
+export const resolveGroupParams = (route: ActivatedRouteSnapshot): EntityGroupParams => {
   let routeParams = {...route.params};
   let routeData = {...route.data};
   let backNavigationCommands: any[];
@@ -582,4 +581,4 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     edgeEntitiesGroupId: routeData.edgeEntitiesGroupId,
     backNavigationCommands
   };
-}
+};

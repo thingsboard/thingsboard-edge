@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Route } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -45,6 +45,7 @@ import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-g
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
+import { entityGroupsTitle } from '@shared/models/entity-group.models';
 
 const assetRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -67,13 +68,13 @@ const assetRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
     }
   });
 
-const assetGroupsChildrenRoutes: Route[] = [
+const assetGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   {
     path: '',
     component: EntitiesTableComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.asset-groups',
+      title: entityGroupsTitle(EntityType.ASSET, shared),
       groupType: EntityType.ASSET
     },
     resolve: {
@@ -118,7 +119,7 @@ const assetGroupsRoute: Route = {
       icon: 'domain'
     }
   },
-  children: assetGroupsChildrenRoutes
+  children: assetGroupsChildrenRoutesTemplate(false)
 };
 
 const assetSharedGroupsRoute: Route = {
@@ -131,7 +132,7 @@ const assetSharedGroupsRoute: Route = {
       icon: 'domain'
     }
   },
-  children: assetGroupsChildrenRoutes
+  children: assetGroupsChildrenRoutesTemplate(true)
 };
 
 export const assetsRoute = (root = false): Route => {

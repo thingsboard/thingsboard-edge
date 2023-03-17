@@ -46,6 +46,7 @@ import { GroupEntitiesTableComponent } from '@home/components/group/group-entiti
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { AssetsTableConfigResolver } from '@home/pages/asset/assets-table-config.resolver';
 import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
+import { entityGroupsTitle } from '@shared/models/entity-group.models';
 
 const entityViewRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -68,13 +69,13 @@ const entityViewRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
     }
   });
 
-const entityViewGroupsChildrenRoutes: Route[] = [
+const entityViewGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   {
     path: '',
     component: EntitiesTableComponent,
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.entity-view-groups',
+      title: entityGroupsTitle(EntityType.ENTITY_VIEW, shared),
       groupType: EntityType.ENTITY_VIEW
     },
     resolve: {
@@ -119,7 +120,7 @@ const entityViewGroupsRoute: Route = {
       icon: 'view_quilt'
     }
   },
-  children: entityViewGroupsChildrenRoutes
+  children: entityViewGroupsChildrenRoutesTemplate(false)
 };
 
 const entityViewSharedGroupsRoute: Route = {
@@ -132,7 +133,7 @@ const entityViewSharedGroupsRoute: Route = {
       icon: 'view_quilt'
     }
   },
-  children: entityViewGroupsChildrenRoutes
+  children: entityViewGroupsChildrenRoutesTemplate(true)
 };
 
 export const entityViewsRoute = (root = false): Route => {

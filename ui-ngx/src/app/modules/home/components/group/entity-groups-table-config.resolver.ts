@@ -92,13 +92,13 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       } else {
         return this.customerService.getShortCustomerInfo(config.customerId).pipe(
           map((info) => {
-            config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
+            config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType, params.shared));
             return config;
           })
         );
       }
     } else if (config.customerId && customerTitle){
-      config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
+      config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType, params.shared));
       return config;
     } else if (config.edgeId && resolveCustomer) {
       return this.resolveEdgeInfo(config);

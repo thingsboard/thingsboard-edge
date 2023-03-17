@@ -119,19 +119,6 @@ const userGroupsRoute: Route = {
   children: userGroupsChildrenRoutes
 };
 
-const userSharedGroupsRoute: Route = {
-  path: 'shared',
-  data: {
-    groupType: EntityType.USER,
-    shared: true,
-    breadcrumb: {
-      label: 'user.shared',
-      icon: 'account_circle'
-    }
-  },
-  children: userGroupsChildrenRoutes
-};
-
 export const usersRoute = (root = false): Route => {
   const routeConfig: Route = {
     path: 'users',
@@ -181,9 +168,6 @@ export const usersRoute = (root = false): Route => {
       userGroupsRoute
     ]
   };
-  if (root) {
-    routeConfig.children.push(userSharedGroupsRoute);
-  }
   routeConfig.children.push(userRoute(EntityGroupResolver, UsersTableConfigResolver));
   return routeConfig;
 };
