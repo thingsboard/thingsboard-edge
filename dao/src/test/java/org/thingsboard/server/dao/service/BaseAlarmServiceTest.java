@@ -303,6 +303,7 @@ public abstract class BaseAlarmServiceTest extends AbstractServiceTest {
         pageLink.setPage(0);
         pageLink.setPageSize(10);
         pageLink.setAssigneeId(tenantUser.getId());
+        pageLink.setSortOrder(new EntityDataSortOrder(new EntityKey(EntityKeyType.ALARM_FIELD, "assignee")));
 
         PageData<AlarmData> assignedAlarms = alarmService.findAlarmDataByQueryForEntities(tenantId, mergedUserPermissions, toQuery(pageLink), Collections.singletonList(created.getOriginator()));
         Assert.assertNotNull(assignedAlarms.getData());

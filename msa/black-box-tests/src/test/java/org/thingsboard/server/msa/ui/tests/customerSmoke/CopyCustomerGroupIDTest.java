@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -66,8 +68,10 @@ public class CopyCustomerGroupIDTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Copy ID")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Copy customer group Id by click on 'Copy entity group Id' btn in customer group view")
     public void removeFromCustomerView() {
         customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
