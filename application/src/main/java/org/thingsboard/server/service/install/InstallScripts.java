@@ -40,9 +40,12 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -54,10 +57,12 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -67,11 +72,13 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
+import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
 
 /**
  * Created by ashvayka on 18.04.18.
@@ -97,9 +104,9 @@ public class InstallScripts {
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
-    public static final String MODELS_DIR = "models";
     public static final String CREDENTIALS_DIR = "credentials";
     public static final String EDGE_MANAGEMENT = "edge_management";
+    public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
 
     public static final String JSON_EXT = ".json";
     public static final String XML_EXT = ".xml";
@@ -130,6 +137,9 @@ public class InstallScripts {
 
     @Autowired
     private OAuth2ConfigTemplateService oAuth2TemplateService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     private Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -378,4 +388,53 @@ public class InstallScripts {
             );
         }
     }
+
+    /**
+     * TbResource res = new TbResource();
+     * res.setTenantId(TenantId.SYS_TENANT_ID); // SisAdmin
+     * res.setData("File base64");
+     * res.setResourceType(ResourceType.LWM2M_MODEL);
+     */
+    public void migrateLwm2mResources() {
+        Path resourceLwm2mPath = Paths.get(dataDir, MODELS_LWM2M_DIR);
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(resourceLwm2mPath, path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
+            dirStream.forEach(
+                    path -> {
+                        try {
+                            String data = Base64.getEncoder().encodeToString(Files.readAllBytes(path));
+                            TbResource tbResource = new TbResource();
+                            tbResource.setTenantId(TenantId.SYS_TENANT_ID); // SisAdmin
+                            tbResource.setData(data);
+                            tbResource.setResourceType(ResourceType.LWM2M_MODEL);
+                            tbResource.setFileName(path.toFile().getName());
+                            doSaveLwm2mResource(tbResource);
+                        } catch (Exception e) {
+                            log.error("Unable to load resource lwm2m object model from file: [{}]", path.toString());
+                            throw new RuntimeException("resource lwm2m object model from file", e);
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            log.error("Unable to load resources lwm2m object model from file: [{}]", resourceLwm2mPath.toString());
+            throw new RuntimeException("resource lwm2m object model from file", e);
+        }
+    }
+
+    private void doSaveLwm2mResource(TbResource resource) throws ThingsboardException {
+        try {
+            log.trace("Executing saveResource [{}]", resource);
+            if (StringUtils.isEmpty(resource.getData())) {
+                throw new DataValidationException("Resource data should be specified!");
+            }
+            toLwm2mResource(resource);
+            resourceService.saveResource(resource);
+        } catch (Exception e) {
+            if (e.getMessage().equals("Resource with such resourceKey already exists!")) {
+                log.trace("File of lwm2m model: [{}]. [{}]", resource.getFileName(), e.getMessage());
+            } else {
+                throw e;
+            }
+        }
+    }
 }
+
