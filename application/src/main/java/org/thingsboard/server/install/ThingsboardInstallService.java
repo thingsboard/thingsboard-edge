@@ -263,13 +263,13 @@ public class ThingsboardInstallService {
                         case "3.4.4":
                             log.info("Upgrading ThingsBoard from version 3.4.4 to 3.5.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
+                            installScripts.loadSystemLwm2mResources();
                         case "3.5.0": // to 3.5.0PE
                             log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
                             dataUpdateService.updateData("3.5.0");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
-                            installScripts.loadSystemLwm2mResources();
                             break;
                         //TODO update CacheCleanupService on the next version upgrade
                         default:
