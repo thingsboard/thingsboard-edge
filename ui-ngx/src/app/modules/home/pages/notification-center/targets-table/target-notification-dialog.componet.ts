@@ -32,7 +32,7 @@
 import {
   NotificationTarget,
   NotificationTargetConfigType,
-  NotificationTargetConfigTypeTranslateMap,
+  NotificationTargetConfigTypeInfoMap,
   NotificationTargetType,
   NotificationTargetTypeTranslationMap,
   SlackChanelType,
@@ -77,7 +77,7 @@ export class TargetNotificationDialogComponent extends
   notificationTargetTypeTranslationMap = NotificationTargetTypeTranslationMap;
   notificationTargetConfigType = NotificationTargetConfigType;
   notificationTargetConfigTypes: NotificationTargetConfigType[] = this.allowNotificationTargetConfigTypes();
-  notificationTargetConfigTypeTranslateMap = NotificationTargetConfigTypeTranslateMap;
+  notificationTargetConfigTypeInfoMap = NotificationTargetConfigTypeInfoMap;
   slackChanelTypes = Object.keys(SlackChanelType) as SlackChanelType[];
   slackChanelTypesTranslateMap = SlackChanelTypesTranslateMap;
 
