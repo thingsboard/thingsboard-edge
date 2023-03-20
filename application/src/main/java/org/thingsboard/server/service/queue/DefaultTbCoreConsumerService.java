@@ -95,7 +95,6 @@ import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.notification.NotificationSchedulerService;
-import org.thingsboard.server.service.notification.rule.NotificationRuleProcessingService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -711,7 +710,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             notificationSchedulerService.scheduleNotificationRequest(tenantId, notificationRequestId, msg.getTs());
             callback.onSuccess();
         } catch (Exception e) {
-            callback.onFailure(new RuntimeException("Failed to scheduler notification request", e));
+            callback.onFailure(new RuntimeException("Failed to schedule notification request", e));
         }
     }
 

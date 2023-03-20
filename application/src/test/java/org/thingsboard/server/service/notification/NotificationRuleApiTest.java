@@ -160,7 +160,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         getWsClient().waitForUpdate(true);
 
         Notification notification = getWsClient().getLastDataUpdate().getUpdate();
-        assertThat(notification.getSubject()).isEqualTo("added: DEVICE [" + device.getId() + "]");
+        assertThat(notification.getSubject()).isEqualTo("added: Device [" + device.getId() + "]");
         assertThat(notification.getText()).isEqualTo("User: " + TENANT_ADMIN_EMAIL);
 
 
@@ -170,7 +170,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         getWsClient().waitForUpdate(true);
 
         notification = getWsClient().getLastDataUpdate().getUpdate();
-        assertThat(notification.getSubject()).isEqualTo("updated: DEVICE [" + device.getId() + "]");
+        assertThat(notification.getSubject()).isEqualTo("updated: Device [" + device.getId() + "]");
 
 
         getWsClient().registerWaitForUpdate();
@@ -178,7 +178,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         getWsClient().waitForUpdate(true);
 
         notification = getWsClient().getLastDataUpdate().getUpdate();
-        assertThat(notification.getSubject()).isEqualTo("deleted: DEVICE [" + device.getId() + "]");
+        assertThat(notification.getSubject()).isEqualTo("deleted: Device [" + device.getId() + "]");
     }
 
     @Test

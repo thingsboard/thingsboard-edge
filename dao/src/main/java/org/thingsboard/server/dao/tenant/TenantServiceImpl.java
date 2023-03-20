@@ -262,7 +262,11 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
             entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-            notificationSettingsService.createDefaultNotificationConfigs(savedTenant.getId());
+            try {
+                notificationSettingsService.createDefaultNotificationConfigs(savedTenant.getId());
+            } catch (Throwable e) {
+                log.error("Failed to create default notification configs for tenant {}", savedTenant.getId(), e);
+            }
         }
         return savedTenant;
     }

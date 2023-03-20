@@ -32,6 +32,10 @@
 import {
   AlarmAction,
   AlarmActionTranslationMap,
+  AlarmAssignmentAction,
+  AlarmAssignmentActionTranslationMap,
+  ComponentLifecycleEvent,
+  ComponentLifecycleEventTranslationMap,
   NotificationRule,
   NotificationTarget,
   TriggerType,
@@ -90,6 +94,7 @@ export class RuleNotificationDialogComponent extends
   entityActionTemplateForm: FormGroup;
   alarmCommentTemplateForm: FormGroup;
   alarmAssignmentTemplateForm: FormGroup;
+  ruleEngineEventsTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[] = Object.values(TriggerType);
@@ -108,6 +113,12 @@ export class RuleNotificationDialogComponent extends
 
   alarmActions: AlarmAction[] = Object.values(AlarmAction);
   alarmActionTranslationMap = AlarmActionTranslationMap;
+
+  alarmAssignmentActions: AlarmAssignmentAction[] = Object.values(AlarmAssignmentAction);
+  alarmAssignmentActionTranslationMap = AlarmAssignmentActionTranslationMap;
+
+  componentLifecycleEvents: ComponentLifecycleEvent[] = Object.values(ComponentLifecycleEvent);
+  componentLifecycleEventTranslationMap = ComponentLifecycleEventTranslationMap;
 
   entityType = EntityType;
   entityTypes: EntityType[] = Object.values(EntityType);
@@ -222,7 +233,8 @@ export class RuleNotificationDialogComponent extends
         alarmTypes: [null],
         alarmSeverities: [[]],
         alarmStatuses: [[]],
-        onlyUserComments: [false]
+        onlyUserComments: [false],
+        notifyOnCommentUpdate: [false]
       })
     });
 
@@ -231,7 +243,18 @@ export class RuleNotificationDialogComponent extends
         alarmTypes: [null],
         alarmSeverities: [[]],
         alarmStatuses: [[]],
-        notifyOnUnassign: [true]
+        notifyOn: [[AlarmAssignmentAction.ASSIGNED], Validators.required]
+      })
+    });
+
+    this.ruleEngineEventsTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        ruleChains: [null],
+        ruleChainEvents: [null],
+        onlyRuleChainLifecycleFailures: [false],
+        trackRuleNodeEvents: [false],
+        ruleNodeEvents: [null],
+        onlyRuleNodeLifecycleFailures: [false]
       })
     });
 
@@ -241,6 +264,7 @@ export class RuleNotificationDialogComponent extends
       [TriggerType.DEVICE_INACTIVITY, this.deviceInactivityTemplateForm],
       [TriggerType.ENTITY_ACTION, this.entityActionTemplateForm],
       [TriggerType.ALARM_ASSIGNMENT, this.alarmAssignmentTemplateForm],
+      [TriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT, this.ruleEngineEventsTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {

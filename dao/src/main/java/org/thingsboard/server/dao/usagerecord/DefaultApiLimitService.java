@@ -28,11 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.apiusage;
+package org.thingsboard.server.dao.usagerecord;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -41,9 +44,8 @@ import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.usagerecord.ApiLimitService;
-import org.thingsboard.server.service.notification.rule.NotificationRuleProcessingService;
 
 import java.util.Collections;
 import java.util.Map;
@@ -55,7 +57,8 @@ public class DefaultApiLimitService implements ApiLimitService {
 
     private final EntityService entityService;
     private final TbTenantProfileCache tenantProfileCache;
-    private final NotificationRuleProcessingService notificationRuleProcessingService;
+    @Autowired(required = false)
+    private NotificationRuleProcessingService notificationRuleProcessingService;
 
     @Override
     public boolean checkEntitiesLimit(TenantId tenantId, EntityType entityType) {
@@ -64,9 +67,12 @@ public class DefaultApiLimitService implements ApiLimitService {
         if (limit > 0) {
             EntityTypeFilter filter = new EntityTypeFilter();
             filter.setEntityType(entityType);
-            long currentCount = entityService.countEntitiesByQuery(tenantId, null, new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)),
-                    Collections.emptyMap()), new EntityCountQuery(filter));
-            notificationRuleProcessingService.process(tenantId, entityType, limit, currentCount);
+            long currentCount = entityService.countEntitiesByQuery(tenantId, new CustomerId(EntityId.NULL_UUID),
+                    new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap()),
+                    new EntityCountQuery(filter));
+            if (notificationRuleProcessingService != null) {
+                notificationRuleProcessingService.process(tenantId, entityType, limit, currentCount);
+            }
             return currentCount < limit;
         } else {
             return true;

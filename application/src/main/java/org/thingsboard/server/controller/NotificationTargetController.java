@@ -33,6 +33,8 @@ package org.thingsboard.server.controller;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,11 +58,11 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.TenantAdministratorsFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
-import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -182,22 +184,33 @@ public class NotificationTargetController extends BaseController {
         }
         accessControlService.checkPermission(user, Resource.USER, Operation.READ);
         UsersFilter usersFilter = ((PlatformUsersNotificationTargetConfig) targetConfig).getUsersFilter();
-        if (usersFilter.getType() == UsersFilterType.USER_LIST) {
-            for (UUID recipientId : ((UserListFilter) usersFilter).getUsersIds()) {
-                checkUserId(new UserId(recipientId), Operation.READ);
-            }
-        } else if (usersFilter.getType() == UsersFilterType.CUSTOMER_USERS) {
-            CustomerId customerId = new CustomerId(((CustomerUsersFilter) usersFilter).getCustomerId());
-            checkEntityId(customerId, Operation.READ);
-        } else if (usersFilter.getType() == UsersFilterType.USER_GROUP_LIST) {
-            for (EntityGroupId groupId : fromUUIDs(((UserGroupListFilter) usersFilter).getGroupsIds(), EntityGroupId::new)) {
-                checkEntityGroupId(groupId, Operation.READ);
-            }
-        } else if (usersFilter.getType() == UsersFilterType.USER_ROLE) {
-            accessControlService.checkPermission(user, Resource.GROUP_PERMISSION, Operation.READ);
-            for (UUID roleId : ((UserRoleFilter) usersFilter).getRolesIds()) {
-                checkRoleId(new RoleId(roleId), Operation.READ);
-            }
+        switch (usersFilter.getType()) {
+            case USER_LIST:
+                for (UUID recipientId : ((UserListFilter) usersFilter).getUsersIds()) {
+                    checkUserId(new UserId(recipientId), Operation.READ);
+                }
+                break;
+            case CUSTOMER_USERS:
+                CustomerId customerId = new CustomerId(((CustomerUsersFilter) usersFilter).getCustomerId());
+                checkEntityId(customerId, Operation.READ);
+                break;
+            case USER_GROUP_LIST:
+                for (EntityGroupId groupId : fromUUIDs(((UserGroupListFilter) usersFilter).getGroupsIds(), EntityGroupId::new)) {
+                    checkEntityGroupId(groupId, Operation.READ);
+                }
+                break;
+            case USER_ROLE:
+                accessControlService.checkPermission(user, Resource.GROUP_PERMISSION, Operation.READ);
+                for (UUID roleId : ((UserRoleFilter) usersFilter).getRolesIds()) {
+                    checkRoleId(new RoleId(roleId), Operation.READ);
+                }
+                break;
+            case TENANT_ADMINISTRATORS:
+                if (CollectionUtils.isNotEmpty(((TenantAdministratorsFilter) usersFilter).getTenantsIds()) ||
+                        CollectionUtils.isNotEmpty(((TenantAdministratorsFilter) usersFilter).getTenantProfilesIds())) {
+                    throw new AccessDeniedException("");
+                }
+                break;
         }
     }
 

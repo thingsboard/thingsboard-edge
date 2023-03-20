@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
 import org.thingsboard.server.common.data.notification.info.AlarmAssignmentNotificationInfo;
 import org.thingsboard.server.common.data.notification.info.NotificationInfo;
 import org.thingsboard.server.common.data.notification.rule.trigger.AlarmAssignmentNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.AlarmAssignmentNotificationRuleTriggerConfig.Action;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -52,7 +53,8 @@ public class AlarmAssignmentTriggerProcessor implements RuleEngineMsgNotificatio
 
     @Override
     public boolean matchesFilter(TbMsg ruleEngineMsg, AlarmAssignmentNotificationRuleTriggerConfig triggerConfig) {
-        if (ruleEngineMsg.getType().equals(DataConstants.ALARM_UNASSIGN) && !triggerConfig.isNotifyOnUnassign()) {
+        Action action = ruleEngineMsg.getType().equals(DataConstants.ALARM_ASSIGN) ? Action.ASSIGNED : Action.UNASSIGNED;
+        if (!triggerConfig.getNotifyOn().contains(action)) {
             return false;
         }
         Alarm alarm = JacksonUtil.fromString(ruleEngineMsg.getData(), Alarm.class);
@@ -63,13 +65,14 @@ public class AlarmAssignmentTriggerProcessor implements RuleEngineMsgNotificatio
 
     @Override
     public NotificationInfo constructNotificationInfo(TbMsg ruleEngineMsg, AlarmAssignmentNotificationRuleTriggerConfig triggerConfig) {
-        // TODO: readable action
         AlarmInfo alarmInfo = JacksonUtil.fromString(ruleEngineMsg.getData(), AlarmInfo.class);
         AlarmAssignee assignee = alarmInfo.getAssignee();
         return AlarmAssignmentNotificationInfo.builder()
+                .action(ruleEngineMsg.getType().equals(DataConstants.ALARM_ASSIGN) ? "assigned" : "unassigned")
                 .assigneeFirstName(assignee != null ? assignee.getFirstName() : null)
                 .assigneeLastName(assignee != null ? assignee.getLastName() : null)
                 .assigneeEmail(assignee != null ? assignee.getEmail() : null)
+                .assigneeId(assignee != null ? assignee.getId() : null)
                 .userName(ruleEngineMsg.getMetaData().getValue("userName"))
                 .alarmId(alarmInfo.getUuidId())
                 .alarmType(alarmInfo.getType())

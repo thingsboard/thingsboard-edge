@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -84,7 +85,13 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
-    PageData<User> findAllUsers(TenantId tenantId, PageLink pageLink);
+    PageData<User> findAllTenantAdmins(PageLink pageLink);
+
+    PageData<User> findTenantAdminsByTenantsIds(List<TenantId> tenantsIds, PageLink pageLink);
+
+    PageData<User> findTenantAdminsByTenantProfilesIds(List<TenantProfileId> tenantProfilesIds, PageLink pageLink);
+
+    PageData<User> findAllUsers(PageLink pageLink);
 
 	void deleteTenantAdmins(TenantId tenantId);
 

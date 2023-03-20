@@ -32,6 +32,7 @@ package org.thingsboard.server.service.notification.rule.trigger;
 
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.notification.info.EntityActionNotificationInfo;
@@ -40,6 +41,7 @@ import org.thingsboard.server.common.data.notification.rule.trigger.EntityAction
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.msg.TbMsg;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -64,7 +66,7 @@ public class EntityActionTriggerProcessor implements RuleEngineMsgNotificationRu
         } else {
             return false;
         }
-        return triggerConfig.getEntityType() == null || ruleEngineMsg.getOriginator().getEntityType() == triggerConfig.getEntityType();
+        return triggerConfig.getEntityType() == null || getEntityType(ruleEngineMsg) == triggerConfig.getEntityType();
     }
 
     @Override
@@ -75,13 +77,18 @@ public class EntityActionTriggerProcessor implements RuleEngineMsgNotificationRu
                                 msgType.equals(DataConstants.ENTITY_UPDATED) ? ActionType.UPDATED :
                                 msgType.equals(DataConstants.ENTITY_DELETED) ? ActionType.DELETED : null;
         return EntityActionNotificationInfo.builder()
-                .entityId(entityId)
+                .entityId(actionType != ActionType.DELETED ? entityId : null)
                 .entityName(ruleEngineMsg.getMetaData().getValue("entityName"))
                 .actionType(actionType)
                 .originatorUserId(UUID.fromString(ruleEngineMsg.getMetaData().getValue("userId")))
                 .originatorUserName(ruleEngineMsg.getMetaData().getValue("userName"))
                 .entityCustomerId(ruleEngineMsg.getCustomerId())
                 .build();
+    }
+
+    private static EntityType getEntityType(TbMsg ruleEngineMsg) {
+        return Optional.ofNullable(ruleEngineMsg.getMetaData().getValue("entityType"))
+                .map(EntityType::valueOf).orElse(null);
     }
 
     @Override

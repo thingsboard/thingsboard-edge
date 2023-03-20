@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.ws.notification.sub;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -57,6 +58,7 @@ public class NotificationUpdate {
 
     private boolean deleted;
 
+    @JsonIgnore
     public UUID getNotificationId() {
         return notificationId != null ? notificationId.getId() :
                 notification != null ? notification.getUuidId() : null;
