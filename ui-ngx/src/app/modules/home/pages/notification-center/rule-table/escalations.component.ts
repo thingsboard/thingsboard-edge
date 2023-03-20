@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -66,7 +66,7 @@ import { coerceBoolean } from '@shared/decorators/coerce-boolean';
     }
   ]
 })
-export class EscalationsComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class EscalationsComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
   escalationsFormGroup: FormGroup;
 
@@ -122,6 +122,7 @@ export class EscalationsComponent implements ControlValueAccessor, Validator, On
 
   writeValue(escalations: {[key: string]: Array<string>} | null): void {
     const escalationParse: Array<NonConfirmedNotificationEscalation> = [];
+    // eslint-disable-next-line guard-for-in
     for (const escalation in escalations) {
       escalationParse.push({delayInSec: Number(escalation) * 1000, targets: escalations[escalation]});
     }

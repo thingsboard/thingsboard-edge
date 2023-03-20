@@ -79,7 +79,7 @@ export class TemplateAutocompleteComponent implements ControlValueAccessor, OnIn
 
   @Input()
   @coerceBoolean()
-  allowCreate: boolean = false;
+  allowCreate = false;
 
 
   @Input()
@@ -170,19 +170,22 @@ export class TemplateAutocompleteComponent implements ControlValueAccessor, OnIn
   writeValue(value: EntityId | null): void {
     this.searchText = '';
     if (value != null) {
-      this.notificationService.getNotificationTemplateById(value.id, {ignoreLoading: true, ignoreErrors: true}).subscribe(
-        (entity) => {
+      this.notificationService.getNotificationTemplateById(value.id, {
+        ignoreLoading: true,
+        ignoreErrors: true
+      }).subscribe({
+        next: (entity) => {
           this.modelValue = entity.id;
           this.selectTemplateFormGroup.get('templateName').patchValue(entity, {emitEvent: false});
         },
-        () => {
+        error: () => {
           this.modelValue = null;
           this.selectTemplateFormGroup.get('templateName').patchValue('', {emitEvent: false});
           if (value !== null) {
             this.propagateChange(this.modelValue);
           }
         }
-      );
+      });
     } else {
       this.modelValue = null;
       this.selectTemplateFormGroup.get('templateName').patchValue('', {emitEvent: false});
@@ -244,9 +247,7 @@ export class TemplateAutocompleteComponent implements ControlValueAccessor, OnIn
     });
     return this.notificationService.getNotificationTemplates(pageLink, this.notificationTypes, {ignoreLoading: true}).pipe(
       catchError(() => of(emptyPageData<NotificationTemplate>())),
-      map(pageData => {
-        return pageData.data;
-      })
+      map(pageData => pageData.data)
     );
   }
 
