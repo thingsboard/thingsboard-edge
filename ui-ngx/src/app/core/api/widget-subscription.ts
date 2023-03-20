@@ -98,6 +98,7 @@ import { distinct, filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { AlarmDataListener } from '@core/api/alarm-data.service';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { RpcStatus } from '@shared/models/rpc.models';
+import { EventEmitter } from '@angular/core';
 
 const moment = moment_;
 
@@ -231,6 +232,8 @@ export class WidgetSubscription implements IWidgetSubscription {
   widgetTimewindowChanged$ = this.widgetTimewindowChangedSubject.asObservable().pipe(
     distinct()
   );
+
+  paginatedDataSubscriptionUpdated = new EventEmitter<void>();
 
   constructor(subscriptionContext: WidgetSubscriptionContext, public options: WidgetSubscriptionOptions) {
     const subscriptionSubject = new ReplaySubject<IWidgetSubscription>();
@@ -957,6 +960,13 @@ export class WidgetSubscription implements IWidgetSubscription {
     }
   }
 
+  stopSubscription(datasourceIndex: number) {
+    const entityDataListener = this.entityDataListeners[datasourceIndex];
+    if (entityDataListener) {
+      this.ctx.entityDataService.stopSubscription(entityDataListener);
+    }
+  }
+
   subscribeForPaginatedData(datasourceIndex: number,
                             pageLink: EntityDataPageLink,
                             keyFilters: KeyFilter[]): Observable<any> {
@@ -1211,6 +1221,10 @@ export class WidgetSubscription implements IWidgetSubscription {
   }
 
   private updatePaginatedDataSubscriptions() {
+    for (let datasourceIndex = 0; datasourceIndex < this.entityDataListeners.length; datasourceIndex++) {
+      this.stopSubscription(datasourceIndex);
+    }
+    this.paginatedDataSubscriptionUpdated.emit();
     for (let datasourceIndex = 0; datasourceIndex < this.entityDataListeners.length; datasourceIndex++) {
       const entityDataListener = this.entityDataListeners[datasourceIndex];
       if (entityDataListener) {

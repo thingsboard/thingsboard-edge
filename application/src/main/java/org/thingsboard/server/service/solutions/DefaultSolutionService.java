@@ -115,12 +115,14 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
+import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.asset.TbAssetService;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -176,6 +178,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -215,8 +218,10 @@ public class DefaultSolutionService implements SolutionService {
     private final DashboardService dashboardService;
     private final TbEntityRelationService relationService;
     private final DeviceService deviceService;
+    private final TbDeviceService tbDeviceService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
+    private final TbAssetService tbAssetService;
     private final CustomerService customerService;
     private final UserService userService;
 
@@ -354,7 +359,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     @Override
-    public void deleteSolution(TenantId tenantId, String solutionId) throws ThingsboardException {
+    public void deleteSolution(TenantId tenantId, String solutionId, User user) throws ThingsboardException {
         try {
             Optional<AttributeKvEntry> entitiesOpt = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toCreatedEntitiesKey(solutionId)).get();
             if (entitiesOpt.isPresent()) {
@@ -365,7 +370,7 @@ public class DefaultSolutionService implements SolutionService {
                 Collections.reverse(entityIds);
                 for (EntityId entityId : entityIds) {
                     try {
-                        deleteEntity(tenantId, entityId);
+                        deleteEntity(tenantId, entityId, user);
                     } catch (RuntimeException e) {
                         log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, e);
                     }
@@ -529,7 +534,7 @@ public class DefaultSolutionService implements SolutionService {
         Collections.reverse(createdEntities);
         for (EntityId entityId : createdEntities) {
             try {
-                deleteEntity(tenantId, entityId);
+                deleteEntity(tenantId, entityId, ctx.getUser());
             } catch (RuntimeException re) {
                 log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, re);
             }
@@ -877,6 +882,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Device, DeviceDefinition> provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
         Map<Device, DeviceDefinition> result = new HashMap<>();
+        Set<String> deviceTypeSet = new HashSet<>();
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
 
@@ -886,6 +892,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setTenantId(ctx.getTenantId());
             entity.setName(entityDef.getName());
             entity.setLabel(entityDef.getLabel());
+            ensureDeviceProfileExists(ctx, deviceTypeSet, entityDef);
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
             entity = deviceService.saveDevice(entity);
@@ -912,6 +919,18 @@ public class DefaultSolutionService implements SolutionService {
             tbClusterService.onDeviceUpdated(entity, null);
         }
         return result;
+    }
+
+    private void ensureDeviceProfileExists(SolutionInstallContext ctx, Set<String> deviceTypeSet, DeviceDefinition entityDef) {
+        if (!deviceTypeSet.contains(entityDef.getType())){
+            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileByName(ctx.getTenantId(), entityDef.getType());
+            if (deviceProfile == null) {
+                DeviceProfile created = deviceProfileService.findOrCreateDeviceProfile(ctx.getTenantId(), entityDef.getType());
+                ctx.register(created.getId());
+                log.info("Saved device profile: {}", created.getId());
+                deviceTypeSet.add(entityDef.getType());
+            }
+        }
     }
 
     private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
@@ -998,6 +1017,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) throws ThingsboardException {
         Map<Asset, AssetDefinition> result = new HashMap<>();
+        Set<String> assetTypeSet = new HashSet<>();
         List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
@@ -1007,6 +1027,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setLabel(entityDef.getLabel());
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            ensureAssetProfileExists(ctx, assetTypeSet, entityDef);
             entity = assetService.saveAsset(entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved asset: {}", entity.getId(), entity);
@@ -1018,6 +1039,18 @@ public class DefaultSolutionService implements SolutionService {
             result.put(entity, entityDef);
         }
         return result;
+    }
+
+    private void ensureAssetProfileExists(SolutionInstallContext ctx, Set<String> assetTypeSet, AssetDefinition entityDef) {
+        if (!assetTypeSet.contains(entityDef.getType())){
+            AssetProfile assetProfile = assetProfileService.findAssetProfileByName(ctx.getTenantId(), entityDef.getType());
+            if (assetProfile == null) {
+                AssetProfile created = assetProfileService.findOrCreateAssetProfile(ctx.getTenantId(), entityDef.getType());
+                ctx.register(created.getId());
+                log.info("Saved asset profile: {}", created.getId());
+                assetTypeSet.add(entityDef.getType());
+            }
+        }
     }
 
     private void provisionCustomers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
@@ -1424,9 +1457,9 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void deleteEntity(TenantId tenantId, EntityId entityId) {
+    private void deleteEntity(TenantId tenantId, EntityId entityId, User user) {
         try {
-            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, false))
+            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false))
                     .get().getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
             alarmIds.forEach(alarmId -> {
                 alarmService.deleteAlarm(tenantId, alarmId);
@@ -1456,10 +1489,10 @@ public class DefaultSolutionService implements SolutionService {
                 userService.deleteUser(tenantId, new UserId(entityId.getId()));
                 break;
             case ASSET:
-                assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
+                tbAssetService.delete(new AssetId(entityId.getId()), user);
                 break;
             case DEVICE:
-                deviceService.deleteDevice(tenantId, new DeviceId(entityId.getId()));
+                tbDeviceService.delete(new DeviceId(entityId.getId()), user);
                 break;
             case CUSTOMER:
                 customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));

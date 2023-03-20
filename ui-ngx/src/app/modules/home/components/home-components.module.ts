@@ -220,6 +220,7 @@ import { ConverterTestDialogComponent } from '@home/components/converter/convert
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
 
 @NgModule({
   declarations:
@@ -242,6 +243,7 @@ import { modulesMap } from '@modules/common/modules-map';
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -417,6 +419,7 @@ import { modulesMap } from '@modules/common/modules-map';
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
