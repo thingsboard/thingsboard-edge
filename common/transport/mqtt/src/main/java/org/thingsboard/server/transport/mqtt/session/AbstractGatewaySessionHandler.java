@@ -268,7 +268,7 @@ public abstract class AbstractGatewaySessionHandler<T extends AbstractGatewayDev
                             .setDeviceType(deviceType)
                             .setGatewayIdMSB(gateway.getDeviceId().getId().getMostSignificantBits())
                             .setGatewayIdLSB(gateway.getDeviceId().getId().getLeastSignificantBits())
-                            .setEntityGroup(entityGroup.length == 0 ? null : entityGroup[0])
+                            .setEntityGroup(entityGroup.length == 0 ? "" : entityGroup[0])
                             .build(),
                     new TransportServiceCallback<>() {
                         @Override
