@@ -119,6 +119,7 @@ public class SparkplugNodeSessionHandler extends AbstractGatewaySessionHandler<S
     public void onAttributesTelemetryProto(int msgId, SparkplugBProto.Payload sparkplugBProto, SparkplugTopic topic) throws AdaptorException, ThingsboardException {
         String deviceName = topic.getNodeDeviceName();
         checkDeviceName(deviceName);
+
         ListenableFuture<MqttDeviceAwareSessionContext> contextListenableFuture;
         if (topic.isNode()) {
             if (topic.isType(NBIRTH)) {
