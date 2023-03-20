@@ -416,6 +416,10 @@ export enum IntegrationSubType {
 export function resolveIntegrationParams(route: ActivatedRouteSnapshot): IntegrationParams {
   const routeParams = {...route.params};
   const routeData = {...route.data};
+  let backNavigationCommands: any[];
+  if (routeData.backNavigationCommands) {
+    backNavigationCommands = routeData.backNavigationCommands;
+  }
   let edgeId: string;
   let integrationScope: string;
   if (routeParams?.hierarchyView) {
@@ -431,7 +435,8 @@ export function resolveIntegrationParams(route: ActivatedRouteSnapshot): Integra
     hierarchyView: routeParams?.hierarchyView,
     entityGroupId: routeParams?.entityGroupId,
     childEntityGroupId: routeParams?.childEntityGroupId,
-    customerId: routeParams?.customerId
+    customerId: routeParams?.customerId,
+    backNavigationCommands
   };
 }
 

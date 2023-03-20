@@ -140,7 +140,7 @@ const dashboardGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   }
 ];
 
-const dashboardGroupsRoute: Route = {
+export const dashboardGroupsRoute: Route = {
   path: 'groups',
   data: {
     groupType: EntityType.DASHBOARD,

@@ -50,6 +50,7 @@ import { CustomersHierarchyComponent } from '@home/pages/customer/customers-hier
 import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 import { usersRoute } from '@home/pages/user/user-routing.module';
 import { entityGroupsTitle } from '@shared/models/entity-group.models';
+import { edgesRoute } from '@home/pages/edge/edge-routing.module';
 
 const customerRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -128,7 +129,17 @@ const customerChildrenRoutes = (): Routes =>
           customerTitle: CustomerTitleResolver
         }
       }
-    }
+    },
+    { ...edgesRoute(), ...{
+        path: ':customerId/edgeManagement',
+        data: {
+          backNavigationCommands: ['../../../..']
+        },
+        resolve: {
+          customerTitle: CustomerTitleResolver
+        }
+      }
+    },
 ]);
 
 const customerGroupsChildrenRoutesTemplate = (root: boolean, shared: boolean): Routes => {
@@ -287,7 +298,6 @@ export const customersRoute = (root = false): Route => {
   if (root) {
     routeConfig.children.push(customerSharedGroupsRoute(root));
     routeConfig.children.push(customersHierarchyRoute);
-    routeConfig.children.push(customerRoute(EntityGroupResolver, CustomersTableConfigResolver));
   }
   return routeConfig;
 };

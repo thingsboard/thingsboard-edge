@@ -293,7 +293,9 @@ export const checkBoxCell =
 export const defaultEntityTablePermissions = (userPermissionsService: UserPermissionsService,
                                               entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) => {
   const resource = resourceByEntityType.get(entitiesTableConfig.entityType);
-  entitiesTableConfig.addEnabled = userPermissionsService.hasGenericPermission(resource, Operation.CREATE);
+  if (!userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
+    entitiesTableConfig.addEnabled = false;
+  }
 
   if (!userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
     entitiesTableConfig.entitiesDeleteEnabled = false;

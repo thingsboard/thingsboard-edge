@@ -29,37 +29,36 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { Route, RouterModule } from '@angular/router';
+import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { EdgeRoutingModule } from '@home/pages/edge/edge-routing.module';
-import { EdgeComponent } from './edge.component';
-import { EDGE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { EdgeGroupConfigFactory } from '@home/pages/edge/edge-group-config.factory';
-import { EdgeInstructionsDialogComponent } from './edge-instructions-dialog.component';
+import { integrationsRoute } from '@home/pages/integration/integration-routing.module';
+import { convertersRoute } from '@home/pages/converter/converter-routing.module';
+
+export const integrationsCenterRoute = (): Route => ({
+  path: 'integrationsCenter',
+  data: {
+    auth: [Authority.TENANT_ADMIN],
+    breadcrumb: {
+      skip: true
+    }
+  },
+  children: [
+    {
+      path: '',
+      children: [],
+      data: {
+        auth: [Authority.TENANT_ADMIN],
+        redirectTo: 'integrations'
+      }
+    },
+    integrationsRoute(),
+    convertersRoute()
+  ]
+});
 
 @NgModule({
-  declarations: [
-    EdgeComponent,
-    EdgeTableHeaderComponent,
-    EdgeInstructionsDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    EdgeRoutingModule
-  ],
-  providers: [
-    {
-      provide: EDGE_GROUP_CONFIG_FACTORY,
-      useClass: EdgeGroupConfigFactory
-    }
-  ]
+  imports: [RouterModule.forChild([integrationsCenterRoute()])],
+  exports: [RouterModule]
 })
-
-export class EdgeModule { }
+export class IntegrationsCenterRoutingModule { }

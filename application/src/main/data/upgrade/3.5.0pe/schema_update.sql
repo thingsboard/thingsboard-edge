@@ -244,3 +244,6 @@ SELECT c.*, c2.title as owner_name FROM customer c LEFT JOIN customer c2 ON c2.i
 
 CREATE OR REPLACE VIEW user_info_view as
 SELECT u.*, c.title as owner_name FROM tb_user u LEFT JOIN customer c ON c.id = u.customer_id;
+
+CREATE OR REPLACE VIEW edge_info_view as
+SELECT e.*, c.title as owner_name FROM edge e LEFT JOIN customer c ON c.id = e.customer_id;

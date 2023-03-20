@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Route, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -110,7 +110,7 @@ const deviceGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   }
 ];
 
-const deviceGroupsRoute: Route = {
+export const deviceGroupsRoute: Route = {
   path: 'groups',
   data: {
     groupType: EntityType.DEVICE,
@@ -191,13 +191,29 @@ export const devicesRoute = (root = false): Route => {
   if (root) {
     routeConfig.children.push(deviceSharedGroupsRoute);
   }
-  routeConfig.children.push(deviceRoute(EntityGroupResolver, DevicesTableConfigResolver));
   return routeConfig;
 };
 
+const routes: Routes = [
+  {
+    path: 'devices',
+    pathMatch: 'full',
+    redirectTo: '/entities/devices'
+  },
+  {
+    path: 'devices/all',
+    pathMatch: 'full',
+    redirectTo: '/entities/devices/all'
+  },
+  {
+    path: 'devices/all/:entityId',
+    redirectTo: '/entities/devices/all/:entityId'
+  }
+];
+
 @NgModule({
-  imports: [],
-  exports: [],
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
   providers: [
     DevicesTableConfigResolver,
     {

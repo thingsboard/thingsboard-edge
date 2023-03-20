@@ -107,7 +107,7 @@ const userGroupsChildrenRoutes: Route[] = [
   }
 ];
 
-const userGroupsRoute: Route = {
+export const userGroupsRoute: Route = {
   path: 'groups',
   data: {
     groupType: EntityType.USER,
@@ -168,7 +168,6 @@ export const usersRoute = (root = false): Route => {
       userGroupsRoute
     ]
   };
-  routeConfig.children.push(userRoute(EntityGroupResolver, UsersTableConfigResolver));
   return routeConfig;
 };
 

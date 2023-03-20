@@ -114,7 +114,7 @@ export class EntityGroupConfigResolver {
                 map(edge =>
                   entityGroup.edgeEntitiesTitle = edge.name + ': ' + this.translate.instant(edgeEntitiesTitle(params.edgeEntitiesType)))
               ));
-              tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId).pipe(
+              tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId || params.entityGroupId).pipe(
                 map(edgeGroup => entityGroup.edgeGroupName = edgeGroup.name)
               ));
             }

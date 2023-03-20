@@ -1926,6 +1926,9 @@
         "row": "Row"
     },
     "edge": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "edge": "Edge",
         "edge-instances": "Edge instances",
         "instances": "Instances",
@@ -3078,6 +3081,7 @@
     "integration": {
         "integration": "Integration",
         "integrations": "Integrations",
+        "integrations-center": "Integrations center",
         "select-integration": "Select integration",
         "no-integrations-matching": "No integrations matching '{{entity}}' were found.",
         "integration-required": "Integration is required",

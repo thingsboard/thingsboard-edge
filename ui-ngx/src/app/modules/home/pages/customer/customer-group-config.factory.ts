@@ -209,7 +209,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.USER);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/userGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/users');
     }
   }
 
@@ -269,7 +269,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.EDGE);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/edgeGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/edgeManagement/instances');
     }
   }
 

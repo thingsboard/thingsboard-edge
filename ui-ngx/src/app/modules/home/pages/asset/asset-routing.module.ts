@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Route, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -110,7 +110,7 @@ const assetGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   }
 ];
 
-const assetGroupsRoute: Route = {
+export const assetGroupsRoute: Route = {
   path: 'groups',
   data: {
     groupType: EntityType.ASSET,
@@ -191,13 +191,29 @@ export const assetsRoute = (root = false): Route => {
   if (root) {
     routeConfig.children.push(assetSharedGroupsRoute);
   }
-  routeConfig.children.push(assetRoute(EntityGroupResolver, AssetsTableConfigResolver));
   return routeConfig;
 };
 
+const routes: Routes = [
+  {
+    path: 'assets',
+    pathMatch: 'full',
+    redirectTo: '/entities/assets'
+  },
+  {
+    path: 'assets/all',
+    pathMatch: 'full',
+    redirectTo: '/entities/assets/all'
+  },
+  {
+    path: 'assets/all/:entityId',
+    redirectTo: '/entities/assets/all/:entityId'
+  }
+];
+
 @NgModule({
-  imports: [],
-  exports: [],
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
   providers: [
     AssetsTableConfigResolver,
     {

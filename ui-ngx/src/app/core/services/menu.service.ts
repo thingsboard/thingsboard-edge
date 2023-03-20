@@ -878,6 +878,148 @@ export class MenuService {
         }
       );
     }
+    const integrationPages: Array<MenuSection> = [];
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
+      integrationPages.push(
+        {
+          id: guid(),
+          name: 'integration.integrations',
+          type: 'link',
+          path: '/integrationsCenter/integrations',
+          icon: 'input',
+          disabled: disabledItems.indexOf('integrations') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
+      integrationPages.push(
+        {
+          id: guid(),
+          name: 'converter.converters',
+          type: 'link',
+          path: '/integrationsCenter/converters',
+          icon: 'transform',
+          disabled: disabledItems.indexOf('converters') > -1
+        }
+      );
+    }
+    if (integrationPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'integration.integrations-center',
+          type: 'toggle',
+          path: '/integrationsCenter',
+          icon: 'integration_instructions',
+          pages: integrationPages,
+          disabled: disabledItems.indexOf('integrations_center') > -1
+        }
+      );
+    }
+    const edgeManagementPages: Array<MenuSection> = [];
+    if (authState.edgesSupportEnabled) {
+      const edgesPages: Array<MenuSection> = [];
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.EDGE)) {
+        edgesPages.push(
+          {
+            id: guid(),
+            name: 'edge.all',
+            type: 'link',
+            path: '/edgeManagement/instances/all',
+            icon: 'router',
+            disabled: disabledItems.indexOf('edge_all') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.EDGE)) {
+        edgesPages.push(
+          {
+            id: guid(),
+            name: 'edge.groups',
+            type: 'link',
+            path: '/edgeManagement/instances/groups',
+            icon: 'router',
+            disabled: disabledItems.indexOf('edge_groups') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.EDGE)) {
+        edgesPages.push(
+          {
+            id: guid(),
+            name: 'edge.shared',
+            type: 'link',
+            path: '/edgeManagement/instances/shared',
+            icon: 'router',
+            rootOnly: true,
+            disabled: disabledItems.indexOf('edge_shared') > -1
+          }
+        );
+      }
+      if (edgesPages.length) {
+        edgeManagementPages.push(
+          {
+            id: guid(),
+            name: 'edge.instances',
+            type: 'link',
+            path: '/edgeManagement/instances',
+            icon: 'router',
+            pages: edgesPages,
+            disabled: disabledItems.indexOf('edges') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
+        edgeManagementPages.push(
+          {
+            id: guid(),
+            name: 'edge.rulechain-templates',
+            type: 'link',
+            path: '/edgeManagement/ruleChains',
+            icon: 'settings_ethernet',
+            disabled: disabledItems.indexOf('rulechain_templates') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
+        edgeManagementPages.push(
+          {
+            id: guid(),
+            name: 'edge.integration-templates',
+            type: 'link',
+            path: '/edgeManagement/integrations',
+            icon: 'input',
+            disabled: disabledItems.indexOf('integration_templates') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
+        edgeManagementPages.push(
+          {
+            id: guid(),
+            name: 'edge.converter-templates',
+            type: 'link',
+            path: '/edgeManagement/converters',
+            icon: 'transform',
+            disabled: disabledItems.indexOf('converter_templates') > -1
+          }
+        );
+      }
+    }
+    if (edgeManagementPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'edge.management',
+          type: 'toggle',
+          path: '/edgeManagement',
+          icon: 'settings_input_antenna',
+          pages: edgeManagementPages,
+          disabled: disabledItems.indexOf('edge_management') > -1
+        }
+      );
+    }
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       sections.push(
         {
@@ -890,30 +1032,6 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'converter.converters',
-          type: 'link',
-          path: '/converters',
-          icon: 'transform',
-          disabled: disabledItems.indexOf('converters') > -1
-        }
-      );
-    }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'integration.integrations',
-          type: 'link',
-          path: '/integrations',
-          icon: 'input',
-          disabled: disabledItems.indexOf('integrations') > -1
-        }
-      );
-    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
       sections.push(
         {
@@ -923,18 +1041,6 @@ export class MenuService {
           path: '/roles',
           icon: 'security',
           disabled: disabledItems.indexOf('roles') > -1
-        }
-      );
-    }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'customers-hierarchy.customers-hierarchy',
-          type: 'link',
-          path: '/customersHierarchy',
-          icon: 'sort',
-          disabled: disabledItems.indexOf('customers_hierarchy') > -1
         }
       );
     }
@@ -953,51 +1059,7 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
-    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
-      const pages: Array<MenuSection> = [];
-      pages.push(
-        {
-          id: guid(),
-          name: 'edge.rulechain-templates',
-          type: 'link',
-          path: '/edgeManagement/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('rulechain_templates') > -1
-        }
-      );
-      pages.push(
-        {
-          id: guid(),
-          name: 'edge.converter-templates',
-          type: 'link',
-          path: '/edgeManagement/converters',
-          icon: 'transform',
-          disabled: disabledItems.indexOf('converter_templates') > -1
-        }
-      );
-      pages.push(
-        {
-          id: guid(),
-          name: 'edge.integration-templates',
-          type: 'link',
-          path: '/edgeManagement/integrations',
-          icon: 'input',
-          disabled: disabledItems.indexOf('integration_templates') > -1
-        }
-      );
-      sections.push(this.createEntityGroupSection(EntityType.EDGE));
-      sections.push(
-        {
-          id: guid(),
-          name: 'edge.management',
-          type: 'toggle',
-          path: '/edgeManagement',
-          icon: 'settings_input_antenna',
-          pages,
-          asyncPages: of(pages)
-        }
-      );
-    }
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       sections.push(
         {

@@ -795,6 +795,8 @@ public class ModelConstants {
     public static final String EDGE_LICENSE_KEY_PROPERTY = "edge_license_key";
     public static final String EDGE_CLOUD_ENDPOINT_KEY_PROPERTY = "cloud_endpoint";
 
+    public static final String EDGE_INFO_VIEW_COLUMN_FAMILY_NAME = "edge_info_view";
+
     /**
      * Edge queue constants.
      */

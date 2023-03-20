@@ -303,7 +303,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`customers/all/${customer.id.id}/edgeInstances`);
+    this.router.navigateByUrl(`customers/all/${customer.id.id}/edgeManagement/instances`);
   }
 
   private navigateToChildCustomerPage(config: EntityTableConfig<CustomerInfo | Customer>,

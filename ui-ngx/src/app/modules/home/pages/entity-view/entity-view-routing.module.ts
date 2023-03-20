@@ -111,7 +111,7 @@ const entityViewGroupsChildrenRoutesTemplate = (shared: boolean): Routes => [
   }
 ];
 
-const entityViewGroupsRoute: Route = {
+export const entityViewGroupsRoute: Route = {
   path: 'groups',
   data: {
     groupType: EntityType.ENTITY_VIEW,
@@ -192,13 +192,29 @@ export const entityViewsRoute = (root = false): Route => {
   if (root) {
     routeConfig.children.push(entityViewSharedGroupsRoute);
   }
-  routeConfig.children.push(entityViewRoute(EntityGroupResolver, EntityViewsTableConfigResolver));
   return routeConfig;
 };
 
+const routes: Routes = [
+  {
+    path: 'entityViews',
+    pathMatch: 'full',
+    redirectTo: '/entities/entityViews'
+  },
+  {
+    path: 'entityViews/all',
+    pathMatch: 'full',
+    redirectTo: '/entities/entityViews/all'
+  },
+  {
+    path: 'entityViews/all/:entityId',
+    redirectTo: '/entities/entityViews/all/:entityId'
+  }
+];
+
 @NgModule({
-  imports: [],
-  exports: [],
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
   providers: [
     EntityViewsTableConfigResolver,
     {
