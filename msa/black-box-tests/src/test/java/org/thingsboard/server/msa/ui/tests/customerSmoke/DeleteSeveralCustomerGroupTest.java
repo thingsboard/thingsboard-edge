@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -56,8 +58,10 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete several customer groups")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove several customer groups by mark in the checkbox and then click on the trash can icon in the menu that appears at the top")
     public void canDeleteSeveralCustomersByTopBtn() {
         String entityGroupName1 = ENTITY_NAME + random() + "1";
         String entityGroupName2 = ENTITY_NAME + random() + "2";
@@ -74,8 +78,11 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customerIsNotPresent(entityGroupName2));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete several customer groups")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove several customers by mark all the Customers on the page by clicking in the topmost checkbox " +
+            "and then clicking on the trash icon in the menu that appears")
     public void selectAllCustomers() {
         String entityGroupName1 = ENTITY_NAME + random() + "1";
         String entityGroupName2 = ENTITY_NAME + random() + "2";
@@ -92,8 +99,11 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customerIsNotPresent(entityGroupName2));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete several customer groups")
     @Test(priority = 30, groups = "smoke")
-    @Description
+    @Description("Remove several customer groups by mark in the checkbox and then click on the trash can icon in the menu " +
+            "that appears at the top without refresh")
     public void deleteSeveralCustomersByTopBtnWithoutRefresh() {
         String entityGroupName1 = ENTITY_NAME + random() + "1";
         String entityGroupName2 = ENTITY_NAME + random() + "2";

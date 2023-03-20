@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -52,8 +54,10 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Open customer group")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open customer group by click on its name")
     public void openWindowByRightCornerBtn() {
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.setEntityGroupName();
@@ -68,8 +72,10 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entityGroupHeader(entityGroupName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Open customer group")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open customer group by click on 'Open entity group' btn in customer group view")
     public void openWindowByViewBtn() {
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.setEntityGroupName();

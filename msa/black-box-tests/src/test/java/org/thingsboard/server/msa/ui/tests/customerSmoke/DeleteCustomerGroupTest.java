@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -60,8 +62,10 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove the customer group by clicking on the trash icon in the right side of refresh")
     public void removeCustomerByRightSideBtn() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
@@ -73,8 +77,10 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomerGroup));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Remove customer group by mark in the checkbox and then click on the trash can icon in the menu that appears at the top")
     public void removeSelectedCustomer() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
@@ -86,8 +92,10 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedCustomer));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Remove the customer group by clicking on the 'Delete customer group' btn in the entity view")
     public void removeFromCustomerView() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
@@ -101,8 +109,10 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entityIsNotPresent(customerGroupName));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Remove the customer group by clicking on the trash icon in the right side of customer without refresh")
     public void removeCustomerByRightSideBtnWithoutRefresh() {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
