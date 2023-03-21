@@ -31,11 +31,10 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -44,6 +43,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
@@ -51,22 +53,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
-    
+public abstract class BaseDashboardServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    CustomerService customerService;
+    @Autowired
+    DashboardService dashboardService;
+    @Autowired
+    EdgeService edgeService;
+
     private IdComparator<DashboardInfo> idComparator = new IdComparator<>();
-    
-    private TenantId tenantId;
 
-    @Before
-    public void beforeRun() {
-        tenantId = before();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
-    
     @Test
     public void testSaveDashboard() throws IOException {
         Dashboard dashboard = new Dashboard();
@@ -144,12 +141,6 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
     
     @Test
     public void testFindDashboardsByTenantId() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-        
-        TenantId tenantId = tenant.getId();
-        
         List<DashboardInfo> dashboards = new ArrayList<>();
         for (int i=0;i<165;i++) {
             Dashboard dashboard = new Dashboard();
@@ -180,18 +171,10 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         pageData = dashboardService.findDashboardsByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-        
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
     public void testFindMobileDashboardsByTenantId() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
         List<DashboardInfo> mobileDashboards = new ArrayList<>();
         for (int i=0;i<165;i++) {
             Dashboard dashboard = new Dashboard();
@@ -240,8 +223,6 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         pageData = dashboardService.findMobileDashboardsByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-
-        tenantService.deleteTenant(tenantId);
     }
     
     @Test

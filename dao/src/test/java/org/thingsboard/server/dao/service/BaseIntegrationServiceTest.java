@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -52,7 +53,9 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationDao;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -64,31 +67,32 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
+public abstract class BaseIntegrationServiceTest extends AbstractServiceTest {
 
-    private IdComparator<Integration> idComparator = new IdComparator<>();
-
-    private TenantId tenantId;
-    private ConverterId converterId;
-
-    private final static String INTEGRATION_BASE_NAME = "INTEGRATION_";
-
-    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
-            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
-
-    private static final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
-            .createObjectNode();
-    static {
-        INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
-    }
-
+    @Autowired
+    ConverterService converterService;
     @SpyBean
     IntegrationDao integrationDao;
-    private List<Integration> savedIntegrations = new LinkedList<>();
+    @Autowired
+    IntegrationService integrationService;
+
+    private final IdComparator<Integration> idComparator = new IdComparator<>();
+
+    private final String INTEGRATION_BASE_NAME = "INTEGRATION_";
+
+    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+
+    private final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
+            .createObjectNode().putObject("metadata").put("key1", "val1");
+    ;
+
+    private final List<Integration> savedIntegrations = new LinkedList<>();
+
+    private ConverterId converterId;
 
     @Before
     public void beforeRun() {
-        tenantId = before();
         Converter savedConverter = createConverter(tenantId);
         converterId = savedConverter.getId();
     }
@@ -105,7 +109,6 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
     @After
     public void after() {
         clearSavedIntegrations();
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test

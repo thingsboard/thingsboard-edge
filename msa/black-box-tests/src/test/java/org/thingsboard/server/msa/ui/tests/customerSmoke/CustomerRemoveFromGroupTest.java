@@ -31,9 +31,11 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -53,7 +55,7 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
     private String title;
     private String groupName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -69,8 +71,10 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Remove customer from group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove the customer from group")
     public void removeFromGroup() {
         String groupName = "group" + random();
         title = ENTITY_NAME + random();
@@ -87,8 +91,10 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.elementIsNotPresent(customerPage.getEntity(title)));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Remove customer from group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Cancel remove the customer from group")
     public void cancelRemoveFromGroup() {
         String groupName = "group" + random();
         title = ENTITY_NAME + random();

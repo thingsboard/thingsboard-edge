@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -51,8 +53,10 @@ public class ManageCustomersDevicesTest extends AbstractDriverBaseTest {
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Manage customer devices")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open manage window by right corner btn")
     public void openWindowByRightCornerBtn() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
@@ -65,13 +69,15 @@ public class ManageCustomersDevicesTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customerManageWindowIconHead().getText().contains(customerPage.getCustomerName() + iconText));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Manage customer devices")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open manage window by btn in entity view")
     public void openWindowByView() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersDeviceGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersDeviceGroupsBtnView());
 
         Assert.assertTrue(urlContains("deviceGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

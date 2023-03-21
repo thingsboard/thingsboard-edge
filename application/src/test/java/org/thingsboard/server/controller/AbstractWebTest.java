@@ -117,6 +117,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
@@ -215,6 +216,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     public TimeseriesService tsService;
+
+    @Autowired
+    public EntityGroupService entityGroupService;;
 
     @Autowired
     protected DefaultActorService actorService;
@@ -893,7 +897,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected void awaitForDeviceActorToReceiveSubscription(DeviceId deviceId, FeatureType featureType, int subscriptionCount) {
         DeviceActorMessageProcessor processor = getDeviceActorProcessor(deviceId);
         Map<UUID, SessionInfo> subscriptions = (Map<UUID, SessionInfo>) ReflectionTestUtils.getField(processor, getMapName(featureType));
-        Awaitility.await("Device actor received subscription command from the transport").atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> subscriptions.size() == subscriptionCount);
+        Awaitility.await("Device actor received subscription command from the transport").atMost(5, TimeUnit.SECONDS).until(() -> {
+            log.warn("device {}, subscriptions.size() == {}", deviceId, subscriptions.size());
+            return subscriptions.size() == subscriptionCount;
+        });
     }
 
     protected static String getMapName(FeatureType featureType) {
