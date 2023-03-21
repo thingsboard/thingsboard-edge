@@ -107,7 +107,7 @@ public class AlarmCommentController extends BaseController {
     public void deleteAlarmComment(@ApiParam(value = ALARM_ID_PARAM_DESCRIPTION) @PathVariable(ALARM_ID) String strAlarmId, @ApiParam(value = ALARM_COMMENT_ID_PARAM_DESCRIPTION) @PathVariable(ALARM_COMMENT_ID) String strCommentId) throws ThingsboardException {
         checkParameter(ALARM_ID, strAlarmId);
         AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
-        Alarm alarm = checkAlarmId(alarmId, Operation.DELETE);
+        Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
 
         AlarmCommentId alarmCommentId = new AlarmCommentId(toUUID(strCommentId));
         AlarmComment alarmComment = checkAlarmCommentId(alarmCommentId, alarmId);
@@ -134,12 +134,7 @@ public class AlarmCommentController extends BaseController {
     ) throws Exception {
         checkParameter(ALARM_ID, strAlarmId);
         AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
-        validateId(alarmId, "Incorrect alarmId " + alarmId);
-        Alarm alarm = alarmService.findAlarmByIdAsync(getCurrentUser().getTenantId(), alarmId).get();
-        checkNotNull(alarm, "Alarm with id [" + alarmId + "] is not found");
-        accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
-
-        checkEntityId(alarm.getOriginator(), Operation.READ);
+        checkAlarmId(alarmId, Operation.READ);
 
         PageLink pageLink = createPageLink(pageSize, page, null, sortProperty, sortOrder);
         return checkNotNull(alarmCommentService.findAlarmComments(getTenantId(), alarmId, pageLink));
