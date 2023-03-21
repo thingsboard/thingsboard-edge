@@ -187,6 +187,62 @@ export class MenuService {
       }
     );
 
+    const notificationPages: Array<MenuSection> = [{
+        id: guid(),
+        name: 'notification.inbox',
+        type: 'link',
+        path: '/notification/inbox',
+        icon: 'inbox',
+        disabled: disabledItems.indexOf('notification_inbox') > -1
+      },
+      {
+        id: guid(),
+        name: 'notification.sent',
+        type: 'link',
+        path: '/notification/sent',
+        icon: 'outbox',
+        disabled: disabledItems.indexOf('notification_sent') > -1
+      },
+      {
+        id: guid(),
+        name: 'notification.templates',
+        type: 'link',
+        path: '/notification/templates',
+        icon: 'mdi:message-draw',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('notification_templates') > -1
+      },
+      {
+        id: guid(),
+        name: 'notification.recipients',
+        type: 'link',
+        path: '/notification/recipients',
+        icon: 'contacts',
+        disabled: disabledItems.indexOf('notification_recipients') > -1
+      },
+      {
+        id: guid(),
+        name: 'notification.rules',
+        type: 'link',
+        path: '/notification/rules',
+        icon: 'mdi:message-cog',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('notification_rules') > -1
+      }
+    ];
+    sections.push(
+      {
+        id: guid(),
+        name: 'notification.notification-center',
+        type: 'link',
+        path: '/notification',
+        icon: 'mdi:message-badge',
+        isMdiIcon: true,
+        pages: notificationPages,
+        disabled: disabledItems.indexOf('notifications_center') > -1
+      }
+    );
+
     const whiteLabelPages: Array<MenuSection> = [
       {
         id: guid(),
@@ -368,17 +424,6 @@ export class MenuService {
             path: '/widgets-bundles',
             disabled: disabledItems.indexOf('widget_library') > -1
           }
-        ]
-      },
-      {
-        name: 'notification.management',
-        places: [
-          {
-            name: 'notification.notification-center',
-            path: '/notification-center',
-            icon: 'notifications',
-            disabled: disabledItems.indexOf('notification_center') > -1
-          },
         ]
       },
       {
@@ -1732,17 +1777,6 @@ export class MenuService {
         }
       );
     }
-    homeSections.push({
-      name: 'notification.management',
-      places: [
-        {
-          name: 'notification.notification-center',
-          path: '/notification-center',
-          icon: 'notifications',
-          disabled: disabledItems.indexOf('notification_center') > -1
-        },
-      ]
-    });
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
       (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
       this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
@@ -2249,14 +2283,32 @@ export class MenuService {
         );
       }
     }
-    sections.push({
-      id: guid(),
-      name: 'notification.notification-center',
-      type: 'link',
-      path: '/notification-center',
-      icon: 'notifications',
-      disabled: disabledItems.indexOf('notification-center') > -1
-    })
+    const notificationPages: Array<MenuSection> = [];
+    // TODO: permission check
+    notificationPages.push(
+      {
+        id: guid(),
+        name: 'notification.inbox',
+        type: 'link',
+        path: '/notification/inbox',
+        icon: 'inbox',
+        disabled: disabledItems.indexOf('notification_inbox') > -1
+      }
+    );
+    if (notificationPages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'notification.notification-center',
+          type: 'link',
+          path: '/notification',
+          icon: 'mdi:message-badge',
+          isMdiIcon: true,
+          pages: notificationPages,
+          disabled: disabledItems.indexOf('notifications_center') > -1
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
@@ -2505,17 +2557,6 @@ export class MenuService {
         ]
       });
     }
-    homeSections.push({
-      name: 'notification.management',
-      places: [
-        {
-          name: 'notification.notification-center',
-          path: '/notification-center',
-          icon: 'notifications',
-          disabled: disabledItems.indexOf('notification_center') > -1
-        },
-      ]
-    })
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       homeSections.push(
         {

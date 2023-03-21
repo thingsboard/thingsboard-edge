@@ -278,6 +278,7 @@ public class ThingsboardInstallService {
                             } else {
                                 log.info("Skipping default notification configs creation");
                             }
+                            installScripts.loadSystemLwm2mResources();
                             break;
                         //TODO update CacheCleanupService on the next version upgrade
                         default:

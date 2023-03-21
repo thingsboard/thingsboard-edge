@@ -28,6 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host{
-  width: 100%;
+package org.thingsboard.server.dao.notification.trigger;
+
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+
+@Data
+@Builder
+public class RuleEngineComponentLifecycleEventTrigger implements NotificationRuleTrigger {
+
+    private final RuleChainId ruleChainId;
+    private final String ruleChainName;
+    private final EntityId componentId;
+    private final String componentName;
+    private final ComponentLifecycleEvent eventType;
+    private final Exception error;
+
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return componentId;
+    }
+
 }

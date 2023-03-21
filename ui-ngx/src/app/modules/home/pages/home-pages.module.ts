@@ -65,7 +65,6 @@ import { EntitiesModule } from '@home/pages/entities/entities.module';
 import { FeaturesModule } from '@home/pages/features/features.module';
 import { NotificationModule } from '@home/pages/notification/notification.module';
 import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
-import { NotificationCenterModule } from '@home/pages/notification-center/notification-center.module';
 
 @NgModule({
   exports: [
@@ -102,7 +101,6 @@ import { NotificationCenterModule } from '@home/pages/notification-center/notifi
     SchedulerModule,
     OtaUpdateModule,
     SolutionTemplatesModule,
-    NotificationCenterModule,
     VcModule
   ]
 })

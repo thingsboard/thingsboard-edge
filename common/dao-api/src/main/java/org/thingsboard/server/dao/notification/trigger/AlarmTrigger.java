@@ -28,89 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+package org.thingsboard.server.dao.notification.trigger;
 
-:host {
-  width: 100%;
-  height: 100%;
-  display: block;
-  .tb-notification-center {
-    padding: 8px;
-    width: 100%;
-    height: 100%;
-    display: block;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
 
-    .tb-notification-center-content {
-      width: 100%;
-      height: 100%;
-      background: #fff;
-      border-radius: 4px;
-      box-shadow: 0 4px 10px rgba(23, 33, 90, 0.08);
-      display: flex;
-      flex-direction: column;
+@Data
+@Builder
+public class AlarmTrigger implements NotificationRuleTrigger {
 
-      .tabs-container {
-        position: relative;
-        flex-direction: column;
-        flex: 1 1 100%;
-      }
-    }
-  }
-}
+    private final AlarmApiCallResult alarmUpdate;
 
-:host ::ng-deep {
-  .tabs-container {
-    > .mat-mdc-tab-group {
-      > .mat-mdc-tab-body-wrapper {
-        position: absolute;
-        top: 49px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-      }
-
-      > .mat-mdc-tab-header {
-        .mat-mdc-tab {
-          &.mat-mdc-tab-disabled {
-            opacity: 1;
-            flex: 1;
-
-            .mdc-tab__content, .mdc-tab__text-label {
-              flex: 1;
-            }
-          }
-        }
-      }
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.ALARM;
     }
 
-    .tb-entity-table {
-      padding: 0;
-
-      .mat-toolbar-single-row, .mat-toolbar-tools {
-        height: 56px;
-      }
-
-      .mat-toolbar-tools > div {
-        width: 100%;
-      }
-
-      .mat-toolbar-single-row {
-        padding: 0 24px 0 12px;
-      }
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return alarmUpdate.getAlarm().getId();
     }
-  }
 
-  @media #{$mat-xs} {
-    .tabs-container {
-      > .mat-mdc-tab-group {
-        > .mat-mdc-tab-header {
-          .mat-mdc-tab {
-            &.mat-tab-disabled {
-              width: auto;
-            }
-          }
-        }
-      }
-    }
-  }
 }

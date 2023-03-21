@@ -28,6 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host{
-  width: 100%;
+package org.thingsboard.server.common.data.notification.rule.trigger;
+
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+@Data
+@Builder
+public class NewPlatformVersionTrigger implements NotificationRuleTrigger {
+
+    private final UpdateMessage message;
+
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return TenantId.SYS_TENANT_ID;
+    }
+
 }

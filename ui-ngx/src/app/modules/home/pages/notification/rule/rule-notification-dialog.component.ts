@@ -49,7 +49,7 @@ import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NotificationService } from '@core/http/notification.service';
-import { EntityType } from '@shared/models/entity-type.models';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { deepClone, deepTrim, isDefined } from '@core/utils';
 import { Observable, Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
@@ -65,10 +65,14 @@ import {
 } from '@shared/models/alarm.models';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  TargetNotificationDialogComponent,
-  TargetsNotificationDialogData
-} from '@home/pages/notification-center/targets-table/target-notification-dialog.componet';
+  RecipientNotificationDialogComponent,
+  RecipientNotificationDialogData
+} from '@home/pages/notification/recipient/recipient-notification-dialog.componet';
 import { MatButton } from '@angular/material/button';
+import { AuthState } from '@core/auth/auth.models';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { AuthUser } from '@shared/models/user.model';
+import { Authority } from '@shared/models/authority.enum';
 
 export interface RuleNotificationDialogData {
   rule?: NotificationRule;
@@ -95,9 +99,10 @@ export class RuleNotificationDialogComponent extends
   alarmCommentTemplateForm: FormGroup;
   alarmAssignmentTemplateForm: FormGroup;
   ruleEngineEventsTemplateForm: FormGroup;
+  entitiesLimitTemplateForm: FormGroup;
 
   triggerType = TriggerType;
-  triggerTypes: TriggerType[] = Object.values(TriggerType);
+  triggerTypes: TriggerType[];
   triggerTypeTranslationMap = TriggerTypeTranslationMap;
 
   alarmSearchStatuses = [
@@ -121,7 +126,7 @@ export class RuleNotificationDialogComponent extends
   componentLifecycleEventTranslationMap = ComponentLifecycleEventTranslationMap;
 
   entityType = EntityType;
-  entityTypes: EntityType[] = Object.values(EntityType);
+  entityTypes = Array.from(entityTypeTranslations.keys()).filter(type => !!this.entityType[type]);
   isAdd = true;
 
   selectedIndex = 0;
@@ -133,6 +138,8 @@ export class RuleNotificationDialogComponent extends
   private readonly ruleNotification: NotificationRule;
 
   private triggerTypeFormsMap: Map<TriggerType, FormGroup>;
+  private authState: AuthState = getCurrentAuthState(this.store);
+  private authUser: AuthUser = this.authState.authUser;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -145,6 +152,8 @@ export class RuleNotificationDialogComponent extends
               private dialog: MatDialog) {
     super(store, router, dialogRef);
 
+    this.triggerTypes = this.allowTriggerTypes();
+
     if (isDefined(data.isAdd)) {
       this.isAdd = data.isAdd;
     }
@@ -155,10 +164,10 @@ export class RuleNotificationDialogComponent extends
     this.ruleNotificationForm = this.fb.group({
       name: [null, Validators.required],
       templateId: [null, Validators.required],
-      triggerType: [TriggerType.ALARM, Validators.required],
+      triggerType: [this.isSysAdmin() ? TriggerType.ENTITIES_LIMIT : TriggerType.ALARM, Validators.required],
       recipientsConfig: this.fb.group({
-        targets: [{value: null, disabled: true}, Validators.required],
-        escalationTable: [null, Validators.required]
+        targets: [{value: null, disabled: !this.isSysAdmin()}, Validators.required],
+        escalationTable: [{value: null, disabled: this.isSysAdmin()}, Validators.required]
       }),
       triggerConfig: [null],
       additionalConfig: this.fb.group({
@@ -258,13 +267,21 @@ export class RuleNotificationDialogComponent extends
       })
     });
 
+    this.entitiesLimitTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        entityTypes: [],
+        threshold: [.8, [Validators.min(0), Validators.max(1)]]
+      })
+    });
+
     this.triggerTypeFormsMap = new Map<TriggerType, FormGroup>([
       [TriggerType.ALARM, this.alarmTemplateForm],
       [TriggerType.ALARM_COMMENT, this.alarmCommentTemplateForm],
       [TriggerType.DEVICE_INACTIVITY, this.deviceInactivityTemplateForm],
       [TriggerType.ENTITY_ACTION, this.entityActionTemplateForm],
       [TriggerType.ALARM_ASSIGNMENT, this.alarmAssignmentTemplateForm],
-      [TriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT, this.ruleEngineEventsTemplateForm]
+      [TriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT, this.ruleEngineEventsTemplateForm],
+      [TriggerType.ENTITIES_LIMIT, this.entitiesLimitTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {
@@ -362,8 +379,8 @@ export class RuleNotificationDialogComponent extends
       $event.stopPropagation();
     }
     button._elementRef.nativeElement.blur();
-    this.dialog.open<TargetNotificationDialogComponent, TargetsNotificationDialogData,
-      NotificationTarget>(TargetNotificationDialogComponent, {
+    this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
+      NotificationTarget>(RecipientNotificationDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {}
@@ -382,5 +399,21 @@ export class RuleNotificationDialogComponent extends
 
   countRecipientsChainConfig(): number {
     return Object.keys(this.ruleNotificationForm.get('recipientsConfig.escalationTable').value ?? {}).length;
+  }
+
+  formatLabel(value: number): string {
+    const formatValue = (value * 100).toFixed();
+    return `${formatValue}%`;
+  }
+
+  private isSysAdmin(): boolean {
+    return this.authUser.authority === Authority.SYS_ADMIN;
+  }
+
+  private allowTriggerTypes(): TriggerType[] {
+    if (this.isSysAdmin()) {
+      return [TriggerType.ENTITIES_LIMIT];
+    }
+    return Object.values(TriggerType).filter(type => type !== TriggerType.ENTITIES_LIMIT);
   }
 }

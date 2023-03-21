@@ -28,16 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.targets.platform;
+package org.thingsboard.server.dao.notification.trigger;
 
+import lombok.Builder;
 import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import org.thingsboard.server.common.msg.TbMsg;
 
 @Data
-public class ActionTargetUserFilter implements UsersFilter {
+@Builder
+public class RuleEngineMsgTrigger implements NotificationRuleTrigger {
+
+    private final TbMsg msg;
+    private final NotificationRuleTriggerType triggerType;
 
     @Override
-    public UsersFilterType getType() {
-        return UsersFilterType.ACTION_TARGET_USER;
+    public NotificationRuleTriggerType getType() {
+        return triggerType;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return msg.getOriginator();
     }
 
 }

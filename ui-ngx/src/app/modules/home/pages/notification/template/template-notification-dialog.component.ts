@@ -45,7 +45,7 @@ import { MatStepper } from '@angular/material/stepper';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { TranslateService } from '@ngx-translate/core';
-import { TemplateConfiguration } from '@home/pages/notification-center/template-table/template-configuration';
+import { TemplateConfiguration } from '@home/pages/notification/template/template-configuration';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
@@ -72,7 +72,7 @@ export class TemplateNotificationDialogComponent
 
   dialogTitle = 'notification.edit-notification-template';
 
-  notificationTypes = Object.keys(NotificationType) as NotificationType[];
+  notificationTypes: NotificationType[];
 
   selectedIndex = 0;
   hideSelectType = false;
@@ -91,16 +91,14 @@ export class TemplateNotificationDialogComponent
               private translate: TranslateService) {
     super(store, router, dialogRef, fb);
 
+    this.notificationTypes = this.allowNotificationType();
+
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
     if (isDefinedAndNotNull(this.data?.predefinedType)) {
       this.hideSelectType = true;
       this.templateNotificationForm.get('notificationType').setValue(this.data.predefinedType, {emitEvents: false});
-    }
-
-    if (this.isSysAdmin()) {
-      this.hideSelectType = true;
     }
 
     if (data.isAdd || data.isCopy) {
@@ -189,5 +187,12 @@ export class TemplateNotificationDialogComponent
 
   private isSysAdmin(): boolean {
     return this.authUser.authority === Authority.SYS_ADMIN;
+  }
+
+  private allowNotificationType(): NotificationType[] {
+    if (this.isSysAdmin()) {
+      return [NotificationType.GENERAL, NotificationType.ENTITIES_LIMIT];
+    }
+    return Object.values(NotificationType).filter(type => type !== NotificationType.ENTITIES_LIMIT);
   }
 }

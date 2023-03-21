@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
+import org.thingsboard.server.dao.notification.trigger.EntitiesLimitTrigger;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 
 import java.util.Collections;
@@ -71,7 +72,11 @@ public class DefaultApiLimitService implements ApiLimitService {
                     new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap()),
                     new EntityCountQuery(filter));
             if (notificationRuleProcessingService != null) {
-                notificationRuleProcessingService.process(tenantId, entityType, limit, currentCount);
+                notificationRuleProcessingService.process(tenantId, EntitiesLimitTrigger.builder()
+                        .entityType(entityType)
+                        .currentCount(currentCount)
+                        .limit(limit)
+                        .build());
             }
             return currentCount < limit;
         } else {
