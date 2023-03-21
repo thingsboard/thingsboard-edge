@@ -86,6 +86,7 @@
       display: inline-flex;
       align-items: center;
       & > span {
+        letter-spacing: .03125em;
         overflow: hidden;
         text-overflow: ellipsis;
       }

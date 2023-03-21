@@ -755,8 +755,7 @@ export class MenuService {
           type: 'toggle',
           path: '/profiles',
           icon: 'badge',
-          pages: profilePages,
-          asyncPages: of(profilePages)
+          pages: profilePages
         }
       );
     }
@@ -2602,7 +2601,6 @@ export class MenuService {
           childStateIds[childStateId] = true;
         }
         customMenuSection.pages = pages;
-        customMenuSection.asyncPages = of(pages);
         customMenuSection.childStateIds = childStateIds;
       } else {
         customMenuSection.type = 'link';
