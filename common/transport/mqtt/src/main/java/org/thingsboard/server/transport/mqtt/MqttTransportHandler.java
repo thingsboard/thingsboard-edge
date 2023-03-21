@@ -433,7 +433,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     case NBIRTH:
                     case NCMD:
                     case NDATA:
-                        sparkplugSessionHandler.onAttributesTelemetryProto(msgId, sparkplugBProtoNode, deviceSessionCtx.getDeviceInfo().getDeviceName(), sparkplugTopic);
+                        sparkplugSessionHandler.onAttributesTelemetryProto(msgId, sparkplugBProtoNode, sparkplugTopic);
                         break;
                     default:
                 }
@@ -444,7 +444,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     case DBIRTH:
                     case DCMD:
                     case DDATA:
-                        sparkplugSessionHandler.onAttributesTelemetryProto(msgId, sparkplugBProtoDevice, sparkplugTopic.getDeviceId(), sparkplugTopic);
+                        sparkplugSessionHandler.onAttributesTelemetryProto(msgId, sparkplugBProtoDevice, sparkplugTopic);
                         break;
                     case DDEATH:
                         sparkplugSessionHandler.onDeviceDisconnect(mqttMsg, sparkplugTopic.getDeviceId());
@@ -1101,8 +1101,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 if (sparkplugTopicNode != null) {
                     SparkplugBProto.Payload sparkplugBProtoNode = SparkplugBProto.Payload.parseFrom(connectMessage.payload().willMessageInBytes());
                     sparkplugSessionHandler = new SparkplugNodeSessionHandler(this, deviceSessionCtx, sessionId, sparkplugTopicNode);
-                    sparkplugSessionHandler.onAttributesTelemetryProto(0, sparkplugBProtoNode,
-                            deviceSessionCtx.getDeviceInfo().getDeviceName(), sparkplugTopicNode);
+                    sparkplugSessionHandler.onAttributesTelemetryProto(0, sparkplugBProtoNode, sparkplugTopicNode);
                     sessionMetaData.setOverwriteActivityTime(true);
                 } else {
                     log.trace("[{}][{}] Failed to fetch sparkplugDevice connect:  sparkplugTopicName without SparkplugMessageType.NDEATH.", sessionId, deviceSessionCtx.getDeviceInfo().getDeviceName());
