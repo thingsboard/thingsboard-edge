@@ -70,3 +70,19 @@ export class HasGroupEntityPermissionPipe implements PipeTransform {
   }
 }
 
+@Pipe({
+  name: 'hasGroupEntityOrGenericPermission'
+})
+export class HasGroupEntityOrGenericPermissionPipe implements PipeTransform {
+
+  constructor(private userPermissionsService: UserPermissionsService) {}
+
+  transform(entityGroup: EntityGroupInfo, resource: Resource, operation: Operation): boolean {
+    if (entityGroup) {
+      return this.userPermissionsService.hasGroupEntityPermission(operation, entityGroup);
+    } else {
+      return this.userPermissionsService.hasResourcesGenericPermission(resource, operation);
+    }
+  }
+}
+

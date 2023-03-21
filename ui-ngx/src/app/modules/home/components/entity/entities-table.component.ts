@@ -39,9 +39,9 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
+  OnInit, Renderer2,
   SimpleChanges,
-  ViewChild
+  ViewChild, ViewContainerRef
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -142,6 +142,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   private widgetResize$: ResizeObserver;
 
+  private rxSubscriptions = new Array<Subscription>();
+
   constructor(protected store: Store<AppState>,
               public route: ActivatedRoute,
               public translate: TranslateService,
@@ -151,7 +153,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private cd: ChangeDetectorRef,
               private router: Router,
               private componentFactoryResolver: ComponentFactoryResolver,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              public viewContainerRef: ViewContainerRef,
+              public renderer: Renderer2) {
     super(store);
   }
 
@@ -159,7 +163,11 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.entitiesTableConfig) {
       this.init(this.entitiesTableConfig);
     } else {
-      this.init(this.route.snapshot.data.entitiesTableConfig);
+      this.rxSubscriptions.push(this.route.data.subscribe(
+        (data) => {
+          this.init(data.entitiesTableConfig);
+        }
+      ));
     }
     this.widgetResize$ = new ResizeObserver(() => {
       const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
@@ -175,6 +183,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.rxSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    this.rxSubscriptions.length = 0;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -186,6 +198,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         }
       }
     }
+  }
+
+  goBack(): void {
+    this.router.navigate(this.entitiesTableConfig.backNavigationCommands, { relativeTo: this.route });
   }
 
   private init(entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {

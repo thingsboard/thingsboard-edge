@@ -40,6 +40,7 @@ import { DashboardService } from '@core/http/dashboard.service';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { isEqual } from '@core/utils';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-dashboard-form',
@@ -59,7 +60,8 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
               protected translate: TranslateService,
               private dashboardService: DashboardService,
               @Inject('entity') protected entityValue: Dashboard,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Dashboard>,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<Dashboard> | GroupEntityTableConfig<Dashboard>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);

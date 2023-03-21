@@ -283,7 +283,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
         entityGroupsObservable = this.entityGroupService
           .getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true});
       } else {
-        entityGroupsObservable = this.entityGroupService.getEntityGroups(this.groupType, {ignoreLoading: true});
+        entityGroupsObservable = this.entityGroupService.getEntityGroups(this.groupType, true, {ignoreLoading: true});
       }
       this.allEntityGroups = entityGroupsObservable.pipe(
         catchError(() => of(null)),

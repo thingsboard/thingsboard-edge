@@ -107,6 +107,7 @@ import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARA
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
@@ -281,17 +282,19 @@ public class EntityGroupController extends AutoCommitController {
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByType(
             @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
-            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
+            @RequestParam(required = false) Boolean includeShared) throws ThingsboardException {
         try {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
-            if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+            if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty() && (includeShared == null || includeShared)) {
                 List<EntityGroup> groups = new ArrayList<>();
                 if (groupTypePermissionInfo.isHasGenericRead()) {
                     EntityId parentEntityId = getCurrentUser().isTenantAdmin() ? getCurrentUser().getTenantId() : getCurrentUser().getCustomerId();
                     groups.addAll(entityGroupService.findEntityGroupsByType(getTenantId(), parentEntityId, groupType).get());
                 }
-                if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty() && (includeShared == null || includeShared)) {
                     List<EntityGroupId> existingIds = groups.stream().map(EntityGroup::getId).collect(Collectors.toList());
                     List<EntityGroupId> groupIds = groupTypePermissionInfo.getEntityGroupIds().stream().filter(entityGroupId ->
                             !existingIds.contains(entityGroupId)
@@ -300,6 +303,31 @@ public class EntityGroupController extends AutoCommitController {
                         groups.addAll(entityGroupService.findEntityGroupByIdsAsync(getTenantId(), groupIds).get());
                     }
                 }
+                groups.sort(Comparator.comparingLong(EntityGroup::getCreatedTime));
+                return toEntityGroupsInfo(groups);
+            } else {
+                return Collections.emptyList();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Shared Entity Groups by entity type (getSharedEntityGroupsByType)",
+            notes = "Fetch the list of Shared Entity Group Info objects based on the provided Entity Type. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroups/{groupType}/shared", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityGroupInfo> getSharedEntityGroupsByType(
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType) throws ThingsboardException {
+        try {
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                List<EntityGroup> groups = entityGroupService.findEntityGroupByIdsAsync(getTenantId(), groupTypePermissionInfo.getEntityGroupIds()).get();
                 groups.sort(Comparator.comparingLong(EntityGroup::getCreatedTime));
                 return toEntityGroupsInfo(groups);
             } else {
