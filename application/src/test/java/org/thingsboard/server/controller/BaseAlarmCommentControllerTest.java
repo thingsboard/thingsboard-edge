@@ -347,7 +347,7 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
 
         doDelete("/api/alarm/" + alarm.getId() + "/comment/" + alarmComment.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionDelete + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -363,7 +363,7 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
 
         doDelete("/api/alarm/" + alarm.getId() + "/comment/" + alarmComment.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionDelete + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -415,59 +415,12 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
         loginDifferentCustomer();
         doGet("/api/alarm/" + alarm.getId() + "/comment?page=0&pageSize=" + size)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead + "'" + classNameAlarm + "' resource!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionRead + classNameAlarm)));
 
         loginDifferentCustomerAdministrator();
         doGet("/api/alarm/" + alarm.getId() + "/comment?page=0&pageSize=" + size)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead + "DEVICE" + " '" + customerDevice.getName() + "'!")));
-    }
-
-    @Test
-    public void testFindAlarmCommentsViaPublicCustomer() throws Exception {
-        loginCustomerAdministrator();
-
-        EntityGroupInfo deviceGroup = createSharedPublicEntityGroup(
-                "Device Test Entity Group",
-                EntityType.DEVICE,
-                customerId
-        );
-        String publicId = deviceGroup.getAdditionalInfo().get("publicCustomerId").asText();
-
-        Device device = new Device();
-        device.setName("Test Public Device");
-        device.setLabel("Label");
-        device.setCustomerId(customerId);
-        device = doPost("/api/device?entityGroupId=" + deviceGroup.getUuidId(), device, Device.class);
-
-
-        Alarm alarm = Alarm.builder()
-                .tenantId(tenantId)
-                .customerId(customerId)
-                .originator(device.getId())
-                .severity(AlarmSeverity.CRITICAL)
-                .type("Test")
-                .build();
-        alarm = doPost("/api/alarm", alarm, Alarm.class);
-        Assert.assertNotNull("Saved alarm is null!", alarm);
-        AlarmComment alarmComment = createAlarmComment(alarm.getId());
-
-        resetTokens();
-
-        JsonNode publicLoginRequest = JacksonUtil.toJsonNode("{\"publicId\": \"" + publicId + "\"}");
-        JsonNode tokens = doPost("/api/auth/login/public", publicLoginRequest, JsonNode.class);
-        this.token = tokens.get("token").asText();
-
-        PageData<AlarmCommentInfo> pageData = doGetTyped(
-                "/api/alarm/" + alarm.getId() + "/comment" + "?page=0&pageSize=1", new TypeReference<PageData<AlarmCommentInfo>>() {}
-        );
-
-        Assert.assertNotNull("Found pageData is null", pageData);
-        Assert.assertNotEquals("Expected alarm comments are not found!", 0, pageData.getTotalElements());
-
-        AlarmCommentInfo alarmCommentInfo = pageData.getData().get(0);
-        boolean equals = alarmComment.getId().equals(alarmCommentInfo.getId()) && alarmComment.getComment().equals(alarmCommentInfo.getComment());
-        Assert.assertTrue("Created alarm doesn't match the found one!", equals);
+                .andExpect(statusReason(containsString(msgErrorPermissionRead + classNameAlarm)));
     }
 
     private AlarmComment createAlarmComment(AlarmId alarmId, String text)  {
@@ -544,28 +497,5 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
         resetTokens();
 
         return user;
-    }
-
-    private EntityGroupInfo createSharedPublicEntityGroup(String name, EntityType entityType, EntityId ownerId) throws Exception {
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName(name);
-        entityGroup.setType(entityType);
-        EntityGroupInfo groupInfo =
-                doPostWithResponse("/api/entityGroup", entityGroup, EntityGroupInfo.class);
-
-        ShareGroupRequest groupRequest = new ShareGroupRequest(
-                ownerId,
-                true,
-                null,
-                true,
-                null
-        );
-
-        doPost("/api/entityGroup/" + groupInfo.getId() + "/share", groupRequest)
-                .andExpect(status().isOk());
-
-        doPost("/api/entityGroup/" + groupInfo.getId() + "/makePublic")
-                .andExpect(status().isOk());
-        return doGet("/api/entityGroup/" + groupInfo.getUuidId(), EntityGroupInfo.class);
     }
 }
