@@ -32,6 +32,7 @@
   a.is-new::after {
     content: "NEW";
     font-size: 12px;
+    letter-spacing: .03125em;
     transform: translate(6px, -6px);
     display: inline-block;
     border-radius: 10px;

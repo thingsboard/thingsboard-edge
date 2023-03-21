@@ -117,6 +117,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
@@ -215,6 +216,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     public TimeseriesService tsService;
+
+    @Autowired
+    public EntityGroupService entityGroupService;;
 
     @Autowired
     protected DefaultActorService actorService;

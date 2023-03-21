@@ -187,8 +187,13 @@ export class EntityGroupService {
     return this.http.post(`/api/entityGroup/${entityGroupId}/share`, shareGroupRequest, defaultHttpOptionsFromConfig(config));
   }
 
-  public getEntityGroups(groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
-    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/${groupType}`,
+  public getEntityGroups(groupType: EntityType, includeShared = true, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/${groupType}?includeShared=${includeShared}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getSharedEntityGroups(groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/${groupType}/shared`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -224,7 +229,7 @@ export class EntityGroupService {
 
   public getEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType,
                                    config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
-    return this.getEntityGroups(groupType, config).pipe(
+    return this.getEntityGroups(groupType, true, config).pipe(
       map((entityGroups) => pageLink.filterData(entityGroups, defaultPageLinkSearchFunction( 'name'))));
   }
 

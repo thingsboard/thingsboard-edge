@@ -53,6 +53,7 @@ import { Subject } from 'rxjs';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getEntityDetailsPageURL } from '@core/utils';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-device',
@@ -74,7 +75,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
               private deviceService: DeviceService,
               private clipboardService: ClipboardService,
               @Inject('entity') protected entityValue: Device,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Device> | GroupEntityTableConfig<Device>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -95,8 +96,8 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   }
 
   hideManageCredentials() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageCredentialsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageCredentialsEnabled(this.entity);
     } else {
       return false;
     }
