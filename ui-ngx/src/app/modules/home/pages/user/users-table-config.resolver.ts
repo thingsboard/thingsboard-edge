@@ -33,19 +33,21 @@ import { Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
+  CellActionDescriptor,
   DateEntityTableColumn,
-  defaultEntityTablePermissions,
   EntityTableColumn,
-  EntityTableConfig
+  EntityTableConfig,
+  GroupActionDescriptor,
+  HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { User } from '@shared/models/user.model';
+import { AuthUser, User, UserInfo } from '@shared/models/user.model';
 import { UserService } from '@core/http/user.service';
 import { UserComponent } from '@modules/home/pages/user/user.component';
 import { CustomerService } from '@core/http/customer.service';
-import { map, mergeMap, take, tap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -53,38 +55,36 @@ import { MatDialog } from '@angular/material/dialog';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { AddUserDialogComponent, AddUserDialogData } from '@modules/home/pages/user/add-user-dialog.component';
 import { AuthState } from '@core/auth/auth.models';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { selectAuth } from '@core/auth/auth.selectors';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthService } from '@core/auth/auth.service';
 import {
   ActivationLinkDialogComponent,
   ActivationLinkDialogData
 } from '@modules/home/pages/user/activation-link-dialog.component';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { TenantService } from '@app/core/http/tenant.service';
 import { TenantId } from '@app/shared/models/id/tenant-id';
-import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { isDefinedAndNotNull } from '@core/utils';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
+import { UserTableHeaderComponent } from '@home/pages/user/user-table-header.component';
+import { Customer } from '@shared/models/customer.model';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 export interface UsersTableRouteData {
   authority: Authority;
 }
 
 @Injectable()
-export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>> {
+export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserInfo | User>> {
 
-  private readonly config: EntityTableConfig<User> = new EntityTableConfig<User>();
-
-  private tenantId: string;
-  private customerId: string;
-  private authority: Authority;
-  private authUser: User;
-
-  constructor(private store: Store<AppState>,
+  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<UserInfo | User>,
+              private store: Store<AppState>,
               private userService: UserService,
               private authService: AuthService,
               private tenantService: TenantService,
@@ -94,78 +94,119 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
               private datePipe: DatePipe,
               private router: Router,
               private dialog: MatDialog) {
-
-    this.config.entityType = EntityType.USER;
-    this.config.entityComponent = UserComponent;
-    this.config.entityTabsComponent = UserTabsComponent;
-    this.config.entityTranslations = entityTypeTranslations.get(EntityType.USER);
-    this.config.entityResources = entityTypeResources.get(EntityType.USER);
-
-    this.config.entityTitle = (user) => user ? user.email : '';
-
-    this.config.columns.push(
-      new DateEntityTableColumn<User>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<User>('firstName', 'user.first-name', '33%'),
-      new EntityTableColumn<User>('lastName', 'user.last-name', '33%'),
-      new EntityTableColumn<User>('email', 'user.email', '33%')
-    );
-
-    this.config.deleteEnabled = user => user && user.id && user.id.id !== this.authUser.id.id;
-    this.config.deleteEntityTitle = user => this.translate.instant('user.delete-user-title', { userEmail: user.email });
-    this.config.deleteEntityContent = () => this.translate.instant('user.delete-user-text');
-    this.config.deleteEntitiesTitle = count => this.translate.instant('user.delete-users-title', {count});
-    this.config.deleteEntitiesContent = () => this.translate.instant('user.delete-users-text');
-
-    this.config.loadEntity = id => this.userService.getUser(id.id);
-    this.config.saveEntity = user => this.saveUser(user);
-    this.config.deleteEntity = id => this.userService.deleteUser(id.id);
-    this.config.onEntityAction = action => this.onUserAction(action, this.config);
-    this.config.addEntity = () => this.addUser();
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<User>> {
-    const routeParams = route.params;
-    return this.store.pipe(select(selectAuth), take(1)).pipe(
-      tap((auth) => {
-        this.authUser = auth.userDetails;
-        this.authority = routeParams.tenantId ? Authority.TENANT_ADMIN : Authority.CUSTOMER_USER;
-        if (this.authority === Authority.TENANT_ADMIN) {
-          this.tenantId = routeParams.tenantId;
-          this.customerId = NULL_UUID;
-          this.config.entitiesFetchFunction = pageLink => this.userService.getTenantAdmins(this.tenantId, pageLink);
-        } else {
-          this.tenantId = this.authUser.tenantId.id;
-          this.customerId = routeParams.customerId;
-          this.config.entitiesFetchFunction = pageLink => this.userService.getCustomerUsers(this.customerId, pageLink);
-        }
-        this.updateActionCellDescriptors(auth);
-      }),
-      mergeMap(() => {
-        if (this.authority === Authority.TENANT_ADMIN) {
-          return this.tenantService.getTenant(this.tenantId);
-        } else if (isDefinedAndNotNull(this.customerId)) {
-          return this.customerService.getCustomer(this.customerId);
-        }
-        return of({title: ''});
-      }),
-      map((parentEntity) => {
-        if (this.authority === Authority.TENANT_ADMIN) {
-          this.config.tableTitle = parentEntity.title + ': ' + this.translate.instant('user.tenant-admins');
-        } else {
-          this.config.tableTitle = parentEntity.title + ': ' + this.translate.instant('user.customer-users');
-        }
-        defaultEntityTablePermissions(this.userPermissionsService, this.config);
-        return this.config;
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<UserInfo | User>> {
+    const groupParams = resolveGroupParams(route);
+    const tenantId = route.params.tenantId;
+    const config = new EntityTableConfig<UserInfo | User>(groupParams);
+    const authState = getCurrentAuthState(this.store);
+    const authUser = authState.authUser;
+    this.configDefaults(config, authUser);
+    config.componentsData = {
+      includeCustomers: true,
+      displayIncludeCustomers: authUser.authority !== Authority.SYS_ADMIN,
+      includeCustomersChanged: (includeCustomers: boolean) => {
+        config.componentsData.includeCustomers = includeCustomers;
+        config.columns = this.configureColumns(authUser, config);
+        config.getTable().columnsUpdated();
+        config.getTable().resetSortAndFilter(true);
+      }
+    };
+    let titleObservable: Observable<string>;
+    if (tenantId && authUser.authority === Authority.SYS_ADMIN) {
+      titleObservable = this.tenantService.getTenant(tenantId).pipe(
+        map((tenant) => tenant.title + ': ' + this.translate.instant('user.tenant-admins'))
+      );
+    } else {
+      titleObservable = (config.customerId ?
+        this.customerService.getCustomer(config.customerId) : of(null as Customer)).pipe(
+          map((parentCustomer) => {
+            if (parentCustomer) {
+              return parentCustomer.title + ': ' + this.translate.instant('user.users');
+            } else {
+              return this.translate.instant('user.users');
+            }
+          }
+        ));
+    }
+    return titleObservable.pipe(
+      map((title) => {
+        config.tableTitle = title;
+        config.columns = this.configureColumns(authUser, config);
+        this.configureEntityFunctions(authUser, config, tenantId);
+        config.cellActionDescriptors = this.configureCellActions(authState, config);
+        config.groupActionDescriptors = this.configureGroupActions(config);
+        config.addActionDescriptors = this.configureAddActions(config);
+        return this.allEntitiesTableConfigService.prepareConfiguration(config);
       })
     );
   }
 
-  updateActionCellDescriptors(auth: AuthState) {
-    this.config.cellActionDescriptors.splice(0);
+  configDefaults(config: EntityTableConfig<UserInfo | User>, authUser: AuthUser, tenantId?: string) {
+    config.entityType = EntityType.USER;
+    config.entityComponent = UserComponent;
+    config.entityTabsComponent = authUser.authority === Authority.SYS_ADMIN ? UserTabsComponent : GroupEntityTabsComponent<User>;
+    config.entityTranslations = entityTypeTranslations.get(EntityType.USER);
+    config.entityResources = entityTypeResources.get(EntityType.USER);
+
+    config.entityTitle = (user) => user ? user.email : '';
+
+    config.rowPointer = true;
+
+    config.deleteEnabled = user => user && user.id && user.id.id !== authUser.userId;
+
+    config.deleteEntityTitle = user => this.translate.instant('user.delete-user-title', { userEmail: user.email });
+    config.deleteEntityContent = () => this.translate.instant('user.delete-user-text');
+    config.deleteEntitiesTitle = count => this.translate.instant('user.delete-users-title', {count});
+    config.deleteEntitiesContent = () => this.translate.instant('user.delete-users-text');
+
+    config.loadEntity = id => this.userService.getUser(id.id);
+    config.saveEntity = user => this.saveUser(authUser, config, user, tenantId);
+    config.onEntityAction = action => this.onUserAction(action, config);
+    config.addEntity = () => this.addUser(authUser, config, tenantId);
+    config.headerComponent = UserTableHeaderComponent;
+  }
+
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<UserInfo | User>): Array<EntityTableColumn<UserInfo>> {
+    const columns: Array<EntityTableColumn<UserInfo>> = [
+      new DateEntityTableColumn<UserInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<User>('firstName', 'user.first-name', '25%'),
+      new EntityTableColumn<User>('lastName', 'user.last-name', '25%'),
+      new EntityTableColumn<User>('email', 'user.email', '25%')
+    ];
+    if (config.componentsData.includeCustomers) {
+      const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
+        ? 'entity.sub-customer-name' : 'entity.customer-name';
+      columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '25%'));
+    }
+    return columns;
+  }
+
+  configureEntityFunctions(authUser: AuthUser, config: EntityTableConfig<UserInfo | User>, tenantId?: string): void {
+    if (tenantId && authUser.authority === Authority.SYS_ADMIN) {
+      config.entitiesFetchFunction = pageLink =>
+        this.userService.getTenantAdmins(tenantId, pageLink);
+    } else {
+      if (config.customerId) {
+        config.entitiesFetchFunction = pageLink =>
+          this.userService.getCustomerUserInfos(config.componentsData.includeCustomers,
+            config.customerId, pageLink);
+      } else {
+        config.entitiesFetchFunction = pageLink =>
+          this.userService.getAllUserInfos(config.componentsData.includeCustomers, pageLink);
+      }
+    }
+    config.deleteEntity = id => this.userService.deleteUser(id.id);
+  }
+
+  configureCellActions(auth: AuthState, config: EntityTableConfig<UserInfo | User>): Array<CellActionDescriptor<UserInfo>> {
+    const actions: Array<CellActionDescriptor<UserInfo>> = [];
     if (auth.userTokenAccessEnabled && this.userPermissionsService.hasGenericPermission(Resource.USER, Operation.IMPERSONATE)) {
-      this.config.cellActionDescriptors.push(
+      actions.push(
         {
-          name: this.authority === Authority.TENANT_ADMIN ?
+          name: '',
+          nameFunction: (user) => user.authority === Authority.TENANT_ADMIN ?
             this.translate.instant('user.login-as-tenant-admin') :
             this.translate.instant('user.login-as-customer-user'),
           mdiIcon: 'mdi:login',
@@ -174,29 +215,63 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
         }
       );
     }
+    return actions;
   }
 
-  saveUser(user: User): Observable<User> {
-    user.tenantId = new TenantId(this.tenantId);
-    user.customerId = new CustomerId(this.customerId);
-    user.authority = this.authority;
+  configureGroupActions(config: EntityTableConfig<UserInfo | User>): Array<GroupActionDescriptor<UserInfo>> {
+    const actions: Array<GroupActionDescriptor<UserInfo>> = [];
+    return actions;
+  }
+
+  configureAddActions(config: EntityTableConfig<UserInfo | User>): Array<HeaderActionDescriptor> {
+    const actions: Array<HeaderActionDescriptor> = [];
+    return actions;
+  }
+
+  private saveUser(authUser: AuthUser, config: EntityTableConfig<UserInfo | User>, user: User, tenantId?: string): Observable<User> {
+    if (authUser.authority === Authority.SYS_ADMIN && tenantId) {
+      user.tenantId = new TenantId(tenantId);
+      user.customerId = new CustomerId(NULL_UUID);
+      user.authority = Authority.TENANT_ADMIN;
+    } else {
+      user.tenantId = new TenantId(authUser.tenantId);
+      if (authUser.authority === Authority.TENANT_ADMIN) {
+        user.customerId = config.customerId ? new CustomerId(config.customerId) : new CustomerId(NULL_UUID);
+        user.authority = config.customerId ? Authority.CUSTOMER_USER : Authority.TENANT_ADMIN;
+      } else {
+        user.customerId = config.customerId ? new CustomerId(config.customerId) : new CustomerId(authUser.customerId);
+        user.authority = Authority.CUSTOMER_USER;
+      }
+    }
     return this.userService.saveUser(user);
   }
 
-  addUser(): Observable<User> {
+  private addUser(authUser: AuthUser, config: EntityTableConfig<UserInfo | User>, tenantId?: string): Observable<User> {
+    if (authUser.authority !== Authority.SYS_ADMIN || !tenantId) {
+      tenantId = authUser.tenantId;
+    }
+    let customerId: string = NULL_UUID;
+    let authority = Authority.TENANT_ADMIN;
+    if (authUser.authority === Authority.TENANT_ADMIN) {
+      customerId = config.customerId ? config.customerId : NULL_UUID;
+      authority = config.customerId ? Authority.CUSTOMER_USER : Authority.TENANT_ADMIN;
+    } else if (authUser.authority === Authority.CUSTOMER_USER) {
+      customerId = config.customerId ? config.customerId : authUser.customerId;
+      authority = Authority.CUSTOMER_USER;
+    }
     return this.dialog.open<AddUserDialogComponent, AddUserDialogData,
       User>(AddUserDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        tenantId: this.tenantId,
-        customerId: this.customerId,
-        authority: this.authority
+        tenantId,
+        customerId,
+        authority
       }
     }).afterClosed();
   }
 
-  private openUser($event: Event, user: User, config: EntityTableConfig<User>) {
+  private openUser($event: Event, user: UserInfo, config: EntityTableConfig<UserInfo | User>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -204,14 +279,14 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
     this.router.navigateByUrl(url);
   }
 
-  loginAsUser($event: Event, user: User) {
+  private loginAsUser($event: Event, user: UserInfo) {
     if ($event) {
       $event.stopPropagation();
     }
     this.authService.loginAsUser(user.id.id).subscribe();
   }
 
-  displayActivationLink($event: Event, user: User) {
+  private displayActivationLink($event: Event, user: UserInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -229,7 +304,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
     );
   }
 
-  resendActivation($event: Event, user: User) {
+  private resendActivation($event: Event, user: UserInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -242,7 +317,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
     });
   }
 
-  setUserCredentialsEnabled($event: Event, user: User, userCredentialsEnabled: boolean) {
+  private setUserCredentialsEnabled($event: Event, user: UserInfo, userCredentialsEnabled: boolean) {
     if ($event) {
       $event.stopPropagation();
     }

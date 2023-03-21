@@ -82,9 +82,11 @@
         "none": "None"
     },
     "admin": {
+        "settings": "Settings",
         "general": "General",
         "general-settings": "General Settings",
         "home-settings": "Home Settings",
+        "home": "Home",
         "outgoing-mail": "Mail Server",
         "outgoing-mail-settings": "Outgoing Mail Server Settings",
         "system-settings": "System Settings",
@@ -355,6 +357,7 @@
         "queue-processing-strategy": "Processing strategy",
         "queue-configuration": "Queue configuration",
         "repository-settings": "Repository settings",
+        "repository": "Repository",
         "repository-url": "Repository URL",
         "repository-url-required": "Repository URL is required.",
         "default-branch": "Default branch name",
@@ -376,6 +379,7 @@
         "delete-repository-settings-title": "Are you sure you want to delete repository settings?",
         "delete-repository-settings-text": "Be careful, after the confirmation the repository settings will be removed and version control feature will be unavailable.",
         "auto-commit-settings": "Auto-commit settings",
+        "auto-commit": "Auto-commit",
         "auto-commit-entities": "Auto-commit entities",
         "no-auto-commit-entities-prompt": "No entities configured for auto-commit",
         "delete-auto-commit-settings-title": "Are you sure you want to delete auto-commit settings?",
@@ -435,6 +439,9 @@
             "info-header": "All users will be to re-logined",
             "info-message": "Change of the JWT Signing Key will cause all issued tokens to be invalid. All users will need to re-login. This will also affect scripts that use Rest API/Websockets."
         },
+        "resources": "Resources",
+        "notifications": "Notifications",
+        "notifications-settings": "Notifications settings",
         "notification": {
             "notification-settings": "Notification settings",
             "slack-api-token": "Slack api token",
@@ -444,6 +451,7 @@
     "alarm": {
         "alarm": "Alarm",
         "alarms": "Alarms",
+        "all-alarms": "All alarms",
         "select-alarm": "Select alarm",
         "no-alarms-matching": "No alarms matching '{{entity}}' were found.",
         "alarm-required": "Alarm is required",
@@ -602,6 +610,9 @@
         "scheduler-event-type": "Scheduler event type"
     },
     "asset": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "asset": "Asset",
         "assets": "Assets",
         "management": "Asset management",
@@ -931,6 +942,10 @@
         "binary": "Binary (Base64)"
     },
     "customer": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
+        "hierarchy": "Hierarchy",
         "customer": "Customer",
         "customers": "Customers",
         "management": "Customer management",
@@ -960,6 +975,7 @@
         "manage-public-devices": "Manage public devices",
         "manage-public-dashboards": "Manage public dashboards",
         "manage-customer-assets": "Manage customer assets",
+        "manage-customer-edges": "Manage customer edges",
         "manage-public-assets": "Manage public assets",
         "add-customer-text": "Add new customer",
         "no-customers-text": "No customers found",
@@ -979,6 +995,7 @@
         "manage-assets": "Manage assets",
         "manage-devices": "Manage devices",
         "manage-dashboards": "Manage dashboards",
+        "manage-entity-views": "Manage entity views",
         "title": "Title",
         "title-required": "Title is required.",
         "title-max-length": "Title should be less than 256",
@@ -1034,6 +1051,9 @@
         "time-to": "Time to"
     },
     "dashboard": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "dashboard": "Dashboard",
         "dashboards": "Dashboards",
         "management": "Dashboard management",
@@ -1295,6 +1315,9 @@
         "toggle-edit-mode": "Toggle edit mode"
     },
     "device": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "device": "Device",
         "device-required": "Device is required.",
         "devices": "Devices",
@@ -1909,8 +1932,12 @@
         "row": "Row"
     },
     "edge": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "edge": "Edge",
         "edge-instances": "Edge instances",
+        "instances": "Instances",
         "edge-file": "Edge file",
         "name-max-length": "Name should be less than 256",
         "label-max-length": "Label should be less than 256",
@@ -2203,7 +2230,7 @@
         "dashboard-name-starts-with": "Dashboards whose names start with '{{prefix}}'",
         "type-alarm": "Alarm",
         "type-alarms": "Alarms",
-        "list-of-alarms": "{ count, plural, =1 {One alarms} other {List of # alarms} }",
+        "list-of-alarms": "{ count, plural, =1 {One alarm} other {List of # alarms} }",
         "alarm-name-starts-with": "Alarms whose names start with '{{prefix}}'",
         "type-rulechain": "Rule chain",
         "type-rulechains": "Rule chains",
@@ -2263,7 +2290,13 @@
         "type-notification-rule": "Notification rule",
         "type-notification-target": "Notification recipient",
         "type-notification-request": "Notification request",
-        "type-notification-template": "Notification template"
+        "type-notification-template": "Notification template",
+        "customer-name": "Customer name",
+        "sub-customer-name": "Sub-customer name",
+        "parent-customer-name": "Parent customer name",
+        "parent-sub-customer-name": "Parent sub-customer name",
+        "include-customer-entities": "Include customer entities",
+        "include-sub-customer-entities": "Include sub-customer entities"
     },
     "entity-group": {
         "entity-group": "Entity group",
@@ -2301,18 +2334,24 @@
         "delete-entity-groups-action-title": "Delete { count, plural, =1 {1 entity group} other {# entity groups} }",
         "delete-entity-groups-text": "Be careful, after the confirmation all selected entity groups will be removed and all related data will become unrecoverable.",
         "device-groups": "Device groups",
+        "shared-device-groups": "Shared device groups",
         "asset-groups": "Asset groups",
+        "shared-asset-groups": "Shared asset groups",
         "customer-groups": "Customer groups",
+        "shared-customer-groups": "Shared customer groups",
         "device-group": "Device group",
         "asset-group": "Asset group",
         "user-group": "User group",
         "user-groups": "User groups",
         "customer-group": "Customer group",
         "entity-view-groups": "Entity view groups",
+        "shared-entity-view-groups": "Shared entity view groups",
         "entity-view-group": "Entity view group",
         "edge-groups": "Edge groups",
+        "shared-edge-groups": "Shared edge groups",
         "edge-group": "Edge group",
         "dashboard-groups": "Dashboard groups",
+        "shared-dashboard-groups": "Shared dashboard groups",
         "dashboard-group": "Dashboard group",
         "fetch-more": "Fetch more",
         "column-type": {
@@ -2435,6 +2474,9 @@
         "originatorType": "Originator Type"
     },
     "entity-view": {
+        "all": "All",
+        "groups": "Groups",
+        "shared": "Shared",
         "entity-view": "Entity View",
         "entity-view-required": "Entity view is required.",
         "entity-views": "Entity Views",
@@ -2770,6 +2812,9 @@
         "binary": "BINARY",
         "hex": "HEX"
     },
+    "feature": {
+         "advanced-features": "Advanced features"
+    },
     "filter": {
          "add": "Add filter",
          "edit": "Edit filter",
@@ -3052,6 +3097,7 @@
     "integration": {
         "integration": "Integration",
         "integrations": "Integrations",
+        "integrations-center": "Integrations center",
         "select-integration": "Select integration",
         "no-integrations-matching": "No integrations matching '{{entity}}' were found.",
         "integration-required": "Integration is required",
@@ -4919,6 +4965,8 @@
         "just-now": "Just now"
     },
     "user": {
+        "all": "All",
+        "groups": "Groups",
         "user": "User",
         "users": "Users",
         "management": "User management",
@@ -5369,6 +5417,8 @@
     "white-labeling": {
         "white-labeling": "White Labeling",
         "login-white-labeling": "Login White Labeling",
+        "general": "General",
+        "login": "Login",
         "preview": "Preview",
         "app-title": "Application title",
         "favicon": "Website icon",

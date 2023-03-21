@@ -73,6 +73,8 @@ public class ModelConstants {
     public static final String ATTRIBUTE_KEY_COLUMN = "attribute_key";
     public static final String LAST_UPDATE_TS_COLUMN = "last_update_ts";
 
+    public static final String OWNER_NAME_COLUMN = "owner_name";
+
     /**
      * Cassandra user constants.
      */
@@ -91,6 +93,8 @@ public class ModelConstants {
     public static final String ALL_USERS_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "all_users_by_tenant_and_search_text";
     public static final String USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_customer_and_search_text";
     public static final String USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_authority_and_search_text";
+
+    public static final String USER_INFO_VIEW_COLUMN_FAMILY_NAME = "user_info_view";
 
     /**
      * Cassandra user_credentials constants.
@@ -171,6 +175,8 @@ public class ModelConstants {
     public static final String CUSTOMER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "customer_by_tenant_and_search_text";
     public static final String CUSTOMER_BY_TENANT_AND_TITLE_VIEW_NAME = "customer_by_tenant_and_title";
 
+    public static final String CUSTOMER_INFO_VIEW_COLUMN_FAMILY_NAME = "customer_info_view";
+
     /**
      * Cassandra device constants.
      */
@@ -193,6 +199,8 @@ public class ModelConstants {
     public static final String DEVICE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_customer_by_type_and_search_text";
     public static final String DEVICE_BY_TENANT_AND_NAME_VIEW_NAME = "device_by_tenant_and_name";
     public static final String DEVICE_TYPES_BY_TENANT_VIEW_NAME = "device_types_by_tenant";
+
+    public static final String DEVICE_INFO_VIEW_COLUMN_FAMILY_NAME = "device_info_view";
 
     /**
      * Device profile constants.
@@ -250,6 +258,8 @@ public class ModelConstants {
     public static final String ENTITY_VIEW_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF = "entity_view_by_tenant_by_type_and_search_text";
     public static final String ENTITY_VIEW_BY_TENANT_AND_NAME = "entity_view_by_tenant_and_name";
 
+    public static final String ENTITY_VIEW_INFO_VIEW_COLUMN_FAMILY_NAME = "entity_view_info_view";
+
     /**
      * Cassandra audit log constants.
      */
@@ -294,6 +304,8 @@ public class ModelConstants {
     public static final String ASSET_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "asset_by_customer_by_type_and_search_text";
     public static final String ASSET_BY_TENANT_AND_NAME_VIEW_NAME = "asset_by_tenant_and_name";
     public static final String ASSET_TYPES_BY_TENANT_VIEW_NAME = "asset_types_by_tenant";
+
+    public static final String ASSET_INFO_VIEW_COLUMN_FAMILY_NAME = "asset_info_view";
 
     /**
      * Cassandra converter constants.
@@ -470,6 +482,8 @@ public class ModelConstants {
     public static final String DASHBOARD_MOBILE_ORDER_PROPERTY = "mobile_order";
 
     public static final String DASHBOARD_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "dashboard_by_tenant_and_search_text";
+
+    public static final String DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME = "dashboard_info_view";
 
     /**
      * Cassandra plugin component metadata constants.
@@ -782,6 +796,8 @@ public class ModelConstants {
     public static final String EDGE_LICENSE_KEY_PROPERTY = "edge_license_key";
     public static final String EDGE_CLOUD_ENDPOINT_KEY_PROPERTY = "cloud_endpoint";
 
+    public static final String EDGE_INFO_VIEW_COLUMN_FAMILY_NAME = "edge_info_view";
+
     /**
      * Edge queue constants.
      */
@@ -931,4 +947,13 @@ public class ModelConstants {
         }
     }
 
+    public static final String SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
+            "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
+            "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
+            "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
+    public static final String CUSTOMERS_SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.parent_customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
+            "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
+            "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
+            "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
 }

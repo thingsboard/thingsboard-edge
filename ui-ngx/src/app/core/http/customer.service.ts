@@ -35,7 +35,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { Customer, ShortCustomerInfo } from '@shared/models/customer.model';
+import { Customer, CustomerInfo, ShortCustomerInfo } from '@shared/models/customer.model';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 
@@ -77,6 +77,26 @@ export class CustomerService {
 
   public getUserCustomers(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Customer>> {
     return this.http.get<PageData<Customer>>(`/api/user/customers${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllCustomerInfos(includeCustomers: boolean,
+                             pageLink: PageLink, config?: RequestConfig): Observable<PageData<CustomerInfo>> {
+    let url = `/api/customerInfos/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<CustomerInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerCustomerInfos(includeCustomers: boolean, customerId: string,
+                                  pageLink: PageLink, config?: RequestConfig): Observable<PageData<CustomerInfo>> {
+    let url = `/api/customer/${customerId}/customerInfos${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<CustomerInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

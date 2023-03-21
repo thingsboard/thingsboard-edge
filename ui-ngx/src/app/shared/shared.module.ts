@@ -163,7 +163,7 @@ import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-g
 import {
   HasGenericPermissionPipe,
   HasEntityGroupPermissionPipe,
-  HasGroupEntityPermissionPipe
+  HasGroupEntityPermissionPipe, HasGroupEntityOrGenericPermissionPipe
 } from '@shared/pipe/permission.pipes';
 import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
 import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
@@ -226,6 +226,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
+    HasGroupEntityOrGenericPermissionPipe,
     {
       provide: FlowInjectionToken,
       useValue: Flow
@@ -355,6 +356,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
+    HasGroupEntityOrGenericPermissionPipe,
     TbJsonToStringDirective,
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,
@@ -585,6 +587,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
+    HasGroupEntityOrGenericPermissionPipe,
     TranslateModule,
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,

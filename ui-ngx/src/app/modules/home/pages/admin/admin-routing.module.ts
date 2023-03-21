@@ -66,6 +66,10 @@ import { QueuesTableConfigResolver } from '@home/pages/admin/queue/queues-table-
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
+import { widgetsBundlesRoutes } from '@home/pages/widget/widget-library-routing.module';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
+import { rolesRoutes } from '@home/pages/role/role-routing.module';
 import { NotificationSettingsComponent } from '@home/pages/admin/notification-settings.component';
 
 @Injectable()
@@ -125,11 +129,71 @@ export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
 
 const routes: Routes = [
   {
+    path: 'resources',
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+      breadcrumb: {
+        label: 'admin.resources',
+        icon: 'folder'
+      }
+    },
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          redirectTo: '/resources/widgets-bundles'
+        }
+      },
+      ...widgetsBundlesRoutes,
+      {
+        path: 'resources-library',
+        data: {
+          breadcrumb: {
+            label: 'resource.resources-library',
+            icon: 'mdi:rhombus-split'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'resource.resources-library',
+            },
+            resolve: {
+              entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'mdi:rhombus-split'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'resource.resources-library'
+            },
+            resolve: {
+              entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
     path: 'settings',
+    component: RouterTabsComponent,
     data: {
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'admin.system-settings',
+        label: 'admin.settings',
         icon: 'settings'
       }
     },
@@ -141,9 +205,7 @@ const routes: Routes = [
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
             SYS_ADMIN: '/settings/general',
-            TENANT_ADMIN: {
-              condition: 'authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission("WHITE_LABELING") ? "/settings/home" : "/settings/resources-library"'
-            },
+            TENANT_ADMIN: '/settings/home',
             CUSTOMER_USER: '/settings/home'
           }
         }
@@ -175,123 +237,17 @@ const routes: Routes = [
         }
       },
       {
-        path: 'sms-provider',
+        path: 'notifications',
         component: SmsProviderComponent,
         canDeactivate: [ConfirmOnExitGuard],
         data: {
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          title: 'admin.sms-provider-settings',
+          title: 'admin.notifications-settings',
           breadcrumb: {
-            label: 'admin.sms-provider',
-            icon: 'sms'
+            label: 'admin.notifications',
+            icon: 'mdi:message-badge'
           }
         }
-      },
-      {
-        path: 'security-settings',
-        component: SecuritySettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN],
-          title: 'admin.security-settings',
-          breadcrumb: {
-            label: 'admin.security-settings',
-            icon: 'security'
-          }
-        }
-      },
-      {
-        path: 'selfRegistration',
-        component: SelfRegistrationComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          title: 'self-registration.self-registration',
-          breadcrumb: {
-            label: 'self-registration.self-registration',
-            icon: 'group_add'
-          }
-        }
-      },
-      {
-        path: 'oauth2',
-        component: OAuth2SettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN],
-          title: 'admin.oauth2.oauth2',
-          breadcrumb: {
-            label: 'admin.oauth2.oauth2',
-            icon: 'security'
-          }
-        },
-        resolve: {
-          loginProcessingUrl: OAuth2LoginProcessingUrlResolver
-        }
-      },
-      {
-        path: 'home',
-        component: HomeSettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'admin.home-settings',
-          breadcrumb: {
-            label: 'admin.home-settings',
-            icon: 'settings_applications'
-          }
-        }
-      },
-      {
-        path: 'notification',
-        component: NotificationSettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-          title: 'admin.notification.notification-settings',
-          breadcrumb: {
-            label: 'admin.notification.notification-settings',
-            icon: 'notifications'
-          }
-        }
-      },
-      {
-        path: 'resources-library',
-        data: {
-          breadcrumb: {
-            label: 'resource.resources-library',
-            icon: 'folder'
-          }
-        },
-        children: [
-          {
-            path: '',
-            component: EntitiesTableComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-              title: 'resource.resources-library',
-            },
-            resolve: {
-              entitiesTableConfig: ResourcesLibraryTableConfigResolver
-            }
-          },
-          {
-            path: ':entityId',
-            component: EntityDetailsPageComponent,
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              breadcrumb: {
-                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
-                icon: 'folder'
-              } as BreadCrumbConfig<EntityDetailsPageComponent>,
-              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
-              title: 'resource.resources-library'
-            },
-            resolve: {
-              entitiesTableConfig: ResourcesLibraryTableConfigResolver
-            }
-          }
-        ]
       },
       {
         path: 'queues',
@@ -332,16 +288,15 @@ const routes: Routes = [
         ]
       },
       {
-        path: '2fa',
-        component: TwoFactorAuthSettingsComponent,
+        path: 'home',
+        component: HomeSettingsComponent,
         canDeactivate: [ConfirmOnExitGuard],
         data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
-          title: 'admin.2fa.2fa',
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'admin.home-settings',
           breadcrumb: {
-            label: 'admin.2fa.2fa',
-            icon: 'mdi:two-factor-authentication',
-            isMdiIcon: true
+            label: 'admin.home-settings',
+            icon: 'settings_applications'
           }
         }
       },
@@ -370,11 +325,123 @@ const routes: Routes = [
             icon: 'settings_backup_restore'
           }
         }
+      },
+      {
+        path: 'security-settings',
+        redirectTo: '/security-settings/general'
+      },
+      {
+        path: 'selfRegistration',
+        redirectTo: '/security-settings/selfRegistration'
+      },
+      {
+        path: 'oauth2',
+        redirectTo: '/security-settings/oauth2'
+      },
+      {
+        path: 'resources-library',
+        pathMatch: 'full',
+        redirectTo: '/resources/resources-library'
+      },
+      {
+        path: 'resources-library/:entityId',
+        redirectTo: '/resources/resources-library/:entityId'
+      },
+      {
+        path: '2fa',
+        redirectTo: '/security-settings/2fa'
+      },
+      {
+        path: 'sms-provider',
+        redirectTo: '/settings/notifications'
       }
     ]
   },
   {
+    path: 'security-settings',
+    data: {
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      breadcrumb: {
+        label: 'security.security',
+        icon: 'security'
+      }
+    },
+    children: [
+      {
+        path: '',
+        children: [],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            SYS_ADMIN: '/security-settings/general',
+            TENANT_ADMIN: '/security-settings/2fa',
+            CUSTOMER_USER: '/security-settings/roles',
+          }
+        }
+      },
+      {
+        path: 'general',
+        component: SecuritySettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN],
+          title: 'admin.general',
+          breadcrumb: {
+            label: 'admin.general',
+            icon: 'settings_applications'
+          }
+        }
+      },
+      {
+        path: '2fa',
+        component: TwoFactorAuthSettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'admin.2fa.2fa',
+          breadcrumb: {
+            label: 'admin.2fa.2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true
+          }
+        }
+      },
+      {
+        path: 'oauth2',
+        component: OAuth2SettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN],
+          title: 'admin.oauth2.oauth2',
+          breadcrumb: {
+            label: 'admin.oauth2.oauth2',
+            icon: 'security'
+          }
+        },
+        resolve: {
+          loginProcessingUrl: OAuth2LoginProcessingUrlResolver
+        }
+      },
+      ...rolesRoutes,
+      {
+        path: 'selfRegistration',
+        component: SelfRegistrationComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'self-registration.self-registration',
+          breadcrumb: {
+            label: 'self-registration.self-registration',
+            icon: 'group_add'
+          }
+        }
+      },
+      ...auditLogsRoutes
+    ]
+  },
+  {
     path: 'white-labeling',
+    component: RouterTabsComponent,
     data: {
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
@@ -404,7 +471,7 @@ const routes: Routes = [
           title: 'white-labeling.white-labeling',
           isLoginWl: false,
           breadcrumb: {
-            label: 'white-labeling.white-labeling',
+            label: 'white-labeling.general',
             icon: 'format_paint'
           }
         }
@@ -418,7 +485,7 @@ const routes: Routes = [
           title: 'white-labeling.login-white-labeling',
           isLoginWl: true,
           breadcrumb: {
-            label: 'white-labeling.login-white-labeling',
+            label: 'white-labeling.login',
             icon: 'format_paint'
           }
         }
@@ -470,6 +537,10 @@ const routes: Routes = [
         resolve: {
           customMenu: CustomMenuResolver
         }
+      },
+      {
+        path: 'selfRegistration',
+        redirectTo: '/security-settings/selfRegistration'
       }
     ]
   }

@@ -46,6 +46,10 @@ export interface User extends BaseData<UserId> {
   additionalInfo: any;
 }
 
+export interface UserInfo extends User {
+  ownerName?: string;
+}
+
 export enum ActivationMethod {
   DISPLAY_ACTIVATION_LINK = 'DISPLAY_ACTIVATION_LINK',
   SEND_ACTIVATION_MAIL = 'SEND_ACTIVATION_MAIL'

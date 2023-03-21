@@ -81,6 +81,9 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
   groupId: string;
 
   @Input()
+  customerId: string;
+
+  @Input()
   operation: Operation;
 
   @Input()
@@ -232,7 +235,11 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
     if (this.groupId) {
       dashboardsObservable = this.dashboardService.getGroupDashboards(this.groupId, pageLink, {ignoreLoading: true});
     } else {
-      dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
+      if (this.customerId) {
+        dashboardsObservable = this.dashboardService.getCustomerDashboards(true, this.customerId, pageLink, {ignoreLoading: true});
+      } else {
+        dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
+      }
     }
     return dashboardsObservable;
   }

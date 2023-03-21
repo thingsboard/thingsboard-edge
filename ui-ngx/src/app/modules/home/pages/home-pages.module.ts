@@ -60,6 +60,11 @@ import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-
 import { VcModule } from '@home/pages/vc/vc.module';
 import { AssetProfileModule } from '@home/pages/asset-profile/asset-profile.module';
 import { ProfilesModule } from '@home/pages/profiles/profiles.module';
+import { AlarmModule } from '@home/pages/alarm/alarm.module';
+import { EntitiesModule } from '@home/pages/entities/entities.module';
+import { FeaturesModule } from '@home/pages/features/features.module';
+import { NotificationModule } from '@home/pages/notification/notification.module';
+import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
 import { NotificationCenterModule } from '@home/pages/notification-center/notification-center.module';
 
 @NgModule({
@@ -73,8 +78,12 @@ import { NotificationCenterModule } from '@home/pages/notification-center/notifi
     DeviceProfileModule,
     AssetProfileModule,
     ProfilesModule,
+    EntitiesModule,
+    FeaturesModule,
+    NotificationModule,
     DeviceModule,
     AssetModule,
+    AlarmModule,
     EdgeModule,
     EntityViewModule,
     CustomerModule,
@@ -85,6 +94,7 @@ import { NotificationCenterModule } from '@home/pages/notification-center/notifi
     ApiUsageModule,
     UserModule,
     RoleModule,
+    IntegrationsCenterModule,
     ConverterModule,
     IntegrationModule,
     EntityGroupModule,

@@ -132,8 +132,8 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'assetGroups', params.edgeEntitiesGroupId, asset.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'assetGroups', params.childEntityGroupId, asset.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'entities', 'assets', 'groups', params.childEntityGroupId, asset.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
