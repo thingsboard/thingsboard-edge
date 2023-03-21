@@ -203,7 +203,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   isTenantAdmin(): boolean {
     const authUser: AuthUser = getCurrentAuthUser(this.store);
-    return authUser.authority === Authority.TENANT_ADMIN;
+    return authUser?.authority === Authority.TENANT_ADMIN;
   }
 
   private generateRoutingKeyAndSecret(entity: Edge, form: UntypedFormGroup) {

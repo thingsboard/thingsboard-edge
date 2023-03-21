@@ -118,7 +118,8 @@ const edgeSchedulerRoute: Route = {
         route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.SCHEDULER_EVENT)),
       icon: 'schedule'
     },
-    backNavigationCommands: ['../..']
+    backNavigationCommands: ['../..'],
+    hideTabs: true
   },
   resolve: {
     entityGroup: EntityGroupResolver,
@@ -135,7 +136,8 @@ const edgeRuleChainsRoute: Route = {
         route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.RULE_CHAIN)),
       icon: 'settings_ethernet'
     },
-    backNavigationCommands: ['../..']
+    backNavigationCommands: ['../..'],
+    hideTabs: true
   },
   resolve: {
     edgeTitle: EdgeTitleResolver
@@ -189,7 +191,8 @@ const edgeIntegrationsRoute: Route = {
         route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.INTEGRATION)),
       icon: 'input'
     },
-    backNavigationCommands: ['../..']
+    backNavigationCommands: ['../..'],
+    hideTabs: true
   },
   resolve: {
     edgeTitle: EdgeTitleResolver
@@ -241,7 +244,8 @@ const edgeChildrenRoutes = (): Routes =>
               route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.USER)),
             icon: 'account_circle'
           },
-          backNavigationCommands: ['../..']
+          backNavigationCommands: ['../..'],
+          hideTabs: true
         },
         resolve: {
           edgeTitle: EdgeTitleResolver
@@ -258,7 +262,8 @@ const edgeChildrenRoutes = (): Routes =>
               route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.ASSET)),
             icon: 'domain'
           },
-          backNavigationCommands: ['../..']
+          backNavigationCommands: ['../..'],
+          hideTabs: true
         },
         resolve: {
           edgeTitle: EdgeTitleResolver
@@ -275,7 +280,8 @@ const edgeChildrenRoutes = (): Routes =>
               route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.DEVICE)),
             icon: 'devices_other'
           },
-          backNavigationCommands: ['../..']
+          backNavigationCommands: ['../..'],
+          hideTabs: true
         },
         resolve: {
           edgeTitle: EdgeTitleResolver
@@ -292,7 +298,8 @@ const edgeChildrenRoutes = (): Routes =>
               route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.ENTITY_VIEW)),
             icon: 'view_quilt'
           },
-          backNavigationCommands: ['../..']
+          backNavigationCommands: ['../..'],
+          hideTabs: true
         },
         resolve: {
           edgeTitle: EdgeTitleResolver
@@ -309,7 +316,8 @@ const edgeChildrenRoutes = (): Routes =>
               route.data.edgeTitle + ': ' + translate.instant(edgeEntitiesTitle(EntityType.DASHBOARD)),
             icon: 'dashboard'
           },
-          backNavigationCommands: ['../..']
+          backNavigationCommands: ['../..'],
+          hideTabs: true
         },
         resolve: {
           edgeTitle: EdgeTitleResolver

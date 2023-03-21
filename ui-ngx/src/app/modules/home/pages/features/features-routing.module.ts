@@ -35,12 +35,13 @@ import { NgModule } from '@angular/core';
 import { ruleChainsRoutes } from '@home/pages/rulechain/rulechain-routing.module';
 import { otaUpdatesRoutes } from '@home/pages/ota-update/ota-update-routing.module';
 import { vcRoutes } from '@home/pages/vc/vc-routing.module';
+import { schedulerRoutes } from '@home/pages/scheduler/scheduler-routing.module';
 
 const routes: Routes = [
   {
     path: 'features',
     data: {
-      auth: [Authority.TENANT_ADMIN],
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'feature.advanced-features',
         icon: 'construction'
@@ -51,13 +52,17 @@ const routes: Routes = [
         path: '',
         children: [],
         data: {
-          auth: [Authority.TENANT_ADMIN],
-          redirectTo: '/features/ruleChains'
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            TENANT_ADMIN: '/features/ruleChains',
+            CUSTOMER_USER: '/features/scheduler'
+          }
         }
       },
       ...ruleChainsRoutes,
       ...otaUpdatesRoutes,
-      ...vcRoutes
+      ...vcRoutes,
+      ...schedulerRoutes
     ]
   }
 ];

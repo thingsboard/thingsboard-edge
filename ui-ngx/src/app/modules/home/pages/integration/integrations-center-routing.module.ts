@@ -40,7 +40,8 @@ export const integrationsCenterRoute = (): Route => ({
   data: {
     auth: [Authority.TENANT_ADMIN],
     breadcrumb: {
-      skip: true
+      label: 'integration.integrations-center',
+      icon: 'integration_instructions'
     }
   },
   children: [

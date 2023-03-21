@@ -39,7 +39,6 @@ import { EntityGroup, EntityGroupInfo, EntityGroupParams, entityGroupsTitle } fr
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { BroadcastService } from '@core/services/broadcast.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { UtilsService } from '@core/services/utils.service';
@@ -71,7 +70,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
               private userPermissionsService: UserPermissionsService,
-              private broadcast: BroadcastService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService,
@@ -399,9 +397,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private notifyEntityGroupUpdated() {
-    if (!this.customerId) {
-      this.broadcast.broadcast(this.groupType + 'changed');
-    }
     if (!this.componentsData.isGroupEntitiesView && this.params.hierarchyView) {
       this.params.hierarchyCallbacks.refreshEntityGroups(this.params.internalId);
     }

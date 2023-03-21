@@ -69,6 +69,7 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
 import { widgetsBundlesRoutes } from '@home/pages/widget/widget-library-routing.module';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
+import { rolesRoutes } from '@home/pages/role/role-routing.module';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -330,7 +331,7 @@ const routes: Routes = [
       },
       {
         path: 'selfRegistration',
-        redirectTo: '/white-labeling/selfRegistration'
+        redirectTo: '/security-settings/selfRegistration'
       },
       {
         path: 'oauth2',
@@ -357,9 +358,8 @@ const routes: Routes = [
   },
   {
     path: 'security-settings',
-    component: RouterTabsComponent,
     data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'security.security',
         icon: 'security'
@@ -370,10 +370,11 @@ const routes: Routes = [
         path: '',
         children: [],
         data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
             SYS_ADMIN: '/security-settings/general',
-            TENANT_ADMIN: '/security-settings/2fa'
+            TENANT_ADMIN: '/security-settings/2fa',
+            CUSTOMER_USER: '/security-settings/roles',
           }
         }
       },
@@ -418,6 +419,20 @@ const routes: Routes = [
         },
         resolve: {
           loginProcessingUrl: OAuth2LoginProcessingUrlResolver
+        }
+      },
+      ...rolesRoutes,
+      {
+        path: 'selfRegistration',
+        component: SelfRegistrationComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'self-registration.self-registration',
+          breadcrumb: {
+            label: 'self-registration.self-registration',
+            icon: 'group_add'
+          }
         }
       },
       ...auditLogsRoutes
@@ -524,16 +539,7 @@ const routes: Routes = [
       },
       {
         path: 'selfRegistration',
-        component: SelfRegistrationComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.TENANT_ADMIN],
-          title: 'self-registration.self-registration',
-          breadcrumb: {
-            label: 'self-registration.self-registration',
-            icon: 'group_add'
-          }
-        }
+        redirectTo: '/security-settings/selfRegistration'
       }
     ]
   }
