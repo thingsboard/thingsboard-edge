@@ -78,7 +78,7 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.DASHBOARD : operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit">
     {{'dashboard.delete' | translate }}
   </button>

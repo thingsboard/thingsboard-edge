@@ -56,7 +56,7 @@ import {
   entityGroupNodeText,
   EntityGroupsNodeData,
   entityGroupsNodeText
-} from '@home/pages/group/customers-hierarchy.models';
+} from '@home/pages/customer/customers-hierarchy.models';
 import { EntityService } from '@core/http/entity.service';
 import { Customer } from '@shared/models/customer.model';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -174,7 +174,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   public loadNodes: LoadNodesCallback = (node: CustomersHierarchyNode, cb) => {
     if (node.id === '#') {
-      this.entityGroupService.getEntityGroups(EntityType.CUSTOMER, {ignoreLoading: true}).subscribe((entityGroups) => {
+      this.entityGroupService.getEntityGroups(EntityType.CUSTOMER, true, {ignoreLoading: true}).subscribe((entityGroups) => {
         cb(this.entityGroupsToNodes(node.id, null, entityGroups));
         this.entityGroupParams.nodeId = node.id;
       });

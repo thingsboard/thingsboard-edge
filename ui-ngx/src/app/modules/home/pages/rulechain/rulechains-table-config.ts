@@ -63,6 +63,7 @@ import {
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { mergeMap } from 'rxjs/operators';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
 
 export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
@@ -78,7 +79,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService,
               private params: ActivatedRouteSnapshot | RuleChainParams) {
-    super();
+    super((params as any)?.hierarchyView ? undefined : resolveGroupParams(params as any));
 
     this.entityType = EntityType.RULE_CHAIN;
     this.entityComponent = RuleChainComponent;
@@ -257,7 +258,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (this.componentsData.ruleChainScope === 'edges') {
           this.router.navigateByUrl(`edgeManagement/ruleChains/ruleChain/import`);
         } else {
-          this.router.navigateByUrl(`ruleChains/ruleChain/import`);
+          this.router.navigateByUrl(`features/ruleChains/ruleChain/import`);
         }
       }
     });
