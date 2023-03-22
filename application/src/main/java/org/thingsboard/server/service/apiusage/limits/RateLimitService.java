@@ -28,16 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.targets.platform;
+package org.thingsboard.server.service.apiusage.limits;
 
-import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
-public class ActionTargetUserFilter implements UsersFilter {
+public interface RateLimitService {
 
-    @Override
-    public UsersFilterType getType() {
-        return UsersFilterType.ACTION_TARGET_USER;
-    }
+    boolean checkRateLimit(TenantId tenantId, LimitedApi api);
 
 }

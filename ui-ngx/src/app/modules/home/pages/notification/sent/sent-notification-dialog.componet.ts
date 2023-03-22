@@ -75,6 +75,8 @@ export class SentNotificationDialogComponent extends
 
   @ViewChild('createNotification', {static: true}) createNotification: MatStepper;
   stepperOrientation: Observable<StepperOrientation>;
+  stepperLabelPosition: Observable<'bottom' | 'end'>;
+
   isAdd = true;
   entityType = EntityType;
   notificationType = NotificationType;
@@ -101,6 +103,9 @@ export class SentNotificationDialogComponent extends
 
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
+
+    this.stepperLabelPosition = this.breakpointObserver.observe(MediaBreakpoints['gt-md'])
+      .pipe(map(({matches}) => matches ? 'end' : 'bottom'));
 
     this.notificationRequestForm = this.fb.group({
       useTemplate: [false],
@@ -163,12 +168,8 @@ export class SentNotificationDialogComponent extends
   }
 
   nextStepLabel(): string {
-    if (this.selectedIndex !== 0) {
-      if (this.selectedIndex >= this.maxStepperIndex) {
-        return 'action.send';
-      } else if (this.createNotification.selected.stepControl.pristine) {
-        return 'action.skip';
-      }
+    if (this.selectedIndex >= this.maxStepperIndex) {
+      return 'action.send';
     }
     return 'action.next';
   }

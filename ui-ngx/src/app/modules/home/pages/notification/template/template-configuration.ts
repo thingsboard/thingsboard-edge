@@ -94,8 +94,6 @@ export abstract class TemplateConfiguration<T, R = any> extends DialogComponent<
       name: ['', Validators.required],
       notificationType: [NotificationType.GENERAL],
       configuration: this.fb.group({
-        notificationSubject: ['', Validators.required],
-        defaultTextTemplate: ['', Validators.required],
         deliveryMethodsTemplates: this.fb.group({}, {validators: this.atLeastOne()})
       })
     });
@@ -106,8 +104,8 @@ export abstract class TemplateConfiguration<T, R = any> extends DialogComponent<
     });
 
     this.webTemplateForm = this.fb.group({
-      subject: [''],
-      body: [''],
+      subject: ['', Validators.required],
+      body: ['', Validators.required],
       additionalConfig: this.fb.group({
         icon: this.fb.group({
           enabled: [false],
@@ -168,16 +166,16 @@ export abstract class TemplateConfiguration<T, R = any> extends DialogComponent<
     });
 
     this.emailTemplateForm = this.fb.group({
-      subject: [''],
-      body: ['']
+      subject: ['', Validators.required],
+      body: ['', Validators.required]
     });
 
     this.smsTemplateForm = this.fb.group({
-      body: ['']
+      body: ['', Validators.required]
     });
 
     this.slackTemplateForm = this.fb.group({
-      body: ['']
+      body: ['', Validators.required]
     });
 
     this.deliveryMethodFormsMap = new Map<NotificationDeliveryMethod, FormGroup>([

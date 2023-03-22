@@ -30,6 +30,13 @@
  */
 package org.thingsboard.server.common.data.notification.targets.platform;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
 public enum UsersFilterType {
 
     USER_LIST,
@@ -38,7 +45,9 @@ public enum UsersFilterType {
     TENANT_ADMINISTRATORS,
     USER_ROLE,
     ALL_USERS,
-    ORIGINATOR_ENTITY_OWNER_USERS,
-    ACTION_TARGET_USER
+    ORIGINATOR_ENTITY_OWNER_USERS(true),
+    AFFECTED_USER(true);
+
+    private boolean forRules;
 
 }

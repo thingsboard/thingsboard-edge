@@ -205,20 +205,20 @@ export class MenuService {
       },
       {
         id: guid(),
+        name: 'notification.recipients',
+        type: 'link',
+        path: '/notification/recipients',
+        icon: 'contacts',
+        disabled: disabledItems.indexOf('notification_recipients') > -1
+      },
+      {
+        id: guid(),
         name: 'notification.templates',
         type: 'link',
         path: '/notification/templates',
         icon: 'mdi:message-draw',
         isMdiIcon: true,
         disabled: disabledItems.indexOf('notification_templates') > -1
-      },
-      {
-        id: guid(),
-        name: 'notification.recipients',
-        type: 'link',
-        path: '/notification/recipients',
-        icon: 'contacts',
-        disabled: disabledItems.indexOf('notification_recipients') > -1
       },
       {
         id: guid(),
@@ -1185,23 +1185,23 @@ export class MenuService {
     notificationPages.push(
       {
         id: guid(),
-        name: 'notification.templates',
+        name: 'notification.recipients',
         type: 'link',
-        path: '/notification/templates',
-        icon: 'mdi:message-draw',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_templates') > -1
+        path: '/notification/recipients',
+        icon: 'contacts',
+        disabled: disabledItems.indexOf('notification_recipients') > -1
       }
     );
     // TODO: permission check
     notificationPages.push(
       {
         id: guid(),
-        name: 'notification.recipients',
+        name: 'notification.templates',
         type: 'link',
-        path: '/notification/recipients',
-        icon: 'contacts',
-        disabled: disabledItems.indexOf('notification_recipients') > -1
+        path: '/notification/templates',
+        icon: 'mdi:message-draw',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('notification_templates') > -1
       }
     );
     // TODO: permission check

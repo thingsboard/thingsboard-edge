@@ -286,8 +286,6 @@ export interface NotificationTemplate extends Omit<BaseData<NotificationTemplate
 }
 
 interface NotificationTemplateConfig {
-  defaultTextTemplate: string;
-  notificationSubject: string;
   deliveryMethodsTemplates: {
     [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate
   };
@@ -376,13 +374,13 @@ export const SlackChanelTypesTranslateMap = new Map<SlackChanelType, string>([
 
 export enum NotificationTargetConfigType {
   ALL_USERS = 'ALL_USERS',
+  TENANT_ADMINISTRATORS = 'TENANT_ADMINISTRATORS',
   USER_LIST = 'USER_LIST',
   USER_GROUP_LIST = 'USER_GROUP_LIST',
   CUSTOMER_USERS = 'CUSTOMER_USERS',
   USER_ROLE = 'USER_ROLE',
   ORIGINATOR_ENTITY_OWNER_USERS = 'ORIGINATOR_ENTITY_OWNER_USERS',
-  TENANT_ADMINISTRATORS = 'TENANT_ADMINISTRATORS',
-  ACTION_TARGET_USER = 'ACTION_TARGET_USER'
+  AFFECTED_USER = 'AFFECTED_USER'
 }
 
 interface NotificationTargetConfigTypeInfo {
@@ -417,7 +415,7 @@ export const NotificationTargetConfigTypeInfoMap = new Map<NotificationTargetCon
       hint: 'notification.target-type.users-entity-owner-hint'
     }
   ],
-  [NotificationTargetConfigType.ACTION_TARGET_USER,
+  [NotificationTargetConfigType.AFFECTED_USER,
     {
       name: 'notification.target-type.affected-user',
       hint: 'notification.target-type.affected-user-hint'
