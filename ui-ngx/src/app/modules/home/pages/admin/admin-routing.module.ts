@@ -70,7 +70,6 @@ import { widgetsBundlesRoutes } from '@home/pages/widget/widget-library-routing.
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
-import { NotificationSettingsComponent } from '@home/pages/admin/notification-settings.component';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {

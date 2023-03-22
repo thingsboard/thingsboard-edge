@@ -28,62 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-
-  .notification {
-    padding: 10px;
-    display: block;
-    border: 1px solid;
-    border-radius: 4px;
-  }
-
-  .icon {
-    margin-right: 14px;
-    color: rgba(0, 0, 0, 0.54);
-  }
-
-  .content {
-    letter-spacing: .25px;
-    word-break: break-word;
-    .title {
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-    .message {
-      font-size: 14px;
-      line-height: 16px;
-      color: rgba(0, 0, 0, 0.76);
-    }
-
-    .button {
-      margin-top: 12px;
-      border-color: initial;
-    }
-  }
-
-  .description {
-    margin-left: 8px;
-    min-width: 70px;
-    color: rgba(0, 0, 0, 0.54);
-
-    .mark-read {
-      margin-bottom: 6px;
-    }
-
-    .time {
-      font-size: 12px;
-      letter-spacing: 0.25px;
-      margin: 0 4px;
-    }
-
-    .alarm-severity {
-      padding: 5px;
-      border-radius: 8px;
-
-      .severity {
-        font-weight: 500;
-        letter-spacing: 0.25px;
-      }
-    }
-  }
+:host{
+  width: 10000px;
 }

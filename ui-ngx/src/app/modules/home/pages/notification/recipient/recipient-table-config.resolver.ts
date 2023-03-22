@@ -31,6 +31,7 @@
 
 import {
   CellActionDescriptor,
+  DateEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -48,6 +49,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { RecipientTableHeaderComponent } from '@home/pages/notification/recipient/recipient-table-header.component';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { Injectable } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 @Injectable()
 export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<NotificationTarget>> {
@@ -56,7 +58,8 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
 
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private datePipe: DatePipe) {
 
     this.config.detailsPanelEnabled = false;
     this.config.selectionEnabled = false;
@@ -80,7 +83,7 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
     this.config.headerComponent = RecipientTableHeaderComponent;
     this.config.onEntityAction = action => this.onTargetAction(action);
 
-    this.config.defaultSortOrder = {property: 'name', direction: Direction.ASC};
+    this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
     this.config.handleRowClick = ($event, target) => {
       this.editTarget($event, target);
@@ -88,6 +91,7 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
     };
 
     this.config.columns.push(
+      new DateEntityTableColumn<NotificationTarget>('createdTime', 'notification.created-time', this.datePipe, '170px'),
       new EntityTableColumn<NotificationTarget>('name', 'notification.notification-target', '20%'),
       new EntityTableColumn<NotificationTarget>('configuration.type', 'notification.type', '20%',
         (target) => this.translate.instant(NotificationTargetTypeTranslationMap.get(target.configuration.type)),

@@ -324,14 +324,6 @@ export class MenuService {
       },
       {
         id: guid(),
-        name: 'notification.notification',
-        type: 'link',
-        path: '/settings/notification',
-        icon: 'notifications',
-        disabled: disabledItems.indexOf('notification') > -1
-      },
-      {
-        id: guid(),
         name: 'admin.queues',
         type: 'link',
         path: '/settings/queues',
@@ -446,12 +438,6 @@ export class MenuService {
             icon: 'sms',
             path: '/settings/sms-provider',
             disabled: disabledItems.indexOf('sms_provider') > -1
-          },
-          {
-            name: 'notification.notification',
-            icon: 'notifications',
-            path: '/settings/notification',
-            disabled: disabledItems.indexOf('notification') > -1
           },
           {
             name: 'admin.security-settings',
@@ -1838,12 +1824,6 @@ export class MenuService {
             path: '/settings/sms-provider',
             icon: 'sms',
             disabled: disabledItems.indexOf('sms_provider') > -1
-          },
-          {
-            name: 'notification.notification',
-            icon: 'notifications',
-            path: '/settings/notification',
-            disabled: disabledItems.indexOf('notification') > -1
           },
           {
             name: 'self-registration.self-registration',

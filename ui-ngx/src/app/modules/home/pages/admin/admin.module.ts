@@ -55,7 +55,6 @@ import { QueueComponent } from '@home/pages/admin/queue/queue.component';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
-import { NotificationSettingsComponent } from '@home/pages/admin/notification-settings.component';
 
 @NgModule({
   declarations:
@@ -80,8 +79,7 @@ import { NotificationSettingsComponent } from '@home/pages/admin/notification-se
       QueueComponent,
       RepositoryAdminSettingsComponent,
       AutoCommitAdminSettingsComponent,
-      TwoFactorAuthSettingsComponent,
-      NotificationSettingsComponent
+      TwoFactorAuthSettingsComponent
     ],
   imports: [
     CommonModule,
