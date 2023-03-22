@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -501,14 +500,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateEntityCountQuery(query);
         return this.entityQueryDao.countEntitiesByQuery(tenantId, customerId, userPermissions, query);
-    }
-
-    @Override
-    public Map<EntityType, Long> countEntitiesByTypes(TenantId tenantId, CustomerId customerId, List<EntityType> entityTypes) {
-        log.trace("Executing countEntitiesByQuery, tenantId [{}], customerId [{}], entityTypes [{}]", tenantId, customerId, entityTypes);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        return this.entityQueryDao.countEntitiesByTypes(tenantId, customerId, entityTypes);
     }
 
     @Override

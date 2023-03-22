@@ -28,26 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.controller.sql;
 
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
+import org.thingsboard.server.controller.BaseHomePageApiTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.List;
-
-public interface TbServiceInfoProvider {
-
-    String getServiceId();
-
-    String getServiceType();
-
-    ServiceInfo getServiceInfo();
-
-    boolean isService(ServiceType serviceType);
-
-    ServiceInfo getServiceInfoWithCurrentSystemInfo();
-
-    List<IntegrationType> getSupportedIntegrationTypes();
-
+@DaoSqlTest
+public class HomePageApiSqlTest extends BaseHomePageApiTest {
 }

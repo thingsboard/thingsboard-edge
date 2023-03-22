@@ -33,18 +33,12 @@ package org.thingsboard.server.common.data;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Map;
+import java.util.List;
 
 @Data
 public class SystemInfo {
     @ApiModelProperty(position = 1, value = "Is monolith.")
     private boolean isMonolith;
-    @ApiModelProperty(position = 2, value = "CPU usage.")
-    private Double cpuUsage;
-    @ApiModelProperty(position = 3, value = "Memory usage.")
-    private Long memUsage;
-    @ApiModelProperty(position = 4, value = "Free disc space.")
-    private Long freeDiscSpace;
-    @ApiModelProperty(position = 5, value = "Json object with info about services.")
-    private Map<String, String> serviceInfos;
+    @ApiModelProperty(position = 2, value = "System data.")
+    private List<SystemInfoData> systemData;
 }

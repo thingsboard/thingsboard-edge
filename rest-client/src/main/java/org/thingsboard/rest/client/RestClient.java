@@ -441,7 +441,7 @@ public class RestClient implements Closeable {
     }
 
     public SystemInfo getSystemInfo() {
-       return restTemplate.getForEntity(baseURL + "/api/admin/systemInfo", SystemInfo.class).getBody();
+        return restTemplate.getForEntity(baseURL + "/api/admin/systemInfo", SystemInfo.class).getBody();
     }
 
     public FeaturesInfo getFeaturesInfo() {
@@ -1386,13 +1386,6 @@ public class RestClient implements Closeable {
 
     public Long countEntitiesByQuery(EntityCountQuery query) {
         return restTemplate.postForObject(baseURL + "/api/entitiesQuery/count", query, Long.class);
-    }
-
-    public Map<Long, EntityType> countEntitiesByTypes(List<EntityType> entityTypes) {
-        return restTemplate.exchange(
-                baseURL + "/api/entitiesTypes/count",
-                HttpMethod.POST, new HttpEntity<>(entityTypes), new ParameterizedTypeReference<Map<Long, EntityType>>() {
-                }).getBody();
     }
 
     public PageData<EntityData> findEntityDataByQuery(EntityDataQuery query) {
