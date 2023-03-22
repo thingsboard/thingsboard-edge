@@ -56,12 +56,8 @@
     .mat-mdc-radio-button {
       flex: 1 1 100%;
       padding: 4px;
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.12);
       border-radius: 6px;
-
-      &.mat-radio-checked {
-        border-color: var(--tb-accent-500);
-      }
     }
   }
 
