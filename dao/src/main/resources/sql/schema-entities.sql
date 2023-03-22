@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS alarm_comment (
     type varchar(255) NOT NULL,
     comment varchar(10000),
     CONSTRAINT fk_alarm_comment_alarm_id FOREIGN KEY (alarm_id) REFERENCES alarm(id) ON DELETE CASCADE
-    ) PARTITION BY RANGE (created_time);
+) PARTITION BY RANGE (created_time);
 
 CREATE TABLE IF NOT EXISTS entity_alarm (
     tenant_id uuid NOT NULL,
@@ -538,6 +538,7 @@ CREATE TABLE IF NOT EXISTS tb_user (
     email varchar(255) UNIQUE,
     first_name varchar(255),
     last_name varchar(255),
+    phone varchar(255),
     search_text varchar(255),
     tenant_id uuid
 );
@@ -995,12 +996,32 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
 FROM integration i;
 
 
-
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id uuid NOT NULL CONSTRAINT user_settings_pkey PRIMARY KEY,
     settings varchar(10000),
     CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE VIEW dashboard_info_view as
+SELECT d.*, c.title as owner_name FROM dashboard d LEFT JOIN customer c ON c.id = d.customer_id;
+
+CREATE OR REPLACE VIEW asset_info_view as
+SELECT a.*, c.title as owner_name FROM asset a LEFT JOIN customer c ON c.id = a.customer_id;
+
+CREATE OR REPLACE VIEW device_info_view as
+SELECT d.*, c.title as owner_name FROM device d LEFT JOIN customer c ON c.id = d.customer_id;
+
+CREATE OR REPLACE VIEW entity_view_info_view as
+SELECT e.*, c.title as owner_name FROM entity_view e LEFT JOIN customer c ON c.id = e.customer_id;
+
+CREATE OR REPLACE VIEW customer_info_view as
+SELECT c.*, c2.title as owner_name FROM customer c LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
+
+CREATE OR REPLACE VIEW user_info_view as
+SELECT u.*, c.title as owner_name FROM tb_user u LEFT JOIN customer c ON c.id = u.customer_id;
+
+CREATE OR REPLACE VIEW edge_info_view as
+SELECT e.*, c.title as owner_name FROM edge e LEFT JOIN customer c ON c.id = e.customer_id;
 
 DROP VIEW IF EXISTS alarm_info CASCADE;
 CREATE VIEW alarm_info AS
@@ -1174,7 +1195,7 @@ BEGIN
         UPDATE alarm a SET acknowledged = true, ack_ts = a_ts WHERE a.id = a_id AND a.tenant_id = t_id;
     END IF;
     SELECT * INTO result FROM alarm_info a WHERE a.id = a_id AND a.tenant_id = t_id;
-    RETURN json_build_object('success', true, 'modified', modified, 'alarm', row_to_json(result))::text;
+    RETURN json_build_object('success', true, 'modified', modified, 'alarm', row_to_json(result), 'old', row_to_json(existing))::text;
 END
 $$;
 
@@ -1249,3 +1270,63 @@ BEGIN
     RETURN json_build_object('success', true, 'modified', modified, 'alarm', row_to_json(result))::text;
 END
 $$;
+
+CREATE TABLE IF NOT EXISTS notification_target (
+    id UUID NOT NULL CONSTRAINT notification_target_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    configuration VARCHAR(10000) NOT NULL,
+    CONSTRAINT uq_notification_target_name UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS notification_template (
+    id UUID NOT NULL CONSTRAINT notification_template_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    configuration VARCHAR(10000) NOT NULL,
+    CONSTRAINT uq_notification_template_name UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS notification_rule (
+    id UUID NOT NULL CONSTRAINT notification_rule_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    template_id UUID NOT NULL CONSTRAINT fk_notification_rule_template_id REFERENCES notification_template(id),
+    trigger_type VARCHAR(50) NOT NULL,
+    trigger_config VARCHAR(1000) NOT NULL,
+    recipients_config VARCHAR(10000) NOT NULL,
+    additional_config VARCHAR(255),
+    CONSTRAINT uq_notification_rule_name UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS notification_request (
+    id UUID NOT NULL CONSTRAINT notification_request_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    targets VARCHAR(10000) NOT NULL,
+    template_id UUID,
+    template VARCHAR(10000),
+    info VARCHAR(1000),
+    additional_config VARCHAR(1000),
+    originator_entity_id UUID,
+    originator_entity_type VARCHAR(32),
+    rule_id UUID NULL,
+    status VARCHAR(32),
+    stats VARCHAR(10000)
+);
+
+CREATE TABLE IF NOT EXISTS notification (
+    id UUID NOT NULL,
+    created_time BIGINT NOT NULL,
+    request_id UUID NULL CONSTRAINT fk_notification_request_id REFERENCES notification_request(id) ON DELETE CASCADE,
+    recipient_id UUID NOT NULL CONSTRAINT fk_notification_recipient_id REFERENCES tb_user(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    subject VARCHAR(255),
+    body VARCHAR(1000) NOT NULL,
+    additional_config VARCHAR(1000),
+    status VARCHAR(32)
+) PARTITION BY RANGE (created_time);

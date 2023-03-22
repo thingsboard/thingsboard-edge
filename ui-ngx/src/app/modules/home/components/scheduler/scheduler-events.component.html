@@ -31,11 +31,18 @@
 
 -->
 <div #schedulerEventWidgetContainer class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
-  <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
+  <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'tb-outlined-border': !widgetMode}">
     <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else schedulerEventsTitle" class="tb-scheduler-events-title">{{ctx.widgetTitle}}</span>
         <ng-template #schedulerEventsTitle>
+          <button *ngIf="displayBackButton()" mat-icon-button
+                  matTooltip="{{ 'action.back' | translate }}"
+                  matTooltipPosition="above"
+                  (click)="goBack()"
+                  style="margin-right: 8px;">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
           <span class="tb-scheduler-events-title" translate>scheduler.scheduler-events</span>
         </ng-template>
         <div class="tb-scheduler-events-view-type-toolbar"

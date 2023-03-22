@@ -34,25 +34,28 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.junit.After;
+import lombok.Getter;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.OtaPackage;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
@@ -61,7 +64,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,24 +71,21 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 
 public abstract class BaseDeviceProfileServiceTest extends AbstractServiceTest {
 
+    @Autowired
+    DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+    @Autowired
+    DeviceProfileService deviceProfileService;
+    @Getter
+    @Autowired
+    DeviceService deviceService;
+    @Getter
+    @Autowired
+    EntityGroupService entityGroupService;
+    @Autowired
+    OtaPackageService otaPackageService;
+
     private IdComparator<DeviceProfile> idComparator = new IdComparator<>();
     private IdComparator<DeviceProfileInfo> deviceProfileInfoIdComparator = new IdComparator<>();
-
-    private TenantId tenantId;
-
-    @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
 
     @Test
     public void testSaveDeviceProfile() {
@@ -411,7 +410,7 @@ public abstract class BaseDeviceProfileServiceTest extends AbstractServiceTest {
         Collections.sort(loadedDeviceProfileInfos, deviceProfileInfoIdComparator);
 
         List<DeviceProfileInfo> deviceProfileInfos = deviceProfiles.stream()
-                .map(deviceProfile -> new DeviceProfileInfo(deviceProfile.getId(),
+                .map(deviceProfile -> new DeviceProfileInfo(deviceProfile.getId(), deviceProfile.getTenantId(),
                         deviceProfile.getName(), deviceProfile.getImage(), deviceProfile.getDefaultDashboardId(),
                         deviceProfile.getType(), deviceProfile.getTransportType())).collect(Collectors.toList());
 

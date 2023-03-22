@@ -36,15 +36,21 @@ import { CustomerComponent } from '@modules/home/pages/customer/customer.compone
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { CUSTOMER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { CustomerGroupConfigFactory } from '@home/pages/customer/customer-group-config.factory';
+import { CustomerRoutingModule } from '@home/pages/customer/customer-routing.module';
+import { CustomerTableHeaderComponent } from '@home/pages/customer/customer-table-header.component';
+import { CustomersHierarchyComponent } from '@home/pages/customer/customers-hierarchy.component';
 
 @NgModule({
   declarations: [
-    CustomerComponent
+    CustomerComponent,
+    CustomerTableHeaderComponent,
+    CustomersHierarchyComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
-    HomeComponentsModule
+    HomeComponentsModule,
+    CustomerRoutingModule
   ],
   providers: [
     {

@@ -515,12 +515,14 @@ export interface CustomTimeSchedulerItem{
   endsOn: number;
 }
 
-export interface AlarmRule {
+interface AlarmRule {
   condition: AlarmCondition;
   alarmDetails?: string;
   dashboardId?: DashboardId;
   schedule?: AlarmSchedule;
 }
+
+export { AlarmRule as DeviceProfileAlarmRule };
 
 export function alarmRuleValidator(control: AbstractControl): ValidationErrors | null {
   const alarmRule: AlarmRule = control.value;
@@ -601,6 +603,7 @@ export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEnti
 }
 
 export interface DeviceProfileInfo extends EntityInfoData {
+  tenantId?: TenantId;
   type: DeviceProfileType;
   transportType: DeviceTransportType;
   image?: string;
@@ -720,11 +723,9 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   additionalInfo?: any;
 }
 
-/*export interface DeviceInfo extends Device {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  deviceProfileName: string;
-}*/
+export interface DeviceInfo extends Device {
+  ownerName?: string;
+}
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',

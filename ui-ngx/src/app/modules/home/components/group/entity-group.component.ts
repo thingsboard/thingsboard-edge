@@ -137,9 +137,9 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         const isWriteAllowed = this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
         const isCreatePermissionAllowed = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE);
         this.isPublic = isPublic;
-        this.shareEnabled = isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed;
-        this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
-        this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
+        this.shareEnabled = !this.sharedGroup() && isSharableGroupType && isCreatePermissionAllowed && isWriteAllowed;
+        this.makePublicEnabled = !this.sharedGroup() && isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
+        this.makePrivateEnabled = !this.sharedGroup() && isPublicGroupType && isPublic && isOwned && isWriteAllowed;
         this.isGroupAll = entityGroup.groupAll;
       } else {
         this.isPublic = false;
@@ -148,6 +148,14 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         this.makePrivateEnabled = false;
         this.isGroupAll = false;
       }
+    }
+  }
+
+  private sharedGroup(): boolean {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.shared === true;
+    } else {
+      return false;
     }
   }
 

@@ -176,4 +176,9 @@ public class SparkplugTopic {
     public boolean isNode() {
         return this.deviceId == null;
     }
+
+    public String getNodeDeviceName() {
+        return isNode() ? edgeNodeId : deviceId;
+    }
 }
+

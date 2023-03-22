@@ -31,18 +31,18 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -51,21 +51,14 @@ import java.util.List;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
-public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
+public abstract class BaseAssetServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    AssetService assetService;
+    @Autowired
+    CustomerService customerService;
 
     private IdComparator<Asset> idComparator = new IdComparator<>();
-
-    private TenantId tenantId;
-
-    @Before
-    public void beforeRun() {
-        tenantId = before();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
 
     @Test
     public void testSaveAsset() {
@@ -188,12 +181,6 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindAssetsByTenantId() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
         List<Asset> assets = new ArrayList<>();
         for (int i=0;i<178;i++) {
             Asset asset = new Asset();
@@ -225,8 +212,6 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         pageData = assetService.findAssetsByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
