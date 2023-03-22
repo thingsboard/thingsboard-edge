@@ -40,6 +40,10 @@ import { AssetProfileModule } from '@home/pages/asset-profile/asset-profile.modu
 import { ProfilesModule } from '@home/pages/profiles/profiles.module';
 import { CloudEventModule } from '@home/pages/cloud-event/cloud-event.module';
 import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
+import { AlarmModule } from '@home/pages/alarm/alarm.module';
+import { EntitiesModule } from '@home/pages/entities/entities.module';
+import { FeaturesModule } from '@home/pages/features/features.module';
+import { NotificationModule } from '@home/pages/notification/notification.module';
 
 @NgModule({
   exports: [
@@ -52,8 +56,12 @@ import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
     DeviceProfileModule,
     AssetProfileModule,
     ProfilesModule,
+    EntitiesModule,
+    FeaturesModule,
+    NotificationModule,
     DeviceModule,
     AssetModule,
+    AlarmModule,
     EdgeModule,
     EntityViewModule,
     CustomerModule,

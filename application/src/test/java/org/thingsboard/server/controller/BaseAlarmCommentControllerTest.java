@@ -67,6 +67,9 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
     public void setup() throws Exception {
         loginTenantAdmin();
 
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
+
         Device device = new Device();
         device.setTenantId(tenantId);
         device.setName("Test device");
@@ -79,7 +82,6 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
                 .tenantId(tenantId)
                 .customerId(customerId)
                 .originator(customerDevice.getId())
-                .status(AlarmStatus.ACTIVE_UNACK)
                 .severity(AlarmSeverity.CRITICAL)
                 .type("test alarm type")
                 .build();
@@ -316,7 +318,6 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
 
         Alarm alarm = Alarm.builder()
                 .originator(device.getId())
-                .status(AlarmStatus.ACTIVE_UNACK)
                 .severity(AlarmSeverity.CRITICAL)
                 .type("Test")
                 .build();

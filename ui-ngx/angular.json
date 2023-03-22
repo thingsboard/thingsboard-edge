@@ -30,6 +30,11 @@
               "src/tb-edge.ico",
               "src/assets",
               {
+                "glob": "*.svg",
+                "input": "./node_modules/@mdi/svg/svg/",
+                "output": "/assets/mdi/"
+              },
+              {
                 "glob": "worker-html.js",
                 "input": "./node_modules/ace-builds/src-noconflict/",
                 "output": "/"
@@ -140,7 +145,8 @@
               "ace",
               "ace-builds",
               "diff-match-patch",
-              "tv4"
+              "tv4",
+              "@messageformat/parser"
             ]
           },
           "configurations": {

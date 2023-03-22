@@ -48,7 +48,7 @@ public interface UserService extends EntityDaoService {
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
 	
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
@@ -77,8 +77,4 @@ public interface UserService extends EntityDaoService {
     int increaseFailedLoginAttempts(TenantId tenantId, UserId userId);
 
     void setLastLoginTs(TenantId tenantId, UserId userId);
-
-	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials);
-
-	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
 }

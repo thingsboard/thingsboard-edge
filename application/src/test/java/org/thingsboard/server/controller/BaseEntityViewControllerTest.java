@@ -119,6 +119,9 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
         loginTenantAdmin();
 
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
+
         Device device = new Device();
         device.setName("Test device 4view");
         device.setType("default");

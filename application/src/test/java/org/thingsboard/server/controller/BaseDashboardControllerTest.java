@@ -88,6 +88,10 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
     }
 
     @After

@@ -26,6 +26,7 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.DatabaseEntitiesUpgradeService;
 import org.thingsboard.server.service.install.DatabaseTsUpgradeService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.NoSqlKeyspaceService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
@@ -87,6 +88,9 @@ public class ThingsboardInstallService {
 
     @Autowired(required = false)
     private TsLatestMigrateService latestMigrateService;
+
+    @Autowired
+    private InstallScripts installScripts;
 
     public void performInstall() {
         try {
@@ -251,6 +255,7 @@ public class ThingsboardInstallService {
                             // @voba - system widgets update is not required - uploaded from cloud
                             // log.info("Updating system data...");
                             // systemDataLoaderService.updateSystemWidgets();
+                            // installScripts.loadSystemLwm2mResources();
                             break;
                         //TODO update CacheCleanupService on the next version upgrade
                         default:
@@ -294,6 +299,7 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.createQueues();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
+                installScripts.loadSystemLwm2mResources();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");
@@ -312,3 +318,4 @@ public class ThingsboardInstallService {
     }
 
 }
+

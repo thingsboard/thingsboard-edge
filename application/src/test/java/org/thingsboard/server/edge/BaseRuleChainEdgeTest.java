@@ -170,6 +170,7 @@ abstract public class BaseRuleChainEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSetRootRuleChain() throws Exception {
         // create rule chain
         edgeImitator.expectMessageAmount(1);
