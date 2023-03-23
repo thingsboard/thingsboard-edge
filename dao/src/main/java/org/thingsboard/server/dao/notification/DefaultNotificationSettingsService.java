@@ -32,14 +32,16 @@ package org.thingsboard.server.dao.notification;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -93,6 +95,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
 
     private static final String SETTINGS_KEY = "notifications";
 
+    @CacheEvict(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = "#tenantId")
     @Override
     public void saveNotificationSettings(TenantId tenantId, NotificationSettings settings) {
         AdminSettings adminSettings = Optional.ofNullable(adminSettingsService.findAdminSettingsByTenantIdAndKey(tenantId, SETTINGS_KEY))
@@ -106,6 +109,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         adminSettingsService.saveAdminSettings(tenantId, adminSettings);
     }
 
+    @Cacheable(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = "#tenantId")
     @Override
     public NotificationSettings findNotificationSettings(TenantId tenantId) {
         return Optional.ofNullable(adminSettingsService.findAdminSettingsByTenantIdAndKey(tenantId, SETTINGS_KEY))
@@ -152,11 +156,11 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
                 "notifications", null, null);
         AlarmNotificationRuleTriggerConfig alarmRuleTriggerConfig = new AlarmNotificationRuleTriggerConfig();
         alarmRuleTriggerConfig.setAlarmTypes(null);
-        alarmRuleTriggerConfig.setAlarmSeverities(Set.of(AlarmSeverity.MAJOR, AlarmSeverity.CRITICAL));
+        alarmRuleTriggerConfig.setAlarmSeverities(null);
         alarmRuleTriggerConfig.setNotifyOn(Set.of(AlarmAction.CREATED, AlarmAction.SEVERITY_CHANGED, AlarmAction.ACKNOWLEDGED, AlarmAction.CLEARED));
-        createRule(tenantId, "Major or critical alarm", alarmNotificationTemplate.getId(), alarmRuleTriggerConfig,
+        createRule(tenantId, "Alarm", alarmNotificationTemplate.getId(), alarmRuleTriggerConfig,
                 List.of(originatorEntityOwnerUsers.getId()), "Send notification to tenant admins or customer users " +
-                        "when any major or critical alarm is created, updated or cleared");
+                        "when any alarm is created, updated or cleared");
 
         NotificationTemplate deviceActionNotificationTemplate = createTemplate(tenantId, "Device action notification", NotificationType.ENTITY_ACTION,
                 "${entityType} was ${actionType}",
@@ -178,7 +182,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         DeviceInactivityNotificationRuleTriggerConfig deviceInactivityRuleTriggerConfig = new DeviceInactivityNotificationRuleTriggerConfig();
         deviceInactivityRuleTriggerConfig.setDevices(null);
         deviceInactivityRuleTriggerConfig.setDeviceProfiles(null);
-        createRule(tenantId, "Device inactivity", deviceInactivityNotificationTemplate.getId(), deviceInactivityRuleTriggerConfig,
+        createRule(tenantId, "Device became inactive", deviceInactivityNotificationTemplate.getId(), deviceInactivityRuleTriggerConfig,
                 List.of(originatorEntityOwnerUsers.getId()), "Send notification to tenant admins or customer users " +
                         "when any device became inactive");
 
@@ -205,7 +209,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         alarmAssignmentRuleTriggerConfig.setAlarmSeverities(null);
         alarmAssignmentRuleTriggerConfig.setAlarmStatuses(null);
         alarmAssignmentRuleTriggerConfig.setNotifyOn(Set.of(AlarmAssignmentNotificationRuleTriggerConfig.Action.ASSIGNED));
-        createRule(tenantId, "Alarm assigned", alarmAssignedNotificationTemplate.getId(), alarmAssignmentRuleTriggerConfig,
+        createRule(tenantId, "Alarm assignment", alarmAssignedNotificationTemplate.getId(), alarmAssignmentRuleTriggerConfig,
                 List.of(affectedUser.getId()), "Send notification to user when any alarm was assigned to him");
 
         NotificationTemplate ruleEngineComponentLifecycleFailureNotificationTemplate = createTemplate(tenantId, "Rule chain/node lifecycle failure notification", NotificationType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
@@ -219,7 +223,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         ruleEngineComponentLifecycleEventRuleTriggerConfig.setTrackRuleNodeEvents(true);
         ruleEngineComponentLifecycleEventRuleTriggerConfig.setRuleNodeEvents(Set.of(ComponentLifecycleEvent.STARTED, ComponentLifecycleEvent.UPDATED, ComponentLifecycleEvent.STOPPED));
         ruleEngineComponentLifecycleEventRuleTriggerConfig.setOnlyRuleNodeLifecycleFailures(true);
-        createRule(tenantId, "Rule chain/node lifecycle failure", ruleEngineComponentLifecycleFailureNotificationTemplate.getId(),
+        createRule(tenantId, "Rule node initialization failure", ruleEngineComponentLifecycleFailureNotificationTemplate.getId(),
                 ruleEngineComponentLifecycleEventRuleTriggerConfig, List.of(tenantAdmins.getId()),
                 "Send notification to tenant admins when any Rule chain or Rule node failed to start, update or stop");
     }

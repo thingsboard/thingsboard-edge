@@ -63,7 +63,6 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
 
     this.config.entityType = EntityType.NOTIFICATION_RULE;
     this.config.detailsPanelEnabled = false;
-    this.config.selectionEnabled = false;
     this.config.addEnabled = false;
     this.config.rowPointer = true;
 
@@ -74,6 +73,8 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
 
     this.config.deleteEntityTitle = rule => this.translate.instant('notification.delete-rule-title', {ruleName: rule.name});
     this.config.deleteEntityContent = () => this.translate.instant('notification.delete-rule-text');
+    this.config.deleteEntitiesTitle = count => this.translate.instant('notification.delete-rules-title', {count});
+    this.config.deleteEntitiesContent = () => this.translate.instant('notification.delete-rules-text');
     this.config.deleteEntity = id => this.notificationService.deleteNotificationRule(id.id);
 
     this.config.cellActionDescriptors = this.configureCellActions();
