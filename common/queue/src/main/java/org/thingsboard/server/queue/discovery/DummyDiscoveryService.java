@@ -67,4 +67,9 @@ public class DummyDiscoveryService implements DiscoveryService {
     public List<TransportProtos.ServiceInfo> getOtherServers() {
         return Collections.emptyList();
     }
+
+    @Override
+    public boolean isMonolith() {
+        return true;
+    }
 }
