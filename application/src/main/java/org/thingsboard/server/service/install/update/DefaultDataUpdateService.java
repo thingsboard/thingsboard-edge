@@ -681,26 +681,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 @Override
                 protected void updateEntity(Tenant tenant) {
-                    try {
-                        List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, tenant.getId()).get();
-                        for (EntityGroup entityGroup : entityGroups) {
-                            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
-                                entityGroup.setOwnerId(tenant.getId());
-                                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, tenant.getId(), entityGroup);
-                            }
-                        }
-                        EntityGroup entityGroup;
-                        Optional<EntityGroup> customerGroupOptional =
-                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
-                        if (!customerGroupOptional.isPresent()) {
-                            entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
-                        } else {
-                            entityGroup = customerGroupOptional.get();
-                        }
-                        new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
-                    } catch (InterruptedException | ExecutionException e) {
-                        log.error("Unable to update Tenant", e);
+                    new EntityGroupsOwnerUpdater(tenant.getId()).updateEntities(tenant.getId());
+                    EntityGroup entityGroup;
+                    Optional<EntityGroup> customerGroupOptional =
+                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
+                    if (!customerGroupOptional.isPresent()) {
+                        entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
+                    } else {
+                        entityGroup = customerGroupOptional.get();
                     }
+                    new CustomersGroupAllUpdater(entityGroup).updateEntities(tenant.getId());
                 }
             };
 
@@ -767,6 +757,34 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
+    private class EntityGroupsOwnerUpdater extends PaginatedUpdater<EntityId, EntityGroup> {
+
+        private final EntityId ownerId;
+
+        public EntityGroupsOwnerUpdater(EntityId ownerId) {
+            this.ownerId = ownerId;
+        }
+
+        @Override
+        protected String getName() {
+            return "Entity groups owner updater";
+        }
+
+        @Override
+        protected PageData<EntityGroup> findEntities(EntityId parentEntityId, PageLink pageLink) {
+            return entityGroupService.findAllEntityGroupsByParentRelation(TenantId.SYS_TENANT_ID, parentEntityId, pageLink);
+        }
+
+        @Override
+        protected void updateEntity(EntityGroup entityGroup) {
+            if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
+                entityGroup.setOwnerId(this.ownerId);
+                entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, this.ownerId, entityGroup);
+            }
+        }
+
+    }
+
     private class TenantAdminsGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, User> {
 
         private final EntityGroup tenantAdmins;
@@ -809,7 +827,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                 List<UserId> userIds = entityIds.stream().map(entityId -> new UserId(entityId.getId())).collect(Collectors.toList());
                 List<User> users;
                 if (!userIds.isEmpty()) {
@@ -887,37 +905,27 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return;
             }
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), customer.getId());
-            try {
-                List<EntityGroup> entityGroups = entityGroupService.findAllEntityGroups(TenantId.SYS_TENANT_ID, customer.getId()).get();
-                for (EntityGroup entityGroup : entityGroups) {
-                    if (!customer.getId().equals(entityGroup.getOwnerId())) {
-                        entityGroup.setOwnerId(customer.getId());
-                        entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, customer.getId(), entityGroup);
-                    }
-                }
-                EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
-                for (EntityType groupType : entityGroupTypes) {
-                    Optional<EntityGroup> entityGroupOptional =
-                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
-                    if (!entityGroupOptional.isPresent()) {
-                        EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
-                        if (groupType == EntityType.USER) {
-                            if (!customer.isPublic()) {
-                                entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
-                                Optional<EntityGroup> customerUsersOptional =
-                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
-                                if (!customerUsersOptional.isPresent()) {
-                                    EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
-                                    new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
-                                }
-                            } else {
-                                entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
+            new EntityGroupsOwnerUpdater(customer.getId()).updateEntities(customer.getId());
+            EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
+            for (EntityType groupType : entityGroupTypes) {
+                Optional<EntityGroup> entityGroupOptional =
+                        entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
+                if (!entityGroupOptional.isPresent()) {
+                    EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
+                    if (groupType == EntityType.USER) {
+                        if (!customer.isPublic()) {
+                            entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
+                            Optional<EntityGroup> customerUsersOptional =
+                                    entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
+                            if (!customerUsersOptional.isPresent()) {
+                                EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
+                                new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
                             }
+                        } else {
+                            entityGroupService.findOrCreatePublicUsersGroup(customer.getTenantId(), customer.getId());
                         }
                     }
                 }
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to update Customer", e);
             }
         }
     }
@@ -948,7 +956,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return dashboardService.findDashboardsByTenantId(id, pageLink);
             } else {
                 try {
-                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
+                    List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                     List<DashboardId> dashboardIds = entityIds.stream().map(entityId -> new DashboardId(entityId.getId())).collect(Collectors.toList());
                     List<DashboardInfo> dashboards;
                     if (!dashboardIds.isEmpty()) {

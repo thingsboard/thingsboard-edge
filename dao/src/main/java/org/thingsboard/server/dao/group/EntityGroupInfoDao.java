@@ -30,41 +30,30 @@
  */
 package org.thingsboard.server.dao.group;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
+public interface EntityGroupInfoDao extends Dao<EntityGroupInfo> {
 
-    PageData<EntityGroup> findEntityGroupsByType
-            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
+    PageData<EntityGroupInfo> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
 
-    PageData<EntityGroup> findEntityGroupsByType(UUID tenantId, EntityType groupType, PageLink pageLink);
+    PageData<EntityGroupInfo> findEntityGroupsByOwnerIdsAndType(UUID tenantId, List<UUID> ownerIds, EntityType groupType, PageLink pageLink);
 
-    PageData<EntityGroup> findAllEntityGroupsByParentRelation(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink);
+    PageData<EntityGroupInfo> findEntityGroupsByIds(UUID tenantId, List<UUID> entityGroupIds, PageLink pageLink);
 
-    PageData<EntityGroup> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink);
+    PageData<EntityGroupInfo> findEntityGroupsByTypeOrIds(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType,
+                                                          List<UUID> entityGroupIds, PageLink pageLink);
 
-    Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
-                                                       EntityType parentEntityType, EntityType groupType, String name);
+    PageData<EntityGroupInfo> findEdgeEntityGroupsByOwnerIdAndType(UUID tenantId, UUID edgeId, UUID ownerId, EntityType ownerType, String relationType, PageLink pageLink);
 
-    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId,
-                                                                              EntityType parentEntityType, EntityType groupType, String name);
-
-    ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
-
-    PageData<EntityId> findGroupEntityIdsSync(EntityType entityType, UUID groupId, PageLink pageLink);
-
-    PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);
+    Optional<EntityGroupInfo> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
+                                                           EntityType parentEntityType, EntityType groupType, String name);
 
 }

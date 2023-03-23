@@ -182,7 +182,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
 
     private void addDeviceToEdgeAllDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         try {
-            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, edge.getName(), EntityType.DEVICE).get();
+            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE).get();
             if (edgeDeviceGroup != null) {
                 entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), deviceId);
             }
@@ -195,7 +195,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
     private void removeDeviceFromEdgeAllDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         Device deviceToDelete = deviceService.findDeviceById(tenantId, deviceId);
         if (deviceToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, edge.getName(), EntityType.DEVICE);
+            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE);
             Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
                 @Override
                 public void onSuccess(EntityGroup entityGroup) {

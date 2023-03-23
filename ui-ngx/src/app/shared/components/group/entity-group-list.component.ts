@@ -40,22 +40,27 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { Observable } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { BaseData } from '@shared/models/base-data';
 import { EntityId, entityIdEquals } from '@shared/models/id/entity-id';
-import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
 @Component({
   selector: 'tb-entity-group-list',
@@ -111,8 +116,8 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
   @ViewChild('entityGroupAutocomplete') matAutocomplete: MatAutocomplete;
   @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
-  entityGroups: Array<BaseData<EntityId>> = [];
-  filteredEntityGroups: Observable<Array<BaseData<EntityId>>>;
+  entityGroups: Array<EntityGroupInfo> = [];
+  filteredEntityGroups: Observable<Array<EntityGroupInfo>>;
 
   searchText = '';
 
@@ -122,7 +127,6 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
-              private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               private fb: UntypedFormBuilder) {
     this.entityGroupListFormGroup = this.fb.group({
@@ -188,7 +192,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     this.searchText = '';
     if (value != null && value.length > 0) {
       this.modelValue = [...value];
-      this.entityService.getEntities(EntityType.ENTITY_GROUP, value).subscribe(
+      this.entityGroupService.getEntityGroupsByIds(value, {ignoreLoading: true}).subscribe(
         (entityGroups) => {
           this.entityGroups = entityGroups;
           this.entityGroupListFormGroup.get('entityGroups').setValue(this.entityGroups);
@@ -214,7 +218,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     this.dirty = true;
   }
 
-  add(entityGroup: BaseData<EntityId>): void {
+  add(entityGroup: EntityGroupInfo): void {
     if (!this.modelValue || this.modelValue.indexOf(entityGroup.id.id) === -1) {
       if (!this.modelValue) {
         this.modelValue = [];
@@ -227,7 +231,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     this.clear();
   }
 
-  remove(entityGroup: BaseData<EntityId>) {
+  remove(entityGroup: EntityGroupInfo) {
     const index = this.entityGroups.indexOf(entityGroup);
     if (index >= 0) {
       this.entityGroups.splice(index, 1);
@@ -241,25 +245,25 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     }
   }
 
-  displayEntityGroupFn(entityGroup?: BaseData<EntityId>): string | undefined {
+  displayEntityGroupFn(entityGroup?: EntityGroupInfo): string | undefined {
     return entityGroup ? entityGroup.name : undefined;
   }
 
-  fetchEntityGroups(searchText?: string): Observable<Array<BaseData<EntityId>>> {
+  fetchEntityGroups(searchText?: string): Observable<Array<EntityGroupInfo>> {
     this.searchText = searchText;
+    const pageLink = new PageLink(50, 0, searchText, {
+      property: 'name',
+      direction: Direction.ASC
+    });
     if (this.ownerId) {
-      const pageLink = new PageLink(50, 0, searchText, {
-        property: 'name',
-        direction: Direction.ASC
-      });
-      return this.entityGroupService.getEntityGroupsByOwnerIdAndPageLink(
-        this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, pageLink, {ignoreLoading: true}).pipe(
+      return this.entityGroupService.getEntityGroupsByOwnerId(
+        pageLink, this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true}).pipe(
         map((data) => data ? data.data : [])
       );
     } else {
-      return this.entityService.getEntitiesByNameFilter(EntityType.ENTITY_GROUP, searchText,
-        50, this.groupType, {ignoreLoading: true}).pipe(
-        map((data) => data ? data : []));
+      return this.entityGroupService.getEntityGroups(pageLink, this.groupType, true, {ignoreLoading: true}).pipe(
+        map((data) => data ? data.data : [])
+      );
     }
   }
 

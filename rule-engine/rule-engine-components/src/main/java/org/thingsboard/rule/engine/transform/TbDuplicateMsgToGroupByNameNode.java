@@ -76,7 +76,7 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgToOri
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
         try {
-            return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(ctx, original), new PageLink(Integer.MAX_VALUE));
+            return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(ctx, original), new PageLink(Integer.MAX_VALUE));
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -54,6 +54,10 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { isEqual, isString } from '@core/utils';
+import { PageLink } from '@shared/models/page/page-link';
+import { Direction } from '@shared/models/page/sort-order';
+import { emptyPageData, PageData } from '@shared/models/page/page-data';
+import { DashboardInfo } from '@shared/models/dashboard.models';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -269,49 +273,40 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   fetchEntityGroups(searchText?: string): Observable<Array<EntityGroupInfo>> {
     this.searchText = searchText;
-    return this.getEntityGroups().pipe(
-      map((groups) => groups.filter(group => {
-        return searchText ? group.name.toUpperCase().startsWith(searchText.toUpperCase()) : true;
-      }))
+    const pageLink = new PageLink(50, 0, searchText, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    return this.getEntityGroups(pageLink).pipe(
+      catchError(() => of(emptyPageData<EntityGroupInfo>())),
+      map(pageData => {
+        let data = pageData.data;
+        if (this.excludeGroupAll) {
+          data = data.filter(group => !group.groupAll);
+        }
+        if (this.excludeGroupIds && this.excludeGroupIds.length) {
+          const groups: Array<EntityGroupInfo> = [];
+          data.forEach((group) => {
+            if (this.excludeGroupIds.indexOf(group.id.id) === -1) {
+              groups.push(group);
+            }
+          });
+          return groups;
+        } else {
+          return data;
+        }
+      })
     );
   }
 
-  getEntityGroups(): Observable<Array<EntityGroupInfo>> {
-    if (!this.allEntityGroups) {
-      let entityGroupsObservable: Observable<Array<EntityGroupInfo>>;
-      if (this.ownerId) {
-        entityGroupsObservable = this.entityGroupService
-          .getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true});
-      } else {
-        entityGroupsObservable = this.entityGroupService.getEntityGroups(this.groupType, true, {ignoreLoading: true});
-      }
-      this.allEntityGroups = entityGroupsObservable.pipe(
-        catchError(() => of(null)),
-        map(data => {
-          if (data) {
-            if (this.excludeGroupAll) {
-              data = data.filter(group => !group.groupAll);
-            }
-            if (this.excludeGroupIds && this.excludeGroupIds.length) {
-              const groups: Array<EntityGroupInfo> = [];
-              data.forEach((group) => {
-                if (this.excludeGroupIds.indexOf(group.id.id) === -1) {
-                  groups.push(group);
-                }
-              });
-              return groups;
-            } else {
-              return data;
-            }
-          } else {
-            return [];
-          }
-        }),
-        publishReplay(1),
-        refCount()
-      );
+  getEntityGroups(pageLink: PageLink): Observable<PageData<EntityGroupInfo>> {
+    if (this.ownerId) {
+      return this.entityGroupService
+        .getEntityGroupsByOwnerId(pageLink, this.ownerId.entityType as EntityType,
+          this.ownerId.id, this.groupType, {ignoreLoading: true});
+    } else {
+      return this.entityGroupService.getEntityGroups(pageLink, this.groupType, true, {ignoreLoading: true});
     }
-    return this.allEntityGroups;
   }
 
   clear() {
