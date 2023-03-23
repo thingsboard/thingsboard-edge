@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -54,6 +55,8 @@ public interface EntityGroupService extends EntityDaoService {
     EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId);
 
     EntityGroupInfo findEntityGroupInfoById(TenantId tenantId, EntityGroupId entityGroupId);
+
+    EntityInfo findEntityGroupEntityInfoById(TenantId tenantId, EntityGroupId entityGroupId);
 
     ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
 
@@ -95,13 +98,24 @@ public interface EntityGroupService extends EntityDaoService {
     PageData<EntityGroupInfo> findEntityGroupInfosByType(TenantId tenantId, EntityId parentEntityId,
                                                          EntityType groupType, PageLink pageLink);
 
+    PageData<EntityInfo> findEntityGroupEntityInfosByType(TenantId tenantId, EntityId parentEntityId,
+                                                          EntityType groupType, PageLink pageLink);
+
     PageData<EntityGroupInfo> findEntityGroupInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds,
                                                                   EntityType groupType, PageLink pageLink);
 
+    PageData<EntityInfo> findEntityGroupEntityInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds,
+                                                                   EntityType groupType, PageLink pageLink);
+
     PageData<EntityGroupInfo> findEntityGroupInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityInfo> findEntityGroupEntityInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink);
 
     PageData<EntityGroupInfo> findEntityGroupInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId,
                                                               EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId,
+                                                               EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink);
 
     PageData<EntityGroupInfo> findEdgeEntityGroupInfosByOwnerIdType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink);
 

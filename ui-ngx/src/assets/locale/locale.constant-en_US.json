@@ -2283,7 +2283,8 @@
         "parent-customer-name": "Parent customer name",
         "parent-sub-customer-name": "Parent sub-customer name",
         "include-customer-entities": "Include customer entities",
-        "include-sub-customer-entities": "Include sub-customer entities"
+        "include-sub-customer-entities": "Include sub-customer entities",
+        "groups": "Groups"
     },
     "entity-group": {
         "entity-group": "Entity group",

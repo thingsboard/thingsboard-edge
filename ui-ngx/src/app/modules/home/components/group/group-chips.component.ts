@@ -29,56 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from './base-data';
-import { UserId } from './id/user-id';
-import { CustomerId } from './id/customer-id';
-import { Authority } from './authority.enum';
-import { TenantId } from './id/tenant-id';
+import { AfterViewInit, Component, ElementRef, Input, OnInit } from '@angular/core';
 import { EntityInfoData } from '@shared/models/entity.models';
+import { EntityType, groupUrlPrefixByEntityType } from '@shared/models/entity-type.models';
 
-export interface User extends BaseData<UserId> {
-  tenantId: TenantId;
-  customerId: CustomerId;
-  email: string;
-  authority: Authority;
-  firstName: string;
-  lastName: string;
-  additionalInfo: any;
-}
+@Component({
+  selector: 'tb-group-chips',
+  templateUrl: './group-chips.component.html',
+  styleUrls: ['./group-chips.component.scss']
+})
+export class GroupChipsComponent implements OnInit {
 
-export interface UserInfo extends User {
-  ownerName?: string;
+  @Input()
   groups?: EntityInfoData[];
-}
 
-export enum ActivationMethod {
-  DISPLAY_ACTIVATION_LINK = 'DISPLAY_ACTIVATION_LINK',
-  SEND_ACTIVATION_MAIL = 'SEND_ACTIVATION_MAIL'
-}
+  @Input()
+  entityType: EntityType;
 
-export const activationMethodTranslations = new Map<ActivationMethod, string>(
-  [
-    [ActivationMethod.DISPLAY_ACTIVATION_LINK, 'user.display-activation-link'],
-    [ActivationMethod.SEND_ACTIVATION_MAIL, 'user.send-activation-mail']
-  ]
-);
+  groupPrefixUrl: string;
 
-export interface AuthUser {
-  sub: string;
-  scopes: string[];
-  userId: string;
-  firstName: string;
-  lastName: string;
-  enabled: boolean;
-  tenantId: string;
-  customerId: string;
-  isPublic: boolean;
-  authority: Authority;
-}
+  constructor(private elementRef: ElementRef) {
+  }
 
-export interface UserEmailInfo {
-  id: UserId;
-  email: string;
-  firstName: string;
-  lastName: string;
+  ngOnInit(): void {
+    this.groupPrefixUrl = groupUrlPrefixByEntityType.get(this.entityType);
+  }
+
 }

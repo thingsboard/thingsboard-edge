@@ -33,12 +33,13 @@ import { Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
+  BaseEntityTableColumn,
   CellActionDescriptor,
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor,
+  GroupActionDescriptor, GroupChipsEntityTableColumn, groupsCell,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -157,18 +158,21 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     config.headerComponent = DeviceTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<DeviceInfo | Device>): Array<EntityTableColumn<DeviceInfo>> {
-    const columns: Array<EntityTableColumn<DeviceInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<DeviceInfo | Device>): Array<EntityColumn<DeviceInfo>> {
+    const columns: Array<EntityColumn<DeviceInfo>> = [
       new DateEntityTableColumn<DeviceInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<DeviceInfo>('name', 'device.name', '25%', config.entityTitle),
-      new EntityTableColumn<DeviceInfo>('type', 'device.device-type', '25%'),
-      new EntityTableColumn<DeviceInfo>('label', 'device.label', '25%')
+      new EntityTableColumn<DeviceInfo>('name', 'device.name', '20%', config.entityTitle),
+      new EntityTableColumn<DeviceInfo>('type', 'device.device-type', '20%'),
+      new EntityTableColumn<DeviceInfo>('label', 'device.label', '15%')
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
-      columns.push(new EntityTableColumn<DeviceInfo>('ownerName', title, '25%'));
+      columns.push(new EntityTableColumn<DeviceInfo>('ownerName', title, '20%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<DeviceInfo>( 'groups', 'entity.groups', '25%')
+    );
     columns.push(
       new EntityTableColumn<DeviceInfo>('gateway', 'device.is-gateway', '60px',
         entity => checkBoxCell(entity.additionalInfo && entity.additionalInfo.gateway), () => ({}), false)

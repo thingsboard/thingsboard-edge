@@ -38,6 +38,7 @@ import { PageData } from '@shared/models/page/page-data';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { EntityId } from '@shared/models/id/entity-id';
 import {
+  DeviceEntityGroupInfo,
   EntityGroup,
   EntityGroupInfo,
   prepareEntityGroupConfiguration,
@@ -53,6 +54,7 @@ import { OtaPackageService } from '@core/http/ota-package.service';
 import { DeviceGroupOtaPackage, OtaUpdateType } from '@shared/models/ota-package.models';
 import { OtaPackageId } from '@shared/models/id/ota-package-id';
 import { Direction } from '@shared/models/page/sort-order';
+import { EntityInfo, EntityInfoData } from '@shared/models/entity.models';
 
 @Injectable({
   providedIn: 'root'
@@ -72,30 +74,41 @@ export class EntityGroupService {
   public getEntityGroup(entityGroupId: string, config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/${entityGroupId}`,
       defaultHttpOptionsFromConfig(config)).pipe(
-        map(group => {
-          group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
-          return group;
-        }),
-        mergeMap(group => this.fetchOtaPackageGroupInfo(group, config))
+      map(group => {
+        group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
+        return group;
+      })
     );
   }
 
-  public fetchOtaPackageGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<EntityGroupInfo> {
+  public getDeviceEntityGroup(entityGroupId: string, config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
+    return this.http.get<EntityGroupInfo>(`/api/entityGroup/${entityGroupId}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map(group => {
+        group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
+        return group;
+      }),
+      mergeMap(group => this.fetchOtaPackageGroupInfo(group, config))
+    );
+  }
+
+  public fetchOtaPackageGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
     if (isDefinedAndNotNull(group) && group.type === EntityType.DEVICE && !group.groupAll) {
       const tasks = [];
       tasks.push(this.otaPackageService.getOtaPackageInfoByDeviceGroupId(group.id.id, OtaUpdateType.FIRMWARE, config));
       tasks.push(this.otaPackageService.getOtaPackageInfoByDeviceGroupId(group.id.id, OtaUpdateType.SOFTWARE, config));
       return forkJoin(tasks).pipe(
         map(([firmware, software]: DeviceGroupOtaPackage[]) => {
+          const deviceGroup = group as DeviceEntityGroupInfo;
           if (isDefinedAndNotNull(firmware)) {
-            group.firmwareGroup = firmware;
-            group.firmwareId = deepClone(firmware.otaPackageId);
+            deviceGroup.firmwareGroup = firmware;
+            deviceGroup.firmwareId = deepClone(firmware.otaPackageId);
           }
           if (isDefinedAndNotNull(software)) {
-            group.softwareGroup = software;
-            group.softwareId = deepClone(software.otaPackageId);
+            deviceGroup.softwareGroup = software;
+            deviceGroup.softwareId = deepClone(software.otaPackageId);
           }
-          return group;
+          return deviceGroup;
         })
       );
     }
@@ -130,8 +143,8 @@ export class EntityGroupService {
     return this.http.post<DeviceGroupOtaPackage>('/api/deviceGroupOtaPackage', deviceGroupOtaPackage, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDeviceEntityGroup(entityGroup: EntityGroupInfo, originalEntityGroup: EntityGroupInfo,
-                               config?: RequestConfig): Observable<EntityGroupInfo> {
+  public saveDeviceEntityGroup(entityGroup: DeviceEntityGroupInfo, originalEntityGroup: DeviceEntityGroupInfo,
+                               config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
     if (isDefinedAndNotNull(entityGroup.id)) {
       return this.otaPackageService.confirmDialogUpdatePackage(entityGroup, originalEntityGroup).pipe(
         mergeMap((update) => {
@@ -168,6 +181,11 @@ export class EntityGroupService {
     return this.http.delete<null>(`/api/deviceGroupOtaPackage/${otaPackageId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getEntityGroupEntityInfo(entityGroupId: string, config?: RequestConfig): Observable<EntityInfoData> {
+    return this.http.get<EntityInfoData>(`/api/entityGroupInfo/${entityGroupId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public saveEntityGroup(entityGroup: EntityGroup, config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.post<EntityGroupInfo>('/api/entityGroup', entityGroup, defaultHttpOptionsFromConfig(config));
   }
@@ -191,6 +209,12 @@ export class EntityGroupService {
   public getEntityGroups(pageLink: PageLink, groupType: EntityType,
                          includeShared = true, config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
     return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/${groupType}${pageLink.toQuery()}&includeShared=${includeShared}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEntityGroupEntityInfos(pageLink: PageLink, groupType: EntityType,
+                                   includeShared = true, config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/entityGroupInfos/${groupType}${pageLink.toQuery()}&includeShared=${includeShared}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -246,6 +270,12 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getSharedEntityGroupEntityInfos(pageLink: PageLink, groupType: EntityType,
+                                         config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/entityGroupInfos/${groupType}/shared${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getEntityGroupIdsForEntityId(entityType: EntityType, entityId: string, config?: RequestConfig): Observable<Array<EntityGroupId>> {
     return this.http.get<Array<EntityGroupId>>(`/api/entityGroups/${entityType}/${entityId}`,
       defaultHttpOptionsFromConfig(config));
@@ -258,15 +288,35 @@ export class EntityGroupService {
     );
   }
 
+  public getEntityGroupEntityInfosByIds(entityGroupIds: Array<string>, config?: RequestConfig): Observable<Array<EntityInfoData>> {
+    return this.http.get<Array<EntityInfoData>>(`/api/entityGroupInfos?entityGroupIds=${entityGroupIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((entityGroups) => sortEntitiesByIds(entityGroups, entityGroupIds))
+    );
+  }
+
   public getEntityGroupsHierarchyByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
                                            config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
     return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroupsHierarchy/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getEntityGroupEntityInfosHierarchyByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                                     config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(
+      `/api/entityGroupInfosHierarchy/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getEntityGroupsByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
                                   config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
     return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEntityGroupEntityInfosByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                  config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/entityGroupInfos/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 

@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ContactBased;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -140,6 +141,8 @@ public class EntityGroupController extends AutoCommitController {
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
 
     public static final String ENTITY_GROUP_INFO_DESCRIPTION = "Entity Group Info extends Entity Group object and adds 'ownerIds' - a list of owner ids.";
+
+    private static final String ENTITY_GROUP_ENTITY_INFO_DESCRIPTION = "Entity Info is a lightweight object that contains only id and name of the entity group. ";
     private static final String ENTITY_GROUP_UNIQUE_KEY = "Entity group name is unique in the scope of owner and entity type. For example, you can't create two tenant device groups called 'Water meters'. " +
             "However, you may create device and asset group with the same name. And also you may create groups with the same name for two different customers of the same tenant. ";
     private static final String OWNER_TYPE_DESCRIPTION = "Tenant or Customer";
@@ -163,6 +166,27 @@ public class EntityGroupController extends AutoCommitController {
         try {
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
             return checkEntityGroupId(entityGroupId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Entity Group Entity Info (getEntityGroupEntityInfoById)",
+            notes = "Fetch the Entity Group Entity Info object based on the provided Entity Group Id. "
+                    + ENTITY_GROUP_ENTITY_INFO_DESCRIPTION +
+                    "\n\n" + ENTITY_GROUP_UNIQUE_KEY +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroupInfo/{entityGroupId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EntityInfo getEntityGroupEntityInfoById(
+            @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+        checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            return new EntityInfo(entityGroup.getId(), entityGroup.getName());
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -360,6 +384,54 @@ public class EntityGroupController extends AutoCommitController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Group Entity Infos by entity type and page link (getEntityGroupEntityInfosByTypeAndPageLink)",
+            notes = "Returns a page of Entity Group Entity Info objects based on the provided Entity Type and Page Link. "
+                    + ENTITY_GROUP_ENTITY_INFO_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroupInfos/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityInfo> getEntityGroupEntityInfosByTypeAndPageLink(
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = ENTITY_GROUP_INCLUDE_SHARED_DESCRIPTION)
+            @RequestParam(required = false) Boolean includeShared,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        try {
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty() && (includeShared == null || includeShared)) {
+                if (groupTypePermissionInfo.isHasGenericRead()) {
+                    EntityId parentEntityId = getCurrentUser().isTenantAdmin() ? getCurrentUser().getTenantId() : getCurrentUser().getCustomerId();
+                    if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty() && (includeShared == null || includeShared)) {
+                        return entityGroupService.findEntityGroupEntityInfosByTypeOrIds(getTenantId(),
+                                parentEntityId, groupType, groupTypePermissionInfo.getEntityGroupIds(), pageLink);
+                    } else {
+                        return entityGroupService.findEntityGroupEntityInfosByType(getTenantId(),
+                                parentEntityId, groupType, pageLink);
+                    }
+                } else {
+                    return entityGroupService.findEntityGroupEntityInfosByIds(getTenantId(),
+                            groupTypePermissionInfo.getEntityGroupIds(), pageLink);
+                }
+            } else {
+                return PageData.emptyPageData();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Get Shared Entity Groups by entity type (getSharedEntityGroupsByType)",
             notes = "Fetch the list of Shared Entity Group Info objects based on the provided Entity Type. "
                     + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
@@ -411,6 +483,41 @@ public class EntityGroupController extends AutoCommitController {
             MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 return entityGroupService.findEntityGroupInfosByIds(getTenantId(),
+                        groupTypePermissionInfo.getEntityGroupIds(), pageLink);
+            } else {
+                return PageData.emptyPageData();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Shared Entity Group Entity Infos by entity type and page link (getSharedEntityGroupEntityInfosByTypeAndPageLink)",
+            notes = "Returns a page of Shared Entity Group Entity Info objects based on the provided Entity Type and Page Link. "
+                    + ENTITY_GROUP_ENTITY_INFO_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroupInfos/{groupType}/shared", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityInfo> getSharedEntityGroupEntityInfosByTypeAndPageLink(
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        try {
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                return entityGroupService.findEntityGroupEntityInfosByIds(getTenantId(),
                         groupTypePermissionInfo.getEntityGroupIds(), pageLink);
             } else {
                 return PageData.emptyPageData();
@@ -496,6 +603,49 @@ public class EntityGroupController extends AutoCommitController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Group Entity Infos by owner and entity type and page link (getEntityGroupEntityInfosByOwnerAndTypeAndPageLink)",
+            notes = "Returns a page of Entity Group Entity Info objects based on the provided Owner Id and Entity Type and Page Link. " +
+                    ENTITY_GROUP_ENTITY_INFO_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroupInfos/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityInfo> getEntityGroupEntityInfosByOwnerAndTypeAndPageLink(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @PathVariable("ownerId") String strOwnerId,
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
+        try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            checkEntityId(ownerId, Operation.READ);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead()) {
+                return entityGroupService.findEntityGroupEntityInfosByType(getTenantId(), ownerId, groupType, pageLink);
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Get Entity Groups for all owners starting from specified than ending with owner of current user (getEntityGroupsHierarchyByOwnerAndTypeAndPageLink)",
             notes = "Returns a page of Entity Group objects based on the provided Owner Id and Entity Type and Page Link. " +
                     ENTITY_GROUP_DESCRIPTION +
@@ -535,6 +685,53 @@ public class EntityGroupController extends AutoCommitController {
                 List<EntityId> targetOwnerIds = ownerIds.stream().takeWhile(entityId -> !entityId.equals(currentUserOwnerId)).collect(Collectors.toCollection(ArrayList::new));
                 targetOwnerIds.add(currentUserOwnerId);
                 return entityGroupService.findEntityGroupInfosByOwnersAndType(getTenantId(), targetOwnerIds, groupType, pageLink);
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Entity Group Entity Infos for all owners starting from specified than ending with owner of current user (getEntityGroupEntityInfosHierarchyByOwnerAndTypeAndPageLink)",
+            notes = "Returns a page of Entity Group Entity Info objects based on the provided Owner Id and Entity Type and Page Link. " +
+                    ENTITY_GROUP_ENTITY_INFO_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroupInfosHierarchy/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityInfo> getEntityGroupEntityInfosHierarchyByOwnerAndTypeAndPageLink(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @PathVariable("ownerId") String strOwnerId,
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
+        try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            checkEntityId(ownerId, Operation.READ);
+            Set<EntityId> ownerIds = ownersCacheService.fetchOwnersHierarchy(getTenantId(), ownerId);
+            EntityId currentUserOwnerId = getCurrentUser().getOwnerId();
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (!ownerIds.isEmpty() && ownerIds.contains(currentUserOwnerId) && groupTypePermissionInfo.isHasGenericRead()) {
+                List<EntityId> targetOwnerIds = ownerIds.stream().takeWhile(entityId -> !entityId.equals(currentUserOwnerId)).collect(Collectors.toCollection(ArrayList::new));
+                targetOwnerIds.add(currentUserOwnerId);
+                return entityGroupService.findEntityGroupEntityInfosByOwnersAndType(getTenantId(), targetOwnerIds, groupType, pageLink);
             } else {
                 throw permissionDenied();
             }
@@ -789,9 +986,10 @@ public class EntityGroupController extends AutoCommitController {
         }
     }
 
-    @ApiOperation(value = "Get Entity Groups by Ids (getDevicesByIds)",
-            notes = "Requested devices must be owned by tenant or assigned to customer which user is performing the request. "
-                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+    @ApiOperation(value = "Get Entity Groups by Ids (getEntityGroupsByIds)",
+            notes = "Fetch the list of Entity Group Info objects based on the provided entity group ids list. "
+                    + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroups", params = {"entityGroupIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -809,6 +1007,30 @@ public class EntityGroupController extends AutoCommitController {
             List<EntityGroupInfo> entityGroups = checkNotNull(
                     entityGroupService.findEntityGroupInfosByIds(tenantId, entityGroupIds, new PageLink(Integer.MAX_VALUE)).getData());
             return filterEntityGroupsByReadPermission(entityGroups);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Entity Group Entity Infos by Ids (getEntityGroupEntityInfosByIds)",
+            notes = "Fetch the list of Entity Group Entity Info objects based on the provided entity group ids list. "
+                    + ENTITY_GROUP_ENTITY_INFO_DESCRIPTION +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroupInfos", params = {"entityGroupIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntityInfo> getEntityGroupEntityInfosByIds(
+            @ApiParam(value = "A list of group ids, separated by comma ','")
+            @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
+        checkArrayParameter("entityGroupIds", strEntityGroupIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<EntityGroupId> entityGroupIds = new ArrayList<>();
+            for (String strEntityGroupId : strEntityGroupIds) {
+                entityGroupIds.add(new EntityGroupId(toUUID(strEntityGroupId)));
+            }
+            return checkNotNull(entityGroupService.findEntityGroupEntityInfosByIds(tenantId, entityGroupIds, new PageLink(Integer.MAX_VALUE)).getData());
         } catch (Exception e) {
             throw handleException(e);
         }

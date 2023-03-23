@@ -66,7 +66,10 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, UUID> 
                                                       Pageable pageable);
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
-            "FROM (select u.*, c.title as owner_name from tb_user u LEFT JOIN customer c on c.id = u.customer_id AND c.id != :customerId) e " +
+            "FROM (select u.id, u.created_time, u.additional_info, u.authority, u.customer_id, u.email, " +
+            "u.first_name, u.last_name, u.search_text, u.tenant_id, u.groups, " +
+            "c.title as owner_name from user_info_view u " +
+            "LEFT JOIN customer c on c.id = u.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",

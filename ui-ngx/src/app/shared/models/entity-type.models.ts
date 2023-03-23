@@ -625,6 +625,16 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.QUEUE, '/settings/queues']
 ]);
 
+export const groupUrlPrefixByEntityType = new Map<EntityType, string>([
+  [EntityType.CUSTOMER, '/customers/groups'],
+  [EntityType.USER, '/users/groups'],
+  [EntityType.DASHBOARD, '/dashboards/groups'],
+  [EntityType.ASSET, '/entities/assets/groups'],
+  [EntityType.DEVICE, '/entities/devices/groups'],
+  [EntityType.EDGE, '/edgeManagement/instances/groups'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/groups'],
+]);
+
 export interface EntitySubtype {
   tenantId: TenantId;
   entityType: EntityType;

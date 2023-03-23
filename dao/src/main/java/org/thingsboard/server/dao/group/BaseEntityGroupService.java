@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.StringUtils;
@@ -164,6 +165,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing findEntityGroupInfoById [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         return entityGroupInfoDao.findById(tenantId, entityGroupId.getId());
+    }
+
+    @Override
+    public EntityInfo findEntityGroupEntityInfoById(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing findEntityGroupEntityInfoById [{}]", entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        return entityGroupInfoDao.findEntityGroupEntityInfoById(tenantId, entityGroupId.getId());
     }
 
     @Override
@@ -522,6 +530,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupEntityInfosByType(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, pageLink);
+    }
+
+    @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
         validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
@@ -534,11 +554,31 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
+        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupEntityInfosByOwnerIdsAndType(tenantId.getId(),
+                ownerIds.stream().map(EntityId::getId).collect(Collectors.toList()), groupType, pageLink);
+    }
+
+    @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
         validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
         return entityGroupInfoDao.findEntityGroupsByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        return entityGroupInfoDao.findEntityGroupEntityInfosByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
     }
 
     @Override
@@ -553,6 +593,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
         return this.entityGroupInfoDao.findEntityGroupsByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId, EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByTypeOrIds, parentEntityId [{}], groupType [{}], entityGroupIds [{}], pageLink [{}]",
+                parentEntityId, groupType, entityGroupIds, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupEntityInfosByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
     }
 
