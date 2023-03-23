@@ -87,6 +87,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmCommentId;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -977,12 +978,12 @@ public abstract class BaseController {
         return checkEntityId(ruleChainId, ruleChainService::findRuleChainById, operation);
     }
 
-    protected EntityGroup checkEntityGroupId(EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
+    protected EntityGroupInfo checkEntityGroupId(EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
         try {
             validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-            EntityGroup entityGroup = entityGroupService.findEntityGroupById(getTenantId(), entityGroupId);
+            EntityGroupInfo entityGroup = entityGroupService.findEntityGroupInfoById(getTenantId(), entityGroupId);
             checkNotNull(entityGroup, "Entity group with id [" + entityGroupId + "] is not found");
-            accessControlService.checkEntityGroupPermission(getCurrentUser(), operation, entityGroup);
+            accessControlService.checkEntityGroupInfoPermission(getCurrentUser(), operation, entityGroup);
             return entityGroup;
         } catch (Exception e) {
             throw handleException(e, false);

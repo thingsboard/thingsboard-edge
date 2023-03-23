@@ -28,15 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.alarm;
+package org.thingsboard.server.dao.group;
 
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmComment;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.Dao;
 
-public interface TbAlarmCommentService {
-    AlarmComment saveAlarmComment(Alarm alarm, AlarmComment alarmComment, User user) throws ThingsboardException;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-    void deleteAlarmComment(Alarm alarm, AlarmComment alarmComment, User user) throws ThingsboardException;
+public interface EntityGroupInfoDao extends Dao<EntityGroupInfo> {
+
+    PageData<EntityGroupInfo> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEntityGroupsByOwnerIdsAndType(UUID tenantId, List<UUID> ownerIds, EntityType groupType, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEntityGroupsByIds(UUID tenantId, List<UUID> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEntityGroupsByTypeOrIds(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType,
+                                                          List<UUID> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEdgeEntityGroupsByOwnerIdAndType(UUID tenantId, UUID edgeId, UUID ownerId, EntityType ownerType, String relationType, PageLink pageLink);
+
+    Optional<EntityGroupInfo> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
+                                                           EntityType parentEntityType, EntityType groupType, String name);
+
 }

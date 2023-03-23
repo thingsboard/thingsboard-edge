@@ -30,38 +30,68 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.group.EntityGroup;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
+import javax.persistence.AttributeConverter;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Converter;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Data
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.ENTITY_GROUP_COLUMN_FAMILY_NAME)
-public class EntityGroupEntity extends AbstractEntityGroupEntity<EntityGroup> {
+@Immutable
+@Table(name = ModelConstants.ENTITY_GROUP_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class EntityGroupInfoEntity extends AbstractEntityGroupEntity<EntityGroupInfo> {
 
-    @Transient
-    private static final long serialVersionUID = 8050086409213322856L;
+    @Convert(converter = OwnerIdsConverter.class)
+    @Column(name = ModelConstants.OWNER_IDS_COLUMN)
+    private Set<EntityId> ownerIds = new LinkedHashSet<>();
 
-    public EntityGroupEntity() {
+    public EntityGroupInfoEntity() {
         super();
     }
 
-    public EntityGroupEntity(EntityGroup entityGroup) {
-        super(entityGroup);
+    @Override
+    public EntityGroupInfo toData() {
+        return new EntityGroupInfo(super.toEntityGroup(), this.ownerIds);
     }
 
-    @Override
-    public EntityGroup toData() {
-        return super.toEntityGroup();
+    @Converter
+    public static class OwnerIdsConverter implements AttributeConverter<Set<EntityId>, Object> {
+
+        private final TypeReference<LinkedHashSet<EntityId>> ownerIdsType = new TypeReference<>(){};
+
+        @Override
+        public Object convertToDatabaseColumn(Set<EntityId> attribute) {
+            if (attribute == null) {
+                return "";
+            } else {
+                return JacksonUtil.toString(attribute);
+            }
+        }
+
+        @Override
+        public Set<EntityId> convertToEntityAttribute(Object dbData) {
+            if (dbData == null ) {
+                return new LinkedHashSet<>();
+            } else {
+                return JacksonUtil.fromString(dbData.toString(), this.ownerIdsType);
+            }
+        }
     }
 
 }

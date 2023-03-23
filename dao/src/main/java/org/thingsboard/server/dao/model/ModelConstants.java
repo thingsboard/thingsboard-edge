@@ -75,6 +75,8 @@ public class ModelConstants {
 
     public static final String OWNER_NAME_COLUMN = "owner_name";
 
+    public static final String OWNER_IDS_COLUMN = "owner_ids";
+
     /**
      * Cassandra user constants.
      */
@@ -428,6 +430,8 @@ public class ModelConstants {
     public static final String ENTITY_GROUP_OWNER_TYPE_PROPERTY = "owner_type";
     public static final String ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String ENTITY_GROUP_CONFIGURATION_PROPERTY = "configuration";
+
+    public static final String ENTITY_GROUP_INFO_VIEW_COLUMN_FAMILY_NAME = "entity_group_info_view";
 
     /**
      * Cassandra device_credentials constants.

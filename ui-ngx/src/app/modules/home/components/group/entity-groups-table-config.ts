@@ -130,20 +130,15 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.deleteEntitiesContent = () => this.translate.instant('entity-group.delete-entity-groups-text');
 
     this.entitiesFetchFunction = pageLink => {
-      let fetchObservable: Observable<Array<EntityGroupInfo>>;
       if (this.customerId && !this.isEdgeGroup()) {
-        fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
+        return this.entityGroupService.getEntityGroupsByOwnerId(pageLink, EntityType.CUSTOMER, this.customerId, this.groupType);
       } else if (this.isEdgeGroup()) {
-        fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
+        return this.entityGroupService.getEdgeEntityGroups(pageLink, this.edgeId, this.groupType);
       } else if (this.shared) {
-        fetchObservable = this.entityGroupService.getSharedEntityGroups(this.groupType);
+        return this.entityGroupService.getSharedEntityGroups(pageLink, this.groupType);
       } else {
-        fetchObservable = this.entityGroupService.getEntityGroups(this.groupType, false);
+        return this.entityGroupService.getEntityGroups(pageLink, this.groupType, false);
       }
-      return fetchObservable.pipe(
-        map((entityGroups) => pageLink.filterData(entityGroups, this.groupPageLinkSearchFunction())
-        )
-      );
     };
 
     this.loadEntity = id => this.entityGroupService.getEntityGroup(id.id);
@@ -464,26 +459,5 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   private isEdgeGroup(): boolean {
     return isDefinedAndNotNull(this.params.edgeId) && (this.params.groupType === EntityType.EDGE ||
       (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE));
-  }
-
-  private groupPageLinkSearchFunction(): PageLinkSearchFunction<any> {
-    return (entity, textSearch) => this.groupPageLinkSearch(entity, textSearch, ['name', 'additionalInfo.description']);
-  }
-
-  private groupPageLinkSearch(entity: any, textSearch: string, searchProperties: string[]): boolean {
-    if (textSearch === null || !textSearch.length) {
-      return true;
-    }
-    const expected = ('' + textSearch).toLowerCase();
-    for (const searchProperty of searchProperties) {
-      const val = getDescendantProp(entity, searchProperty);
-      if (isDefinedAndNotNull(val)) {
-        const actual = ('' + val).toLowerCase();
-        if (actual.indexOf(expected) !== -1) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }

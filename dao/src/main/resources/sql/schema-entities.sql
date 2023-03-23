@@ -1023,6 +1023,20 @@ SELECT u.*, c.title as owner_name FROM tb_user u LEFT JOIN customer c ON c.id = 
 CREATE OR REPLACE VIEW edge_info_view as
 SELECT e.*, c.title as owner_name FROM edge e LEFT JOIN customer c ON c.id = e.customer_id;
 
+CREATE OR REPLACE VIEW entity_group_info_view as
+SELECT eg.*,
+       array_to_json(ARRAY(WITH RECURSIVE owner_ids(id, type, lvl) AS
+                                              (SELECT eg.owner_id id, eg.owner_type::varchar(15) as type, 1 as lvl
+                                               UNION
+                                               SELECT COALESCE(ce2.parent_customer_id, ce2.tenant_id) id,
+                                                      (CASE
+                                                           WHEN ce2.parent_customer_id IS NOT NULL THEN 'CUSTOMER'
+                                                           ELSE 'TENANT' END)::varchar(15) as type,
+                                                      parent.lvl + 1 as lvl
+                                               FROM customer ce2, owner_ids parent WHERE ce2.id = parent.id and eg.owner_type = 'CUSTOMER')
+                           SELECT json_build_object('id', id, 'entityType', type) FROM owner_ids order by lvl)) owner_ids
+FROM entity_group eg;
+
 DROP VIEW IF EXISTS alarm_info CASCADE;
 CREATE VIEW alarm_info AS
 SELECT a.*,
