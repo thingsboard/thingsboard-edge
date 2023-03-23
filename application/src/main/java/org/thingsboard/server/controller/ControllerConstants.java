@@ -143,7 +143,7 @@ public class ControllerConstants {
     protected static final String CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode";
     protected static final String INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, debugMode, allowCreateDevicesOrAssets, enabled, remote, routingKey, secret";
     protected static final String ALARM_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, startTs, endTs, type, ackTs, clearTs, severity, status";
-    protected static final String ALARM_COMMENT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime";
+    protected static final String ALARM_COMMENT_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, id";
     protected static final String EVENT_SORT_PROPERTY_ALLOWABLE_VALUES = "ts, id";
     protected static final String EDGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, type, label, customerTitle";
     protected static final String RULE_CHAIN_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, name, root";
