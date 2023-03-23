@@ -100,7 +100,8 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                         userCredentials.setEnabled(false);
                         userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
                         userCredentials.setUserId(new UserId(savedUser.getUuidId()));
-                        userService.saveUserCredentialsAndPasswordHistory(user.getTenantId(), userCredentials);
+                        // TODO: @voba - save or update user password history?
+                        userService.saveUserCredentials(user.getTenantId(), userCredentials);
                         if (!user.getTenantId().isNullUid()) {
                             entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
                         }

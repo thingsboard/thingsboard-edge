@@ -30,16 +30,15 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="standard" [formGroup]="entityGroupListFormGroup" class="mat-block">
-  <mat-chip-list #chipList formControlName="entityGroups">
-    <mat-chip
+<mat-form-field [formGroup]="entityGroupListFormGroup" class="mat-block tb-chip-list">
+  <mat-chip-grid #chipList formControlName="entityGroups">
+    <mat-chip-row
       *ngFor="let entityGroup of entityGroups"
-      [selectable]="!disabled"
       [removable]="!disabled"
       (removed)="remove(entityGroup)">
       {{entityGroup.name}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
-    </mat-chip>
+    </mat-chip-row>
     <input matInput type="text" placeholder="{{ !disabled ? ('entity-group.entity-group-list' | translate) : '' }}"
            style="max-width: 200px;"
            #entityGroupInput
@@ -50,7 +49,7 @@
            [matAutocompleteConnectedTo]="origin"
            [matAutocomplete]="entityGroupAutocomplete"
            [matChipInputFor]="chipList">
-  </mat-chip-list>
+  </mat-chip-grid>
   <mat-autocomplete #entityGroupAutocomplete="matAutocomplete"
                     class="tb-autocomplete"
                     [displayWith]="displayEntityGroupFn">

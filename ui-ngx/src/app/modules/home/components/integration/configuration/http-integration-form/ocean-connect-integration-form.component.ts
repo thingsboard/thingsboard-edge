@@ -40,7 +40,7 @@ import { HttpIntegrationFormComponent } from './http-integration-form.component'
 @Component({
   selector: 'tb-ocean-connect-integration-form',
   templateUrl: 'http-integration-form.component.html',
-  styleUrls: [],
+  styleUrls: ['./http-integration-form.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => OceanConnectIntegrationFormComponent),

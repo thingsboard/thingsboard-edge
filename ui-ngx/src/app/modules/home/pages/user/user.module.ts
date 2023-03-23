@@ -42,10 +42,12 @@ import { GroupUserComponent } from '@home/pages/user/group-user.component';
 import { AddGroupUserDialogComponent } from '@home/pages/user/add-group-user-dialog.component';
 import { USER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { UserGroupConfigFactory } from '@home/pages/user/user-group-config.factory';
+import { UserTableHeaderComponent } from '@home/pages/user/user-table-header.component';
 
 @NgModule({
   declarations: [
     UserComponent,
+    UserTableHeaderComponent,
     UserTabsComponent,
     AddUserDialogComponent,
     GroupUserComponent,
@@ -55,7 +57,8 @@ import { UserGroupConfigFactory } from '@home/pages/user/user-group-config.facto
   imports: [
     CommonModule,
     SharedModule,
-    HomeComponentsModule
+    HomeComponentsModule,
+    UserRoutingModule
   ],
   providers: [
     {

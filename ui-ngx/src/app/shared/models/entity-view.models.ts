@@ -59,10 +59,9 @@ export interface EntityView extends BaseData<EntityViewId>, ExportableEntity<Ent
   additionalInfo?: any;
 }
 
-/*export interface EntityViewInfo extends EntityView {
-  customerTitle: string;
-  customerIsPublic: boolean;
-}*/
+export interface EntityViewInfo extends EntityView {
+  ownerName?: string;
+}
 
 export interface EntityViewSearchQuery extends EntitySearchQuery {
   entityViewTypes: Array<string>;

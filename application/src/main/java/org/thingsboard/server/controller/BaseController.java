@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import io.swagger.annotations.ApiParam;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
@@ -703,6 +705,15 @@ public abstract class BaseController {
         }
     }
 
+    protected UserId checkAssigneeId(String assigneeId) throws ThingsboardException {
+        UserId assigneeUserId = null;
+        if (assigneeId != null) {
+            assigneeUserId = new UserId(UUID.fromString(assigneeId));
+            checkUserId(assigneeUserId, Operation.READ);
+        }
+        return assigneeUserId;
+    }
+
     protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId,
                                                                                TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
         try {
@@ -838,7 +849,6 @@ public abstract class BaseController {
             throw handleException(e, false);
         }
     }
-
     Device checkDeviceId(DeviceId deviceId, Operation operation) throws ThingsboardException {
         try {
             validateId(deviceId, "Incorrect deviceId " + deviceId);

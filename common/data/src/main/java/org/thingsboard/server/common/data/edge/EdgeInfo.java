@@ -30,28 +30,26 @@
  */
 package org.thingsboard.server.common.data.edge;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.EdgeId;
 
+import javax.validation.Valid;
+
+@ApiModel
 @Data
-@EqualsAndHashCode(callSuper = true)
 public class EdgeInfo extends Edge {
 
-    private String customerTitle;
-    private boolean customerIsPublic;
+    @Valid
+    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private String ownerName;
 
     public EdgeInfo() {
         super();
     }
 
-    public EdgeInfo(EdgeId edgeId) {
-        super(edgeId);
-    }
-
-    public EdgeInfo(Edge edge, String customerTitle, boolean customerIsPublic) {
+    public EdgeInfo(Edge edge, String ownerName) {
         super(edge);
-        this.customerTitle = customerTitle;
-        this.customerIsPublic = customerIsPublic;
+        this.ownerName = ownerName;
     }
 }

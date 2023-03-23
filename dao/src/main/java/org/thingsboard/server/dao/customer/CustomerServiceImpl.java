@@ -39,6 +39,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -88,6 +89,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    private CustomerInfoDao customerInfoDao;
 
     @Autowired
     private UserService userService;
@@ -342,6 +346,40 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         validateIds(groupIds, "Incorrect groupIds " + groupIds);
         validatePageLink(pageLink);
         return customerDao.findCustomersByEntityGroupIds(toUUIDs(groupIds), toUUIDs(additionalCustomerIds), pageLink);
+    }
+
+    @Override
+    public PageData<CustomerInfo> findCustomerInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findCustomerInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return customerInfoDao.findCustomersByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<CustomerInfo> findTenantCustomerInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantCustomerInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return customerInfoDao.findTenantCustomersByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<CustomerInfo> findCustomerInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findCustomerInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return customerInfoDao.findCustomersByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<CustomerInfo> findCustomerInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findCustomerInfosByTenantIdAndCustomerIdIncludingSubCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return customerInfoDao.findCustomersByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
     }
 
     private PaginatedRemover<TenantId, Customer> customersByTenantRemover =

@@ -30,45 +30,35 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
+import org.thingsboard.server.dao.model.ModelConstants;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 @Data
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
+@Entity
+@Immutable
+@Table(name = ModelConstants.EDGE_INFO_VIEW_COLUMN_FAMILY_NAME)
 public class EdgeInfoEntity extends AbstractEdgeEntity<EdgeInfo> {
 
-    public static final Map<String,String> edgeInfoColumnMap = new HashMap<>();
-    static {
-        edgeInfoColumnMap.put("customerTitle", "c.title");
-    }
-
-    private String customerTitle;
-    private boolean customerIsPublic;
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
+    private String ownerName;
 
     public EdgeInfoEntity() {
         super();
     }
 
-    public EdgeInfoEntity(EdgeEntity edgeEntity,
-                          String customerTitle,
-                          Object customerAdditionalInfo) {
-        super(edgeEntity);
-        this.customerTitle = customerTitle;
-        if (customerAdditionalInfo != null && ((JsonNode)customerAdditionalInfo).has("isPublic")) {
-            this.customerIsPublic = ((JsonNode)customerAdditionalInfo).get("isPublic").asBoolean();
-        } else {
-            this.customerIsPublic = false;
-        }
-    }
-
     @Override
     public EdgeInfo toData() {
-        return new EdgeInfo(super.toEdge(), customerTitle, customerIsPublic);
+        return new EdgeInfo(super.toEdge(), this.ownerName);
     }
 
 }

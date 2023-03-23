@@ -41,6 +41,10 @@ export interface Customer extends ContactBased<CustomerId>, ExportableEntity<Cus
   additionalInfo?: any;
 }
 
+export interface CustomerInfo extends Customer {
+  ownerName?: string;
+}
+
 export interface ShortCustomerInfo {
   customerId: CustomerId;
   title: string;

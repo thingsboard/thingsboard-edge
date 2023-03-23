@@ -64,6 +64,7 @@ import {
   EdgeInstructionsData,
   EdgeInstructionsDialogComponent
 } from '@home/pages/edge/edge-instructions-dialog.component';
+import { Customer } from '@shared/models/customer.model';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
@@ -298,10 +299,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.USER);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/userGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/userGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/userGroups');
     }
   }
 
@@ -312,10 +311,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ASSET);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/assetGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/assetGroups');
     }
   }
 
@@ -326,10 +323,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/deviceGroups');
     }
   }
 
@@ -340,10 +335,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ENTITY_VIEW);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/entityViewGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/entityViewGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/entityViewGroups');
     }
   }
 
@@ -354,10 +347,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/dashboardGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/dashboardGroups');
     }
   }
 
@@ -368,10 +359,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/scheduler`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/scheduler`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/scheduler');
     }
   }
 
@@ -382,10 +371,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.RULE_CHAIN);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/ruleChains`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/ruleChains');
     }
   }
 
@@ -396,10 +383,24 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.INTEGRATION);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/integrations`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/integrations');
+    }
+  }
+
+  private navigateToChildEdgePage(config: GroupEntityTableConfig<Edge>, edge: Edge | ShortEntityView, page: string) {
+    if (this.isCustomerScope(config.groupParams)) {
+      if (config.groupParams.childEntityGroupId) {
+        const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+        this.router.navigateByUrl(`customers/${targetGroups}/${config.groupParams.entityGroupId}/${config.groupParams.customerId}` +
+      `/edgeManagement/instances/groups/${config.groupParams.childEntityGroupId}/${edge.id.id}${page}`);
+      } else {
+        this.router.navigateByUrl(`customers/all/${config.groupParams.customerId}` +
+      `/edgeManagement/instances/groups/${config.groupParams.entityGroupId}/${edge.id.id}${page}`);
+      }
     } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/integrations`);
+      const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+      this.router.navigateByUrl(`edgeManagement/instances/${targetGroups}/${config.entityGroup.id.id}/${edge.id.id}${page}`);
     }
   }
 

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.mat-option.branch-option {
+.mat-mdc-option.branch-option {
   .mat-icon, .check-placeholder {
     margin-right: 8px;
   }
@@ -36,7 +36,7 @@
     width: 18px;
     display: inline-block;
   }
-  .mat-option-text {
+  .mdc-list-item__primary-text {
     width: 100%;
     .default-branch {
       float: right;

@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
 
 public interface TbAssetService {
 
@@ -43,4 +44,5 @@ public interface TbAssetService {
 
     ListenableFuture<Void> delete(Asset asset, User user);
 
+    ListenableFuture<Void> delete(AssetId assetId, User user);
 }

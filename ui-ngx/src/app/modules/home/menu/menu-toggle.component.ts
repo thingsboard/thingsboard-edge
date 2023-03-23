@@ -31,11 +31,12 @@
 
 import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
-import { Observable, combineLatest } from 'rxjs';
-import { distinctUntilChanged, filter, map, share, startWith } from 'rxjs/operators';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
-import { ActivationEnd, Router } from '@angular/router';
+import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { ActionPreferencesUpdateOpenedMenuSection } from '@core/auth/auth.actions';
 
 @Component({
   selector: 'tb-menu-toggle',
@@ -47,40 +48,34 @@ export class MenuToggleComponent implements OnInit {
 
   @Input() section: MenuSection;
 
-  sectionPages$: Observable<Array<MenuSection>>;
-  sectionHeight$: Observable<string>;
+  sectionPages: Array<MenuSection>;
 
   constructor(public utils: UtilsService,
               private menuService: MenuService,
-              private router: Router) {
+              private router: Router,
+              private store: Store<AppState>) {
   }
 
   ngOnInit() {
-    this.sectionPages$ = this.section.asyncPages.pipe(
-      map((pages) => {
-          return pages.filter((page) => !page.disabled);
-        }
-      ),
-      share()
-    );
-
-    this.sectionHeight$ = combineLatest([
-      this.sectionPages$,
-      this.router.events.pipe(filter(event => event instanceof ActivationEnd), startWith(ActivationEnd))
-    ]).pipe(
-      map((pages) => {
-        if (this.sectionActive()) {
-          return pages[0].length * 40 + 'px';
-        }
-        return '0px';
-      }),
-      distinctUntilChanged(),
-      share()
-    );
+    this.sectionPages = this.section.pages.filter((page) => !page.disabled);
   }
 
   sectionActive(): boolean {
-    return  this.menuService.sectionActive(this.section);
+    return this.menuService.sectionActive(this.section);
+  }
+
+  sectionHeight(): string {
+    if (this.sectionActive()) {
+      return this.sectionPages.length * 40 + 'px';
+    } else {
+      return '0px';
+    }
+  }
+
+  toggleSection(event: MouseEvent) {
+    event.stopPropagation();
+    this.section.opened = !this.section.opened;
+    this.store.dispatch(new ActionPreferencesUpdateOpenedMenuSection({path: this.section.path, opened: this.section.opened}));
   }
 
   trackBySectionPages(index: number, section: MenuSection){

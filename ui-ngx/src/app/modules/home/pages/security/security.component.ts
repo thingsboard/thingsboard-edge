@@ -68,6 +68,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { AuthService } from '@core/auth/auth.service';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   selector: 'tb-security',
@@ -303,14 +304,14 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
     });
   }
 
-  changeDefaultProvider(event: MouseEvent, provider: TwoFactorAuthProviderType) {
-    event.stopPropagation();
-    event.preventDefault();
+  changeDefaultProvider(event: MatCheckboxChange, provider: TwoFactorAuthProviderType) {
     if (this.useByDefault !== provider) {
       this.twoFactorAuth.disable({emitEvent: false});
       this.twoFaService.updateTwoFaAccountConfig(provider, true)
         .pipe(tap(() => this.twoFactorAuth.enable({emitEvent: false})))
         .subscribe(data => this.processTwoFactorAuthConfig(data));
+    } else {
+      event.source.checked = true;
     }
   }
 

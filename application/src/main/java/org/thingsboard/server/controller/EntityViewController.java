@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -62,6 +63,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
@@ -77,9 +79,11 @@ import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VIEW_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VIEW_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VIEW_INFO_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VIEW_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VIEW_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VIEW_TYPE;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
 import static org.thingsboard.server.controller.ControllerConstants.MODEL_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -279,6 +283,116 @@ public class EntityViewController extends BaseController {
             MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
             return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ENTITY_VIEW,
                     Operation.READ, type, pageLink);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get All Entity View Infos for current user (getAllEntityViewInfos)",
+            notes = "Returns a page of entity view info objects owned by the tenant or the customer of a current user. "
+                    + ENTITY_VIEW_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityViewInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityViewInfo> getAllEntityViewInfos(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = ENTITY_VIEW_TYPE)
+            @RequestParam(required = false) String type,
+            @ApiParam(value = ENTITY_VIEW_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ENTITY_VIEW_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                if (includeCustomers != null && includeCustomers) {
+                    if (type != null && type.length() > 0) {
+                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndType(tenantId, type, pageLink));
+                    } else {
+                        return checkNotNull(entityViewService.findEntityViewInfosByTenantId(tenantId, pageLink));
+                    }
+                } else {
+                    if (type != null && type.length() > 0) {
+                        return checkNotNull(entityViewService.findTenantEntityViewInfosByTenantIdAndType(tenantId, type, pageLink));
+                    } else {
+                        return checkNotNull(entityViewService.findTenantEntityViewInfosByTenantId(tenantId, pageLink));
+                    }
+                }
+            } else {
+                CustomerId customerId = getCurrentUser().getCustomerId();
+                if (includeCustomers != null && includeCustomers) {
+                    if (type != null && type.length() > 0) {
+                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
+                    } else {
+                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                    }
+                } else {
+                    if (type != null && type.length() > 0) {
+                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                    } else {
+                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Customer Entity View Infos (getCustomerEntityViewInfos)",
+            notes = "Returns a page of entity view info objects owned by the specified customer. "
+                    + ENTITY_VIEW_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/{customerId}/entityViewInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityViewInfo> getCustomerEntityViewInfos(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(CUSTOMER_ID) String strCustomerId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = ENTITY_VIEW_TYPE)
+            @RequestParam(required = false) String type,
+            @ApiParam(value = ENTITY_VIEW_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ENTITY_VIEW_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (includeCustomers != null && includeCustomers) {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
+                } else {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                }
+            } else {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                } else {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -68,6 +68,8 @@ import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { isMobileApp } from '@core/utils';
 import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two-factor-auth.models';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
+import { UserSettings } from '@shared/models/user-settings.models';
+import { UserSettingsService } from '@core/http/user-settings.service';
 
 @Injectable({
     providedIn: 'root'
@@ -90,6 +92,7 @@ export class AuthService {
     private dashboardService: DashboardService,
     private adminService: AdminService,
     private translate: TranslateService,
+    private userSettingsService: UserSettingsService,
     private dialog: MatDialog
   ) {
   }
@@ -151,7 +154,8 @@ export class AuthService {
   }
 
   public checkTwoFaVerificationCode(providerType: TwoFactorAuthProviderType, verificationCode: number): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`/api/auth/2fa/verification/check?providerType=${providerType}&verificationCode=${verificationCode}`,
+    return this.http.post<LoginResponse>
+    (`/api/auth/2fa/verification/check?providerType=${providerType}&verificationCode=${verificationCode}`,
       null, defaultHttpOptions(false, true)).pipe(
       tap((loginResponse: LoginResponse) => {
           this.setUserFromJwtToken(loginResponse.token, loginResponse.refreshToken, true);
@@ -337,9 +341,7 @@ export class AuthService {
 
   public loadUserFromPublicId(publicId: string): Observable<AuthPayload> {
     return this.publicLogin(publicId).pipe(
-      mergeMap((response) => {
-        return this.loadUserFromAccessToken(response.token);
-      }),
+      mergeMap((response) => this.loadUserFromAccessToken(response.token)),
       catchError((err) => {
         this.notifyUnauthenticated();
         this.notifyUserLoaded(true);
@@ -524,26 +526,20 @@ export class AuthService {
   }
 
   private checkIsWhiteLabelingAllowed(authUser: AuthUser):
-    Observable<{whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean}> {
+    Observable<{whiteLabelingAllowed: boolean; customerWhiteLabelingAllowed: boolean}> {
     if (authUser.authority === Authority.TENANT_ADMIN || authUser.authority === Authority.CUSTOMER_USER) {
       return this.whiteLabelingService.isWhiteLabelingAllowed().pipe(
         mergeMap((whiteLabelingAllowed) => {
           if (authUser.authority === Authority.TENANT_ADMIN) {
             return this.whiteLabelingService.isCustomerWhiteLabelingAllowed().pipe(
-              map((customerWhiteLabelingAllowed) => {
-                return {whiteLabelingAllowed, customerWhiteLabelingAllowed};
-              }),
-              catchError((err) => {
-                return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
-              })
+              map((customerWhiteLabelingAllowed) => ({whiteLabelingAllowed, customerWhiteLabelingAllowed})),
+              catchError((err) => of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false}))
             );
           } else {
             return of({whiteLabelingAllowed, customerWhiteLabelingAllowed: false});
           }
         }),
-        catchError((err) => {
-          return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
-        })
+        catchError((err) => of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false}))
       );
     } else {
       return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
@@ -570,12 +566,17 @@ export class AuthService {
     }
   }
 
+  private loadUserSettings(): Observable<UserSettings> {
+    return this.userSettingsService.loadUserSettings();
+  }
+
   private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
                      this.loadIsEdgesSupportEnabled(),
                      this.loadHasRepository(authPayload.authUser),
                      this.loadTbelEnabled(authPayload.authUser),
+                     this.loadUserSettings(),
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
@@ -589,11 +590,11 @@ export class AuthService {
         const edgesSupportEnabled: boolean = data[2] as boolean;
         const hasRepository: boolean = data[3] as boolean;
         const tbelEnabled: boolean = data[4] as boolean;
-        const whiteLabelingAllowedInfo = data[5] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, tbelEnabled, ...whiteLabelingAllowedInfo};
-      }, catchError((err) => {
-        return of({});
-      })));
+        const userSettings = data[5] as UserSettings;
+        const whiteLabelingAllowedInfo = data[6] as {whiteLabelingAllowed: boolean; customerWhiteLabelingAllowed: boolean};
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, tbelEnabled,
+          userSettings, ...whiteLabelingAllowedInfo};
+      }, catchError((err) => of({}))));
   }
 
   public refreshJwtToken(loadUserElseStoreJwtToken = true): Observable<LoginResponse> {

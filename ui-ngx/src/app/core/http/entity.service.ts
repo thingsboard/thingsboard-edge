@@ -703,7 +703,7 @@ export class EntityService {
         })
       );
     } else {
-      entityGroupsObservable = this.entityGroupService.getEntityGroups(entityType, config);
+      entityGroupsObservable = this.entityGroupService.getEntityGroups(entityType, true, config);
     }
     return entityGroupsObservable.pipe(
       map((entityGroups) => {

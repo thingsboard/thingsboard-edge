@@ -222,10 +222,14 @@ import { ConverterTestDialogComponent } from '@home/components/converter/convert
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 
 @NgModule({
   declarations:
     [
+      RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
       DetailsPanelComponent,
@@ -244,6 +248,7 @@ import { modulesMap } from '@modules/common/modules-map';
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -409,6 +414,7 @@ import { modulesMap } from '@modules/common/modules-map';
   ],
   exports: [
     SharedHomeComponentsModule,
+    RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,
@@ -421,6 +427,7 @@ import { modulesMap } from '@modules/common/modules-map';
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
@@ -562,6 +569,7 @@ import { modulesMap } from '@modules/common/modules-map';
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
+    AllEntitiesTableConfigService,
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,

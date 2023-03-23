@@ -43,12 +43,17 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.HasEmail;
+import org.thingsboard.server.common.data.HasLabel;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.HasTitle;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.NameLabelAndCustomerDetails;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -363,18 +368,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
             dashboard.setMobileHide(row.get("mobile_hide") != null ? (Boolean) row.get("mobile_hide") : false);
             dashboard.setMobileOrder(row.get("mobile_order") != null ? (Integer) row.get("mobile_order") : null);
-            Object assignedCustomers = row.get("assigned_customers");
-            if (assignedCustomers != null) {
-                String assignedCustomersStr = assignedCustomers.toString();
-                if (!StringUtils.isEmpty(assignedCustomersStr)) {
-                    try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {
-                        }));
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Unable to parse assigned customers!", e);
-                    }
-                }
-            }
             return dashboard;
         };
     }
@@ -523,35 +516,67 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Override
     public Optional<String> fetchEntityName(TenantId tenantId, EntityId entityId) {
         log.trace("Executing fetchEntityName [{}]", entityId);
-        EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityId.getEntityType());
-        Optional<HasId<?>> hasIdOpt = entityDaoService.findEntity(tenantId, entityId);
-        if (hasIdOpt.isPresent()) {
-            HasId<?> hasId = hasIdOpt.get();
-            if (hasId instanceof HasName) {
-                HasName hasName = (HasName) hasId;
-                return Optional.ofNullable(hasName.getName());
-            }
-        }
-        return Optional.empty();
+        return fetchAndConvert(tenantId, entityId, this::getName);
+    }
+
+    @Override
+    public Optional<String> fetchEntityLabel(TenantId tenantId, EntityId entityId) {
+        log.trace("Executing fetchEntityLabel [{}]", entityId);
+        return fetchAndConvert(tenantId, entityId, this::getLabel);
     }
 
     @Override
     public Optional<CustomerId> fetchEntityCustomerId(TenantId tenantId, EntityId entityId) {
         log.trace("Executing fetchEntityCustomerId [{}]", entityId);
+        return fetchAndConvert(tenantId, entityId, this::getCustomerId);
+    }
+
+    @Override
+    public Optional<NameLabelAndCustomerDetails> fetchNameLabelAndCustomerDetails(TenantId tenantId, EntityId entityId) {
+        log.trace("Executing fetchNameLabelAndCustomerDetails [{}]", entityId);
+        return fetchAndConvert(tenantId, entityId, this::getNameLabelAndCustomerDetails);
+    }
+
+    private <T> Optional<T> fetchAndConvert(TenantId tenantId, EntityId entityId, Function<HasId<?>, T> converter) {
         EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityId.getEntityType());
-        Optional<HasId<?>> hasIdOpt = entityDaoService.findEntity(tenantId, entityId);
-        if (hasIdOpt.isPresent()) {
-            HasId<?> hasId = hasIdOpt.get();
-            if (hasId instanceof HasCustomerId) {
-                HasCustomerId hasCustomerId = (HasCustomerId) hasId;
-                CustomerId customerId = hasCustomerId.getCustomerId();
-                if (customerId == null) {
-                    customerId = NULL_CUSTOMER_ID;
-                }
-                return Optional.of(customerId);
-            }
+        Optional<HasId<?>> entityOpt = entityDaoService.findEntity(tenantId, entityId);
+        return entityOpt.map(converter);
+    }
+
+    private String getName(HasId<?> entity) {
+        return entity instanceof HasName ? ((HasName) entity).getName() : null;
+    }
+
+    private String getLabel(HasId<?> entity) {
+        if (entity instanceof HasTitle && StringUtils.isNotEmpty(((HasTitle) entity).getTitle())) {
+            return ((HasTitle) entity).getTitle();
         }
-        return Optional.of(NULL_CUSTOMER_ID);
+        if (entity instanceof HasLabel && StringUtils.isNotEmpty(((HasLabel) entity).getLabel())) {
+            return ((HasLabel) entity).getLabel();
+        }
+        if (entity instanceof HasEmail && StringUtils.isNotEmpty(((HasEmail) entity).getEmail())) {
+            return ((HasEmail) entity).getEmail();
+        }
+        if (entity instanceof HasName && StringUtils.isNotEmpty(((HasName) entity).getName())) {
+            return ((HasName) entity).getName();
+        }
+        return null;
+    }
+
+    private CustomerId getCustomerId(HasId<?> entity) {
+        if (entity instanceof HasCustomerId) {
+            HasCustomerId hasCustomerId = (HasCustomerId) entity;
+            CustomerId customerId = hasCustomerId.getCustomerId();
+            if (customerId == null) {
+                customerId = NULL_CUSTOMER_ID;
+            }
+            return customerId;
+        }
+        return NULL_CUSTOMER_ID;
+    }
+
+    private NameLabelAndCustomerDetails getNameLabelAndCustomerDetails(HasId<?> entity) {
+        return new NameLabelAndCustomerDetails(getName(entity), getLabel(entity), getCustomerId(entity));
     }
 
     private static void validateEntityCountQuery(EntityCountQuery query) {
@@ -572,7 +597,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     }
 
     private static void validateRelationQuery(RelationsQueryFilter queryFilter) {
-        if (queryFilter.isMultiRoot() && queryFilter.getMultiRootEntitiesType() ==null){
+        if (queryFilter.isMultiRoot() && queryFilter.getMultiRootEntitiesType() == null) {
             throw new IncorrectParameterException("Multi-root relation query filter should contain 'multiRootEntitiesType'");
         }
         if (queryFilter.isMultiRoot() && CollectionUtils.isEmpty(queryFilter.getMultiRootEntityIds())) {

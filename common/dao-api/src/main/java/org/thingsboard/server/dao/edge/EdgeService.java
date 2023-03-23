@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -115,4 +116,20 @@ public interface EdgeService extends EntityDaoService {
     String findEdgeMissingAttributes(TenantId tenantId, EdgeId edgeId, List<IntegrationId> integrationIds) throws Exception;
 
     String findAllRelatedEdgesMissingAttributes(TenantId tenantId, IntegrationId integrationId) throws Exception;
+
+    PageData<EdgeInfo> findEdgeInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<EdgeInfo> findEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
+
+    PageData<EdgeInfo> findTenantEdgeInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<EdgeInfo> findTenantEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
+
+    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
+
+    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
 }

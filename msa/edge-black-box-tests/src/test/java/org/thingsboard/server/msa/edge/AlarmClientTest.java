@@ -60,7 +60,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // create alarm
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+        // TODO @voba alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm");
         alarm.setSeverity(AlarmSeverity.CRITICAL);
         Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
@@ -115,7 +115,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // create alarm
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+        // TODO @voba alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm from edge");
         alarm.setSeverity(AlarmSeverity.MAJOR);
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);

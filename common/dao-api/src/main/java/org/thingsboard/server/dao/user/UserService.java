@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -87,7 +88,7 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
-	void deleteTenantAdmins(TenantId tenantId);
+    void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 
@@ -107,7 +108,11 @@ public interface UserService extends EntityDaoService {
 
     void setLastLoginTs(TenantId tenantId, UserId userId);
 
-	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials);
+    PageData<UserInfo> findUserInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
+    PageData<UserInfo> findTenantUserInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<UserInfo> findUserInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<UserInfo> findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 }

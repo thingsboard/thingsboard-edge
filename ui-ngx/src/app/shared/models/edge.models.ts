@@ -100,8 +100,7 @@ export interface Edge extends BaseData<EdgeId> {
 }
 
 export interface EdgeInfo extends Edge {
-  customerTitle: string;
-  customerIsPublic: boolean;
+  ownerName?: string;
 }
 
 export interface EdgeSearchQuery extends EntitySearchQuery {
