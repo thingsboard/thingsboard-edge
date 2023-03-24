@@ -39,19 +39,21 @@
       integration.connection-string-required</mat-error>
   </mat-form-field>
 
-  <mat-form-field class="mat-block">
-    <mat-label translate>integration.topic-name</mat-label>
-    <input matInput required formControlName="topicName">
-    <mat-error translate *ngIf="azureServicesBusIntegrationConfigForm.get('connectionString').hasError('required')">
-      integration.topic-name-required</mat-error>
-  </mat-form-field>
+  <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>integration.topic-name</mat-label>
+      <input matInput required formControlName="topicName">
+      <mat-error translate *ngIf="azureServicesBusIntegrationConfigForm.get('connectionString').hasError('required')">
+        integration.topic-name-required</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="mat-block">
-    <mat-label translate>integration.sub-name</mat-label>
-    <input matInput required formControlName="subName">
-    <mat-error translate *ngIf="azureServicesBusIntegrationConfigForm.get('connectionString').hasError('required')">
-      integration.sub-name-required</mat-error>
-  </mat-form-field>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>integration.sub-name</mat-label>
+      <input matInput required formControlName="subName">
+      <mat-error translate *ngIf="azureServicesBusIntegrationConfigForm.get('connectionString').hasError('required')">
+        integration.sub-name-required</mat-error>
+    </mat-form-field>
+  </div>
 
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>
