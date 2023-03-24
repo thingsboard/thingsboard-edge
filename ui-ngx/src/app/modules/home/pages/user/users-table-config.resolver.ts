@@ -104,7 +104,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     const config = new EntityTableConfig<UserInfo | User>(groupParams);
     const authState = getCurrentAuthState(this.store);
     const authUser = authState.authUser;
-    this.configDefaults(config, authUser);
+    this.configDefaults(config, authUser, tenantId);
     config.componentsData = {
       includeCustomers: true,
       displayIncludeCustomers: authUser.authority !== Authority.SYS_ADMIN,
