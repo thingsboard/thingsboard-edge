@@ -35,9 +35,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -168,18 +170,21 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     config.headerComponent = UserTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<UserInfo | User>): Array<EntityTableColumn<UserInfo>> {
-    const columns: Array<EntityTableColumn<UserInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<UserInfo | User>): Array<EntityColumn<UserInfo>> {
+    const columns: Array<EntityColumn<UserInfo>> = [
       new DateEntityTableColumn<UserInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<User>('firstName', 'user.first-name', '25%'),
-      new EntityTableColumn<User>('lastName', 'user.last-name', '25%'),
+      new EntityTableColumn<User>('firstName', 'user.first-name', '15%'),
+      new EntityTableColumn<User>('lastName', 'user.last-name', '15%'),
       new EntityTableColumn<User>('email', 'user.email', '25%')
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
-      columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '25%'));
+      columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '20%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<UserInfo>( 'groups', 'entity.groups', '25%')
+    );
     return columns;
   }
 

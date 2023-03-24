@@ -1113,10 +1113,12 @@ SELECT eg.*,
        array_to_json(ARRAY(WITH RECURSIVE owner_ids(id, type, lvl) AS
                                               (SELECT eg.owner_id id, eg.owner_type::varchar(15) as type, 1 as lvl
                                                UNION
-                                               SELECT COALESCE(ce2.parent_customer_id, ce2.tenant_id) id,
+                                               SELECT (CASE
+                                                           WHEN ce2.parent_customer_id IS NULL OR ce2.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080' THEN ce2.tenant_id
+                                                           ELSE ce2.parent_customer_id END) as id,
                                                       (CASE
-                                                           WHEN ce2.parent_customer_id IS NOT NULL THEN 'CUSTOMER'
-                                                           ELSE 'TENANT' END)::varchar(15) as type,
+                                                           WHEN ce2.parent_customer_id IS NULL OR ce2.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080' THEN 'TENANT'
+                                                           ELSE 'CUSTOMER' END)::varchar(15) as type,
                                                       parent.lvl + 1 as lvl
                                                FROM customer ce2, owner_ids parent WHERE ce2.id = parent.id and eg.owner_type = 'CUSTOMER')
                            SELECT json_build_object('id', id, 'entityType', type) FROM owner_ids order by lvl)) owner_ids

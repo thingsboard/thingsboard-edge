@@ -198,7 +198,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         return groups;
     }
 
-    public void setGroups(List<EntityInfo> gruops) {
+    public void setGroups(List<EntityInfo> groups) {
         this.groups = groups;
     }
 

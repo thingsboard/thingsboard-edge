@@ -29,9 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { EntityInfoData } from '@shared/models/entity.models';
 import { EntityType, groupUrlPrefixByEntityType } from '@shared/models/entity-type.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-group-chips',
@@ -44,15 +46,21 @@ export class GroupChipsComponent implements OnInit {
   groups?: EntityInfoData[];
 
   @Input()
+  ownerId?: EntityId;
+
+  @Input()
   entityType: EntityType;
 
   groupPrefixUrl: string;
 
-  constructor(private elementRef: ElementRef) {
+  constructor(private userPermissionsService: UserPermissionsService) {
   }
 
   ngOnInit(): void {
     this.groupPrefixUrl = groupUrlPrefixByEntityType.get(this.entityType);
+    if (this.ownerId && !this.userPermissionsService.isDirectOwner(this.ownerId)) {
+      this.groupPrefixUrl = `/customers/all/${this.ownerId.id}${this.groupPrefixUrl}`;
+    }
   }
 
 }
