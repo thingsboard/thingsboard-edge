@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxFlex="100" fxLayout="row" fxLayoutAlign="end center">
+<div fxFlex="100" fxLayout="row" fxLayoutAlign="end center" *ngIf="(resource.ROLE | hasGenericPermission: operation.WRITE)">
   <button mat-flat-button color="primary" (click)="sendNotification($event)">
     <div fxLayout="row" fxLayoutAlign="start center">
       <mat-icon>send</mat-icon>{{ 'notification.send-notification' | translate }}

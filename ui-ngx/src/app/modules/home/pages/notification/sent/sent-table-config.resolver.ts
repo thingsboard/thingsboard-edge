@@ -63,6 +63,8 @@ import {
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { SentTableHeaderComponent } from '@home/pages/notification/sent/sent-table-header.component';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class SentTableConfigResolver implements Resolve<EntityTableConfig<NotificationRequest, PageLink, NotificationRequestInfo>> {
@@ -73,7 +75,8 @@ export class SentTableConfigResolver implements Resolve<EntityTableConfig<Notifi
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
     this.config.entityType = EntityType.NOTIFICATION_REQUEST;
     this.config.detailsPanelEnabled = false;
@@ -94,6 +97,9 @@ export class SentTableConfigResolver implements Resolve<EntityTableConfig<Notifi
 
     this.config.headerComponent = SentTableHeaderComponent;
     this.config.onEntityAction = action => this.onRequestAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.handleRowClick = (event, entity) => {
       if ((event.target as HTMLElement).getElementsByClassName('stats').length || (event.target as HTMLElement).className === 'stats') {
@@ -125,7 +131,8 @@ export class SentTableConfigResolver implements Resolve<EntityTableConfig<Notifi
     return [{
       name: this.translate.instant('notification.notify-again'),
       mdiIcon: 'mdi:repeat-variant',
-      isEnabled: (request) => request.status !== NotificationRequestStatus.SCHEDULED,
+      isEnabled: (request) => request.status !== NotificationRequestStatus.SCHEDULED &&
+        this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
       onAction: ($event, entity) => this.createRequest($event, entity)
     }];
   }

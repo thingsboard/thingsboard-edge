@@ -50,6 +50,8 @@ import { TemplateTableHeaderComponent } from '@home/pages/notification/template/
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<NotificationTemplate>> {
@@ -59,7 +61,8 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
     this.config.entityType = EntityType.NOTIFICATION_TEMPLATE;
     this.config.detailsPanelEnabled = false;
@@ -81,6 +84,9 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
 
     this.config.headerComponent = TemplateTableHeaderComponent;
     this.config.onEntityAction = action => this.onTemplateAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
@@ -106,7 +112,7 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
       {
         name: this.translate.instant('notification.copy-template'),
         icon: 'content_copy',
-        isEnabled: () => true,
+        isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
         onAction: ($event, entity) => this.editTemplate($event, entity, false, true)
       }
     ];
@@ -123,7 +129,8 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
       data: {
         isAdd,
         isCopy,
-        template
+        template,
+        readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
     }).afterClosed()
       .subscribe((res) => {

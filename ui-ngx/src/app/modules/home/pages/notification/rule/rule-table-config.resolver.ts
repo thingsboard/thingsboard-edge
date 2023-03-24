@@ -50,6 +50,8 @@ import {
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class RuleTableConfigResolver implements Resolve<EntityTableConfig<NotificationRule>> {
@@ -59,7 +61,8 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
     this.config.entityType = EntityType.NOTIFICATION_RULE;
     this.config.detailsPanelEnabled = false;
@@ -80,6 +83,9 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
     this.config.cellActionDescriptors = this.configureCellActions();
     this.config.headerComponent = RuleTableHeaderComponent;
     this.config.onEntityAction = action => this.onTargetAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
@@ -109,7 +115,7 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
     return [{
       name: this.translate.instant('notification.copy-rule'),
       icon: 'content_copy',
-      isEnabled: () => true,
+      isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
       onAction: ($event, entity) => this.editRule($event, entity, false, true)
     }];
   }
@@ -125,7 +131,8 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
       data: {
         isAdd,
         isCopy,
-        rule
+        rule,
+        readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
     }).afterClosed()
       .subscribe((res) => {

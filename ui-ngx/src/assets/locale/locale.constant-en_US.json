@@ -3890,7 +3890,10 @@
         "unread": "Unread",
         "updated": "Updated",
         "use-template": "Use template",
-        "view-all": "View all"
+        "view-all": "View all",
+        "view-notification-recipients-group": "View notification recipients group",
+        "view-notification-template": "View notification template",
+        "view-rule": "View rule"
     },
     "ota-update": {
       "add": "Add package",

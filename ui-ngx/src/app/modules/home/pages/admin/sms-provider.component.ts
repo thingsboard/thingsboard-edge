@@ -202,6 +202,9 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
         })
       })
     });
+    if(this.readonly) {
+      this.notificationSettingsForm.disable(({emitEvent: false}));
+    }
   }
 
   saveNotification(): void {
