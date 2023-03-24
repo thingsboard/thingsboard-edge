@@ -177,14 +177,16 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
       new EntityTableColumn<User>('lastName', 'user.last-name', '15%'),
       new EntityTableColumn<User>('email', 'user.email', '25%')
     ];
-    if (config.componentsData.includeCustomers) {
-      const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
-        ? 'entity.sub-customer-name' : 'entity.customer-name';
-      columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '20%'));
+    if (authUser.authority !== Authority.SYS_ADMIN) {
+      if (config.componentsData.includeCustomers) {
+        const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
+          ? 'entity.sub-customer-name' : 'entity.customer-name';
+        columns.push(new EntityTableColumn<UserInfo>('ownerName', title, '20%'));
+      }
+      columns.push(
+        new GroupChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', '25%')
+      );
     }
-    columns.push(
-      new GroupChipsEntityTableColumn<UserInfo>( 'groups', 'entity.groups', '25%')
-    );
     return columns;
   }
 
