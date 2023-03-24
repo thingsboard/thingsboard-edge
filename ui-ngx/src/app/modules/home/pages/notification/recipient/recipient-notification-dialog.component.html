@@ -32,7 +32,7 @@
 -->
 <form [formGroup]="targetNotificationForm" class="tb-dialog-container">
   <mat-toolbar color="primary">
-    <h2>{{ (isAdd ? 'notification.add-notification-recipients-group' : 'notification.edit-notification-recipients-group') | translate }}</h2>
+    <h2>{{ dialogTitle | translate }}</h2>
     <span fxFlex></span>
     <button mat-icon-button
             (click)="cancel()"
@@ -164,6 +164,7 @@
             [disabled]="(isLoading$ | async)"
             (click)="cancel()">{{ 'action.cancel' | translate }}</button>
     <button mat-raised-button
+            *ngIf="!data?.readonly"
             [disabled]="(isLoading$ | async) || targetNotificationForm.invalid || !targetNotificationForm.dirty"
             color="primary"
             (click)="save()">{{ (isAdd ? 'action.add' : 'action.save') | translate }}</button>

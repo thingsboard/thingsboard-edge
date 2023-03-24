@@ -58,6 +58,7 @@ import { AuthUser } from '@shared/models/user.model';
 export interface RecipientNotificationDialogData {
   target?: NotificationTarget;
   isAdd?: boolean;
+  readonly?: boolean;
 }
 
 @Component({
@@ -83,6 +84,7 @@ export class RecipientNotificationDialogComponent extends
 
   entityType = EntityType;
   isAdd = true;
+  dialogTitle = 'notification.edit-notification-recipients-group';
 
   private readonly destroy$ = new Subject<void>();
 
@@ -96,6 +98,7 @@ export class RecipientNotificationDialogComponent extends
 
     if (isDefinedAndNotNull(data.isAdd)) {
       this.isAdd = data.isAdd;
+      this.dialogTitle = 'notification.add-notification-recipients-group';
     }
 
     this.targetNotificationForm = this.fb.group({
@@ -181,6 +184,11 @@ export class RecipientNotificationDialogComponent extends
         this.targetNotificationForm.get('configuration.usersFilter.filterByTenants')
           .patchValue(!Array.isArray(this.data.target.configuration.usersFilter.tenantProfilesIds), {onlySelf: true});
       }
+    }
+
+    if(data?.readonly) {
+      this.dialogTitle = 'notification.view-notification-recipients-group';
+      this.targetNotificationForm.disable({emitEvent: false});
     }
   }
 

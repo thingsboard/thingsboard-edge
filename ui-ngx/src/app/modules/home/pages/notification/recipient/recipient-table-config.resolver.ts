@@ -50,6 +50,8 @@ import { RecipientTableHeaderComponent } from '@home/pages/notification/recipien
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<NotificationTarget>> {
@@ -59,7 +61,8 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
     this.config.entityType = EntityType.NOTIFICATION_TARGET;
     this.config.detailsPanelEnabled = false;
@@ -82,6 +85,9 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
 
     this.config.headerComponent = RecipientTableHeaderComponent;
     this.config.onEntityAction = action => this.onTargetAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
@@ -120,7 +126,8 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         isAdd,
-        target
+        target,
+        readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
     }).afterClosed()
       .subscribe((res) => {

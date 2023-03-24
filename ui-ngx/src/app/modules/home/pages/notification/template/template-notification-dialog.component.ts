@@ -56,6 +56,7 @@ export interface TemplateNotificationDialogData {
   predefinedType?: NotificationType;
   isAdd?: boolean;
   isCopy?: boolean;
+  readonly?: boolean;
 }
 
 @Component({
@@ -122,6 +123,12 @@ export class TemplateNotificationDialogComponent
           .patchValue(this.templateNotification.configuration.deliveryMethodsTemplates[method]);
       }
     }
+
+    if(data?.readonly) {
+      this.dialogTitle = 'notification.view-notification-template';
+      this.templateNotificationForm.disable({emitEvent: false});
+      Array.from(this.deliveryMethodFormsMap.values()).map(form => form.disable({emitEvent: false}));
+    }
   }
 
   ngOnDestroy() {
@@ -157,7 +164,7 @@ export class TemplateNotificationDialogComponent
     return 'action.next';
   }
 
-  private get maxStepperIndex(): number {
+  get maxStepperIndex(): number {
     return this.notificationTemplateStepper?._steps?.length - 1;
   }
 

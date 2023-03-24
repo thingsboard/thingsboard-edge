@@ -35,7 +35,7 @@ import { AppState } from '../core.state';
 import { getCurrentOpenedMenuSections, selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
 import { filter, map, take } from 'rxjs/operators';
 import { HomeSection, MenuSection } from '@core/services/menu.models';
-import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -1159,7 +1159,6 @@ export class MenuService {
       );
     }
     const notificationPages: Array<MenuSection> = [];
-    // TODO: permission check
     notificationPages.push(
       {
         id: guid(),
@@ -1170,52 +1169,56 @@ export class MenuService {
         disabled: disabledItems.indexOf('notification_inbox') > -1
       }
     );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.sent',
-        type: 'link',
-        path: '/notification/sent',
-        icon: 'outbox',
-        disabled: disabledItems.indexOf('notification_sent') > -1
-      }
-    );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.recipients',
-        type: 'link',
-        path: '/notification/recipients',
-        icon: 'contacts',
-        disabled: disabledItems.indexOf('notification_recipients') > -1
-      }
-    );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.templates',
-        type: 'link',
-        path: '/notification/templates',
-        icon: 'mdi:message-draw',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_templates') > -1
-      }
-    );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.rules',
-        type: 'link',
-        path: '/notification/rules',
-        icon: 'mdi:message-cog',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_rules') > -1
-      }
-    );
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.sent',
+          type: 'link',
+          path: '/notification/sent',
+          icon: 'outbox',
+          disabled: disabledItems.indexOf('notification_sent') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.recipients',
+          type: 'link',
+          path: '/notification/recipients',
+          icon: 'contacts',
+          disabled: disabledItems.indexOf('notification_recipients') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.templates',
+          type: 'link',
+          path: '/notification/templates',
+          icon: 'mdi:message-draw',
+          isMdiIcon: true,
+          disabled: disabledItems.indexOf('notification_templates') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.rules',
+          type: 'link',
+          path: '/notification/rules',
+          icon: 'mdi:message-cog',
+          isMdiIcon: true,
+          disabled: disabledItems.indexOf('notification_rules') > -1
+        }
+      );
+    }
     if (notificationPages.length) {
       sections.push(
         {
