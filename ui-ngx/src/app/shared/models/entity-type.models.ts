@@ -616,7 +616,7 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.ASSET_PROFILE, '/profiles/assetProfiles'],
   [EntityType.CONVERTER, '/integrationsCenter/converters'],
   [EntityType.INTEGRATION, '/integrationsCenter/integrations'],
-  [EntityType.RULE_CHAIN, '/features/ruleChains'],
+  [EntityType.RULE_CHAIN, '/ruleChains'],
   [EntityType.EDGE, '/edgeManagement/instances/all'],
   [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
   [EntityType.ROLE, '/roles'],
