@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.smartRetail;
 
 import org.openqa.selenium.WebElement;
@@ -23,6 +53,72 @@ import org.thingsboard.server.msa.ui.pages.UsersPageElements;
 import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
+
+import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.THINGSBOARD_INTEGRATION_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.THINGSBOARD_IOT_GATEWAY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.THINGSBOARD_MQTT_GATEWAY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CHILLER3_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CHILLER65644_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CHILLER_378876_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CHILLER_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.DOOR_SENSOR_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.DOOR_SENSOR_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.DOOR_SENSOR_3456_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.DOOR_SENSOR_3_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.DOOR_SENSOR_4534_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.DOOR_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FREEZER_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FREEZER_43545_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FREEZER_67478;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FREEZER_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LIQUID_LEVEL_SENSOR_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LIQUID_LEVEL_SENSOR_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LIQUID_LEVEL_SENSOR_3_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LIQUID_LEVEL_SENSOR_4_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LIQUID_LEVEL_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MOTION_SENSOR_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MOTION_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OCCUPANCY_SENSOR_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OCCUPANCY_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.RETAIL_COMPANY_A_CUSTOMER;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.RETAIL_COMPANY_B_CUSTOMER;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_BIN_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_BIN_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_BIN_3_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_BIN_4_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_BIN_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_RETAIL_ADMINISTRATORS_USER_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_RETAIL_ADMINISTRATOR_ROLE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_RETAIL_CUSTOMER_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_RETAIL_READ_ONLY_ROLE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_RETAIL_USERS_USER_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_RETAIL_USER_ROLE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SHELF_457321_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SHELF_557322_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SHELF_765765_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SHELF_89546_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SHELF_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_3_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_4_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_5_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_6_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMOKE_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKETS_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKETS_S2_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKETS_S1_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKETS_S3_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_ASSET_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SUPERMARKET_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_USER_SHARED_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD;
 
 public class SmartRetailInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -142,95 +238,33 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void installEntities() {
-        String ruleChainName = "Supermarket Devices";
-        String rolesName = "Smart Retail Read Only";
-        String roles1Name = "Smart Retail User";
-        String roles2Name = "Smart Retail Administrator";
-        String customerGroupName = "Smart Retail";
-        String customerName1 = "Retail Company A";
-        String customerName2 = "Retail Company B";
-        String userGroupName = "Smart Retail Users";
-        String userGroup1Name = "Smart Retail Administrators";
-        String deviceGroupName = "Supermarket Devices";
-        String deviceInCustomer1 = "Chiller 3";
-        String device1InCustomer1 = "Chiller 65644";
-        String device2InCustomer1 = "Door Sensor 1";
-        String device3InCustomer1 = "Door Sensor 2";
-        String device4InCustomer1 = "Door Sensor 3";
-        String device5InCustomer1 = "Door Sensor 4534";
-        String device6InCustomer1 = "Freezer 1";
-        String device7InCustomer1 = "Freezer 43545";
-        String device8InCustomer1 = "Liquid Level Sensor 1";
-        String device9InCustomer1 = "Liquid Level Sensor 2";
-        String device10InCustomer1 = "Liquid Level Sensor 3";
-        String device11InCustomer1 = "Liquid Level Sensor 4";
-        String device12InCustomer1 = "Motion Sensor 1";
-        String device13InCustomer1 = "Occupancy Sensor";
-        String device14InCustomer1 = "Smart Bin 1";
-        String device15InCustomer1 = "Smart Bin 2";
-        String device16InCustomer1 = "Smart Bin 3";
-        String device17InCustomer1 = "Smart Bin 4";
-        String device18InCustomer1 = "Smart Shelf 457321";
-        String device19InCustomer1 = "Smart Shelf 557322";
-        String device20InCustomer1 = "Smart Shelf 765765";
-        String device21InCustomer1 = "Smoke Sensor 1";
-        String device22InCustomer1 = "Smoke Sensor 2";
-        String device23InCustomer1 = "Smoke Sensor 3";
-        String device24InCustomer1 = "Smoke Sensor 4";
-        String device25InCustomer1 = "Smoke Sensor 5";
-        String device26InCustomer1 = "Smoke Sensor 6";
-        String deviceInCustomer2 = "Smart Shelf 89546";
-        String device1InCustomer2 = "Chiller 378876";
-        String device2InCustomer2 = "Freezer 67478";
-        String device3InCustomer2 = "Door Sensor 3456";
-        String deviceProfileName = "Door Sensor";
-        String deviceProfile1Name = "Smoke Sensor";
-        String deviceProfile2Name = "Smart Shelf";
-        String deviceProfile3Name = "Chiller";
-        String deviceProfile4Name = "Motion Sensor";
-        String deviceProfile5Name = "Freezer";
-        String deviceProfile6Name = "Smart Bin";
-        String deviceProfile7Name = "Occupancy Sensor";
-        String deviceProfile8Name = "Liquid Level Sensor";
-        String assetGroupNameInCustomer1 = "Supermarkets";
-        String assetGroupNameInCustomer2 = "Supermarkets";
-        String assetNameInCustomer1 = "Supermarket S1";
-        String assetName1InCustomer1 = "Supermarket S2";
-        String assetNameInCustomer2 = "Supermarket S3";
-        String assetProfileName = "supermarket";
-        String dashboardGroupName = "Supermarket Users Shared";
-        String dashboardGroup1Name = "Supermarket Administrators Shared";
-        String dashboardName = "Smart Supermarket User Management";
-        String dashboard1Name = "Smart Supermarket Administration";
-        String dashboard2Name = "Smart Supermarket";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartRetailInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String user1RetailCompanyA = solutionTemplatesInstalledView.users(customerName1).get(0).getText();
-        String user2RetailCompanyA = solutionTemplatesInstalledView.users(customerName1).get(1).getText();
-        String user1RetailCompanyB = solutionTemplatesInstalledView.users(customerName2).get(0).getText();
-        String user2RetailCompanyB = solutionTemplatesInstalledView.users(customerName2).get(1).getText();
+        String user1RetailCompanyA = solutionTemplatesInstalledView.users(RETAIL_COMPANY_A_CUSTOMER).get(0).getText();
+        String user2RetailCompanyA = solutionTemplatesInstalledView.users(RETAIL_COMPANY_A_CUSTOMER).get(1).getText();
+        String user1RetailCompanyB = solutionTemplatesInstalledView.users(RETAIL_COMPANY_B_CUSTOMER).get(0).getText();
+        String user2RetailCompanyB = solutionTemplatesInstalledView.users(RETAIL_COMPANY_B_CUSTOMER).get(1).getText();
         solutionTemplatesInstalledView.closeBtn().click();
         sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entity(ruleChainName).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(SUPERMARKET_DEVICES_RULE_CHAIN).isDisplayed());
 
         sideBarMenuView.rolesBtn().click();
 
-        Assert.assertTrue(rolesPage.entity(rolesName).isDisplayed());
-        Assert.assertTrue(rolesPage.entity(roles1Name).isDisplayed());
-        Assert.assertTrue(rolesPage.entity(roles2Name).isDisplayed());
+        Assert.assertTrue(rolesPage.entity(SMART_RETAIL_READ_ONLY_ROLE).isDisplayed());
+        Assert.assertTrue(rolesPage.entity(SMART_RETAIL_USER_ROLE).isDisplayed());
+        Assert.assertTrue(rolesPage.entity(SMART_RETAIL_ADMINISTRATOR_ROLE).isDisplayed());
 
         sideBarMenuView.customerGroupsBtn().click();
 
-        Assert.assertTrue(customerPage.entity(customerGroupName).isDisplayed());
+        Assert.assertTrue(customerPage.entity(SMART_RETAIL_CUSTOMER_GROUP).isDisplayed());
 
         customerPage.entity("All").click();
-        customerPage.manageCustomersUserBtn(customerName1).click();
+        customerPage.manageCustomersUserBtn(RETAIL_COMPANY_A_CUSTOMER).click();
 
-        Assert.assertTrue(usersPage.entity(userGroupName).isDisplayed());
-        Assert.assertTrue(usersPage.entity(userGroup1Name).isDisplayed());
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_ADMINISTRATORS_USER_GROUP).isDisplayed());
 
 
         usersPage.entity("All").click();
@@ -239,10 +273,10 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(usersPage.entity(user2RetailCompanyA).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.manageCustomersUserBtn(customerName2).click();
+        customerPage.manageCustomersUserBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
-        Assert.assertTrue(usersPage.entity(userGroupName).isDisplayed());
-        Assert.assertTrue(usersPage.entity(userGroup1Name).isDisplayed());
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_ADMINISTRATORS_USER_GROUP).isDisplayed());
 
         usersPage.entity("All").click();
 
@@ -250,98 +284,98 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(usersPage.entity(user2RetailCompanyB).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.manageCustomersDeviceGroupsBtn(customerName1).click();
+        customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
 
-        Assert.assertTrue(devicePage.entity(deviceGroupName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
 
         devicePage.entity("All").click();
         devicePage.changeItemsCountPerPage(30);
 
-        Assert.assertTrue(devicePage.entity(deviceInCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device1InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device2InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device3InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device4InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device5InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device6InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device7InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device8InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device9InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device10InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device11InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device12InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device13InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device14InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device15InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device16InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device17InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device18InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device19InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device20InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device21InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device22InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device23InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device24InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device25InCustomer1).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device26InCustomer1).isDisplayed());
+        Assert.assertTrue(devicePage.entity(CHILLER3_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(CHILLER65644_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(DOOR_SENSOR_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(DOOR_SENSOR_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(DOOR_SENSOR_3_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(DOOR_SENSOR_4534_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(FREEZER_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(FREEZER_43545_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(LIQUID_LEVEL_SENSOR_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(LIQUID_LEVEL_SENSOR_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(LIQUID_LEVEL_SENSOR_3_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(LIQUID_LEVEL_SENSOR_4_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(MOTION_SENSOR_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(OCCUPANCY_SENSOR_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_BIN_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_BIN_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_BIN_3_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_BIN_4_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_SHELF_457321_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_SHELF_557322_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_SHELF_765765_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_3_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_4_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_5_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_6_DEVICE).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.manageCustomersDeviceGroupsBtn(customerName2).click();
+        customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
-        Assert.assertTrue(devicePage.entity(deviceGroupName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entity(deviceInCustomer2).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device1InCustomer2).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device2InCustomer2).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device3InCustomer2).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_SHELF_89546_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(CHILLER_378876_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(FREEZER_67478).isDisplayed());
+        Assert.assertTrue(devicePage.entity(DOOR_SENSOR_3456_DEVICE).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.manageCustomersAssetGroupsBtn(customerName1).click();
+        customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
 
-        Assert.assertTrue(assetPage.entity(assetGroupNameInCustomer1).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
 
         assetPage.entity("All").click();
 
-        Assert.assertTrue(assetPage.entity(assetNameInCustomer1).isDisplayed());
-        Assert.assertTrue(assetPage.entity(assetName1InCustomer1).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SUPERMARKETS_S1_ASSET).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SUPERMARKETS_S2_ASSET).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.manageCustomersAssetGroupsBtn(customerName2).click();
+        customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
-        Assert.assertTrue(assetPage.entity(assetGroupNameInCustomer2).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
 
         assetPage.entity("All").click();
 
-        Assert.assertTrue(assetPage.entity(assetNameInCustomer2).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SUPERMARKETS_S3_ASSET).isDisplayed());
 
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entity(deviceProfileName).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile1Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile2Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile3Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile4Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile5Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile6Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile7Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile8Name).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(DOOR_SENSOR_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SMOKE_SENSOR_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SMART_SHELF_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(CHILLER_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(MOTION_SENSOR_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(FREEZER_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SMART_BIN_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(OCCUPANCY_SENSOR_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(LIQUID_LEVEL_SENSOR_DEVICE_PROFILE).isDisplayed());
 
         sideBarMenuView.openAssetProfiles();
 
-        Assert.assertTrue(profilesPage.entity(assetProfileName).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SUPERMARKET_ASSET_PROFILE).isDisplayed());
 
         sideBarMenuView.dashboardGroupsBtn().click();
 
-        Assert.assertTrue(dashboardPage.entity(dashboardGroupName).isDisplayed());
-        Assert.assertTrue(dashboardPage.entity(dashboardGroup1Name).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP).isDisplayed());
 
         dashboardPage.entity("All").click();
 
-        Assert.assertTrue(dashboardPage.entity(dashboardName).isDisplayed());
-        Assert.assertTrue(dashboardPage.entity(dashboard1Name).isDisplayed());
-        Assert.assertTrue(dashboardPage.entity(dashboard2Name).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(SMART_SUPERMARKET_DASHBOARD).isDisplayed());
     }
 
     @Test
@@ -473,29 +507,6 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void deleteEntities() {
-        String ruleChainName = "Supermarket Devices";
-        String rolesName = "Smart Retail Read Only";
-        String roles1Name = "Smart Retail User";
-        String roles2Name = "Smart Retail Administrator";
-        String customerGroupName = "Smart Retail";
-        String customerName1 = "Retail Company A";
-        String customerName2 = "Retail Company B";
-        String deviceProfileName = "Door Sensor";
-        String deviceProfile1Name = "Smoke Sensor";
-        String deviceProfile2Name = "Smart Shelf";
-        String deviceProfile3Name = "Chiller";
-        String deviceProfile4Name = "Motion Sensor";
-        String deviceProfile5Name = "Freezer";
-        String deviceProfile6Name = "Smart Bin";
-        String deviceProfile7Name = "Occupancy Sensor";
-        String deviceProfile8Name = "Liquid Level Sensor";
-        String assetProfileName = "supermarket";
-        String dashboardGroupName = "Supermarket Users Shared";
-        String dashboardGroup1Name = "Supermarket Administrators Shared";
-        String dashboardName = "Smart Supermarket User Management";
-        String dashboard1Name = "Smart Supermarket Administration";
-        String dashboard2Name = "Smart Supermarket";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartRetailInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -503,49 +514,49 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteSmartRetail();
         sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(ruleChainName));
+        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SUPERMARKET_DEVICES_RULE_CHAIN));
 
         sideBarMenuView.rolesBtn().click();
 
-        Assert.assertTrue(rolesPage.entityIsNotPresent(rolesName));
-        Assert.assertTrue(rolesPage.entityIsNotPresent(roles1Name));
-        Assert.assertTrue(rolesPage.entityIsNotPresent(roles2Name));
+        Assert.assertTrue(rolesPage.entityIsNotPresent(SMART_RETAIL_READ_ONLY_ROLE));
+        Assert.assertTrue(rolesPage.entityIsNotPresent(SMART_RETAIL_USER_ROLE));
+        Assert.assertTrue(rolesPage.entityIsNotPresent(SMART_RETAIL_ADMINISTRATOR_ROLE));
 
         sideBarMenuView.customerGroupsBtn().click();
 
-        Assert.assertTrue(customerPage.entityIsNotPresent(customerGroupName));
+        Assert.assertTrue(customerPage.entityIsNotPresent(SMART_RETAIL_CUSTOMER_GROUP));
 
         customerPage.entity("All").click();
 
-        Assert.assertTrue(customerPage.entityIsNotPresent(customerName1));
-        Assert.assertTrue(customerPage.entityIsNotPresent(customerName2));
+        Assert.assertTrue(customerPage.entityIsNotPresent(RETAIL_COMPANY_A_CUSTOMER));
+        Assert.assertTrue(customerPage.entityIsNotPresent(RETAIL_COMPANY_B_CUSTOMER));
 
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfileName));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile1Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile2Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile3Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile4Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile5Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile6Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile7Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile8Name));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(DOOR_SENSOR_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SMOKE_SENSOR_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SMART_SHELF_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(CHILLER_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(MOTION_SENSOR_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(FREEZER_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SMART_BIN_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(OCCUPANCY_SENSOR_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(LIQUID_LEVEL_SENSOR_DEVICE_PROFILE));
 
         sideBarMenuView.openAssetProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(assetProfileName));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SUPERMARKET_ASSET_PROFILE));
 
         sideBarMenuView.dashboardGroupsBtn().click();
 
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardGroupName));
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardGroup1Name));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(SUPERMARKET_USER_SHARED_DASHBOARD_GROUP));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP));
 
         dashboardPage.entity("All").click();
 
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardName));
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboard1Name));
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboard2Name));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(SMART_SUPERMARKET_DASHBOARD));
     }
 
     @Test
@@ -572,10 +583,10 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertEquals(2, urls.size());
         Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
         Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroup1Id + "/" + dashboard1Id));
-        Assert.assertEquals("https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api", linkHttpApi);
-        Assert.assertEquals("https://thingsboard.io/docs/getting-started-guides/connectivity/", linkConnectionDevices);
-        Assert.assertEquals("https://thingsboard.io/docs/iot-gateway/what-is-iot-gateway/", linkThingsBoardIoTGateway);
-        Assert.assertEquals("https://thingsboard.io/docs/paas/reference/gateway-mqtt-api/", linkThingsBoardMQTTGateway);
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/integrations/", linkThingsBoardIntegration);
+        Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
+        Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
+        Assert.assertEquals(THINGSBOARD_IOT_GATEWAY_DOCS_URL, linkThingsBoardIoTGateway);
+        Assert.assertEquals(THINGSBOARD_MQTT_GATEWAY_DOCS_URL, linkThingsBoardMQTTGateway);
+        Assert.assertEquals(THINGSBOARD_INTEGRATION_DOCS_URL, linkThingsBoardIntegration);
     }
 }

@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.temperatureHumiditySensors;
 
 import org.testng.Assert;
@@ -22,6 +52,19 @@ import org.thingsboard.server.msa.ui.pages.UsersPageElements;
 import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
+
+import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CUSTOMER_D;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SENSOR_C1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SENSOR_T1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.READ_ONLY_ROLES;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN;
 
 public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -137,15 +180,6 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
     @Test
     public void installEntities() {
-        String ruleChainName = "Temperature & Humidity Sensors";
-        String roleName = "Read Only";
-        String customerName = "Customer D";
-        String deviceGroupName = "Temperature & Humidity sensors";
-        String deviceInCustomerName = "Sensor C1";
-        String profileName = "Temperature Sensor";
-        String deviceName = "Sensor T1";
-        String dashboardName = "Temperature & Humidity";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -156,23 +190,23 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         solutionTemplatesInstalledView.closeBtn().click();
         sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entity(ruleChainName).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN).isDisplayed());
 
         sideBarMenuView.rolesBtn().click();
 
-        Assert.assertTrue(rolesPage.entity(roleName).isDisplayed());
+        Assert.assertTrue(rolesPage.entity(READ_ONLY_ROLES).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
 
-        Assert.assertTrue(customerPage.entity(customerName).isDisplayed());
+        Assert.assertTrue(customerPage.entity(CUSTOMER_D).isDisplayed());
 
-        customerPage.manageCustomersDeviceGroupsBtn(customerName).click();
-        customerPage.entity(deviceGroupName).click();
+        customerPage.manageCustomersDeviceGroupsBtn(CUSTOMER_D).click();
+        customerPage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).click();
 
-        Assert.assertTrue(devicePage.entity(deviceInCustomerName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SENSOR_C1_DEVICE).isDisplayed());
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.manageCustomersUserBtn(customerName).click();
+        customerPage.manageCustomersUserBtn(CUSTOMER_D).click();
         customerPage.entity("All").click();
 
         Assert.assertTrue(usersPageHelper.entity(user1).isDisplayed());
@@ -180,19 +214,19 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entity(profileName).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(TEMPERATURE_SENSOR_DEVICE_PROFILE).isDisplayed());
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entity(deviceGroupName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).isDisplayed());
 
-        devicePage.entity(deviceGroupName).click();
+        devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).click();
 
-        Assert.assertTrue(devicePage.entity(deviceName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SENSOR_T1_DEVICE).isDisplayed());
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entity(dashboardName).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(TEMPERATURE_HUMIDITY_DASHBOARD).isDisplayed());
     }
 
     @Test
@@ -317,14 +351,6 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
     @Test(groups = "broken")
     public void deleteEntities() {
-        String ruleChainName = "Temperature & Humidity Sensors";
-        String roleName = "Read Only";
-        String customerName = "Customer D";
-        String deviceGroupName = "Temperature & Humidity sensors";
-        String deviceName = "Sensor T1";
-        String profileName = "Temperature Sensor";
-        String dashboardName = "Temperature & Humidity";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -332,31 +358,31 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         testRestClient.deleteTemperatureHumidity();
         sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.elementIsNotPresent(ruleChainName));
+        Assert.assertTrue(ruleChainsPage.elementIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN));
 
         sideBarMenuView.rolesBtn().click();
 
-        Assert.assertTrue(rolesPage.entityIsNotPresent(roleName));
+        Assert.assertTrue(rolesPage.entityIsNotPresent(READ_ONLY_ROLES));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
 
-        Assert.assertTrue(customerPage.entityIsNotPresent(customerName));
+        Assert.assertTrue(customerPage.entityIsNotPresent(CUSTOMER_D));
 
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(profileName));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(TEMPERATURE_SENSOR_DEVICE_PROFILE));
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceGroupName));
+        Assert.assertTrue(devicePage.entityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP));
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceName));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SENSOR_T1_DEVICE));
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardName));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(TEMPERATURE_HUMIDITY_DASHBOARD));
     }
 
     @Test(groups = {"broken"})
@@ -378,10 +404,10 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertEquals(1, urls.size());
         Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/dashboards/", guide);
-        Assert.assertEquals("https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api", linkHttpApi);
-        Assert.assertEquals("https://thingsboard.io/docs/getting-started-guides/connectivity/", linkConnectionDevices);
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules", linkAlarmRule);
+        Assert.assertEquals(DASHBOARD_GIDE_DOCS_URL, guide);
+        Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
+        Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
+        Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRule);
         Assert.assertEquals("http://localhost:8080/profiles/deviceProfiles", linkDeviceProfile);
     }
 }

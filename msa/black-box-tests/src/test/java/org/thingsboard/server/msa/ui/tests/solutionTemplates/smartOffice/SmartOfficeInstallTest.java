@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.smartOffice;
 
 import org.testng.Assert;
@@ -23,6 +53,24 @@ import org.thingsboard.server.msa.ui.pages.UsersPageElements;
 import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
+
+import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUILDINGS_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OFFICE_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OFFICE_ASSET_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_OFFICE_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.HVAC_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.ENERGY_METER_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METER_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OFFICE_SENSORS_DEVICE_GROUPS;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SENSOR_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.HVAC_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.ENERGY_METER_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_DEVICE_PROFILE_SO;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SENSOR_DEVICE_PROFILE;
 
 public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -136,55 +184,40 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void installEntities() {
-        String deviceProfileName = "smart-sensor";
-        String deviceProfile1Name = "hvac";
-        String deviceProfile2Name = "energy-meter";
-        String deviceProfile3Name = "water-meter";
-        String deviceGroupName = "Office sensors";
-        String deviceName = "Smart sensor";
-        String device1Name = "HVAC";
-        String device2Name = "Energy meter";
-        String device3Name = "Water meter";
-        String assetGroupName = "Buildings";
-        String assetName = "Office";
-        String assetProfileName = "office";
-        String dashboardName = "Smart office";
-
         testRestClient.postSmartOffice();
-
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entity(deviceProfileName).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile1Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile2Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile3Name).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SMART_SENSOR_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(HVAC_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(ENERGY_METER_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(WATER_METERING_DEVICE_PROFILE_SO).isDisplayed());
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entity(deviceGroupName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(OFFICE_SENSORS_DEVICE_GROUPS).isDisplayed());
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entity(deviceName).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device1Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device2Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device3Name).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_SENSOR_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(HVAC_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(ENERGY_METER_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(WATER_METER_DEVICE).isDisplayed());
 
         sideBarMenuView.assetGroups().click();
 
-        Assert.assertTrue(assetPage.entity(assetGroupName).isDisplayed());
+        Assert.assertTrue(assetPage.entity(BUILDINGS_ASSET_GROUP).isDisplayed());
 
         assetPage.entity("All").click();
 
-        Assert.assertTrue(assetPage.entity(assetName).isDisplayed());
+        Assert.assertTrue(assetPage.entity(OFFICE_ASSET).isDisplayed());
 
         sideBarMenuView.openAssetProfiles();
 
-        Assert.assertTrue(profilesPage.entity(assetProfileName).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(OFFICE_ASSET_PROFILE).isDisplayed());
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entity(dashboardName).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(SMART_OFFICE_DASHBOARD).isDisplayed());
     }
 
     @Test
@@ -315,20 +348,6 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void deleteEntities() {
-        String deviceProfileName = "smart-sensor";
-        String deviceProfile1Name = "hvac";
-        String deviceProfile2Name = "energy-meter";
-        String deviceProfile3Name = "water-meter";
-        String deviceGroupName = "Office sensors";
-        String deviceName = "Smart sensor";
-        String device1Name = "HVAC";
-        String device2Name = "Energy meter";
-        String device3Name = "Water meter";
-        String assetGroupName = "Buildings";
-        String assetName = "Office";
-        String assetProfileName = "office";
-        String dashboardName = "Smart office";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -336,37 +355,37 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteSmartOffice();
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfileName));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile1Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile2Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile3Name));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SMART_SENSOR_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(HVAC_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(ENERGY_METER_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(WATER_METERING_DEVICE_PROFILE_SO));
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceGroupName));
+        Assert.assertTrue(devicePage.entityIsNotPresent(OFFICE_SENSORS_DEVICE_GROUPS));
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceName));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device1Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device2Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device3Name));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SMART_SENSOR_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(HVAC_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(ENERGY_METER_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(WATER_METER_DEVICE));
 
         sideBarMenuView.assetGroups().click();
 
-        Assert.assertTrue(assetPage.entityIsNotPresent(assetGroupName));
+        Assert.assertTrue(assetPage.entityIsNotPresent(BUILDINGS_ASSET_GROUP));
 
         assetPage.entity("All").click();
 
-        Assert.assertTrue(assetPage.entityIsNotPresent(assetName));
+        Assert.assertTrue(assetPage.entityIsNotPresent(OFFICE_ASSET));
 
         sideBarMenuView.openAssetProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(assetProfileName));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(OFFICE_ASSET_PROFILE));
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardName));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(SMART_OFFICE_DASHBOARD));
     }
 
     @Test(groups = "broken")
@@ -388,10 +407,10 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertEquals(1, urls.size());
         Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/dashboards/", guide);
-        Assert.assertEquals("https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api", linkHttpApi);
-        Assert.assertEquals("https://thingsboard.io/docs/getting-started-guides/connectivity/", linkConnectionDevices);
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules", linkAlarmRule);
+        Assert.assertEquals(DASHBOARD_GIDE_DOCS_URL, guide);
+        Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
+        Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
+        Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRule);
         Assert.assertEquals("http://localhost:8080/profiles/deviceProfiles", linkDeviceProfile);
     }
 }

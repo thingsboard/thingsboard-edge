@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.fleetTracking;
 
 import org.openqa.selenium.WebElement;
@@ -23,6 +53,18 @@ import org.thingsboard.server.msa.ui.pages.UsersPageElements;
 import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
+
+import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FLEET_TRACKING_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_B_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_C_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_D_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_DEVICES_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_A_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_DEVICE_PROFILE;
 
 public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -136,34 +178,25 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void installEntities() {
-        String deviceProfileName = "bus";
-        String deviceGroupName = "Bus devices";
-        String deviceName = "Bus A";
-        String device1Name = "Bus B";
-        String device2Name = "Bus C";
-        String device3Name = "Bus D";
-        String dashboardName = "Fleet tracking";
-
         testRestClient.postFleetTracking();
-
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entity(deviceProfileName).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(BUS_DEVICE_PROFILE).isDisplayed());
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entity(deviceGroupName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(BUS_DEVICES_DEVICE_GROUP).isDisplayed());
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entity(deviceName).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device1Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device2Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device3Name).isDisplayed());
+        Assert.assertTrue(devicePage.entity(BUS_A_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(BUS_B_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(BUS_C_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(BUS_D_DEVICE).isDisplayed());
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entity(dashboardName).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(FLEET_TRACKING_DASHBOARD).isDisplayed());
     }
 
     @Test
@@ -292,14 +325,6 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void deleteEntities() {
-        String deviceProfileName = "bus";
-        String deviceGroupName = "Bus devices";
-        String deviceName = "Bus A";
-        String device1Name = "Bus B";
-        String device2Name = "Bus C";
-        String device3Name = "Bus D";
-        String dashboardName = "Fleet tracking";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -307,22 +332,22 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteFleetTracking();
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfileName));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(BUS_DEVICE_PROFILE));
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceGroupName));
+        Assert.assertTrue(devicePage.entityIsNotPresent(BUS_DEVICES_DEVICE_GROUP));
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceName));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device1Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device2Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device3Name));
+        Assert.assertTrue(devicePage.entityIsNotPresent(BUS_A_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(BUS_B_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(BUS_C_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(BUS_D_DEVICE));
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardName));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(FLEET_TRACKING_DASHBOARD));
     }
 
     @Test(groups = "broken")
@@ -343,10 +368,10 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertEquals(1, urls.size());
         Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/dashboards/", guide);
-        Assert.assertEquals("https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api", linkHttpApi);
-        Assert.assertEquals("https://thingsboard.io/docs/getting-started-guides/connectivity/", linkConnectionDevices);
-        Assert.assertEquals("https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules", linkAlarmRule);
+        Assert.assertEquals(DASHBOARD_GIDE_DOCS_URL, guide);
+        Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
+        Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
+        Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRule);
         Assert.assertEquals("http://localhost:8080/profiles/deviceProfiles", linkDeviceProfile);
     }
 }

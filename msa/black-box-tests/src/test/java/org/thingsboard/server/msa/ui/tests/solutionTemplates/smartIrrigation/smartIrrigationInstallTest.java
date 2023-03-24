@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.smartIrrigation;
 
 import org.openqa.selenium.WebElement;
@@ -23,6 +53,35 @@ import org.thingsboard.server.msa.ui.pages.UsersPageElements;
 import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
+
+import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_2_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_1_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.IRRIGATION_MANAGEMENT_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_7_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_8_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_WATER_METER_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_2_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_3_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_4_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_5_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_6_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_WATER_METER_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_RULE_CHAIN;
 
 public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -138,86 +197,58 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void installEntities() {
-        String ruleChainName = "SI Count Alarms";
-        String ruleChain1Name = "SI Field";
-        String ruleChain2Name = "SI Soil Moisture";
-        String ruleChain3Name = "SI Water Meter";
-        String ruleChain4Name = "SI Smart Valve";
-        String deviceProfileName = "SI Smart Valve";
-        String deviceProfile1Name = "SI Water Meter";
-        String deviceProfile2Name = "SI Soil Moisture Sensor";
-        String deviceGroupName = "Smart Irrigation";
-        String deviceName = "SI Water Meter 1";
-        String device1Name = "SI Water Meter 2";
-        String device2Name = "SI Smart Valve 1";
-        String device3Name = "SI Smart Valve 2";
-        String device4Name = "SI Soil Moisture 1";
-        String device5Name = "SI Soil Moisture 2";
-        String device6Name = "SI Soil Moisture 3";
-        String device7Name = "SI Soil Moisture 4";
-        String device8Name = "SI Soil Moisture 5";
-        String device9Name = "SI Soil Moisture 6";
-        String device10Name = "SI Soil Moisture 7";
-        String device11Name = "SI Soil Moisture 8";
-        String assetGroupName = "Smart Irrigation";
-        String assetName = "SI Field 1";
-        String asset1Name = "SI Field 2";
-        String assetProfileName = "SI Field";
-        String dashboardName = "Irrigation Management";
-
         testRestClient.postSmartIrrigation();
-
         sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entity(ruleChainName).isDisplayed());
-        Assert.assertTrue(ruleChainsPage.entity(ruleChain1Name).isDisplayed());
-        Assert.assertTrue(ruleChainsPage.entity(ruleChain2Name).isDisplayed());
-        Assert.assertTrue(ruleChainsPage.entity(ruleChain3Name).isDisplayed());
-        Assert.assertTrue(ruleChainsPage.entity(ruleChain4Name).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(SI_COUNT_ALARMS_RULE_CHAIN).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(SI_FIELD_RULE_CHAIN).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(SI_SOIL_MOISTURE_RULE_CHAIN).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(SI_WATER_METER_RULE_CHAIN).isDisplayed());
+        Assert.assertTrue(ruleChainsPage.entity(SI_SMART_VALVE_RULE_CHAIN).isDisplayed());
 
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entity(deviceProfileName).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile1Name).isDisplayed());
-        Assert.assertTrue(profilesPage.entity(deviceProfile2Name).isDisplayed());;
+        Assert.assertTrue(profilesPage.entity(SI_SMART_VALVE_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SI_WATER_METER_DEVICE_PROFILE).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE).isDisplayed());;
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entity(deviceGroupName).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SMART_IRRIGATION_DEVICE_GROUP).isDisplayed());
 
         devicePage.entity("All").click();
         devicePage.changeItemsCountPerPage(30);
 
-        Assert.assertTrue(devicePage.entity(deviceName).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device1Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device2Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device3Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device4Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device5Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device6Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device7Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device8Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device9Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device10Name).isDisplayed());
-        Assert.assertTrue(devicePage.entity(device11Name).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_WATER_WATER_METER_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_WATER_WATER_METER_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SMART_VALVE_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SMART_VALVE_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_1_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_2_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_3_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_4_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_5_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_6_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_7_DEVICE).isDisplayed());
+        Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_8_DEVICE).isDisplayed());
 
         sideBarMenuView.assetGroups().click();
 
-        Assert.assertTrue(assetPage.entity(assetGroupName).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SMART_IRRIGATION_ASSET_GROUP).isDisplayed());
 
         assetPage.entity("All").click();
 
-        Assert.assertTrue(assetPage.entity(assetName).isDisplayed());
-        Assert.assertTrue(assetPage.entity(asset1Name).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SI_FIELD_1_ASSET).isDisplayed());
+        Assert.assertTrue(assetPage.entity(SI_FIELD_2_ASSET).isDisplayed());
 
         sideBarMenuView.openAssetProfiles();
 
-        Assert.assertTrue(profilesPage.entity(assetProfileName).isDisplayed());
+        Assert.assertTrue(profilesPage.entity(SI_FIELD_ASSET).isDisplayed());
 
         sideBarMenuView.dashboardGroupsBtn().click();
         dashboardPage.entity("All").click();
 
-        Assert.assertTrue(dashboardPage.entity(dashboardName).isDisplayed());
+        Assert.assertTrue(dashboardPage.entity(IRRIGATION_MANAGEMENT_DASHBOARD).isDisplayed());
     }
 
     @Test
@@ -348,33 +379,6 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void deleteEntities() {
-        String ruleChainName = "SI Count Alarms";
-        String ruleChain1Name = "SI Field";
-        String ruleChain2Name = "SI Soil Moisture";
-        String ruleChain3Name = "SI Water Meter";
-        String ruleChain4Name = "SI Smart Valve";
-        String deviceProfileName = "SI Smart Valve";
-        String deviceProfile1Name = "SI Water Meter";
-        String deviceProfile2Name = "SI Soil Moisture Sensor";
-        String deviceGroupName = "Smart Irrigation";
-        String deviceName = "SI Water Meter 1";
-        String device1Name = "SI Water Meter 2";
-        String device2Name = "SI Smart Valve 1";
-        String device3Name = "SI Smart Valve 2";
-        String device4Name = "SI Soil Moisture 1";
-        String device5Name = "SI Soil Moisture 2";
-        String device6Name = "SI Soil Moisture 3";
-        String device7Name = "SI Soil Moisture 4";
-        String device8Name = "SI Soil Moisture 5";
-        String device9Name = "SI Soil Moisture 6";
-        String device10Name = "SI Soil Moisture 7";
-        String device11Name = "SI Soil Moisture 8";
-        String assetGroupName = "Smart Irrigation";
-        String assetName = "SI Field 1";
-        String asset1Name = "SI Field 2";
-        String assetProfileName = "SI Field";
-        String dashboardName = "Irrigation Management";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -382,53 +386,53 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteSmartIrrigation();
         sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(ruleChainName));
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(ruleChain1Name));
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(ruleChain2Name));
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(ruleChain3Name));
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(ruleChain4Name));
+        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SI_COUNT_ALARMS_RULE_CHAIN));
+        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SI_FIELD_RULE_CHAIN));
+        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SI_SOIL_MOISTURE_RULE_CHAIN));
+        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SI_WATER_METER_RULE_CHAIN));
+        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SI_SMART_VALVE_RULE_CHAIN));
 
         sideBarMenuView.openDeviceProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfileName));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile1Name));
-        Assert.assertTrue(profilesPage.entityIsNotPresent(deviceProfile2Name));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SI_SMART_VALVE_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SI_WATER_METER_DEVICE_PROFILE));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE));
 
         sideBarMenuView.deviceGroups().click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceGroupName));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SMART_IRRIGATION_DEVICE_GROUP));
 
         devicePage.entity("All").click();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(deviceName));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device1Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device2Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device3Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device4Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device5Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device6Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device7Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device8Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device9Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device10Name));
-        Assert.assertTrue(devicePage.entityIsNotPresent(device11Name));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_WATER_WATER_METER_1_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_WATER_WATER_METER_2_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SMART_VALVE_1_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SMART_VALVE_2_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_1_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_2_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_3_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_4_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_5_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_6_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_7_DEVICE));
+        Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_8_DEVICE));
 
         sideBarMenuView.assetGroups().click();
 
-        Assert.assertTrue(assetPage.entityIsNotPresent(assetGroupName));
+        Assert.assertTrue(assetPage.entityIsNotPresent(SMART_IRRIGATION_ASSET_GROUP));
 
         assetPage.entity("All").click();
 
-        Assert.assertTrue(assetPage.entityIsNotPresent(assetName));
-        Assert.assertTrue(assetPage.entityIsNotPresent(asset1Name));
+        Assert.assertTrue(assetPage.entityIsNotPresent(SI_FIELD_1_ASSET));
+        Assert.assertTrue(assetPage.entityIsNotPresent(SI_FIELD_2_ASSET));
 
         sideBarMenuView.openAssetProfiles();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(assetProfileName));
+        Assert.assertTrue(profilesPage.entityIsNotPresent(SI_FIELD_ASSET));
 
         dashboardPage.goToAllDashboards();
 
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(dashboardName));
+        Assert.assertTrue(dashboardPage.entityIsNotPresent(IRRIGATION_MANAGEMENT_DASHBOARD));
     }
 
     @Test()
@@ -447,7 +451,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertEquals(1, urls.size());
         Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
-        Assert.assertEquals("https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api", linkHttpApi);
-        Assert.assertEquals("https://thingsboard.io/docs/getting-started-guides/connectivity/", linkConnectionDevices);
+        Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
+        Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
     }
 }
