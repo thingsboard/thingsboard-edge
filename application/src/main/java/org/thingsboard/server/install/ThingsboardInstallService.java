@@ -41,6 +41,7 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.DatabaseEntitiesUpgradeService;
 import org.thingsboard.server.service.install.DatabaseTsUpgradeService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.NoSqlKeyspaceService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
@@ -102,6 +103,9 @@ public class ThingsboardInstallService {
 
     @Autowired(required = false)
     private TsLatestMigrateService latestMigrateService;
+
+    @Autowired
+    private InstallScripts installScripts;
 
     public void performInstall() {
         try {
@@ -256,16 +260,18 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.3 ...");
                         case "3.4.3":
                             log.info("Upgrading ThingsBoard from version 3.4.3 to 3.4.4 ...");
-                        case "3.4.4": // to 3.4.4PE
-                            log.info("Upgrading ThingsBoard from version 3.4.4 to 3.4.4PE ...");
+                        case "3.4.4":
+                            log.info("Upgrading ThingsBoard from version 3.4.4 to 3.5.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
-                            dataUpdateService.updateData("3.4.4");
+                            installScripts.loadSystemLwm2mResources();
+                        case "3.5.0": // to 3.5.0PE
+                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
+                            dataUpdateService.updateData("3.5.0");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
                             break;
-
                         //TODO update CacheCleanupService on the next version upgrade
-
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 
@@ -306,6 +312,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createQueues();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
+                installScripts.loadSystemLwm2mResources();
 
                 if (loadDemo) {
                     log.info("Loading demo data...");
@@ -324,3 +331,4 @@ public class ThingsboardInstallService {
     }
 
 }
+

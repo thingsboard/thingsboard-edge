@@ -34,7 +34,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import {
@@ -65,7 +65,7 @@ export interface EntityGroupColumnDialogData {
 export class EntityGroupColumnDialogComponent extends
   DialogComponent<EntityGroupColumnDialogComponent, EntityGroupColumn> implements OnInit, ErrorStateMatcher {
 
-  columnFormGroup: FormGroup;
+  columnFormGroup: UntypedFormGroup;
 
   columnType = EntityGroupColumnType;
 
@@ -90,7 +90,7 @@ export class EntityGroupColumnDialogComponent extends
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<EntityGroupColumnDialogComponent, EntityGroupColumn>,
               private widgetService: WidgetService,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.functionScopeVariables = this.widgetService.getWidgetScopeVariables();
   }
@@ -136,7 +136,7 @@ export class EntityGroupColumnDialogComponent extends
     }
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

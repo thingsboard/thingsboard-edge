@@ -31,11 +31,18 @@
 
 -->
 <div #schedulerEventWidgetContainer class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
-  <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+  <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'tb-outlined-border': !widgetMode}">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else schedulerEventsTitle" class="tb-scheduler-events-title">{{ctx.widgetTitle}}</span>
         <ng-template #schedulerEventsTitle>
+          <button *ngIf="displayBackButton()" mat-icon-button
+                  matTooltip="{{ 'action.back' | translate }}"
+                  matTooltipPosition="above"
+                  (click)="goBack()"
+                  style="margin-right: 8px;">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
           <span class="tb-scheduler-events-title" translate>scheduler.scheduler-events</span>
         </ng-template>
         <div class="tb-scheduler-events-view-type-toolbar"
@@ -94,7 +101,7 @@
         </section>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 matTooltip="{{ 'scheduler.search-scheduler-events' | translate }}"
@@ -114,7 +121,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
                 <span>
                   {{ translate.get('scheduler.selected-scheduler-events', {count: dataSource.selection.selected.length}) | async }}
@@ -186,28 +193,28 @@
             <mat-cell *matCellDef="let schedulerEvent">
               <div fxFlex fxLayout="row" fxLayoutAlign="end">
                 <button *ngIf="editEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.edit-scheduler-event' | translate }}"
                         matTooltipPosition="above"
                         (click)="editSchedulerEvent($event, schedulerEvent)">
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button *ngIf="!editEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.view-scheduler-event' | translate }}"
                         matTooltipPosition="above"
                         (click)="viewSchedulerEvent($event, schedulerEvent)">
                   <mat-icon>more_horiz</mat-icon>
                 </button>
                 <button *ngIf="assignEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'edge.unassign-from-edge' | translate }}"
                         matTooltipPosition="above"
                         (click)="unassignFromEdge($event, schedulerEvent)">
                   <mat-icon>assignment_return</mat-icon>
                 </button>
                 <button *ngIf="deleteEnabled"
-                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'scheduler.delete-scheduler-event' | translate }}"
                         matTooltipPosition="above"
                         (click)="deleteSchedulerEvent($event, schedulerEvent)">
@@ -239,10 +246,10 @@
     </div>
     <div fxFlex class="mat-padding" [fxShow]="mode === 'calendar'" fxLayout="column">
       <div fxLayout="row">
-        <h2 class="mat-headline">
+        <h2 class="mat-headline-5">
           {{ calendarViewTitle() }}
         </h2>
-        <mat-form-field class="mat-block" fxFlex style="margin-left: 16px; margin-right: 16px;">
+        <mat-form-field class="mat-block" fxFlex subscriptSizing="dynamic" style="margin-left: 16px; margin-right: 16px;">
           <mat-label translate>scheduler.calendar-view-type</mat-label>
           <mat-select [(ngModel)]="currentCalendarView" (ngModelChange)="changeCalendarView()">
             <mat-option *ngFor="let viewType of schedulerCalendarViews" [value]="viewType">
@@ -254,12 +261,12 @@
           <button mat-button mat-raised-button [disabled]="isCalendarToday()" (click)="gotoCalendarToday()">
             {{'scheduler.today' | translate}}
           </button>
-          <button mat-button mat-raised-button mat-icon-button (click)="gotoCalendarPrev()"
+          <button mat-mini-fab class="tb-scheduler-nav-button" (click)="gotoCalendarPrev()"
             matTooltip="{{'scheduler.navigate-before' | translate}}"
             matTooltipPosition="above">
             <mat-icon>navigate_before</mat-icon>
           </button>
-          <button mat-button mat-raised-button mat-icon-button (click)="gotoCalendarNext()"
+          <button mat-mini-fab class="tb-scheduler-nav-button" (click)="gotoCalendarNext()"
                   matTooltip="{{'scheduler.navigate-next' | translate}}"
                   matTooltipPosition="above">
             <mat-icon>navigate_next</mat-icon>
@@ -298,20 +305,18 @@
             </div>
           </ng-template>
         </mat-menu>
-        <full-calendar #calendar
-                       height="parent"
-                       [eventSources]="eventSources"
-                       [editable]="editEnabled"
-                       [eventDurationEditable]="false"
-                       [allDaySlot]="false"
-                       [header]="false"
-                       timeZone="UTC"
-                       (eventClick)="onEventClick($event)"
-                       (dateClick)="onDayClick($event)"
-                       (eventDrop)="onEventDrop($event)"
-                       (eventRender)="eventRender($event)"
-                       [defaultView]="currentCalendarViewValue"
-                       [plugins]="calendarPlugins">
+        <full-calendar #calendar [options]="calendarOptions">
+          <ng-template #eventContent let-arg>
+            <div class="fc-event-main-frame">
+              <div class="fc-event-time">
+                {{ arg.timeText }}
+              </div>
+              <div class="fc-event-title-container">
+                <b class="fc-event-title fc-sticky" *ngIf="arg.event.extendedProps.repeatInterval">{{ arg.event.extendedProps.repeatInterval }}&nbsp;</b>
+                <div class="fc-event-title fc-sticky">{{ arg.event.title }}</div>
+              </div>
+            </div>
+          </ng-template>
         </full-calendar>
       </div>
     </div>

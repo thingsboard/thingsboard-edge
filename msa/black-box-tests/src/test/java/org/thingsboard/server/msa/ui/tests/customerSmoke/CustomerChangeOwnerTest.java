@@ -31,10 +31,12 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
@@ -52,7 +54,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
     private final String title = ENTITY_NAME + random();
     private final String title1 = ENTITY_NAME + random() + '1';
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -64,8 +66,10 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         testRestClient.deleteCustomer(getCustomerByName(title).getId());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner")
     public void changeOwner() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
@@ -82,8 +86,10 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entity(title1).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner without select customer")
     public void changeOwnerWithoutName() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
@@ -92,7 +98,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().click();
         customerPage.changeOwnerViewField().sendKeys(Keys.ESCAPE);
-        customerPage.changeOwnerViewChangeOwnerBtnVisible().click();
+        jsClick(customerPage.changeOwnerViewChangeOwnerBtnVisible());
 
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
         Assert.assertNotNull(customerPage.errorMessage());
@@ -100,8 +106,10 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.errorMessage().getText(), OWNER_NOT_SELECTED_ERROR);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner with only space")
     public void changeOwnerWithOnlySpace() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
@@ -113,8 +121,10 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner several customers")
     public void changeOwnerSeveralCustomers() {
         String title3 = title + '2';
         testRestClient.postCustomer(defaultCustomerPrototype(title));

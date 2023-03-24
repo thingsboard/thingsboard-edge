@@ -88,6 +88,8 @@ server:
       min_timeout: "${MIN_SERVER_SIDE_RPC_TIMEOUT:5000}"
       # Default value of the server side RPC timeout.
       default_timeout: "${DEFAULT_SERVER_SIDE_RPC_TIMEOUT:10000}"
+    rate_limits:
+      reset_password_per_user: "${RESET_PASSWORD_PER_USER_RATE_LIMIT_CONFIGURATION:5:3600}"
 
 # Application info
 app:
@@ -292,6 +294,8 @@ sql:
     partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
   audit_logs:
     partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
+  alarm_comments:
+    partition_size: "${SQL_ALARM_COMMENTS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   blob_entities:
     partition_size: "${SQL_BLOB_ENTITIES_PARTITION_SIZE_HOURS:168}"
   # Specify whether to sort entities before batch update. Should be enabled for cluster mode to avoid deadlocks
@@ -429,6 +433,7 @@ integrations:
 reports:
   server:
     endpointUrl: "${REPORTS_SERVER_ENDPOINT_URL:http://localhost:8383}"
+    maxResponseSize: "${MAX_RESPONSE_SIZE:52428800}" # 50MB
   rate_limits:
     enabled: "${REPORTS_TENANT_RATE_LIMITS_ENABLED:false}"
     configuration: "${REPORTS_TENANT_RATE_LIMITS_CONFIGURATION:5:300}"
@@ -513,6 +518,9 @@ cache:
     versionControlTask:
       timeToLiveInMinutes: "${CACHE_SPECS_VERSION_CONTROL_TASK_TTL:5}"
       maxSize: "${CACHE_SPECS_VERSION_CONTROL_TASK_MAX_SIZE:100000}"
+    userSettings:
+      timeToLiveInMinutes: "${CACHE_SPECS_USER_SETTINGS_TTL:1440}"
+      maxSize: "${CACHE_SPECS_USER_SETTINGS_MAX_SIZE:100000}"
 
     # PE cache specs
     downlink:
@@ -644,6 +652,7 @@ spring:
     password: "${SPRING_DATASOURCE_PASSWORD:postgres}"
     hikari:
       maximumPoolSize: "${SPRING_DATASOURCE_MAXIMUM_POOL_SIZE:16}"
+      registerMbeans: "${SPRING_DATASOURCE_HIKARI_REGISTER_MBEANS:false}" # true - enable MBean to diagnose pools state via JMX
 
 # Audit log parameters
 audit-log:
@@ -1275,6 +1284,7 @@ queue:
     partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
     notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    uplink_topic: "${TB_QUEUE_INTEGRATION_UPLINK_TOPIC:tb_ie.uplink}"
     poll_interval: "${TB_QUEUE_INTEGRATION_POLL_INTERVAL_MS:25}"
     pack-processing-timeout: "${TB_QUEUE_INTEGRATION_PACK_PROCESSING_TIMEOUT_MS:10000}"
   integration_api:
@@ -1319,3 +1329,4 @@ management:
       exposure:
         # Expose metrics endpoint (use value 'prometheus' to enable prometheus metrics).
         include: '${METRICS_ENDPOINTS_EXPOSE:info}'
+

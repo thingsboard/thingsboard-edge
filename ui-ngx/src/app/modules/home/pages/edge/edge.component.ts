@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
@@ -61,7 +61,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
               private userPermissionsService: UserPermissionsService,
               @Inject('entity') protected entityValue: Edge,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -83,48 +83,48 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   }
 
   hideManageUsers() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageUsersEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageUsersEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageAssets() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageAssetsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageAssetsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageDevices() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageDevicesEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageDevicesEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageEntityViews() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageEntityViewsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageEntityViewsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageDashboards() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageDashboardsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageSchedulerEvents() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageSchedulerEventsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageSchedulerEventsEnabled(this.entity);
     } else {
       return false;
     }
@@ -134,7 +134,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Edge): FormGroup {
+  buildForm(entity: Edge): UntypedFormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -203,10 +203,10 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   isTenantAdmin(): boolean {
     const authUser: AuthUser = getCurrentAuthUser(this.store);
-    return authUser.authority === Authority.TENANT_ADMIN;
+    return authUser?.authority === Authority.TENANT_ADMIN;
   }
 
-  private generateRoutingKeyAndSecret(entity: Edge, form: FormGroup) {
+  private generateRoutingKeyAndSecret(entity: Edge, form: UntypedFormGroup) {
     if (entity && (!entity.id || (entity.id && !entity.id.id))) {
       form.get('routingKey').patchValue(guid(), { emitEvent: false });
       form.get('secret').patchValue(generateSecret(20), { emitEvent: false });

@@ -31,8 +31,10 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
@@ -45,19 +47,21 @@ public class ManageCustomersUsersTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private final String iconText = ": User groups";
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Manage customer users")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open manage window by right corner btn")
     public void openWindowByRightCornerBtn() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
-        customerPage.manageCustomersUserBtn(customerPage.getCustomerName()).click();
+        jsClick(customerPage.manageCustomersUserBtn(customerPage.getCustomerName()));
 
         Assert.assertTrue(urlContains("userGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());
@@ -66,13 +70,15 @@ public class ManageCustomersUsersTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customerManageWindowIconHead().getText().contains(customerPage.getCustomerName() + iconText));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Manage customer users")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open manage window by btn in entity view")
     public void openWindowByView() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
-        customerPage.manageCustomersUserGroupsBtnView().click();
+        jsClick(customerPage.manageCustomersUserGroupsBtnView());
 
         Assert.assertTrue(urlContains("userGroups"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());

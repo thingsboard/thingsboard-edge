@@ -35,6 +35,7 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { EntityViewId } from '@shared/models/id/entity-view-id';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntitySearchQuery } from '@shared/models/relation.models';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface AttributesEntityView {
   cs: Array<string>;
@@ -59,10 +60,10 @@ export interface EntityView extends BaseData<EntityViewId>, ExportableEntity<Ent
   additionalInfo?: any;
 }
 
-/*export interface EntityViewInfo extends EntityView {
-  customerTitle: string;
-  customerIsPublic: boolean;
-}*/
+export interface EntityViewInfo extends EntityView {
+  ownerName?: string;
+  groups?: EntityInfoData[];
+}
 
 export interface EntityViewSearchQuery extends EntitySearchQuery {
   entityViewTypes: Array<string>;

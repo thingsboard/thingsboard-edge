@@ -226,10 +226,10 @@ export class HomeDialogsService {
   public unassignEntityGroupsFromEdge($event: Event, entityGroups: Array<EntityGroup>, edgeId: string): Observable<boolean> {
     const title = this.translate.instant('edge.unassign-entity-groups-from-edge-title', { count: entityGroups.length });
     const content = this.translate.instant('edge.unassign-entity-groups-from-edge-text');
-    const tasks: Observable<Array<EntityGroup>>[] = [];
+    const tasks: Array<Observable<EntityGroup>> = [];
     entityGroups.forEach((entityGroup) => {
       tasks.push(this.entityGroupService.unassignEntityGroupFromEdge(edgeId, entityGroup.id.id, entityGroup.type).pipe(
-        map(() => entityGroup.id),
+        map((e) => e),
         catchError(() => of(null)
         )));
     });

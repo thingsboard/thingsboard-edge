@@ -61,7 +61,8 @@ export enum IntegrationType {
   THINGPARK = 'THINGPARK',
   TMOBILE_IOT_CDP = 'TMOBILE_IOT_CDP',
   TPE = 'TPE',
-  UDP = 'UDP'
+  UDP = 'UDP',
+  TUYA = 'TUYA'
 }
 
 export enum CoapSecurityMode {
@@ -305,6 +306,14 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       }
     ],
     [
+      IntegrationType.TUYA,
+      {
+        name: 'integration.type-tuya',
+        description: 'integration.type-tuya-description',
+        icon: 'assets/integration-icon/tuya.svg'
+      }
+    ],
+    [
       IntegrationType.CUSTOM,
       {
         name: 'integration.type-custom',
@@ -343,6 +352,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
     [IntegrationType.PUB_SUB, 'integrationPubsub'],
     [IntegrationType.COAP, 'integrationCoAP'],
+    [IntegrationType.TUYA, 'integrationTuya'],
     [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );
@@ -350,7 +360,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
 export type IntegrationConfiguration = ApachePulsarIntegration | HttpIntegration | ThingParkIntegration | LoriotIntegration |
   MqttIntegration | AwsIotIntegration | AwsSqsIntegration | AwsKinesisIntegration | IbmWatsonIotIntegration | TtnIntegration |
   ChipStackIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration | TcpIntegration |
-  KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | CustomIntegration;
+  KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | TuyaIntegration | CustomIntegration;
 
 export function getIntegrationHelpLink(integration: Integration): string {
   if (integration && integration.type) {
@@ -406,6 +416,10 @@ export enum IntegrationSubType {
 export function resolveIntegrationParams(route: ActivatedRouteSnapshot): IntegrationParams {
   const routeParams = {...route.params};
   const routeData = {...route.data};
+  let backNavigationCommands: any[];
+  if (routeData.backNavigationCommands) {
+    backNavigationCommands = routeData.backNavigationCommands;
+  }
   let edgeId: string;
   let integrationScope: string;
   if (routeParams?.hierarchyView) {
@@ -421,7 +435,8 @@ export function resolveIntegrationParams(route: ActivatedRouteSnapshot): Integra
     hierarchyView: routeParams?.hierarchyView,
     entityGroupId: routeParams?.entityGroupId,
     childEntityGroupId: routeParams?.childEntityGroupId,
-    customerId: routeParams?.customerId
+    customerId: routeParams?.customerId,
+    backNavigationCommands
   };
 }
 
@@ -787,6 +802,34 @@ export interface RabbitMqIntegration {
     autoDelete: boolean;
   };
 }
+
+export enum TuyaRegion {
+  CN = 'CN',
+  US = 'US',
+  EU = 'EU',
+  IN = 'IN'
+}
+
+export enum TuyaEnv {
+  PROD = 'PROD',
+  TEST = 'TEST'
+}
+
+export interface TuyaIntegration {
+  clientConfiguration: {
+    region: TuyaRegion;
+    accessId: string;
+    accessKey: string;
+    env: TuyaEnv;
+  };
+}
+
+export const TuyaRegionTranslation = new Map<TuyaRegion, string>([
+  [TuyaRegion.CN, 'integration.region-cn'],
+  [TuyaRegion.US, 'integration.region-us'],
+  [TuyaRegion.EU, 'integration.region-eu'],
+  [TuyaRegion.IN, 'integration.region-in']
+]);
 
 interface TcpHandlerConfiguration {
   handlerType: TcpHandlerConfigurationType;

@@ -33,7 +33,7 @@ import { Component, Inject, OnDestroy, SkipSelf, ViewChild } from '@angular/core
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import {
@@ -49,7 +49,7 @@ import {
   deviceTransportTypeHintMap,
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
-import { MatHorizontalStepper } from '@angular/material/stepper';
+import { MatStepper } from '@angular/material/stepper';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -67,6 +67,12 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { ServiceType } from '@shared/models/queue.models';
 import { deepTrim } from '@core/utils';
+import { EntityGroup } from '@shared/models/entity-group.models';
+
+export interface DeviceWizardDialogData {
+  customerId?: string;
+  entityGroup?: EntityGroup;
+}
 
 @Component({
   selector: 'tb-device-wizard',
@@ -77,7 +83,7 @@ import { deepTrim } from '@core/utils';
 export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatHorizontalStepper;
+  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatStepper;
 
   resource = Resource;
 
@@ -97,21 +103,21 @@ export class DeviceWizardDialogComponent extends
 
   deviceTransportTypeHints = deviceTransportTypeHintMap;
 
-  deviceWizardFormGroup: FormGroup;
+  deviceWizardFormGroup: UntypedFormGroup;
 
-  transportConfigFormGroup: FormGroup;
+  transportConfigFormGroup: UntypedFormGroup;
 
-  alarmRulesFormGroup: FormGroup;
+  alarmRulesFormGroup: UntypedFormGroup;
 
-  provisionConfigFormGroup: FormGroup;
+  provisionConfigFormGroup: UntypedFormGroup;
 
-  credentialsFormGroup: FormGroup;
+  credentialsFormGroup: UntypedFormGroup;
 
-  labelPosition: MatHorizontalStepper['labelPosition'] = 'end';
+  labelPosition: MatStepper['labelPosition'] = 'end';
 
-  entitiesTableConfig = this.data.entitiesTableConfig;
+  entityGroup = this.data.entityGroup;
 
-  entityGroup = this.entitiesTableConfig.entityGroup;
+  customerId = this.data.customerId;
 
   serviceType = ServiceType.TB_RULE_ENGINE;
 
@@ -120,14 +126,14 @@ export class DeviceWizardDialogComponent extends
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: AddGroupEntityDialogData<Device>,
+              @Inject(MAT_DIALOG_DATA) public data: DeviceWizardDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<DeviceWizardDialogComponent, Device>,
               private deviceProfileService: DeviceProfileService,
               private deviceService: DeviceService,
               private userPermissionService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.deviceWizardFormGroup = this.fb.group({
         name: ['', [Validators.required, Validators.maxLength(255)]],
@@ -225,7 +231,7 @@ export class DeviceWizardDialogComponent extends
     this.subscriptions.forEach(s => s.unsubscribe());
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid);
     return originalErrorState || customErrorState;
@@ -356,10 +362,15 @@ export class DeviceWizardDialogComponent extends
       },
       customerId: null
     } as Device;
-    if (this.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
-      device.customerId = this.entityGroup.ownerId as CustomerId;
+    let entityGroupId: string;
+    if (this.entityGroup) {
+      if (this.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+        device.customerId = this.entityGroup.ownerId as CustomerId;
+      }
+      entityGroupId = !this.entityGroup.groupAll ? this.entityGroup.id.id : null;
+    } else if (this.customerId) {
+      device.customerId = new CustomerId(this.customerId);
     }
-    const entityGroupId = !this.entityGroup.groupAll ? this.entityGroup.id.id : null;
     return this.deviceService.saveDevice(deepTrim(device), entityGroupId).pipe(
       catchError(e => {
         this.addDeviceWizardStepper.selectedIndex = 0;
@@ -378,9 +389,7 @@ export class DeviceWizardDialogComponent extends
               catchError(e => {
                 this.addDeviceWizardStepper.selectedIndex = 1;
                 return this.deviceService.deleteDevice(device.id.id).pipe(
-                  mergeMap(() => {
-                    return throwError(e);
-                  }
+                  mergeMap(() => throwError(e)
                 ));
               })
             );

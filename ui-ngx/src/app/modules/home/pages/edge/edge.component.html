@@ -37,24 +37,6 @@
           [fxShow]="!isEdit && !isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
-  <!--button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'makePublic')"
-          [fxShow]="!isEdit && !isAssignedToCustomer(entity) && !entity?.customerIsPublic">
-    {{'edge.make-public' | translate }}
-  </button>
-  <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'assignToCustomer')"
-          [fxShow]="!isEdit && !isAssignedToCustomer(entity)">
-    {{'edge.assign-to-customer' | translate }}
-  </button>
-  <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'unassignFromCustomer')"
-          [fxShow]="!isEdit && (edgeScope === 'customer' || edgeScope === 'tenant') && isAssignedToCustomer(entity)">
-    {{ (entity?.customerIsPublic ? 'edge.make-private' : 'edge.unassign-from-customer') | translate }}
-  </button> -->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageUsers')"
@@ -115,7 +97,7 @@
     <button mat-raised-button color="primary" fxFlex.xs
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'delete')"
-            *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
+            *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.EDGE: operation.DELETE"
             [fxShow]="!hideDelete() && !isEdit">
       {{ 'edge.delete' | translate }}
     </button>
@@ -154,18 +136,17 @@
       <span translate>edge.sync</span>
     </button>
   </div>
+  <div fxLayout="row" fxLayout.xs="column">
+    <button mat-raised-button color="primary"
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'openInstructions')"
+            [fxShow]="!isEdit">
+      <mat-icon>info_outline</mat-icon>
+      <span>{{ 'edge.install-connect-instructions' | translate }}</span>
+    </button>
+  </div>
 </div>
 <div class="mat-padding" fxLayout="column">
-  <!--mat-form-field class="mat-block"
-                  [fxShow]="!isEdit && isAssignedToCustomer(entity)
-                              && !entity?.customerIsPublic">
-    <mat-label translate>edge.assigned-to-customer</mat-label>
-    <input matInput disabled [ngModel]="entity?.customerTitle">
-  </mat-form-field>
-  <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
-       [fxShow]="!isEdit && entity?.customerIsPublic && (edgeScope === 'customer' || edgeScope === 'tenant')">
-    {{ 'edge.public' | translate }}
-  </div-->
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
@@ -215,7 +196,7 @@
           <mat-label translate>edge.edge-key</mat-label>
           <input matInput formControlName="routingKey">
         </mat-form-field>
-      <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('key')"
+      <button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('key')"
               [cbContent]="entityForm?.get('routingKey').value"
               matTooltip="{{'edge.copy-edge-key' | translate}}">
         <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
@@ -226,7 +207,7 @@
           <mat-label translate>edge.edge-secret</mat-label>
           <input matInput formControlName="secret">
         </mat-form-field>
-      <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('secret')"
+      <button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onEdgeInfoCopied('secret')"
               [cbContent]="entityForm?.get('secret').value"
               matTooltip="{{'edge.copy-edge-secret' | translate}}">
         <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>

@@ -32,21 +32,31 @@
 import {
   AfterViewInit,
   Component,
-  ElementRef, EventEmitter,
+  ElementRef,
+  EventEmitter,
   HostBinding,
   Inject,
   OnDestroy,
   OnInit,
-  QueryList, Renderer2,
+  QueryList,
+  Renderer2,
   SkipSelf,
   ViewChild,
-  ViewChildren, ViewContainerRef,
+  ViewChildren,
+  ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormGroupDirective,
+  NgForm,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 import { TranslateService } from '@ngx-translate/core';
 import { ErrorStateMatcher } from '@angular/material/core';
@@ -69,7 +79,9 @@ import {
   FcRuleNode,
   FcRuleNodeType,
   getRuleNodeHelpLink,
-  LinkLabel, outputNodeClazz, ruleChainNodeClazz,
+  LinkLabel,
+  outputNodeClazz,
+  ruleChainNodeClazz,
   RuleNode,
   RuleNodeComponentDescriptor,
   RuleNodeType,
@@ -89,14 +101,12 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { ItemBufferService, RuleNodeConnection } from '@core/services/item-buffer.service';
 import { Hotkey } from 'angular2-hotkeys';
 import { DebugEventType, EventType } from '@shared/models/event.models';
+import { MatMiniFabButton } from '@angular/material/button';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { VersionControlComponent } from '@home/components/vc/version-control.component';
+import Timeout = NodeJS.Timeout;
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import Timeout = NodeJS.Timeout;
-import { MatButton } from '@angular/material/button';
-import { TbPopoverService } from '@shared/components/popover.service';
-import { EntityVersionCreateComponent } from '@home/components/vc/entity-version-create.component';
-import { VersionCreationResult } from '@shared/models/vc.models';
-import { VersionControlComponent } from '@home/components/vc/version-control.component';
 
 @Component({
   selector: 'tb-rulechain-page',
@@ -199,9 +209,8 @@ export class RuleChainPageComponent extends PageComponent
       mouseLeave: this.destroyTooltips.bind(this),
       mouseDown: this.destroyTooltips.bind(this)
     },
-    isValidEdge: (source, destination) => {
-      return source.type === FlowchartConstants.rightConnectorType && destination.type === FlowchartConstants.leftConnectorType;
-    },
+    isValidEdge: (source, destination) =>
+      source.type === FlowchartConstants.rightConnectorType && destination.type === FlowchartConstants.leftConnectorType,
     createEdge: (event, edge: FcRuleEdge) => {
       const sourceNode = this.ruleChainCanvas.modelService.nodes.getNodeByConnectorId(edge.source) as FcRuleNode;
       if (sourceNode.component.type === RuleNodeType.INPUT) {
@@ -245,7 +254,7 @@ export class RuleChainPageComponent extends PageComponent
   nextConnectorID: number;
   inputConnectorId: number;
 
-  ruleNodeTypesModel: {[type: string]: {model: FcRuleNodeTypeModel, selectedObjects: any[]}} = {};
+  ruleNodeTypesModel: {[type: string]: {model: FcRuleNodeTypeModel; selectedObjects: any[]}} = {};
 
   nodeLibCallbacks: UserCallbacks = {
     nodeCallbacks: {
@@ -278,7 +287,7 @@ export class RuleChainPageComponent extends PageComponent
               private viewContainerRef: ViewContainerRef,
               public dialog: MatDialog,
               public dialogService: DialogService,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store);
     this.rxSubscription = this.route.data.subscribe(
       () => {
@@ -516,9 +525,7 @@ export class RuleChainPageComponent extends PageComponent
     });
     if (this.expansionPanels && !this.readonly) {
       for (let i = 0; i < ruleNodeTypesLibrary.length; i++) {
-        const panel = this.expansionPanels.find((item, index) => {
-          return index === i;
-        });
+        const panel = this.expansionPanels.find((item, index) => index === i);
         if (panel) {
           const type = ruleNodeTypesLibrary[i];
           if (!this.ruleNodeTypesModel[type].model.nodes.length) {
@@ -1423,7 +1430,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   saveRuleChain(): Observable<any> {
-    const saveResult = new ReplaySubject();
+    const saveResult = new ReplaySubject<void>();
     let saveRuleChainObservable: Observable<RuleChain>;
     if (this.isImport) {
       saveRuleChainObservable = this.ruleChainService.saveRuleChain(this.ruleChain);
@@ -1482,7 +1489,7 @@ export class RuleChainPageComponent extends PageComponent
           this.isDirtyValue = false;
           this.isImport = false;
           if (this.ruleChainType !== RuleChainType.EDGE) {
-            this.router.navigateByUrl(`ruleChains/${this.ruleChain.id.id}`);
+            this.router.navigateByUrl(`features/ruleChains/${this.ruleChain.id.id}`);
           } else {
             this.router.navigateByUrl(`edgeManagement/ruleChains/${this.ruleChain.id.id}`);
           }
@@ -1570,7 +1577,7 @@ export class RuleChainPageComponent extends PageComponent
     }).afterClosed();
   }
 
-  toggleVersionControl($event: Event, versionControlButton: MatButton) {
+  toggleVersionControl($event: Event, versionControlButton: MatMiniFabButton) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -1707,7 +1714,7 @@ export interface AddRuleNodeLinkDialogData {
 export class AddRuleNodeLinkDialogComponent extends DialogComponent<AddRuleNodeLinkDialogComponent, FcRuleEdge>
   implements OnInit, ErrorStateMatcher {
 
-  ruleNodeLinkFormGroup: FormGroup;
+  ruleNodeLinkFormGroup: UntypedFormGroup;
 
   link: FcRuleEdge;
   labels: {[label: string]: LinkLabel};
@@ -1721,7 +1728,7 @@ export class AddRuleNodeLinkDialogComponent extends DialogComponent<AddRuleNodeL
               @Inject(MAT_DIALOG_DATA) public data: AddRuleNodeLinkDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<AddRuleNodeLinkDialogComponent, FcRuleEdge>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.link = this.data.link;
@@ -1738,7 +1745,7 @@ export class AddRuleNodeLinkDialogComponent extends DialogComponent<AddRuleNodeL
   ngOnInit(): void {
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;
@@ -1794,7 +1801,7 @@ export class AddRuleNodeDialogComponent extends DialogComponent<AddRuleNodeDialo
   ngOnInit(): void {
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;
@@ -1831,7 +1838,7 @@ export interface CreateNestedRuleChainDialogData {
 export class CreateNestedRuleChainDialogComponent extends DialogComponent<CreateNestedRuleChainDialogComponent, RuleChain>
   implements OnInit, ErrorStateMatcher {
 
-  createNestedRuleChainFormGroup: FormGroup;
+  createNestedRuleChainFormGroup: UntypedFormGroup;
 
   submitted = false;
 
@@ -1839,7 +1846,7 @@ export class CreateNestedRuleChainDialogComponent extends DialogComponent<Create
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: CreateNestedRuleChainDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private ruleChainService: RuleChainService,
               public dialogRef: MatDialogRef<CreateNestedRuleChainDialogComponent, RuleChain>) {
     super(store, router, dialogRef);
@@ -1859,7 +1866,7 @@ export class CreateNestedRuleChainDialogComponent extends DialogComponent<Create
     );
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

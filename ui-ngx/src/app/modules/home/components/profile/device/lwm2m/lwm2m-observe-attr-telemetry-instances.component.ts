@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -68,7 +68,7 @@ import { Subscription } from 'rxjs';
 
 export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  instancesFormGroup: FormGroup;
+  instancesFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -90,7 +90,7 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
   private valueChange$: Subscription = null;
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               public translate: TranslateService) {
     this.instancesFormGroup = this.fb.group({
       instances: this.fb.array([])
@@ -129,8 +129,8 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
     };
   }
 
-  get instancesFormArray(): FormArray {
-    return this.instancesFormGroup.get('instances') as FormArray;
+  get instancesFormArray(): UntypedFormArray {
+    return this.instancesFormGroup.get('instances') as UntypedFormArray;
   }
 
   private updateInstances(instances: Instance[]): void {
@@ -156,7 +156,7 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
     }
   }
 
-  private createInstanceFormGroup(instance: Instance): FormGroup {
+  private createInstanceFormGroup(instance: Instance): UntypedFormGroup {
     return this.fb.group({
       id: [instance.id],
       attributes: [instance.attributes],

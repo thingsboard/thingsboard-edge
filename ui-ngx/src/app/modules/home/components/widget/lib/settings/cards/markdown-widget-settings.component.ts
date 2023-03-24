@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
@@ -42,14 +42,14 @@ import { AppState } from '@core/core.state';
 })
 export class MarkdownWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  markdownWidgetSettingsForm: FormGroup;
+  markdownWidgetSettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.markdownWidgetSettingsForm;
   }
 
@@ -58,6 +58,7 @@ export class MarkdownWidgetSettingsComponent extends WidgetSettingsComponent {
       useMarkdownTextFunction: false,
       markdownTextPattern: '# Markdown/HTML card \\n - **Current entity**: **${entityName}**. \\n - **Current value**: **${Random}**.',
       markdownTextFunction: 'return \'# Some title\\\\n - Entity name: \' + data[0][\'entityName\'];',
+      applyDefaultMarkdownStyle: true,
       markdownCss: ''
     };
   }
@@ -67,6 +68,7 @@ export class MarkdownWidgetSettingsComponent extends WidgetSettingsComponent {
       useMarkdownTextFunction: [settings.useMarkdownTextFunction, []],
       markdownTextPattern: [settings.markdownTextPattern, []],
       markdownTextFunction: [settings.markdownTextFunction, []],
+      applyDefaultMarkdownStyle: [settings.applyDefaultMarkdownStyle, []],
       markdownCss: [settings.markdownCss, []]
     });
   }

@@ -30,13 +30,16 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -45,6 +48,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -52,6 +56,7 @@ import javax.persistence.Table;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,7 +64,9 @@ import java.util.UUID;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME)
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
+@Immutable
+@Table(name = ModelConstants.DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME)
 public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
 
     public static final Map<String, String> dashboardColumnMap = new HashMap<>();
@@ -96,32 +103,15 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
     @Column(name = ModelConstants.DASHBOARD_MOBILE_ORDER_PROPERTY)
     private Integer mobileOrder;
 
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
+    private String ownerName;
+
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
+    private List<EntityInfo> groups;
+
     public DashboardInfoEntity() {
         super();
-    }
-
-    public DashboardInfoEntity(DashboardInfo dashboardInfo) {
-        if (dashboardInfo.getId() != null) {
-            this.setUuid(dashboardInfo.getId().getId());
-        }
-        this.setCreatedTime(dashboardInfo.getCreatedTime());
-        if (dashboardInfo.getTenantId() != null) {
-            this.tenantId = dashboardInfo.getTenantId().getId();
-        }
-        if (dashboardInfo.getCustomerId() != null) {
-            this.customerId = dashboardInfo.getCustomerId().getId();
-        }
-        this.title = dashboardInfo.getTitle();
-        this.image = dashboardInfo.getImage();
-        if (dashboardInfo.getAssignedCustomers() != null) {
-            try {
-                this.assignedCustomers = objectMapper.writeValueAsString(dashboardInfo.getAssignedCustomers());
-            } catch (JsonProcessingException e) {
-                log.error("Unable to serialize assigned customers to string!", e);
-            }
-        }
-        this.mobileHide = dashboardInfo.isMobileHide();
-        this.mobileOrder = dashboardInfo.getMobileOrder();
     }
 
     @Override
@@ -159,7 +149,8 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         }
         dashboardInfo.setMobileHide(mobileHide);
         dashboardInfo.setMobileOrder(mobileOrder);
+        dashboardInfo.setOwnerName(ownerName);
+        dashboardInfo.setGroups(groups);
         return dashboardInfo;
     }
-
 }

@@ -50,7 +50,7 @@
     .mat-content {
       overflow: visible;
     }
-    .mat-slide-toggle {
+    .mat-mdc-slide-toggle {
       width: fit-content;
     }
     .mat-expansion-panel-body {
@@ -64,9 +64,5 @@
 
   .toggle {
     margin: 0 0 8px;
-
-    .mat-slide-toggle-content {
-      white-space: normal;
-    }
   }
 }

@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnInit, ViewEncapsulation } from '@angula
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   Validators
 } from '@angular/forms';
@@ -71,14 +71,14 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
 
   @Input() entityType: EntityType;
 
-  columnsFormGroup: FormGroup;
+  columnsFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
   private valueChangeSubscription: Subscription = null;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -90,8 +90,8 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
     );
   }
 
-  columnsFormArray(): FormArray {
-    return this.columnsFormGroup.get('columns') as FormArray;
+  columnsFormArray(): UntypedFormArray {
+    return this.columnsFormGroup.get('columns') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -132,11 +132,11 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
   }
 
   public removeColumn(index: number) {
-    (this.columnsFormGroup.get('columns') as FormArray).removeAt(index);
+    (this.columnsFormGroup.get('columns') as UntypedFormArray).removeAt(index);
   }
 
   public addColumn() {
-    const columnsArray = this.columnsFormGroup.get('columns') as FormArray;
+    const columnsArray = this.columnsFormGroup.get('columns') as UntypedFormArray;
     columnsArray.push(this.fb.control({
       type: EntityGroupColumnType.ENTITY_FIELD,
       key: entityGroupEntityFields.name.value,
@@ -146,7 +146,7 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
   }
 
   public defaultSortOrderChanged(index: number, sortOrder?: EntityGroupSortOrder) {
-    const columnsControls: FormArray = this.columnsFormGroup.get('columns') as FormArray;
+    const columnsControls: UntypedFormArray = this.columnsFormGroup.get('columns') as UntypedFormArray;
     const column: EntityGroupColumn = columnsControls.at(index).value;
     sortOrder = sortOrder || column.sortOrder;
     if (sortOrder !== EntityGroupSortOrder.NONE) {

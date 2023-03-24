@@ -31,26 +31,27 @@
 
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { AfterViewInit, ChangeDetectorRef, Directive } from '@angular/core';
 import { POSTAL_CODE_PATTERNS } from '@home/models/contact.models';
 import { HasId } from '@shared/models/base-data';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Directive()
 export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> extends GroupEntityComponent<T> implements AfterViewInit {
 
   protected constructor(protected store: Store<AppState>,
-                        protected fb: FormBuilder,
+                        protected fb: UntypedFormBuilder,
                         protected entityValue: T,
-                        protected entitiesTableConfigValue: GroupEntityTableConfig<T>,
+                        protected entitiesTableConfigValue: EntityTableConfig<T> | GroupEntityTableConfig<T>,
                         protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
-  buildForm(entity: T): FormGroup {
+  buildForm(entity: T): UntypedFormGroup {
     const entityForm = this.buildEntityForm(entity);
     entityForm.addControl('country', this.fb.control(entity ? entity.country : '', []));
     entityForm.addControl('city', this.fb.control(entity ? entity.city : '', []));
@@ -97,7 +98,7 @@ export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> 
     return zipValidators;
   }
 
-  abstract buildEntityForm(entity: T): FormGroup;
+  abstract buildEntityForm(entity: T): UntypedFormGroup;
 
   abstract updateEntityForm(entity: T);
 

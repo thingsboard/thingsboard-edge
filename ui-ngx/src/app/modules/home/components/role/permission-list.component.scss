@@ -63,37 +63,3 @@
     }
   }
 }
-
-:host ::ng-deep {
-  .tb-permission-list {
-    tb-resource-type-autocomplete.cell {
-      .mat-form-field {
-        .mat-form-field-flex {
-          padding-top: 0;
-          .mat-form-field-infix {
-            border-top: 0;
-          }
-        }
-      }
-    }
-    .cell {
-      .mat-form-field {
-        .mat-form-field-flex {
-          .mat-form-field-infix {
-            input {
-              height: 32px;
-              margin-top: 8px;
-            }
-            .mat-chip-list-wrapper {
-              margin: 0;
-              .mat-standard-chip, input {
-                margin-top: 8px;
-                margin-bottom: 0px;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}

@@ -34,8 +34,8 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormControl, FormGroup, FormGroupDirective, NgForm } from '@angular/forms';
-import { EntityTypeResource, EntityTypeTranslation } from '@shared/models/entity-type.models';
+import { UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm } from '@angular/forms';
+import { EntityType, EntityTypeResource, EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
@@ -44,6 +44,8 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
 import { AddEntityDialogData } from '@home/models/entity/entity-component.models';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
+import { Customer } from '@shared/models/customer.model';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 @Component({
   selector: 'tb-add-entity-dialog',
@@ -55,9 +57,11 @@ export class AddEntityDialogComponent extends
   DialogComponent<AddEntityDialogComponent, BaseData<HasId>> implements OnInit, ErrorStateMatcher {
 
   entityComponent: EntityComponent<BaseData<HasId>>;
-  detailsForm: FormGroup;
+  detailsForm: UntypedFormGroup;
 
   entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
+  customerId: string;
+  entityType: EntityType;
   translations: EntityTypeTranslation;
   resources: EntityTypeResource<BaseData<HasId>>;
   entity: BaseData<EntityId>;
@@ -78,6 +82,8 @@ export class AddEntityDialogComponent extends
 
   ngOnInit(): void {
     this.entitiesTableConfig = this.data.entitiesTableConfig;
+    this.customerId = this.entitiesTableConfig.customerId;
+    this.entityType = this.entitiesTableConfig.entityType;
     this.translations = this.entitiesTableConfig.entityTranslations;
     this.resources = this.entitiesTableConfig.entityResources;
     this.entity = {};
@@ -113,7 +119,7 @@ export class AddEntityDialogComponent extends
     }
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;
@@ -127,6 +133,13 @@ export class AddEntityDialogComponent extends
     this.submitted = true;
     if (this.detailsForm.valid) {
       this.entity = {...this.entity, ...this.entityComponent.entityFormValue()};
+      if (this.customerId) {
+        if (this.entityType === EntityType.CUSTOMER) {
+          (this.entity as Customer).parentCustomerId = new CustomerId(this.customerId);
+        } else {
+          this.entity.customerId = new CustomerId(this.customerId);
+        }
+      }
       this.entitiesTableConfig.saveEntity(this.entity).subscribe(
         (entity) => {
           this.dialogRef.close(entity);

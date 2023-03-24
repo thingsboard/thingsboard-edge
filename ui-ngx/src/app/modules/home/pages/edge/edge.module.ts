@@ -33,19 +33,19 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
-import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { EdgeRoutingModule } from '@home/pages/edge/edge-routing.module';
 import { EdgeComponent } from './edge.component';
 import { EDGE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { EdgeGroupConfigFactory } from '@home/pages/edge/edge-group-config.factory';
+import { EdgeInstructionsDialogComponent } from './edge-instructions-dialog.component';
 
 @NgModule({
   declarations: [
     EdgeComponent,
     EdgeTableHeaderComponent,
-    EdgeTabsComponent
+    EdgeInstructionsDialogComponent
   ],
   imports: [
     CommonModule,

@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Customer } from '@shared/models/customer.model';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -40,6 +40,7 @@ import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { GroupContactBasedComponent } from '@home/components/group/group-contact-based.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-customer',
@@ -57,8 +58,9 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Customer,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Customer>,
-              protected fb: FormBuilder,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<Customer> | GroupEntityTableConfig<Customer>,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -72,62 +74,62 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
   }
 
   hideManageUsers() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageUsersEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageUsersEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageCustomers() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageCustomersEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageCustomersEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageAssets() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageAssetsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageAssetsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageDevices() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageDevicesEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageDevicesEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageEntityViews() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageEntityViewsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageEntityViewsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageEdges() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageEdgesEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageEdgesEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageDashboards() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageDashboardsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
-  buildEntityForm(entity: Customer): FormGroup {
+  buildEntityForm(entity: Customer): UntypedFormGroup {
     return this.fb.group(
       {
         title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],

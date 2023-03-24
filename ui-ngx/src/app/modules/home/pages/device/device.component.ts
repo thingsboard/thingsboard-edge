@@ -32,7 +32,7 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Device } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
@@ -53,6 +53,7 @@ import { Subject } from 'rxjs';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getEntityDetailsPageURL } from '@core/utils';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-device',
@@ -74,8 +75,8 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
               private deviceService: DeviceService,
               private clipboardService: ClipboardService,
               @Inject('entity') protected entityValue: Device,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
-              protected fb: FormBuilder,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Device> | GroupEntityTableConfig<Device>,
+              protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -95,8 +96,8 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   }
 
   hideManageCredentials() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageCredentialsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageCredentialsEnabled(this.entity);
     } else {
       return false;
     }
@@ -106,7 +107,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Device): FormGroup {
+  buildForm(entity: Device): UntypedFormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],

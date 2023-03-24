@@ -34,6 +34,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 @Lazy
 @Data
@@ -42,9 +43,6 @@ public class TbQueueCoreSettings {
 
     @Value("${queue.core.topic}")
     private String topic;
-
-    @Value("${queue.core.integrations-topic:tb_integrations_topic}")
-    private String integrationsTopic;
 
     @Value("${queue.core.ota.topic:tb_ota_package}")
     private String otaPackageTopic;

@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -79,7 +79,7 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
   @Input()
   systemQueue = false;
 
-  queueFormGroup: FormGroup;
+  queueFormGroup: UntypedFormGroup;
   hideBatchSize = false;
 
   queueSubmitStrategyTypes = QueueSubmitStrategyTypes;
@@ -95,7 +95,7 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
   private valueChange$: Subscription = null;
 
   constructor(private utils: UtilsService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -176,13 +176,13 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
       this.queueFormGroup.get('additionalInfo').get('description')
         .patchValue(this.modelValue.additionalInfo?.description, {emitEvent: false});
       this.submitStrategyTypeChanged();
-    }
-    if (!this.disabled && !this.queueFormGroup.valid) {
-      this.updateModel();
+      if (!this.disabled && !this.queueFormGroup.valid) {
+        this.updateModel();
+      }
     }
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     if (c.parent && !this.systemQueue) {
       const queueName = c.value.name;
       const profileQueues = [];
@@ -214,7 +214,7 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestr
   }
 
   submitStrategyTypeChanged() {
-    const form = this.queueFormGroup.get('submitStrategy') as FormGroup;
+    const form = this.queueFormGroup.get('submitStrategy') as UntypedFormGroup;
     const type: QueueSubmitStrategyTypes = form.get('type').value;
     const batchSizeField = form.get('batchSize');
     if (type === QueueSubmitStrategyTypes.BATCH) {

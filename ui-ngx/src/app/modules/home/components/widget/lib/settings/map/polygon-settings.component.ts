@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -83,7 +83,7 @@ export class PolygonSettingsComponent extends PageComponent implements OnInit, C
 
   private propagateChange = null;
 
-  public polygonSettingsFormGroup: FormGroup;
+  public polygonSettingsFormGroup: UntypedFormGroup;
 
   showTooltipActions = Object.values(ShowTooltipAction);
 
@@ -92,7 +92,7 @@ export class PolygonSettingsComponent extends PageComponent implements OnInit, C
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -172,7 +172,7 @@ export class PolygonSettingsComponent extends PageComponent implements OnInit, C
     this.updateValidators(false);
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.polygonSettingsFormGroup.valid ? null : {
       polygonSettings: {
         valid: false,

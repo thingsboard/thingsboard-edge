@@ -33,7 +33,7 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { ActivationMethod, activationMethodTranslations, User } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UserService } from '@core/http/user.service';
@@ -60,7 +60,7 @@ export interface AddGroupUserDialogData {
 })
 export class AddGroupUserDialogComponent extends DialogComponent<AddGroupUserDialogComponent, User> implements OnInit {
 
-  detailsForm: FormGroup;
+  detailsForm: UntypedFormGroup;
   user: User;
 
   activationMethods = Object.keys(ActivationMethod);
