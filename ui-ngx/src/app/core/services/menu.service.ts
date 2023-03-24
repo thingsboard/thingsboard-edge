@@ -900,6 +900,18 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'rulechain.rulechains',
+          type: 'link',
+          path: '/ruleChains',
+          icon: 'settings_ethernet',
+          disabled: disabledItems.indexOf('rule_chains') > -1
+        }
+      );
+    }
     const edgeManagementPages: Array<MenuSection> = [];
     if (authState.edgesSupportEnabled) {
       const edgesPages: Array<MenuSection> = [];
@@ -1004,18 +1016,6 @@ export class MenuService {
       );
     }
     const advancedFeaturesPages: Array<MenuSection> = [];
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
-      advancedFeaturesPages.push(
-        {
-          id: guid(),
-          name: 'rulechain.rulechains',
-          type: 'link',
-          path: '/features/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('rule_chains') > -1
-        }
-      );
-    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       advancedFeaturesPages.push(
         {
