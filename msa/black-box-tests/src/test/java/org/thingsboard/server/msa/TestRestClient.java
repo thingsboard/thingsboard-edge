@@ -43,6 +43,7 @@ import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -620,5 +621,115 @@ public class TestRestClient {
 
     public String getRefreshToken() {
         return refreshToken;
+    }
+
+    public List<Dashboard> getDashboardsByEntityGroupId(PageLink pageLink, EntityGroupId entityGroupId) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return given().spec(requestSpec).queryParams(params)
+                .get("/api/entityGroup/{entityGroupId}/dashboards", entityGroupId.getId())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<PageData<Dashboard>>() {
+                }).getData();
+    }
+
+    public void postTemperatureHumidity() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/temperature_sensors/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteTemperatureHumidity() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/temperature_sensors/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void postSmartOffice() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/smart_office/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteSmartOffice() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/smart_office/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void postFleetTracking() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/fleet_tracking/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteFleetTracking() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/fleet_tracking/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void postWaterMetering() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/water_metering/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteWaterMetering() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/water_metering/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void postAirQualityMonitoring() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/air_quality_index/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteAirQualityMonitoring() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/air_quality_index/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void postSmartRetail() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/smart_retail/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteSmartRetail() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/smart_retail/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void postSmartIrrigation() {
+        given().spec(requestSpec)
+                .post("/api/solutions/templates/smart_irrigation/install")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteSmartIrrigation() {
+        given().spec(requestSpec)
+                .delete("/api/solutions/templates/smart_irrigation/delete")
+                .then()
+                .statusCode(HTTP_OK);
     }
 }

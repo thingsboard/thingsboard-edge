@@ -45,6 +45,10 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     private static final String PROFILES_BTN = "//mat-toolbar//a[@href='/profiles']";
     private static final String DEVICE_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/deviceProfiles']";
     private static final String ASSET_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/assetProfiles']";
+    private static final String DASHBOARD_GROUPS_BTN = "//mat-toolbar//a[@href='/dashboardGroups']";
+    private static final String SOLUTION_TEMPLATES = "//mat-toolbar//a[@href='/solutionTemplates']";
+    private static final String ROLES = "//mat-toolbar//a[@href='/roles']";
+    private static final String DEVICE_GROUPS = "//mat-toolbar//a[@href='/deviceGroups']";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -53,6 +57,7 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     public WebElement customerGroupsBtn() {
         return waitUntilElementToBeClickable(CUSTOMER_GROUPS_BTN);
     }
+    private static final String ASSET_GROUPS = "//mat-toolbar//a[@href='/assetGroups']";
 
     public void goToAllCustomerGroupBtn() {
         customerGroupsBtn().click();
@@ -69,5 +74,25 @@ public class SideBarMenuViewElements extends AbstractBasePage {
 
     public WebElement assetProfileBtn() {
         return waitUntilElementToBeClickable(ASSET_PROFILE_BTN);
+    }
+
+    public WebElement dashboardGroupsBtn() {
+        return waitUntilElementToBeClickable(DASHBOARD_GROUPS_BTN);
+    }
+
+    public WebElement solutionTemplates() {
+        return waitUntilElementToBeClickable(SOLUTION_TEMPLATES);
+    }
+
+    public WebElement rolesBtn() {
+        return waitUntilElementToBeClickable(ROLES);
+    }
+
+    public WebElement deviceGroups() {
+        return waitUntilElementToBeClickable(DEVICE_GROUPS);
+    }
+
+    public WebElement assetGroups() {
+        return waitUntilElementToBeClickable(ASSET_GROUPS);
     }
 }

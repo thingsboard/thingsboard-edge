@@ -64,6 +64,7 @@ public class ProfilesPageElements extends OtherPageElementsHelper {
     private static final String PROFILE_VIEW_EDIT_PENCIL_BTN = "//mat-icon[contains(text(),'edit')]/ancestor::button";
     private static final String PROFILE_VIEW_DONE_BTN = "//mat-icon[contains(text(),'done')]/ancestor::button";
     private static final String PROFILE_VIEW_HELP_BTN = "//mat-icon[contains(text(),'help')]/ancestor::button";
+    private static final String ALL_NAMES = "//mat-cell[contains(@class,'name')]/span";
 
     protected String getDeviseProfileViewDeleteBtn() {
         return DEVICE_PROFILE_VIEW_DELETE_BTN;
@@ -208,5 +209,9 @@ public class ProfilesPageElements extends OtherPageElementsHelper {
 
     public WebElement profileViewHelpBtn() {
         return waitUntilElementToBeClickable(PROFILE_VIEW_HELP_BTN);
+    }
+
+    public List<WebElement> allNames() {
+        return waitUntilElementsToBeClickable(ALL_NAMES);
     }
 }
