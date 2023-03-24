@@ -98,7 +98,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     public PageData<EntityGroup> findAllEntityGroupsByParentRelation(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink) {
         return DaoUtil.toPageData(entityGroupRepository.findAllEntityGroupsByParentRelation(
                 parentEntityId,
-                parentEntityType,
+                parentEntityType.name(),
                 Objects.toString(pageLink.getTextSearch(), ""),
                 DaoUtil.toPageable(pageLink)));
     }
