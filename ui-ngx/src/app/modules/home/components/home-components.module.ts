@@ -221,10 +221,14 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
 import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
+import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 
 @NgModule({
   declarations:
     [
+      RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
       DetailsPanelComponent,
@@ -293,6 +297,7 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
       EntityGroupColumnsComponent,
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
+      GroupChipsComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -407,6 +412,7 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
   ],
   exports: [
     SharedHomeComponentsModule,
+    RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,
@@ -464,6 +470,7 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
     EntityGroupColumnsComponent,
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
+    GroupChipsComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
@@ -559,6 +566,7 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
+    AllEntitiesTableConfigService,
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,

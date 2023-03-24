@@ -368,18 +368,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
             dashboard.setMobileHide(row.get("mobile_hide") != null ? (Boolean) row.get("mobile_hide") : false);
             dashboard.setMobileOrder(row.get("mobile_order") != null ? (Integer) row.get("mobile_order") : null);
-            Object assignedCustomers = row.get("assigned_customers");
-            if (assignedCustomers != null) {
-                String assignedCustomersStr = assignedCustomers.toString();
-                if (!StringUtils.isEmpty(assignedCustomersStr)) {
-                    try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {
-                        }));
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Unable to parse assigned customers!", e);
-                    }
-                }
-            }
             return dashboard;
         };
     }

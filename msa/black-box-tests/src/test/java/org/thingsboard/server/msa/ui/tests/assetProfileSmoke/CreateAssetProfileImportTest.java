@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.assetProfileSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -70,8 +72,10 @@ public class CreateAssetProfileImportTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Import asset profile")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Import asset profile")
     public void importAssetProfile() {
         sideBarMenuView.openAssetProfiles();
         profilesPage.openImportAssetProfileView();
@@ -84,8 +88,10 @@ public class CreateAssetProfileImportTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.entity(IMPORT_ASSET_PROFILE_NAME).isDisplayed());
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Import asset profile")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Import txt file")
     public void importTxtFile() {
         sideBarMenuView.openDeviceProfiles();
         profilesPage.openImportDeviceProfileView();
@@ -95,8 +101,10 @@ public class CreateAssetProfileImportTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.importingFile(EMPTY_IMPORT_MESSAGE).isDisplayed());
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Import asset profile")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Drop json file and delete it")
     public void addFileToImportAndRemove() {
         sideBarMenuView.openAssetProfiles();
         profilesPage.openImportAssetProfileView();
@@ -108,8 +116,10 @@ public class CreateAssetProfileImportTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.entityIsNotPresent(IMPORT_ASSET_PROFILE_NAME));
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Import asset profile")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Import asset profile with same name")
     public void importAssetProfileWithSameName() {
         String name = IMPORT_ASSET_PROFILE_NAME;
         testRestClient.postAssetProfile(EntityPrototypes.defaultAssetProfile(name));
@@ -126,8 +136,10 @@ public class CreateAssetProfileImportTest extends AbstractDriverBaseTest {
         Assert.assertEquals(profilesPage.warningMessage().getText(), SAME_NAME_WARNING_ASSET_PROFILE_MESSAGE);
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Import asset profile")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Import asset profile without refresh")
     public void importAssetProfileWithoutRefresh() {
         sideBarMenuView.openAssetProfiles();
         profilesPage.openImportAssetProfileView();

@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -138,7 +137,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
         EntityGroup devicesGroup = devicesGroupOptional.get();
 
         PageLink pageLink = new PageLink(Integer.MAX_VALUE);
-        List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, devicesGroup.getId(), pageLink).get();
+        List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(tenantId, devicesGroup.getId(), pageLink).get();
         assertThat(entityIds).containsExactlyInAnyOrderElementsOf(
                 devices.stream().map(IdBased::getId).collect(Collectors.toList()));
 

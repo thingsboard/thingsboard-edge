@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.ruleChainsSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -54,8 +56,10 @@ public class SearchRuleChainTest extends AbstractDriverBaseTest {
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
 
+    @Epic("Rule chains smoke tests")
+    @Feature("Search rule chain")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "ruleChainNameForSearchByFirstAndSecondWord")
-    @Description
+    @Description("Search rule chain by first word in the name/Search rule chain by second word in the name")
     public void searchFirstWord(String namePath) {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.searchEntity(namePath);
@@ -64,8 +68,10 @@ public class SearchRuleChainTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.getRuleChainName().contains(namePath));
     }
 
+    @Epic("Rule chains smoke tests")
+    @Feature("Search rule chain")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
-    @Description
+    @Description("Search rule chain by symbol in the name/Search rule chain by number in the name")
     public void searchNumber(String name, String namePath) {
         testRestClient.postRuleChain(defaultRuleChainPrototype(name));
 

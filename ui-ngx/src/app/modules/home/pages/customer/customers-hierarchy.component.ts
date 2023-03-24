@@ -56,7 +56,7 @@ import {
   entityGroupNodeText,
   EntityGroupsNodeData,
   entityGroupsNodeText
-} from '@home/pages/group/customers-hierarchy.models';
+} from '@home/pages/customer/customers-hierarchy.models';
 import { EntityService } from '@core/http/entity.service';
 import { Customer } from '@shared/models/customer.model';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -174,7 +174,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   public loadNodes: LoadNodesCallback = (node: CustomersHierarchyNode, cb) => {
     if (node.id === '#') {
-      this.entityGroupService.getEntityGroups(EntityType.CUSTOMER, {ignoreLoading: true}).subscribe((entityGroups) => {
+      this.entityGroupService.getAllEntityGroups(-1, EntityType.CUSTOMER, true, {ignoreLoading: true}).subscribe((entityGroups) => {
         cb(this.entityGroupsToNodes(node.id, null, entityGroups));
         this.entityGroupParams.nodeId = node.id;
       });
@@ -207,7 +207,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       } else if (node.data.type === 'groups') {
         const owner = node.data.customer;
         const parentEntityGroupId = node.data.parentEntityGroupId;
-        this.entityGroupService.getEntityGroupsByOwnerId(owner.id.entityType,
+        this.entityGroupService.getAllEntityGroupsByOwnerId(-1, owner.id.entityType,
           owner.id.id, node.data.groupsType, {ignoreLoading: true}).subscribe((entityGroups) => {
           cb(this.entityGroupsToNodes(node.id, parentEntityGroupId, entityGroups));
         });
@@ -218,16 +218,16 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         if (node.data.type === 'edge') {
           cb(this.loadNodesForEdge(node.id, parentEntityGroupId, edge, customerData));
         } else {
-          this.entityGroupService.getEdgeEntityGroups(node.data.edge.id.id, node.data.entityType, {ignoreLoading: true})
+          this.entityGroupService.getAllEdgeEntityGroups(-1, node.data.edge.id.id, node.data.entityType, {ignoreLoading: true})
             .subscribe((entityGroups) => {
               cb(this.edgeEntityGroupsToNodes(node.id, parentEntityGroupId, customerData, edge, entityGroups));
             });
         }
       }
     }
-  }
+  };
 
-  public onNodeSelected: NodeSelectedCallback = (node: CustomersHierarchyNode, event) => {
+  public onNodeSelected: NodeSelectedCallback = (node: CustomersHierarchyNode) => {
     let nodeId;
     if (!node) {
       nodeId = -1;
@@ -305,7 +305,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         }
       }
     }
-  }
+  };
 
   private updateGroupsView(entityGroupParams: EntityGroupParams, customer?: Customer) {
     const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, customer?.title);
@@ -631,11 +631,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     return {
       id: (++this.nodeIdCounter) + '',
       icon: false,
-      children: children,
-      text: text,
+      children,
+      text,
       data: {
         type: 'edgeEntities',
-        entityType: entityType,
+        entityType,
         edge,
         parentEntityGroupId,
         customerData,

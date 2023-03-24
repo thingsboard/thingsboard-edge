@@ -100,6 +100,26 @@ export class DashboardService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getAllDashboards(includeCustomers: boolean,
+                          pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
+    let url = `/api/dashboards/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DashboardInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerDashboards(includeCustomers: boolean, customerId: string,
+                               pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
+    let url = `/api/customer/${customerId}/dashboards${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DashboardInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getGroupDashboards(groupId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
     return this.http.get<PageData<DashboardInfo>>(`/api/entityGroup/${groupId}/dashboards${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));

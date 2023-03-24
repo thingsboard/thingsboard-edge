@@ -71,9 +71,18 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
   }
 
   hasVersionControl(): boolean {
-    if (this.authUser.authority === this.authorities.TENANT_ADMIN && this.entity && exportableEntityTypes.includes(this.entity.type)) {
+    if (!this.sharedGroup() &&
+      this.authUser.authority === this.authorities.TENANT_ADMIN && this.entity && exportableEntityTypes.includes(this.entity.type)) {
       const entityResource = groupResourceByGroupType.get(this.entity.type);
       return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.READ);
+    } else {
+      return false;
+    }
+  }
+
+  sharedGroup(): boolean {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.shared === true;
     } else {
       return false;
     }

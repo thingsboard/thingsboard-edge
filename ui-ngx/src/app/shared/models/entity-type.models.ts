@@ -321,7 +321,7 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         typePlural: 'entity.type-alarms',
         list: 'entity.list-of-alarms',
         nameStartsWith: 'entity.alarm-name-starts-with',
-        details: 'dashboard.dashboard-details',
+        details: 'alarm.alarm-details',
         noEntities: 'alarm.no-alarms-prompt',
         search: 'alarm.search',
         selectedEntities: 'alarm.selected-alarms'
@@ -536,6 +536,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       }
     ],
     [
+      EntityType.EDGE,
+      {
+        helpLinkId: 'edges'
+      }
+    ],
+    [
       EntityType.ENTITY_VIEW,
       {
         helpLinkId: 'entityViews'
@@ -601,22 +607,32 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
 export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.TENANT, '/tenants'],
   [EntityType.TENANT_PROFILE, '/tenantProfiles'],
-  [EntityType.CUSTOMER, '/customers'],
-  [EntityType.USER, '/users'],
-  [EntityType.DASHBOARD, '/dashboards'],
-  [EntityType.ASSET, '/assets'],
-  [EntityType.DEVICE, '/devices'],
+  [EntityType.CUSTOMER, '/customers/all'],
+  [EntityType.USER, '/users/all'],
+  [EntityType.DASHBOARD, '/dashboards/all'],
+  [EntityType.ASSET, '/entities/assets/all'],
+  [EntityType.DEVICE, '/entities/devices/all'],
   [EntityType.DEVICE_PROFILE, '/profiles/deviceProfiles'],
   [EntityType.ASSET_PROFILE, '/profiles/assetProfiles'],
-  [EntityType.CONVERTER, '/converters'],
-  [EntityType.INTEGRATION, '/integrations'],
-  [EntityType.RULE_CHAIN, '/ruleChains'],
-  [EntityType.EDGE, '/edgeInstances'],
-  [EntityType.ENTITY_VIEW, '/entityViews'],
+  [EntityType.CONVERTER, '/integrationsCenter/converters'],
+  [EntityType.INTEGRATION, '/integrationsCenter/integrations'],
+  [EntityType.RULE_CHAIN, '/features/ruleChains'],
+  [EntityType.EDGE, '/edgeManagement/instances/all'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
   [EntityType.ROLE, '/roles'],
-  [EntityType.TB_RESOURCE, '/settings/resources-library'],
-  [EntityType.OTA_PACKAGE, '/otaUpdates'],
+  [EntityType.TB_RESOURCE, '/resources/resources-library'],
+  [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
   [EntityType.QUEUE, '/settings/queues']
+]);
+
+export const groupUrlPrefixByEntityType = new Map<EntityType, string>([
+  [EntityType.CUSTOMER, '/customers/groups'],
+  [EntityType.USER, '/users/groups'],
+  [EntityType.DASHBOARD, '/dashboards/groups'],
+  [EntityType.ASSET, '/entities/assets/groups'],
+  [EntityType.DEVICE, '/entities/devices/groups'],
+  [EntityType.EDGE, '/edgeManagement/instances/groups'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/groups'],
 ]);
 
 export interface EntitySubtype {

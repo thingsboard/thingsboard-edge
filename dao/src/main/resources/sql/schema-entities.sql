@@ -1002,6 +1002,126 @@ CREATE TABLE IF NOT EXISTS user_settings (
     CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE
 );
 
+CREATE OR REPLACE VIEW dashboard_info_view as
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DASHBOARD'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM dashboard d
+         LEFT JOIN customer c ON c.id = d.customer_id;
+
+CREATE OR REPLACE VIEW asset_info_view as
+SELECT a.*,
+       c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = a.id
+                             and re.to_type = 'ASSET'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM asset a
+         LEFT JOIN customer c ON c.id = a.customer_id;
+
+CREATE OR REPLACE VIEW device_info_view as
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DEVICE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM device d
+         LEFT JOIN customer c ON c.id = d.customer_id;
+
+CREATE OR REPLACE VIEW entity_view_info_view as
+SELECT e.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = e.id
+                             and re.to_type = 'ENTITY_VIEW'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM entity_view e
+         LEFT JOIN customer c ON c.id = e.customer_id;
+
+CREATE OR REPLACE VIEW customer_info_view as
+SELECT c.*, c2.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = c.id
+                             and re.to_type = 'CUSTOMER'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM customer c
+         LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
+
+CREATE OR REPLACE VIEW user_info_view as
+SELECT u.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = u.id
+                             and re.to_type = 'USER'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM tb_user u
+         LEFT JOIN customer c ON c.id = u.customer_id;
+
+CREATE OR REPLACE VIEW edge_info_view as
+SELECT e.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = e.id
+                             and re.to_type = 'EDGE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM edge e
+         LEFT JOIN customer c ON c.id = e.customer_id;
+
+CREATE OR REPLACE VIEW entity_group_info_view as
+SELECT eg.*,
+       array_to_json(ARRAY(WITH RECURSIVE owner_ids(id, type, lvl) AS
+                                              (SELECT eg.owner_id id, eg.owner_type::varchar(15) as type, 1 as lvl
+                                               UNION
+                                               SELECT COALESCE(ce2.parent_customer_id, ce2.tenant_id) id,
+                                                      (CASE
+                                                           WHEN ce2.parent_customer_id IS NOT NULL THEN 'CUSTOMER'
+                                                           ELSE 'TENANT' END)::varchar(15) as type,
+                                                      parent.lvl + 1 as lvl
+                                               FROM customer ce2, owner_ids parent WHERE ce2.id = parent.id and eg.owner_type = 'CUSTOMER')
+                           SELECT json_build_object('id', id, 'entityType', type) FROM owner_ids order by lvl)) owner_ids
+FROM entity_group eg;
+
 DROP VIEW IF EXISTS alarm_info CASCADE;
 CREATE VIEW alarm_info AS
 SELECT a.*,
