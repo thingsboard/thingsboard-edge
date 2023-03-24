@@ -50,6 +50,9 @@ public class DefaultRateLimitService implements RateLimitService {
 
     @Override
     public boolean checkRateLimit(TenantId tenantId, LimitedApi api) {
+        if (tenantId.isSysTenantId()) {
+            return true;
+        }
         String rateLimitConfig = tenantProfileCache.get(tenantId).getProfileConfiguration()
                 .map(api::getLimitConfig).orElse(null);
 

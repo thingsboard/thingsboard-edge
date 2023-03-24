@@ -28,30 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.targets.platform;
 
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-public enum NotificationRuleTriggerType {
+@Data
+public class SystemAdministratorsFilter implements UsersFilter {
 
-    ALARM,
-    ALARM_COMMENT,
-    DEVICE_INACTIVITY,
-    ENTITY_ACTION,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    ALARM_ASSIGNMENT,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false);
-
-    private final boolean tenantLevel;
-
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
-    }
-
-    NotificationRuleTriggerType() {
-        this(true);
+    @Override
+    public UsersFilterType getType() {
+        return UsersFilterType.SYSTEM_ADMINISTRATORS;
     }
 
 }
