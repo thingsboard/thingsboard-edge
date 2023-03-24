@@ -35,7 +35,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { EntityTypeResource } from '@shared/models/entity-type.models';
+import { EntityType, EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { Direction } from '@shared/models/page/sort-order';
 import { NotificationTemplate, NotificationTemplateTypeTranslateMap } from '@shared/models/notification.models';
 import { NotificationService } from '@core/http/notification.service';
@@ -50,6 +50,8 @@ import { TemplateTableHeaderComponent } from '@home/pages/notification/template/
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<NotificationTemplate>> {
@@ -59,29 +61,32 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
+    this.config.entityType = EntityType.NOTIFICATION_TEMPLATE;
     this.config.detailsPanelEnabled = false;
-    this.config.selectionEnabled = false;
     this.config.addEnabled = false;
     this.config.rowPointer = true;
 
-    this.config.entityTranslations = {
-      noEntities: 'notification.no-notification-templates',
-      search: 'notification.search-templates'
-    };
+    this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_TEMPLATE);
     this.config.entityResources = {} as EntityTypeResource<NotificationTemplate>;
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationTemplates(pageLink);
 
     this.config.deleteEntityTitle = template => this.translate.instant('notification.delete-template-title', {templateName: template.name});
     this.config.deleteEntityContent = () => this.translate.instant('notification.delete-template-text');
+    this.config.deleteEntitiesTitle = count => this.translate.instant('notification.delete-templates-title', {count});
+    this.config.deleteEntitiesContent = () => this.translate.instant('notification.delete-templates-text');
     this.config.deleteEntity = id => this.notificationService.deleteNotificationTemplate(id.id);
 
     this.config.cellActionDescriptors = this.configureCellActions();
 
     this.config.headerComponent = TemplateTableHeaderComponent;
     this.config.onEntityAction = action => this.onTemplateAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
@@ -91,14 +96,10 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
     };
 
     this.config.columns.push(
-      new DateEntityTableColumn<NotificationTemplate>('createdTime', 'notification.created-time', this.datePipe, '170px'),
-      new EntityTableColumn<NotificationTemplate>('notificationType', 'notification.type', '15%',
+      new DateEntityTableColumn<NotificationTemplate>('createdTime', 'common.created-time', this.datePipe, '170px'),
+      new EntityTableColumn<NotificationTemplate>('notificationType', 'notification.type', '20%',
         (template) => this.translate.instant(NotificationTemplateTypeTranslateMap.get(template.notificationType).name)),
-      new EntityTableColumn<NotificationTemplate>('name', 'notification.template', '25%'),
-      new EntityTableColumn<NotificationTemplate>('configuration.notificationSubject', 'notification.subject', '25%',
-        (template) => template.configuration.notificationSubject, () => ({}), false),
-      new EntityTableColumn<NotificationTemplate>('configuration.defaultTextTemplate', 'notification.message', '35%',
-        (template) => template.configuration.defaultTextTemplate, () => ({}), false)
+      new EntityTableColumn<NotificationTemplate>('name', 'notification.template', '80%')
     );
   }
 
@@ -111,7 +112,7 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
       {
         name: this.translate.instant('notification.copy-template'),
         icon: 'content_copy',
-        isEnabled: () => true,
+        isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
         onAction: ($event, entity) => this.editTemplate($event, entity, false, true)
       }
     ];
@@ -128,7 +129,8 @@ export class TemplateTableConfigResolver implements Resolve<EntityTableConfig<No
       data: {
         isAdd,
         isCopy,
-        template
+        template,
+        readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
     }).afterClosed()
       .subscribe((res) => {

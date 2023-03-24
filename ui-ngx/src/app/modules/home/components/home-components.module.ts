@@ -224,6 +224,7 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
+import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 
 @NgModule({
   declarations:
@@ -297,6 +298,7 @@ import { SlackConversationAutocompleteComponent } from '@home/components/notific
       EntityGroupColumnsComponent,
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
+      GroupChipsComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -470,6 +472,7 @@ import { SlackConversationAutocompleteComponent } from '@home/components/notific
     EntityGroupColumnsComponent,
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
+    GroupChipsComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,

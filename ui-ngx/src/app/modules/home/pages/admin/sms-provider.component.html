@@ -89,7 +89,7 @@
               <input matInput formControlName="botToken" />
             </mat-form-field>
           </fieldset>
-          <div fxLayout="row" fxLayoutAlign="end center" class="layout-wrap">
+          <div fxLayout="row" fxLayoutAlign="end center" class="layout-wrap" *ngIf="!readonly">
             <button mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || notificationSettingsForm.invalid || !notificationSettingsForm.dirty"
                     type="submit">{{'action.save' | translate}}
             </button>

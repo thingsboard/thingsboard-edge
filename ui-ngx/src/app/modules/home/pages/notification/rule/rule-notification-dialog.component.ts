@@ -78,6 +78,7 @@ export interface RuleNotificationDialogData {
   rule?: NotificationRule;
   isAdd?: boolean;
   isCopy?: boolean;
+  readonly?: boolean;
 }
 
 @Component({
@@ -303,6 +304,12 @@ export class RuleNotificationDialogComponent extends
           .patchValue(!!this.ruleNotification.triggerConfig.devices, {onlySelf: true});
       }
     }
+
+    if(data?.readonly) {
+      this.dialogTitle = 'notification.view-rule';
+      this.ruleNotificationForm.disable({emitEvent: false});
+      Array.from(this.triggerTypeFormsMap.values()).map(form => form.disable({emitEvent: false}));
+    }
   }
 
   ngOnDestroy() {
@@ -334,7 +341,7 @@ export class RuleNotificationDialogComponent extends
     return 'action.next';
   }
 
-  private get maxStepperIndex(): number {
+  get maxStepperIndex(): number {
     return this.addNotificationRule?._steps?.length - 1;
   }
 

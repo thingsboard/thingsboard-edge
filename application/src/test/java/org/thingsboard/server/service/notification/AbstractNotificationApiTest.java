@@ -147,7 +147,6 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
         notificationTemplate.setName("Notification template: " + text);
         notificationTemplate.setNotificationType(notificationType);
         NotificationTemplateConfig config = new NotificationTemplateConfig();
-        config.setDefaultTextTemplate(text);
         config.setDeliveryMethodsTemplates(new HashMap<>());
         for (NotificationDeliveryMethod deliveryMethod : deliveryMethods) {
             DeliveryMethodNotificationTemplate deliveryMethodNotificationTemplate;
@@ -172,6 +171,7 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
                     throw new IllegalArgumentException("Unsupported delivery method " + deliveryMethod);
             }
             deliveryMethodNotificationTemplate.setEnabled(true);
+            deliveryMethodNotificationTemplate.setBody(text);
             config.getDeliveryMethodsTemplates().put(deliveryMethod, deliveryMethodNotificationTemplate);
         }
         notificationTemplate.setConfiguration(config);

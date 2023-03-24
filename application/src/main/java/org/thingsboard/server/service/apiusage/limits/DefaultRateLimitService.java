@@ -28,19 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.apiusage;
+package org.thingsboard.server.service.apiusage.limits;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -48,28 +46,22 @@ public class DefaultRateLimitService implements RateLimitService {
 
     private final TbTenantProfileCache tenantProfileCache;
 
-    private final Map<String, Map<TenantId, TbRateLimits>> rateLimits = new ConcurrentHashMap<>();
+    private final Map<LimitedApi, Map<TenantId, TbRateLimits>> rateLimits = new ConcurrentHashMap<>();
 
     @Override
-    public boolean checkEntityExportLimit(TenantId tenantId) {
-        return checkLimit(tenantId, "entityExport", DefaultTenantProfileConfiguration::getTenantEntityExportRateLimit);
-    }
-
-    @Override
-    public boolean checkEntityImportLimit(TenantId tenantId) {
-        return checkLimit(tenantId, "entityImport", DefaultTenantProfileConfiguration::getTenantEntityImportRateLimit);
-    }
-
-    private boolean checkLimit(TenantId tenantId, String rateLimitsKey, Function<DefaultTenantProfileConfiguration, String> rateLimitConfigExtractor) {
+    public boolean checkRateLimit(TenantId tenantId, LimitedApi api) {
+        if (tenantId.isSysTenantId()) {
+            return true;
+        }
         String rateLimitConfig = tenantProfileCache.get(tenantId).getProfileConfiguration()
-                .map(rateLimitConfigExtractor).orElse(null);
+                .map(api::getLimitConfig).orElse(null);
 
-        Map<TenantId, TbRateLimits> rateLimits = this.rateLimits.get(rateLimitsKey);
+        Map<TenantId, TbRateLimits> rateLimits = this.rateLimits.get(api);
         if (StringUtils.isEmpty(rateLimitConfig)) {
             if (rateLimits != null) {
                 rateLimits.remove(tenantId);
                 if (rateLimits.isEmpty()) {
-                    this.rateLimits.remove(rateLimitsKey);
+                    this.rateLimits.remove(api);
                 }
             }
             return true;
@@ -77,7 +69,7 @@ public class DefaultRateLimitService implements RateLimitService {
 
         if (rateLimits == null) {
             rateLimits = new ConcurrentHashMap<>();
-            this.rateLimits.put(rateLimitsKey, rateLimits);
+            this.rateLimits.put(api, rateLimits);
         }
         TbRateLimits rateLimit = rateLimits.get(tenantId);
         if (rateLimit == null || !rateLimit.getConfiguration().equals(rateLimitConfig)) {

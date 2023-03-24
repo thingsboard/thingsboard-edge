@@ -31,13 +31,14 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { defaultPageLinkSearchFunction, PageLink } from '@shared/models/page/page-link';
+import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
-import { forkJoin, Observable, of, throwError } from 'rxjs';
+import { EMPTY, forkJoin, Observable, of, throwError } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { EntityId } from '@shared/models/id/entity-id';
 import {
+  DeviceEntityGroupInfo,
   EntityGroup,
   EntityGroupInfo,
   prepareEntityGroupConfiguration,
@@ -46,12 +47,14 @@ import {
 } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { map, mergeMap } from 'rxjs/operators';
+import { concatMap, expand, map, mergeMap, toArray } from 'rxjs/operators';
 import { BaseData, HasId, sortEntitiesByIds } from '@shared/models/base-data';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { OtaPackageService } from '@core/http/ota-package.service';
 import { DeviceGroupOtaPackage, OtaUpdateType } from '@shared/models/ota-package.models';
 import { OtaPackageId } from '@shared/models/id/ota-package-id';
+import { Direction } from '@shared/models/page/sort-order';
+import { EntityInfo, EntityInfoData } from '@shared/models/entity.models';
 
 @Injectable({
   providedIn: 'root'
@@ -71,30 +74,41 @@ export class EntityGroupService {
   public getEntityGroup(entityGroupId: string, config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/${entityGroupId}`,
       defaultHttpOptionsFromConfig(config)).pipe(
-        map(group => {
-          group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
-          return group;
-        }),
-        mergeMap(group => this.fetchOtaPackageGroupInfo(group, config))
+      map(group => {
+        group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
+        return group;
+      })
     );
   }
 
-  public fetchOtaPackageGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<EntityGroupInfo> {
+  public getDeviceEntityGroup(entityGroupId: string, config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
+    return this.http.get<EntityGroupInfo>(`/api/entityGroup/${entityGroupId}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map(group => {
+        group.configuration = prepareEntityGroupConfiguration(group.type, group.configuration);
+        return group;
+      }),
+      mergeMap(group => this.fetchOtaPackageGroupInfo(group, config))
+    );
+  }
+
+  public fetchOtaPackageGroupInfo(group: EntityGroupInfo, config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
     if (isDefinedAndNotNull(group) && group.type === EntityType.DEVICE && !group.groupAll) {
       const tasks = [];
       tasks.push(this.otaPackageService.getOtaPackageInfoByDeviceGroupId(group.id.id, OtaUpdateType.FIRMWARE, config));
       tasks.push(this.otaPackageService.getOtaPackageInfoByDeviceGroupId(group.id.id, OtaUpdateType.SOFTWARE, config));
       return forkJoin(tasks).pipe(
         map(([firmware, software]: DeviceGroupOtaPackage[]) => {
+          const deviceGroup = group as DeviceEntityGroupInfo;
           if (isDefinedAndNotNull(firmware)) {
-            group.firmwareGroup = firmware;
-            group.firmwareId = deepClone(firmware.otaPackageId);
+            deviceGroup.firmwareGroup = firmware;
+            deviceGroup.firmwareId = deepClone(firmware.otaPackageId);
           }
           if (isDefinedAndNotNull(software)) {
-            group.softwareGroup = software;
-            group.softwareId = deepClone(software.otaPackageId);
+            deviceGroup.softwareGroup = software;
+            deviceGroup.softwareId = deepClone(software.otaPackageId);
           }
-          return group;
+          return deviceGroup;
         })
       );
     }
@@ -129,8 +143,8 @@ export class EntityGroupService {
     return this.http.post<DeviceGroupOtaPackage>('/api/deviceGroupOtaPackage', deviceGroupOtaPackage, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDeviceEntityGroup(entityGroup: EntityGroupInfo, originalEntityGroup: EntityGroupInfo,
-                               config?: RequestConfig): Observable<EntityGroupInfo> {
+  public saveDeviceEntityGroup(entityGroup: DeviceEntityGroupInfo, originalEntityGroup: DeviceEntityGroupInfo,
+                               config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
     if (isDefinedAndNotNull(entityGroup.id)) {
       return this.otaPackageService.confirmDialogUpdatePackage(entityGroup, originalEntityGroup).pipe(
         mergeMap((update) => {
@@ -156,7 +170,7 @@ export class EntityGroupService {
                   })
               ));
           }
-          return throwError('Canceled saving device group');
+          return throwError(() => 'Canceled saving device group');
         })
       );
     }
@@ -165,6 +179,11 @@ export class EntityGroupService {
 
   public deleteDeviceGroupOtaPackage(otaPackageId: string, config?: RequestConfig ) {
     return this.http.delete<null>(`/api/deviceGroupOtaPackage/${otaPackageId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEntityGroupEntityInfo(entityGroupId: string, config?: RequestConfig): Observable<EntityInfoData> {
+    return this.http.get<EntityInfoData>(`/api/entityGroupInfo/${entityGroupId}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public saveEntityGroup(entityGroup: EntityGroup, config?: RequestConfig): Observable<EntityGroupInfo> {
@@ -187,13 +206,73 @@ export class EntityGroupService {
     return this.http.post(`/api/entityGroup/${entityGroupId}/share`, shareGroupRequest, defaultHttpOptionsFromConfig(config));
   }
 
-  public getEntityGroups(groupType: EntityType, includeShared = true, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
-    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/${groupType}?includeShared=${includeShared}`,
+  public getEntityGroups(pageLink: PageLink, groupType: EntityType,
+                         includeShared = true, config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/${groupType}${pageLink.toQuery()}&includeShared=${includeShared}`,
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getSharedEntityGroups(groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
-    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/${groupType}/shared`,
+  public getEntityGroupEntityInfos(pageLink: PageLink, groupType: EntityType,
+                                   includeShared = true, config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/entityGroupInfos/${groupType}${pageLink.toQuery()}&includeShared=${includeShared}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllEntityGroups(pageSize: number, groupType: EntityType, includeShared = true,
+                            config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    const pageLink = new PageLink(pageSize, 0, null, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    if (pageSize === -1) { // all
+      pageLink.pageSize = groupType === EntityType.CUSTOMER ? 1024 : 100;
+      return this.getAllEntityGroupsByPageLink(pageLink, groupType, includeShared, config).pipe(
+        map((data) => data && data.length ? data : null)
+      );
+    } else {
+      const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
+        this.getEntityGroups(pageLink, groupType, includeShared, config);
+      if (entityGroupsObservable) {
+        return entityGroupsObservable.pipe(
+          map((data) => data && data.data.length ? data.data : null)
+        );
+      } else {
+        return of(null);
+      }
+    }
+  }
+
+  private getAllEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType, includeShared = true,
+                                       config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
+      this.getEntityGroups(pageLink, groupType, includeShared, config);
+    if (entityGroupsObservable) {
+      return entityGroupsObservable.pipe(
+        expand((data) => {
+          if (data.hasNext) {
+            pageLink.page += 1;
+            return this.getEntityGroups(pageLink, groupType, includeShared, config);
+          } else {
+            return EMPTY;
+          }
+        }),
+        map((data) => data.data),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      return of(null);
+    }
+  }
+
+  public getSharedEntityGroups(pageLink: PageLink, groupType: EntityType, config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/${groupType}/shared${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getSharedEntityGroupEntityInfos(pageLink: PageLink, groupType: EntityType,
+                                         config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/entityGroupInfos/${groupType}/shared${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -202,35 +281,96 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getEntityGroupsByIds(entityGroupIds: Array<string>, config?: RequestConfig): Observable<Array<EntityGroup>> {
-    return this.http.get<Array<EntityGroup>>(`/api/entityGroups?entityGroupIds=${entityGroupIds.join(',')}`,
+  public getEntityGroupsByIds(entityGroupIds: Array<string>, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups?entityGroupIds=${entityGroupIds.join(',')}`,
       defaultHttpOptionsFromConfig(config)).pipe(
       map((entityGroups) => sortEntitiesByIds(entityGroups, entityGroupIds))
     );
   }
 
-  public getEntityGroupsByOwnerId(ownerType: EntityType, ownerId: string, groupType: EntityType,
-                                  config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
-    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/${ownerType}/${ownerId}/${groupType}`,
+  public getEntityGroupEntityInfosByIds(entityGroupIds: Array<string>, config?: RequestConfig): Observable<Array<EntityInfoData>> {
+    return this.http.get<Array<EntityInfoData>>(`/api/entityGroupInfos?entityGroupIds=${entityGroupIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((entityGroups) => sortEntitiesByIds(entityGroups, entityGroupIds))
+    );
+  }
+
+  public getEntityGroupsHierarchyByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                           config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroupsHierarchy/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getEntityGroupsByOwnerIdAndPageLink(ownerType: EntityType, ownerId: string, groupType: EntityType,
-                                             pageLink: PageLink, config?: RequestConfig): Observable<PageData<EntityGroup>> {
-    return this.http.get<PageData<EntityGroup>>(`/api/entityGroups/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
+  public getEntityGroupEntityInfosHierarchyByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                                     config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(
+      `/api/entityGroupInfosHierarchy/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEntityGroupsByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                  config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEntityGroupEntityInfosByOwnerId(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                  config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/entityGroupInfos/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllEntityGroupsByOwnerId(pageSize: number, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                     config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    const pageLink = new PageLink(pageSize, 0, null, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    if (pageSize === -1) { // all
+      pageLink.pageSize = groupType === EntityType.CUSTOMER ? 1024 : 100;
+      return this.getAllEntityGroupsByOwnerIdAndPageLink(pageLink, ownerType, ownerId, groupType, config).pipe(
+        map((data) => data && data.length ? data : null)
+      );
+    } else {
+      const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
+        this.getEntityGroupsByOwnerId(pageLink, ownerType, ownerId, groupType, config);
+      if (entityGroupsObservable) {
+        return entityGroupsObservable.pipe(
+          map((data) => data && data.data.length ? data.data : null)
+        );
+      } else {
+        return of(null);
+      }
+    }
+  }
+
+  private getAllEntityGroupsByOwnerIdAndPageLink(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                                 config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
+      this.getEntityGroupsByOwnerId(pageLink, ownerType, ownerId, groupType, config);
+    if (entityGroupsObservable) {
+      return entityGroupsObservable.pipe(
+        expand((data) => {
+          if (data.hasNext) {
+            pageLink.page += 1;
+            return this.getEntityGroupsByOwnerId(pageLink, ownerType, ownerId, groupType, config);
+          } else {
+            return EMPTY;
+          }
+        }),
+        map((data) => data.data),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      return of(null);
+    }
   }
 
   public getEntityGroupAllByOwnerId(ownerType: EntityType, ownerId: string, groupType: EntityType,
                                     config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/all/${ownerType}/${ownerId}/${groupType}`,
       defaultHttpOptionsFromConfig(config));
-  }
-
-  public getEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType,
-                                   config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
-    return this.getEntityGroups(groupType, true, config).pipe(
-      map((entityGroups) => pageLink.filterData(entityGroups, defaultPageLinkSearchFunction( 'name'))));
   }
 
   public addEntityToEntityGroup(entityGroupId: string, entityId: string, config?: RequestConfig): Observable<any> {
@@ -297,9 +437,57 @@ export class EntityGroupService {
     return this.http.get<PageData<T>>(url, defaultHttpOptionsFromConfig(config));
   }
 
-  public getEdgeEntityGroups(edgeId: string, groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
-    return this.http.get<Array<EntityGroupInfo>>(`/api/allEntityGroups/edge/${edgeId}/${groupType}`,
+  public getEdgeEntityGroups(pageLink: PageLink, edgeId: string, groupType: EntityType,
+                             config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/edge/${edgeId}/${groupType}${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllEdgeEntityGroups(pageSize: number, edgeId: string, groupType: EntityType,
+                                config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    const pageLink = new PageLink(pageSize, 0, null, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    if (pageSize === -1) { // all
+      pageLink.pageSize = groupType === EntityType.CUSTOMER ? 1024 : 100;
+      return this.getAllEdgeEntityGroupsByPageLink(pageLink, edgeId, groupType, config).pipe(
+        map((data) => data && data.length ? data : null)
+      );
+    } else {
+      const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
+        this.getEdgeEntityGroups(pageLink, edgeId, groupType, config);
+      if (entityGroupsObservable) {
+        return entityGroupsObservable.pipe(
+          map((data) => data && data.data.length ? data.data : null)
+        );
+      } else {
+        return of(null);
+      }
+    }
+  }
+
+  private getAllEdgeEntityGroupsByPageLink(pageLink: PageLink, edgeId: string, groupType: EntityType,
+                                           config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
+      this.getEdgeEntityGroups(pageLink, edgeId, groupType, config);
+    if (entityGroupsObservable) {
+      return entityGroupsObservable.pipe(
+        expand((data) => {
+          if (data.hasNext) {
+            pageLink.page += 1;
+            return this.getEdgeEntityGroups(pageLink, edgeId, groupType, config);
+          } else {
+            return EMPTY;
+          }
+        }),
+        map((data) => data.data),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      return of(null);
+    }
   }
 
   public assignEntityGroupToEdge(edgeId: string, entityGroupId: string,

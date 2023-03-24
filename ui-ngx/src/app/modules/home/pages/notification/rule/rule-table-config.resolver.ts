@@ -35,7 +35,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { EntityTypeResource } from '@shared/models/entity-type.models';
+import { EntityType, EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { Direction } from '@shared/models/page/sort-order';
 import { NotificationRule, TriggerTypeTranslationMap } from '@shared/models/notification.models';
 import { NotificationService } from '@core/http/notification.service';
@@ -50,6 +50,8 @@ import {
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class RuleTableConfigResolver implements Resolve<EntityTableConfig<NotificationRule>> {
@@ -59,28 +61,31 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
+    this.config.entityType = EntityType.NOTIFICATION_RULE;
     this.config.detailsPanelEnabled = false;
-    this.config.selectionEnabled = false;
     this.config.addEnabled = false;
     this.config.rowPointer = true;
 
-    this.config.entityTranslations = {
-      noEntities: 'notification.no-rules-notification',
-      search: 'notification.search-rules'
-    };
+    this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_RULE);
     this.config.entityResources = {} as EntityTypeResource<NotificationRule>;
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationRules(pageLink);
 
     this.config.deleteEntityTitle = rule => this.translate.instant('notification.delete-rule-title', {ruleName: rule.name});
     this.config.deleteEntityContent = () => this.translate.instant('notification.delete-rule-text');
+    this.config.deleteEntitiesTitle = count => this.translate.instant('notification.delete-rules-title', {count});
+    this.config.deleteEntitiesContent = () => this.translate.instant('notification.delete-rules-text');
     this.config.deleteEntity = id => this.notificationService.deleteNotificationRule(id.id);
 
     this.config.cellActionDescriptors = this.configureCellActions();
     this.config.headerComponent = RuleTableHeaderComponent;
     this.config.onEntityAction = action => this.onTargetAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
@@ -90,7 +95,7 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
     };
 
     this.config.columns.push(
-      new DateEntityTableColumn<NotificationRule>('createdTime', 'notification.created-time', this.datePipe, '170px'),
+      new DateEntityTableColumn<NotificationRule>('createdTime', 'common.created-time', this.datePipe, '170px'),
       new EntityTableColumn<NotificationRule>('name', 'notification.rule-name', '30%'),
       new EntityTableColumn<NotificationRule>('templateName', 'notification.template', '20%'),
       new EntityTableColumn<NotificationRule>('triggerType', 'notification.trigger.trigger', '20%',
@@ -110,7 +115,7 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
     return [{
       name: this.translate.instant('notification.copy-rule'),
       icon: 'content_copy',
-      isEnabled: () => true,
+      isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE),
       onAction: ($event, entity) => this.editRule($event, entity, false, true)
     }];
   }
@@ -126,7 +131,8 @@ export class RuleTableConfigResolver implements Resolve<EntityTableConfig<Notifi
       data: {
         isAdd,
         isCopy,
-        rule
+        rule,
+        readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
     }).afterClosed()
       .subscribe((res) => {

@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @ApiModel
 @Data
@@ -44,12 +45,17 @@ public class CustomerInfo extends Customer {
     @ApiModelProperty(position = 18, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String ownerName;
 
+    @Valid
+    @ApiModelProperty(position = 19, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private List<EntityInfo> groups;
+
     public CustomerInfo() {
         super();
     }
 
-    public CustomerInfo(Customer customer, String ownerName) {
+    public CustomerInfo(Customer customer, String ownerName, List<EntityInfo> groups) {
         super(customer);
         this.ownerName = ownerName;
+        this.groups = groups;
     }
 }

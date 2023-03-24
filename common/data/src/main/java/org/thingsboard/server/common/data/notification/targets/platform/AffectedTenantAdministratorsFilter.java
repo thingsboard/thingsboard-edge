@@ -28,14 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.apiusage;
+package org.thingsboard.server.common.data.notification.targets.platform;
 
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Data;
 
-public interface RateLimitService {
+@Data
+public class AffectedTenantAdministratorsFilter implements UsersFilter {
 
-    boolean checkEntityExportLimit(TenantId tenantId);
-
-    boolean checkEntityImportLimit(TenantId tenantId);
+    @Override
+    public UsersFilterType getType() {
+        return UsersFilterType.AFFECTED_TENANT_ADMINISTRATORS;
+    }
 
 }

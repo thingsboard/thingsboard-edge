@@ -36,7 +36,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -45,6 +48,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -52,6 +56,7 @@ import javax.persistence.Table;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,6 +64,7 @@ import java.util.UUID;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
 @Table(name = ModelConstants.DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME)
 public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
@@ -100,6 +106,10 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
+    private List<EntityInfo> groups;
+
     public DashboardInfoEntity() {
         super();
     }
@@ -140,6 +150,7 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         dashboardInfo.setMobileHide(mobileHide);
         dashboardInfo.setMobileOrder(mobileOrder);
         dashboardInfo.setOwnerName(ownerName);
+        dashboardInfo.setGroups(groups);
         return dashboardInfo;
     }
 }

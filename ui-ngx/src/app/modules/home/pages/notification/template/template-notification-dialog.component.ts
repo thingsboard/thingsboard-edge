@@ -56,6 +56,7 @@ export interface TemplateNotificationDialogData {
   predefinedType?: NotificationType;
   isAdd?: boolean;
   isCopy?: boolean;
+  readonly?: boolean;
 }
 
 @Component({
@@ -69,6 +70,7 @@ export class TemplateNotificationDialogComponent
   @ViewChild('notificationTemplateStepper', {static: true}) notificationTemplateStepper: MatStepper;
 
   stepperOrientation: Observable<StepperOrientation>;
+  stepperLabelPosition: Observable<'bottom' | 'end'>;
 
   dialogTitle = 'notification.edit-notification-template';
 
@@ -96,6 +98,9 @@ export class TemplateNotificationDialogComponent
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
+    this.stepperLabelPosition = this.breakpointObserver.observe(MediaBreakpoints['gt-md'])
+      .pipe(map(({matches}) => matches ? 'end' : 'bottom'));
+
     if (isDefinedAndNotNull(this.data?.predefinedType)) {
       this.hideSelectType = true;
       this.templateNotificationForm.get('notificationType').setValue(this.data.predefinedType, {emitEvents: false});
@@ -117,6 +122,12 @@ export class TemplateNotificationDialogComponent
         this.deliveryMethodFormsMap.get(NotificationDeliveryMethod[method])
           .patchValue(this.templateNotification.configuration.deliveryMethodsTemplates[method]);
       }
+    }
+
+    if(data?.readonly) {
+      this.dialogTitle = 'notification.view-notification-template';
+      this.templateNotificationForm.disable({emitEvent: false});
+      Array.from(this.deliveryMethodFormsMap.values()).map(form => form.disable({emitEvent: false}));
     }
   }
 
@@ -147,17 +158,13 @@ export class TemplateNotificationDialogComponent
   }
 
   nextStepLabel(): string {
-    if (this.selectedIndex !== 0) {
-      if (this.selectedIndex >= this.maxStepperIndex) {
-        return (this.data.isAdd || this.data.isCopy) ? 'action.add' : 'action.save';
-      } else if (this.notificationTemplateStepper.selected.stepControl.pristine) {
-        return 'action.skip';
-      }
+    if (this.selectedIndex >= this.maxStepperIndex) {
+      return (this.data.isAdd || this.data.isCopy) ? 'action.add' : 'action.save';
     }
     return 'action.next';
   }
 
-  private get maxStepperIndex(): number {
+  get maxStepperIndex(): number {
     return this.notificationTemplateStepper?._steps?.length - 1;
   }
 

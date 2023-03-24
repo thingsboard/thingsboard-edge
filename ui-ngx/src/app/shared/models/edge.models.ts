@@ -38,6 +38,7 @@ import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
 import { EntityType } from '@shared/models/entity-type.models';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;
@@ -55,6 +56,7 @@ export interface Edge extends BaseData<EdgeId> {
 
 export interface EdgeInfo extends Edge {
   ownerName?: string;
+  groups?: EntityInfoData[];
 }
 
 export interface EdgeSearchQuery extends EntitySearchQuery {

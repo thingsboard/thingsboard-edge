@@ -39,6 +39,7 @@ import { EntityAliases } from './alias.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { Filters } from '@shared/models/query/query.models';
 import { MatDialogRef } from '@angular/material/dialog';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface DashboardInfo extends BaseData<DashboardId>, ExportableEntity<DashboardId> {
   tenantId?: TenantId;
@@ -49,6 +50,7 @@ export interface DashboardInfo extends BaseData<DashboardId>, ExportableEntity<D
   mobileHide?: boolean;
   mobileOrder?: number;
   ownerName?: string;
+  groups?: EntityInfoData[];
 }
 
 export interface WidgetLayout {

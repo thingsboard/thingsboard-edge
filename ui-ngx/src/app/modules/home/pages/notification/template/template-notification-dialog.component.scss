@@ -31,16 +31,12 @@
 @import "../../../../../../scss/constants";
 
 :host-context(.tb-fullscreen-dialog .mat-mdc-dialog-container) {
-  width: 930px;
+  width: 800px;
   height: 100%;
   max-width: 100%;
   max-height: 100vh;
   display: flex;
   flex-direction: column;
-
-  .tb-form-fields {
-    margin-bottom: 18px;
-  }
 
   .tb-title {
     font-size: 16px;
@@ -54,11 +50,10 @@
   .tb-hint-available-params {
     border-radius: 6px;
     background-color: rgba(48, 86, 128, 0.04);
-    line-height: 16px;
-    letter-spacing: 0.25px;
     margin-bottom: 8px;
-    padding: 8px 12px;
-    color: rgba(0, 0, 0, 0.54);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
   }
 
   .delivery-method-container {

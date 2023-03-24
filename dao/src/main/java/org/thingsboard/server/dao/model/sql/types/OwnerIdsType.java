@@ -28,16 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.targets.platform;
+package org.thingsboard.server.dao.model.sql.types;
 
-import lombok.Data;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.EntityId;
 
-@Data
-public class ActionTargetUserFilter implements UsersFilter {
+import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+public class OwnerIdsType extends AbstractJavaUserType {
+
+    private final TypeReference<LinkedHashSet<EntityId>> ownerIdsType = new TypeReference<>(){};
 
     @Override
-    public UsersFilterType getType() {
-        return UsersFilterType.ACTION_TARGET_USER;
+    public Class<Set> returnedClass() {
+        return Set.class;
+    }
+
+    @Override
+    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
+        final String value = rs.getString(names[0]);
+        if (StringUtils.isEmpty(value)) {
+            return new LinkedHashSet<>();
+        }
+        try {
+            return JacksonUtil.fromBytes(value.getBytes(StandardCharsets.UTF_8), this.ownerIdsType);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to convert String to owner ids: " + ex.getMessage(), ex);
+        }
     }
 
 }

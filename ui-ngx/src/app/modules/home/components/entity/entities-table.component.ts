@@ -65,7 +65,7 @@ import {
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor,
+  GroupActionDescriptor, GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { EntityTypeTranslation } from '@shared/models/entity-type.models';
@@ -598,7 +598,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
-      (column) => column instanceof EntityTableColumn || column instanceof ChartEntityTableColumn)
+      (column) => column instanceof EntityTableColumn ||
+        column instanceof ChartEntityTableColumn || column instanceof GroupChipsEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)

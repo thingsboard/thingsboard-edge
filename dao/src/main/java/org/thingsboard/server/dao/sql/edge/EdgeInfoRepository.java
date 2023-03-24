@@ -94,7 +94,11 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
                                                             Pageable pageable);
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
-            "FROM (select e.*, c.title as owner_name from edge e LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
+            "FROM (select e.id, e.created_time, e.additional_info, e.customer_id, e.root_rule_chain_id, " +
+            "e.type, e.name, e.label, e.routing_key, e.secret, e.edge_license_key, e.cloud_endpoint, " +
+            "e.search_text, e.tenant_id, e.groups, " +
+            "c.title as owner_name from edge_info_view e " +
+            "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
@@ -110,7 +114,11 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
                                                                           Pageable pageable);
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
-            "FROM (select e.*, c.title as owner_name from edge e LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
+            "FROM (select e.id, e.created_time, e.additional_info, e.customer_id, e.root_rule_chain_id, " +
+            "e.type, e.name, e.label, e.routing_key, e.secret, e.edge_license_key, e.cloud_endpoint, " +
+            "e.search_text, e.tenant_id, e.groups, " +
+            "c.title as owner_name from edge_info_view e " +
+            "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.type = :type " +
             "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +

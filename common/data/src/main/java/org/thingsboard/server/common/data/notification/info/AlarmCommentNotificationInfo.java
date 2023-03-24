@@ -53,6 +53,7 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
     private String comment;
     private String action;
     private String userName;
+
     private String alarmType;
     private UUID alarmId;
     private EntityId alarmOriginator;
@@ -71,7 +72,7 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
                 "alarmId", alarmId.toString(),
                 "alarmSeverity", alarmSeverity.name().toLowerCase(),
                 "alarmStatus", alarmStatus.toString(),
-                "alarmOriginatorEntityType", alarmOriginator.getEntityType().normalName(),
+                "alarmOriginatorEntityType", alarmOriginator.getEntityType().getNormalName(),
                 "alarmOriginatorId", alarmOriginator.getId().toString(),
                 "alarmOriginatorName", alarmOriginatorName
         );

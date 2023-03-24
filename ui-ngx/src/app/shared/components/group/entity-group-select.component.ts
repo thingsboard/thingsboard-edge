@@ -39,6 +39,9 @@ import { EntityService } from '@core/http/entity.service';
 import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo, entityGroupTypes } from '@shared/models/entity-group.models';
+import { EntityInfoData } from '@shared/models/entity.models';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'tb-entity-group-select',
@@ -112,6 +115,7 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
 
   constructor(private store: Store<AppState>,
               private entityService: EntityService,
+              private entityGroupService: EntityGroupService,
               public translate: TranslateService,
               private fb: UntypedFormBuilder) {
   }
@@ -192,11 +196,13 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
     }
   }
 
-  entityGroupLoaded(entityGroup: EntityGroupInfo) {
-    this.currentGroupInfo.next(entityGroup);
-    setTimeout(() => {
-      this.entityGroupSelectFormGroup.get('groupType').patchValue(entityGroup ? entityGroup.type : null, {emitEvent: true});
-    }, 0);
+  entityGroupLoaded(entityGroup: EntityInfoData) {
+    (entityGroup ? this.entityGroupService.getEntityGroup(entityGroup.id.id, {ignoreLoading: true}) : of(null)).subscribe(
+      (loadedEntityGroup) => {
+        this.currentGroupInfo.next(loadedEntityGroup);
+        this.entityGroupSelectFormGroup.get('groupType').patchValue(loadedEntityGroup ? loadedEntityGroup.type : null, {emitEvent: true});
+      }
+    );
   }
 
   getCurrentGroupType(): EntityType {

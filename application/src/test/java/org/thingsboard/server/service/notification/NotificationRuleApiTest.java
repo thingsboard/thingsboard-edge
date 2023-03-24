@@ -90,6 +90,8 @@ import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 
@@ -118,6 +120,10 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
     private AlarmSubscriptionService alarmSubscriptionService;
     @Autowired
     private NotificationRequestService notificationRequestService;
+    @Autowired
+    private NotificationRuleService notificationRuleService;
+    @Autowired
+    private NotificationTemplateService notificationTemplateService;
 
     @SpyBean
     private AlarmService alarmService;
@@ -125,7 +131,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
     @Before
     public void beforeEach() throws Exception {
         loginTenantAdmin();
-
+        notificationRuleService.deleteNotificationRulesByTenantId(tenantId);
+        notificationTemplateService.deleteNotificationTemplatesByTenantId(tenantId);
     }
 
     @Test
@@ -241,20 +248,17 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
             double actualDelay = (double) (notification.getCreatedTime() - ts) / 1000;
             assertThat(actualDelay).isCloseTo(expectedDelay, offset(0.5));
 
-            AlarmStatus expectedStatus = AlarmStatus.ACTIVE_UNACK;
-            AlarmSeverity expectedSeverity = AlarmSeverity.CRITICAL;
-
-            assertThat(notification.getSubject()).isEqualTo("Alarm type: " + alarmType + ", status: " + expectedStatus + ", " +
-                    "severity: " + expectedSeverity + ", deviceId: " + device.getId());
-            assertThat(notification.getText()).isEqualTo("Status: " + expectedStatus + ", severity: " + expectedSeverity);
+            assertThat(notification.getSubject()).isEqualTo("Alarm type: " + alarmType + ", status: " + AlarmStatus.ACTIVE_UNACK + ", " +
+                    "severity: " + AlarmSeverity.CRITICAL.toString().toLowerCase() + ", deviceId: " + device.getId());
+            assertThat(notification.getText()).isEqualTo("Status: " + AlarmStatus.ACTIVE_UNACK + ", severity: " + AlarmSeverity.CRITICAL.toString().toLowerCase());
 
             assertThat(notification.getType()).isEqualTo(NotificationType.ALARM);
             assertThat(notification.getInfo()).isInstanceOf(AlarmNotificationInfo.class);
             AlarmNotificationInfo info = (AlarmNotificationInfo) notification.getInfo();
             assertThat(info.getAlarmId()).isEqualTo(alarm.getUuidId());
             assertThat(info.getAlarmType()).isEqualTo(alarmType);
-            assertThat(info.getAlarmSeverity()).isEqualTo(expectedSeverity);
-            assertThat(info.getAlarmStatus()).isEqualTo(expectedStatus);
+            assertThat(info.getAlarmSeverity()).isEqualTo(AlarmSeverity.CRITICAL);
+            assertThat(info.getAlarmStatus()).isEqualTo(AlarmStatus.ACTIVE_UNACK);
         });
 
         clients.values().forEach(wsClient -> wsClient.registerWaitForUpdate());
@@ -265,8 +269,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
             wsClient.waitForUpdate(true);
             Notification updatedNotification = wsClient.getLastDataUpdate().getUpdate();
             assertThat(updatedNotification.getSubject()).isEqualTo("Alarm type: " + alarmType + ", status: " + expectedStatus + ", " +
-                    "severity: " + expectedSeverity + ", deviceId: " + device.getId());
-            assertThat(updatedNotification.getText()).isEqualTo("Status: " + expectedStatus + ", severity: " + expectedSeverity);
+                    "severity: " + expectedSeverity.toString().toLowerCase() + ", deviceId: " + device.getId());
+            assertThat(updatedNotification.getText()).isEqualTo("Status: " + expectedStatus + ", severity: " + expectedSeverity.toString().toLowerCase());
 
             wsClient.close();
         });
@@ -320,7 +324,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         getWsClient().waitForUpdate(true);
 
         Notification notification = getWsClient().getLastDataUpdate().getUpdate();
-        assertThat(notification.getSubject()).isEqualTo("CRITICAL alarm '" + alarmType + "' is ACTIVE_UNACK");
+        assertThat(notification.getSubject()).isEqualTo("critical alarm '" + alarmType + "' is ACTIVE_UNACK");
         assertThat(notification.getInfo()).asInstanceOf(type(AlarmNotificationInfo.class))
                 .extracting(AlarmNotificationInfo::getAlarmId).isEqualTo(alarm.getUuidId());
 
@@ -334,51 +338,9 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         alarmSubscriptionService.clearAlarm(tenantId, alarm.getId(), System.currentTimeMillis(), null);
         getWsClient().waitForUpdate(true);
         notification = getWsClient().getLastDataUpdate().getUpdate();
-        assertThat(notification.getSubject()).isEqualTo("CRITICAL alarm '" + alarmType + "' is CLEARED_UNACK");
+        assertThat(notification.getSubject()).isEqualTo("critical alarm '" + alarmType + "' is CLEARED_UNACK");
 
         assertThat(findNotificationRequests(EntityType.ALARM).getData()).filteredOn(NotificationRequest::isScheduled).isEmpty();
-    }
-
-    @Test
-    public void testNotificationRuleProcessing_ruleEngineComponentLifecycleEvent_ruleNodeStartError() {
-        String subject = "Rule Node '${componentName}' in Rule Chain '${ruleChainName}' failed to start";
-        String text = "The error: ${error}";
-        NotificationTemplate template = createNotificationTemplate(NotificationType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT, subject, text, NotificationDeliveryMethod.WEB);
-
-        NotificationRule rule = new NotificationRule();
-        rule.setName("Rule node start-up failures in my rule chain");
-        rule.setTemplateId(template.getId());
-        rule.setTriggerType(NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT);
-
-        RuleChain ruleChain = createEmptyRuleChain("My Rule Chain");
-        var triggerConfig = new RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig();
-        triggerConfig.setRuleChains(Set.of(ruleChain.getUuidId()));
-        triggerConfig.setRuleChainEvents(Set.of(ComponentLifecycleEvent.STARTED));
-        triggerConfig.setOnlyRuleChainLifecycleFailures(true);
-
-        triggerConfig.setTrackRuleNodeEvents(true);
-        triggerConfig.setRuleNodeEvents(Set.of(ComponentLifecycleEvent.STARTED));
-        triggerConfig.setOnlyRuleNodeLifecycleFailures(true);
-        rule.setTriggerConfig(triggerConfig);
-
-        NotificationTarget target = createNotificationTarget(tenantAdminUserId);
-        DefaultNotificationRuleRecipientsConfig recipientsConfig = new DefaultNotificationRuleRecipientsConfig();
-        recipientsConfig.setTriggerType(NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT);
-        recipientsConfig.setTargets(List.of(target.getUuidId()));
-        rule.setRecipientsConfig(recipientsConfig);
-        rule = saveNotificationRule(rule);
-
-        getWsClient().subscribeForUnreadNotifications(10).waitForReply(true);
-        getWsClient().registerWaitForUpdate();
-
-        addRuleNodeWithError(ruleChain.getId(), "My generator");
-
-        getWsClient().waitForUpdate(10000, true);
-        Notification notification = getWsClient().getLastDataUpdate().getUpdate();
-
-        assertThat(notification.getType()).isEqualTo(NotificationType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT);
-        assertThat(notification.getSubject()).isEqualTo("Rule Node 'My generator' in Rule Chain 'My Rule Chain' failed to start");
-        assertThat(notification.getText()).startsWith("The error: Can't compile script");
     }
 
     @Test

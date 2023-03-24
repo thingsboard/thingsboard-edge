@@ -34,10 +34,10 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  DateEntityTableColumn,
+  DateEntityTableColumn, EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor,
+  GroupActionDescriptor, GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -66,6 +66,7 @@ import { GroupEntityTabsComponent } from '@home/components/group/group-entity-ta
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { AuthUser } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { DeviceInfo } from '@shared/models/device.models';
 
 @Injectable()
 export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo | Asset>> {
@@ -143,18 +144,21 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     config.headerComponent = AssetTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<AssetInfo | Asset>): Array<EntityTableColumn<AssetInfo>> {
-    const columns: Array<EntityTableColumn<AssetInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<AssetInfo | Asset>): Array<EntityColumn<AssetInfo>> {
+    const columns: Array<EntityColumn<AssetInfo>> = [
       new DateEntityTableColumn<AssetInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<AssetInfo>('name', 'asset.name', '25%', config.entityTitle),
-      new EntityTableColumn<AssetInfo>('type', 'asset.asset-type', '25%'),
-      new EntityTableColumn<AssetInfo>('label', 'asset.label', '25%'),
+      new EntityTableColumn<AssetInfo>('name', 'asset.name', '20%', config.entityTitle),
+      new EntityTableColumn<AssetInfo>('type', 'asset.asset-type', '20%'),
+      new EntityTableColumn<AssetInfo>('label', 'asset.label', '15%'),
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
-      columns.push(new EntityTableColumn<AssetInfo>('ownerName', title, '25%'));
+      columns.push(new EntityTableColumn<AssetInfo>('ownerName', title, '20%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<AssetInfo>( 'groups', 'entity.groups', '25%')
+    );
     return columns;
   }
 

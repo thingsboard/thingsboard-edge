@@ -57,8 +57,8 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.HasId;
@@ -354,22 +354,27 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         }
                     });
         }
-        for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
-            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
-            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
-            if (!group.isGroupAll() && ctx.shouldExportEntities(ctx.getEntityType())) {
-                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
-                        link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
-                List<EntityId> groupEntityIds = new ArrayList<>();
-                for (EntityId groupEntityId : entityIdsIterator) {
-                    var entityExternalId = ctx.getExternalId(groupEntityId);
-                    if (entityExternalId != null) {
-                        groupEntityIds.add(entityExternalId);
+        DaoUtil.processInBatches(pageLink -> groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType(), pageLink)
+        , 1024, group -> {
+                    try {
+                        EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
+                        ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
+                        if (!group.isGroupAll() && ctx.shouldExportEntities(ctx.getEntityType())) {
+                            PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
+                                    link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
+                            List<EntityId> groupEntityIds = new ArrayList<>();
+                            for (EntityId groupEntityId : entityIdsIterator) {
+                                var entityExternalId = ctx.getExternalId(groupEntityId);
+                                if (entityExternalId != null) {
+                                    groupEntityIds.add(entityExternalId);
+                                }
+                            }
+                            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                }
-                ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
-            }
-        }
+                });
 
         DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, EntityType.CUSTOMER, pageLink)
                 , 1024, cId -> ctx.addTask(new EntityTypeExportTask(parents, cId)));
@@ -738,7 +743,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
         });
         DaoUtil.processInBatches(pageLink ->
-                groupService.findEntityGroupsByTypeAndPageLink(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
+                groupService.findEntityGroupsByType(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
             //Skip reserved groups (All) even if they are not part of the restored commit.
             if (entity.isGroupAll()) {
                 return;

@@ -98,6 +98,11 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -128,7 +133,6 @@ import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.mail.MailExecutorService;
-import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
@@ -397,6 +401,22 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private NotificationRuleProcessingService notificationRuleProcessingService;
+
+    @Autowired
+    @Getter
+    private NotificationTargetService notificationTargetService;
+
+    @Autowired
+    @Getter
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    @Getter
+    private NotificationRequestService notificationRequestService;
+
+    @Autowired
+    @Getter
+    private NotificationRuleService notificationRuleService;
 
     @Autowired
     @Getter

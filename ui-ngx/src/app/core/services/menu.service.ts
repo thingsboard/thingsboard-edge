@@ -35,7 +35,7 @@ import { AppState } from '../core.state';
 import { getCurrentOpenedMenuSections, selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
 import { filter, map, take } from 'rxjs/operators';
 import { HomeSection, MenuSection } from '@core/services/menu.models';
-import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -205,20 +205,20 @@ export class MenuService {
       },
       {
         id: guid(),
+        name: 'notification.recipients',
+        type: 'link',
+        path: '/notification/recipients',
+        icon: 'contacts',
+        disabled: disabledItems.indexOf('notification_recipients') > -1
+      },
+      {
+        id: guid(),
         name: 'notification.templates',
         type: 'link',
         path: '/notification/templates',
         icon: 'mdi:message-draw',
         isMdiIcon: true,
         disabled: disabledItems.indexOf('notification_templates') > -1
-      },
-      {
-        id: guid(),
-        name: 'notification.recipients',
-        type: 'link',
-        path: '/notification/recipients',
-        icon: 'contacts',
-        disabled: disabledItems.indexOf('notification_recipients') > -1
       },
       {
         id: guid(),
@@ -956,6 +956,18 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'rulechain.rulechains',
+          type: 'link',
+          path: '/ruleChains',
+          icon: 'settings_ethernet',
+          disabled: disabledItems.indexOf('rule_chains') > -1
+        }
+      );
+    }
     const edgeManagementPages: Array<MenuSection> = [];
     if (authState.edgesSupportEnabled) {
       const edgesPages: Array<MenuSection> = [];
@@ -1060,18 +1072,6 @@ export class MenuService {
       );
     }
     const advancedFeaturesPages: Array<MenuSection> = [];
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
-      advancedFeaturesPages.push(
-        {
-          id: guid(),
-          name: 'rulechain.rulechains',
-          type: 'link',
-          path: '/features/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('rule_chains') > -1
-        }
-      );
-    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       advancedFeaturesPages.push(
         {
@@ -1159,7 +1159,6 @@ export class MenuService {
       );
     }
     const notificationPages: Array<MenuSection> = [];
-    // TODO: permission check
     notificationPages.push(
       {
         id: guid(),
@@ -1170,52 +1169,56 @@ export class MenuService {
         disabled: disabledItems.indexOf('notification_inbox') > -1
       }
     );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.sent',
-        type: 'link',
-        path: '/notification/sent',
-        icon: 'outbox',
-        disabled: disabledItems.indexOf('notification_sent') > -1
-      }
-    );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.templates',
-        type: 'link',
-        path: '/notification/templates',
-        icon: 'mdi:message-draw',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_templates') > -1
-      }
-    );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.recipients',
-        type: 'link',
-        path: '/notification/recipients',
-        icon: 'contacts',
-        disabled: disabledItems.indexOf('notification_recipients') > -1
-      }
-    );
-    // TODO: permission check
-    notificationPages.push(
-      {
-        id: guid(),
-        name: 'notification.rules',
-        type: 'link',
-        path: '/notification/rules',
-        icon: 'mdi:message-cog',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_rules') > -1
-      }
-    );
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.sent',
+          type: 'link',
+          path: '/notification/sent',
+          icon: 'outbox',
+          disabled: disabledItems.indexOf('notification_sent') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.recipients',
+          type: 'link',
+          path: '/notification/recipients',
+          icon: 'contacts',
+          disabled: disabledItems.indexOf('notification_recipients') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.templates',
+          type: 'link',
+          path: '/notification/templates',
+          icon: 'mdi:message-draw',
+          isMdiIcon: true,
+          disabled: disabledItems.indexOf('notification_templates') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
+      notificationPages.push(
+        {
+          id: guid(),
+          name: 'notification.rules',
+          type: 'link',
+          path: '/notification/rules',
+          icon: 'mdi:message-cog',
+          isMdiIcon: true,
+          disabled: disabledItems.indexOf('notification_rules') > -1
+        }
+      );
+    }
     if (notificationPages.length) {
       sections.push(
         {

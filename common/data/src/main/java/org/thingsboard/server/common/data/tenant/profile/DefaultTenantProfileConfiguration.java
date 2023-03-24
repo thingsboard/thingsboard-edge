@@ -65,6 +65,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
 
     private String tenantEntityExportRateLimit;
     private String tenantEntityImportRateLimit;
+    private String tenantNotificationRequestsRateLimit;
 
     private long maxTransportMessages;
     private long maxTransportDataPoints;

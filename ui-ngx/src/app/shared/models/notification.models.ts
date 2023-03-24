@@ -40,6 +40,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { NotificationRuleId } from '@shared/models/id/notification-rule-id';
 import { AlarmSearchStatus, AlarmSeverity, AlarmStatus } from '@shared/models/alarm.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { User } from '@shared/models/user.model';
 
 export interface Notification {
   readonly id: NotificationId;
@@ -85,6 +86,7 @@ export interface NotificationRequestPreview {
   totalRecipientsCount: number;
   recipientsCountByTarget: { [key in string]: number };
   processedTemplates: { [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate };
+  recipientsPreview: Array<User>;
 }
 
 export interface NotificationRequestStats {
@@ -276,7 +278,7 @@ export enum NotificationTargetType {
 
 export const NotificationTargetTypeTranslationMap = new Map<NotificationTargetType, string>([
   [NotificationTargetType.PLATFORM_USERS, 'notification.platform-users'],
-  [NotificationTargetType.SLACK, 'notification.slack']
+  [NotificationTargetType.SLACK, 'notification.delivery-method.slack']
 ]);
 
 export interface NotificationTemplate extends Omit<BaseData<NotificationTemplateId>, 'label'>{
@@ -286,8 +288,6 @@ export interface NotificationTemplate extends Omit<BaseData<NotificationTemplate
 }
 
 interface NotificationTemplateConfig {
-  defaultTextTemplate: string;
-  notificationSubject: string;
   deliveryMethodsTemplates: {
     [key in NotificationDeliveryMethod]: DeliveryMethodNotificationTemplate
   };
@@ -344,10 +344,10 @@ export enum NotificationDeliveryMethod {
 }
 
 export const NotificationDeliveryMethodTranslateMap = new Map<NotificationDeliveryMethod, string>([
-  [NotificationDeliveryMethod.WEB, 'notification.delivery-method-type.web'],
-  [NotificationDeliveryMethod.SMS, 'notification.delivery-method-type.sms'],
-  [NotificationDeliveryMethod.EMAIL, 'notification.delivery-method-type.email'],
-  [NotificationDeliveryMethod.SLACK, 'notification.delivery-method-type.slack']
+  [NotificationDeliveryMethod.WEB, 'notification.delivery-method.web'],
+  [NotificationDeliveryMethod.SMS, 'notification.delivery-method.sms'],
+  [NotificationDeliveryMethod.EMAIL, 'notification.delivery-method.email'],
+  [NotificationDeliveryMethod.SLACK, 'notification.delivery-method.slack']
 ]);
 
 export enum NotificationRequestStatus {
@@ -376,13 +376,15 @@ export const SlackChanelTypesTranslateMap = new Map<SlackChanelType, string>([
 
 export enum NotificationTargetConfigType {
   ALL_USERS = 'ALL_USERS',
+  TENANT_ADMINISTRATORS = 'TENANT_ADMINISTRATORS',
   USER_LIST = 'USER_LIST',
   USER_GROUP_LIST = 'USER_GROUP_LIST',
   CUSTOMER_USERS = 'CUSTOMER_USERS',
   USER_ROLE = 'USER_ROLE',
   ORIGINATOR_ENTITY_OWNER_USERS = 'ORIGINATOR_ENTITY_OWNER_USERS',
-  TENANT_ADMINISTRATORS = 'TENANT_ADMINISTRATORS',
-  ACTION_TARGET_USER = 'ACTION_TARGET_USER'
+  AFFECTED_USER = 'AFFECTED_USER',
+  SYSTEM_ADMINISTRATORS = 'SYSTEM_ADMINISTRATORS',
+  AFFECTED_TENANT_ADMINISTRATORS = 'AFFECTED_TENANT_ADMINISTRATORS'
 }
 
 interface NotificationTargetConfigTypeInfo {
@@ -393,44 +395,54 @@ interface NotificationTargetConfigTypeInfo {
 export const NotificationTargetConfigTypeInfoMap = new Map<NotificationTargetConfigType, NotificationTargetConfigTypeInfo>([
   [NotificationTargetConfigType.ALL_USERS,
     {
-      name: 'notification.target-type.all-users'
+      name: 'notification.recipient-type.all-users'
     }
   ],
   [NotificationTargetConfigType.TENANT_ADMINISTRATORS,
     {
-      name: 'notification.target-type.tenant-administrators'
+      name: 'notification.recipient-type.tenant-administrators'
     }
   ],
   [NotificationTargetConfigType.CUSTOMER_USERS,
     {
-      name: 'notification.target-type.customer-users'
+      name: 'notification.recipient-type.customer-users'
     }
   ],
   [NotificationTargetConfigType.USER_LIST,
     {
-      name: 'notification.target-type.user-list'
+      name: 'notification.recipient-type.user-list'
     }
   ],
   [NotificationTargetConfigType.ORIGINATOR_ENTITY_OWNER_USERS,
     {
-      name: 'notification.target-type.users-entity-owner',
-      hint: 'notification.target-type.users-entity-owner-hint'
+      name: 'notification.recipient-type.users-entity-owner',
+      hint: 'notification.recipient-type.users-entity-owner-hint'
     }
   ],
-  [NotificationTargetConfigType.ACTION_TARGET_USER,
+  [NotificationTargetConfigType.AFFECTED_USER,
     {
-      name: 'notification.target-type.affected-user',
-      hint: 'notification.target-type.affected-user-hint'
+      name: 'notification.recipient-type.affected-user',
+      hint: 'notification.recipient-type.affected-user-hint'
+    }
+  ],
+  [NotificationTargetConfigType.SYSTEM_ADMINISTRATORS,
+    {
+      name: 'notification.recipient-type.system-administrators'
+    }
+  ],
+  [NotificationTargetConfigType.AFFECTED_TENANT_ADMINISTRATORS,
+    {
+      name: 'notification.recipient-type.affected-tenant-administrators'
     }
   ],
   [NotificationTargetConfigType.USER_ROLE,
     {
-      name: 'notification.target-type.user-role'
+      name: 'notification.recipient-type.user-role'
     }
   ],
   [NotificationTargetConfigType.USER_GROUP_LIST,
     {
-      name: 'notification.target-type.user-group-list'
+      name: 'notification.recipient-type.user-group-list'
     }
   ]
 ]);
@@ -478,56 +490,56 @@ export const ActionButtonLinkTypeTranslateMap = new Map<ActionButtonLinkType, st
 
 interface NotificationTemplateTypeTranslate {
   name: string;
-  hint?: string;
+  helpId?: string;
 }
 
 export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, NotificationTemplateTypeTranslate>([
   [NotificationType.GENERAL,
     {
       name: 'notification.template-type.general',
-      hint: 'notification.template-hint.general'
+      helpId: 'notification/general'
     }
   ],
   [NotificationType.ALARM,
     {
       name: 'notification.template-type.alarm',
-      hint: 'notification.template-hint.alarm'
+      helpId: 'notification/alarm'
     }
   ],
   [NotificationType.DEVICE_INACTIVITY,
     {
       name: 'notification.template-type.device-inactivity',
-      hint: 'notification.template-hint.device-inactivity'
+      helpId: 'notification/device_inactivity'
     }
   ],
   [NotificationType.ENTITY_ACTION,
     {
       name: 'notification.template-type.entity-action',
-      hint: 'notification.template-hint.entity-action'
+      helpId: 'notification/entity_action'
     }
   ],
   [NotificationType.ALARM_COMMENT,
     {
       name: 'notification.template-type.alarm-comment',
-      hint: 'notification.template-hint.alarm-comment'
+      helpId: 'notification/alarm_comment'
     }
   ],
   [NotificationType.ALARM_ASSIGNMENT,
     {
       name: 'notification.template-type.alarm-assignment',
-      hint: 'notification.template-hint.alarm-assignment'
+      helpId: 'notification/alarm_assignment'
     }
   ],
   [NotificationType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
     {
       name: 'notification.template-type.rule-engine-lifecycle-event',
-      hint: 'notification.template-hint.rule-engine-lifecycle-event'
+      helpId: 'notification/rule_engine_lifecycle_event'
     }
   ],
   [NotificationType.ENTITIES_LIMIT,
     {
       name: 'notification.template-type.entities-limit',
-      hint: 'notification.template-hint.entities-limit'
+      helpId: 'notification/entities_limit'
     }]
 ]);
 

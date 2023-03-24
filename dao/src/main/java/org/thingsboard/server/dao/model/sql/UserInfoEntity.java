@@ -33,16 +33,22 @@ package org.thingsboard.server.dao.model.sql;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
 @Table(name = ModelConstants.USER_INFO_VIEW_COLUMN_FAMILY_NAME)
 public class UserInfoEntity extends AbstractUserEntity<UserInfo> {
@@ -50,13 +56,17 @@ public class UserInfoEntity extends AbstractUserEntity<UserInfo> {
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
+    private List<EntityInfo> groups;
+
     public UserInfoEntity() {
         super();
     }
 
     @Override
     public UserInfo toData() {
-        return new UserInfo(super.toUser(), this.ownerName);
+        return new UserInfo(super.toUser(), this.ownerName, this.groups);
     }
 
 }

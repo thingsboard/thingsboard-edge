@@ -52,7 +52,7 @@ public class RuleEngineOriginatedNotificationInfo implements NotificationInfo {
     @Override
     public Map<String, String> getTemplateData() {
         Map<String, String> templateData = new HashMap<>(msgMetadata);
-        templateData.put("originatorType", msgOriginator.getEntityType().toString());
+        templateData.put("originatorType", msgOriginator.getEntityType().getNormalName());
         templateData.put("originatorId", msgOriginator.getId().toString());
         templateData.put("msgType", msgType);
         return templateData;

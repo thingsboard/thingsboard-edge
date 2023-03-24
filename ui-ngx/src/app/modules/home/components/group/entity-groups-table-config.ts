@@ -45,7 +45,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { getDescendantProp, isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
@@ -59,7 +59,6 @@ import {
 } from '@home/components/wizard/entity-group-wizard-dialog.component';
 import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
-import { PageLinkSearchFunction } from '@shared/models/page/page-link';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -112,14 +111,14 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       new EntityTableColumn<EntityGroupInfo>('description', 'entity-group.description', '40%',
         (entityGroup) =>
           entityGroup && entityGroup.additionalInfo && isDefinedAndNotNull(entityGroup.additionalInfo.description)
-            ? entityGroup.additionalInfo.description : '', entity => ({}), false)
+            ? entityGroup.additionalInfo.description : '', () => ({}), false)
     );
     if (publicGroupTypes.has(this.groupType)) {
       this.columns.push(
         new EntityTableColumn<EntityGroupInfo>('isPublic', 'entity-group.public', '60px',
-          entityGroup => {
-            return checkBoxCell(entityGroup && entityGroup.additionalInfo ? entityGroup.additionalInfo.isPublic : false);
-          }, () => ({}), false)
+          entityGroup =>
+            checkBoxCell(entityGroup && entityGroup.additionalInfo ?
+              entityGroup.additionalInfo.isPublic : false), () => ({}), false)
       );
     }
 
@@ -130,23 +129,19 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.deleteEntitiesContent = () => this.translate.instant('entity-group.delete-entity-groups-text');
 
     this.entitiesFetchFunction = pageLink => {
-      let fetchObservable: Observable<Array<EntityGroupInfo>>;
       if (this.customerId && !this.isEdgeGroup()) {
-        fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
+        return this.entityGroupService.getEntityGroupsByOwnerId(pageLink, EntityType.CUSTOMER, this.customerId, this.groupType);
       } else if (this.isEdgeGroup()) {
-        fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
+        return this.entityGroupService.getEdgeEntityGroups(pageLink, this.edgeId, this.groupType);
       } else if (this.shared) {
-        fetchObservable = this.entityGroupService.getSharedEntityGroups(this.groupType);
+        return this.entityGroupService.getSharedEntityGroups(pageLink, this.groupType);
       } else {
-        fetchObservable = this.entityGroupService.getEntityGroups(this.groupType, false);
+        return this.entityGroupService.getEntityGroups(pageLink, this.groupType, false);
       }
-      return fetchObservable.pipe(
-        map((entityGroups) => pageLink.filterData(entityGroups, this.groupPageLinkSearchFunction())
-        )
-      );
     };
 
-    this.loadEntity = id => this.entityGroupService.getEntityGroup(id.id);
+    this.loadEntity = id => this.groupType === EntityType.DEVICE ? this.entityGroupService.getDeviceEntityGroup(id.id) :
+      this.entityGroupService.getEntityGroup(id.id);
 
     this.saveEntity = (entityGroup, originalEntityGroup) => {
       entityGroup.type = this.groupType;
@@ -163,19 +158,17 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
       }
       return saveEntity$.pipe(
-        tap((savedEntityGroup) => {
-            this.notifyEntityGroupUpdated();
-          }
-        ));
-    };
-
-    this.deleteEntity = id => {
-      return this.entityGroupService.deleteEntityGroup(id.id).pipe(
         tap(() => {
             this.notifyEntityGroupUpdated();
           }
         ));
     };
+
+    this.deleteEntity = id => this.entityGroupService.deleteEntityGroup(id.id).pipe(
+        tap(() => {
+            this.notifyEntityGroupUpdated();
+          }
+        ));
 
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
@@ -284,7 +277,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
           icon: 'assignment_return',
-          isEnabled: (entity) => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
+          isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }
       );
@@ -464,26 +457,5 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   private isEdgeGroup(): boolean {
     return isDefinedAndNotNull(this.params.edgeId) && (this.params.groupType === EntityType.EDGE ||
       (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE));
-  }
-
-  private groupPageLinkSearchFunction(): PageLinkSearchFunction<any> {
-    return (entity, textSearch) => this.groupPageLinkSearch(entity, textSearch, ['name', 'additionalInfo.description']);
-  }
-
-  private groupPageLinkSearch(entity: any, textSearch: string, searchProperties: string[]): boolean {
-    if (textSearch === null || !textSearch.length) {
-      return true;
-    }
-    const expected = ('' + textSearch).toLowerCase();
-    for (const searchProperty of searchProperties) {
-      const val = getDescendantProp(entity, searchProperty);
-      if (isDefinedAndNotNull(val)) {
-        const actual = ('' + val).toLowerCase();
-        if (actual.indexOf(expected) !== -1) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }

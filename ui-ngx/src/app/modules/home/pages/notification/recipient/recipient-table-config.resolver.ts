@@ -35,7 +35,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { EntityTypeResource } from '@shared/models/entity-type.models';
+import { EntityType, EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { Direction } from '@shared/models/page/sort-order';
 import { NotificationTarget, NotificationTargetTypeTranslationMap } from '@shared/models/notification.models';
 import { NotificationService } from '@core/http/notification.service';
@@ -50,6 +50,8 @@ import { RecipientTableHeaderComponent } from '@home/pages/notification/recipien
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<NotificationTarget>> {
@@ -59,29 +61,33 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
   constructor(private notificationService: NotificationService,
               private translate: TranslateService,
               private dialog: MatDialog,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService) {
 
+    this.config.entityType = EntityType.NOTIFICATION_TARGET;
     this.config.detailsPanelEnabled = false;
-    this.config.selectionEnabled = false;
     this.config.addEnabled = false;
     this.config.rowPointer = true;
 
-    this.config.entityTranslations = {
-      noEntities: 'notification.no-targets-notification',
-      search: 'notification.search-targets'
-    };
+    this.config.entityTranslations = entityTypeTranslations.get(EntityType.NOTIFICATION_TARGET);
     this.config.entityResources = {} as EntityTypeResource<NotificationTarget>;
 
     this.config.entitiesFetchFunction = pageLink => this.notificationService.getNotificationTargets(pageLink);
 
-    this.config.deleteEntityTitle = target => this.translate.instant('notification.delete-target-title', {targetName: target.name});
-    this.config.deleteEntityContent = () => this.translate.instant('notification.delete-target-text');
+    this.config.deleteEntityTitle = target => this.translate.instant('notification.delete-recipient-title', {recipientName: target.name});
+    this.config.deleteEntityContent = () => this.translate.instant('notification.delete-recipient-text');
+    this.config.deleteEntitiesTitle = count => this.translate.instant('notification.delete-recipients-title', {count});
+    this.config.deleteEntitiesContent = () => this.translate.instant('notification.delete-recipients-text');
+
     this.config.deleteEntity = id => this.notificationService.deleteNotificationTarget(id.id);
 
     this.config.cellActionDescriptors = this.configureCellActions();
 
     this.config.headerComponent = RecipientTableHeaderComponent;
     this.config.onEntityAction = action => this.onTargetAction(action);
+
+    this.config.deleteEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    this.config.entitySelectionEnabled = () => this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
 
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
@@ -91,8 +97,8 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
     };
 
     this.config.columns.push(
-      new DateEntityTableColumn<NotificationTarget>('createdTime', 'notification.created-time', this.datePipe, '170px'),
-      new EntityTableColumn<NotificationTarget>('name', 'notification.notification-target', '20%'),
+      new DateEntityTableColumn<NotificationTarget>('createdTime', 'common.created-time', this.datePipe, '170px'),
+      new EntityTableColumn<NotificationTarget>('name', 'notification.recipient-group', '20%'),
       new EntityTableColumn<NotificationTarget>('configuration.type', 'notification.type', '20%',
         (target) => this.translate.instant(NotificationTargetTypeTranslationMap.get(target.configuration.type)),
         () => ({}), false),
@@ -120,7 +126,8 @@ export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<N
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         isAdd,
-        target
+        target,
+        readonly: !this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE)
       }
     }).afterClosed()
       .subscribe((res) => {

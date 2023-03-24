@@ -34,17 +34,23 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.List;
 
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
 @Table(name = ModelConstants.EDGE_INFO_VIEW_COLUMN_FAMILY_NAME)
 public class EdgeInfoEntity extends AbstractEdgeEntity<EdgeInfo> {
@@ -52,13 +58,17 @@ public class EdgeInfoEntity extends AbstractEdgeEntity<EdgeInfo> {
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
+    private List<EntityInfo> groups;
+
     public EdgeInfoEntity() {
         super();
     }
 
     @Override
     public EdgeInfo toData() {
-        return new EdgeInfo(super.toEdge(), this.ownerName);
+        return new EdgeInfo(super.toEdge(), this.ownerName, this.groups);
     }
 
 }
