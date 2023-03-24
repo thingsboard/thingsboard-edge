@@ -98,7 +98,7 @@
             placeholderText="{{ 'notification.recipient' | translate }}"
             requiredText="{{ 'notification.recipients-required' | translate }}"
             entityType="{{ entityType.NOTIFICATION_TARGET }}"
-            subType="{{ notificationType.GENERAL }}">
+            entitySubType="{{ notificationType.GENERAL }}">
             <button #createTargetButton
                     mat-button color="primary" matSuffix
                     (click)="createTarget($event, createTargetButton)">

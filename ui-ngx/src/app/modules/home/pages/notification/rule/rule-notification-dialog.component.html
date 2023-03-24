@@ -80,7 +80,7 @@
           <tb-entity-list
             required
             formControlName="targets"
-            subType="{{ ruleNotificationForm.get('triggerType').value }}"
+            entitySubType="{{ ruleNotificationForm.get('triggerType').value }}"
             entityType="{{ entityType.NOTIFICATION_TARGET }}"
             placeholderText="{{ 'notification.recipient' | translate }}">
             <button #createTargetButton

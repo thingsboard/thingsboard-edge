@@ -51,7 +51,7 @@
       formControlName="targets"
       subscriptSizing="dynamic"
       entityType="{{ entityType.NOTIFICATION_TARGET }}"
-      subType="{{ notificationType.ALARM }}"
+      entitySubType="{{ notificationType.ALARM }}"
       [placeholderText]="escalationFormGroup.get('targets').value ? '' : ('notification.add-recipient' | translate)">
       <button #createTargetButton
               mat-button [fxHide]="disabled" matSuffix
