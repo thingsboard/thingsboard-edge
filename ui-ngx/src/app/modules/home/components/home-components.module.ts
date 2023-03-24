@@ -224,6 +224,7 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
+import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
 import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 
 @NgModule({
@@ -397,7 +398,8 @@ import { GroupChipsComponent } from '@home/components/group/group-chips.componen
       IntegrationWizardDialogComponent,
       ConverterComponent,
       ConverterTestDialogComponent,
-      SlackConversationAutocompleteComponent
+      SlackConversationAutocompleteComponent,
+      SendNotificationButtonComponent
     ],
   imports: [
     CommonModule,
@@ -563,7 +565,8 @@ import { GroupChipsComponent } from '@home/components/group/group-chips.componen
     RateLimitsListComponent,
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
-    SlackConversationAutocompleteComponent
+    SlackConversationAutocompleteComponent,
+    SendNotificationButtonComponent
   ],
   providers: [
     WidgetComponentService,
