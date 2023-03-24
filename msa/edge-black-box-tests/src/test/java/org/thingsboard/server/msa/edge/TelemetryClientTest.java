@@ -75,7 +75,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         timeseriesPayload.addProperty("doubleTelemetryToEdge", 42.0);
         timeseriesPayload.addProperty("longTelemetryToEdge", 72L);
 
-        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, timeseriesPayload, keys);
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, tbUrl, edgeRestClient, timeseriesPayload, keys);
 
         for (TsKvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals("strTelemetryToEdge")) {
@@ -167,7 +167,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToEdge", 42.0);
         attrPayload.addProperty("longAttrToEdge", 72L);
 
-        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, attrPayload, keys);
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, tbUrl, edgeRestClient, attrPayload, keys);
 
         for (AttributeKvEntry attributeKvEntry : kvEntries) {
             if (attributeKvEntry.getKey().equals("strAttrToEdge")) {

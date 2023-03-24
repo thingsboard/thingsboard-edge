@@ -57,7 +57,6 @@ import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
-import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
@@ -248,30 +247,36 @@ public class CloudManagerService {
                 try {
                     if (initialized) {
                         queueStartTs = getQueueStartTs().get();
-                        TimePageLink pageLink =
-                                CloudEventUtils.createCloudEventTimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(), queueStartTs);
-                        PageData<CloudEvent> pageData;
-                        UUID ifOffset = null;
-                        boolean success = true;
-                        do {
-                            pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
-                            if (initialized && !pageData.getData().isEmpty()) {
-                                log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
-                                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
-                                success = sendUplinkMsgsPack(uplinkMsgsPack);
-                                ifOffset = pageData.getData().get(pageData.getData().size() - 1).getUuidId();
-                                if (success) {
-                                    pageLink = pageLink.nextPageLink();
-                                }
-                            }
-                        } while (initialized && (!success || pageData.hasNext()));
-                        if (ifOffset != null) {
-                            Long newStartTs = Uuids.unixTimestamp(ifOffset);
+                        TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                                0, null, null, queueStartTs, System.currentTimeMillis());
+                        if (newCloudEventsAvailable(pageLink)) {
                             try {
-                                updateQueueStartTs(newStartTs);
-                                log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
-                            } catch (Exception e) {
-                                log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                                // sleep 1 second to make sure that sql queue write is completed for other events
+                                Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+                            } catch (Exception ignored) {}
+                            PageData<CloudEvent> pageData;
+                            UUID ifOffset = null;
+                            boolean success = true;
+                            do {
+                                pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
+                                if (initialized) {
+                                    log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
+                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
+                                    success = sendUplinkMsgsPack(uplinkMsgsPack);
+                                    ifOffset = pageData.getData().get(pageData.getData().size() - 1).getUuidId();
+                                    if (success) {
+                                        pageLink = pageLink.nextPageLink();
+                                    }
+                                }
+                            } while (initialized && (!success || pageData.hasNext()));
+                            if (ifOffset != null) {
+                                Long newStartTs = Uuids.unixTimestamp(ifOffset);
+                                try {
+                                    updateQueueStartTs(newStartTs);
+                                    log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
+                                } catch (Exception e) {
+                                    log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                                }
                             }
                         }
                         try {
@@ -287,6 +292,11 @@ public class CloudManagerService {
                 }
             }
         });
+    }
+
+    private boolean newCloudEventsAvailable(TimePageLink pageLink) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, pageLink);
+        return !cloudEvents.getData().isEmpty();
     }
 
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {

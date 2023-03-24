@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-version: '2.2'
+version: '3.0'
 
 services:
   postgres:
@@ -29,14 +29,14 @@ services:
       - tb-edge-data-volume:/data
 volumes:
   postgres-db-volume:
-    external: true
-    name: ${POSTGRES_DATA_VOLUME}
+    external:
+      name: ${POSTGRES_DATA_VOLUME}
   tb-log-volume:
-    external: true
-    name: ${TB_LOG_VOLUME}
+    external:
+      name: ${TB_LOG_VOLUME}
   tb-edge-log-volume:
-    external: true
-    name: ${TB_EDGE_LOG_VOLUME}
+    external:
+      name: ${TB_EDGE_LOG_VOLUME}
   tb-edge-data-volume:
-    external: true
-    name: ${TB_EDGE_DATA_VOLUME}
+    external:
+      name: ${TB_EDGE_DATA_VOLUME}
