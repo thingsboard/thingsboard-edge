@@ -89,8 +89,6 @@ import static org.thingsboard.server.dao.DaoUtil.fromUUIDs;
 @Slf4j
 public class NotificationTargetController extends BaseController {
 
-    // FIXME: permission checks
-
     private final NotificationTargetService notificationTargetService;
 
     @ApiOperation(value = "Save notification target (saveNotificationTarget)",
