@@ -77,6 +77,8 @@ public class ModelConstants {
 
     public static final String OWNER_IDS_COLUMN = "owner_ids";
 
+    public static final String GROUPS_COLUMN = "groups";
+
     /**
      * Cassandra user constants.
      */

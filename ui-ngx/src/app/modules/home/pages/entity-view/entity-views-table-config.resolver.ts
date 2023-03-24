@@ -35,9 +35,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -145,17 +147,20 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     config.headerComponent = EntityViewTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<EntityViewInfo | EntityView>): Array<EntityTableColumn<EntityViewInfo>> {
-    const columns: Array<EntityTableColumn<EntityViewInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<EntityViewInfo | EntityView>): Array<EntityColumn<EntityViewInfo>> {
+    const columns: Array<EntityColumn<EntityViewInfo>> = [
       new DateEntityTableColumn<EntityViewInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<EntityViewInfo>('name', 'entity-view.name', '33%', config.entityTitle),
-      new EntityTableColumn<EntityViewInfo>('type', 'entity-view.entity-view-type', '33%'),
+      new EntityTableColumn<EntityViewInfo>('name', 'entity-view.name', '25%', config.entityTitle),
+      new EntityTableColumn<EntityViewInfo>('type', 'entity-view.entity-view-type', '20%'),
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
       columns.push(new EntityTableColumn<EntityViewInfo>('ownerName', title, '25%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<EntityViewInfo>( 'groups', 'entity.groups', '30%')
+    );
     return columns;
   }
 

@@ -672,13 +672,23 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.ASSET_PROFILE, '/profiles/assetProfiles'],
   [EntityType.CONVERTER, '/integrationsCenter/converters'],
   [EntityType.INTEGRATION, '/integrationsCenter/integrations'],
-  [EntityType.RULE_CHAIN, '/features/ruleChains'],
+  [EntityType.RULE_CHAIN, '/ruleChains'],
   [EntityType.EDGE, '/edgeManagement/instances/all'],
   [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
   [EntityType.ROLE, '/roles'],
   [EntityType.TB_RESOURCE, '/resources/resources-library'],
   [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
   [EntityType.QUEUE, '/settings/queues']
+]);
+
+export const groupUrlPrefixByEntityType = new Map<EntityType, string>([
+  [EntityType.CUSTOMER, '/customers/groups'],
+  [EntityType.USER, '/users/groups'],
+  [EntityType.DASHBOARD, '/dashboards/groups'],
+  [EntityType.ASSET, '/entities/assets/groups'],
+  [EntityType.DEVICE, '/entities/devices/groups'],
+  [EntityType.EDGE, '/edgeManagement/instances/groups'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/groups'],
 ]);
 
 export interface EntitySubtype {

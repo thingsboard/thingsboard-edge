@@ -34,10 +34,10 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  DateEntityTableColumn,
+  DateEntityTableColumn, EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor,
+  GroupActionDescriptor, GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -67,6 +67,7 @@ import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-t
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { EntityViewInfo } from '@shared/models/entity-view.models';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
@@ -154,17 +155,20 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     config.headerComponent = DashboardTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<DashboardInfo | Dashboard>): Array<EntityTableColumn<DashboardInfo>> {
-    const columns: Array<EntityTableColumn<DashboardInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<DashboardInfo | Dashboard>): Array<EntityColumn<DashboardInfo>> {
+    const columns: Array<EntityColumn<DashboardInfo>> = [
       new DateEntityTableColumn<DashboardInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<DashboardInfo>('title', 'dashboard.title',
-        config.componentsData.includeCustomers ? '50%' : '100%', config.entityTitle)
+        config.componentsData.includeCustomers ? '30%' : '60%', config.entityTitle)
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
-      columns.push(new EntityTableColumn<DashboardInfo>('ownerName', title, '50%'));
+      columns.push(new EntityTableColumn<DashboardInfo>('ownerName', title, '30%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<DashboardInfo>( 'groups', 'entity.groups', '40%')
+    );
     return columns;
   }
 

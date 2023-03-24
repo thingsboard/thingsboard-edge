@@ -28,34 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.model.sql.types;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.EntityId;
 
-import javax.validation.Valid;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-@ApiModel
-@Data
-public class DeviceInfo extends Device {
+public class OwnerIdsType extends AbstractJavaUserType {
 
-    @Valid
-    @ApiModelProperty(position = 14, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
+    private final TypeReference<LinkedHashSet<EntityId>> ownerIdsType = new TypeReference<>(){};
 
-    @Valid
-    @ApiModelProperty(position = 15, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private List<EntityInfo> groups;
-
-    public DeviceInfo() {
-        super();
+    @Override
+    public Class<Set> returnedClass() {
+        return Set.class;
     }
 
-    public DeviceInfo(Device device, String ownerName, List<EntityInfo> groups) {
-        super(device);
-        this.ownerName = ownerName;
-        this.groups = groups;
+    @Override
+    public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
+        final String value = rs.getString(names[0]);
+        if (StringUtils.isEmpty(value)) {
+            return new LinkedHashSet<>();
+        }
+        try {
+            return JacksonUtil.fromBytes(value.getBytes(StandardCharsets.UTF_8), this.ownerIdsType);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to convert String to owner ids: " + ex.getMessage(), ex);
+        }
     }
+
 }

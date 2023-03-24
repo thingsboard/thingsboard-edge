@@ -581,7 +581,9 @@ export const edgesRoute = (root = false): Route => {
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: root ? 'edge.instances' : 'edge.edge-instances',
+        labelFunction: (route, translate) =>
+          (route.data.customerTitle ? (route.data.customerTitle + ': ') : '') +
+          translate.instant(root ? 'edge.instances' : 'edge.edge-instances'),
         icon: 'router'
       }
     },

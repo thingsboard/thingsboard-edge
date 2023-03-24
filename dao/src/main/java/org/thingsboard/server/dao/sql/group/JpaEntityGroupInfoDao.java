@@ -33,8 +33,10 @@ package org.thingsboard.server.dao.sql.group;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -66,10 +68,26 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
     }
 
     @Override
+    public EntityInfo findEntityGroupEntityInfoById(TenantId tenantId, UUID entityGroupId) {
+        return entityGroupInfoRepository.findEntityGroupEntityInfoById(entityGroupId);
+    }
+
+    @Override
     public PageData<EntityGroupInfo> findEntityGroupsByType(UUID tenantId, UUID parentEntityId,
                                                             EntityType parentEntityType, EntityType groupType, PageLink pageLink) {
         return DaoUtil.toPageData(entityGroupInfoRepository
                 .findEntityGroupsByType(
+                        parentEntityId,
+                        parentEntityType,
+                        groupType,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink) {
+        return DaoUtil.pageToPageData(entityGroupInfoRepository
+                .findEntityGroupEntityInfosByType(
                         parentEntityId,
                         parentEntityType,
                         groupType,
@@ -88,9 +106,28 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
     }
 
     @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByOwnerIdsAndType(UUID tenantId, List<UUID> ownerIds, EntityType groupType, PageLink pageLink) {
+        return DaoUtil.pageToPageData(entityGroupInfoRepository
+                .findEntityGroupEntityInfosByOwnerIdsAndType(
+                        ownerIds,
+                        groupType,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public PageData<EntityGroupInfo> findEntityGroupsByIds(UUID tenantId, List<UUID> entityGroupIds, PageLink pageLink) {
         return DaoUtil.toPageData(entityGroupInfoRepository
                 .findEntityGroupsByIds(
+                        entityGroupIds,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByIds(UUID tenantId, List<UUID> entityGroupIds, PageLink pageLink) {
+        return DaoUtil.pageToPageData(entityGroupInfoRepository
+                .findEntityGroupEntityInfosByIds(
                         entityGroupIds,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
@@ -101,6 +138,18 @@ public class JpaEntityGroupInfoDao extends JpaAbstractDao<EntityGroupInfoEntity,
                                                                  List<UUID> entityGroupIds, PageLink pageLink) {
         return DaoUtil.toPageData(entityGroupInfoRepository
                 .findEntityGroupsByTypeOrIds(
+                        parentEntityId,
+                        parentEntityType,
+                        groupType,
+                        entityGroupIds,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, List<UUID> entityGroupIds, PageLink pageLink) {
+        return DaoUtil.pageToPageData(entityGroupInfoRepository
+                .findEntityGroupEntityInfosByTypeOrIds(
                         parentEntityId,
                         parentEntityType,
                         groupType,

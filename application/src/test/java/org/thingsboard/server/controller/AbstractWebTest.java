@@ -379,6 +379,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected Tenant savedDifferentTenant;
     protected User savedDifferentTenantUser;
     private Customer savedDifferentCustomer;
+    protected User differentCustomerUser;
 
     protected void loginDifferentTenant() throws Exception {
         if (savedDifferentTenant != null) {
@@ -408,7 +409,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             createDifferentCustomer();
 
             loginTenantAdmin();
-            User differentCustomerUser = new User();
+            differentCustomerUser = new User();
             differentCustomerUser.setAuthority(Authority.CUSTOMER_USER);
             differentCustomerUser.setTenantId(tenantId);
             differentCustomerUser.setCustomerId(savedDifferentCustomer.getId());

@@ -94,7 +94,10 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
                                                                        Pageable pageable);
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
-            "FROM (select a.*, c.title as owner_name from asset a LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
+            "FROM (select a.id, a.created_time, a.additional_info, a.customer_id, a.name, a.label, " +
+            "a.search_text, a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
+            "c.title as owner_name from asset_info_view a " +
+            "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
@@ -110,7 +113,10 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
                                                                            Pageable pageable);
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
-            "FROM (select a.*, c.title as owner_name from asset a LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
+            "FROM (select a.id, a.created_time, a.additional_info, a.customer_id, a.name, a.label, " +
+            "a.search_text, a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
+            "c.title as owner_name from asset_info_view a " +
+            "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.asset_profile_id = :assetProfileId " +
             "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +

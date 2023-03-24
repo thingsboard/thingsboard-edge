@@ -29,44 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { RouterModule, Routes } from '@angular/router';
-import { Authority } from '@shared/models/authority.enum';
-import { NgModule } from '@angular/core';
-import { otaUpdatesRoutes } from '@home/pages/ota-update/ota-update-routing.module';
-import { vcRoutes } from '@home/pages/vc/vc-routing.module';
-import { schedulerRoutes } from '@home/pages/scheduler/scheduler-routing.module';
+import { Component, Input, OnInit } from '@angular/core';
+import { EntityInfoData } from '@shared/models/entity.models';
+import { EntityType, groupUrlPrefixByEntityType } from '@shared/models/entity-type.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
-const routes: Routes = [
-  {
-    path: 'features',
-    data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      breadcrumb: {
-        label: 'feature.advanced-features',
-        icon: 'construction'
-      }
-    },
-    children: [
-      {
-        path: '',
-        children: [],
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          redirectTo: {
-            TENANT_ADMIN: '/features/otaUpdates',
-            CUSTOMER_USER: '/features/scheduler'
-          }
-        }
-      },
-      ...otaUpdatesRoutes,
-      ...vcRoutes,
-      ...schedulerRoutes
-    ]
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+@Component({
+  selector: 'tb-group-chips',
+  templateUrl: './group-chips.component.html',
+  styleUrls: ['./group-chips.component.scss']
 })
-export class FeaturesRoutingModule { }
+export class GroupChipsComponent implements OnInit {
+
+  @Input()
+  groups?: EntityInfoData[];
+
+  @Input()
+  ownerId?: EntityId;
+
+  @Input()
+  entityType: EntityType;
+
+  groupPrefixUrl: string;
+
+  constructor(private userPermissionsService: UserPermissionsService) {
+  }
+
+  ngOnInit(): void {
+    this.groupPrefixUrl = groupUrlPrefixByEntityType.get(this.entityType);
+    if (this.ownerId && !this.userPermissionsService.isDirectOwner(this.ownerId)) {
+      this.groupPrefixUrl = `/customers/all/${this.ownerId.id}${this.groupPrefixUrl}`;
+    }
+  }
+
+}
