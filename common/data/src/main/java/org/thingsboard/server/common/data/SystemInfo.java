@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.gen.transport.TransportProtos;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
-public interface DiscoveryService {
-
-    List<TransportProtos.ServiceInfo> getOtherServers();
-
-    boolean isMonolith();
-
+@Data
+public class SystemInfo {
+    @ApiModelProperty(position = 1, value = "Is monolith.")
+    private boolean isMonolith;
+    @ApiModelProperty(position = 2, value = "System data.")
+    private List<SystemInfoData> systemData;
 }

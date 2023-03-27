@@ -28,16 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.service.system;
 
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.common.data.FeaturesInfo;
+import org.thingsboard.server.common.data.SystemInfo;
 
-import java.util.List;
+public interface SystemInfoService {
+    SystemInfo getSystemInfo();
 
-public interface DiscoveryService {
-
-    List<TransportProtos.ServiceInfo> getOtherServers();
-
-    boolean isMonolith();
-
+    FeaturesInfo getFeaturesInfo();
 }
