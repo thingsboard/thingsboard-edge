@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.customer.TbCustomerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -448,5 +449,25 @@ public class CustomerController extends BaseController {
                 return false;
             }
         }).collect(Collectors.toList());
+    }
+
+    // edge only - temporary method, to fix public customer tests
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/public", method = RequestMethod.POST)
+    @ResponseBody
+    public Customer createPublicCustomer() throws Exception {
+        Customer publicCustomer;
+        try {
+            TenantId tenantId = getTenantId();
+            publicCustomer = customerService.findOrCreatePublicCustomer(tenantId, getCurrentUser().getOwnerId());
+            return publicCustomer;
+        } catch (RuntimeException e) {
+            publicCustomer = new Customer();
+            publicCustomer.setTenantId(getTenantId());
+            publicCustomer.setOwnerId(getCurrentUser().getOwnerId());
+            publicCustomer.setTitle(CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE);
+            publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
+            return customerService.saveCustomer(publicCustomer, false);
+        }
     }
 }

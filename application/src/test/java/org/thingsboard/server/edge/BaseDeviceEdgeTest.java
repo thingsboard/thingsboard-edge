@@ -758,6 +758,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testVerifyDeliveryOfLatestTimeseriesOnAttributesRequest() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 

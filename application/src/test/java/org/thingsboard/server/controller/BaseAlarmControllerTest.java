@@ -922,6 +922,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     public void testFindAlarmsViaPublicCustomer() throws Exception {
         loginCustomerAdministrator();
 
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
+
         EntityGroupInfo deviceGroup = createSharedPublicEntityGroup(
                 "Device Test Entity Group",
                 EntityType.DEVICE,

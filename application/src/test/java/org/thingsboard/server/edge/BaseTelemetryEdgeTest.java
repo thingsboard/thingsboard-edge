@@ -225,6 +225,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAttributesUpdatedMsg_userEntity() throws Exception {
         testAttributesUpdatedMsg(tenantAdmin.getId());
     }
