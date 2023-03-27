@@ -33,8 +33,10 @@ package org.thingsboard.server.common.data.edge;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.thingsboard.server.common.data.EntityInfo;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @ApiModel
 @Data
@@ -44,12 +46,17 @@ public class EdgeInfo extends Edge {
     @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String ownerName;
 
+    @Valid
+    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private List<EntityInfo> groups;
+
     public EdgeInfo() {
         super();
     }
 
-    public EdgeInfo(Edge edge, String ownerName) {
+    public EdgeInfo(Edge edge, String ownerName, List<EntityInfo> groups) {
         super(edge);
         this.ownerName = ownerName;
+        this.groups = groups;
     }
 }

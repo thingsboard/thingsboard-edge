@@ -246,7 +246,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         List<CustomerId> customerIds = new ArrayList<>();
         Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
         if (entityGroup.isPresent()) {
-            List<EntityId> childCustomerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
+            List<EntityId> childCustomerIds = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             childCustomerIds.forEach(entityId -> customerIds.add(new CustomerId(entityId.getId())));
         }
         return customerIds;

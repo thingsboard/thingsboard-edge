@@ -345,7 +345,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
         log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
-        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, oldEdgeName, EntityType.DEVICE);
+        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, oldEdgeName, EntityType.DEVICE);
         Futures.addCallback(deviceEdgeAllGroupFuture, new FutureCallback<EntityGroup>() {
             @Override
             public void onSuccess(@Nullable EntityGroup deviceEdgeAllGroup) {
@@ -498,7 +498,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             case DASHBOARD:
                 List<EntityGroupId> entityGroupsForEntity = null;
                 try {
-                    entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
+                    entityGroupsForEntity = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId).get();
                 } catch (Exception e) {
                     log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
                 }

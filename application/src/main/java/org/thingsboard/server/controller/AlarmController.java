@@ -153,6 +153,9 @@ public class AlarmController extends BaseController {
         checkNotNull(alarm.getOriginator());
         checkEntity(alarm.getId(), alarm, Resource.ALARM, null);
         checkEntityId(alarm.getOriginator(), Operation.READ);
+        if (alarm.getAssigneeId() != null) {
+            checkUserId(alarm.getAssigneeId(), Operation.READ);
+        }
         return tbAlarmService.save(alarm, getCurrentUser());
     }
 
@@ -181,7 +184,6 @@ public class AlarmController extends BaseController {
         checkParameter(ALARM_ID, strAlarmId);
         AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
         Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
-        //TODO: return correct error code if the alarm is not found or already cleared
         return tbAlarmService.ack(alarm, getCurrentUser());
     }
 
@@ -197,7 +199,6 @@ public class AlarmController extends BaseController {
         checkParameter(ALARM_ID, strAlarmId);
         AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
         Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
-        //TODO: return correct error code if the alarm is not found or already cleared
         return tbAlarmService.clear(alarm, getCurrentUser());
     }
 

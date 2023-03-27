@@ -725,6 +725,7 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
 
 export interface DeviceInfo extends Device {
   ownerName?: string;
+  groups?: EntityInfoData[];
 }
 
 export enum DeviceCredentialsType {

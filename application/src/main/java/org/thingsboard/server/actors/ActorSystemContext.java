@@ -49,7 +49,9 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.SmsService;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
@@ -97,6 +99,11 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -122,6 +129,7 @@ import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
+import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
@@ -373,6 +381,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private NotificationExecutorService notificationExecutor;
+
+    @Autowired
+    @Getter
     private SharedEventLoopGroupService sharedEventLoopGroupService;
 
     @Autowired
@@ -386,6 +398,34 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private SmsSenderFactory smsSenderFactory;
+
+    @Autowired
+    @Getter
+    private NotificationCenter notificationCenter;
+
+    @Autowired
+    @Getter
+    private NotificationRuleProcessingService notificationRuleProcessingService;
+
+    @Autowired
+    @Getter
+    private NotificationTargetService notificationTargetService;
+
+    @Autowired
+    @Getter
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    @Getter
+    private NotificationRequestService notificationRequestService;
+
+    @Autowired
+    @Getter
+    private NotificationRuleService notificationRuleService;
+
+    @Autowired
+    @Getter
+    private SlackService slackService;
 
     @Lazy
     @Autowired(required = false)

@@ -51,6 +51,7 @@ export * from './entity-view.service';
 export * from './event.service';
 export * from './http-utils';
 export * from './integration.service';
+export * from './notification.service';
 export * from './oauth2.service';
 export * from './ota-package.service';
 export * from './queue.service';

@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -122,6 +123,12 @@ public class EntityActionService {
                 break;
             case ALARM_CLEAR:
                 msgType = DataConstants.ALARM_CLEAR;
+                break;
+            case ADDED_COMMENT:
+                msgType = DataConstants.COMMENT_CREATED;
+                break;
+            case UPDATED_COMMENT:
+                msgType = DataConstants.COMMENT_UPDATED;
                 break;
             case ALARM_ASSIGN:
                 msgType = DataConstants.ALARM_ASSIGN;
@@ -220,6 +227,9 @@ public class EntityActionService {
                     String strEdgeName = extractParameter(String.class, 2, additionalInfo);
                     metaData.putValue("unassignedEdgeId", strEdgeId);
                     metaData.putValue("unassignedEdgeName", strEdgeName);
+                } else if (actionType == ActionType.ADDED_COMMENT || actionType == ActionType.UPDATED_COMMENT) {
+                    AlarmComment comment = extractParameter(AlarmComment.class, 0, additionalInfo);
+                    metaData.putValue("comment", json.writeValueAsString(comment));
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
@@ -227,6 +237,8 @@ public class EntityActionService {
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
                         entityNode.put("configuration", "");
                     }
+                    metaData.putValue("entityName", entity.getName());
+                    metaData.putValue("entityType", entityId.getEntityType().toString());
                 } else {
                     entityNode = json.createObjectNode();
                     if (actionType == ActionType.ATTRIBUTES_UPDATED) {

@@ -34,17 +34,23 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.List;
 
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
 @Table(name = ModelConstants.ENTITY_VIEW_INFO_VIEW_COLUMN_FAMILY_NAME)
 public class EntityViewInfoEntity extends AbstractEntityViewEntity<EntityViewInfo> {
@@ -52,13 +58,17 @@ public class EntityViewInfoEntity extends AbstractEntityViewEntity<EntityViewInf
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
+    private List<EntityInfo> groups;
+
     public EntityViewInfoEntity() {
         super();
     }
 
     @Override
     public EntityViewInfo toData() {
-        return new EntityViewInfo(super.toEntityView(), this.ownerName);
+        return new EntityViewInfo(super.toEntityView(), this.ownerName, this.groups);
     }
 
 }

@@ -659,7 +659,7 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     private void pushDeviceUpdateMessageByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId) {
-        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new PageLink(Integer.MAX_VALUE));
+        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroupId, new PageLink(Integer.MAX_VALUE));
         Futures.addCallback(entityIdsFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<EntityId> entityIds) {

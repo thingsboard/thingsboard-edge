@@ -93,7 +93,6 @@ import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { Role } from '@shared/models/role.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, resourceByEntityType, RoleType } from '@shared/models/security.models';
-import { EntityGroup } from '@shared/models/entity-group.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import {
   AlarmData,
@@ -121,6 +120,9 @@ import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { QueueService } from '@core/http/queue.service';
 import { AssetProfileService } from '@core/http/asset-profile.service';
+import { NotificationService } from '@core/http/notification.service';
+import { TenantProfileService } from '@core/http/tenant-profile.service';
+import { NotificationType } from '@shared/models/notification.models';
 
 @Injectable({
   providedIn: 'root'
@@ -144,6 +146,7 @@ export class EntityService {
     private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
+    private tenantProfileService: TenantProfileService,
     private assetProfileService: AssetProfileService,
     private converterService: ConverterService,
     private integrationService: IntegrationService,
@@ -153,9 +156,9 @@ export class EntityService {
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
     private utils: UtilsService,
-    private queueService: QueueService
-  ) {
-  }
+    private queueService: QueueService,
+    private notificationService: NotificationService
+  ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
                               config?: RequestConfig): Observable<BaseData<EntityId>> {
@@ -418,11 +421,17 @@ export class EntityService {
       case EntityType.ROLE:
         observable = this.roleService.getRolesByIds(entityIds, config);
         break;
+      case EntityType.TENANT_PROFILE:
+        observable = this.tenantProfileService.getTenantProfilesByIds(entityIds, config);
+        break;
       case EntityType.ASSET_PROFILE:
         observable = this.assetProfileService.getAssetProfilesByIds(entityIds, config);
         break;
       case EntityType.WIDGETS_BUNDLE:
         observable = this.widgetService.getWidgetsBundlesByIds(entityIds, config);
+        break;
+      case EntityType.NOTIFICATION_TARGET:
+        observable = this.notificationService.getNotificationTargetsByIds(entityIds, config);
         break;
     }
     return observable;
@@ -539,7 +548,7 @@ export class EntityService {
       case EntityType.ENTITY_GROUP:
         pageLink.sortOrder.property = 'name';
         if (subType && subType.length) {
-          entitiesObservable = this.entityGroupService.getEntityGroupsByPageLink(pageLink, subType as EntityType, config);
+          entitiesObservable = this.entityGroupService.getEntityGroups(pageLink, subType as EntityType, true, config);
         } else {
           entitiesObservable = of(null);
         }
@@ -556,9 +565,7 @@ export class EntityService {
       case EntityType.SCHEDULER_EVENT:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.schedulerEventService.getSchedulerEvents(null, config).pipe(
-          map((schedulerEvents) => {
-            return pageLink.filterData(schedulerEvents);
-          })
+          map((schedulerEvents) => pageLink.filterData(schedulerEvents))
         );
         break;
       case EntityType.BLOB_ENTITY:
@@ -577,6 +584,10 @@ export class EntityService {
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.deviceProfileService.getDeviceProfileInfos(pageLink, null, config);
         break;
+      case EntityType.TENANT_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.tenantProfileService.getTenantProfiles(pageLink, config);
+        break;
       case EntityType.ASSET_PROFILE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.assetProfileService.getAssetProfileInfos(pageLink, config);
@@ -584,6 +595,10 @@ export class EntityService {
       case EntityType.WIDGETS_BUNDLE:
         pageLink.sortOrder.property = 'title';
         entitiesObservable = this.widgetService.getWidgetBundles(pageLink, config);
+        break;
+      case EntityType.NOTIFICATION_TARGET:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationTargets(pageLink, subType as NotificationType, config);
         break;
     }
     return entitiesObservable;
@@ -682,55 +697,6 @@ export class EntityService {
         return of(null);
       }
     }
-  }
-
-  public getEntitiesByGroupName(entityType: EntityType, entityNameFilter: string,
-                                pageSize: number, stateEntityId?: EntityId, config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
-    let entityGroupsObservable: Observable<Array<EntityGroup>>;
-    if (isDefined(stateEntityId)) {
-      entityGroupsObservable = this.getEntity(stateEntityId.entityType as EntityType, stateEntityId.id, config).pipe(
-        mergeMap((entity) => {
-          let entityId: EntityId;
-          if (entity.id.entityType === EntityType.CUSTOMER) {
-            entityId = entity.id;
-          } else {
-            entityId = entity.ownerId;
-          }
-          return this.entityGroupService.getEntityGroupsByOwnerId(entityId.entityType as EntityType, entityId.id, entityType, config);
-        }),
-        catchError(() => {
-          return of(null);
-        })
-      );
-    } else {
-      entityGroupsObservable = this.entityGroupService.getEntityGroups(entityType, true, config);
-    }
-    return entityGroupsObservable.pipe(
-      map((entityGroups) => {
-        if (entityGroups && entityGroups.length) {
-          for (const entityGroup of entityGroups) {
-            if (entityGroup.name === entityNameFilter) {
-              return entityGroup.id.id;
-            }
-          }
-        }
-        return null;
-      }),
-      catchError((err) => {
-        return of(null as string);
-      })
-    ).pipe(
-      mergeMap((groupId) => {
-        if (groupId) {
-          return this.getEntityGroupEntities(groupId, entityType, pageSize, config);
-        } else {
-          return of(null as Array<BaseData<EntityId>>);
-        }
-      }),
-      catchError((err) => {
-        return of(null as Array<BaseData<EntityId>>);
-      })
-    );
   }
 
   public findEntityDataByQuery(query: EntityDataQuery, config?: RequestConfig): Observable<PageData<EntityData>> {
@@ -1036,6 +1002,7 @@ export class EntityService {
         entityFieldKeys.push(entityFields.email.keyName);
         entityFieldKeys.push(entityFields.firstName.keyName);
         entityFieldKeys.push(entityFields.lastName.keyName);
+        entityFieldKeys.push(entityFields.phone.keyName);
         break;
       case EntityType.TENANT:
       case EntityType.CUSTOMER:
@@ -1167,9 +1134,7 @@ export class EntityService {
               break;
           }
           if (keys) {
-            dataKeys.push(...keys.map(key => {
-              return {name: key, type};
-            }));
+            dataKeys.push(...keys.map(key => ({name: key, type})));
           }
         });
         return dataKeys;
@@ -1367,8 +1332,7 @@ export class EntityService {
           originatorId = filter.originator.id;
         }
         if (originatorType && originatorId) {
-          const queryOriginatorId = this.resolveAliasEntityId(originatorType, originatorId);
-          result.entityFilter.originator = queryOriginatorId;
+          result.entityFilter.originator = this.resolveAliasEntityId(originatorType, originatorId);
           return of(result);
         } else {
           return of(result);
@@ -1385,7 +1349,7 @@ export class EntityService {
           return isDefinedAndNotNull(result.entityFilter);
         }
       }),
-      catchError(err => of(false))
+      catchError(() => of(false))
     );
   }
 
@@ -1395,19 +1359,15 @@ export class EntityService {
     const saveEntityObservable: Observable<BaseData<EntityId>> =
       this.getSaveEntityObservable(customerId, entityType, entityGroupId, entityData, config);
     return saveEntityObservable.pipe(
-      mergeMap((entity) => {
-        return this.saveEntityData(entity.id, entityData, config).pipe(
-          map(() => {
-            return { create: { entity: 1 } } as ImportEntitiesResultInfo;
-          }),
+      mergeMap((entity) => this.saveEntityData(entity.id, entityData, config).pipe(
+          map(() => ({ create: { entity: 1 } } as ImportEntitiesResultInfo)),
           catchError(err => of({
             error: {
               entity: 1,
               errors: err.message
             }
           } as ImportEntitiesResultInfo))
-        );
-      }),
+        )),
       catchError(err => {
         if (update) {
           let findEntityObservable: Observable<BaseData<EntityId>>;
@@ -1449,9 +1409,7 @@ export class EntityService {
               const updateEntityTasks: Observable<any>[] =
                 this.getUpdateEntityTasks(entityType, entityData, entityGroupId, entity, config);
               return forkJoin(updateEntityTasks).pipe(
-                map(() => {
-                  return { update: { entity: 1 } } as ImportEntitiesResultInfo;
-                }),
+                map(() => ({ update: { entity: 1 } } as ImportEntitiesResultInfo)),
                 catchError(updateError => of({
                   error: {
                     entity: 1,
@@ -1675,7 +1633,7 @@ export class EntityService {
     }
   }
 
-  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): { entityId: EntityId, entityGroupType: EntityType } {
+  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): { entityId: EntityId; entityGroupType: EntityType } {
     let entityId: EntityId = null;
     let entityGroupType: EntityType = null;
     if (stateParams) {
@@ -1886,7 +1844,8 @@ export class EntityService {
       case EntityType.DEVICE:
       case EntityType.ENTITY_VIEW:
       case EntityType.DASHBOARD:
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: true });
+        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(pageLink, edgeId, entityType, { ignoreLoading: true })
+          .pipe(map(entities => entities.data));
         break;
       case EntityType.SCHEDULER_EVENT:
         entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);

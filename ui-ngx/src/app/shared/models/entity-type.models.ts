@@ -60,7 +60,12 @@ export enum EntityType {
   EDGE = 'EDGE',
   OTA_PACKAGE = 'OTA_PACKAGE',
   RPC = 'RPC',
-  QUEUE = 'QUEUE'
+  QUEUE = 'QUEUE',
+  NOTIFICATION = 'NOTIFICATION',
+  NOTIFICATION_REQUEST = 'NOTIFICATION_REQUEST',
+  NOTIFICATION_RULE = 'NOTIFICATION_RULE',
+  NOTIFICATION_TARGET = 'NOTIFICATION_TARGET',
+  NOTIFICATION_TEMPLATE = 'NOTIFICATION_TEMPLATE'
 }
 
 export enum AliasEntityType {
@@ -474,12 +479,63 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.RPC,
+      {
+        type: 'entity.type-rpc'
+      }
+    ],
+    [
       EntityType.QUEUE,
       {
+        type: 'entity.type-queue',
         add: 'queue.add',
         search: 'queue.search',
         details: 'queue.details',
         selectedEntities: 'queue.selected-queues'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION,
+      {
+        type: 'entity.type-notification',
+        noEntities: 'notification.no-inbox-notification',
+        search: 'notification.search-notification',
+        selectedEntities: 'notification.selected-notifications'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_REQUEST,
+      {
+        type: 'entity.type-notification-request',
+        noEntities: 'notification.no-notification-request',
+        selectedEntities: 'notification.selected-requests'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_RULE,
+      {
+        type: 'entity.type-notification-rule',
+        noEntities: 'notification.no-rules-notification',
+        search: 'notification.search-rules',
+        selectedEntities: 'notification.selected-rules'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_TARGET,
+      {
+        type: 'entity.type-notification-target',
+        noEntities: 'notification.no-recipients-notification',
+        search: 'notification.search-recipients',
+        selectedEntities: 'notification.selected-recipients'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_TEMPLATE,
+      {
+        type: 'entity.type-notification-template',
+        noEntities: 'notification.no-notification-templates',
+        search: 'notification.search-templates',
+        selectedEntities: 'notification.selected-template'
       }
     ]
   ]
@@ -616,13 +672,23 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.ASSET_PROFILE, '/profiles/assetProfiles'],
   [EntityType.CONVERTER, '/integrationsCenter/converters'],
   [EntityType.INTEGRATION, '/integrationsCenter/integrations'],
-  [EntityType.RULE_CHAIN, '/features/ruleChains'],
+  [EntityType.RULE_CHAIN, '/ruleChains'],
   [EntityType.EDGE, '/edgeManagement/instances/all'],
   [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
   [EntityType.ROLE, '/roles'],
   [EntityType.TB_RESOURCE, '/resources/resources-library'],
   [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
   [EntityType.QUEUE, '/settings/queues']
+]);
+
+export const groupUrlPrefixByEntityType = new Map<EntityType, string>([
+  [EntityType.CUSTOMER, '/customers/groups'],
+  [EntityType.USER, '/users/groups'],
+  [EntityType.DASHBOARD, '/dashboards/groups'],
+  [EntityType.ASSET, '/entities/assets/groups'],
+  [EntityType.DEVICE, '/entities/devices/groups'],
+  [EntityType.EDGE, '/edgeManagement/instances/groups'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/groups'],
 ]);
 
 export interface EntitySubtype {

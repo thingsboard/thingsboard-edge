@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -246,7 +247,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
-    public void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, User user, boolean notifyCloud, Object... additionalInfo) {
+    public void notifyCreateOrUpdateAlarm(AlarmInfo alarm, ActionType actionType, User user, boolean notifyCloud, Object... additionalInfo) {
         logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarm, alarm.getCustomerId(), actionType, user, additionalInfo);
         sendEntityNotificationMsg(alarm.getTenantId(), alarm.getId(), edgeTypeByActionType(actionType), notifyCloud);
     }

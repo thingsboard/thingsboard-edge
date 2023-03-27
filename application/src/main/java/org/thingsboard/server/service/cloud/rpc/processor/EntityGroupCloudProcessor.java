@@ -106,12 +106,12 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                     ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
                     ListenableFuture<Void> deleteFuture = Futures.transformAsync(entityGroupByIdAsyncFuture, entityGroupFromDb -> {
                         if (entityGroupFromDb != null) {
-                            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
                             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                                 List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
                                 if (entityIds != null && !entityIds.isEmpty()) {
                                     for (EntityId entityId : entityIds) {
-                                        ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
+                                        ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId);
                                         deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
                                             if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
                                                 deleteEntityById(tenantId, entityId);

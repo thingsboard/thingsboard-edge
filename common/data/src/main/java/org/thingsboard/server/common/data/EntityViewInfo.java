@@ -35,6 +35,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @ApiModel
 @Data
@@ -44,12 +45,17 @@ public class EntityViewInfo extends EntityView {
     @ApiModelProperty(position = 12, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private String ownerName;
 
+    @Valid
+    @ApiModelProperty(position = 13, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private List<EntityInfo> groups;
+
     public EntityViewInfo() {
         super();
     }
 
-    public EntityViewInfo(EntityView entityView, String ownerName) {
+    public EntityViewInfo(EntityView entityView, String ownerName, List<EntityInfo> groups) {
         super(entityView);
         this.ownerName = ownerName;
+        this.groups = groups;
     }
 }
