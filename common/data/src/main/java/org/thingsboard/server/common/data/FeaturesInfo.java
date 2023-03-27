@@ -28,16 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.gen.transport.TransportProtos;
+import lombok.Data;
 
-import java.util.List;
-
-public interface DiscoveryService {
-
-    List<TransportProtos.ServiceInfo> getOtherServers();
-
-    boolean isMonolith();
-
+@Data
+public class FeaturesInfo {
+    boolean isWhiteLabelingEnabled;
+    boolean isEmailEnabled;
+    boolean isSmsEnabled;
+    boolean isNotificationEnabled;
+    boolean isOauthEnabled;
+    boolean isTwoFaEnabled;
 }
