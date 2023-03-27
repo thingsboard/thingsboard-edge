@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, HostBinding, Inject, Input, OnInit, Type } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnInit, Type } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Store } from '@ngrx/store';
@@ -40,7 +40,8 @@ import {
   createLabelFromPattern,
   flatDataWithoutOverride,
   formattedDataFormDatasourceData,
-  hashCode, isDefinedAndNotNull,
+  hashCode,
+  isDefinedAndNotNull,
   isNotEmptyStr,
   parseFunction,
   safeExecute
@@ -54,13 +55,14 @@ interface MarkdownWidgetSettings {
   markdownTextPattern: string;
   useMarkdownTextFunction: boolean;
   markdownTextFunction: string;
+  applyDefaultMarkdownStyle: boolean;
   markdownCss: string;
 }
 
 type MarkdownTextFunction = (data: FormattedData[], ctx: WidgetContext) => string;
 
 @Component({
-  selector: 'tb-markdown-widget ',
+  selector: 'tb-markdown-widget',
   templateUrl: './markdown-widget.component.html'
 })
 export class MarkdownWidgetComponent extends PageComponent implements OnInit {
@@ -68,7 +70,6 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
   settings: MarkdownWidgetSettings;
   markdownTextFunction: MarkdownTextFunction;
 
-  @HostBinding('class')
   markdownClass: string;
 
   @Input()
@@ -76,6 +77,9 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
 
   markdownText: string;
 
+  additionalStyles: string[];
+
+  applyDefaultMarkdownStyle = true;
 
   constructor(protected store: Store<AppState>,
               private utils: UtilsService,
@@ -89,14 +93,18 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
     this.settings = this.ctx.settings;
     this.markdownTextFunction = this.settings.useMarkdownTextFunction ?
       parseFunction(this.settings.markdownTextFunction, ['data', 'ctx']) : null;
-    this.markdownClass = 'markdown-widget';
-    const cssString = this.settings.markdownCss;
+    let cssString = this.settings.markdownCss;
     if (isNotEmptyStr(cssString)) {
       const cssParser = new cssjs();
-      cssParser.testMode = false;
-      this.markdownClass += '-' + hashCode(cssString);
+      this.markdownClass = 'markdown-widget-' + hashCode(cssString);
       cssParser.cssPreviewNamespace = this.markdownClass;
-      cssParser.createStyleElement(this.markdownClass, cssString);
+      cssParser.testMode = false;
+      cssString = cssParser.applyNamespacing(cssString);
+      cssString = cssParser.getCSSForEditor(cssString);
+      this.additionalStyles = [cssString];
+    }
+    if (isDefinedAndNotNull(this.settings.applyDefaultMarkdownStyle)) {
+      this.applyDefaultMarkdownStyle = this.settings.applyDefaultMarkdownStyle;
     }
     const pageSize = isDefinedAndNotNull(this.ctx.widgetConfig.pageSize) &&
                       this.ctx.widgetConfig.pageSize > 0 ? this.ctx.widgetConfig.pageSize : 16384;

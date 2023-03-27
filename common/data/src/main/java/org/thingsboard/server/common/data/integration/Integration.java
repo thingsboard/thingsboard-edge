@@ -65,6 +65,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     @Length(fieldName = "secret")
     private String secret;
     private JsonNode configuration;
+    @NoXss
     private JsonNode additionalInfo;
 
     @Getter

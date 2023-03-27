@@ -46,20 +46,20 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String CITY = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column4')]/span";
     private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
     protected static final String EDIT_MENU_DASHBOARD_FIELD = "//input[@formcontrolname='dashboard']";
-    private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span";
-    private static final String MANAGE_CUSTOMERS_USERS_BTN = ENTITY + "/../..//mat-icon[contains(text(),' account_circle')]/../..";
-    private static final String MANAGE_CUSTOMERS_ASSETS_BTN = ENTITY + "/../..//mat-icon[contains(text(),' domain')]/../..";
-    private static final String MANAGE_CUSTOMERS_GROUPS_BTN = ENTITY + "/../..//mat-icon[contains(text(),'supervisor_account')]/../..";
+    private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span[contains(text(),'%s')]";
+    private static final String MANAGE_CUSTOMERS_USERS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' account_circle')]";
+    private static final String MANAGE_CUSTOMERS_ASSETS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' domain')]/parent::button";
+    private static final String MANAGE_CUSTOMERS_GROUPS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' supervisor_account')]/parent::button";
     private static final String MANAGE_CUSTOMER_ENTITY_VIEW_BTN = ENTITY + "/../..//mat-icon[contains(text(),'view_quilt')]/../..";
-    private static final String MANAGE_CUSTOMERS_DEVICES_BTN = ENTITY + "/../..//mat-icon[contains(text(),' devices_other')]/../..";
-    private static final String MANAGE_CUSTOMERS_DASHBOARDS_BTN = ENTITY + "/../..//mat-icon[contains(text(),' dashboard')]/../..";
-    private static final String MANAGE_CUSTOMERS_EDGE_BTN = ENTITY + "/../..//mat-icon[contains(text(),' router')]/../..";
+    private static final String MANAGE_CUSTOMERS_DEVICES_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'devices_other')]/parent::button";
+    private static final String MANAGE_CUSTOMERS_DASHBOARDS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'dashboard')]/parent::button";
+    private static final String MANAGE_CUSTOMERS_EDGE_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'router')]/parent::button";
     private static final String ADD_USER_EMAIL = "//tb-add-user-dialog//input[@formcontrolname='email']";
     private static final String ACTIVATE_WINDOW_OK_BTN = "//span[contains(text(),'OK')]";
     private static final String USER_LOGIN_BTN = "//mat-icon[@data-mat-icon-name='login']";
     private static final String USERS_WIDGET = "//tb-widget";
     private static final String SELECT_COUNTRY_MENU = "//mat-form-field//mat-select[@formcontrolname='country']";
-    private static final String COUNTRIES = "//span[@class='mat-option-text']";
+    private static final String COUNTRIES = "//span[@class='mdc-list-item__primary-text']";
     protected static final String INPUT_FIELD = "//input[@formcontrolname='%s']";
     protected static final String INPUT_FIELD_NAME_TITLE = "title";
     private static final String INPUT_FIELD_NAME_CITY = "city";
@@ -71,7 +71,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String INPUT_FIELD_NAME_NUMBER = "phoneNumber";
     private static final String INPUT_FIELD_NAME_ASSIGNED_LIST = "entity";
     private static final String ASSIGNED_BTN = "//button[@type='submit']";
-    private static final String HIDE_HOME_DASHBOARD_TOOLBAR = "//mat-checkbox[@formcontrolname='homeDashboardHideToolbar']/label";
+    private static final String HIDE_HOME_DASHBOARD_TOOLBAR = "//mat-checkbox[@formcontrolname='homeDashboardHideToolbar']//label";
     private static final String FILTER_BTN = "//tb-filters-edit";
     private static final String TIME_BTN = "//tb-timewindow";
     private static final String CUSTOMER_ICON_HEADER = "//div[@class='tb-breadcrumb']/span[3]/span";
@@ -90,7 +90,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW = "Manage dashboard groups";
     private static final String MANAGE_CUSTOMERS_EDGE_BTN_VIEW = "Manage edge groups";
     private static final String DELETE_FROM_VIEW_BTN = "//tb-customer//span[contains(text(),' Delete')]";
-    private static final String HEADER_NAME_VIEW = "(//header//div[@class='tb-details-title']/span)[2]";
+    private static final String HEADER_NAME_VIEW = "//span[text()='Customer details']/parent::div/div/span";
 
     public WebElement titleFieldAddEntityView() {
         return waitUntilElementToBeClickable(ADD_ENTITY_VIEW + String.format(INPUT_FIELD, INPUT_FIELD_NAME_TITLE));
@@ -124,8 +124,8 @@ public class CustomerPageElements extends OtherPageElementsHelper {
         return waitUntilVisibilityOfElementLocated(EDIT_MENU_DASHBOARD_FIELD);
     }
 
-    public WebElement editMenuDashboard() {
-        return waitUntilElementToBeClickable(EDIT_MENU_DASHBOARD);
+    public WebElement editMenuDashboard(String dashboardName) {
+        return waitUntilElementToBeClickable(String.format(EDIT_MENU_DASHBOARD, dashboardName));
     }
 
     public WebElement phoneNumberEntityView() {

@@ -83,48 +83,48 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   }
 
   hideManageUsers() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageUsersEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageUsersEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageAssets() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageAssetsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageAssetsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageDevices() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageDevicesEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageDevicesEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageEntityViews() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageEntityViewsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageEntityViewsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageDashboards() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageDashboardsEnabled(this.entity);
     } else {
       return false;
     }
   }
 
   hideManageSchedulerEvents() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageSchedulerEventsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageSchedulerEventsEnabled(this.entity);
     } else {
       return false;
     }
@@ -203,7 +203,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   isTenantAdmin(): boolean {
     const authUser: AuthUser = getCurrentAuthUser(this.store);
-    return authUser.authority === Authority.TENANT_ADMIN;
+    return authUser?.authority === Authority.TENANT_ADMIN;
   }
 
   private generateRoutingKeyAndSecret(entity: Edge, form: UntypedFormGroup) {

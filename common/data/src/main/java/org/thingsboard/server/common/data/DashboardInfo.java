@@ -44,11 +44,12 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 import javax.validation.Valid;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 @ApiModel
-public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
+public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle {
 
     private TenantId tenantId;
 
@@ -63,6 +64,11 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     private Set<ShortCustomerInfo> assignedCustomers;
     private boolean mobileHide;
     private Integer mobileOrder;
+    @Valid
+    private String ownerName;
+
+    @Valid
+    private List<EntityInfo> groups;
 
     public DashboardInfo() {
         super();
@@ -81,6 +87,8 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.assignedCustomers = dashboardInfo.getAssignedCustomers();
         this.mobileHide = dashboardInfo.isMobileHide();
         this.mobileOrder = dashboardInfo.getMobileOrder();
+        this.ownerName = dashboardInfo.getOwnerName();
+        this.groups = dashboardInfo.getGroups();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the dashboard Id. " +
@@ -174,6 +182,24 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
 
     public void setMobileOrder(Integer mobileOrder) {
         this.mobileOrder = mobileOrder;
+    }
+
+    @ApiModelProperty(position = 11, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    public String getOwnerName() {
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
+    }
+
+    @ApiModelProperty(position = 12, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    public List<EntityInfo> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(List<EntityInfo> groups) {
+        this.groups = groups;
     }
 
     public boolean isAssignedToCustomer(CustomerId customerId) {

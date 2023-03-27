@@ -28,11 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
+:host ::ng-deep {
   a.is-new::after {
     content: "NEW";
     font-size: 12px;
-    transform: translate(-10px,4px);
+    letter-spacing: .03125em;
+    transform: translate(6px, -6px);
     display: inline-block;
     border-radius: 10px;
     line-height: 22px;
@@ -41,6 +42,6 @@
     color: #00695c;
     padding-left: 6px;
     padding-right: 6px;
+    margin-left: -6px;
   }
 }
-

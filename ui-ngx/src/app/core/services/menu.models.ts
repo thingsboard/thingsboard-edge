@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable } from 'rxjs';
 import { EntityType } from '@shared/models/entity-type.models';
 import { HasUUID } from '@shared/models/id/has-uuid';
 
@@ -43,11 +42,12 @@ export interface MenuSection extends HasUUID{
   icon: string;
   iconUrl?: string;
   isMdiIcon?: boolean;
-  asyncPages?: Observable<Array<MenuSection>>;
   pages?: Array<MenuSection>;
+  opened?: boolean;
   disabled?: boolean;
   ignoreTranslate?: boolean;
   groupType?: EntityType;
+  rootOnly?: boolean;
   isCustom?: boolean;
   isNew?: boolean;
   stateId?: string;

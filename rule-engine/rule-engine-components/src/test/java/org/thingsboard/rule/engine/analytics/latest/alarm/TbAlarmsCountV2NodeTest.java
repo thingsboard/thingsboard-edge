@@ -44,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -281,7 +282,7 @@ public class TbAlarmsCountV2NodeTest {
                 parentEntityIds.add(parentEntityId);
                 parentEntityIds.add(rootEntityId);
                 parentEntityIds.add(alarm.getOriginator());
-                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
+                when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
                             TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
@@ -342,7 +343,7 @@ public class TbAlarmsCountV2NodeTest {
                 Alarm alarm = createAlarm(entityId);
                 Set<EntityId> parentEntityIds = new HashSet<>();
                 parentEntityIds.add(parentEntityId);
-                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
+                when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
                             TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
@@ -401,7 +402,9 @@ public class TbAlarmsCountV2NodeTest {
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
             int alarmStatusOrdinal = (int) Math.floor(Math.random() * AlarmStatus.values().length);
-            alarm.setStatus(AlarmStatus.values()[alarmStatusOrdinal]);
+            var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
+            alarm.setCleared(alarmStatus.isCleared());
+            alarm.setAcknowledged(alarmStatus.isAck());
             alarm.setStartTs(createdTime);
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
@@ -465,7 +468,7 @@ public class TbAlarmsCountV2NodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null,false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

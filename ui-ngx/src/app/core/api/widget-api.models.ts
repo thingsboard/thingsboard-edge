@@ -72,6 +72,7 @@ import { AlarmDataService } from '@core/api/alarm-data.service';
 import { IDashboardController } from '@home/components/dashboard-page/dashboard-page.models';
 import { PopoverPlacement } from '@shared/components/popover.models';
 import { PersistentRpc } from '@shared/models/rpc.models';
+import { EventEmitter } from '@angular/core';
 
 export interface TimewindowFunctions {
   onUpdateTimewindow: (startTimeMs: number, endTimeMs: number, interval?: number) => void;
@@ -355,6 +356,8 @@ export interface IWidgetSubscription {
   subscribeForPaginatedData(datasourceIndex: number,
                             pageLink: EntityDataPageLink,
                             keyFilters: KeyFilter[]): Observable<any>;
+
+  paginatedDataSubscriptionUpdated: EventEmitter<void>;
 
   subscribeForAlarms(pageLink: AlarmDataPageLink,
                      keyFilters: KeyFilter[]): void;

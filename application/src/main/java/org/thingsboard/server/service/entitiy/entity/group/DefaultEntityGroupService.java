@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -67,7 +68,7 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
     private final EntityGroupService entityGroupService;
 
     @Override
-    public EntityGroup save(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, User user) throws Exception {
+    public EntityGroupInfo save(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup));
@@ -79,7 +80,7 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
             boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
                     savedEntityGroup, user, actionType, sendMsgToEdge, null);
-            return savedEntityGroup;
+            return checkNotNull(entityGroupService.findEntityGroupInfoById(tenantId, savedEntityGroup.getId()));
         } catch (Exception e) {
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
                     entityGroup, user, actionType, false, e);

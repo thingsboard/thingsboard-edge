@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
+@use 'app-theme-overwrites' as overwrites;
 @import 'datepicker-theme';
 @import 'theme-constants';
 
@@ -41,10 +42,16 @@ $background: (background: map_get(mat.$grey-palette, 200));
 
 $tb-theme-background: map_merge(mat.$light-theme-background-palette, $background);
 
-$tb-theme: mat.define-light-theme(
-    $tb-primary,
-    $tb-accent
-);
+$tb-theme: mat.define-light-theme((
+  color: (
+    primary: $tb-primary,
+    accent: $tb-accent
+  ),
+  typography: mat.define-typography-config(
+    $button: mat.define-typography-level(14px, 36px, 500, $letter-spacing: 0.03125em)
+  ),
+  density: 0
+));
 
 $color: map_get($tb-theme, color);
 $color: map_merge($color, (background: $tb-theme-background));
@@ -55,6 +62,8 @@ $tb-theme: map_merge($tb-theme, $color);
   @include mat.all-component-themes($tb-theme);
   @include mat-datetimepicker-theme($tb-theme);
   @include tb-components-theme($tb-theme);
+  @include overwrites.app-theme-overwrites($tb-primary, $tb-theme);
+  @include mat.typography-hierarchy($tb-theme);
 }
 
 .tb-default, .tb-dark {

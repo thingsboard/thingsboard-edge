@@ -91,7 +91,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private dialogService: DialogService,
               private dialog: MatDialog,
               private params: IntegrationParams) {
-    super();
+    super(params);
 
     this.entityType = EntityType.INTEGRATION;
     this.entityComponent = IntegrationComponent;

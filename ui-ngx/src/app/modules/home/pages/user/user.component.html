@@ -110,6 +110,11 @@
         <mat-label translate>user.last-name</mat-label>
         <input matInput formControlName="lastName">
       </mat-form-field>
+      <tb-phone-input [required]="false"
+                      label="{{ 'contact.phone' | translate }}"
+                      [enableFlagsSelect]="true"
+                      formControlName="phone">
+      </tb-phone-input>
       <div formGroupName="additionalInfo" fxLayout="column">
         <mat-form-field class="mat-block">
           <mat-label translate>user.description</mat-label>
@@ -119,7 +124,7 @@
           <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
-              placeholder="{{ 'user.default-dashboard' | translate }}"
+              label="{{ 'user.default-dashboard' | translate }}"
               formControlName="defaultDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
@@ -131,7 +136,7 @@
           <section *ngIf="(isSysAdmin$ | async) || (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
-              placeholder="{{ 'dashboard.home-dashboard' | translate }}"
+              label="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"

@@ -47,6 +47,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { SubscriptSizing } from '@angular/material/form-field';
 import { isDefinedAndNotNull, isEqual } from '@core/utils';
 
 @Component({
@@ -81,6 +82,9 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
   @Input() singlePredefinedKey: string;
 
   @Input() isStrokedButton = false;
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
 
   kvListFormGroup: UntypedFormGroup;
 

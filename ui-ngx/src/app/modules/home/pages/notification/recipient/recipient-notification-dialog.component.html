@@ -1,0 +1,172 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<form [formGroup]="targetNotificationForm" class="tb-dialog-container">
+  <mat-toolbar color="primary">
+    <h2>{{ dialogTitle | translate }}</h2>
+    <span fxFlex></span>
+    <button mat-icon-button
+            (click)="cancel()"
+            type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+  </mat-progress-bar>
+  <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+  <div mat-dialog-content>
+    <mat-form-field class="mat-block">
+      <mat-label translate>notification.name</mat-label>
+      <input matInput formControlName="name" required>
+      <mat-error *ngIf="targetNotificationForm.get('name').hasError('required')">
+        {{ 'notification.name-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <section formGroupName="configuration">
+      <label class="tb-title">{{ 'notification.type' | translate }}</label>
+      <mat-radio-group formControlName="type">
+        <mat-radio-button *ngFor="let notificationTargetType of notificationTargetTypes" [value]="notificationTargetType">
+          <div fxLayout="column">
+            <div>{{ notificationTargetTypeTranslationMap.get(notificationTargetType) | translate }}</div>
+          </div>
+        </mat-radio-button>
+      </mat-radio-group>
+      <section formGroupName="usersFilter"
+               *ngIf="targetNotificationForm.get('configuration.type').value === notificationTargetType.PLATFORM_USERS">
+        <mat-form-field class="mat-block" subscriptSizing="dynamic">
+          <mat-label translate>notification.recipient-type.user-filters</mat-label>
+          <mat-select formControlName="type">
+            <mat-option *ngFor="let type of notificationTargetConfigTypes" [value]="type">
+              {{ notificationTargetConfigTypeInfoMap.get(type).name | translate }}
+            </mat-option>
+          </mat-select>
+          <mat-hint>{{ notificationTargetConfigTypeInfoMap.get(targetNotificationForm.get('configuration.usersFilter.type').value).hint | translate }}</mat-hint>
+        </mat-form-field>
+        <ng-container [ngSwitch]="targetNotificationForm.get('configuration.usersFilter.type').value">
+          <ng-container *ngSwitchCase="notificationTargetConfigType.TENANT_ADMINISTRATORS">
+            <section *ngIf="isSysAdmin()">
+              <div fxFlex fxLayoutAlign="center center">
+                <mat-button-toggle-group class="tb-notification-tenant-group"
+                                         style="width: 280px;"
+                                         formControlName="filterByTenants">
+                  <mat-button-toggle fxFlex [value]=true>{{ 'tenant.tenant' | translate }}</mat-button-toggle>
+                  <mat-button-toggle fxFlex [value]=false>{{ 'tenant-profile.tenant-profile' | translate }}</mat-button-toggle>
+                </mat-button-toggle-group>
+              </div>
+              <ng-container *ngIf="targetNotificationForm.get('configuration.usersFilter.filterByTenants').value; else tenantProfiles">
+                <tb-entity-list
+                  formControlName="tenantsIds"
+                  subscriptSizing="dynamic"
+                  labelText="{{ 'tenant.tenants' | translate }}"
+                  placeholderText="{{ 'tenant.tenants' | translate }}"
+                  hint="{{ 'notification.tenants-list-rule-hint' | translate }}"
+                  [entityType]="entityType.TENANT">
+                </tb-entity-list>
+              </ng-container>
+              <ng-template #tenantProfiles>
+                <tb-entity-list
+                  formControlName="tenantProfilesIds"
+                  subscriptSizing="dynamic"
+                  labelText="{{ 'tenant-profile.tenant-profiles' | translate }}"
+                  placeholderText="{{ 'tenant-profile.tenant-profiles' | translate }}"
+                  hint="{{ 'notification.tenant-profiles-list-rule-hint' | translate }}"
+                  [entityType]="entityType.TENANT_PROFILE">
+                </tb-entity-list>
+              </ng-template>
+            </section>
+          </ng-container>
+          <ng-container *ngSwitchCase="notificationTargetConfigType.USER_LIST">
+            <tb-entity-list
+              required
+              formControlName="usersIds"
+              [entityType]="entityType.USER"
+              labelText="{{ 'user.user-list' | translate }}"
+              placeholderText="{{ 'user.user' | translate }}"
+              requiredText="{{ 'user.user-list-required' | translate }}">
+            </tb-entity-list>
+          </ng-container>
+          <ng-container *ngSwitchCase="notificationTargetConfigType.CUSTOMER_USERS">
+            <tb-entity-autocomplete
+              required
+              formControlName="customerId"
+              [entityType]="entityType.CUSTOMER">
+            </tb-entity-autocomplete>
+          </ng-container>
+          <ng-container *ngSwitchCase="notificationTargetConfigType.USER_GROUP_LIST">
+            <tb-entity-group-list
+              formControlName="groupsIds"
+              [groupType]="entityType.USER"
+            >
+            </tb-entity-group-list>
+          </ng-container>
+          <ng-container *ngSwitchCase="notificationTargetConfigType.USER_ROLE">
+            <tb-entity-list
+              required
+              formControlName="rolesIds"
+              [entityType]="entityType.ROLE"
+              labelText="{{ 'role.role-list' | translate }}"
+              placeholderText="{{ 'role.role' | translate }}"
+              requiredText="{{ 'role.role-list-required' | translate }}">
+            </tb-entity-list>
+          </ng-container>
+        </ng-container>
+      </section>
+      <section *ngIf="targetNotificationForm.get('configuration.type').value === notificationTargetType.SLACK">
+        <label class="tb-title">{{ 'notification.slack-chanel-type' | translate }}</label>
+        <mat-radio-group formControlName="conversationType">
+          <mat-radio-button *ngFor="let slackChanelType of slackChanelTypes" [value]="slackChanelType">
+             {{ slackChanelTypesTranslateMap.get(slackChanelType) | translate }}
+          </mat-radio-button>
+        </mat-radio-group>
+        <tb-slack-conversation-autocomplete
+          formControlName="conversation" required
+          [slackChanelType]="targetNotificationForm.get('configuration.conversationType').value">
+        </tb-slack-conversation-autocomplete>
+      </section>
+      <mat-form-field class="mat-block">
+        <mat-label translate>notification.description</mat-label>
+        <input matInput formControlName="description">
+      </mat-form-field>
+    </section>
+  </div>
+  <mat-divider></mat-divider>
+  <div mat-dialog-actions fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end">
+    <button mat-button
+            [disabled]="(isLoading$ | async)"
+            (click)="cancel()">{{ 'action.cancel' | translate }}</button>
+    <button mat-raised-button
+            *ngIf="!data?.readonly"
+            [disabled]="(isLoading$ | async) || targetNotificationForm.invalid || !targetNotificationForm.dirty"
+            color="primary"
+            (click)="save()">{{ (isAdd ? 'action.add' : 'action.save') | translate }}</button>
+  </div>
+</form>

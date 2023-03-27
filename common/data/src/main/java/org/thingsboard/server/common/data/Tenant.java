@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Tenant extends ContactBased<TenantId> implements TenantEntity {
+public class Tenant extends ContactBased<TenantId> implements TenantEntity, HasTitle {
 
     private static final long serialVersionUID = 8057243243859922101L;
 

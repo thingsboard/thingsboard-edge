@@ -132,6 +132,16 @@ public class Validator {
         }
     }
 
+    public static void validateEntityIds(List<EntityId> ids, String errorMessage) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IncorrectParameterException(errorMessage);
+        } else {
+            for (EntityId id : ids) {
+                validateEntityId(id, errorMessage);
+            }
+        }
+    }
+
     /**
      * This method validate <code>PageLink</code> page link. If pageLink is invalid than throw
      * <code>IncorrectParameterException</code> exception
