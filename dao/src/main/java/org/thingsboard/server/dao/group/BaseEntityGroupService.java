@@ -863,7 +863,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                         if (currentEntityGroup.isEmpty()) {
                             EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId);
                             entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(),
-                                    edge.getId(), EntityType.DEVICE);
+                                    edge.getId(), groupType);
                             return Futures.immediateFuture(entityGroup);
                         } else {
                             return Futures.immediateFuture(currentEntityGroup.get());

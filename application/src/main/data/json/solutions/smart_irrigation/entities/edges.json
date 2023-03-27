@@ -12,20 +12,21 @@
     "attributes": {},
     "relations": [],
     "userGroups": [],
-    "assetGroups": [
-      {
-        "name": "Smart Irrigation"
-      }
-    ],
-    "deviceGroups": [
-      {
-        "name": "Smart Irrigation"
-      }
-    ],
+    "assetGroups": [],
+    "deviceGroups": [],
     "dashboardGroups": [
       {
         "name": "Smart Irrigation"
       }
+    ],
+    "assetIds": [
+      "f19a9530-38d6-11ed-af17-3d7337747e91"
+    ],
+    "deviceIds": [
+      "d924ddb0-398c-11ed-af17-3d7337747e91",
+      "eb87ca30-3982-11ed-af17-3d7337747e91",
+      "f1a06190-38d6-11ed-af17-3d7337747e91",
+      "f1a06190-38d6-11ed-af17-3d7337747e92"
     ],
     "schedulerEventIds": [
       "18dd3f10-967b-11ed-b5e1-392bb934190c",
