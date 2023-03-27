@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
@@ -83,6 +84,9 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Autowired
     private TbApiUsageStateClient apiUsageStateClient;
+
+    @Autowired
+    private AdminSettingsService adminSettingsService;
 
     //For system administrator
     @Test
@@ -270,6 +274,8 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testGetFeaturesInfo() throws Exception {
+        adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
+
         loginSysAdmin();
 
         FeaturesInfo featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
