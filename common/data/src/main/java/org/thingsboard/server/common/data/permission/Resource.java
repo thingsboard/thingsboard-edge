@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.security.Authority;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -80,7 +81,9 @@ public enum Resource {
     TB_RESOURCE(EntityType.TB_RESOURCE),
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
     QUEUE(EntityType.QUEUE),
-    VERSION_CONTROL;
+    VERSION_CONTROL,
+    NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
+            EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -101,21 +104,21 @@ public enum Resource {
                 continue;
             }
             for (Resource resource : Resource.values()) {
-                if (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(entityType)) {
+                if (resource.getEntityTypes().contains(entityType)) {
                     resourceByEntityType.put(entityType, resource);
                 }
             }
         }
-        operationsByResource.put(Resource.ALL, new HashSet<>(Arrays.asList(Operation.values())));
-        operationsByResource.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.WRITE)));
-        operationsByResource.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
+        operationsByResource.put(Resource.ALL, Set.of(Operation.values()));
+        operationsByResource.put(Resource.PROFILE, Set.of(Operation.ALL, Operation.WRITE));
+        operationsByResource.put(Resource.ADMIN_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_INFO, Operation.crudOperations);
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
-        operationsByResource.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE)));
-        operationsByResource.put(Resource.DEVICE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE,
+        operationsByResource.put(Resource.ALARM, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE));
+        operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
-                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT)));
+                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT));
         operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.OTA_PACKAGE, Operation.defaultEntityOperations);
@@ -126,7 +129,7 @@ public enum Resource {
         operationsByResource.put(Resource.EDGE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT_PROFILE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.API_USAGE_STATE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.READ_TELEMETRY)));
+        operationsByResource.put(Resource.API_USAGE_STATE, Set.of(Operation.ALL, Operation.READ, Operation.READ_TELEMETRY));
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
         userOperations.add(Operation.IMPERSONATE);
@@ -147,12 +150,13 @@ public enum Resource {
         operationsByResource.put(Resource.DASHBOARD_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.ROLE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
-        operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
-        operationsByResource.put(Resource.AUDIT_LOG, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
-        operationsByResource.put(Resource.QUEUE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
-        operationsByResource.put(Resource.VERSION_CONTROL, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE)));
+        operationsByResource.put(Resource.WHITE_LABELING, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
+        operationsByResource.put(Resource.AUDIT_LOG, Set.of(Operation.ALL, Operation.READ));
+        operationsByResource.put(Resource.QUEUE, Set.of(Operation.ALL, Operation.READ));
+        operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
+        operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
 
-        resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
+        resourcesByAuthority.put(Authority.SYS_ADMIN, Set.of(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ADMIN_SETTINGS,
@@ -168,9 +172,11 @@ public enum Resource {
                 Resource.OAUTH2_CONFIGURATION_INFO,
                 Resource.OAUTH2_CONFIGURATION_TEMPLATE,
                 Resource.TB_RESOURCE,
-                Resource.QUEUE)));
+                Resource.QUEUE,
+                Resource.NOTIFICATION
+        ));
 
-        resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
+        resourcesByAuthority.put(Authority.TENANT_ADMIN, Set.of(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ALARM,
@@ -206,9 +212,11 @@ public enum Resource {
                 Resource.TB_RESOURCE,
                 Resource.OTA_PACKAGE,
                 Resource.QUEUE,
-                Resource.VERSION_CONTROL)));
+                Resource.VERSION_CONTROL,
+                Resource.NOTIFICATION
+        ));
 
-        resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
+        resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ALARM,
@@ -235,7 +243,8 @@ public enum Resource {
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
-                Resource.ASSET_PROFILE)));
+                Resource.ASSET_PROFILE
+        ));
 
     }
 
@@ -251,17 +260,17 @@ public enum Resource {
         return operationsByResource.get(resource);
     }
 
-    private final EntityType entityType;
+    private final Set<EntityType> entityTypes;
 
     Resource() {
-        this.entityType = null;
+        this.entityTypes = Collections.emptySet();
     }
 
-    Resource(EntityType entityType) {
-        this.entityType = entityType;
+    Resource(EntityType... entityTypes) {
+        this.entityTypes = Set.of(entityTypes);
     }
 
-    public Optional<EntityType> getEntityType() {
-        return Optional.ofNullable(entityType);
+    public Set<EntityType> getEntityTypes() {
+        return entityTypes;
     }
 }

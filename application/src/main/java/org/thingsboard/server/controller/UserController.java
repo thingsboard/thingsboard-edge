@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -140,7 +139,6 @@ public class UserController extends BaseController {
     public static final String ACTIVATE_URL_PATTERN = "%s/api/noauth/activate?activateToken=%s";
 
     @Value("${security.user_token_access_enabled}")
-    @Getter
     private boolean userTokenAccessEnabled;
 
     private final MailService mailService;

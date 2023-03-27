@@ -72,6 +72,7 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
     public Customer(Customer customer) {
         super(customer);
         this.tenantId = customer.getTenantId();
+        this.parentCustomerId = customer.getParentCustomerId();
         this.title = customer.getTitle();
         this.externalId = customer.getExternalId();
     }

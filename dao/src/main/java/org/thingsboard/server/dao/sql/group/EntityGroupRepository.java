@@ -84,7 +84,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType " +
             "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityGroupEntity> findAllEntityGroupsByParentRelation(@Param("parentEntityId") UUID parentEntityId,
-                                                                @Param("parentEntityType") EntityType parentEntityType,
+                                                                @Param("parentEntityType") String parentEntityType,
                                                                 @Param("textSearch") String textSearch,
                                                                 Pageable pageable);
 
