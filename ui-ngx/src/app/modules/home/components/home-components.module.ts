@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -218,10 +218,19 @@ import { IntegrationWizardDialogComponent } from '@home/components/wizard/integr
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import { MODULES_MAP } from '@shared/models/constants';
+import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
+import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
+import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
+import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 
 @NgModule({
   declarations:
     [
+      RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
       DetailsPanelComponent,
@@ -240,6 +249,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -289,6 +299,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       EntityGroupColumnsComponent,
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
+      GroupChipsComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -386,7 +397,9 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       RateLimitsTextComponent,
       IntegrationWizardDialogComponent,
       ConverterComponent,
-      ConverterTestDialogComponent
+      ConverterTestDialogComponent,
+      SlackConversationAutocompleteComponent,
+      SendNotificationButtonComponent
     ],
   imports: [
     CommonModule,
@@ -403,6 +416,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
   ],
   exports: [
     SharedHomeComponentsModule,
+    RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,
@@ -415,6 +429,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
@@ -459,6 +474,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     EntityGroupColumnsComponent,
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
+    GroupChipsComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
@@ -548,19 +564,23 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     RateLimitsComponent,
     RateLimitsListComponent,
     RateLimitsTextComponent,
-    IntegrationWizardDialogComponent
+    IntegrationWizardDialogComponent,
+    SlackConversationAutocompleteComponent,
+    SendNotificationButtonComponent
   ],
   providers: [
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
+    AllEntitiesTableConfigService,
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,
     {provide: EMBED_DASHBOARD_DIALOG_TOKEN, useValue: EmbedDashboardDialogComponent},
     {provide: COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN, useValue: ComplexFilterPredicateDialogComponent},
     {provide: DASHBOARD_PAGE_COMPONENT_TOKEN, useValue: DashboardPageComponent},
-    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule }
+    {provide: HOME_COMPONENTS_MODULE_TOKEN, useValue: HomeComponentsModule },
+    {provide: MODULES_MAP, useValue: modulesMap}
   ]
 })
 export class HomeComponentsModule {

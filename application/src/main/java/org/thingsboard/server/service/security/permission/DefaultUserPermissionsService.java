@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
@@ -133,7 +132,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         if (result == null) {
             ListenableFuture<List<EntityGroupId>> groups;
             if (isPublic) {
-                ListenableFuture<Optional<EntityGroup>> publicUserGroup = entityGroupService.findPublicUserGroup(user.getTenantId(), user.getCustomerId());
+                ListenableFuture<Optional<EntityGroup>> publicUserGroup = entityGroupService.findPublicUserGroupAsync(user.getTenantId(), user.getCustomerId());
                 groups = Futures.transform(publicUserGroup, groupOptional -> {
                     if (groupOptional.isPresent()) {
                         return Arrays.asList(groupOptional.get().getId());
@@ -142,7 +141,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                     }
                 }, MoreExecutors.directExecutor());
             } else {
-                groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
+                groups = entityGroupService.findEntityGroupsForEntityAsync(user.getTenantId(), user.getId());
             }
             ListenableFuture<List<GroupPermission>> permissions = Futures.transformAsync(groups, toGroupPermissionsList(user.getTenantId()), dbCallbackExecutorService);
             try {
@@ -190,7 +189,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                 if (isPublic) {
                     entityIds = Collections.singletonList(new UserId(EntityId.NULL_UUID));
                 } else {
-                    entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new PageLink(Integer.MAX_VALUE)).get();
+                    entityIds = entityGroupService.findAllEntityIdsAsync(tenantId, userGroupId, new PageLink(Integer.MAX_VALUE)).get();
                 }
                 usersByOwnerMap.computeIfAbsent(userGroup.getOwnerId(), ownerId -> new HashSet<>()).addAll(entityIds);
             } catch (InterruptedException | ExecutionException e) {

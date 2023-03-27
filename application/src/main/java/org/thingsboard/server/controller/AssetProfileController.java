@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -122,7 +122,11 @@ public class AssetProfileController extends BaseController {
         checkParameter(ASSET_PROFILE_ID, strAssetProfileId);
         try {
             AssetProfileId assetProfileId = new AssetProfileId(toUUID(strAssetProfileId));
-            return new AssetProfileInfo(checkAssetProfileId(assetProfileId, Operation.READ));
+            AssetProfileInfo assetProfileInfo = checkNotNull(assetProfileService.findAssetProfileInfoById(getTenantId(), assetProfileId));
+            if (!getTenantId().equals(assetProfileInfo.getTenantId())) {
+                throw permissionDenied();
+            }
+            return assetProfileInfo;
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -106,8 +106,8 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'entityViewGroups', params.edgeEntitiesGroupId, entityView.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'entities', 'entityViews', 'groups', params.childEntityGroupId, entityView.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {

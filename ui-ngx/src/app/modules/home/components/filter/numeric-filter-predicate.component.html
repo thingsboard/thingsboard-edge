@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,8 +31,7 @@
 
 -->
 <div fxFlex fxLayout="row" fxLayoutAlign="start start" fxLayoutGap="8px" [formGroup]="numericFilterPredicateFormGroup">
-  <mat-form-field floatLabel="always" hideRequiredMarker fxFlex="30" class="mat-block">
-    <mat-label></mat-label>
+  <mat-form-field hideRequiredMarker fxFlex="30" class="mat-block">
     <mat-select required formControlName="operation" placeholder="{{'filter.operation.operation' | translate}}">
       <mat-option *ngFor="let operation of numericOperations" [value]="operation">
         {{numericOperationTranslations.get(numericOperationEnum[operation]) | translate}}

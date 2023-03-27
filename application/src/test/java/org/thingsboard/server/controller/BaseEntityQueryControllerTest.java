@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -81,6 +82,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseEntityQueryControllerTest extends AbstractControllerTest {
@@ -116,7 +118,7 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
     }
 
     @Test
-    public void testCountEntitiesByQuery() throws Exception {
+    public void testTenantCountEntitiesByQuery() throws Exception {
         List<Device> devices = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
             Device device = new Device();
@@ -129,6 +131,56 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
         DeviceTypeFilter filter = new DeviceTypeFilter();
         filter.setDeviceType("default");
         filter.setDeviceNameFilter("");
+
+        EntityCountQuery countQuery = new EntityCountQuery(filter);
+
+        Long count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(97, count.longValue());
+
+        filter.setDeviceType("unknown");
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(0, count.longValue());
+
+        filter.setDeviceType("default");
+        filter.setDeviceNameFilter("Device1");
+
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(11, count.longValue());
+
+        EntityListFilter entityListFilter = new EntityListFilter();
+        entityListFilter.setEntityType(EntityType.DEVICE);
+        entityListFilter.setEntityList(devices.stream().map(Device::getId).map(DeviceId::toString).collect(Collectors.toList()));
+
+        countQuery = new EntityCountQuery(entityListFilter);
+
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(97, count.longValue());
+
+        EntityTypeFilter filter2 = new EntityTypeFilter();
+        filter2.setEntityType(EntityType.DEVICE);
+
+        EntityCountQuery countQuery2 = new EntityCountQuery(filter2);
+
+        Long count2 = doPostWithResponse("/api/entitiesQuery/count", countQuery2, Long.class);
+        Assert.assertEquals(97, count2.longValue());
+    }
+
+    @Test
+    public void testSysAdminCountEntitiesByQuery() throws Exception {
+        List<Device> devices = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Device device = new Device();
+            device.setName("Device" + i);
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            devices.add(doPost("/api/device", device, Device.class));
+            Thread.sleep(1);
+        }
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceType("default");
+        filter.setDeviceNameFilter("");
+
+        loginSysAdmin();
 
         EntityCountQuery countQuery = new EntityCountQuery(filter);
 
@@ -620,4 +672,24 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
         schedulerEvent.setSchedule(schedule);
         return schedulerEvent;
     }
+
+    @Test
+    public void givenInvalidEntityDataPageLink_thenReturnError() throws Exception {
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceType("default");
+        filter.setDeviceNameFilter("");
+
+        String invalidSortProperty = "created(Time)";
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, invalidSortProperty), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+        List<EntityKey> latestValues = Collections.singletonList(new EntityKey(EntityKeyType.ATTRIBUTE, "temperature"));
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, latestValues, null);
+
+        ResultActions result = doPost("/api/entitiesQuery/find", query).andExpect(status().isBadRequest());
+        assertThat(getErrorMessage(result)).contains("Invalid").contains("sort property");
+    }
+
 }

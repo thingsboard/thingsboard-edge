@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-
 <form [formGroup]="queueFormGroup" fxLayout="column">
   <mat-form-field class="mat-block" appearance="fill">
     <mat-label translate>admin.queue-name</mat-label>
@@ -53,7 +52,7 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap="16px" formGroupName="submitStrategy" style="padding-bottom: 15px;">
+        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap="16px" formGroupName="submitStrategy">
           <div fxFlex>
             <label class="group-label" translate>queue.submit-strategy</label>
             <mat-radio-group fxFlex fxLayout="column" fxLayoutGap="15px" formControlName="type" required>
@@ -91,7 +90,7 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap="16px" formGroupName="processingStrategy" style="padding-bottom: 15px;">
+        <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap="16px" formGroupName="processingStrategy">
           <div fxFlex>
             <label class="group-label" translate>queue.processing-strategy</label>
               <mat-radio-group fxFlex fxLayout="column" fxLayoutGap="15px" formControlName="type" required>
@@ -168,7 +167,7 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div fxFlex fxLayout="column" fxLayoutGap="10px" style="padding-bottom: 15px;">
+        <div fxFlex fxLayout="column" fxLayoutGap="10px">
           <div fxFlex>
             <label class="group-label" translate>queue.batch-processing</label>
             <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap="10px">

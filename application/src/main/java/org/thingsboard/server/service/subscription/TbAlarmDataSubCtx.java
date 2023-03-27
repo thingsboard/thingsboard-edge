@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,9 +35,12 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -54,11 +57,11 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketService;
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketSessionRef;
-import org.thingsboard.server.service.telemetry.cmd.v2.AlarmDataUpdate;
-import org.thingsboard.server.service.telemetry.sub.AlarmSubscriptionUpdate;
-import org.thingsboard.server.service.telemetry.sub.TelemetrySubscriptionUpdate;
+import org.thingsboard.server.service.ws.WebSocketService;
+import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmDataUpdate;
+import org.thingsboard.server.service.ws.telemetry.sub.AlarmSubscriptionUpdate;
+import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,10 +81,8 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
 
     private final AlarmService alarmService;
     @Getter
-    @Setter
     private final LinkedHashMap<EntityId, EntityData> entitiesMap;
     @Getter
-    @Setter
     private final HashMap<AlarmId, AlarmData> alarmsMap;
 
     private final int maxEntitiesPerAlarmSubscription;
@@ -97,10 +98,10 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
 
     private int alarmInvocationAttempts;
 
-    public TbAlarmDataSubCtx(String serviceId, TelemetryWebSocketService wsService,
+    public TbAlarmDataSubCtx(String serviceId, WebSocketService wsService,
                              EntityService entityService, TbLocalSubscriptionService localSubscriptionService,
                              AttributesService attributesService, SubscriptionServiceStatistics stats, AlarmService alarmService,
-                             TelemetryWebSocketSessionRef sessionRef, int cmdId,
+                             WebSocketSessionRef sessionRef, int cmdId,
                              int maxEntitiesPerAlarmSubscription, int maxAlarmQueriesPerRefreshInterval) {
         super(serviceId, wsService, entityService, localSubscriptionService, attributesService, stats, sessionRef, cmdId);
         this.maxEntitiesPerAlarmSubscription = maxEntitiesPerAlarmSubscription;
@@ -192,7 +193,7 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
                 .subscriptionId(subIdx)
                 .tenantId(sessionRef.getSecurityCtx().getTenantId())
                 .entityId(entityData.getEntityId())
-                .updateConsumer(this::sendWsMsg)
+                .updateProcessor((sub, update) -> sendWsMsg(sub.getSessionId(), update))
                 .ts(startTs)
                 .build();
         localSubscriptionService.addSubscription(subscription);
@@ -222,6 +223,11 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
         }
     }
 
+    @Override
+    protected Aggregation getCurrentAggregation() {
+        return Aggregation.NONE;
+    }
+
     private void sendWsMsg(String sessionId, AlarmSubscriptionUpdate subscriptionUpdate) {
         Alarm alarm = subscriptionUpdate.getAlarm();
         AlarmId alarmId = alarm.getId();
@@ -236,8 +242,7 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
             boolean matchesFilter = filter(alarm);
             if (onCurrentPage) {
                 if (matchesFilter) {
-                    AlarmData updated = new AlarmData(alarm, current.getOriginatorName(), current.getEntityId());
-                    updated.getLatest().putAll(current.getLatest());
+                    AlarmData updated = new AlarmData(subscriptionUpdate.getAlarm(), current);
                     alarmsMap.put(alarmId, updated);
                     sendWsMsg(new AlarmDataUpdate(cmdId, null, Collections.singletonList(updated), maxEntitiesPerAlarmSubscription, data.getTotalElements()));
                 } else {
@@ -281,8 +286,24 @@ public class TbAlarmDataSubCtx extends TbAbstractDataSubCtx<AlarmDataQuery> {
         if (filter.getStatusList() != null && !filter.getStatusList().isEmpty()) {
             boolean matches = false;
             for (AlarmSearchStatus status : filter.getStatusList()) {
-                if (status.getStatuses().contains(alarm.getStatus())) {
-                    matches = true;
+                switch (status) {
+                    case ANY:
+                        matches = true;
+                        break;
+                    case ACK:
+                        matches = alarm.isAcknowledged();
+                        break;
+                    case UNACK:
+                        matches = !alarm.isAcknowledged();
+                        break;
+                    case CLEARED:
+                        matches = alarm.isCleared();
+                        break;
+                    case ACTIVE:
+                        matches = !alarm.isCleared();
+                        break;
+                }
+                if (matches) {
                     break;
                 }
             }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,7 @@ import java.util.Optional;
 @ApiModel
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage, ExportableEntity<DeviceId> {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasLabel, HasCustomerId, HasOtaPackage, ExportableEntity<DeviceId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 

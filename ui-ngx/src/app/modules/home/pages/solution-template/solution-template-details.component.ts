@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
@@ -56,11 +56,9 @@ export class SolutionTemplateDetailsComponent extends PageComponent implements O
 
   solutionTemplateDetails: TenantSolutionTemplateDetails = this.route.snapshot.data.solutionTemplateDetails;
 
-  images = this.solutionTemplateDetails.imageUrls.map((url) => {
-    return {
+  images = this.solutionTemplateDetails.imageUrls.map((url) => ({
       url
-    }
-  });
+    }));
 
   constructor(protected store: Store<AppState>,
               private solutionsService: SolutionsService,
@@ -77,7 +75,7 @@ export class SolutionTemplateDetailsComponent extends PageComponent implements O
   }
 
   installSolutionTemplate() {
-    const progressSubject = new Subject();
+    const progressSubject = new Subject<void>();
     this.dialogService.progress(progressSubject.asObservable(), this.translate.instant('solution-template.installing'));
     this.solutionsService.installSolutionTemplate(this.solutionTemplateDetails.id).subscribe(
       (response) => {

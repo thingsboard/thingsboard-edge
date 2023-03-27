@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -91,7 +91,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private dialogService: DialogService,
               private dialog: MatDialog,
               private params: IntegrationParams) {
-    super();
+    super(params);
 
     this.entityType = EntityType.INTEGRATION;
     this.entityComponent = IntegrationComponent;
@@ -129,12 +129,13 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
 
     this.handleRowClick = (event, entity) => {
       this.getTable().toggleEntityDetails(event, entity);
+      const path = (event as any).path || (event.composedPath && event.composedPath());
       if ((event.target as HTMLElement).getElementsByClassName('status').length || (event.target as HTMLElement).className === 'status') {
         setTimeout(() => {
           this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
           (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.LC_EVENT;
         }, 0);
-      } else if ((event.target as HTMLElement).getElementsByTagName('TB-SPARK-LINE').length || (event as any).path.some(el => el.tagName === 'TB-SPARK-LINE')) {
+      } else if ((event.target as HTMLElement).getElementsByTagName('TB-SPARK-LINE').length || path?.some(el => el.tagName === 'TB-SPARK-LINE')) {
         setTimeout(() => {
           this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
           (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.STATS;

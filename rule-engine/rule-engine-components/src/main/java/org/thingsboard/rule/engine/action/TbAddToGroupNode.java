@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -144,7 +144,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
     private List<ListenableFuture<EntityGroupContainer>> getListenableFutures(TbContext ctx, TbMsg msg) {
         List<ListenableFuture<EntityGroupContainer>> futures = new ArrayList<>();
         futures.add(Futures.transform(ctx.getPeContext().getEntityGroupService()
-                .findEntityGroupsForEntity(ctx.getTenantId(), msg.getOriginator()), list -> new EntityGroupContainer(list, false), ctx.getDbCallbackExecutor()));
+                .findEntityGroupsForEntityAsync(ctx.getTenantId(), msg.getOriginator()), list -> new EntityGroupContainer(list, false), ctx.getDbCallbackExecutor()));
         futures.add(Futures.transform(getEntityGroupAllListenableFuture(ctx, msg), entityGroupAll -> entityGroupAll
                 .map(entityGroup -> new EntityGroupContainer(Collections.singletonList(entityGroup.getId()), true))
                 .orElse(null), ctx.getDbCallbackExecutor()));

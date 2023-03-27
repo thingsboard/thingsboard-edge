@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -55,7 +55,7 @@ export interface ModulesWithFactories {
 })
 export class ResourcesService {
 
-  private loadedResources: { [url: string]: ReplaySubject<any> } = {};
+  private loadedResources: { [url: string]: ReplaySubject<void> } = {};
   private loadedModules: { [url: string]: ReplaySubject<Type<any>[]> } = {};
   private loadedModulesAndFactories: { [url: string]: ReplaySubject<ModulesWithFactories> } = {};
 
@@ -229,7 +229,7 @@ export class ResourcesService {
   }
 
   private loadResourceByType(type: 'css' | 'js', url: string): Observable<any> {
-    const subject = new ReplaySubject();
+    const subject = new ReplaySubject<void>();
     this.loadedResources[url] = subject;
     let el;
     let loaded = false;

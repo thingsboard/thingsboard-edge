@@ -1,0 +1,401 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "AL Gateway Rule Chain",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 6,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 52,
+          "layoutY": 353
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1059,
+          "layoutY": 75
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 676,
+          "layoutY": 153
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1063,
+          "layoutY": 155
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1062,
+          "layoutY": 216
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1061,
+          "layoutY": 279
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 367,
+          "layoutY": 152
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 628,
+          "layoutY": 354
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "Change Owner from Gateway to Device",
+        "debugMode": false,
+        "configuration": {
+          "originatorSource": "ENTITY",
+          "entityType": "DEVICE",
+          "entityNamePattern": "$[serial]",
+          "relationsQuery": {
+            "direction": "FROM",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "Contains",
+                "entityTypes": []
+              }
+            ],
+            "fetchLastLevelOnly": false
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1178,
+          "layoutY": 502
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "To Room Device Rule Chain",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "c91744c0-8767-11ed-ace0-2b013f453ca4"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 326,
+          "layoutY": 354
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Fetch Room attributes",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "fetchToData": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "roomXPos",
+            "roomYPos",
+            "zone",
+            "room"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "Improves readability of the message in the next rule chain",
+          "layoutX": 902,
+          "layoutY": 353
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
+        "name": "Rename Msg Fields",
+        "debugMode": false,
+        "configuration": {
+          "fromMetadata": false,
+          "renameKeysMapping": {
+            "ss_roomXPos": "xPos",
+            "ss_roomYPos": "yPos",
+            "ss_zone": "zone",
+            "ss_room": "room"
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "Improves readability of the message in the next rule chain",
+          "layoutX": 1177,
+          "layoutY": 351
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbRenameKeysNode",
+        "name": "Rename Metadata Fields",
+        "debugMode": false,
+        "configuration": {
+          "fromMetadata": true,
+          "renameKeysMapping": {
+            "deviceName": "gateway"
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 561,
+          "layoutY": 424
+        },
+        "type": "org.thingsboard.rule.engine.deduplication.TbMsgDeduplicationNode",
+        "name": "Deduplicate From Multiple Gateways",
+        "debugMode": false,
+        "configuration": {
+          "interval": 3,
+          "strategy": "ALL",
+          "maxPendingMsgs": 1000,
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": "Main",
+          "maxRetries": 3
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 859,
+          "layoutY": 425
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Use msg with Max RSSI",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var bestRSSIData; \nfor(d : msg){\n    if(bestRSSIData == null || bestRSSIData.msg.rssi < d.msg.rssi ){\n        bestRSSIData = d;\n    }\n}\n\n\nvar bestRSSIMd = bestRSSIData.metadata;\n\nvar tmp = bestRSSIData.msg;\nvar bestRSSIMsg = tmp.data;\nbestRSSIMsg.rssi = tmp.rssi;\nbestRSSIMsg.xPos = tmp.xPos;\nbestRSSIMsg.yPos = tmp.yPos;\nbestRSSIMsg.zone = tmp.zone;\nbestRSSIMsg.room = tmp.room;\n\nreturn {msg: bestRSSIMsg, metadata: bestRSSIMd, msgType: msgType};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "Extracts telemetry from the \"data\" field and adds \"rssi\" readings",
+          "layoutX": 563,
+          "layoutY": 509
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Extract Data",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var newMsg = msg.data;\nnewMsg.rssi = msg.rssi;\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1175,
+          "layoutY": 424
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "To Wristband Rule Chain",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "54ec7690-9d9e-11ed-9390-d159ada3209f"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 174,
+          "layoutY": 426
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode",
+        "name": "Switch by Device Type",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 11,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 16,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 15,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 12,
+        "type": "AL_Wristband"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 14,
+        "type": "AL_DoorSensor"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 14,
+        "type": "AL_LeakSensor"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 14,
+        "type": "AL_RoomSensor"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 14,
+        "type": "AL_SmokeSensor"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 14,
+        "type": "AL_WindowSensor"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

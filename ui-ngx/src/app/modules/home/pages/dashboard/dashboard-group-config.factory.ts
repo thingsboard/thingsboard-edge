@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
+import { EntityGroupDetailsMode, EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
@@ -83,7 +83,9 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';
 
-    config.deleteEntityTitle = dashboard => this.translate.instant('dashboard.delete-dashboard-title', { dashboardTitle: dashboard.title });
+    config.rowPointer = true;
+
+    config.deleteEntityTitle = dashboard => this.translate.instant('dashboard.delete-dashboard-title', {dashboardTitle: dashboard.title});
     config.deleteEntityContent = () => this.translate.instant('dashboard.delete-dashboard-text');
     config.deleteEntitiesTitle = count => this.translate.instant('dashboard.delete-dashboards-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('dashboard.delete-dashboards-text');
@@ -108,17 +110,14 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     }
 
     if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ) &&
-        this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
-      config.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('dashboard.open-dashboard'),
-          icon: 'dashboard',
-          isEnabled: () => true,
-          onAction: ($event, entity) => {
-            this.openDashboard($event, entity, config, params);
-          }
+      this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
+      config.onGroupEntityRowClick = ($event, dashboard) => {
+        if (config.isDetailsOpen()) {
+          config.onToggleEntityDetails($event, dashboard);
+        } else {
+          this.openDashboard($event, dashboard, config, params);
         }
-      );
+      };
     }
 
     config.cellActionDescriptors.push(
@@ -131,6 +130,18 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
         }
       }
     );
+
+    if (config.settings.detailsMode === EntityGroupDetailsMode.onRowClick &&
+        this.userPermissionsService.hasGroupEntityPermission(Operation.READ, config.entityGroup)) {
+        config.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('dashboard.dashboard-details'),
+            icon: 'edit',
+            isEnabled: () => true,
+            onAction: ($event, entity) => config.onToggleEntityDetails($event, entity)
+          }
+        );
+    }
 
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(
@@ -156,8 +167,8 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'dashboardGroups', params.edgeEntitiesGroupId, dashboard.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'dashboards', 'groups', params.childEntityGroupId, dashboard.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {

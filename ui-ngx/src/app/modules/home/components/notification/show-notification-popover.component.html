@@ -1,0 +1,62 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section fxLayout="row" fxLayoutAlign="space-between center" style="margin-bottom: 4px; min-height: 36px">
+  <div style="font-weight: 500; letter-spacing: .25px" translate>notification.notification</div>
+  <button mat-button color="primary"
+          *ngIf="(notifications$ | async).length"
+          (click)="markAsAllRead($event)">
+    {{ 'notification.mark-all-as-read' | translate }}
+  </button>
+</section>
+<mat-divider></mat-divider>
+<div *ngIf="(notifications$ | async).length; else emptyNotification" style="overflow: auto">
+  <section style="min-height: 100px; overflow: auto; padding: 10px 0;">
+   <div *ngFor="let notification of (notifications$ | async); let last = last; trackBy: trackById">
+     <tb-notification [notification]="notification"
+                      [onClose]="onClose"
+                      (markAsRead)="markAsRead($event)">
+     </tb-notification>
+     <mat-divider *ngIf="!last" style="margin-bottom: 4px"></mat-divider>
+   </div>
+  </section>
+</div>
+<mat-divider *ngIf="(notifications$ | async).length"></mat-divider>
+<section fxLayoutAlign="center center" *ngIf="(notifications$ | async).length">
+  <button fxFlex mat-button color="primary" (click)="viewAll($event)">
+    {{ 'notification.view-all' | translate }}
+  </button>
+</section>
+<ng-template #emptyNotification>
+  <img src="assets/notification-bell.svg" alt="empty notification" style="margin: 20px 24%">
+  <span style="text-align: center; margin-bottom: 12px" translate>notification.no-notifications-yet</span>
+</ng-template>

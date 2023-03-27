@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,20 +30,19 @@
  */
 package org.thingsboard.server.service.subscription;
 
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketSessionRef;
-import org.thingsboard.server.service.telemetry.cmd.v2.AlarmDataCmd;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityCountCmd;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataCmd;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUnsubscribeCmd;
-import org.thingsboard.server.service.telemetry.cmd.v2.UnsubscribeCmd;
+import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmDataCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
 
 public interface TbEntityDataSubscriptionService {
 
-    void handleCmd(TelemetryWebSocketSessionRef sessionId, EntityDataCmd cmd);
+    void handleCmd(WebSocketSessionRef sessionId, EntityDataCmd cmd);
 
-    void handleCmd(TelemetryWebSocketSessionRef sessionId, EntityCountCmd cmd);
+    void handleCmd(WebSocketSessionRef sessionId, EntityCountCmd cmd);
 
-    void handleCmd(TelemetryWebSocketSessionRef sessionId, AlarmDataCmd cmd);
+    void handleCmd(WebSocketSessionRef sessionId, AlarmDataCmd cmd);
 
     void cancelSubscription(String sessionId, UnsubscribeCmd subscriptionId);
 

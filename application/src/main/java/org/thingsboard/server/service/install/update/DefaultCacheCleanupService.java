@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,6 +91,10 @@ public class DefaultCacheCleanupService implements CacheCleanupService {
             case "3.4.1":
                 log.info("Clear cache to upgrade from version 3.4.1 to 3.4.2 ...");
                 clearCacheByName("assets");
+                clearCacheByName("repositorySettings");
+                break;
+            case "3.4.2":
+                log.info("Clearing cache to upgrade from version 3.4.2 to 3.4.3 ...");
                 clearCacheByName("repositorySettings");
                 break;
             default:

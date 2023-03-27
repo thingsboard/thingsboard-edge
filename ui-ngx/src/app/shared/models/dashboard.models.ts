@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import { EntityAliases } from './alias.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { Filters } from '@shared/models/query/query.models';
 import { MatDialogRef } from '@angular/material/dialog';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface DashboardInfo extends BaseData<DashboardId>, ExportableEntity<DashboardId> {
   tenantId?: TenantId;
@@ -48,6 +49,8 @@ export interface DashboardInfo extends BaseData<DashboardId>, ExportableEntity<D
   assignedCustomers?: Array<ShortCustomerInfo>;
   mobileHide?: boolean;
   mobileOrder?: number;
+  ownerName?: string;
+  groups?: EntityInfoData[];
 }
 
 export interface WidgetLayout {

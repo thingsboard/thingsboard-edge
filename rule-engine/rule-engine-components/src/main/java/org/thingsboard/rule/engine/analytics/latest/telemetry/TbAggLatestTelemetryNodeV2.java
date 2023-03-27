@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -188,10 +188,10 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 data.setClientAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.CLIENT_SCOPE, clientAttributeNames));
             }
             if (!sharedAttributeNames.isEmpty()) {
-                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, clientAttributeNames));
+                data.setSharedAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SHARED_SCOPE, sharedAttributeNames));
             }
             if (!serverAttributeNames.isEmpty()) {
-                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, clientAttributeNames));
+                data.setServerAttributesFuture(ctx.getAttributesService().find(ctx.getTenantId(), entityId, DataConstants.SERVER_SCOPE, serverAttributeNames));
             }
             return data;
         }).collect(Collectors.toList()), ctx.getDbCallbackExecutor());
@@ -202,7 +202,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 if (entityData.getClientAttributesFuture() != null) {
                     futures.add(entityData.getClientAttributesFuture());
                 }
-                if (entityData.getServerAttributesFuture() != null) {
+                if (entityData.getSharedAttributesFuture() != null) {
                     futures.add(entityData.getSharedAttributesFuture());
                 }
                 if (entityData.getServerAttributesFuture() != null) {
@@ -222,6 +222,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                     doCalculate(ctx, msg, ts, entityDataList.get());
                 } catch (InterruptedException | ExecutionException e) {
                     log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
+                } catch (Exception e) {
+                    onFailure(e);
                 }
             }
 

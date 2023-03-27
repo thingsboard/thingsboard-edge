@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,15 +31,17 @@
 
 -->
 <mat-form-field [formGroup]="selectDashboardFormGroup" class="mat-block" [floatLabel]="floatLabel">
-  <input matInput type="text" placeholder="{{ placeholder || ('dashboard.dashboard' | translate) }}"
+  <mat-label *ngIf="label">{{ label }}</mat-label>
+  <input matInput type="text"
          #dashboardInput
+         placeholder="{{ placeholder }}"
          formControlName="dashboard"
          (focusin)="onFocus()"
          [required]="required"
          [matAutocomplete]="dashboardAutocomplete">
   <button *ngIf="selectDashboardFormGroup.get('dashboard').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>

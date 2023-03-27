@@ -1,0 +1,380 @@
+[
+  {
+    "name": "AQI Emulator",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 14400000,
+    "telemetryProfiles": [
+      {
+        "key": "pm25",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 55.4,
+          "minLowValue": 5,
+          "maxLowValue": 25,
+          "minHighValue": 50,
+          "maxHighValue": 55.4,
+          "minIncrement": 0.2,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.2,
+          "maxDecrement": 0.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "pm10",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 254,
+          "minLowValue": 25,
+          "maxLowValue": 45,
+          "minHighValue": 225,
+          "maxHighValue": 254,
+          "minIncrement": 0.5,
+          "maxIncrement": 1.5,
+          "minDecrement": 0.5,
+          "maxDecrement": 1.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "no2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 360,
+          "minLowValue": 40,
+          "maxLowValue": 70,
+          "minHighValue": 320,
+          "maxHighValue": 360,
+          "minIncrement": 1,
+          "maxIncrement": 2.5,
+          "minDecrement": 1,
+          "maxDecrement": 2.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "co",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 12.4,
+          "minLowValue": 0.5,
+          "maxLowValue": 5.5,
+          "minHighValue":5.6,
+          "maxHighValue": 12.4,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.3,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.3,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "so2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 185,
+          "minLowValue": 20,
+          "maxLowValue": 35,
+          "minHighValue": 170,
+          "maxHighValue": 185,
+          "minIncrement": 0.5,
+          "maxIncrement": 1,
+          "minDecrement": 0.5,
+          "maxDecrement": 1,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "o3",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 4,
+          "minStartValue": 0.125,
+          "maxStartValue": 0.164,
+          "minLowValue": 0.127,
+          "maxLowValue": 0.14,
+          "minHighValue": 0.15,
+          "maxHighValue": 0.164,
+          "minIncrement": 0.0005,
+          "maxIncrement": 0.001,
+          "minDecrement": 0.0005,
+          "maxDecrement": 0.001,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 20,
+          "maxStartValue": 23,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 28,
+          "maxHighValue": 35,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "humidity",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 50,
+          "maxStartValue": 53,
+          "minLowValue": 40,
+          "maxLowValue": 40,
+          "minHighValue": 62,
+          "maxHighValue": 72,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 99,
+          "maxStartValue": 99,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 20,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "name": "AQI Emulator Low Battery",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 14400000,
+    "telemetryProfiles": [
+      {
+        "key": "pm25",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 12,
+          "minLowValue": 0.5,
+          "maxLowValue": 1,
+          "minHighValue": 11.5,
+          "maxHighValue": 12,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.2,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "pm10",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 54,
+          "minLowValue": 5,
+          "maxLowValue": 20,
+          "minHighValue": 50,
+          "maxHighValue": 54,
+          "minIncrement": 0.2,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.2,
+          "maxDecrement": 0.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "no2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 53,
+          "minLowValue": 5,
+          "maxLowValue": 20,
+          "minHighValue": 50,
+          "maxHighValue": 53,
+          "minIncrement": 0.2,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.2,
+          "maxDecrement": 0.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "co",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 3,
+          "minStartValue": 0.0,
+          "maxStartValue": 4.4,
+          "minLowValue": 0.2,
+          "maxLowValue": 1,
+          "minHighValue": 3,
+          "maxHighValue": 4.4,
+          "minIncrement": 0.05,
+          "maxIncrement": 0.1,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.1,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "so2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 35,
+          "minLowValue": 2,
+          "maxLowValue": 10,
+          "minHighValue": 29,
+          "maxHighValue": 35,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.2,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "o3",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 4,
+          "minStartValue": 0.0,
+          "maxStartValue": 0.124,
+          "minLowValue": 0.015,
+          "maxLowValue": 0.035,
+          "minHighValue": 0.1,
+          "maxHighValue": 0.124,
+          "minIncrement": 0.0005,
+          "maxIncrement": 0.001,
+          "minDecrement": 0.0005,
+          "maxDecrement": 0.001,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 20,
+          "maxStartValue": 23,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 28,
+          "maxHighValue": 35,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "humidity",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 50,
+          "maxStartValue": 53,
+          "minLowValue": 40,
+          "maxLowValue": 40,
+          "minHighValue": 62,
+          "maxHighValue": 72,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
+        }
+      },
+      {
+        "key": "batteryLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 20,
+          "maxStartValue": 20,
+          "minLowValue": 5,
+          "maxLowValue": 5,
+          "minHighValue": 20,
+          "maxHighValue": 20,
+          "minIncrement": 1.0,
+          "maxIncrement": 1.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]

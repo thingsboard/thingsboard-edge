@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,8 +43,12 @@ public class BaseTsKvQuery implements TsKvQuery {
     private final long endTs;
 
     public BaseTsKvQuery(String key, long startTs, long endTs) {
-        this.id = idSeq.get();
+        this(idSeq.get(), key, startTs, endTs);
         idSeq.set(id + 1);
+    }
+
+    protected BaseTsKvQuery(int id, String key, long startTs, long endTs) {
+        this.id = id;
         this.key = key;
         this.startTs = startTs;
         this.endTs = endTs;

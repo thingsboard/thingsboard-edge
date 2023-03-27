@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -47,6 +46,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 import org.thingsboard.server.queue.discovery.event.ClusterTopologyChangeEvent;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
@@ -86,8 +86,9 @@ public class HashPartitionService implements PartitionService {
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TenantRoutingInfoService tenantRoutingInfoService;
     private final QueueRoutingInfoService queueRoutingInfoService;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
-    private ConcurrentMap<QueueKey, List<Integer>> myPartitions = new ConcurrentHashMap<>();
+    private volatile ConcurrentMap<QueueKey, List<Integer>> myPartitions = new ConcurrentHashMap<>();
 
     private final ConcurrentMap<QueueKey, String> partitionTopicsMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<QueueKey, Integer> partitionSizesMap = new ConcurrentHashMap<>();
@@ -102,11 +103,13 @@ public class HashPartitionService implements PartitionService {
     public HashPartitionService(TbServiceInfoProvider serviceInfoProvider,
                                 TenantRoutingInfoService tenantRoutingInfoService,
                                 ApplicationEventPublisher applicationEventPublisher,
-                                QueueRoutingInfoService queueRoutingInfoService) {
+                                QueueRoutingInfoService queueRoutingInfoService,
+                                TbQueueIntegrationExecutorSettings integrationExecutorSettings) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.tenantRoutingInfoService = tenantRoutingInfoService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.queueRoutingInfoService = queueRoutingInfoService;
+        this.integrationExecutorSettings = integrationExecutorSettings;
     }
 
     @PostConstruct
@@ -121,7 +124,7 @@ public class HashPartitionService implements PartitionService {
         partitionTopicsMap.put(vcKey, vcTopic);
 
         Arrays.asList(IntegrationType.values()).forEach(it -> {
-            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), getIntegrationDownlinkTopic(it));
+            partitionTopicsMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationExecutorSettings.getIntegrationDownlinkTopic(it));
             partitionSizesMap.put(new QueueKey(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationPartitions);
         });
 
@@ -135,6 +138,10 @@ public class HashPartitionService implements PartitionService {
         if (isTransport(serviceInfoProvider.getServiceType())) {
             doInitRuleEnginePartitions();
         }
+    }
+
+    public ConcurrentMap<QueueKey, String> getPartitionTopicsMap() {
+        return partitionTopicsMap;
     }
 
     private void doInitRuleEnginePartitions() {
@@ -176,10 +183,6 @@ public class HashPartitionService implements PartitionService {
             queueRoutingInfoList = queueRoutingInfoService.getAllQueuesRoutingInfo();
         }
         return queueRoutingInfoList;
-    }
-
-    public static String getIntegrationDownlinkTopic(IntegrationType it) {
-        return "tb_ie." + it.name().toLowerCase();
     }
 
     private boolean isTransport(String serviceType) {
@@ -245,16 +248,18 @@ public class HashPartitionService implements PartitionService {
         }
         queueServicesMap.values().forEach(list -> list.sort(Comparator.comparing(ServiceInfo::getServiceId)));
 
-        ConcurrentMap<QueueKey, List<Integer>> oldPartitions = myPartitions;
-        myPartitions = new ConcurrentHashMap<>();
+        final ConcurrentMap<QueueKey, List<Integer>> newPartitions = new ConcurrentHashMap<>();
         partitionSizesMap.forEach((queueKey, size) -> {
             for (int i = 0; i < size; i++) {
                 ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), queueKey, i);
                 if (currentService.equals(serviceInfo)) {
-                    myPartitions.computeIfAbsent(queueKey, key -> new ArrayList<>()).add(i);
+                    newPartitions.computeIfAbsent(queueKey, key -> new ArrayList<>()).add(i);
                 }
             }
         });
+
+        final ConcurrentMap<QueueKey, List<Integer>> oldPartitions = myPartitions;
+        myPartitions = newPartitions;
 
         oldPartitions.forEach((queueKey, partitions) -> {
             if (!myPartitions.containsKey(queueKey)) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,10 @@ import { Operation } from '@shared/models/security.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
+import {
+  DeviceWizardDialogComponent,
+  DeviceWizardDialogData
+} from '@home/components/wizard/device-wizard-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { Router, UrlTree } from '@angular/router';
@@ -145,12 +148,12 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
   }
 
   deviceWizard(config: GroupEntityTableConfig<Device>): Observable<Device> {
-    return this.dialog.open<DeviceWizardDialogComponent, AddGroupEntityDialogData<Device>,
+    return this.dialog.open<DeviceWizardDialogComponent, DeviceWizardDialogData,
       Device>(DeviceWizardDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        entitiesTableConfig: config
+        entityGroup: config.entityGroup
       }
     }).afterClosed();
   }
@@ -180,8 +183,8 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'deviceGroups', params.edgeEntitiesGroupId, device.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'entities', 'devices', 'groups', params.childEntityGroupId, device.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
