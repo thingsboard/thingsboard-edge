@@ -188,7 +188,7 @@
                     (click)="editAttribute($event, attribute)">
             <div fxLayout="row" style="align-items: center">
               <span style="overflow: hidden;text-overflow: ellipsis;" fxFlex>{{attribute.value | tbJson}}</span>
-              <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly">
+              <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope)  && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
             </div>

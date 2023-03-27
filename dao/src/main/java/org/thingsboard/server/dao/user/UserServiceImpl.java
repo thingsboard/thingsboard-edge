@@ -221,9 +221,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory) {
+    public UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate) {
         log.trace("Executing saveUserCredentials [{}]", userCredentials);
-        userCredentialsValidator.validate(userCredentials, data -> tenantId);
+        if (doValidate) {
+            userCredentialsValidator.validate(userCredentials, data -> tenantId);
+        }
         return userCredentialsDao.save(tenantId, userCredentials);
     }
 

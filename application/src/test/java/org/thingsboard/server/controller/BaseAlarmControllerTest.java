@@ -117,6 +117,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     public void setup() throws Exception {
         loginTenantAdmin();
 
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
+
         Device device = new Device();
         device.setTenantId(tenantId);
         device.setName("Test device");

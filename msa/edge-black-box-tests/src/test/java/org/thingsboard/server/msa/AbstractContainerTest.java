@@ -146,19 +146,21 @@ public abstract class AbstractContainerTest {
 
     private static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
 
-    protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static RestClient cloudRestClient = null;
 
     protected static RestClient edgeRestClient;
 
     protected static Edge edge;
+    protected static String tbUrl;
     protected static String edgeUrl;
 
     @BeforeClass
     public static void before() throws Exception {
         if (cloudRestClient == null) {
-            cloudRestClient = new RestClient(CLOUD_HTTPS_URL);
-            cloudRestClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+            String tbHost = ContainerTestSuite.testContainer.getServiceHost("tb-monolith", 8080);
+            Integer tbPort = ContainerTestSuite.testContainer.getServicePort("tb-monolith", 8080);
+            tbUrl = "http://" + tbHost + ":" + tbPort;
+            cloudRestClient = new RestClient(tbUrl);
             cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
             String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);

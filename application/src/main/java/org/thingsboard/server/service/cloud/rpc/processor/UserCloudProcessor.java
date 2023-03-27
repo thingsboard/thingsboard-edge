@@ -58,6 +58,8 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.thingsboard.server.common.data.StringUtils.generateSafeToken;
+
 @Component
 @Slf4j
 public class UserCloudProcessor extends BaseEdgeProcessor {
@@ -96,12 +98,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     user.setCustomerId(customerId);
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
-                        UserCredentials userCredentials = new UserCredentials();
-                        userCredentials.setEnabled(false);
-                        userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
-                        userCredentials.setUserId(new UserId(savedUser.getUuidId()));
-                        // TODO: @voba - save or update user password history?
-                        userService.saveUserCredentials(user.getTenantId(), userCredentials);
+                        createDefaultUserCredentials(savedUser.getTenantId(), savedUser.getId());
                         if (!user.getTenantId().isNullUid()) {
                             entityGroupService.addEntityToEntityGroupAll(user.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
                         }
@@ -149,13 +146,26 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
         return Futures.transform(userFuture, user -> {
             if (user != null) {
                 UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, user.getId());
+                if (userCredentials == null) {
+                    userCredentials = createDefaultUserCredentials(tenantId, userId);
+                }
                 userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
                 userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
                 userCredentials.setActivateToken(null);
                 userCredentials.setResetToken(null);
-                userService.saveUserCredentials(tenantId, userCredentials, false);
+                userService.saveUserCredentials(tenantId, userCredentials);
             }
             return null;
         }, dbCallbackExecutorService);
+    }
+
+    private UserCredentials createDefaultUserCredentials(TenantId tenantId, UserId userId) {
+        UserCredentials userCredentials = new UserCredentials();
+        userCredentials.setEnabled(false);
+        userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
+        userCredentials.setUserId(userId);
+        userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
+        // TODO: @voba - save or update user password history?
+        return userService.saveUserCredentials(tenantId, userCredentials, false);
     }
 }

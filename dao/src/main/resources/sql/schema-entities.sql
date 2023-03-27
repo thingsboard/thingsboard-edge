@@ -959,7 +959,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE PROCEDURE cleanup_edge_events_by_ttl(IN ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$
@@ -976,6 +975,7 @@ BEGIN
     deleted := ttl_deleted_count;
 END
 $$;
+
 
 CREATE TABLE IF NOT EXISTS user_auth_settings (
     id uuid NOT NULL CONSTRAINT user_auth_settings_pkey PRIMARY KEY,
