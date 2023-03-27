@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -45,7 +45,7 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SubscriptSizing } from '@angular/material/form-field';
 import { isDefinedAndNotNull, isEqual } from '@core/utils';
@@ -67,7 +67,7 @@ import { isDefinedAndNotNull, isEqual } from '@core/utils';
     }
   ]
 })
-export class KeyValMapComponent extends PageComponent implements ControlValueAccessor, OnInit, Validator {
+export class KeyValMapComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy, Validator {
 
   @Input() disabled: boolean;
 
