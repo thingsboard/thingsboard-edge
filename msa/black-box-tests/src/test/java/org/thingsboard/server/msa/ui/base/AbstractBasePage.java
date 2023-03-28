@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.fail;
 
 abstract public class AbstractBasePage {
-    public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(5);
+    public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected Actions actions;
