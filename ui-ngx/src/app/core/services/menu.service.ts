@@ -901,6 +901,7 @@ export class MenuService {
         icon: 'dashboard'
       }
     );
+    /* @voba - merge comment - hide this on edge
     sections.push(
       {
         id: guid(),
@@ -920,6 +921,7 @@ export class MenuService {
         ]
       }
     );
+     */
     return sections;
   }
 
