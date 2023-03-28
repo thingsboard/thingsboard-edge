@@ -40,22 +40,28 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { Observable, of } from 'rxjs';
+import { catchError, filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { BaseData } from '@shared/models/base-data';
 import { EntityId, entityIdEquals } from '@shared/models/id/entity-id';
-import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
+import { EntityInfoData } from '@shared/models/entity.models';
+import { emptyPageData, PageData } from '@shared/models/page/page-data';
 
 @Component({
   selector: 'tb-entity-group-list',
@@ -91,6 +97,9 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     this.ownerIdValue = value;
   }
 
+  @Input()
+  excludeGroupAll: boolean;
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;
@@ -111,8 +120,8 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
   @ViewChild('entityGroupAutocomplete') matAutocomplete: MatAutocomplete;
   @ViewChild('chipList', {static: true}) chipList: MatChipGrid;
 
-  entityGroups: Array<BaseData<EntityId>> = [];
-  filteredEntityGroups: Observable<Array<BaseData<EntityId>>>;
+  entityGroups: Array<EntityInfoData> = [];
+  filteredEntityGroups: Observable<Array<EntityInfoData>>;
 
   searchText = '';
 
@@ -122,7 +131,6 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
-              private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               private fb: UntypedFormBuilder) {
     this.entityGroupListFormGroup = this.fb.group({
@@ -184,16 +192,24 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     }
   }
 
-  writeValue(value: Array<string> | null): void {
+  writeValue(value: Array<string> | Array<EntityInfoData> | null): void {
     this.searchText = '';
     if (value != null && value.length > 0) {
-      this.modelValue = [...value];
-      this.entityService.getEntities(EntityType.ENTITY_GROUP, value).subscribe(
-        (entityGroups) => {
-          this.entityGroups = entityGroups;
-          this.entityGroupListFormGroup.get('entityGroups').setValue(this.entityGroups);
-        }
-      );
+      if ((value[0] as EntityInfoData).id) {
+        const groups = value as EntityInfoData[];
+        this.modelValue = groups.map(group => group.id.id);
+        this.entityGroups = [...groups];
+        this.entityGroupListFormGroup.get('entityGroups').setValue(this.entityGroups);
+      } else {
+        const ids = value as string[];
+        this.modelValue = [...ids];
+        this.entityGroupService.getEntityGroupEntityInfosByIds(ids, {ignoreLoading: true}).subscribe(
+          (entityGroups) => {
+            this.entityGroups = entityGroups;
+            this.entityGroupListFormGroup.get('entityGroups').setValue(this.entityGroups);
+          }
+        );
+      }
     } else {
       this.entityGroups = [];
       this.entityGroupListFormGroup.get('entityGroups').setValue(this.entityGroups);
@@ -214,7 +230,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     this.dirty = true;
   }
 
-  add(entityGroup: BaseData<EntityId>): void {
+  add(entityGroup: EntityInfoData): void {
     if (!this.modelValue || this.modelValue.indexOf(entityGroup.id.id) === -1) {
       if (!this.modelValue) {
         this.modelValue = [];
@@ -227,7 +243,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     this.clear();
   }
 
-  remove(entityGroup: BaseData<EntityId>) {
+  remove(entityGroup: EntityInfoData) {
     const index = this.entityGroups.indexOf(entityGroup);
     if (index >= 0) {
       this.entityGroups.splice(index, 1);
@@ -241,25 +257,34 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     }
   }
 
-  displayEntityGroupFn(entityGroup?: BaseData<EntityId>): string | undefined {
+  displayEntityGroupFn(entityGroup?: EntityInfoData): string | undefined {
     return entityGroup ? entityGroup.name : undefined;
   }
 
-  fetchEntityGroups(searchText?: string): Observable<Array<BaseData<EntityId>>> {
+  fetchEntityGroups(searchText?: string): Observable<Array<EntityInfoData>> {
     this.searchText = searchText;
+    const pageLink = new PageLink(50, 0, searchText, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    return this.getEntityGroups(pageLink).pipe(
+      catchError(() => of(emptyPageData<EntityInfoData>())),
+      map(pageData => {
+        let data = pageData.data;
+        if (this.excludeGroupAll) {
+          data = data.filter(group => group.name !== 'All');
+        }
+        return data;
+      })
+    );
+  }
+
+  getEntityGroups(pageLink: PageLink): Observable<PageData<EntityInfoData>> {
     if (this.ownerId) {
-      const pageLink = new PageLink(50, 0, searchText, {
-        property: 'name',
-        direction: Direction.ASC
-      });
-      return this.entityGroupService.getEntityGroupsByOwnerIdAndPageLink(
-        this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, pageLink, {ignoreLoading: true}).pipe(
-        map((data) => data ? data.data : [])
-      );
+      return this.entityGroupService.getEntityGroupEntityInfosByOwnerId(
+        pageLink, this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true});
     } else {
-      return this.entityService.getEntitiesByNameFilter(EntityType.ENTITY_GROUP, searchText,
-        50, this.groupType, {ignoreLoading: true}).pipe(
-        map((data) => data ? data : []));
+      return this.entityGroupService.getEntityGroupEntityInfos(pageLink, this.groupType, true, {ignoreLoading: true});
     }
   }
 

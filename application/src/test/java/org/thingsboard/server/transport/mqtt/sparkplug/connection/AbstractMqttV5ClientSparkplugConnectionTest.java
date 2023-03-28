@@ -120,7 +120,7 @@ public abstract class AbstractMqttV5ClientSparkplugConnectionTest extends Abstra
                 .atMost(40, TimeUnit.SECONDS)
                 .until(() -> {
                     DaoUtil.processInBatches(pageLink ->
-                            entityGroupService.findEntityGroupsByTypeAndPageLink(tenantId, EntityType.DEVICE, pageLink), 1024, entity -> {
+                            entityGroupService.findEntityGroupsByType(tenantId, EntityType.DEVICE, pageLink), 1024, entity -> {
                         if (entity.getName().equals(groupId)) {
                             entityGroup.set(entity);
                         }

@@ -71,6 +71,7 @@ export interface Asset extends BaseData<AssetId>, ExportableEntity<AssetId> {
 
 export interface AssetInfo extends Asset {
   ownerName?: string;
+  groups?: EntityInfoData[];
 }
 
 export interface AssetSearchQuery extends EntitySearchQuery {

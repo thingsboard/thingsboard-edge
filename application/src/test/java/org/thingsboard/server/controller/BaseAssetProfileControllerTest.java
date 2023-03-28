@@ -250,7 +250,7 @@ public abstract class BaseAssetProfileControllerTest extends AbstractControllerT
         loginDifferentTenant();
         doGet("/api/assetProfileInfo/" + assetProfile.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead + "ASSET_PROFILE" + " '" + assetProfile.getName() + "'!")));
+                .andExpect(statusReason(containsString(UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION)));
     }
 
     @Test

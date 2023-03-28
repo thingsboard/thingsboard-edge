@@ -36,9 +36,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -135,19 +137,22 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     config.headerComponent = CustomerTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<CustomerInfo | Customer>): Array<EntityTableColumn<CustomerInfo>> {
-    const columns: Array<EntityTableColumn<CustomerInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<CustomerInfo | Customer>): Array<EntityColumn<CustomerInfo>> {
+    const columns: Array<EntityColumn<CustomerInfo>> = [
       new DateEntityTableColumn<CustomerInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<CustomerInfo>('title', 'customer.title', '25%', config.entityTitle),
-      new EntityTableColumn<CustomerInfo>('email', 'contact.email', '25%'),
-      new EntityTableColumn<CustomerInfo>('country', 'contact.country', '25%'),
-      new EntityTableColumn<CustomerInfo>('city', 'contact.city', '25%')
+      new EntityTableColumn<CustomerInfo>('title', 'customer.title', '20%', config.entityTitle),
+      new EntityTableColumn<CustomerInfo>('email', 'contact.email', '200px'),
+      new EntityTableColumn<CustomerInfo>('country', 'contact.country', '20%'),
+      new EntityTableColumn<CustomerInfo>('city', 'contact.city', '20%')
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.parent-sub-customer-name' : 'entity.parent-customer-name';
-      columns.push(new EntityTableColumn<CustomerInfo>('ownerName', title, '25%'));
+      columns.push(new EntityTableColumn<CustomerInfo>('ownerName', title, '20%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<CustomerInfo>( 'groups', 'entity.groups', '20%')
+    );
     return columns;
   }
 

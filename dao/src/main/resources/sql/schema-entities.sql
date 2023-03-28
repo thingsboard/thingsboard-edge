@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS alarm_comment (
     type varchar(255) NOT NULL,
     comment varchar(10000),
     CONSTRAINT fk_alarm_comment_alarm_id FOREIGN KEY (alarm_id) REFERENCES alarm(id) ON DELETE CASCADE
-    ) PARTITION BY RANGE (created_time);
+) PARTITION BY RANGE (created_time);
 
 CREATE TABLE IF NOT EXISTS entity_alarm (
     tenant_id uuid NOT NULL,
@@ -538,6 +538,7 @@ CREATE TABLE IF NOT EXISTS tb_user (
     email varchar(255) UNIQUE,
     first_name varchar(255),
     last_name varchar(255),
+    phone varchar(255),
     search_text varchar(255),
     tenant_id uuid
 );
@@ -995,7 +996,6 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
 FROM integration i;
 
 
-
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id uuid NOT NULL CONSTRAINT user_settings_pkey PRIMARY KEY,
     settings varchar(10000),
@@ -1003,25 +1003,126 @@ CREATE TABLE IF NOT EXISTS user_settings (
 );
 
 CREATE OR REPLACE VIEW dashboard_info_view as
-SELECT d.*, c.title as owner_name FROM dashboard d LEFT JOIN customer c ON c.id = d.customer_id;
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DASHBOARD'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM dashboard d
+         LEFT JOIN customer c ON c.id = d.customer_id;
 
 CREATE OR REPLACE VIEW asset_info_view as
-SELECT a.*, c.title as owner_name FROM asset a LEFT JOIN customer c ON c.id = a.customer_id;
+SELECT a.*,
+       c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = a.id
+                             and re.to_type = 'ASSET'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM asset a
+         LEFT JOIN customer c ON c.id = a.customer_id;
 
 CREATE OR REPLACE VIEW device_info_view as
-SELECT d.*, c.title as owner_name FROM device d LEFT JOIN customer c ON c.id = d.customer_id;
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DEVICE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM device d
+         LEFT JOIN customer c ON c.id = d.customer_id;
 
 CREATE OR REPLACE VIEW entity_view_info_view as
-SELECT e.*, c.title as owner_name FROM entity_view e LEFT JOIN customer c ON c.id = e.customer_id;
+SELECT e.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = e.id
+                             and re.to_type = 'ENTITY_VIEW'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM entity_view e
+         LEFT JOIN customer c ON c.id = e.customer_id;
 
 CREATE OR REPLACE VIEW customer_info_view as
-SELECT c.*, c2.title as owner_name FROM customer c LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
+SELECT c.*, c2.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = c.id
+                             and re.to_type = 'CUSTOMER'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM customer c
+         LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
 
 CREATE OR REPLACE VIEW user_info_view as
-SELECT u.*, c.title as owner_name FROM tb_user u LEFT JOIN customer c ON c.id = u.customer_id;
+SELECT u.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = u.id
+                             and re.to_type = 'USER'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM tb_user u
+         LEFT JOIN customer c ON c.id = u.customer_id;
 
 CREATE OR REPLACE VIEW edge_info_view as
-SELECT e.*, c.title as owner_name FROM edge e LEFT JOIN customer c ON c.id = e.customer_id;
+SELECT e.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = e.id
+                             and re.to_type = 'EDGE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM edge e
+         LEFT JOIN customer c ON c.id = e.customer_id;
+
+CREATE OR REPLACE VIEW entity_group_info_view as
+SELECT eg.*,
+       array_to_json(ARRAY(WITH RECURSIVE owner_ids(id, type, lvl) AS
+                                              (SELECT eg.owner_id id, eg.owner_type::varchar(15) as type, 1 as lvl
+                                               UNION
+                                               SELECT (CASE
+                                                           WHEN ce2.parent_customer_id IS NULL OR ce2.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080' THEN ce2.tenant_id
+                                                           ELSE ce2.parent_customer_id END) as id,
+                                                      (CASE
+                                                           WHEN ce2.parent_customer_id IS NULL OR ce2.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080' THEN 'TENANT'
+                                                           ELSE 'CUSTOMER' END)::varchar(15) as type,
+                                                      parent.lvl + 1 as lvl
+                                               FROM customer ce2, owner_ids parent WHERE ce2.id = parent.id and eg.owner_type = 'CUSTOMER')
+                           SELECT json_build_object('id', id, 'entityType', type) FROM owner_ids order by lvl)) owner_ids
+FROM entity_group eg;
 
 DROP VIEW IF EXISTS alarm_info CASCADE;
 CREATE VIEW alarm_info AS
@@ -1195,7 +1296,7 @@ BEGIN
         UPDATE alarm a SET acknowledged = true, ack_ts = a_ts WHERE a.id = a_id AND a.tenant_id = t_id;
     END IF;
     SELECT * INTO result FROM alarm_info a WHERE a.id = a_id AND a.tenant_id = t_id;
-    RETURN json_build_object('success', true, 'modified', modified, 'alarm', row_to_json(result))::text;
+    RETURN json_build_object('success', true, 'modified', modified, 'alarm', row_to_json(result), 'old', row_to_json(existing))::text;
 END
 $$;
 
@@ -1270,3 +1371,63 @@ BEGIN
     RETURN json_build_object('success', true, 'modified', modified, 'alarm', row_to_json(result))::text;
 END
 $$;
+
+CREATE TABLE IF NOT EXISTS notification_target (
+    id UUID NOT NULL CONSTRAINT notification_target_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    configuration VARCHAR(10000) NOT NULL,
+    CONSTRAINT uq_notification_target_name UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS notification_template (
+    id UUID NOT NULL CONSTRAINT notification_template_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    configuration VARCHAR(10000) NOT NULL,
+    CONSTRAINT uq_notification_template_name UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS notification_rule (
+    id UUID NOT NULL CONSTRAINT notification_rule_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    template_id UUID NOT NULL CONSTRAINT fk_notification_rule_template_id REFERENCES notification_template(id),
+    trigger_type VARCHAR(50) NOT NULL,
+    trigger_config VARCHAR(1000) NOT NULL,
+    recipients_config VARCHAR(10000) NOT NULL,
+    additional_config VARCHAR(255),
+    CONSTRAINT uq_notification_rule_name UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS notification_request (
+    id UUID NOT NULL CONSTRAINT notification_request_pkey PRIMARY KEY,
+    created_time BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
+    targets VARCHAR(10000) NOT NULL,
+    template_id UUID,
+    template VARCHAR(10000),
+    info VARCHAR(1000),
+    additional_config VARCHAR(1000),
+    originator_entity_id UUID,
+    originator_entity_type VARCHAR(32),
+    rule_id UUID NULL,
+    status VARCHAR(32),
+    stats VARCHAR(10000)
+);
+
+CREATE TABLE IF NOT EXISTS notification (
+    id UUID NOT NULL,
+    created_time BIGINT NOT NULL,
+    request_id UUID NULL CONSTRAINT fk_notification_request_id REFERENCES notification_request(id) ON DELETE CASCADE,
+    recipient_id UUID NOT NULL CONSTRAINT fk_notification_recipient_id REFERENCES tb_user(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    subject VARCHAR(255),
+    body VARCHAR(1000) NOT NULL,
+    additional_config VARCHAR(1000),
+    status VARCHAR(32)
+) PARTITION BY RANGE (created_time);

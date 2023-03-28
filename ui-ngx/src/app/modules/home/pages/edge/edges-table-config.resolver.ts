@@ -35,9 +35,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -151,18 +153,21 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     config.headerComponent = EdgeTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<EdgeInfo | Edge>): Array<EntityTableColumn<EdgeInfo>> {
-    const columns: Array<EntityTableColumn<EdgeInfo>> = [
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<EdgeInfo | Edge>): Array<EntityColumn<EdgeInfo>> {
+    const columns: Array<EntityColumn<EdgeInfo>> = [
       new DateEntityTableColumn<EdgeInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<EdgeInfo>('name', 'edge.name', '25%'),
-      new EntityTableColumn<EdgeInfo>('type', 'edge.edge-type', '25%'),
-      new EntityTableColumn<EdgeInfo>('label', 'edge.label', '25%')
+      new EntityTableColumn<EdgeInfo>('name', 'edge.name', '20%', config.entityTitle),
+      new EntityTableColumn<EdgeInfo>('type', 'edge.edge-type', '20%'),
+      new EntityTableColumn<EdgeInfo>('label', 'edge.label', '15%')
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
         ? 'entity.sub-customer-name' : 'entity.customer-name';
-      columns.push(new EntityTableColumn<EdgeInfo>('ownerName', title, '25%'));
+      columns.push(new EntityTableColumn<EdgeInfo>('ownerName', title, '20%'));
     }
+    columns.push(
+      new GroupChipsEntityTableColumn<EdgeInfo>( 'groups', 'entity.groups', '25%')
+    );
     return columns;
   }
 

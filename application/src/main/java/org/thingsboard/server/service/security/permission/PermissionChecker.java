@@ -33,6 +33,7 @@ package org.thingsboard.server.service.security.permission;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -58,6 +59,10 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
     }
 
     default boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException {
+        return false;
+    }
+
+    default boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroupInfo) throws ThingsboardException {
         return false;
     }
 
@@ -89,6 +94,11 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
             return allowedOperations.contains(Operation.ALL) || allowedOperations.contains(operation);
         }
 
+        @Override
+        public boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) {
+            return allowedOperations.contains(Operation.ALL) || allowedOperations.contains(operation);
+        }
+
     }
 
     public static PermissionChecker denyAllPermissionChecker = new PermissionChecker() {
@@ -113,6 +123,11 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
 
         @Override
         public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) {
+            return true;
+        }
+
+        @Override
+        public boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) {
             return true;
         }
 

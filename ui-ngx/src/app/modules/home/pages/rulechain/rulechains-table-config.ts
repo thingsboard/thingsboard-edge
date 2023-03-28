@@ -258,7 +258,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (this.componentsData.ruleChainScope === 'edges') {
           this.router.navigateByUrl(`edgeManagement/ruleChains/ruleChain/import`);
         } else {
-          this.router.navigateByUrl(`features/ruleChains/ruleChain/import`);
+          this.router.navigateByUrl(`ruleChains/ruleChain/import`);
         }
       }
     });

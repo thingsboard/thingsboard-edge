@@ -86,6 +86,9 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
     @Column(name = ModelConstants.USER_LAST_NAME_PROPERTY)
     private String lastName;
 
+    @Column(name = ModelConstants.PHONE_PROPERTY)
+    private String phone;
+
     @Type(type = "json")
     @Column(name = ModelConstants.USER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
@@ -109,6 +112,7 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
         this.email = user.getEmail();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
+        this.phone = user.getPhone();
         this.additionalInfo = user.getAdditionalInfo();
     }
 
@@ -121,6 +125,7 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
         this.email = userEntity.getEmail();
         this.firstName = userEntity.getFirstName();
         this.lastName = userEntity.getLastName();
+        this.phone = userEntity.getPhone();
         this.additionalInfo = userEntity.getAdditionalInfo();
     }
 
@@ -147,6 +152,7 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
+        user.setPhone(phone);
         user.setAdditionalInfo(additionalInfo);
         return user;
     }

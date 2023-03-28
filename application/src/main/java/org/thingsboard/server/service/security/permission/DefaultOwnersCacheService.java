@@ -344,7 +344,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         result.add(entityId);
         Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
         if (entityGroup.isPresent()) {
-            List<EntityId> childOwnerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
+            List<EntityId> childOwnerIds = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             for (EntityId ownerId : childOwnerIds) {
                 fetchChildOwners(tenantId, ownerId, result);
             }
@@ -378,7 +378,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     private void deleteFromGroupsAndAddToGroupAll(TenantId tenantId, EntityId entityId, EntityId targetOwnerId) throws ThingsboardException {
         List<EntityGroupId> entityGroupList;
         try {
-            entityGroupList = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
+            entityGroupList = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
         }

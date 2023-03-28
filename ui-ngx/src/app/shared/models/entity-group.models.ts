@@ -268,6 +268,9 @@ export interface EntityGroup extends BaseData<EntityGroupId>, ExportableEntity<E
 
 export interface EntityGroupInfo extends EntityGroup {
   ownerIds: EntityId[];
+}
+
+export interface DeviceEntityGroupInfo extends EntityGroupInfo {
   softwareId?: OtaPackageId;
   softwareGroup?: DeviceGroupOtaPackage;
   firmwareId?: OtaPackageId;

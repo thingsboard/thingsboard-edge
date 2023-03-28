@@ -32,7 +32,6 @@
 import {
   AlarmDataCmd,
   DataKeyType,
-  TelemetryService,
   TelemetrySubscriber
 } from '@shared/models/telemetry/telemetry.models';
 import { DatasourceType } from '@shared/models/widget.models';
@@ -49,6 +48,7 @@ import { AlarmDataListener } from '@core/api/alarm-data.service';
 import { PageData } from '@shared/models/page/page-data';
 import { deepClone, isDefined, isDefinedAndNotNull, isObject } from '@core/utils';
 import { simulatedAlarm } from '@shared/models/alarm.models';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 
 export interface AlarmSubscriptionDataKey {
   name: string;
@@ -83,7 +83,7 @@ export class AlarmDataSubscription {
   private subsTw: SubscriptionTimewindow;
 
   constructor(private listener: AlarmDataListener,
-              private telemetryService: TelemetryService) {
+              private telemetryService: TelemetryWebsocketService) {
   }
 
   public unsubscribe() {

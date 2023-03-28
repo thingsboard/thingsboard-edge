@@ -271,7 +271,7 @@ public abstract class AbstractOAuth2ClientMapper {
             throw new RuntimeException("Can't add user to user groups", e);
         }
 
-        ListenableFuture<List<EntityGroupId>> future = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
+        ListenableFuture<List<EntityGroupId>> future = entityGroupService.findEntityGroupsForEntityAsync(user.getTenantId(), user.getId());
 
         return Futures.transformAsync(future, currentEntityGroups -> {
             if (currentEntityGroups != null && !currentEntityGroups.isEmpty()) {
