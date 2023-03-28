@@ -39,7 +39,7 @@ import {
 } from '@home/models/group/group-entities-table-config.models';
 import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { tap } from 'rxjs/operators';
+import { mergeMap, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -49,7 +49,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Edge, EdgeInstallInstructions } from '@shared/models/edge.models';
+import { EdgeInfo, EdgeInstallInstructions } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { EdgeComponent } from '@home/pages/edge/edge.component';
 import { Router } from '@angular/router';
@@ -64,12 +64,11 @@ import {
   EdgeInstructionsData,
   EdgeInstructionsDialogComponent
 } from '@home/pages/edge/edge-instructions-dialog.component';
-import { Customer } from '@shared/models/customer.model';
 
 @Injectable()
-export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
+export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<EdgeInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Edge>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<EdgeInfo>,
               private userPermissionsService: UserPermissionsService,
               private store: Store<AppState>,
               private translate: TranslateService,
@@ -82,8 +81,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
-    const config = new GroupEntityTableConfig<Edge>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EdgeInfo>): Observable<GroupEntityTableConfig<EdgeInfo>> {
+    const config = new GroupEntityTableConfig<EdgeInfo>(entityGroup, params);
 
     const authUser: AuthUser = getCurrentAuthUser(this.store);
 
@@ -97,13 +96,13 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     config.deleteEntitiesTitle = count => this.translate.instant('edge.delete-edges-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('edge.delete-edges-text');
 
-    config.loadEntity = id => this.edgeService.getEdge(id.id);
-    config.saveEntity = edge => {
-      return this.edgeService.saveEdge(edge).pipe(
+    config.loadEntity = id => this.edgeService.getEdgeInfo(id.id);
+    config.saveEntity = edge => this.edgeService.saveEdge(edge).pipe(
         tap(() => {
           this.broadcast.broadcast('edgeSaved');
-        }));
-    };
+        }),
+      mergeMap((savedEdge) => this.edgeService.getEdgeInfo(savedEdge.id.id)
+      ));
     config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
 
     config.onEntityAction = action => this.onEdgeAction(action, config, params);
@@ -224,7 +223,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  importEdges($event: Event, config: GroupEntityTableConfig<Edge>) {
+  importEdges($event: Event, config: GroupEntityTableConfig<EdgeInfo>) {
     const entityGroup = config.entityGroup;
     const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
     let customerId: CustomerId = null;
@@ -239,7 +238,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     });
   }
 
-  onEdgeAction(action: EntityAction<Edge>, config: GroupEntityTableConfig<Edge>, params: EntityGroupParams): boolean {
+  onEdgeAction(action: EntityAction<EdgeInfo>, config: GroupEntityTableConfig<EdgeInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openEdge(action.event, action.entity, config, params);
@@ -274,17 +273,20 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'openInstructions':
         this.openInstructions(action.event, action.entity);
         return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
+        return true;
     }
     return false;
   }
 
-  private openEdge($event: Event, edge: Edge,  config: GroupEntityTableConfig<Edge>, params: EntityGroupParams) {
+  private openEdge($event: Event, edge: EdgeInfo,  config: GroupEntityTableConfig<EdgeInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      const url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'edgeGroups', params.childEntityGroupId, edge.id.id]);
+      const url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'edgeManagement', 'instances', 'groups', params.childEntityGroupId, edge.id.id]);
       this.window.open(window.location.origin + url, '_blank');
     } else {
       const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.getActivatedRoute()});
@@ -292,7 +294,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageUsers($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageUsers($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
               params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -304,7 +306,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageAssets($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageAssets($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -316,7 +318,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageDevices($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageDevices($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                 params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -328,7 +330,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageEntityViews($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageEntityViews($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                     params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -340,7 +342,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageDashboards($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageDashboards($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                    params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -352,7 +354,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageSchedulerEvents($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageSchedulerEvents($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                         params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -364,7 +366,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageRuleChains($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageRuleChains($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                    params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -376,7 +378,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageIntegrations($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageIntegrations($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                      params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -388,7 +390,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  private navigateToChildEdgePage(config: GroupEntityTableConfig<Edge>, edge: Edge | ShortEntityView, page: string) {
+  private navigateToChildEdgePage(config: GroupEntityTableConfig<EdgeInfo>, edge: EdgeInfo | ShortEntityView, page: string) {
     if (this.isCustomerScope(config.groupParams)) {
       if (config.groupParams.childEntityGroupId) {
         const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
@@ -404,7 +406,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  syncEdge($event, edge) {
+  syncEdge($event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -422,7 +424,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     );
   }
 
-  openInstructions($event, edge) {
+  openInstructions($event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -435,6 +437,16 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
             instructions: edgeInstructionsTemplate.dockerInstallInstructions
           }
         });
+      }
+    );
+  }
+
+  manageOwnerAndGroups($event: Event, edge: EdgeInfo, config: GroupEntityTableConfig<EdgeInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, edge).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
       }
     );
   }

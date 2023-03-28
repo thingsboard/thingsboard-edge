@@ -140,7 +140,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public Dashboard saveDashboard(Dashboard dashboard) {
         log.trace("Executing saveDashboard [{}]", dashboard);
-        dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
+        dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         try {
             Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
             if (dashboard.getId() == null) {

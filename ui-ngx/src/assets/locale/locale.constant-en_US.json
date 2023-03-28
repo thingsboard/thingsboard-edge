@@ -366,6 +366,7 @@
         "authentication-settings": "Authentication settings",
         "auth-method": "Authentication method",
         "auth-method-username-password": "Password / access token",
+        "auth-method-username-password-hint": "GitHub users <b>must</b> use access <a href='https://github.com/settings/tokens' target='_blank'>tokens</a> with write permissions to the repository.",
         "auth-method-private-key": "Private key",
         "password-access-token": "Password / access token",
         "change-password-access-token": "Change password / access token",
@@ -2448,7 +2449,10 @@
         "copyId": "Copy entity group Id",
         "idCopiedMessage": "Entity group Id has been copied to clipboard",
         "entity-group-name": "Entity group name",
-        "all-users": "All users"
+        "all-users": "All users",
+        "owner": "Owner",
+        "owner-required": "Owner is required.",
+        "manage-owner-and-groups": "Manage owner and groups"
     },
     "entity-field": {
         "created-time": "Created time",
@@ -2852,6 +2856,7 @@
          "ignore-case": "ignore case",
          "value": "Value",
          "remove-filter": "Remove filter",
+         "duplicate-filter": "Duplicate filter",
          "preview": "Filter preview",
          "no-filters": "No filters configured",
          "add-filter": "Add filter",
