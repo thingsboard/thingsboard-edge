@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { SendTestSmsDialogComponent } from '@home/pages/admin/send-test-sms-dialog.component';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 import { ResourcesLibraryComponent } from '@home/pages/admin/resource/resources-library.component';
-import { QueueComponent} from '@home/pages/admin/queue/queue.component';
+import { QueueComponent } from '@home/pages/admin/queue/queue.component';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';

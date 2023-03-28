@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,14 +94,12 @@ public class ContainerTestSuite {
                         new File("./../../docker-edge/docker-compose.postgres.yml"),
                         new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
                         .withPull(false)
-                        .withOptions("--compatibility")
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
-                        .withEnv("LOAD_BALANCER_NAME", "")
-                        .withExposedService("tb-edge", 8082)
-                        .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
+                        .withExposedService("tb-monolith", 8080)
+                        .withExposedService("tb-edge", 8082);
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");

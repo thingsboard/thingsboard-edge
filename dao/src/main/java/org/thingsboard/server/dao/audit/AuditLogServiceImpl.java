@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -181,6 +181,8 @@ public class AuditLogServiceImpl implements AuditLogService {
             case UPDATED:
             case ALARM_ACK:
             case ALARM_CLEAR:
+            case ALARM_ASSIGN:
+            case ALARM_UNASSIGN:
             case RELATIONS_DELETED:
             case ASSIGNED_TO_TENANT:
                 if (entity != null) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.NameLabelAndCustomerDetails;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -49,7 +50,11 @@ public interface EntityService {
 
     Optional<String> fetchEntityName(TenantId tenantId, EntityId entityId);
 
+    Optional<String> fetchEntityLabel(TenantId tenantId, EntityId entityId);
+
     Optional<CustomerId> fetchEntityCustomerId(TenantId tenantId, EntityId entityId);
+
+    Optional<NameLabelAndCustomerDetails> fetchNameLabelAndCustomerDetails(TenantId tenantId, EntityId entityId);
 
     long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query);
 

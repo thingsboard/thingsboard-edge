@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -187,7 +187,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`widgets-bundles/${widgetsBundle.id.id}/widgetTypes`);
+    this.router.navigateByUrl(`resources/widgets-bundles/${widgetsBundle.id.id}/widgetTypes`);
   }
 
   exportWidgetsBundle($event: Event, widgetsBundle: WidgetsBundle) {

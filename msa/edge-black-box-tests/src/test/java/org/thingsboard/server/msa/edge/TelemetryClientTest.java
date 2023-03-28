@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -91,7 +91,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         timeseriesPayload.addProperty("doubleTelemetryToEdge", 42.0);
         timeseriesPayload.addProperty("longTelemetryToEdge", 72L);
 
-        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, timeseriesPayload, keys);
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, tbUrl, edgeRestClient, timeseriesPayload, keys);
 
         for (TsKvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals("strTelemetryToEdge")) {
@@ -183,7 +183,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToEdge", 42.0);
         attrPayload.addProperty("longAttrToEdge", 72L);
 
-        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, attrPayload, keys);
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, tbUrl, edgeRestClient, attrPayload, keys);
 
         for (AttributeKvEntry attributeKvEntry : kvEntries) {
             if (attributeKvEntry.getKey().equals("strAttrToEdge")) {

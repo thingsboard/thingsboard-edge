@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,21 +35,23 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
+import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
+import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.user.UserService;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -58,22 +60,22 @@ import static org.thingsboard.server.common.data.alarm.AlarmCommentType.OTHER;
 
 public abstract class BaseAlarmCommentServiceTest extends AbstractServiceTest {
 
+    @Autowired
+    AlarmService alarmService;
+    @Autowired
+    AlarmCommentService alarmCommentService;
+    @Autowired
+    UserService userService;
+
     public static final String TEST_ALARM = "TEST_ALARM";
-    private TenantId tenantId;
     private Alarm alarm;
     private User user;
 
     @Before
     public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-
         alarm = Alarm.builder().tenantId(tenantId).originator(new AssetId(Uuids.timeBased()))
                 .type(TEST_ALARM)
-                .severity(AlarmSeverity.CRITICAL).status(AlarmStatus.ACTIVE_UNACK)
+                .severity(AlarmSeverity.CRITICAL)
                 .startTs(System.currentTimeMillis()).build();
         alarm = alarmService.createOrUpdateAlarm(alarm).getAlarm();
 
@@ -89,12 +91,11 @@ public abstract class BaseAlarmCommentServiceTest extends AbstractServiceTest {
     @After
     public void after() {
         alarmService.deleteAlarm(tenantId, alarm.getId());
-        tenantService.deleteTenant(tenantId);
     }
 
 
     @Test
-    public void testSaveAndFetchAlarmComment() throws ExecutionException, InterruptedException {
+    public void testCreateAndFetchAlarmComment() throws ExecutionException, InterruptedException {
         AlarmComment alarmComment = AlarmComment.builder().alarmId(alarm.getId())
                 .userId(user.getId())
                 .type(OTHER)
@@ -157,7 +158,7 @@ public abstract class BaseAlarmCommentServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testDeleteAlarmComment() throws ExecutionException, InterruptedException {
+    public void testSaveAlarmComment() throws ExecutionException, InterruptedException {
         UserId userId = new UserId(UUID.randomUUID());
         AlarmComment alarmComment = AlarmComment.builder().alarmId(alarm.getId())
                 .userId(userId)
@@ -167,13 +168,12 @@ public abstract class BaseAlarmCommentServiceTest extends AbstractServiceTest {
 
         AlarmComment createdComment = alarmCommentService.createOrUpdateAlarmComment(tenantId, alarmComment);
 
-        Assert.assertNotNull(createdComment);
-        Assert.assertNotNull(createdComment.getId());
-
-        alarmCommentService.deleteAlarmComment(tenantId, createdComment.getId());
+        createdComment.setType(AlarmCommentType.SYSTEM);
+        createdComment.setUserId(null);
+        alarmCommentService.saveAlarmComment(tenantId, createdComment);
 
         AlarmComment fetched = alarmCommentService.findAlarmCommentByIdAsync(tenantId, createdComment.getId()).get();
-
-        Assert.assertNull("Alarm comment was returned when it was expected to be null", fetched);
+        Assert.assertNull(fetched.getUserId());
+        Assert.assertEquals(AlarmCommentType.SYSTEM, fetched.getType());
     }
 }

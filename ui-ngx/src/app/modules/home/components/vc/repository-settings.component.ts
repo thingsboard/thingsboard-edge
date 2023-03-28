@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder, FormGroup, FormGroupDirective, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, FormGroupDirective, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AdminService } from '@core/http/admin.service';
@@ -65,7 +65,7 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
   @Input()
   popoverComponent: TbPopoverComponent;
 
-  repositorySettingsForm: FormGroup;
+  repositorySettingsForm: UntypedFormGroup;
   settings: RepositorySettings = null;
 
   repositoryAuthMethod = RepositoryAuthMethod;
@@ -87,7 +87,7 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
               private translate: TranslateService,
               private userPermissionsService: UserPermissionsService,
               private cd: ChangeDetectorRef,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store);
   }
 

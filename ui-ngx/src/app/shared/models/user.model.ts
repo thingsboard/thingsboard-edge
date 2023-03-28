@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,15 +34,22 @@ import { UserId } from './id/user-id';
 import { CustomerId } from './id/customer-id';
 import { Authority } from './authority.enum';
 import { TenantId } from './id/tenant-id';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export interface User extends BaseData<UserId> {
   tenantId: TenantId;
   customerId: CustomerId;
   email: string;
+  phone: string;
   authority: Authority;
   firstName: string;
   lastName: string;
   additionalInfo: any;
+}
+
+export interface UserInfo extends User {
+  ownerName?: string;
+  groups?: EntityInfoData[];
 }
 
 export enum ActivationMethod {
@@ -68,4 +75,11 @@ export interface AuthUser {
   customerId: string;
   isPublic: boolean;
   authority: Authority;
+}
+
+export interface UserEmailInfo {
+  id: UserId;
+  email: string;
+  firstName: string;
+  lastName: string;
 }

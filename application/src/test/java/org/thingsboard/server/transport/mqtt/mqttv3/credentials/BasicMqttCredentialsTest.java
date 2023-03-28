@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
@@ -130,7 +131,7 @@ public class BasicMqttCredentialsTest extends AbstractMqttIntegrationTest {
         testTelemetryIsDelivered(accessToken2Device, mqttTestClient5);
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testCorrectClientIdAndUserNameButWrongPassword() throws Exception {
         // Not correct. Correct clientId and username, but wrong password
         MqttTestClient mqttTestClient = new MqttTestClient(CLIENT_ID);
@@ -140,7 +141,9 @@ public class BasicMqttCredentialsTest extends AbstractMqttIntegrationTest {
         } catch (MqttException e) {
             Assert.assertEquals(4, e.getReasonCode()); // 4 - Reason code for bad username or password in MQTT v3
         }
-        testTelemetryIsNotDelivered(clientIdAndUserNameAndPasswordDevice3, mqttTestClient);
+        Assertions.assertThrows(MqttException.class, () -> {
+            testTelemetryIsNotDelivered(clientIdAndUserNameAndPasswordDevice3, mqttTestClient);
+        });
     }
 
     private void testTelemetryIsDelivered(Device device, MqttTestClient client) throws Exception {

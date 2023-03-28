@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -110,7 +110,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                         if (pageData.getData().size() > 0) {
                             for (EdgeId edgeId : pageData.getData()) {
                                 ListenableFuture<Boolean> checkFuture =
-                                        entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                        entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
                                 futures.add(Futures.transformAsync(checkFuture, exists -> {
                                     if (Boolean.TRUE.equals(exists)) {
                                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);

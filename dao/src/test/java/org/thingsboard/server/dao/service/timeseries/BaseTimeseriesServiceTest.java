@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -54,7 +55,9 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.service.AbstractServiceTest;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +77,13 @@ import static org.junit.Assert.assertNotNull;
 
 @Slf4j
 public abstract class BaseTimeseriesServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    TimeseriesService tsService;
+
+    @Autowired
+    EntityViewService entityViewService;
+
     static final int MAX_TIMEOUT = 30;
 
     private static final String STRING_KEY = "stringKey";

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -104,8 +104,8 @@ export class AuditLogTableComponent implements OnInit {
   @Input()
   set customerId(customerId: CustomerId) {
     this.customerIdValue = customerId;
-    if (this.auditLogTableConfig && this.auditLogTableConfig.customerId !== customerId) {
-      this.auditLogTableConfig.customerId = customerId;
+    if (this.auditLogTableConfig && this.auditLogTableConfig.customerId !== customerId?.id) {
+      this.auditLogTableConfig.customerId = customerId?.id;
       this.entitiesTable.resetSortAndFilter(this.activeValue);
       if (!this.activeValue) {
         this.dirtyValue = true;
@@ -146,7 +146,7 @@ export class AuditLogTableComponent implements OnInit {
       this.auditLogMode,
       this.entityIdValue,
       this.userIdValue,
-      this.customerIdValue,
+      this.customerIdValue?.id,
       updateOnInit,
       pageMode
     );

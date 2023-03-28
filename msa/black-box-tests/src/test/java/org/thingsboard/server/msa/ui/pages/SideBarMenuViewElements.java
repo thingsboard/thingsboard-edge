@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,10 @@ public class SideBarMenuViewElements extends AbstractBasePage {
 
     private static final String RULE_CHAINS_BTN = "//mat-toolbar//a[@href='/ruleChains']";
     private static final String CUSTOMER_GROUPS_BTN = "//mat-toolbar//a[@href='/customerGroups']";
+    private static final String DASHBOARD_BTN = "//mat-toolbar//a[@href='/dashboards']";
+    private static final String PROFILES_BTN = "//mat-toolbar//a[@href='/profiles']";
+    private static final String DEVICE_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/deviceProfiles']";
+    private static final String ASSET_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/assetProfiles']";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -53,5 +57,17 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     public void goToAllCustomerGroupBtn() {
         customerGroupsBtn().click();
         new OtherPageElements(driver).entity("All").click();
+    }
+
+    public WebElement profilesBtn() {
+        return waitUntilElementToBeClickable(PROFILES_BTN);
+    }
+
+    public WebElement deviceProfileBtn() {
+        return waitUntilElementToBeClickable(DEVICE_PROFILE_BTN);
+    }
+
+    public WebElement assetProfileBtn() {
+        return waitUntilElementToBeClickable(ASSET_PROFILE_BTN);
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,12 +34,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
@@ -95,7 +98,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
     }
 
-    private final PermissionChecker customerAlarmPermissionChecker = new PermissionChecker() {
+    private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
@@ -103,16 +106,19 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
-            if (!user.getTenantId().equals(entity.getTenantId())) {
+        public boolean hasPermission(SecurityUser user, Operation operation, AlarmId alarmId, Alarm alarm) {
+            if (!user.getTenantId().equals(alarm.getTenantId())) {
                 return false;
             }
-            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
-            if (!(user.getUserPermissions().hasGenericPermission(resource, operation))) {
+            if (!(user.getUserPermissions().hasGenericPermission(Resource.ALARM, operation))) {
+                return false;
+            } else if (alarm.getCustomerId().equals(user.getCustomerId())) {
+                return true;
+            } else if (alarm.getCustomerId().getId().equals(CustomerId.NULL_UUID)) {
                 return false;
             } else {
-                return entity instanceof HasCustomerId &&
-                        (((HasCustomerId) entity).getCustomerId().equals(user.getCustomerId()));
+                //TODO: ybondarenko should be refactored in 3.5 (check originator permissions)
+                return ownersCacheService.getOwners(alarm.getTenantId(), alarm.getCustomerId(), null).contains(user.getCustomerId());
             }
         }
     };
@@ -224,7 +230,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
                     }
                 }
                 try {
-                    List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
+                    List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntityAsync(entity.getTenantId(), entityId).get();
                     for (EntityGroupId groupId : entityGroupIds) {
                         if (user.getUserPermissions().hasGroupPermissions(groupId, operation)) {
                             if (operation.isAllowedForGroupOwnerOnly()) {
@@ -280,6 +286,30 @@ public class CustomerUserPermissions extends AbstractPermissions {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
             boolean isOwner = ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId());
+            if (isOwner) {
+                // This entity is a group, so we are checking group generic permission first
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
+            }
+            if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+            if (operation.isGroupOperationAllowedForGroupOwnerOnly()) {
+                return false;
+            }
+            //Just in case, we are also checking specific group permission
+            return user.getUserPermissions().hasGroupPermissions(entityGroup.getId(), operation);
+        }
+
+        @Override
+        public boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) {
+
+            Resource resource = Resource.groupResourceFromGroupType(entityGroup.getType());
+            if (operation == Operation.CREATE) {
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
+            }
+            boolean isOwner = entityGroup.getOwnerIds().contains(user.getOwnerId());
             if (isOwner) {
                 // This entity is a group, so we are checking group generic permission first
                 if (user.getUserPermissions().hasGenericPermission(resource, operation)) {

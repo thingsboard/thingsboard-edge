@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -102,10 +102,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
 
     config.onEntityAction = action => this.onCustomerAction(action, config, params);
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.USER_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.USER, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-user-groups'),
+          name: this.translate.instant('customer.manage-customer-users'),
           icon: 'account_circle',
           isEnabled: config.manageUsersEnabled,
           onAction: ($event, entity) => this.manageUsers($event, entity, config, params)
@@ -113,10 +113,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.CUSTOMER, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-groups'),
+          name: this.translate.instant('customer.manage-customers'),
           icon: 'supervisor_account',
           isEnabled: config.manageCustomersEnabled,
           onAction: ($event, entity) => this.manageCustomers($event, entity, config, params)
@@ -124,10 +124,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.ASSET, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-asset-groups'),
+          name: this.translate.instant('customer.manage-customer-assets'),
           icon: 'domain',
           isEnabled: config.manageAssetsEnabled,
           onAction: ($event, entity) => this.manageAssets($event, entity, config, params)
@@ -135,10 +135,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-device-groups'),
+          name: this.translate.instant('customer.manage-customer-devices'),
           icon: 'devices_other',
           isEnabled: config.manageDevicesEnabled,
           onAction: ($event, entity) => this.manageDevices($event, entity, config, params)
@@ -146,10 +146,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.ENTITY_VIEW, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-entity-view-groups'),
+          name: this.translate.instant('customer.manage-customer-entity-views'),
           icon: 'view_quilt',
           isEnabled: config.manageEntityViewsEnabled,
           onAction: ($event, entity) => this.manageEntityViews($event, entity, config, params)
@@ -157,10 +157,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    /*if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
+    /*if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ) && authState.edgesSupportEnabled) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-edge-groups'),
+          name: this.translate.instant('customer.manage-customer-edges'),
           icon: 'router',
           isEnabled: config.manageEdgesEnabled,
           onAction: ($event, entity) => this.manageEdges($event, entity, config, params)
@@ -168,10 +168,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }*/
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
-          name: this.translate.instant('customer.manage-customer-dashboard-groups'),
+          name: this.translate.instant('customer.manage-customer-dashboards'),
           icon: 'dashboard',
           isEnabled: config.manageDashboardsEnabled,
           onAction: ($event, entity) => this.manageDashboards($event, entity, config, params)
@@ -189,10 +189,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.customerId !== null) {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'customerGroups', params.childEntityGroupId, customer.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'customers', 'groups', params.childEntityGroupId, customer.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, customer.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId, customer.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
@@ -209,7 +209,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.USER);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/userGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/users');
     }
   }
 
@@ -221,7 +221,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.CUSTOMER);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/customerGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/customers/all');
     }
   }
 
@@ -233,7 +233,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ASSET);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/assetGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/assets');
     }
   }
 
@@ -245,7 +245,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.DEVICE);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/deviceGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/devices');
     }
   }
 
@@ -257,7 +257,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.ENTITY_VIEW);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/entityViewGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/entities/entityViews');
     }
   }
 
@@ -269,7 +269,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.EDGE);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/edgeGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/edgeManagement/instances');
     }
   }
 
@@ -281,8 +281,13 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     if (params.hierarchyView) {
       params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, customer.id.id, EntityType.DASHBOARD);
     } else {
-      this.router.navigateByUrl(`customerGroups/${config.entityGroup.id.id}/${customer.id.id}/dashboardGroups`);
+      this.navigateToChildCustomerPage(config, customer, '/dashboards');
     }
+  }
+
+  private navigateToChildCustomerPage(config: GroupEntityTableConfig<Customer>, customer: Customer | ShortEntityView, page: string) {
+    const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+    this.router.navigateByUrl(`customers/${targetGroups}/${config.entityGroup.id.id}/${customer.id.id}${page}`);
   }
 
   onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {

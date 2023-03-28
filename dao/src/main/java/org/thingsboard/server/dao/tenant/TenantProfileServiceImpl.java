@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -216,6 +217,11 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
             return changed;
         }
         return false;
+    }
+
+    @Override
+    public List<TenantProfile> findTenantProfilesByIds(TenantId tenantId, UUID[] ids) {
+        return tenantProfileDao.findTenantProfilesByIds(tenantId, ids);
     }
 
     @Override

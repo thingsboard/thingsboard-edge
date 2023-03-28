@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -250,7 +250,7 @@ public abstract class BaseAssetProfileControllerTest extends AbstractControllerT
         loginDifferentTenant();
         doGet("/api/assetProfileInfo/" + assetProfile.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead + "ASSET_PROFILE" + " '" + assetProfile.getName() + "'!")));
+                .andExpect(statusReason(containsString(UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION)));
     }
 
     @Test
@@ -500,6 +500,7 @@ public abstract class BaseAssetProfileControllerTest extends AbstractControllerT
         Collections.sort(loadedAssetProfileInfos, assetProfileInfoIdComparator);
 
         List<AssetProfileInfo> assetProfileInfos = assetProfiles.stream().map(assetProfile -> new AssetProfileInfo(assetProfile.getId(),
+                assetProfile.getTenantId(),
                 assetProfile.getName(), assetProfile.getImage(), assetProfile.getDefaultDashboardId())).collect(Collectors.toList());
 
         Assert.assertEquals(assetProfileInfos, loadedAssetProfileInfos);

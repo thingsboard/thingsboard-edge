@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,12 @@ import { Operation, resourceByEntityType } from '@shared/models/security.models'
 import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 import { IEntityDetailsPageComponent } from '@home/models/entity/entity-details-page-component.models';
-import { templateJitUrl } from '@angular/compiler';
+import { MatButton } from '@angular/material/button';
+import { EntityGroupParams } from '@shared/models/entity-group.models';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { isDefinedAndNotNull } from '@core/utils';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 export type EntityBooleanFunction<T extends BaseData<HasId>> = (entity: T) => boolean;
 export type EntityStringFunction<T extends BaseData<HasId>> = (entity: T) => string;
@@ -96,10 +101,10 @@ export interface HeaderActionDescriptor {
   icon: string;
   isMdiIcon?: boolean;
   isEnabled: () => boolean;
-  onAction: ($event: MouseEvent) => void;
+  onAction: ($event: MouseEvent, headerButton?: MatButton) => void;
 }
 
-export type EntityTableColumnType = 'content' | 'action' | 'chart';
+export type EntityTableColumnType = 'content' | 'action' | 'chart' | 'groups';
 
 export class BaseEntityTableColumn<T extends BaseData<HasId>> {
   constructor(public type: EntityTableColumnType,
@@ -162,11 +167,33 @@ export class ChartEntityTableColumn<T extends BaseData<HasId>> extends BaseEntit
   }
 }
 
-export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | EntityActionTableColumn<T> | ChartEntityTableColumn<T>;
+export class GroupChipsEntityTableColumn<T extends BaseData<HasId>> extends BaseEntityTableColumn<T> {
+  constructor(public key: string,
+              public title: string,
+              public width: string = '0px',
+              public cellContentFunction: CellChartContentFunction<T> = (entity, property) => entity[property] ? entity[property] : [],
+              public chartStyleFunction: CellStyleFunction<T> = () => ({}),
+              public cellStyleFunction: CellStyleFunction<T> = () => ({})) {
+    super('groups', key, title, width, false);
+  }
+}
+
+export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | EntityActionTableColumn<T> |
+  ChartEntityTableColumn<T> | GroupChipsEntityTableColumn<T>;
 
 export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = PageLink, L extends BaseData<HasId> = T> {
 
-  constructor() {}
+  customerId: string;
+  backNavigationCommands?: any[];
+
+  constructor(public groupParams?: EntityGroupParams) {
+    this.customerId = groupParams?.customerId;
+    this.backNavigationCommands = groupParams?.backNavigationCommands;
+  }
+
+  displayBackButton(): boolean {
+    return isDefinedAndNotNull(this.backNavigationCommands);
+  }
 
   private table: IEntitiesTableComponent = null;
   private entityDetailsPage: IEntityDetailsPageComponent = null;
@@ -189,8 +216,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   actionsColumnTitle = null;
   entityTranslations: EntityTypeTranslation;
   entityResources: EntityTypeResource<T>;
-  entityComponent: Type<EntityComponent<T, P, L>>;
-  entityTabsComponent: Type<EntityTabsComponent<T, P, L>>;
+  entityComponent: Type<EntityComponent<T, P, L> | GroupEntityComponent<T>>;
+  entityTabsComponent: Type<EntityTabsComponent<T, P, L> | GroupEntityTabsComponent<T>>;
   addDialogStyle = {};
   defaultSortOrder: SortOrder = {property: 'createdTime', direction: Direction.DESC};
   displayPagination = true;
@@ -204,9 +231,8 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   headerComponent: Type<EntityTableHeaderComponent<T, P, L>>;
   addEntity: CreateEntityOperation<T> = null;
   dataSource: (dataLoadedFunction: (col?: number, row?: number) => void)
-    => EntitiesDataSource<L> = (dataLoadedFunction: (col?: number, row?: number) => void) => {
-    return new EntitiesDataSource(this.entitiesFetchFunction, this.entitySelectionEnabled, dataLoadedFunction);
-  }
+    => EntitiesDataSource<L> = (dataLoadedFunction: (col?: number, row?: number) => void) =>
+    new EntitiesDataSource(this.entitiesFetchFunction, this.entitySelectionEnabled, dataLoadedFunction);
   detailsReadonly: EntityBooleanFunction<T> = () => false;
   entitySelectionEnabled: EntityBooleanFunction<L> = () => true;
   deleteEnabled: EntityBooleanFunction<T | L> = () => true;
@@ -274,12 +300,15 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   }
 }
 
-export function checkBoxCell(value: boolean): string {
-  return `<mat-icon class="material-icons mat-icon">${value ? 'check_box' : 'check_box_outline_blank'}</mat-icon>`;
-}
+export const checkBoxCell =
+  (value: boolean): string => `<mat-icon class="material-icons mat-icon">${value ? 'check_box' : 'check_box_outline_blank'}</mat-icon>`;
 
-export function defaultEntityTablePermissions(userPermissionsService: UserPermissionsService,
-                                              entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {
+export const groupsCell =
+  (groups?: EntityInfoData[]): string => groups ? groups.map(group =>
+    `<a class="tb-group-chip" href="/entities/devices/groups">${group.name}</a>`).join('') : '';
+
+export const defaultEntityTablePermissions = (userPermissionsService: UserPermissionsService,
+                                              entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) => {
   const resource = resourceByEntityType.get(entitiesTableConfig.entityType);
   if (!userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
     entitiesTableConfig.addEnabled = false;
@@ -293,4 +322,4 @@ export function defaultEntityTablePermissions(userPermissionsService: UserPermis
   if (!userPermissionsService.hasGenericPermission(resource, Operation.WRITE)) {
     entitiesTableConfig.detailsReadonly = () => true;
   }
-}
+};

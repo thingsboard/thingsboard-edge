@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,9 +43,11 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AlarmCommentId;
 import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -57,6 +59,7 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -102,13 +105,28 @@ public class DefaultTbAlarmCommentServiceTest {
     }
 
     @Test
-    public void testDelete() {
+    public void testDelete() throws ThingsboardException {
         var alarmId = new AlarmId(UUID.randomUUID());
-        var alarmCommentId = new AlarmCommentId(UUID.randomUUID());
+        var alarmComment = new AlarmComment();
+        alarmComment.setAlarmId(alarmId);
+        alarmComment.setUserId(new UserId(UUID.randomUUID()));
+        alarmComment.setType(AlarmCommentType.OTHER);
 
-        doNothing().when(alarmCommentService).deleteAlarmComment(Mockito.any(), eq(alarmCommentId));
-        service.deleteAlarmComment(new Alarm(alarmId), new AlarmComment(alarmCommentId), new User());
+        when(alarmCommentService.saveAlarmComment(Mockito.any(), eq(alarmComment))).thenReturn(alarmComment);
+        service.deleteAlarmComment(new Alarm(alarmId), alarmComment, new User());
 
         verify(notificationEntityService, times(1)).notifyAlarmComment(any(), any(), any(), any());
+    }
+
+    @Test
+    public void testShouldNotDeleteSystemComment() {
+        var alarmId = new AlarmId(UUID.randomUUID());
+        var alarmComment = new AlarmComment();
+        alarmComment.setAlarmId(alarmId);
+        alarmComment.setType(AlarmCommentType.SYSTEM);
+
+        assertThatThrownBy(() -> service.deleteAlarmComment(new Alarm(alarmId), alarmComment, new User()))
+                .isInstanceOf(ThingsboardException.class)
+                .hasMessageContaining("System comment could not be deleted");
     }
 }

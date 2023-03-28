@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -110,7 +110,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
                     return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             }
         } catch (DataValidationException | ThingsboardException e) {
-            if (e.getMessage().contains("Can't create more then")) {
+            if (e.getMessage().contains("limit reached")) {
                 log.warn("[{}] Number of allowed devices violated {}", tenantId, deviceUpdateMsg, e);
                 return Futures.immediateFuture(null);
             } else {
@@ -182,7 +182,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
 
     private void addDeviceToEdgeAllDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         try {
-            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, edge.getName(), EntityType.DEVICE).get();
+            EntityGroup edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE).get();
             if (edgeDeviceGroup != null) {
                 entityGroupService.addEntityToEntityGroup(tenantId, edgeDeviceGroup.getId(), deviceId);
             }
@@ -195,7 +195,7 @@ public class DeviceEdgeProcessor extends BaseDeviceProcessor {
     private void removeDeviceFromEdgeAllDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         Device deviceToDelete = deviceService.findDeviceById(tenantId, deviceId);
         if (deviceToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, edge.getName(), EntityType.DEVICE);
+            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(tenantId, edge, edge.getName(), EntityType.DEVICE);
             Futures.addCallback(edgeDeviceGroup, new FutureCallback<>() {
                 @Override
                 public void onSuccess(EntityGroup entityGroup) {

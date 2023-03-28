@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,17 +31,18 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 
 public class DeleteSeveralCustomerTest extends AbstractDriverBaseTest {
@@ -49,57 +50,59 @@ public class DeleteSeveralCustomerTest extends AbstractDriverBaseTest {
     private SideBarMenuViewElements sideBarMenuView;
     private CustomerPageHelper customerPage;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete several customer")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove several customers by mark in the checkbox and then click on the trash can icon in the menu that appears at the top")
     public void canDeleteSeveralCustomersByTopBtn() {
-        String title1 = ENTITY_NAME + "1";
-        String title2 = ENTITY_NAME + "2";
+        String title1 = ENTITY_NAME + random() + "1";
+        String title2 = ENTITY_NAME + random() + "2";
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
         testRestClient.postCustomer(defaultCustomerPrototype(title2));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.clickOnCheckBoxes(2);
-        customerPage.deleteSelectedBtn().click();
-        customerPage.warningPopUpYesBtn().click();
+        customerPage.deleteSelected(2);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.customerIsNotPresent(title1));
         Assert.assertTrue(customerPage.customerIsNotPresent(title2));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete several customer")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove several customers by mark all the Customers on the page by clicking in the topmost checkbox " +
+            "and then clicking on the trash icon in the menu that appears")
     public void selectAllCustomers() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.selectAllCheckBox().click();
-        customerPage.deleteSelectedBtn().click();
+        jsClick(customerPage.deleteSelectedBtn());
 
         Assert.assertNotNull(customerPage.warningPopUpTitle());
         Assert.assertTrue(customerPage.warningPopUpTitle().isDisplayed());
         Assert.assertTrue(customerPage.warningPopUpTitle().getText().contains(String.valueOf(customerPage.markCheckbox().size())));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete several customer")
     @Test(priority = 30, groups = "smoke")
-    @Description
+    @Description("Remove several customers by mark in the checkbox and then click on the trash can icon in the menu " +
+            "that appears at the top without refresh")
     public void deleteSeveralCustomersByTopBtnWithoutRefresh() {
-        String title1 = ENTITY_NAME + "1";
-        String title2 = ENTITY_NAME + "2";
+        String title1 = ENTITY_NAME + random() + "1";
+        String title2 = ENTITY_NAME + random() + "2";
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
         testRestClient.postCustomer(defaultCustomerPrototype(title2));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
-        customerPage.clickOnCheckBoxes(2);
-        customerPage.deleteSelectedBtn().click();
-        customerPage.warningPopUpYesBtn().click();
+        customerPage.deleteSelected(2);
 
         Assert.assertTrue(customerPage.customerIsNotPresent(title1));
         Assert.assertTrue(customerPage.customerIsNotPresent(title2));

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -95,6 +95,26 @@ export class DashboardService {
     }
     if (operation) {
       url += `&operation=${operation}`;
+    }
+    return this.http.get<PageData<DashboardInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllDashboards(includeCustomers: boolean,
+                          pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
+    let url = `/api/dashboards/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DashboardInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerDashboards(includeCustomers: boolean, customerId: string,
+                               pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
+    let url = `/api/customer/${customerId}/dashboards${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
     }
     return this.http.get<PageData<DashboardInfo>>(url,
       defaultHttpOptionsFromConfig(config));

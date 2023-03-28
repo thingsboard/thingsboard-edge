@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,9 +31,11 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -41,25 +43,22 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_ENTITY_GROUP_MESSAGE;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultEntityGroupPrototype;
 
 public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
     private SideBarMenuViewElements sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String title = ENTITY_NAME;
+    private String title;
     private String name;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -73,17 +72,20 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Add customer to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer specifying to group")
     public void addGroup() {
-        name = ENTITY_NAME + '1';
+        name = ENTITY_NAME + random() + '1';
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(name, EntityType.CUSTOMER));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
-        customerPage.selectGroupViewExistField().click();
+        jsClick(customerPage.selectGroupViewExistField());
         customerPage.entityFromDropDown(name).click();
         customerPage.selectGroupViewSubmitBtn().click();
         sideBarMenuView.customerGroupsBtn().click();
@@ -93,9 +95,12 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entity(title).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Add customer to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer specifying to group without select group")
     public void addGroupWithoutSelect() {
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -105,9 +110,12 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.selectGroupViewSubmitBtnVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Add customer to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer's group specifying the name (text/numbers /special characters)")
     public void createNewEntityGroup() {
+        title = ENTITY_NAME + random();
         String groupName = title + '1';
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
@@ -115,7 +123,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(groupName);
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), groupName);
         customerPage.selectGroupViewSubmitBtn().click();
         name = groupName;
         sideBarMenuView.customerGroupsBtn().click();
@@ -124,9 +132,12 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entity(groupName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Add customer to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer's group without the name")
     public void createNewEntityGroupWithoutName() {
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
@@ -137,16 +148,19 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.selectGroupViewSubmitBtnVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Add customer to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Create customer's group only with spase in name")
     public void createNewEntityGroupWithSpace() {
+        title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(" ");
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), " ");
         customerPage.selectGroupViewSubmitBtn().click();
 
         Assert.assertNotNull(customerPage.warningMessage());
@@ -156,10 +170,13 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.addToEntityGroupView().isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Add customer to group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Create a customer's group with the same name")
     public void addGroupWithSameName() {
-        name = ENTITY_NAME + '1';
+        title = ENTITY_NAME + random();
+        name = ENTITY_NAME + random() + '1';
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(name, EntityType.CUSTOMER));
 
@@ -167,7 +184,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(name);
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), name);
         customerPage.selectGroupViewSubmitBtn().click();
 
         Assert.assertNotNull(customerPage.warningMessage());

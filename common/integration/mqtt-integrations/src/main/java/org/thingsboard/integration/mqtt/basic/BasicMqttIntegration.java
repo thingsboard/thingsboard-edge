@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -150,7 +150,7 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             for (DownlinkData data : topicEntry.getValue()) {
                 String topic = topicEntry.getKey();
                 logMqttDownlink(context, topic, data);
-                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE);
+                mqttClient.publish(topic, Unpooled.wrappedBuffer(data.getData()), MqttQoS.AT_LEAST_ONCE, mqttClientConfiguration.isRetainedMessage());
             }
         }
         return !topicToDataMap.isEmpty();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ public class LoginPageElements extends AbstractBasePage {
     private static final String EMAIL_FIELD = "//input[@id='username-input']";
     private static final String PASSWORD_FIELD = "//input[@id='password-input']";
     private static final String SUBMIT_BTN = "//button[@type='submit']";
+    private static final String TITLE_LOGO = "//img[@class='tb-logo-title']";
 
     public WebElement emailField() {
         return waitUntilElementToBeClickable(EMAIL_FIELD);
@@ -53,6 +54,10 @@ public class LoginPageElements extends AbstractBasePage {
 
     public WebElement submitBtn() {
         return waitUntilElementToBeClickable(SUBMIT_BTN);
+    }
+
+    public WebElement titleLogo() {
+        return waitUntilVisibilityOfElementLocated(TITLE_LOGO);
     }
 
 }

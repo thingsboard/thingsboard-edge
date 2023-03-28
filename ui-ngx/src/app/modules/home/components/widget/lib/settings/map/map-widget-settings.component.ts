@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { Component } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { defaultMapSettings } from 'src/app/modules/home/components/widget/lib/maps/map-models';
@@ -43,14 +43,14 @@ import { defaultMapSettings } from 'src/app/modules/home/components/widget/lib/m
 })
 export class MapWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  mapWidgetSettingsForm: FormGroup;
+  mapWidgetSettingsForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.mapWidgetSettingsForm;
   }
 

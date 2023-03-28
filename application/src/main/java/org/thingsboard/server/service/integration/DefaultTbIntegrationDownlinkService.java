@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,9 +49,9 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkM
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 
 import java.util.UUID;
 
@@ -63,6 +63,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
     private final IntegrationService integrationService;
     private final RemoteIntegrationRpcService remoteRpcService;
     private final TbQueueProducerProvider producerProvider;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Override
     public void onRuleEngineDownlinkMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg, TbCallback callback) {
@@ -77,7 +78,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
         } else {
             var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
             TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), tenantId, integrationId)
-                    .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(integration.getType()));
+                    .newByTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(integration.getType()));
             producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder().setDownlinkMsg(downlinkMsg).build()), new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {

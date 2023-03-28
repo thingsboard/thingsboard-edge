@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
-import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { EdgeRoutingModule } from '@home/pages/edge/edge-routing.module';
@@ -46,7 +45,6 @@ import { EdgeInstructionsDialogComponent } from './edge-instructions-dialog.comp
   declarations: [
     EdgeComponent,
     EdgeTableHeaderComponent,
-    EdgeTabsComponent,
     EdgeInstructionsDialogComponent
   ],
   imports: [

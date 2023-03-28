@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,8 +31,11 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
@@ -43,20 +46,15 @@ import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
-
 public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
 
     private SideBarMenuViewElements sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -69,8 +67,11 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         }
     }
 
-    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
-    @Description
+    @Epic("Customers smoke tests")
+    @Feature("Search customer group")
+    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class,
+            dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
+    @Description("Search customer group by first/second word in the name")
     public void searchFirstSecondWord(String namePath) {
         customerGroupName = "Entity Group";
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
@@ -81,8 +82,10 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage.entityGroups().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 
-    @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
-    @Description
+    @Epic("Customers smoke tests")
+    @Feature("Search customer group")
+    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
+    @Description("Search customer by symbol/number in the name")
     public void searchNumberAndSymbol(String name, String namePath) {
         customerGroupName = name;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));

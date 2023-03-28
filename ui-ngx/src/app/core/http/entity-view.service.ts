@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { EntityView, EntityViewSearchQuery } from '@app/shared/models/entity-view.models';
+import { EntityView, EntityViewInfo, EntityViewSearchQuery } from '@app/shared/models/entity-view.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 
@@ -86,6 +86,28 @@ export class EntityViewService {
     return this.http.get<PageData<EntityView>>(`/api/user/entityViews${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
+
+  public getAllEntityViewInfos(includeCustomers: boolean,
+                               pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
+    let url = `/api/entityViewInfos/all${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EntityViewInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerEntityViewInfos(includeCustomers: boolean, customerId: string,
+                                    pageLink: PageLink, type: string = '',
+                                    config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
+    let url = `/api/customer/${customerId}/entityViewInfos${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EntityViewInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
 
   /* public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
     return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));

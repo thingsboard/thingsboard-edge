@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -330,7 +330,7 @@ public class AssetProfileServiceImpl extends AbstractCachedEntityService<AssetPr
             };
 
     private AssetProfileInfo toAssetProfileInfo(AssetProfile profile) {
-        return profile == null ? null : new AssetProfileInfo(profile.getId(), profile.getName(), profile.getImage(),
+        return profile == null ? null : new AssetProfileInfo(profile.getId(), profile.getTenantId(), profile.getName(), profile.getImage(),
                 profile.getDefaultDashboardId());
     }
 

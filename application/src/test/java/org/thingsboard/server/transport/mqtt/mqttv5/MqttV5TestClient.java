@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -104,7 +104,9 @@ public class MqttV5TestClient { // We should copy part of MqttV3TestClient, due 
         if (client == null) {
             throw new RuntimeException("Failed to connect! MqttAsyncClient is not initialized!");
         }
-        return client.connect(options);
+        IMqttToken connect = client.connect(options);
+        connect.waitForCompletion(TIMEOUT_MS);
+        return connect;
     }
 
     public void disconnectAndWait() throws MqttException {

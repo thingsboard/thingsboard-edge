@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,8 @@ public enum EdgeEventActionType {
     RPC_CALL,
     ALARM_ACK,
     ALARM_CLEAR,
+    ALARM_ASSIGN,
+    ALARM_UNASSIGN,
     ASSIGNED_TO_EDGE,
     UNASSIGNED_FROM_EDGE,
     CREDENTIALS_REQUEST,

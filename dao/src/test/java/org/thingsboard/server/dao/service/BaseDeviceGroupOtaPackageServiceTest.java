@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,31 +30,34 @@
  */
 package org.thingsboard.server.dao.service;
 
-import org.junit.After;
+import lombok.Getter;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
@@ -68,30 +71,27 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     private static final String CHECKSUM = "4bf5122f344554c53bde2ebb8cd2b7e3d1600ad631c385a5d7cce23c7785459a";
     private static final ByteBuffer DATA = ByteBuffer.wrap(new byte[]{1});
 
-    private TenantId tenantId;
-    private DeviceProfileId deviceProfileId;
+    @Getter
+    @Autowired
+    EntityGroupService entityGroupService;
+    @Autowired
+    DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+    @Autowired
+    DeviceProfileService deviceProfileService;
+    @Getter
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    OtaPackageService otaPackageService;
 
-    @SuppressWarnings("deprecation")
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    private DeviceProfileId deviceProfileId;
 
     @Before
     public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-
         DeviceProfile deviceProfile = this.createDeviceProfile(tenantId, "Device Profile");
         DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile);
         Assert.assertNotNull(savedDeviceProfile);
         deviceProfileId = savedDeviceProfile.getId();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
     }
 
     private OtaPackageInfo createOtaPackage(String title, DeviceProfileId deviceProfileId) {
@@ -139,9 +139,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setOtaPackageId(firmware.getId());
         deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("DeviceGroupOtaPackage should be assigned to entity group!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("DeviceGroupOtaPackage should be assigned to entity group!");
     }
 
     @Test
@@ -152,9 +152,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setOtaPackageId(firmware.getId());
         deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage is referencing to non-existent entity group!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage is referencing to non-existent entity group!");
     }
 
     @Test
@@ -170,9 +170,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
         deviceGroupOtaPackage.setGroupId(deviceGroup.getId());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("DeviceGroupOtaPackage can be only assigned to the Device group!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("DeviceGroupOtaPackage can be only assigned to the Device group!");
     }
 
     @Test
@@ -187,9 +187,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setGroupId(deviceGroup.getId());
         deviceGroupOtaPackage.setOtaPackageId(firmware.getId());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("Type should be specified!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Type should be specified!");
     }
 
     @Test
@@ -204,9 +204,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setGroupId(deviceGroup.getId());
         deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("DeviceGroupOtaPackage should be assigned to OtaPackage!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("DeviceGroupOtaPackage should be assigned to OtaPackage!");
     }
 
     @Test
@@ -222,9 +222,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
         deviceGroupOtaPackage.setOtaPackageId(new OtaPackageId(UUID.randomUUID()));
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("DeviceGroupOtaPackage is referencing to non-existent OtaPackage!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("DeviceGroupOtaPackage is referencing to non-existent OtaPackage!");
     }
 
     @Test
@@ -240,9 +240,9 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         deviceGroupOtaPackage.setOtaPackageType(SOFTWARE);
         deviceGroupOtaPackage.setOtaPackageId(firmware.getId());
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("DeviceGroupOtaPackage type should be the same as OtaPackage type!");
-        deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+        assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("DeviceGroupOtaPackage type should be the same as OtaPackage type!");
     }
 
     @Test

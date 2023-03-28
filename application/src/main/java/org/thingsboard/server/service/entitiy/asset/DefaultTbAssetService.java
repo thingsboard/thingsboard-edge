@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -106,5 +106,11 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
                     assetId.toString());
             throw e;
         }
+    }
+
+    @Override
+    public ListenableFuture<Void> delete(AssetId assetId, User user) {
+        Asset asset = assetService.findAssetById(user.getTenantId(), assetId);
+        return delete(asset, user);
     }
 }

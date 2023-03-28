@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,7 +60,10 @@ public class AlarmClientTest extends AbstractContainerTest {
         // create alarm
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+<<<<<<< HEAD
+        // TODO @voba alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+=======
+>>>>>>> edge-ce/develop/3.5
         alarm.setType("alarm");
         alarm.setSeverity(AlarmSeverity.CRITICAL);
         Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
@@ -115,7 +118,10 @@ public class AlarmClientTest extends AbstractContainerTest {
         // create alarm
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+<<<<<<< HEAD
+        // TODO @voba alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
+=======
+>>>>>>> edge-ce/develop/3.5
         alarm.setType("alarm from edge");
         alarm.setSeverity(AlarmSeverity.MAJOR);
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -72,7 +72,7 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class DeviceProfileProvisionConfigurationComponent implements ControlValueAccessor, OnInit, Validator {
 
-  provisionConfigurationFormGroup: FormGroup;
+  provisionConfigurationFormGroup: UntypedFormGroup;
 
   deviceProvisionType = DeviceProvisionType;
   deviceProvisionTypes = Object.keys(DeviceProvisionType);
@@ -93,7 +93,7 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
   private propagateChange = (v: any) => { };
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private translate: TranslateService) {
   }
 
@@ -155,7 +155,7 @@ export class DeviceProfileProvisionConfigurationComponent implements ControlValu
     }
   }
 
-  validate(c: FormControl): ValidationErrors | null {
+  validate(c: UntypedFormControl): ValidationErrors | null {
     return (this.provisionConfigurationFormGroup.valid) ? null : {
       provisionConfiguration: {
         valid: false,

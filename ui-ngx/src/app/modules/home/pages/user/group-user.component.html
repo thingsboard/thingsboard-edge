@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -119,7 +119,7 @@
           <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
-              placeholder="{{ 'user.default-dashboard' | translate }}"
+              label="{{ 'user.default-dashboard' | translate }}"
               formControlName="defaultDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
@@ -131,7 +131,7 @@
           <section *ngIf="(whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
-              placeholder="{{ 'dashboard.home-dashboard' | translate }}"
+              label="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"

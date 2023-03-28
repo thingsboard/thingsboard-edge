@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,14 @@ import java.util.UUID;
  * Created by ashvayka on 25.04.17.
  */
 public class EntityIdFactory {
+
+    public static EntityId getByTypeAndUuid(int type, String uuid) {
+        return getByTypeAndUuid(EntityType.values()[type], UUID.fromString(uuid));
+    }
+
+    public static EntityId getByTypeAndUuid(String type, String uuid) {
+        return getByTypeAndUuid(EntityType.valueOf(type), UUID.fromString(uuid));
+    }
 
     public static EntityId getByTypeAndId(String type, String uuid) {
         return getByTypeAndUuid(EntityType.valueOf(type), UUID.fromString(uuid));
@@ -115,6 +123,16 @@ public class EntityIdFactory {
                 return new RpcId(uuid);
             case QUEUE:
                 return new QueueId(uuid);
+            case NOTIFICATION_TARGET:
+                return new NotificationTargetId(uuid);
+            case NOTIFICATION_REQUEST:
+                return new NotificationRequestId(uuid);
+            case NOTIFICATION_RULE:
+                return new NotificationRuleId(uuid);
+            case NOTIFICATION_TEMPLATE:
+                return new NotificationTemplateId(uuid);
+            case NOTIFICATION:
+                return new NotificationId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }

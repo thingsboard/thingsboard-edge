@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,12 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -54,9 +56,13 @@ public interface EntityGroupService extends EntityDaoService {
 
     EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId);
 
+    EntityGroupInfo findEntityGroupInfoById(TenantId tenantId, EntityGroupId entityGroupId);
+
+    EntityInfo findEntityGroupEntityInfoById(TenantId tenantId, EntityGroupId entityGroupId);
+
     ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupByIdsAsync(TenantId tenantId, List<EntityGroupId> entityGroupIds);
+    ListenableFuture<EntityGroupInfo> findEntityGroupInfoByIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
 
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean doValidate);
 
@@ -69,7 +75,7 @@ public interface EntityGroupService extends EntityDaoService {
     EntityGroup findOrCreateEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName,
                                         String description, CustomerId publicCustomerId);
 
-    Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName);
+    Optional<EntityGroupInfo> findOwnerEntityGroupInfo(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName);
 
     EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
 
@@ -83,22 +89,45 @@ public interface EntityGroupService extends EntityDaoService {
 
     EntityGroup findOrCreateReadOnlyEntityGroupForCustomer(TenantId tenantId, CustomerId customerId, EntityType groupType);
 
-    ListenableFuture<Optional<EntityGroup>> findPublicUserGroup(TenantId tenantId, CustomerId publicCustomerId);
+    ListenableFuture<Optional<EntityGroup>> findPublicUserGroupAsync(TenantId tenantId, CustomerId publicCustomerId);
 
     void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId);
 
-    ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId);
+    PageData<EntityGroup> findAllEntityGroupsByParentRelation(TenantId tenantId, EntityId parentEntityId, PageLink pageLink);
 
     void deleteAllEntityGroups(TenantId tenantId, EntityId parentEntityId);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
+    PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType, PageLink pageLink);
 
-    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
-                                                                              EntityType groupType, PageLink pageLink);
+    PageData<EntityGroupInfo> findEntityGroupInfosByType(TenantId tenantId, EntityId parentEntityId,
+                                                         EntityType groupType, PageLink pageLink);
 
-    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityType groupType, PageLink pageLink);
+    PageData<EntityInfo> findEntityGroupEntityInfosByType(TenantId tenantId, EntityId parentEntityId,
+                                                          EntityType groupType, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEntityGroupInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds,
+                                                                  EntityType groupType, PageLink pageLink);
+
+    PageData<EntityInfo> findEntityGroupEntityInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds,
+                                                                   EntityType groupType, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEntityGroupInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityInfo> findEntityGroupEntityInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEntityGroupInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId,
+                                                              EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId,
+                                                               EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink);
+
+    PageData<EntityGroupInfo> findEdgeEntityGroupInfosByOwnerIdType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink);
+
+    PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityType groupType, PageLink pageLink);
 
     Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
+
+    Optional<EntityGroupInfo> findEntityGroupInfoByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
@@ -116,11 +145,11 @@ public interface EntityGroupService extends EntityDaoService {
 
     PageData<ShortEntityView> findGroupEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, PageLink pageLink);
 
-    ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
+    ListenableFuture<List<EntityId>> findAllEntityIdsAsync(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
     PageData<EntityId> findEntityIds(TenantId tenantId, EntityType entityType, EntityGroupId entityGroupId, PageLink pageLink);
 
-    ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
+    ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntityAsync(TenantId tenantId, EntityId entityId);
 
     boolean isEntityInGroup(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId);
 
@@ -133,7 +162,7 @@ public interface EntityGroupService extends EntityDaoService {
 
     PageData<EntityGroup> findEdgeEntityGroupsByType(TenantId tenantId, EdgeId edgeId, EntityType groupType, PageLink pageLink);
 
-    ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType);
+    ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType);
 
-    ListenableFuture<EntityGroup> findOrCreateEdgeAllGroup(TenantId tenantId, Edge edge, String edgeName, EntityType groupType);
+    ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType groupType);
 }

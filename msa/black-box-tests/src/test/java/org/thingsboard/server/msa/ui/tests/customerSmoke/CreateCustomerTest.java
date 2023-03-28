@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,20 +31,22 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_CUSTOMER_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_CUSTOMER_MESSAGE;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 public class CreateCustomerTest extends AbstractDriverBaseTest {
 
@@ -52,11 +54,9 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private String customerName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
     }
@@ -69,14 +69,16 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer specifying the name (text/numbers /special characters)")
     public void createCustomer() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
-        customerPage.titleFieldAddEntityView().sendKeys(customerName);
+        customerPage.addCustomerViewEnterName(customerName);
         customerPage.addBtnC().click();
         this.customerName = customerName;
         customerPage.refreshBtn().click();
@@ -85,18 +87,19 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customer(customerName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add customer after specifying the name (text/numbers /special characters) with full information")
     public void createCustomerWithFullInformation() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
         String text = "Text";
         String email = "email@mail.com";
         String number = "12015550123";
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
-        customerPage.titleFieldAddEntityView().click();
-        customerPage.titleFieldAddEntityView().sendKeys(customerName);
+        customerPage.addCustomerViewEnterName(customerName);
         customerPage.selectCountryAddEntityView();
         customerPage.descriptionAddEntityView().sendKeys(text);
         customerPage.cityAddEntityView().sendKeys(text);
@@ -130,8 +133,10 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getCustomerCity(), text);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add customer without the name")
     public void createCustomerWithoutName() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
@@ -139,12 +144,14 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.addBtnV().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Create customer only with spase in name")
     public void createCustomerWithOnlySpace() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
-        customerPage.titleFieldAddEntityView().sendKeys(" ");
+        customerPage.addCustomerViewEnterName(Keys.SPACE);
         customerPage.addBtnC().click();
 
         Assert.assertNotNull(customerPage.warningMessage());
@@ -154,14 +161,16 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.addEntityView().isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Create a customer with the same name")
     public void createCustomerSameName() {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         String customerName = customerPage.getCustomerName();
         customerPage.plusBtn().click();
-        customerPage.titleFieldAddEntityView().sendKeys(customerName);
+        customerPage.addCustomerViewEnterName(customerName);
         customerPage.addBtnC().click();
 
         Assert.assertNotNull(customerPage.warningMessage());
@@ -171,14 +180,16 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.addEntityView().isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add customer specifying the name (text/numbers /special characters) without refresh")
     public void createCustomerWithoutRefresh() {
-        String customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME + random();
 
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
-        customerPage.titleFieldAddEntityView().sendKeys(customerName);
+        customerPage.addCustomerViewEnterName(customerName);
         customerPage.addBtnC().click();
         this.customerName = customerName;
 
@@ -186,8 +197,10 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customer(customerName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 40, groups = "smoke")
-    @Description
+    @Description("Go to customer documentation page")
     public void documentation() {
         String urlPath = "/docs/pe/user-guide/ui/customers/";
 
@@ -196,6 +209,6 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         customerPage.customer(customerPage.getCustomerName()).click();
         customerPage.goToHelpPage();
 
-        Assert.assertTrue(urlContains(urlPath));
+        Assert.assertTrue(urlContains(urlPath), "URL contains " + urlPath);
     }
 }

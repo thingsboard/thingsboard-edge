@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -79,6 +79,9 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
 
   @Input()
   groupId: string;
+
+  @Input()
+  customerId: string;
 
   @Input()
   operation: Operation;
@@ -232,7 +235,11 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
     if (this.groupId) {
       dashboardsObservable = this.dashboardService.getGroupDashboards(this.groupId, pageLink, {ignoreLoading: true});
     } else {
-      dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
+      if (this.customerId) {
+        dashboardsObservable = this.dashboardService.getCustomerDashboards(true, this.customerId, pageLink, {ignoreLoading: true});
+      } else {
+        dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
+      }
     }
     return dashboardsObservable;
   }

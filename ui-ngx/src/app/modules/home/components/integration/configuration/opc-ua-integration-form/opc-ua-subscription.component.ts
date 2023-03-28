@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -63,15 +63,15 @@ import { OpcUaSubscription } from '@shared/models/integration.models';
 })
 export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  opcSubscriptionForm: FormGroup;
+  opcSubscriptionForm: UntypedFormGroup;
 
   @Input()
   disabled: boolean;
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     this.opcSubscriptionForm = this.fb.group({
       subscription: this.fb.array([], Validators.required)
     });
@@ -113,7 +113,7 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
       if (this.opcSubscriptionArray.length === subscriptions.length) {
         this.opcSubscriptionForm.get('subscription').patchValue(subscriptions, {emitEvent: false});
       } else {
-        const subscriptionControls: Array<FormGroup> = [];
+        const subscriptionControls: Array<UntypedFormGroup> = [];
         subscriptions.forEach((subscription) => {
           subscriptionControls.push(this.createFormGroup(subscription));
         });
@@ -127,19 +127,19 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
     }
   }
 
-  get opcSubscriptionArray(): FormArray {
-    return this.opcSubscriptionForm.get('subscription') as FormArray;
+  get opcSubscriptionArray(): UntypedFormArray {
+    return this.opcSubscriptionForm.get('subscription') as UntypedFormArray;
   }
 
-  get opcSubscriptionArrayControls(): FormGroup[] {
-    return this.opcSubscriptionArray.controls as FormGroup[];
+  get opcSubscriptionArrayControls(): UntypedFormGroup[] {
+    return this.opcSubscriptionArray.controls as UntypedFormGroup[];
   }
 
   addSubscriptionTag(emitEvent = true) {
     this.opcSubscriptionArray.push(this.createFormGroup(), {emitEvent});
   }
 
-  private createFormGroup(value?: any): FormGroup {
+  private createFormGroup(value?: any): UntypedFormGroup {
     return this.fb.group(
       {
         key: [value?.key || '', [Validators.required]],

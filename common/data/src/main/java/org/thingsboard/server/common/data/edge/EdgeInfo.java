@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,28 +30,33 @@
  */
 package org.thingsboard.server.common.data.edge;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.EntityInfo;
 
+import javax.validation.Valid;
+import java.util.List;
+
+@ApiModel
 @Data
-@EqualsAndHashCode(callSuper = true)
 public class EdgeInfo extends Edge {
 
-    private String customerTitle;
-    private boolean customerIsPublic;
+    @Valid
+    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private String ownerName;
+
+    @Valid
+    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private List<EntityInfo> groups;
 
     public EdgeInfo() {
         super();
     }
 
-    public EdgeInfo(EdgeId edgeId) {
-        super(edgeId);
-    }
-
-    public EdgeInfo(Edge edge, String customerTitle, boolean customerIsPublic) {
+    public EdgeInfo(Edge edge, String ownerName, List<EntityInfo> groups) {
         super(edge);
-        this.customerTitle = customerTitle;
-        this.customerIsPublic = customerIsPublic;
+        this.ownerName = ownerName;
+        this.groups = groups;
     }
 }

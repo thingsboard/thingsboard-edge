@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -257,6 +257,7 @@ export interface DefaultDeviceProfileTransportConfiguration {
 export interface MqttDeviceProfileTransportConfiguration {
   deviceTelemetryTopic?: string;
   deviceAttributesTopic?: string;
+  sparkplug?: boolean;
   sendAckOnValidationException?: boolean;
   transportPayloadTypeConfiguration?: {
     transportPayloadType?: TransportPayloadType;
@@ -374,6 +375,7 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
         const mqttTransportConfiguration: MqttDeviceProfileTransportConfiguration = {
           deviceTelemetryTopic: 'v1/devices/me/telemetry',
           deviceAttributesTopic: 'v1/devices/me/attributes',
+          sparkplug: false,
           sendAckOnValidationException: false,
           transportPayloadTypeConfiguration: {
             transportPayloadType: TransportPayloadType.JSON,
@@ -513,12 +515,14 @@ export interface CustomTimeSchedulerItem{
   endsOn: number;
 }
 
-export interface AlarmRule {
+interface AlarmRule {
   condition: AlarmCondition;
   alarmDetails?: string;
   dashboardId?: DashboardId;
   schedule?: AlarmSchedule;
 }
+
+export { AlarmRule as DeviceProfileAlarmRule };
 
 export function alarmRuleValidator(control: AbstractControl): ValidationErrors | null {
   const alarmRule: AlarmRule = control.value;
@@ -599,6 +603,7 @@ export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEnti
 }
 
 export interface DeviceProfileInfo extends EntityInfoData {
+  tenantId?: TenantId;
   type: DeviceProfileType;
   transportType: DeviceTransportType;
   image?: string;
@@ -718,11 +723,10 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   additionalInfo?: any;
 }
 
-/*export interface DeviceInfo extends Device {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  deviceProfileName: string;
-}*/
+export interface DeviceInfo extends Device {
+  ownerName?: string;
+  groups?: EntityInfoData[];
+}
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',

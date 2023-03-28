@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,9 @@ import { AuthService } from '@core/auth/auth.service';
 import { ResourceService } from '@core/http/resource.service';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
+import { NotificationService } from '@core/http/notification.service';
+import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
+import { UserSettingsService } from '@core/http/user-settings.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -81,6 +84,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['dialogs', DialogService],
    ['customDialog', CustomDialogService],
    ['date', DatePipe],
+   ['milliSecondsToTimeString', MillisecondsToTimeStringPipe],
    ['utils', UtilsService],
    ['translate', TranslateService],
    ['http', HttpClient],
@@ -94,6 +98,8 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['authService', AuthService],
    ['resourceService', ResourceService],
    ['twoFactorAuthenticationService', TwoFactorAuthenticationService],
-   ['telemetryWsService', TelemetryWebsocketService]
+   ['telemetryWsService', TelemetryWebsocketService],
+   ['userSettingsService', UserSettingsService],
+   ['notificationService', NotificationService]
   ]
 );

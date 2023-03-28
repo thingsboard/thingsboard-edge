@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import java.util.UUID;
 
 public interface AssetProfileRepository extends JpaRepository<AssetProfileEntity, UUID>, ExportableEntityRepository<AssetProfileEntity> {
 
-    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.name, a.image, a.defaultDashboardId) " +
+    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.tenantId, a.name, a.image, a.defaultDashboardId) " +
             "FROM AssetProfileEntity a " +
             "WHERE a.id = :assetProfileId")
     AssetProfileInfo findAssetProfileInfoById(@Param("assetProfileId") UUID assetProfileId);
@@ -55,14 +55,14 @@ public interface AssetProfileRepository extends JpaRepository<AssetProfileEntity
                                                @Param("textSearch") String textSearch,
                                                Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.name, a.image, a.defaultDashboardId) " +
+    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.tenantId, a.name, a.image, a.defaultDashboardId) " +
             "FROM AssetProfileEntity a WHERE " +
             "a.tenantId = :tenantId AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<AssetProfileInfo> findAssetProfileInfos(@Param("tenantId") UUID tenantId,
                                                  @Param("textSearch") String textSearch,
                                                  Pageable pageable);
 
-    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.name, a.image, a.defaultDashboardId) " +
+    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.tenantId, a.name, a.image, a.defaultDashboardId) " +
             "FROM AssetProfileEntity a WHERE " +
             "a.tenantId = :tenantId AND a.id IN :assetProfileIds")
     List<AssetProfileInfo> findAssetProfileInfosByTenantIdAndIdIn(@Param("tenantId") UUID tenantId,
@@ -71,7 +71,7 @@ public interface AssetProfileRepository extends JpaRepository<AssetProfileEntity
             "WHERE a.tenantId = :tenantId AND a.isDefault = true")
     AssetProfileEntity findByDefaultTrueAndTenantId(@Param("tenantId") UUID tenantId);
 
-    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.name, a.image, a.defaultDashboardId) " +
+    @Query("SELECT new org.thingsboard.server.common.data.asset.AssetProfileInfo(a.id, a.tenantId, a.name, a.image, a.defaultDashboardId) " +
             "FROM AssetProfileEntity a " +
             "WHERE a.tenantId = :tenantId AND a.isDefault = true")
     AssetProfileInfo findDefaultAssetProfileInfo(@Param("tenantId") UUID tenantId);

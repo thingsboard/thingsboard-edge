@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,16 +40,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.group.SortOrder;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -82,6 +84,7 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
@@ -92,13 +95,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+import static org.thingsboard.server.dao.service.Validator.validateEntityIds;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -110,6 +113,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     public static final String ENTITY_GROUP_RELATION_PREFIX = "ENTITY_GROUP_";
     public static final String INCORRECT_PARENT_ENTITY_ID = "Incorrect parentEntityId ";
+
+    public static final String INCORRECT_OWNER_ENTITY_IDS = "Incorrect ownerEntityIds ";
     public static final String INCORRECT_GROUP_TYPE = "Incorrect groupType ";
     public static final String INCORRECT_ENTITY_GROUP_ID = "Incorrect entityGroupId ";
     public static final String INCORRECT_ENTITY_ID = "Incorrect entityId ";
@@ -123,6 +128,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private EntityGroupDao entityGroupDao;
+
+    @Autowired
+    private EntityGroupInfoDao entityGroupInfoDao;
 
     @Autowired
     private RelationDao relationDao;
@@ -153,6 +161,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public EntityGroupInfo findEntityGroupInfoById(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing findEntityGroupInfoById [{}]", entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        return entityGroupInfoDao.findById(tenantId, entityGroupId.getId());
+    }
+
+    @Override
+    public EntityInfo findEntityGroupEntityInfoById(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing findEntityGroupEntityInfoById [{}]", entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        return entityGroupInfoDao.findEntityGroupEntityInfoById(tenantId, entityGroupId.getId());
+    }
+
+    @Override
     public ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupByIdAsync [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
@@ -160,10 +182,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<List<EntityGroup>> findEntityGroupByIdsAsync(TenantId tenantId, List<EntityGroupId> entityGroupIds) {
-        log.trace("Executing findEntityGroupByIdsAsync, entityGroupIds [{}]", entityGroupIds);
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
-        return entityGroupDao.findEntityGroupsByIdsAsync(tenantId.getId(), toUUIDs(entityGroupIds));
+    public ListenableFuture<EntityGroupInfo> findEntityGroupInfoByIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
+        log.trace("Executing findEntityGroupInfoByIdAsync [{}]", entityGroupId);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        return entityGroupInfoDao.findByIdAsync(tenantId, entityGroupId.getId());
     }
 
     @Override
@@ -179,6 +201,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private EntityGroup doSaveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean doValidate) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        entityGroup = new EntityGroup(entityGroup);
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
@@ -256,10 +279,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName) {
-        log.trace("Executing findEntityGroup, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
+    public Optional<EntityGroupInfo> findOwnerEntityGroupInfo(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName) {
+        log.trace("Executing findOwnerEntityGroupInfo, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
         try {
-            return findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName);
+            return findEntityGroupInfoByTypeAndName(tenantId, parentEntityId, groupType, groupName);
         } catch (Exception e) {
             throw new RuntimeException("Entity group with name: " + groupName + " and type: " + groupType + " doesn't exist!", e);
         }
@@ -425,8 +448,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<Optional<EntityGroup>> findPublicUserGroup(TenantId tenantId, CustomerId publicCustomerId) {
-        log.trace("Executing findPublicUserGroup, tenantId [{}], publicCustomerId [{}]", tenantId, publicCustomerId);
+    public ListenableFuture<Optional<EntityGroup>> findPublicUserGroupAsync(TenantId tenantId, CustomerId publicCustomerId) {
+        log.trace("Executing findPublicUserGroupAsync, tenantId [{}], publicCustomerId [{}]", tenantId, publicCustomerId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validateId(publicCustomerId, INCORRECT_CUSTOMER_ID + publicCustomerId);
         return findEntityGroupByTypeAndNameAsync(tenantId, publicCustomerId, EntityType.USER, EntityGroup.GROUP_PUBLIC_USERS_NAME);
@@ -485,63 +508,162 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
-        log.trace("Executing findAllEntityGroups, parentEntityId [{}]", parentEntityId);
+    public PageData<EntityGroup> findAllEntityGroupsByParentRelation(TenantId tenantId, EntityId parentEntityId, PageLink pageLink) {
+        log.trace("Executing findAllEntityGroupsByParentRelation, parentEntityId [{}], pageLink [{}]", parentEntityId, pageLink);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        return this.entityGroupDao.findAllEntityGroups(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType());
+        validatePageLink(pageLink);
+        return this.entityGroupDao.findAllEntityGroupsByParentRelation(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), pageLink);
     }
 
     @Override
     public void deleteAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        ListenableFuture<List<EntityGroup>> entityGroupsFuture = findAllEntityGroups(tenantId, parentEntityId);
-        try {
-            List<EntityGroup> entityGroups = entityGroupsFuture.get();
-            entityGroups.forEach(entityGroup -> deleteEntityGroup(tenantId, entityGroup.getId()));
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to delete entity groups", e);
-        }
+        entityGroupsRemover.removeEntities(tenantId, parentEntityId);
     }
 
     @Override
-    public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType) {
-        log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        if (groupType == null) {
-            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
-        }
-        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), groupType);
-    }
-
-    @Override
-    public ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
-                                                                                     EntityType groupType, PageLink pageLink) {
-        log.trace("Executing findEntityGroupsByTypeAndPageLink, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
+    public PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId,
+                                                        EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validatePageLink(pageLink);
-        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), parentEntityId.getId(),
+        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, pageLink);
     }
 
     @Override
-    public PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityType groupType, PageLink pageLink) {
-        log.trace("Executing findEntityGroupsByTypeAndPageLink, tenantId [{}], groupType [{}], pageLink [{}]", tenantId, groupType, pageLink);
+    public PageData<EntityGroupInfo> findEntityGroupInfosByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupInfosByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupEntityInfosByType(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, pageLink);
+    }
+
+    @Override
+    public PageData<EntityGroupInfo> findEntityGroupInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
+        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupsByOwnerIdsAndType(tenantId.getId(),
+                ownerIds.stream().map(EntityId::getId).collect(Collectors.toList()), groupType, pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
+        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupEntityInfosByOwnerIdsAndType(tenantId.getId(),
+                ownerIds.stream().map(EntityId::getId).collect(Collectors.toList()), groupType, pageLink);
+    }
+
+    @Override
+    public PageData<EntityGroupInfo> findEntityGroupInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
+        log.trace("Executing findEntityGroupInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        return entityGroupInfoDao.findEntityGroupsByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        return entityGroupInfoDao.findEntityGroupEntityInfosByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
+    }
+
+    @Override
+    public PageData<EntityGroupInfo> findEntityGroupInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId, EntityType groupType,
+                                                                     List<EntityGroupId> entityGroupIds, PageLink pageLink) {
+        log.trace("Executing findEntityGroupInfosByTypeOrIds, parentEntityId [{}], groupType [{}], entityGroupIds [{}], pageLink [{}]",
+                parentEntityId, groupType, entityGroupIds, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupsByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId, EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
+        log.trace("Executing findEntityGroupEntityInfosByTypeOrIds, parentEntityId [{}], groupType [{}], entityGroupIds [{}], pageLink [{}]",
+                parentEntityId, groupType, entityGroupIds, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validatePageLink(pageLink);
+        return this.entityGroupInfoDao.findEntityGroupEntityInfosByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
+    }
+
+    @Override
+    public PageData<EntityGroupInfo> findEdgeEntityGroupInfosByOwnerIdType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink) {
+        log.trace("[{}] Executing findEdgeEntityGroupInfosByOwnerIdType, edgeId [{}], ownerId [{}], groupType [{}], pageLink [{}]", tenantId, edgeId, ownerId, groupType, pageLink);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validateEntityId(ownerId, "Incorrect ownerId " + ownerId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupInfoDao.findEdgeEntityGroupsByOwnerIdAndType(tenantId.getId(), edgeId.getId(), ownerId.getId(), ownerId.getEntityType(), relationType, pageLink);
+    }
+
+    @Override
+    public PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupsByType, tenantId [{}], groupType [{}], pageLink [{}]", tenantId, groupType, pageLink);
         validateEntityId(tenantId, INCORRECT_TENANT_ID + tenantId);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validatePageLink(pageLink);
-        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), groupType, pageLink);
+        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), groupType, pageLink);
     }
 
     @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, name);
+    }
+
+    @Override
+    public Optional<EntityGroupInfo> findEntityGroupInfoByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
+        log.trace("Executing findEntityGroupInfoByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
+        return this.entityGroupInfoDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, name);
     }
 
@@ -779,8 +901,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
-        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+    public ListenableFuture<List<EntityId>> findAllEntityIdsAsync(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
+        log.trace("Executing findAllEntityIdsAsync, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
@@ -796,7 +918,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId) {
+    public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntityAsync(TenantId tenantId, EntityId entityId) {
         return executorService.submit(() -> {
             var relations = relationDao.findAllByToAndType(tenantId, entityId,
                     EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
@@ -856,8 +978,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
-        log.trace("Executing checkEdgeEntityGroupById, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
+    public ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
+        log.trace("Executing checkEdgeEntityGroupByIdAsync, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         return relationService.checkRelationAsync(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
@@ -865,7 +987,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroup(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
+    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
         String entityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
                 .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
@@ -969,5 +1091,19 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
         }
     }
+
+    private PaginatedRemover<EntityId, EntityGroup> entityGroupsRemover =
+            new PaginatedRemover<>() {
+
+                @Override
+                protected PageData<EntityGroup> findEntities(TenantId tenantId, EntityId id, PageLink pageLink) {
+                    return entityGroupDao.findAllEntityGroups(tenantId.getId(), id.getId(), id.getEntityType(), pageLink);
+                }
+
+                @Override
+                protected void removeEntity(TenantId tenantId, EntityGroup entity) {
+                    deleteEntityGroup(tenantId, new EntityGroupId(entity.getId().getId()));
+                }
+            };
 
 }

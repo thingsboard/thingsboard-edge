@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -122,6 +122,12 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
                     user, e, deviceId.toString());
             throw e;
         }
+    }
+
+    @Override
+    public ListenableFuture<Void> delete(DeviceId deviceId, User user) {
+        Device device = deviceService.findDeviceById(user.getTenantId(), deviceId);
+        return delete(device, user);
     }
 
     @Override

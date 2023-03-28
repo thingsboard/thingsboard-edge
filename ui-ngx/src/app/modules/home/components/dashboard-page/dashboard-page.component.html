@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -174,6 +174,7 @@
                                [(ngModel)]="currentDashboardId"
                                (ngModelChange)="currentDashboardIdChanged(currentDashboardId)"
                                [groupId]="entityGroupId"
+                               [customerId]="customerId"
                                [operation]="readonly ? operation.READ : operation.WRITE">
           </tb-dashboard-select>
         </div>
@@ -192,7 +193,7 @@
         <section *ngIf="!widgetEditMode" class="tb-dashboard-title"
                  [ngStyle]="{'color': dashboard.configuration.settings.titleColor}">
           <h3 [fxShow]="!isEdit && displayTitle()">{{ translatedDashboardTitle }}</h3>
-          <mat-form-field [fxShow]="isEdit" class="mat-block">
+          <mat-form-field [fxShow]="isEdit" class="mat-block tb-appearance-transparent">
             <mat-label translate [ngStyle]="{'color': dashboard.configuration.settings.titleColor}">dashboard.title</mat-label>
             <input matInput class="tb-dashboard-title"
                    [ngStyle]="{'color': dashboard.configuration.settings.titleColor}"
@@ -317,7 +318,7 @@
             </tb-widgets-bundle-search>
           </div>
           <div class="details-buttons" *ngIf="isAddingWidget">
-            <button mat-button mat-icon-button type="button"
+            <button mat-icon-button type="button"
                     *ngIf="dashboardWidgetSelectComponent?.widgetTypes.size > 1"
                     (click)="editWidgetsTypesToDisplay($event)"
                     matTooltip="{{ 'widget.filter' | translate }}"

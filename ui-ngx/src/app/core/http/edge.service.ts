@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import { CloudEvent, EdgeSettings } from '@shared/models/edge.models';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { Edge, EdgeEvent, EdgeInstallInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
+import { Edge, EdgeEvent, EdgeInfo, EdgeInstallInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 
@@ -83,11 +83,11 @@ export class EdgeService {
     return this.http.get<Array<EntitySubtype>>('/api/edge/types', defaultHttpOptionsFromConfig(config));
   }
 
-  public getCustomerEdgeInfos(customerId: string, pageLink: PageLink, type: string = '',
+  /* public getCustomerEdgeInfos(customerId: string, pageLink: PageLink, type: string = '',
                                config?: RequestConfig): Observable<PageData<Edge>> {
     return this.http.get<PageData<Edge>>(`/api/customer/${customerId}/edgeInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
-  }
+  } */
 
   public assignEdgeToCustomer(customerId: string, edgeId: string,
                               config?: RequestConfig): Observable<Edge> {
@@ -118,6 +118,27 @@ export class EdgeService {
 
   public getUserEdges(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<Edge>> {
     return this.http.get<PageData<Edge>>(`/api/user/edges${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllEdgeInfos(includeCustomers: boolean,
+                         pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EdgeInfo>> {
+    let url = `/api/edgeInfos/all${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EdgeInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerEdgeInfos(includeCustomers: boolean, customerId: string,
+                              pageLink: PageLink, type: string = '',
+                              config?: RequestConfig): Observable<PageData<EdgeInfo>> {
+    let url = `/api/customer/${customerId}/edgeInfos${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EdgeInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

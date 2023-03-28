@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,10 @@ package org.thingsboard.server.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
@@ -54,6 +57,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.service.session.DeviceSessionCacheService;
 
 import java.util.ArrayList;
 import java.util.List;

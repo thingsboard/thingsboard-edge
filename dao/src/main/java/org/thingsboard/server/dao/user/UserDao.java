@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,12 @@ package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
@@ -117,5 +120,15 @@ public interface UserDao extends Dao<User>, TenantEntityDao {
     PageData<User> findUsersByEntityGroupId(UUID groupId, PageLink pageLink);
 
     PageData<User> findUsersByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<User> findUsersByTenantIdAndRolesIds(TenantId tenantId, List<RoleId> rolesIds, PageLink pageLink);
+
+    PageData<User> findAll(PageLink pageLink);
+
+    PageData<User> findAllByAuthority(Authority authority, PageLink pageLink);
+
+    PageData<User> findByAuthorityAndTenantsIds(Authority authority, List<TenantId> tenantsIds, PageLink pageLink);
+
+    PageData<User> findByAuthorityAndTenantProfilesIds(Authority authority, List<TenantProfileId> tenantProfilesIds, PageLink pageLink);
 
 }

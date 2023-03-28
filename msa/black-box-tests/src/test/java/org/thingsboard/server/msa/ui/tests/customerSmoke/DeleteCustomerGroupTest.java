@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,10 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
@@ -42,9 +45,8 @@ import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
 
@@ -52,33 +54,35 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
     private CustomerPageHelper customerPage;
     private RuleChainsPageHelper ruleChainsPage;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         customerPage = new CustomerPageHelper(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Remove the customer group by clicking on the trash icon in the right side of refresh")
     public void removeCustomerByRightSideBtn() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        String deletedCustomerGroup = customerPage.deleteTrash(customerGroupName);
+        String deletedCustomerGroup = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomerGroup));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Remove customer group by mark in the checkbox and then click on the trash can icon in the menu that appears at the top")
     public void removeSelectedCustomer() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
@@ -88,10 +92,12 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedCustomer));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Remove the customer group by clicking on the 'Delete customer group' btn in the entity view")
     public void removeFromCustomerView() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
@@ -103,14 +109,16 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entityIsNotPresent(customerGroupName));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Delete one customer group")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Remove the customer group by clicking on the trash icon in the right side of customer without refresh")
     public void removeCustomerByRightSideBtnWithoutRefresh() {
-        String customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        String deletedCustomer = customerPage.deleteTrash(customerGroupName);
+        String deletedCustomer = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomer));

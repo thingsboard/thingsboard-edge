@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -77,7 +77,7 @@ export class AlarmRuleConditionComponent implements ControlValueAccessor, OnInit
   @Input()
   deviceProfileId: EntityId;
 
-  alarmRuleConditionFormGroup: FormGroup;
+  alarmRuleConditionFormGroup: UntypedFormGroup;
 
   specText = '';
 
@@ -86,7 +86,7 @@ export class AlarmRuleConditionComponent implements ControlValueAccessor, OnInit
   private propagateChange = (v: any) => { };
 
   constructor(private dialog: MatDialog,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private translate: TranslateService) {
   }
 
@@ -125,7 +125,7 @@ export class AlarmRuleConditionComponent implements ControlValueAccessor, OnInit
     return this.modelValue && this.modelValue.condition.length;
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return this.conditionSet() ? null : {
       alarmRuleCondition: {
         valid: false,

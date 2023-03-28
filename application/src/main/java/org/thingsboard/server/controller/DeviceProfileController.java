@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -129,7 +129,11 @@ public class DeviceProfileController extends BaseController {
         checkParameter(DEVICE_PROFILE_ID, strDeviceProfileId);
         try {
             DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
-            return new DeviceProfileInfo(checkDeviceProfileId(deviceProfileId, Operation.READ));
+            DeviceProfileInfo deviceProfileInfo = checkNotNull(deviceProfileService.findDeviceProfileInfoById(getTenantId(), deviceProfileId));
+            if (!getTenantId().equals(deviceProfileInfo.getTenantId())) {
+                throw permissionDenied();
+            }
+            return deviceProfileInfo;
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,7 @@ public class MqttTestClient {
 
     private static final String MQTT_URL = "tcp://localhost:1883";
     private static final int TIMEOUT = 30; // seconds
-    private static final long TIMEOUT_MS = TimeUnit.SECONDS.toMillis(TIMEOUT);
+    public static final long TIMEOUT_MS = TimeUnit.SECONDS.toMillis(TIMEOUT);
 
     private final MqttAsyncClient client;
 

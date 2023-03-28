@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-
 <section *ngIf="!versionCreateResult$">
   <mat-toolbar>
     <h2>{{ 'version-control.create-entity-version' | translate }}</h2>
@@ -90,7 +89,7 @@
 <section *ngIf="versionCreateResult$">
   <section *ngIf="(versionCreateResult$ | async)?.done || resultMessage; else progress">
     <section *ngIf="resultMessage">
-      <div class="mat-title vc-result-message">{{ resultMessage }}</div>
+      <div class="mat-headline-6 vc-result-message">{{ resultMessage }}</div>
       <div fxLayoutAlign="end center" fxLayoutGap="8px">
         <button mat-button color="primary"
                 type="button"
@@ -103,7 +102,7 @@
   </section>
   <ng-template #progress>
     <section fxLayout="column" fxLayoutAlign="center center">
-      <div class="mat-title vc-result-message progress">
+      <div class="mat-headline-6 vc-result-message progress">
         <span translate>version-control.creating-version</span>
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       </div>

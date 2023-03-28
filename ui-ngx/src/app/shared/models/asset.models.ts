@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,6 +54,7 @@ export interface AssetProfile extends BaseData<AssetProfileId>, ExportableEntity
 }
 
 export interface AssetProfileInfo extends EntityInfoData {
+  tenantId?: TenantId;
   image?: string;
   defaultDashboardId?: DashboardId;
 }
@@ -68,11 +69,10 @@ export interface Asset extends BaseData<AssetId>, ExportableEntity<AssetId> {
   additionalInfo?: any;
 }
 
-/*export interface AssetInfo extends Asset {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  assetProfileName: string;
-}*/
+export interface AssetInfo extends Asset {
+  ownerName?: string;
+  groups?: EntityInfoData[];
+}
 
 export interface AssetSearchQuery extends EntitySearchQuery {
   assetTypes: Array<string>;
