@@ -1224,6 +1224,8 @@ public class DefaultSolutionService implements SolutionService {
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.USER, entityDef.getUserGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DASHBOARD, entityDef.getDashboardGroups(), entity);
+            assignAssetsToEdge(ctx, entityDef.getAssetIds(), entity);
+            assignDevicesToEdge(ctx, entityDef.getDeviceIds(), entity);
             assignSchedulerEventsToEdge(ctx, entityDef.getSchedulerEventIds(), entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved edge: {}", entity.getId(), entity);
@@ -1284,6 +1286,56 @@ public class DefaultSolutionService implements SolutionService {
                 schedulerEventService.assignSchedulerEventToEdge(ctx.getTenantId(), schedulerEventId, entity.getId());
             } else {
                 log.error("[{}][{}] Edge: {} references non existing scheduler event.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
+    private void assignAssetsToEdge(SolutionInstallContext ctx, List<String> assetIds, Edge entity) throws ThingsboardException {
+        if (assetIds == null || assetIds.isEmpty()) {
+            return;
+        }
+        EntityGroup edgeAssetGroup;
+        try {
+            edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.ASSET).get();
+            ctx.register(edgeAssetGroup.getId());
+            ctx.putIdToMap(edgeAssetGroup.getOwnerId(), EntityType.ASSET, edgeAssetGroup.getName(), edgeAssetGroup.getId());
+        } catch (Exception e) {
+            log.error("[{}] Failed to find or create edge all asset group", ctx.getTenantId(), e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+        for (String strAssetId : assetIds) {
+            String newId = ctx.getRealIds().get(strAssetId);
+            if (newId != null) {
+                AssetId assetId = new AssetId(UUID.fromString(newId));
+                entityGroupService.addEntityToEntityGroup(ctx.getTenantId(), edgeAssetGroup.getId(), assetId);
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing asset.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
+    private void assignDevicesToEdge(SolutionInstallContext ctx, List<String> deviceIds, Edge entity) throws ThingsboardException {
+        if (deviceIds == null || deviceIds.isEmpty()) {
+            return;
+        }
+        EntityGroup edgeDeviceGroup;
+        try {
+            edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.DEVICE).get();
+            ctx.register(edgeDeviceGroup.getId());
+            ctx.putIdToMap(edgeDeviceGroup.getOwnerId(), EntityType.DEVICE, edgeDeviceGroup.getName(), edgeDeviceGroup.getId());
+        } catch (Exception e) {
+            log.error("[{}] Failed to find or create edge all device group", ctx.getTenantId(), e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+        for (String strDeviceId : deviceIds) {
+            String newId = ctx.getRealIds().get(strDeviceId);
+            if (newId != null) {
+                DeviceId deviceId = new DeviceId(UUID.fromString(newId));
+                entityGroupService.addEntityToEntityGroup(ctx.getTenantId(), edgeDeviceGroup.getId(), deviceId);
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing device.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
                 throw new ThingsboardRuntimeException();
             }
         }

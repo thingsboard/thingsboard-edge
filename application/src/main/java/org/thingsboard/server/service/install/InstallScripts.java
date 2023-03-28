@@ -105,7 +105,6 @@ public class InstallScripts {
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
-    public static final String CREDENTIALS_DIR = "credentials";
     public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
 
     public static final String JSON_EXT = ".json";

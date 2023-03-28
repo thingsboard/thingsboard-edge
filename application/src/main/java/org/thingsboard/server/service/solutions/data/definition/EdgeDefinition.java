@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,6 +54,8 @@ public class EdgeDefinition extends CustomerEntityDefinition {
     private List<EdgeEntityGroupDefinition> deviceGroups = Collections.emptyList();
     private List<EdgeEntityGroupDefinition> dashboardGroups = Collections.emptyList();
     private List<String> schedulerEventIds = Collections.emptyList();
+    private List<String> deviceIds = Collections.emptyList();
+    private List<String> assetIds = Collections.emptyList();
 
     @Override
     public EntityType getEntityType() {
