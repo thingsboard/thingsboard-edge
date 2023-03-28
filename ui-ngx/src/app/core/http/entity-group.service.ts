@@ -367,6 +367,11 @@ export class EntityGroupService {
     }
   }
 
+  public getEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType,
+                                   config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.getEntityGroups(pageLink, groupType, true, config);
+  }
+
   public getEntityGroupAllByOwnerId(ownerType: EntityType, ownerId: string, groupType: EntityType,
                                     config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/all/${ownerType}/${ownerId}/${groupType}`,
