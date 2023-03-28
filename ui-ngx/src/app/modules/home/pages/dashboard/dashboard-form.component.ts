@@ -35,7 +35,7 @@ import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
-import { Dashboard } from '@shared/models/dashboard.models';
+import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
@@ -47,7 +47,7 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
   templateUrl: './dashboard-form.component.html',
   styleUrls: ['./dashboard-form.component.scss']
 })
-export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
+export class DashboardFormComponent extends GroupEntityComponent<DashboardInfo> {
 
   // dashboardScope: 'tenant' | 'customer' | 'customer_user';
   // customerId: string;
@@ -59,9 +59,9 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               private dashboardService: DashboardService,
-              @Inject('entity') protected entityValue: Dashboard,
+              @Inject('entity') protected entityValue: DashboardInfo,
               @Inject('entitiesTableConfig')
-              protected entitiesTableConfigValue: EntityTableConfig<Dashboard> | GroupEntityTableConfig<Dashboard>,
+              protected entitiesTableConfigValue: EntityTableConfig<DashboardInfo> | GroupEntityTableConfig<DashboardInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -94,7 +94,7 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     }
   }
 
-  buildForm(entity: Dashboard): UntypedFormGroup {
+  buildForm(entity: DashboardInfo): UntypedFormGroup {
     this.updateFields(entity);
     return this.fb.group(
       {

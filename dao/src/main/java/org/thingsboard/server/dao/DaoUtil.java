@@ -37,6 +37,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -56,6 +57,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class DaoUtil {
+
     private static final int MAX_IN_VALUE = Short.MAX_VALUE / 2;
 
     private DaoUtil() {
@@ -66,7 +68,7 @@ public abstract class DaoUtil {
         return new PageData<>(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
-    public static <T,V> PageData<V> pageToPageData(Page<T> page, Function<T, V> transform) {
+    public static <T, V> PageData<V> pageToPageData(Page<T> page, Function<T, V> transform) {
         return new PageData<>(page.getContent().stream().map(transform).collect(Collectors.toList()), page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
@@ -135,14 +137,22 @@ public abstract class DaoUtil {
         return ids;
     }
 
+    public static <I> List<I> fromUUIDs(List<UUID> uuids, Function<UUID, I> mapper) {
+        return uuids.stream().map(mapper).collect(Collectors.toList());
+    }
+
     public static <T> void processInBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<T> processor) {
+        processBatches(finder, batchSize, batch -> batch.getData().forEach(processor));
+    }
+
+    public static <T> void processBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<PageData<T>> processor) {
         PageLink pageLink = new PageLink(batchSize);
         PageData<T> batch;
 
         boolean hasNextBatch;
         do {
             batch = finder.apply(pageLink);
-            batch.getData().forEach(processor);
+            processor.accept(batch);
 
             hasNextBatch = batch.hasNext();
             pageLink = pageLink.nextPageLink();
@@ -186,4 +196,5 @@ public abstract class DaoUtil {
             return Optional.empty();
         }
     }
+
 }

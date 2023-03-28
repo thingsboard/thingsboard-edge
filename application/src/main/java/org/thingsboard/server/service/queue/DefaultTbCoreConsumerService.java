@@ -33,17 +33,20 @@ package org.thingsboard.server.service.queue;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
@@ -52,9 +55,6 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
-import org.thingsboard.server.common.data.alarm.AlarmAssigneeUpdate;
-import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -94,6 +94,7 @@ import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
+import org.thingsboard.server.service.notification.NotificationSchedulerService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -103,12 +104,16 @@ import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
+import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.sync.vc.GitVersionControlQueueService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
+import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
+import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
+import org.thingsboard.server.service.ws.notification.sub.NotificationsSubscriptionUpdate;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -155,6 +160,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final OtaPackageStateService firmwareStateService;
     private final GitVersionControlQueueService vcQueueService;
     private final TbCoreIntegrationApiService tbCoreIntegrationApiService;
+    private final NotificationSchedulerService notificationSchedulerService;
     private final TbCoreConsumerStats stats;
     protected final TbQueueConsumer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
     private final TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
@@ -176,8 +182,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         GitVersionControlQueueService vcQueueService,
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
                                         PartitionService partitionService,
-                                        Optional<JwtSettingsService> jwtSettingsService) {
-        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
+                                        ApplicationEventPublisher eventPublisher,
+                                        Optional<JwtSettingsService> jwtSettingsService,
+                                        NotificationSchedulerService notificationSchedulerService) {
+        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, eventPublisher, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();
@@ -195,6 +203,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.firmwareStateService = firmwareStateService;
         this.vcQueueService = vcQueueService;
         this.tbCoreIntegrationApiService = tbCoreIntegrationApiService;
+        this.notificationSchedulerService = notificationSchedulerService;
     }
 
     @PostConstruct
@@ -303,6 +312,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         }
                                     }
                                     callback.onSuccess();
+                                } else if (toCoreMsg.hasNotificationSchedulerServiceMsg()) {
+                                    TransportProtos.NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = toCoreMsg.getNotificationSchedulerServiceMsg();
+                                    log.trace("[{}] Forwarding message to notification scheduler service {}", id, toCoreMsg.getNotificationSchedulerServiceMsg());
+                                    forwardToNotificationSchedulerService(notificationSchedulerServiceMsg, callback);
                                 } else {
                                     log.warn("[{}] No rule how to forward message from main consumer for message: {}", id, toCoreMsg);
                                 }
@@ -396,6 +409,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasVcResponseMsg()) {
             vcQueueService.processResponse(toCoreNotification.getVcResponseMsg());
             callback.onSuccess();
+        } else if (toCoreNotification.hasToSubscriptionMgrMsg()) {
+            forwardToSubMgrService(toCoreNotification.getToSubscriptionMgrMsg(), callback);
         }
         if (statsEnabled) {
             stats.logToCoreNotification();
@@ -551,6 +566,18 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             localSubscriptionService.onSubscriptionUpdate(msg.getSubUpdate().getSessionId(), TbSubscriptionUtils.fromProto(msg.getSubUpdate()), callback);
         } else if (msg.hasAlarmSubUpdate()) {
             localSubscriptionService.onSubscriptionUpdate(msg.getAlarmSubUpdate().getSessionId(), TbSubscriptionUtils.fromProto(msg.getAlarmSubUpdate()), callback);
+        } else if (msg.hasNotificationsSubUpdate()) {
+            TransportProtos.NotificationsSubscriptionUpdateProto subUpdateProto = msg.getNotificationsSubUpdate();
+            NotificationsSubscriptionUpdate notificationsSubscriptionUpdate;
+            if (StringUtils.isNotEmpty(subUpdateProto.getNotificationUpdate())) {
+                NotificationUpdate notificationUpdate = JacksonUtil.fromString(subUpdateProto.getNotificationUpdate(), NotificationUpdate.class);
+                notificationsSubscriptionUpdate = new NotificationsSubscriptionUpdate(notificationUpdate);
+            } else {
+                NotificationRequestUpdate notificationRequestUpdate = JacksonUtil.fromString(subUpdateProto.getNotificationRequestUpdate(), NotificationRequestUpdate.class);
+                notificationsSubscriptionUpdate = new NotificationsSubscriptionUpdate(notificationRequestUpdate);
+            }
+            localSubscriptionService.onSubscriptionUpdate(subUpdateProto.getSessionId(),
+                    subUpdateProto.getSubscriptionId(), notificationsSubscriptionUpdate, callback);
         } else {
             throwNotHandled(msg, callback);
         }
@@ -563,6 +590,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             subscriptionManagerService.addSubscription(TbSubscriptionUtils.fromProto(msg.getTelemetrySub()), callback);
         } else if (msg.hasAlarmSub()) {
             subscriptionManagerService.addSubscription(TbSubscriptionUtils.fromProto(msg.getAlarmSub()), callback);
+        } else if (msg.hasNotificationsSub()) {
+            subscriptionManagerService.addSubscription(TbSubscriptionUtils.fromProto(msg.getNotificationsSub()), callback);
+        } else if (msg.hasNotificationsCountSub()) {
+            subscriptionManagerService.addSubscription(TbSubscriptionUtils.fromProto(msg.getNotificationsCountSub()), callback);
         } else if (msg.hasSubClose()) {
             TbSubscriptionCloseProto closeProto = msg.getSubClose();
             subscriptionManagerService.cancelSubscription(closeProto.getSessionId(), closeProto.getSubscriptionId(), callback);
@@ -603,6 +634,17 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
                     JacksonUtil.fromString(proto.getAlarm(), AlarmInfo.class), callback);
+        } else if (msg.hasNotificationUpdate()) {
+            TransportProtos.NotificationUpdateProto updateProto = msg.getNotificationUpdate();
+            TenantId tenantId = TenantId.fromUUID(new UUID(updateProto.getTenantIdMSB(), updateProto.getTenantIdLSB()));
+            UserId recipientId = new UserId(new UUID(updateProto.getRecipientIdMSB(), updateProto.getRecipientIdLSB()));
+            NotificationUpdate update = JacksonUtil.fromString(updateProto.getUpdate(), NotificationUpdate.class);
+            subscriptionManagerService.onNotificationUpdate(tenantId, recipientId, update, callback);
+        } else if (msg.hasNotificationRequestUpdate()) {
+            TransportProtos.NotificationRequestUpdateProto updateProto = msg.getNotificationRequestUpdate();
+            TenantId tenantId = TenantId.fromUUID(new UUID(updateProto.getTenantIdMSB(), updateProto.getTenantIdLSB()));
+            NotificationRequestUpdate update = JacksonUtil.fromString(updateProto.getUpdate(), NotificationRequestUpdate.class);
+            subscriptionManagerService.onNotificationRequestUpdate(tenantId, update, callback);
         } else {
             throwNotHandled(msg, callback);
         }
@@ -659,6 +701,17 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             stats.logToCoreNotification();
         }
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
+    }
+
+    private void forwardToNotificationSchedulerService(TransportProtos.NotificationSchedulerServiceMsg msg, TbCallback callback) {
+        TenantId tenantId = TenantId.fromUUID(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
+        NotificationRequestId notificationRequestId = new NotificationRequestId(new UUID(msg.getRequestIdMSB(), msg.getRequestIdLSB()));
+        try {
+            notificationSchedulerService.scheduleNotificationRequest(tenantId, notificationRequestId, msg.getTs());
+            callback.onSuccess();
+        } catch (Exception e) {
+            callback.onFailure(new RuntimeException("Failed to schedule notification request", e));
+        }
     }
 
     private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Device, DeviceCredentials } from '@shared/models/device.models';
+import { DeviceCredentials, DeviceInfo } from '@shared/models/device.models';
 import { Observable, of, Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
@@ -41,7 +41,7 @@ import {
 import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
-import { tap } from 'rxjs/operators';
+import { mergeMap, tap } from 'rxjs/operators';
 import { DeviceService } from '@core/http/device.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -60,15 +60,14 @@ import {
   DeviceWizardDialogComponent,
   DeviceWizardDialogData
 } from '@home/components/wizard/device-wizard-dialog.component';
-import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { Router, UrlTree } from '@angular/router';
 import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
-export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
+export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<DeviceInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Device>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<DeviceInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -80,8 +79,8 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Device>): Observable<GroupEntityTableConfig<Device>> {
-    const config = new GroupEntityTableConfig<Device>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<DeviceInfo>): Observable<GroupEntityTableConfig<DeviceInfo>> {
+    const config = new GroupEntityTableConfig<DeviceInfo>(entityGroup, params);
 
     config.entityComponent = DeviceComponent;
 
@@ -97,13 +96,13 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     config.deleteEntitiesTitle = count => this.translate.instant('device.delete-devices-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('device.delete-devices-text');
 
-    config.loadEntity = id => this.deviceService.getDevice(id.id);
-    config.saveEntity = device => {
-      return this.deviceService.saveDevice(device).pipe(
-        tap(() => {
-          this.broadcast.broadcast('deviceSaved');
-        }));
-    };
+    config.loadEntity = id => this.deviceService.getDeviceInfo(id.id);
+    config.saveEntity = device => this.deviceService.saveDevice(device).pipe(
+      tap(() => {
+        this.broadcast.broadcast('deviceSaved');
+      }),
+      mergeMap((savedDevice) => this.deviceService.getDeviceInfo(savedDevice.id.id)
+      ));
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
 
     config.onEntityAction = action => this.onDeviceAction(action, config, params);
@@ -147,9 +146,9 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  deviceWizard(config: GroupEntityTableConfig<Device>): Observable<Device> {
+  deviceWizard(config: GroupEntityTableConfig<DeviceInfo>): Observable<DeviceInfo> {
     return this.dialog.open<DeviceWizardDialogComponent, DeviceWizardDialogData,
-      Device>(DeviceWizardDialogComponent, {
+      DeviceInfo>(DeviceWizardDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -158,7 +157,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     }).afterClosed();
   }
 
-  importDevices($event: Event, config: GroupEntityTableConfig<Device>) {
+  importDevices($event: Event, config: GroupEntityTableConfig<DeviceInfo>) {
     const entityGroup = config.entityGroup;
     const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
     let customerId: CustomerId = null;
@@ -173,7 +172,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  private openDevice($event: Event, device: Device, config: GroupEntityTableConfig<Device>, params: EntityGroupParams) {
+  private openDevice($event: Event, device: DeviceInfo, config: GroupEntityTableConfig<DeviceInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -193,7 +192,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     }
   }
 
-  manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean, config: GroupEntityTableConfig<Device>) {
+  manageCredentials($event: Event, device: DeviceInfo | ShortEntityView, isReadOnly: boolean, config: GroupEntityTableConfig<DeviceInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -213,7 +212,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>, params: EntityGroupParams): boolean {
+  onDeviceAction(action: EntityAction<DeviceInfo>, config: GroupEntityTableConfig<DeviceInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openDevice(action.event, action.entity, config, params);

@@ -194,7 +194,7 @@
                     <tb-spark-line [chartData]="cellContent(entity, column, row)" [chartProperty]="cellChartStyle(entity, column, row)"></tb-spark-line>
                   </ng-template>
                   <ng-template [ngSwitchCase]="'groups'">
-                    <tb-group-chips [groups]="entity.groups" [entityType]="entitiesTableConfig.entityType"></tb-group-chips>
+                    <tb-group-chips [groups]="entity.groups" [ownerId]="entity.ownerId" [entityType]="entitiesTableConfig.entityType"></tb-group-chips>
                   </ng-template>
                   <ng-template ngSwitchDefault>
                     <span [innerHTML]="cellContent(entity, column, row)"></span>

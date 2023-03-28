@@ -108,10 +108,9 @@ export class EntityViewService {
       defaultHttpOptionsFromConfig(config));
   }
 
-
-  /* public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
+  public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
     return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));
-  } */
+  }
 
   public saveEntityView(entityView: EntityView, entityGroupId?: string, config?: RequestConfig): Observable<EntityView> {
     let url = '/api/entityView';

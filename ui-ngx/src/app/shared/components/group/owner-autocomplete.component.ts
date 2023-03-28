@@ -40,19 +40,17 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId, entityIdsEquals } from '@shared/models/id/entity-id';
-import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { ContactBased } from '@shared/models/contact-based.model';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 @Component({
   selector: 'tb-owner-autocomplete',
@@ -96,7 +94,7 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
 
   @ViewChild('ownerInput', {static: true}) ownerInput: ElementRef<HTMLInputElement>;
 
-  filteredOwners: Observable<Array<ContactBased<EntityId>>>;
+  filteredOwners: Observable<Array<EntityInfoData>>;
 
   searchText = '';
 
@@ -106,7 +104,6 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               private fb: UntypedFormBuilder) {
     this.selectOwnerFormGroup = this.fb.group({
@@ -175,16 +172,22 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
     }
   }
 
-  writeValue(value: EntityId | null): void {
+  writeValue(value: EntityId | EntityInfoData | null): void {
     this.searchText = '';
-    if (value !== null && value.entityType && value.id) {
-        const targetEntityType = value.entityType as EntityType;
-        this.entityService.getEntity(targetEntityType, value.id, {ignoreLoading: true}).subscribe(
+    if (value !== null) {
+      if ((value as EntityId).entityType && (value as EntityId).id) {
+        const ownerId = value as EntityId;
+        this.entityGroupService.getOwnerInfo(ownerId, {ignoreLoading: true}).subscribe(
           (owner) => {
             this.modelValue = owner.id;
             this.selectOwnerFormGroup.get('owner').patchValue(owner, {emitEvent: false});
           }
         );
+      } else {
+        const owner = value as EntityInfoData;
+        this.modelValue = owner.id;
+        this.selectOwnerFormGroup.get('owner').patchValue(owner, {emitEvent: false});
+      }
     } else {
       this.modelValue = null;
       this.selectOwnerFormGroup.get('owner').patchValue('', {emitEvent: false});
@@ -210,11 +213,11 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
     }
   }
 
-  displayOwnerFn(owner?: ContactBased<EntityId>): string | undefined {
+  displayOwnerFn(owner?: EntityInfoData): string | undefined {
     return owner ? owner.name : undefined;
   }
 
-  fetchOwners(searchText?: string): Observable<Array<ContactBased<EntityId>>> {
+  fetchOwners(searchText?: string): Observable<Array<EntityInfoData>> {
     this.searchText = searchText;
     let limit = 50;
     if (this.excludeOwnerIds && this.excludeOwnerIds.length) {
@@ -224,12 +227,12 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
       property: 'name',
       direction: Direction.ASC
     });
-    return this.entityGroupService.getOwners(pageLink, {ignoreLoading: true}).pipe(
+    return this.entityGroupService.getOwnerInfos(pageLink, {ignoreLoading: true}).pipe(
       catchError(() => of(null)),
       map((data) => {
           if (data) {
             if (this.excludeOwnerIds && this.excludeOwnerIds.length) {
-              const owners: Array<ContactBased<EntityId>> = [];
+              const owners: Array<EntityInfoData> = [];
               data.data.forEach((owner) => {
                 if (this.excludeOwnerIds.indexOf(owner.id.id) === -1) {
                   owners.push(owner);

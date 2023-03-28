@@ -71,6 +71,16 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getOwnerInfos(pageLink: PageLink, config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/ownerInfos${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getOwnerInfo(ownerId: EntityId, config?: RequestConfig): Observable<EntityInfoData> {
+    return this.http.get<EntityInfoData>(`/api/ownerInfo/${ownerId.entityType}/${ownerId.id}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getEntityGroup(entityGroupId: string, config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/${entityGroupId}`,
       defaultHttpOptionsFromConfig(config)).pipe(

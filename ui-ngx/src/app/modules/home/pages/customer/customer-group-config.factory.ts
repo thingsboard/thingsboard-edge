@@ -44,7 +44,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { Customer } from '@shared/models/customer.model';
+import { CustomerInfo } from '@shared/models/customer.model';
 import { CustomerService } from '@core/http/customer.service';
 import { CustomerComponent } from '@home/pages/customer/customer.component';
 import { Router, UrlTree } from '@angular/router';
@@ -54,11 +54,12 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { WINDOW } from '@core/services/window.service';
+import { mergeMap } from 'rxjs/operators';
 
 @Injectable()
-export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<Customer> {
+export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<CustomerInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Customer>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<CustomerInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -70,9 +71,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Customer>): Observable<GroupEntityTableConfig<Customer>> {
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<CustomerInfo>):
+    Observable<GroupEntityTableConfig<CustomerInfo>> {
     const authState = getCurrentAuthState(this.store);
-    const config = new GroupEntityTableConfig<Customer>(entityGroup, params);
+    const config = new GroupEntityTableConfig<CustomerInfo>(entityGroup, params);
 
     config.entityComponent = CustomerComponent;
 
@@ -84,8 +86,10 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     config.deleteEntitiesTitle = count => this.translate.instant('customer.delete-customers-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('customer.delete-customers-text');
 
-    config.loadEntity = id => this.customerService.getCustomer(id.id);
-    config.saveEntity = customer => this.customerService.saveCustomer(customer);
+    config.loadEntity = id => this.customerService.getCustomerInfo(id.id);
+    config.saveEntity = customer => this.customerService.saveCustomer(customer).pipe(
+      mergeMap((savedCustomer) => this.customerService.getCustomerInfo(savedCustomer.id.id))
+    );
     config.deleteEntity = id => this.customerService.deleteCustomer(id.id);
 
     if (params.hierarchyView) {
@@ -182,7 +186,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openCustomer($event: Event, customer: Customer, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams) {
+  private openCustomer($event: Event, customer: CustomerInfo, config: GroupEntityTableConfig<CustomerInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -201,7 +205,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageUsers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageUsers($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
               params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -213,7 +217,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageCustomers($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageCustomers($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                   params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -225,7 +229,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageAssets($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageAssets($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -237,7 +241,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageDevices($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageDevices($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                 params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -249,7 +253,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageEntityViews($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageEntityViews($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                     params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -261,7 +265,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageEdges($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageEdges($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
               params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -273,7 +277,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  manageDashboards($event: Event, customer: Customer | ShortEntityView, config: GroupEntityTableConfig<Customer>,
+  manageDashboards($event: Event, customer: CustomerInfo | ShortEntityView, config: GroupEntityTableConfig<CustomerInfo>,
                    params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
@@ -285,12 +289,13 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     }
   }
 
-  private navigateToChildCustomerPage(config: GroupEntityTableConfig<Customer>, customer: Customer | ShortEntityView, page: string) {
+  private navigateToChildCustomerPage(config: GroupEntityTableConfig<CustomerInfo>,
+                                      customer: CustomerInfo | ShortEntityView, page: string) {
     const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
     this.router.navigateByUrl(`customers/${targetGroups}/${config.entityGroup.id.id}/${customer.id.id}${page}`);
   }
 
-  onCustomerAction(action: EntityAction<Customer>, config: GroupEntityTableConfig<Customer>, params: EntityGroupParams): boolean {
+  onCustomerAction(action: EntityAction<CustomerInfo>, config: GroupEntityTableConfig<CustomerInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openCustomer(action.event, action.entity, config, params);
