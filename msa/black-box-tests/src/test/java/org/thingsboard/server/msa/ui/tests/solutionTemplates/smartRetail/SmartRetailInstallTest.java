@@ -561,11 +561,6 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
     @Test
     public void linksBtn() {
-        String dashboardGroupName = "Supermarket Users Shared";
-        String dashboardGroup1Name = "Supermarket Administrators Shared";
-        String dashboardName = "Smart Supermarket";
-        String dashboard1Name = "Smart Supermarket Administration";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartRetailInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -575,14 +570,14 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         String linkThingsBoardIoTGateway = solutionTemplatesInstalledView.getThingsBoardIoTGatewayLink();
         String linkThingsBoardMQTTGateway = solutionTemplatesInstalledView.getThingsBoardMQTTGatewayLink();
         String linkThingsBoardIntegration = solutionTemplatesInstalledView.getThingsBoardIntegration();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String dashboard1Id = getDashboardByName(EntityType.DASHBOARD, dashboardGroup1Name, dashboard1Name).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
-        String entityGroup1Id = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroup1Name).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_DASHBOARD).getId().toString();
+        String dashboard1Id = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getId().toString();
+        String entityGroup1Id = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP).getId().toString();
 
         Assert.assertEquals(2, urls.size());
-        Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
-        Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroup1Id + "/" + dashboard1Id));
+        Assert.assertTrue(urls.contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId));
+        Assert.assertTrue(urls.contains(Const.URL + "/dashboards/groups/" + entityGroup1Id + "/" + dashboard1Id));
         Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
         Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
         Assert.assertEquals(THINGSBOARD_IOT_GATEWAY_DOCS_URL, linkThingsBoardIoTGateway);

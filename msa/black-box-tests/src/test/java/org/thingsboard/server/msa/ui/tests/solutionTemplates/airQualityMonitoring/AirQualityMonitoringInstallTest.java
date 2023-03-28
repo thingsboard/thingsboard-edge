@@ -54,10 +54,12 @@ import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
 
+import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LOS_ANGELES_CA_ASSET;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD;
@@ -387,9 +389,6 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
     @Test(groups = "broken")
     public void linksBtn() {
-        String dashboardGroupName = "Air Quality Monitoring Public";
-        String dashboardName = "Air Quality Monitoring";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -398,14 +397,14 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         String linkHttpApi = solutionTemplatesInstalledView.getHttpApiLink();
         String linkConnectionDevices = solutionTemplatesInstalledView.getConnectionDevicesLink();
         String linkDeviceProfile = solutionTemplatesInstalledView.getDeviceProfileLink();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
 
         Assert.assertEquals(1, urls.size());
-        Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
+        Assert.assertTrue(urls.contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId));
         Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRules);
         Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
         Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
-        Assert.assertEquals("http://localhost:8080/profiles/deviceProfiles", linkDeviceProfile);
+        Assert.assertEquals(getBaseUiUrl() + "/profiles/deviceProfiles", linkDeviceProfile);
     }
 }

@@ -54,6 +54,7 @@ import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
 
+import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
@@ -65,6 +66,7 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_DEVICES_DEVICE_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_A_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FLEET_TRACKING_DASHBOARD_GROUP;
 
 public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -363,15 +365,15 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         String linkConnectionDevices = solutionTemplatesInstalledView.getConnectionDevicesLink();
         String linkAlarmRule = solutionTemplatesInstalledView.getAlarmRuleLink();
         String linkDeviceProfile = solutionTemplatesInstalledView.getDeviceProfileLink();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, name, name).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, name).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getId().toString();
 
         Assert.assertEquals(1, urls.size());
-        Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
+        Assert.assertTrue(urls.contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId));
         Assert.assertEquals(DASHBOARD_GIDE_DOCS_URL, guide);
         Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
         Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
         Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRule);
-        Assert.assertEquals("http://localhost:8080/profiles/deviceProfiles", linkDeviceProfile);
+        Assert.assertEquals(getBaseUiUrl() + "/profiles/deviceProfiles", linkDeviceProfile);
     }
 }

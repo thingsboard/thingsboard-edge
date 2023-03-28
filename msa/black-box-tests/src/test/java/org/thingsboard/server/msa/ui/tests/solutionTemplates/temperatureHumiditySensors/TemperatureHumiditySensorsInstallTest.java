@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.temperatureHumiditySensors;
 
-import org.testng.Assert;
 import org.openqa.selenium.WebElement;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -53,18 +53,20 @@ import org.thingsboard.server.msa.ui.utils.Const;
 
 import java.util.Set;
 
+import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CUSTOMER_D;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_DASHBOARD;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CUSTOMER_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.READ_ONLY_ROLES;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SENSOR_C1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SENSOR_T1_DEVICE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_SENSOR_DEVICE_PROFILE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.READ_ONLY_ROLES;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_SENSOR_DEVICE_PROFILE;
 
 public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -387,9 +389,6 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
     @Test(groups = {"broken"})
     public void linksBtn() {
-        String dashboardGroupName = "Customer dashboards";
-        String dashboardName = "Temperature & Humidity";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
@@ -399,15 +398,15 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         String linkConnectionDevices = solutionTemplatesInstalledView.getConnectionDevicesLink();
         String linkAlarmRule = solutionTemplatesInstalledView.getAlarmRuleLink();
         String linkDeviceProfile = solutionTemplatesInstalledView.getDeviceProfileLink();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getId().toString();
 
         Assert.assertEquals(1, urls.size());
-        Assert.assertTrue(urls.contains(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId));
+        Assert.assertTrue(urls.contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId));
         Assert.assertEquals(DASHBOARD_GIDE_DOCS_URL, guide);
         Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
         Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
         Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRule);
-        Assert.assertEquals("http://localhost:8080/profiles/deviceProfiles", linkDeviceProfile);
+        Assert.assertEquals(getBaseUiUrl() + "/profiles/deviceProfiles", linkDeviceProfile);
     }
 }

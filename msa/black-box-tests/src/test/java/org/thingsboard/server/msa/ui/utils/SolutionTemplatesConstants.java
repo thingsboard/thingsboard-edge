@@ -88,6 +88,7 @@ public class SolutionTemplatesConstants {
 
     //Entity groups
     public static final String TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP = "Temperature & Humidity sensors";
+    public static final String CUSTOMER_DASHBOARD_GROUP = "Customer dashboards";
 
     /**
      * Smart Retail
@@ -195,6 +196,7 @@ public class SolutionTemplatesConstants {
     //Entity groups
     public static final String OFFICE_SENSORS_DEVICE_GROUPS = "Office sensors";
     public static final String BUILDINGS_ASSET_GROUP = "Buildings";
+    public static final String SMART_OFFICE_DASHBOARDS_GROUP = "Smart office dashboards";
 
     /**
      * Fleet tracking
@@ -213,6 +215,7 @@ public class SolutionTemplatesConstants {
     public static final String FLEET_TRACKING_DASHBOARD = "Fleet tracking";
 
     //Entity groups
+    public static final String FLEET_TRACKING_DASHBOARD_GROUP = "Fleet tracking";
     public static final String BUS_DEVICES_DEVICE_GROUP = "Bus devices";
 
     /**
@@ -243,6 +246,7 @@ public class SolutionTemplatesConstants {
     //Entity groups
     public static final String AIR_QUALITY_MONITORING_DEVICE_GROUP = "Air Quality Monitoring";
     public static final String AIR_QUALITY_MONITORING_ASSET_GROUP = "Air Quality Monitoring";
+    public static final String AIR_QUALITY_MONITORING_DASHBOARD_GROUP = "Air Quality Monitoring Public";
 
     /**
      * Smart Irrigation
@@ -285,4 +289,5 @@ public class SolutionTemplatesConstants {
     //Entity groups
     public static final String SMART_IRRIGATION_DEVICE_GROUP = "Smart Irrigation";
     public static final String SMART_IRRIGATION_ASSET_GROUP = "Smart Irrigation";
+    public static final String SMART_IRRIGATION_DASHBOARD_GROUP = "Smart Irrigation";
 }
