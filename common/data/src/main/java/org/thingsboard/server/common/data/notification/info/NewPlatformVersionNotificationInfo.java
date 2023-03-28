@@ -43,7 +43,7 @@ import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class NewPlatformVersionNotificationInfo implements NotificationInfo {
+public class NewPlatformVersionNotificationInfo implements RuleOriginatedNotificationInfo {
 
     private String message;
 

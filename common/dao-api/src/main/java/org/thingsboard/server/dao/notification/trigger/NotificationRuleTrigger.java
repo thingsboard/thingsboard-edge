@@ -30,34 +30,16 @@
  */
 package org.thingsboard.server.dao.notification.trigger;
 
-import lombok.Builder;
-import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-@Data
-@Builder
-public class RuleEngineComponentLifecycleEventTrigger implements NotificationRuleTrigger {
+public interface NotificationRuleTrigger {
 
-    private final TenantId tenantId;
-    private final RuleChainId ruleChainId;
-    private final String ruleChainName;
-    private final EntityId componentId;
-    private final String componentName;
-    private final ComponentLifecycleEvent eventType;
-    private final Throwable error;
+    NotificationRuleTriggerType getType();
 
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT;
-    }
+    TenantId getTenantId();
 
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return componentId;
-    }
+    EntityId getOriginatorEntityId();
 
 }

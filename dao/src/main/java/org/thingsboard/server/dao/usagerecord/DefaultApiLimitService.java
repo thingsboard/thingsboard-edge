@@ -72,7 +72,7 @@ public class DefaultApiLimitService implements ApiLimitService {
                     new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap()),
                     new EntityCountQuery(filter));
             if (notificationRuleProcessingService != null) {
-                notificationRuleProcessingService.process(tenantId, EntitiesLimitTrigger.builder()
+                notificationRuleProcessingService.process(EntitiesLimitTrigger.builder()
                         .tenantId(tenantId)
                         .entityType(entityType)
                         .currentCount(currentCount)

@@ -1,4 +1,4 @@
-#### Entity count limit notification templatization
+#### API usage limit notification templatization
 
 <div class="divider"></div>
 <br/>
@@ -11,10 +11,11 @@ Available template parameters:
   * *recipientEmail* - email of the recipient;
   * *recipientFirstName* - first name of the recipient;
   * *recipientLastName* - last name of the recipient;
-  * *entityType* - one of: 'Device', 'Asset', 'User', etc.;
-  * *currentCount* - the current count of entities;
-  * *limit* - the limit on number of entities;    
-  * *percents* - the percent from the notification rule configuration;
+  * *feature* - API feature for which the limit is applied; one of: 'Device API', 'Telemetry persistence', 'Rule Engine execution', 'JavaScript functions execution', 'Email messages', 'SMS messages', 'Alarms';
+  * *status* - one of: 'enabled', 'warning', 'disabled';
+  * *unitLabel* - name of the limited unit; one of: 'message', 'data point', 'Rule Engine execution', 'JavaScript execution', 'email message', 'SMS message', 'alarm';
+  * *limit* - the limit on used feature units;    
+  * *currentValue* - current number of used units;    
   * *tenantId* - id of the tenant;
   * *tenantName* - name of the tenant;
 
@@ -29,17 +30,17 @@ You may also modify the value of the parameter with one of the suffixes:
 
 ##### Examples
 
-Let's assume the tenant created 400 devices with the max allowed number is 500 and rule threshold 0.8 (80%). The following template:
+Let's assume tenant's devices pushed 8K messages with the max allowed number of 10K and warn threshold in tenant profile set to 0.8 (80%). The following template:
 
 ```text
-${entityType:capitalize}s usage: ${currentCount}/${limit} (${percents}%)
+${feature} feature - ${status:upperCase} (usage: ${currentValue} out of ${limit} ${unitLabel}s)
 {:copy-code}
 ```
 
 will be transformed to:
 
 ```text
-Devices usage: 400/500 (80%)
+Device API feature - WARNING (usage: 8000 out of 10000 messages)
 {:copy-code}
 ```
 

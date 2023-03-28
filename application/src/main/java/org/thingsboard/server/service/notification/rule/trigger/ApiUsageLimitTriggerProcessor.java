@@ -30,21 +30,45 @@
  */
 package org.thingsboard.server.service.notification.rule.trigger;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.notification.info.ApiUsageLimitNotificationInfo;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
-import org.thingsboard.server.dao.notification.trigger.NotificationRuleTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.ApiUsageLimitNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import org.thingsboard.server.dao.notification.trigger.ApiUsageLimitTrigger;
+import org.thingsboard.server.dao.tenant.TenantService;
 
-public interface NotificationRuleTriggerProcessor<T extends NotificationRuleTrigger, C extends NotificationRuleTriggerConfig> {
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
-    boolean matchesFilter(T trigger, C triggerConfig);
+@Service
+@RequiredArgsConstructor
+public class ApiUsageLimitTriggerProcessor implements NotificationRuleTriggerProcessor<ApiUsageLimitTrigger, ApiUsageLimitNotificationRuleTriggerConfig> {
 
-    default boolean matchesClearRule(T trigger, C triggerConfig) {
-        return false;
+    private final TenantService tenantService;
+
+    @Override
+    public boolean matchesFilter(ApiUsageLimitTrigger trigger, ApiUsageLimitNotificationRuleTriggerConfig triggerConfig) {
+        return (isEmpty(triggerConfig.getApiFeatures()) || triggerConfig.getApiFeatures().contains(trigger.getState().getApiFeature())) &&
+                (isEmpty(triggerConfig.getNotifyOn()) || triggerConfig.getNotifyOn().contains(trigger.getStatus()));
     }
 
-    RuleOriginatedNotificationInfo constructNotificationInfo(T trigger);
+    @Override
+    public RuleOriginatedNotificationInfo constructNotificationInfo(ApiUsageLimitTrigger trigger) {
+        return ApiUsageLimitNotificationInfo.builder()
+                .feature(trigger.getState().getApiFeature())
+                .recordKey(trigger.getState().getKey())
+                .status(trigger.getStatus())
+                .limit(trigger.getState().getThresholdAsString())
+                .currentValue(trigger.getState().getValueAsString())
+                .tenantId(trigger.getTenantId())
+                .tenantName(tenantService.findTenantById(trigger.getTenantId()).getName())
+                .build();
+    }
 
-    NotificationRuleTriggerType getTriggerType();
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.API_USAGE_LIMIT;
+    }
 
 }

@@ -36,6 +36,8 @@ import {
   AlarmAssignmentActionTranslationMap,
   ComponentLifecycleEvent,
   ComponentLifecycleEventTranslationMap,
+  DeviceEvent,
+  DeviceEventTranslationMap,
   NotificationRule,
   NotificationTarget,
   TriggerType,
@@ -67,12 +69,18 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   RecipientNotificationDialogComponent,
   RecipientNotificationDialogData
-} from '@home/pages/notification/recipient/recipient-notification-dialog.componet';
+} from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { MatButton } from '@angular/material/button';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
 import { Authority } from '@shared/models/authority.enum';
+import {
+  ApiFeature,
+  ApiFeatureTranslationMap,
+  ApiUsageStateValue,
+  ApiUsageStateValueTranslationMap
+} from '@shared/models/api-usage.models';
 
 export interface RuleNotificationDialogData {
   rule?: NotificationRule;
@@ -101,6 +109,7 @@ export class RuleNotificationDialogComponent extends
   alarmAssignmentTemplateForm: FormGroup;
   ruleEngineEventsTemplateForm: FormGroup;
   entitiesLimitTemplateForm: FormGroup;
+  apiUsageLimitTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[];
@@ -125,6 +134,15 @@ export class RuleNotificationDialogComponent extends
 
   componentLifecycleEvents: ComponentLifecycleEvent[] = Object.values(ComponentLifecycleEvent);
   componentLifecycleEventTranslationMap = ComponentLifecycleEventTranslationMap;
+
+  deviceEvents: DeviceEvent[] = Object.values(DeviceEvent);
+  deviceEventTranslationMap = DeviceEventTranslationMap;
+
+  apiUsageStateValues: ApiUsageStateValue[] = Object.values(ApiUsageStateValue);
+  apiUsageStateValueTranslationMap = ApiUsageStateValueTranslationMap;
+
+  apiFeatures: ApiFeature[] = Object.values(ApiFeature);
+  apiFeatureTranslationMap = ApiFeatureTranslationMap;
 
   entityType = EntityType;
   entityTypes = Array.from(entityTypeTranslations.keys()).filter(type => !!this.entityType[type]);
@@ -213,7 +231,8 @@ export class RuleNotificationDialogComponent extends
       triggerConfig: this.fb.group({
         filterByDevice: [true],
         devices: [null],
-        deviceProfiles: [{value: null, disabled: true}]
+        deviceProfiles: [{value: null, disabled: true}],
+        notifyOn: [[DeviceEvent.INACTIVE], Validators.required]
       })
     });
 
@@ -231,7 +250,7 @@ export class RuleNotificationDialogComponent extends
 
     this.entityActionTemplateForm = this.fb.group({
       triggerConfig: this.fb.group({
-        entityType: [EntityType.DEVICE],
+        entityTypes: [[EntityType.DEVICE], Validators.required],
         created: [false],
         updated: [false],
         deleted: [false]
@@ -275,14 +294,22 @@ export class RuleNotificationDialogComponent extends
       })
     });
 
+    this.apiUsageLimitTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        apiFeatures: [[]],
+        notifyOn: [[ApiUsageStateValue.WARNING], Validators.required]
+      })
+    });
+
     this.triggerTypeFormsMap = new Map<TriggerType, FormGroup>([
       [TriggerType.ALARM, this.alarmTemplateForm],
       [TriggerType.ALARM_COMMENT, this.alarmCommentTemplateForm],
-      [TriggerType.DEVICE_INACTIVITY, this.deviceInactivityTemplateForm],
+      [TriggerType.DEVICE_ACTIVITY, this.deviceInactivityTemplateForm],
       [TriggerType.ENTITY_ACTION, this.entityActionTemplateForm],
       [TriggerType.ALARM_ASSIGNMENT, this.alarmAssignmentTemplateForm],
       [TriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT, this.ruleEngineEventsTemplateForm],
-      [TriggerType.ENTITIES_LIMIT, this.entitiesLimitTemplateForm]
+      [TriggerType.ENTITIES_LIMIT, this.entitiesLimitTemplateForm],
+      [TriggerType.API_USAGE_LIMIT, this.apiUsageLimitTemplateForm]
     ]);
 
     if (data.isAdd || data.isCopy) {
@@ -299,7 +326,7 @@ export class RuleNotificationDialogComponent extends
       this.ruleNotificationForm.get('triggerType').updateValueAndValidity({onlySelf: true});
       const currentForm = this.triggerTypeFormsMap.get(this.ruleNotification.triggerType);
       currentForm.patchValue(this.ruleNotification, {emitEvent: false});
-      if (this.ruleNotification.triggerType === TriggerType.DEVICE_INACTIVITY) {
+      if (this.ruleNotification.triggerType === TriggerType.DEVICE_ACTIVITY) {
         this.deviceInactivityTemplateForm.get('triggerConfig.filterByDevice')
           .patchValue(!!this.ruleNotification.triggerConfig.devices, {onlySelf: true});
       }
@@ -351,7 +378,7 @@ export class RuleNotificationDialogComponent extends
       const triggerType: TriggerType = this.ruleNotificationForm.get('triggerType').value;
       const currentForm = this.triggerTypeFormsMap.get(triggerType);
       Object.assign(formValue, currentForm.value);
-      if (triggerType === TriggerType.DEVICE_INACTIVITY) {
+      if (triggerType === TriggerType.DEVICE_ACTIVITY) {
         delete formValue.triggerConfig.filterByDevice;
       }
       formValue.recipientsConfig.triggerType = triggerType;
@@ -419,8 +446,8 @@ export class RuleNotificationDialogComponent extends
 
   private allowTriggerTypes(): TriggerType[] {
     if (this.isSysAdmin()) {
-      return [TriggerType.ENTITIES_LIMIT];
+      return [TriggerType.ENTITIES_LIMIT, TriggerType.API_USAGE_LIMIT];
     }
-    return Object.values(TriggerType).filter(type => type !== TriggerType.ENTITIES_LIMIT);
+    return Object.values(TriggerType).filter(type => type !== TriggerType.ENTITIES_LIMIT && type !== TriggerType.API_USAGE_LIMIT);
   }
 }

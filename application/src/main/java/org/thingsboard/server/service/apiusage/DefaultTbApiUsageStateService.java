@@ -39,13 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
 import org.thingsboard.server.common.data.ApiUsageState;
-import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -69,6 +68,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.SchedulerUtils;
 import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
+import org.thingsboard.server.dao.notification.trigger.ApiUsageLimitTrigger;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -80,6 +80,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.telemetry.InternalTelemetryService;
@@ -97,8 +98,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -131,6 +130,8 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     private final NotificationRuleProcessingService notificationRuleProcessingService;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;
     private final DbCallbackExecutorService dbExecutor;
+    private final MailExecutorService mailExecutor;
+    
     @Lazy
     @Autowired
     private InternalTelemetryService tsWsService;
@@ -149,8 +150,6 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     private long nextCycleCheckInterval;
 
     private final Lock updateLock = new ReentrantLock();
-
-    private final ExecutorService mailExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("api-usage-svc-mail"));
 
     @PostConstruct
     public void init() {
@@ -376,32 +375,35 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
         tsWsService.saveAndNotifyInternal(state.getTenantId(), state.getApiUsageState().getId(), stateTelemetry, VOID_CALLBACK);
 
         if (state.getEntityType() == EntityType.TENANT && !state.getEntityId().equals(TenantId.SYS_TENANT_ID)) {
-
             String email = tenantService.findTenantById(state.getTenantId()).getEmail();
-
-            if (StringUtils.isNotEmpty(email)) {
-                result.forEach((apiFeature, stateValue) -> mailExecutor.submit(() -> {
-                    try {
-                        mailService.sendApiFeatureStateEmail(state.getTenantId(), apiFeature, stateValue, email,
-                                createStateMailMessage((TenantApiUsageState) state, apiFeature, stateValue));
-                    } catch (ThingsboardException e) {
-                        log.warn("[{}] Can't send update of the API state to tenant with provided email [{}]", state.getTenantId(), email, e);
-                    }
-                }));
-            } else {
-                log.warn("[{}] Can't send update of the API state to tenant with empty email!", state.getTenantId());
-            }
+            result.forEach((apiFeature, stateValue) -> {
+                ApiUsageRecordState recordState = createApiUsageRecordState((TenantApiUsageState) state, apiFeature, stateValue);
+                notificationRuleProcessingService.process(ApiUsageLimitTrigger.builder()
+                        .tenantId(state.getTenantId())
+                        .state(recordState)
+                        .status(stateValue)
+                        .build());
+                if (StringUtils.isNotEmpty(email)) {
+                    mailExecutor.submit(() -> {
+                        try {
+                            mailService.sendApiFeatureStateEmail(state.getTenantId(), apiFeature, stateValue, email, recordState);
+                        } catch (ThingsboardException e) {
+                            log.warn("[{}] Can't send update of the API state to tenant with provided email [{}]", state.getTenantId(), email, e);
+                        }
+                    });
+                }
+            });
         }
     }
 
-    private ApiUsageStateMailMessage createStateMailMessage(TenantApiUsageState state, ApiFeature apiFeature, ApiUsageStateValue stateValue) {
+    private ApiUsageRecordState createApiUsageRecordState(TenantApiUsageState state, ApiFeature apiFeature, ApiUsageStateValue stateValue) {
         StateChecker checker = getStateChecker(stateValue);
         for (ApiUsageRecordKey apiUsageRecordKey : ApiUsageRecordKey.getKeys(apiFeature)) {
             long threshold = state.getProfileThreshold(apiUsageRecordKey);
             long warnThreshold = state.getProfileWarnThreshold(apiUsageRecordKey);
             long value = state.get(apiUsageRecordKey);
             if (checker.check(threshold, warnThreshold, value)) {
-                return new ApiUsageStateMailMessage(apiUsageRecordKey, threshold, value);
+                return new ApiUsageRecordState(apiFeature, apiUsageRecordKey, threshold, value);
             }
         }
         return null;
@@ -413,7 +415,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
         } else if (ApiUsageStateValue.WARNING.equals(stateValue)) {
             return (t, wt, v) -> v < t && v >= wt;
         } else {
-            return (t, wt, v) -> v >= t;
+            return (t, wt, v) -> t > 0 && v >= t;
         }
     }
 
@@ -565,8 +567,5 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     @PreDestroy
     private void destroy() {
         super.stop();
-        if (mailExecutor != null) {
-            mailExecutor.shutdownNow();
-        }
     }
 }

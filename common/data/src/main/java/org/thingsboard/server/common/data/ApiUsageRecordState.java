@@ -28,28 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data;
 
-import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.UpdateMessage;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
-@Builder
-public class NewPlatformVersionTrigger implements NotificationRuleTrigger {
+public class ApiUsageRecordState {
 
-    private final UpdateMessage message;
+    private final ApiFeature apiFeature;
+    private final ApiUsageRecordKey key;
+    private final long threshold;
+    private final long value;
 
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
+    public String getValueAsString() {
+        return valueAsString(value);
     }
 
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return TenantId.SYS_TENANT_ID;
+    public String getThresholdAsString() {
+        return valueAsString(threshold);
+    }
+
+    private String valueAsString(long value) {
+        if (value > 1_000_000 && value % 1_000_000 < 10_000) {
+            return value / 1_000_000 + "M";
+        } else if (value > 10_000) {
+            return String.format("%.2fM", ((double) value) / 1_000_000);
+        } else {
+            return value + "";
+        }
     }
 
 }

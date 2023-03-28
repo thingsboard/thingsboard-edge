@@ -28,21 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.info;
+package org.thingsboard.server.dao.notification.trigger;
 
+import lombok.Builder;
 import lombok.Data;
-
-import java.util.Collections;
-import java.util.Map;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
+import org.thingsboard.server.common.data.ApiUsageStateValue;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
 @Data
-public class UserOriginatedNotificationInfo implements NotificationInfo {
+@Builder
+public class ApiUsageLimitTrigger implements NotificationRuleTrigger {
 
-    private String description;
+    private final TenantId tenantId;
+    private final ApiUsageRecordState state;
+    private final ApiUsageStateValue status;
 
     @Override
-    public Map<String, String> getTemplateData() {
-        return Collections.emptyMap();
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.API_USAGE_LIMIT;
+    }
+
+    @Override
+    public TenantId getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return tenantId;
     }
 
 }

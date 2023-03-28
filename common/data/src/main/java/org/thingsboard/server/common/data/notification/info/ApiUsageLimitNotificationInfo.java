@@ -34,63 +34,45 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.ApiFeature;
+import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.ApiUsageStateValue;
+import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Map;
-import java.util.UUID;
 
 import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationInfo {
+public class ApiUsageLimitNotificationInfo implements RuleOriginatedNotificationInfo {
 
-    private String comment;
-    private String action;
-
-    private String userEmail;
-    private String userFirstName;
-    private String userLastName;
-
-    private String alarmType;
-    private UUID alarmId;
-    private EntityId alarmOriginator;
-    private String alarmOriginatorName;
-    private AlarmSeverity alarmSeverity;
-    private AlarmStatus alarmStatus;
-    private CustomerId alarmCustomerId;
+    private ApiFeature feature;
+    private ApiUsageRecordKey recordKey;
+    private ApiUsageStateValue status;
+    private String limit;
+    private String currentValue;
+    private TenantId tenantId;
+    private String tenantName;
 
     @Override
     public Map<String, String> getTemplateData() {
         return mapOf(
-                "comment", comment,
-                "action", action,
-                "userEmail", userEmail,
-                "userFirstName", userFirstName,
-                "userLastName", userLastName,
-                "alarmType", alarmType,
-                "alarmId", alarmId.toString(),
-                "alarmSeverity", alarmSeverity.name().toLowerCase(),
-                "alarmStatus", alarmStatus.toString(),
-                "alarmOriginatorEntityType", alarmOriginator.getEntityType().getNormalName(),
-                "alarmOriginatorId", alarmOriginator.getId().toString(),
-                "alarmOriginatorName", alarmOriginatorName
+                "feature", feature.getLabel(),
+                "unitLabel", recordKey.getUnitLabel(),
+                "status", status.name().toLowerCase(),
+                "limit", limit,
+                "currentValue", currentValue,
+                "tenantId", tenantId.toString(),
+                "tenantName", tenantName
         );
     }
 
     @Override
-    public CustomerId getAffectedCustomerId() {
-        return alarmCustomerId;
-    }
-
-    @Override
-    public EntityId getStateEntityId() {
-        return alarmOriginator;
+    public TenantId getAffectedTenantId() {
+        return tenantId;
     }
 
 }

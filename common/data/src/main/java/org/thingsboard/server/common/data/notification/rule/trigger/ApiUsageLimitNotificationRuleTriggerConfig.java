@@ -30,12 +30,21 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.Data;
+import org.thingsboard.server.common.data.ApiFeature;
+import org.thingsboard.server.common.data.ApiUsageStateValue;
 
-public interface NotificationRuleTrigger {
+import java.util.Set;
 
-    NotificationRuleTriggerType getType();
+@Data
+public class ApiUsageLimitNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    EntityId getOriginatorEntityId();
+    private Set<ApiFeature> apiFeatures;
+    private Set<ApiUsageStateValue> notifyOn;
+
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.API_USAGE_LIMIT;
+    }
 
 }

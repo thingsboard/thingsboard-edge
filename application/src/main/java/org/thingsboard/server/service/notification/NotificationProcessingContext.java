@@ -169,7 +169,7 @@ public class NotificationProcessingContext {
 
     public CustomerId getCustomerId() {
         if (request.getInfo() instanceof RuleOriginatedNotificationInfo) {
-            return ((RuleOriginatedNotificationInfo) request.getInfo()).getOriginatorEntityCustomerId();
+            return ((RuleOriginatedNotificationInfo) request.getInfo()).getAffectedCustomerId();
         } else {
             return null;
         }

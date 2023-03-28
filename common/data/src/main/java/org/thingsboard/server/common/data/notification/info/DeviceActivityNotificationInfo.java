@@ -47,8 +47,9 @@ import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DeviceInactivityNotificationInfo implements RuleOriginatedNotificationInfo {
+public class DeviceActivityNotificationInfo implements RuleOriginatedNotificationInfo {
 
+    private String eventType;
     private UUID deviceId;
     private String deviceName;
     private String deviceLabel;
@@ -56,18 +57,19 @@ public class DeviceInactivityNotificationInfo implements RuleOriginatedNotificat
     private CustomerId deviceCustomerId;
 
     @Override
-    public CustomerId getOriginatorEntityCustomerId() {
-        return deviceCustomerId;
-    }
-
-    @Override
     public Map<String, String> getTemplateData() {
         return mapOf(
+                "eventType", eventType,
                 "deviceId", deviceId.toString(),
                 "deviceName", deviceName,
                 "deviceLabel", deviceLabel,
                 "deviceType", deviceType
         );
+    }
+
+    @Override
+    public CustomerId getAffectedCustomerId() {
+        return deviceCustomerId;
     }
 
     @Override
