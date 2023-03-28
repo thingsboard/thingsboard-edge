@@ -1366,7 +1366,6 @@ export class MenuService {
          */
       );
     }
-    /* @voba - merge comment - these sections should not be visible on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       settingPages.push({
         id: guid(),
@@ -1385,6 +1384,7 @@ export class MenuService {
         disabled: disabledItems.indexOf('auto_commit_settings') > -1
       });
     }
+    /* @voba - merge comment - these sections should not be visible on edge
     if (settingPages.length) {
       sections.push({
         id: guid(),
@@ -2353,6 +2353,7 @@ export class MenuService {
         disabled: disabledItems.indexOf('notification_inbox') > -1
       }
     );
+    /* @voba - merge comment - these sections should not be visible on edge
     if (notificationPages.length) {
       sections.push(
         {
@@ -2367,6 +2368,7 @@ export class MenuService {
         }
       );
     }
+     */
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
