@@ -82,13 +82,15 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(name, EntityType.CUSTOMER));
 
-        sideBarMenuView.goToAllCustomers();
+        sideBarMenuView.goToCustomerGroups();
+        customerPage.entity("All").click();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         jsClick(customerPage.selectGroupViewExistField());
         customerPage.entityFromDropDown(name).click();
         customerPage.selectGroupViewSubmitBtn().click();
         sideBarMenuView.customersBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(name).click();
 
         Assert.assertNotNull(customerPage.entity(title));
@@ -103,7 +105,8 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.goToAllCustomers();
+        sideBarMenuView.goToCustomerGroups();
+        customerPage.entity("All").click();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
 
@@ -119,14 +122,15 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         String groupName = title + '1';
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.goToAllCustomers();
+        sideBarMenuView.goToCustomerGroups();
+        customerPage.entity("All").click();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
         customerPage.enterText(customerPage.selectGroupViewNewGroupField(), groupName);
         customerPage.selectGroupViewSubmitBtn().click();
         name = groupName;
-        sideBarMenuView.customersBtn().click();
+        sideBarMenuView.goToCustomerGroups();
 
         Assert.assertNotNull(customerPage.entity(groupName));
         Assert.assertTrue(customerPage.entity(groupName).isDisplayed());
@@ -140,7 +144,8 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.goToAllCustomers();
+        sideBarMenuView.goToCustomerGroups();
+        customerPage.entity("All").click();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
@@ -156,7 +161,8 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         title = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.goToAllCustomers();
+        sideBarMenuView.goToCustomerGroups();
+        customerPage.entity("All").click();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
@@ -180,7 +186,8 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postEntityGroup(defaultEntityGroupPrototype(name, EntityType.CUSTOMER));
 
-        sideBarMenuView.goToAllCustomers();
+        sideBarMenuView.goToCustomerGroups();
+        customerPage.entity("All").click();
         customerPage.checkBox(title).click();
         customerPage.addToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
