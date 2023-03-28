@@ -30,7 +30,7 @@ services:
       - ./docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
   tb-monolith:
     env_file:
-      - tb-node.postgres.env
+      - tb-node.env
     depends_on:
       - postgres
   tb-edge:
