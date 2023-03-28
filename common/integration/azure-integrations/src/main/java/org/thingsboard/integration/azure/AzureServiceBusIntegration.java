@@ -63,7 +63,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 public class AzureServiceBusIntegration extends AbstractIntegration<AzureServiceBusIntegrationMsg> {
@@ -222,6 +221,7 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
                 ServiceBusMessage message = new ServiceBusMessage(data.getData());
                 message.setMessageId(UUID.randomUUID().toString());
                 message.setTo(deviceId);
+                message.getApplicationProperties().putAll(data.getMetadata());
                 message.setContentType(data.getContentType());
                 deviceIdToMessage.computeIfAbsent(deviceId, k -> new ArrayList<>()).add(message);
             }
@@ -235,8 +235,6 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
     }
 
     private ServiceBusProcessorClient buildConsumerClient(AzureServiceBusClientConfiguration configuration) {
-        CountDownLatch countdownLatch = new CountDownLatch(1);
-
         return new ServiceBusClientBuilder()
                 .connectionString(configuration.getConnectionString())
                 .processor()
