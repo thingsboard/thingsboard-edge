@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.airQualityMonitoring;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -109,7 +113,12 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteAirQualityMonitoring();
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Redirect to page with short description (with screenshots) and corresponds to the selected template" +
+            " by click on details button from general page")
     public void airQualityMonitoringOpenDetailsByBtnOnGeneralPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
@@ -124,42 +133,50 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.airQualityMonitoringScreenshotsAreCorrected());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from general page")
     public void installAirQualityMonitoringFromGeneralPage() {
-        String dashboardGroupName = "Air Quality Monitoring Public";
-        String dashboardName = "Air Quality Monitoring";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId);
+        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText().contains(dashboardName));
+        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText().contains(AIR_QUALITY_MONITORING_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from details page")
     public void installAirQualityMonitoringFromDetailsPage() {
-        String dashboardGroupName = "Air Quality Monitoring Public";
-        String dashboardName = "Air Quality Monitoring";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.installBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId);
+        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText().contains(dashboardName));
+        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText().contains(AIR_QUALITY_MONITORING_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on button the close (x mark)")
     public void closeInstallAirQualityMonitoringPopUp() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();
@@ -170,7 +187,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on bottom button")
     public void closeInstallAirQualityMonitoringPopUpByBottomBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();
@@ -181,7 +202,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Check entity installation after solution template installation")
     public void installEntities() {
         testRestClient.postAirQualityMonitoring();
         sideBarMenuView.ruleChainsBtn().click();
@@ -219,7 +244,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entity(AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD).isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("After install the Install button changed to the Delete button (from general solution templates page)")
     public void airQualityMonitoringDeleteBtn() {
         sideBarMenuView.solutionTemplates().click();
         WebElement element = solutionTemplatesHomePage.airQualityMonitoringInstallBtn();
@@ -230,7 +259,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesHomePage.airQualityMonitoringDeleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("After install the Install button changed to the Delete button (from details solution templates page)")
     public void airQualityMonitoringDeleteBtnDetailsPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
@@ -242,7 +275,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.deleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("After install open instruction by click on instruction button (from general solution templates page)")
     public void airQualityMonitoringOpenInstruction() {
         testRestClient.postAirQualityMonitoring();
 
@@ -252,7 +289,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark)")
     public void airQualityMonitoringCloseInstruction() {
         testRestClient.postAirQualityMonitoring();
 
@@ -264,7 +305,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button")
     public void airQualityMonitoringCloseInstructionByCloseBtn() {
         testRestClient.postAirQualityMonitoring();
 
@@ -277,23 +322,29 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from details solution templates page)")
     public void airQualityMonitoringDetailsPageInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Air Quality Monitoring Public";
-        String dashboardName = "Air Quality Monitoring";
         testRestClient.postAirQualityMonitoring();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("After install open instruction by click on instruction button (from details solution templates page)")
     public void airQualityMonitoringDetailsPageOpenInstruction() {
         testRestClient.postAirQualityMonitoring();
 
@@ -304,7 +355,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark) (from details solution templates page)")
     public void airQualityMonitoringDetailsPageDetailsPageCloseInstruction() {
         testRestClient.postAirQualityMonitoring();
 
@@ -317,7 +372,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button (from details solution templates page)")
     public void airQualityMonitoringDetailsPageCloseInstructionByCloseBtn() {
         testRestClient.postAirQualityMonitoring();
 
@@ -330,22 +389,28 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void airQualityMonitoringInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Air Quality Monitoring Public";
-        String dashboardName = "Air Quality Monitoring";
         testRestClient.postAirQualityMonitoring();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test
+    @Description("Check delete entity after delete solution template")
     public void deleteEntities() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();
@@ -386,8 +451,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entityIsNotPresent(AIR_QUALITY_MONITORING_DASHBOARD));
         Assert.assertTrue(dashboardPage.entityIsNotPresent(AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD));
     }
-
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Air Quality Monitoring")
     @Test(groups = "broken")
+    @Description("Check redirect by click on links in instruction")
     public void linksBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();

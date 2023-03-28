@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.smartOffice;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 import org.testng.Assert;
 import org.openqa.selenium.WebElement;
 import org.testng.annotations.AfterMethod;
@@ -110,7 +114,12 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteSmartOffice();
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Redirect to page with short description (with screenshots) and corresponds to the selected template" +
+            " by click on details button from general page")
     public void smartOfficeOpenDetailsByBtnOnGeneralPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeDetailsBtn().click();
@@ -125,44 +134,52 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.smartOfficeScreenshotsAreCorrected());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from general page")
     public void installSmartOfficeFromGeneralPage() {
-        String dashboardGroupName = "Smart office dashboards";
-        String dashboardName = "Smart office";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartOffice().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphSmartOffice().getText().contains(dashboardName));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartOffice().getText().contains(SMART_OFFICE_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphSmartOffice().getText().contains(SMART_OFFICE_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from details page")
     public void installSmartOfficeFromDetailsPage() {
-        String dashboardGroupName = "Smart office dashboards";
-        String dashboardName = "Smart office";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeDetailsBtn().click();
         solutionTemplateDetailsPage.installBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartOffice().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphSmartOffice().getText().contains(dashboardName));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartOffice().getText().contains(SMART_OFFICE_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphSmartOffice().getText().contains(SMART_OFFICE_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on button the close (x mark)")
     public void closeInstallSmartOfficePopUp() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstallBtn().click();
@@ -173,7 +190,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on bottom button")
     public void closeInstallSmartOfficePopUpByBottomBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstallBtn().click();
@@ -184,7 +205,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Check entity installation after solution template installation")
     public void installEntities() {
         testRestClient.postSmartOffice();
         sideBarMenuView.openDeviceProfiles();
@@ -222,7 +247,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entity(SMART_OFFICE_DASHBOARD).isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("After install the Install button changed to the Delete button (from general solution templates page)")
     public void temperatureSmartOfficeDeleteBtn() {
         sideBarMenuView.solutionTemplates().click();
         WebElement element = solutionTemplatesHomePage.smartOfficeInstallBtn();
@@ -233,7 +262,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesHomePage.smartOfficeDeleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("After install the Install button changed to the Delete button (from details solution templates page)")
     public void smartOfficeDeleteBtnDetailsPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeDetailsBtn().click();
@@ -245,7 +278,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.deleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("After install open instruction by click on instruction button (from general solution templates page)")
     public void smartOfficeOpenInstruction() {
         testRestClient.postSmartOffice();
 
@@ -255,7 +292,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark)")
     public void smartOfficeCloseInstruction() {
         testRestClient.postSmartOffice();
 
@@ -267,7 +308,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button")
     public void smartOfficeCloseInstructionByCloseBtn() {
         testRestClient.postSmartOffice();
 
@@ -280,22 +325,28 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from details solution templates page)")
     public void smartOfficeInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Smart office dashboards";
-        String dashboardName = "Smart office";
         testRestClient.postSmartOffice();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("After install open instruction by click on instruction button (from details solution templates page)")
     public void smartOfficeDetailsPageOpenInstruction() {
         testRestClient.postSmartOffice();
 
@@ -306,7 +357,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark) (from details solution templates page)")
     public void smartOfficeDetailsPageCloseInstruction() {
         testRestClient.postSmartOffice();
 
@@ -319,7 +374,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button (from details solution templates page)")
     public void smartOfficeDetailsPageCloseInstructionByCloseBtn() {
         testRestClient.postSmartOffice();
 
@@ -332,23 +391,29 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void smartOfficeDetailsPageInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Smart office dashboards";
-        String dashboardName = "Smart office";
         testRestClient.postSmartOffice();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test
+    @Description("Check delete entity after delete solution template")
     public void deleteEntities() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstallBtn().click();
@@ -390,7 +455,11 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entityIsNotPresent(SMART_OFFICE_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart office")
     @Test(groups = "broken")
+    @Description("Check redirect by click on links in instruction")
     public void linksBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstallBtn().click();

@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.temperatureHumiditySensors;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -102,7 +106,12 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         testRestClient.deleteTemperatureHumidity();
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Redirect to page with short description (with screenshots) and corresponds to the selected template" +
+            " by click on details button from general page")
     public void temperatureHumiditySensorsOpenDetailsByBtnOnGeneralPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsDetailsBtn().click();
@@ -117,48 +126,56 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(solutionTemplateDetailsPage.temperatureHumiditySensorsScreenshotsAreCorrected());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from general page")
     public void installTemperatureHumiditySensorsFromGeneralPage() {
-        String dashboardGroupName = "Customer dashboards";
-        String dashboardName = "Temperature & Humidity";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.customersFirstParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.customersFirstParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from details page")
     public void installTemperatureHumiditySensorsFromDetailsPage() {
-        String dashboardGroupName = "Customer dashboards";
-        String dashboardName = "Temperature & Humidity";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsDetailsBtn().click();
         solutionTemplateDetailsPage.installBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.customersFirstParagraphTemperatureHumiditySensor().getText().contains(dashboardName));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.customersFirstParagraphTemperatureHumiditySensor().getText().contains(TEMPERATURE_HUMIDITY_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on button the close (x mark)")
     public void closeInstallTemperatureHumiditySensorsPopUp() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
@@ -169,7 +186,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on bottom button")
     public void closeInstallTemperatureHumiditySensorsPopUpByBottomBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
@@ -180,7 +201,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Check entity installation after solution template installation")
     public void installEntities() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
@@ -231,7 +256,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(dashboardPage.entity(TEMPERATURE_HUMIDITY_DASHBOARD).isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("After install the Install button changed to the Delete button (from general solution templates page)")
     public void temperatureHumiditySensorsDeleteBtn() {
         sideBarMenuView.solutionTemplates().click();
         WebElement element = solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn();
@@ -242,7 +271,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(solutionTemplatesHomePage.temperatureHumiditySensorsDeleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("After install the Install button changed to the Delete button (from details solution templates page)")
     public void temperatureHumiditySensorsDeleteBtnDetailsPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsDetailsBtn().click();
@@ -254,7 +287,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(solutionTemplateDetailsPage.deleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("After install open instruction by click on instruction button (from general solution templates page)")
     public void temperatureHumiditySensorsOpenInstruction() {
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
@@ -263,7 +300,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark)")
     public void temperatureHumiditySensorsCloseInstruction() {
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
@@ -274,7 +315,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button")
     public void temperatureHumiditySensorsCloseInstructionByCloseBtn() {
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
@@ -286,22 +331,27 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from details solution templates page)")
     public void temperatureHumiditySensorsInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Customer dashboards";
-        String dashboardName = "Temperature & Humidity";
-
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("After install open instruction by click on instruction button (from details solution templates page)")
     public void temperatureHumiditySensorsDetailsPageOpenInstruction() {
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
@@ -311,7 +361,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark) (from details solution templates page)")
     public void temperatureHumiditySensorsDetailsPageCloseInstruction() {
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
@@ -323,7 +377,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button (from details solution templates page)")
     public void temperatureHumiditySensorsDetailsPageCloseInstructionByCloseBtn() {
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
@@ -335,23 +393,28 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void temperatureHumiditySensorsDetailsPageInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Customer dashboards";
-        String dashboardName = "Temperature & Humidity";
-
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test(groups = "broken")
+    @Description("Check delete entity after delete solution template")
     public void deleteEntities() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();
@@ -386,8 +449,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(TEMPERATURE_HUMIDITY_DASHBOARD));
     }
-
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Temperature & Humidity Sensors")
     @Test(groups = {"broken"})
+    @Description("Check redirect by click on links in instruction")
     public void linksBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstallBtn().click();

@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.smartIrrigation;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -120,7 +124,12 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteSmartIrrigation();
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Redirect to page with short description (with screenshots) and corresponds to the selected template" +
+            " by click on details button from general page")
     public void smartIrrigationOpenDetailsByBtnOnGeneralPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationDetailsBtn().click();
@@ -135,46 +144,54 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.smartIrrigationScreenshotsAreCorrected());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from general page")
     public void installSmartIrrigationFromGeneralPage() {
-        String dashboardGroupName = "Smart Irrigation";
-        String dashboardName = "Irrigation Management";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId);
+        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartIrrigation().getText()
-                .contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.dashboardsFirstParagraphSmartIrrigation().getText().contains(dashboardName));
+                .contains(IRRIGATION_MANAGEMENT_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.dashboardsFirstParagraphSmartIrrigation().getText().contains(IRRIGATION_MANAGEMENT_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from details page")
     public void installSmartIrrigationFromDetailsPage() {
-        String dashboardGroupName = "Smart Irrigation";
-        String dashboardName = "Irrigation Management";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationDetailsBtn().click();
         solutionTemplateDetailsPage.installBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId);
+        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartIrrigation().getText()
-                .contains(dashboardName));
-        Assert.assertTrue(solutionTemplatesInstalledView.dashboardsFirstParagraphSmartIrrigation().getText().contains(dashboardName));
+                .contains(IRRIGATION_MANAGEMENT_DASHBOARD));
+        Assert.assertTrue(solutionTemplatesInstalledView.dashboardsFirstParagraphSmartIrrigation().getText().contains(IRRIGATION_MANAGEMENT_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on button the close (x mark)")
     public void closeInstallIrrigationOfficePopUp() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstallBtn().click();
@@ -185,7 +202,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on bottom button")
     public void closeInstallSmartIrrigationPopUpByBottomBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstallBtn().click();
@@ -196,7 +217,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Check entity installation after solution template installation")
     public void installEntities() {
         testRestClient.postSmartIrrigation();
         sideBarMenuView.ruleChainsBtn().click();
@@ -252,7 +277,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entity(IRRIGATION_MANAGEMENT_DASHBOARD).isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("After install the Install button changed to the Delete button (from general solution templates page)")
     public void temperatureSmartIrrigationDeleteBtn() {
         sideBarMenuView.solutionTemplates().click();
         WebElement element = solutionTemplatesHomePage.smartIrrigationInstallBtn();
@@ -263,7 +292,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesHomePage.smartIrrigationDeleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("After install the Install button changed to the Delete button (from details solution templates page)")
     public void smartIrrigationDeleteBtnDetailsPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationDetailsBtn().click();
@@ -275,7 +308,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.deleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("After install open instruction by click on instruction button (from general solution templates page)")
     public void smartIrrigationOpenInstruction() {
         testRestClient.postSmartIrrigation();
 
@@ -285,7 +322,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark)")
     public void smartIrrigationCloseInstruction() {
         testRestClient.postSmartIrrigation();
 
@@ -297,7 +338,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button")
     public void smartIrrigationCloseInstructionByCloseBtn() {
         testRestClient.postSmartIrrigation();
 
@@ -310,22 +355,28 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from details solution templates page)")
     public void smartIrrigationInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Smart Irrigation";
-        String dashboardName = "Irrigation Management";
         testRestClient.postSmartIrrigation();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("After install open instruction by click on instruction button (from details solution templates page)")
     public void smartIrrigationDetailsPageOpenInstruction() {
         testRestClient.postSmartIrrigation();
 
@@ -336,7 +387,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark) (from details solution templates page)")
     public void smartIrrigationDetailsPageCloseInstruction() {
         testRestClient.postSmartIrrigation();
 
@@ -349,7 +404,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button (from details solution templates page)")
     public void smartIrrigationDetailsPageCloseInstructionByCloseBtn() {
         testRestClient.postSmartIrrigation();
 
@@ -362,23 +421,29 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void smartIrrigationDetailsPageInstructionGoToMainDashboard() {
-        String dashboardGroupName = "Smart Irrigation";
-        String dashboardName = "Irrigation Management";
         testRestClient.postSmartIrrigation();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, dashboardGroupName, dashboardName).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, dashboardGroupName).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
     @Test
+    @Description("Check delete entity after delete solution template")
     public void deleteEntities() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstallBtn().click();
@@ -436,7 +501,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entityIsNotPresent(IRRIGATION_MANAGEMENT_DASHBOARD));
     }
 
-    @Test()
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Smart Irrigation")
+    @Test
+    @Description("Check redirect by click on links in instruction")
     public void linksBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstallBtn().click();

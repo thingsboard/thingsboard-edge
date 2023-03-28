@@ -30,6 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.tests.solutionTemplates.fleetTracking;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
 import org.openqa.selenium.WebElement;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -104,7 +108,12 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         testRestClient.deleteFleetTracking();
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Redirect to page with short description (with screenshots) and corresponds to the selected template" +
+            " by click on details button from general page")
     public void fleetTrackingOpenDetailsByBtnOnGeneralPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingDetailsBtn().click();
@@ -119,44 +128,56 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplateDetailsPage.fleetTrackingScreenshotsAreCorrected());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from general page")
     public void installFleetTrackingFromGeneralPage() {
-        String name = "Fleet tracking";
-        String nameFromView = "Fleet Tracking";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, name, name).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, name).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId);
+        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText().contains(nameFromView));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText().contains(nameFromView));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText()
+                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText()
+                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
+            " with a detailed description (description corresponds to the selected template) by click on install button from details page")
     public void installFleetTrackingFromDetailsPage() {
-        String name = "Fleet tracking";
-        String nameFromView = "Fleet Tracking";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingDetailsBtn().click();
         solutionTemplateDetailsPage.installBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, name, name).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, name).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId);
+        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText().contains(nameFromView));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText().contains(nameFromView));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText()
+                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText()
+                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on button the close (x mark)")
     public void closeInstallFleetTrackingPopUp() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstallBtn().click();
@@ -167,7 +188,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("After install close pop-up window the Solution template successfully installed by click on bottom button")
     public void closeInstallFleetTrackingPopUpByBottomBtn() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstallBtn().click();
@@ -178,7 +203,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Check entity installation after solution template installation")
     public void installEntities() {
         testRestClient.postFleetTracking();
         sideBarMenuView.openDeviceProfiles();
@@ -201,7 +230,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entity(FLEET_TRACKING_DASHBOARD).isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("After install the Install button changed to the Delete button (from general solution templates page)")
     public void fleetTrackingDeleteBtn() {
         sideBarMenuView.solutionTemplates().click();
         WebElement element = solutionTemplatesHomePage.fleetTrackingInstallBtn();
@@ -212,7 +245,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesHomePage.fleetTrackingDeleteBtn().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("After install the Install button changed to the Delete button (from details solution templates page)")
     public void fleetTrackingDeleteBtnDetailsPage() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingDetailsBtn().click();
@@ -223,8 +260,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
         Assert.assertTrue(solutionTemplateDetailsPage.deleteBtn().isDisplayed());
     }
-
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("After install open instruction by click on instruction button (from general solution templates page)")
     public void fleetTrackingOpenInstruction() {
         testRestClient.postFleetTracking();
 
@@ -234,7 +274,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark)")
     public void fleetTrackingCloseInstruction() {
         testRestClient.postFleetTracking();
 
@@ -246,7 +290,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button")
     public void fleetTrackingCloseInstructionByCloseBtn() {
         testRestClient.postFleetTracking();
 
@@ -259,22 +307,29 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from details solution templates page)")
     public void fleetTrackingDetailsPageInstructionGoToMainDashboard() {
-        String name = "Fleet tracking";
         testRestClient.postFleetTracking();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, name, name).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, name).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("After install open instruction by click on instruction button (from details solution templates page)")
     public void fleetTrackingDetailsPageOpenInstruction() {
         testRestClient.postFleetTracking();
 
@@ -285,7 +340,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Close instruction pop-up window installed by click on button the close (x mark) (from details solution templates page)")
     public void fleetTrackingDetailsPageCloseInstruction() {
         testRestClient.postFleetTracking();
 
@@ -298,7 +357,11 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Close instruction pop-up window installed by click on close bottom button (from details solution templates page)")
     public void fleetTrackingDetailsPageCloseInstructionByCloseBtn() {
         testRestClient.postFleetTracking();
 
@@ -311,21 +374,28 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(invisibilityOf(element));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void fleetTrackingInstructionGoToMainDashboard() {
-        String name = "Fleet tracking";
         testRestClient.postFleetTracking();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, name, name).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, name).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboardGroups/" + entityGroupId + "/" + dashboardId, getUrl());
+        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test
+    @Description("Check delete entity after delete solution template")
     public void deleteEntities() {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstallBtn().click();
@@ -352,10 +422,12 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(dashboardPage.entityIsNotPresent(FLEET_TRACKING_DASHBOARD));
     }
 
+    @Epic("Solution templates")
+    @Feature("Installation")
+    @Story("Fleet tracking")
     @Test(groups = "broken")
+    @Description("Check redirect by click on links in instruction")
     public void linksBtn() {
-        String name = "Fleet tracking";
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
