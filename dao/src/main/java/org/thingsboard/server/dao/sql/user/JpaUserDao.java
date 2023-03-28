@@ -163,6 +163,19 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     }
 
     @Override
+    public PageData<User> findTenantAndCustomerUsers(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                userRepository
+                        .findTenantAndCustomerUsers(
+                                tenantId,
+                                customerId,
+                                Objects.toString(pageLink.getTextSearch(), ""),
+                                NULL_UUID,
+                                DaoUtil.toPageable(pageLink)));
+
+    }
+
+    @Override
     public PageData<User> findAll(PageLink pageLink) {
         return DaoUtil.toPageData(userRepository.findAll(DaoUtil.toPageable(pageLink)));
     }

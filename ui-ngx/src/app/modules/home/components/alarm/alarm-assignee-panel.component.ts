@@ -159,7 +159,7 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
       property: 'email',
       direction: Direction.ASC
     });
-    return this.userService.findUsersByQuery(pageLink, {ignoreLoading: true})
+    return this.userService.getUsersForAssign(this.alarmId, pageLink, {ignoreLoading: true})
       .pipe(
       catchError(() => of(emptyPageData<UserEmailInfo>())),
       map(pageData => {
