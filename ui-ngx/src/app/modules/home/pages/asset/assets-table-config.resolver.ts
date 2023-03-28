@@ -47,7 +47,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Observable, of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map, tap } from 'rxjs/operators';
+import { map, mergeMap, tap } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
@@ -55,7 +55,7 @@ import { Customer } from '@app/shared/models/customer.model';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
-import { Asset, AssetInfo } from '@app/shared/models/asset.models';
+import { AssetInfo } from '@app/shared/models/asset.models';
 import { AssetService } from '@app/core/http/asset.service';
 import { AssetTableHeaderComponent } from '@modules/home/pages/asset/asset-table-header.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
@@ -66,12 +66,11 @@ import { GroupEntityTabsComponent } from '@home/components/group/group-entity-ta
 import { AssetComponent } from '@home/pages/asset/asset.component';
 import { AuthUser } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
-import { DeviceInfo } from '@shared/models/device.models';
 
 @Injectable()
-export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo | Asset>> {
+export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo>> {
 
-  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<AssetInfo | Asset>,
+  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<AssetInfo>,
               private store: Store<AppState>,
               private broadcast: BroadcastService,
               private assetService: AssetService,
@@ -85,9 +84,9 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
               private dialog: MatDialog) {
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<AssetInfo | Asset>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<AssetInfo>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<AssetInfo | Asset>(groupParams);
+    const config = new EntityTableConfig<AssetInfo>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {
@@ -118,10 +117,10 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     );
   }
 
-  configDefaults(config: EntityTableConfig<AssetInfo | Asset>) {
+  configDefaults(config: EntityTableConfig<AssetInfo>) {
     config.entityType = EntityType.ASSET;
     config.entityComponent = AssetComponent;
-    config.entityTabsComponent = GroupEntityTabsComponent<Asset>;
+    config.entityTabsComponent = GroupEntityTabsComponent<AssetInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     config.entityResources = entityTypeResources.get(EntityType.ASSET);
 
@@ -135,16 +134,18 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     config.deleteEntitiesTitle = count => this.translate.instant('asset.delete-assets-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('asset.delete-assets-text');
 
-    config.loadEntity = id => this.assetService.getAsset(id.id);
+    config.loadEntity = id => this.assetService.getAssetInfo(id.id);
     config.saveEntity = asset => this.assetService.saveAsset(asset).pipe(
       tap(() => {
         this.broadcast.broadcast('assetSaved');
-      }));
+      }),
+      mergeMap((savedAsset) => this.assetService.getAssetInfo(savedAsset.id.id)
+      ));
     config.onEntityAction = action => this.onAssetAction(action, config);
     config.headerComponent = AssetTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<AssetInfo | Asset>): Array<EntityColumn<AssetInfo>> {
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<AssetInfo>): Array<EntityColumn<AssetInfo>> {
     const columns: Array<EntityColumn<AssetInfo>> = [
       new DateEntityTableColumn<AssetInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<AssetInfo>('name', 'asset.name', '20%', config.entityTitle),
@@ -162,7 +163,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     return columns;
   }
 
-  configureEntityFunctions(config: EntityTableConfig<AssetInfo | Asset>): void {
+  configureEntityFunctions(config: EntityTableConfig<AssetInfo>): void {
     if (config.customerId) {
       config.entitiesFetchFunction = pageLink =>
         this.assetService.getCustomerAssetInfos(config.componentsData.includeCustomers,
@@ -177,17 +178,17 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     config.deleteEntity = id => this.assetService.deleteAsset(id.id);
   }
 
-  configureCellActions(config: EntityTableConfig<AssetInfo | Asset>): Array<CellActionDescriptor<AssetInfo>> {
+  configureCellActions(config: EntityTableConfig<AssetInfo>): Array<CellActionDescriptor<AssetInfo>> {
     const actions: Array<CellActionDescriptor<AssetInfo>> = [];
     return actions;
   }
 
-  configureGroupActions(config: EntityTableConfig<AssetInfo | Asset>): Array<GroupActionDescriptor<AssetInfo>> {
+  configureGroupActions(config: EntityTableConfig<AssetInfo>): Array<GroupActionDescriptor<AssetInfo>> {
     const actions: Array<GroupActionDescriptor<AssetInfo>> = [];
     return actions;
   }
 
-  configureAddActions(config: EntityTableConfig<AssetInfo | Asset>): Array<HeaderActionDescriptor> {
+  configureAddActions(config: EntityTableConfig<AssetInfo>): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     actions.push(
       {
@@ -206,7 +207,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     return actions;
   }
 
-  private openAsset($event: Event, asset: AssetInfo, config: EntityTableConfig<AssetInfo | Asset>) {
+  private openAsset($event: Event, asset: AssetInfo, config: EntityTableConfig<AssetInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -214,7 +215,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     this.router.navigateByUrl(url);
   }
 
-  importAssets($event: Event, config: EntityTableConfig<AssetInfo | Asset>) {
+  importAssets($event: Event, config: EntityTableConfig<AssetInfo>) {
     const customerId = config.customerId ? new CustomerId(config.customerId) : null;
     this.homeDialogs.importEntities(customerId, EntityType.ASSET, null).subscribe((res) => {
       if (res) {
@@ -224,7 +225,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     });
   }
 
-  onAssetAction(action: EntityAction<Asset>, config: EntityTableConfig<AssetInfo | Asset>): boolean {
+  onAssetAction(action: EntityAction<AssetInfo>, config: EntityTableConfig<AssetInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openAsset(action.event, action.entity, config);

@@ -155,6 +155,28 @@ public class EdgeController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Edge Info (getEdgeInfoById)",
+            notes = "Get the Edge info object based on the provided Edge Id. " + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/info/{edgeId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeInfo getEdgeInfoById(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+                                    @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+        checkParameter(EDGE_ID, strEdgeId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            EdgeInfo edge = checkEdgeInfoId(edgeId, Operation.READ);
+            SecurityUser user = getCurrentUser();
+            if (!hasPermissionEdgeCreateOrWrite(user)) {
+                cleanUpLicenseKey(edge);
+            }
+            return edge;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Create Or Update Edge (saveEdge)",
             notes = "Create or update the Edge. When creating edge, platform generates Edge Id as " + UUID_WIKI_LINK +
                     "The newly created edge id will be present in the response. " +

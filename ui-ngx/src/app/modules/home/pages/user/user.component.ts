@@ -34,7 +34,7 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { User } from '@shared/models/user.model';
+import { User, UserInfo } from '@shared/models/user.model';
 import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
@@ -48,7 +48,7 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
 })
-export class UserComponent extends EntityComponent<User> {
+export class UserComponent extends EntityComponent<UserInfo> {
 
   authority = Authority;
 
@@ -68,8 +68,8 @@ export class UserComponent extends EntityComponent<User> {
   );
 
   constructor(protected store: Store<AppState>,
-              @Optional() @Inject('entity') protected entityValue: User,
-              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<User>,
+              @Optional() @Inject('entity') protected entityValue: UserInfo,
+              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<UserInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
               protected translate: TranslateService) {
@@ -92,7 +92,7 @@ export class UserComponent extends EntityComponent<User> {
     return this.entity && this.entity.additionalInfo && isDefinedAndNotNull(this.entity.additionalInfo.userCredentialsEnabled);
   }
 
-  buildForm(entity: User): UntypedFormGroup {
+  buildForm(entity: UserInfo): UntypedFormGroup {
     return this.fb.group(
       {
         email: [entity ? entity.email : '', [Validators.required, Validators.email]],
@@ -113,7 +113,7 @@ export class UserComponent extends EntityComponent<User> {
     );
   }
 
-  updateForm(entity: User) {
+  updateForm(entity: UserInfo) {
     this.entityForm.patchValue({email: entity.email});
     this.entityForm.patchValue({firstName: entity.firstName});
     this.entityForm.patchValue({lastName: entity.lastName});

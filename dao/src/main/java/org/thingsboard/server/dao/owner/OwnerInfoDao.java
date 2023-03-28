@@ -28,40 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.owner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.Dao;
 
-import javax.validation.Valid;
-import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
-@ApiModel
-@Data
-public class DashboardInfo extends Dashboard {
+public interface OwnerInfoDao extends Dao<EntityInfo> {
 
-    @Valid
-    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
+    PageData<EntityInfo> findTenantOwnerByTenantId(UUID tenantId, PageLink pageLink);
 
-    @Valid
-    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private List<EntityInfo> groups;
+    PageData<EntityInfo> findCustomerOwnersByTenantIdIncludingTenant(UUID tenantId, PageLink pageLink);
 
-    public DashboardInfo() {
-        super();
-    }
+    PageData<EntityInfo> findCustomerOwnersByTenantId(UUID tenantId, PageLink pageLink);
 
-    public DashboardInfo(Dashboard dashboard) {
-        super(dashboard);
-        this.groups = Collections.emptyList();
-    }
+    PageData<EntityInfo> findCustomerOwnersByIdsAndTenantId(UUID tenantId, List<UUID> ownerIds, PageLink pageLink);
 
-    public DashboardInfo(Dashboard dashboard, String ownerName, List<EntityInfo> groups) {
-        super(dashboard);
-        this.ownerName = ownerName;
-        this.groups = groups;
-    }
 }

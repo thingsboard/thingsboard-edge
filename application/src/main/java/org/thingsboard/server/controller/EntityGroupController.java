@@ -49,9 +49,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ContactBased;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -82,6 +84,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -89,10 +92,8 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -136,6 +137,8 @@ public class EntityGroupController extends AutoCommitController {
 
     private final TbEntityGroupService tbEntityGroupService;
     private final OwnersCacheService ownersCacheService;
+
+    private final OwnerService ownerService;
 
     public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
@@ -1082,6 +1085,81 @@ public class EntityGroupController extends AutoCommitController {
             }
             owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
             return toPageData(owners, pageLink);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Owner Infos (getOwnerInfos)",
+            notes = "Provides a rage view of Customers that the current user has READ access to. " +
+                    "If the current user is Tenant administrator, the result set also contains the tenant. " +
+                    "The call is designed for the UI auto-complete component to show tenant and all possible Customers " +
+                    "that the user may select to change the owner of the particular entity or entity group."
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/ownerInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityInfo> getOwnerInfos(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                if (accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ)) {
+                    if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
+                        return ownerService.findCustomerOwnersByTenantIdIncludingTenant(getCurrentUser().getTenantId(), pageLink);
+                    } else {
+                        return ownerService.findTenantOwnerByTenantId(getCurrentUser().getTenantId(), pageLink);
+                    }
+                } else if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
+                    return ownerService.findCustomerOwnersByTenantId(getCurrentUser().getTenantId(), pageLink);
+                }
+            } else if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
+                Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
+                List<CustomerId> customerIds = ownerIds.stream().map(id -> new CustomerId(id.getId())).collect(Collectors.toList());
+                return ownerService.findCustomerOwnersByIdsAndTenantId(getCurrentUser().getTenantId(), customerIds, pageLink);
+            }
+            return PageData.emptyPageData();
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Owner Info (getOwnerInfo)",
+            notes = "Fetch the owner info (tenant or customer) presented as Entity Info object based on the provided owner Id. " +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/ownerInfo/{ownerType}/{ownerId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EntityInfo getOwnerInfo(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @PathVariable("ownerId") String strOwnerId) throws ThingsboardException {
+
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
+        try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
+            if (!EntityType.TENANT.equals(ownerId.getEntityType()) && !EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                throw new ThingsboardException("Unsupported owner type '" + ownerId.getEntityType() + "'! Only 'TENANT' or 'CUSTOMER' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            } else if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                TenantId tenantId = new TenantId(ownerId.getId());
+                Tenant tenant = checkTenantId(tenantId, Operation.READ);
+                return new EntityInfo(tenant.getUuidId(), EntityType.TENANT.name(), tenant.getTitle());
+            } else {
+                CustomerId customerId = new CustomerId(ownerId.getId());
+                Customer customer = checkCustomerId(customerId, Operation.READ);
+                return new EntityInfo(customer.getUuidId(), EntityType.CUSTOMER.name(), customer.getTitle());
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

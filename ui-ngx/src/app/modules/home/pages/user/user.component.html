@@ -149,4 +149,5 @@
       </div>
     </fieldset>
   </form>
+  <tb-group-entity-info *ngIf="(isSysAdmin$ | async) === false && !isEdit" [groupEntity]="entity"></tb-group-entity-info>
 </div>

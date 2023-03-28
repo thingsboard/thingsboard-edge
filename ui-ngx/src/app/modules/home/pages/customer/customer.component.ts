@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Customer } from '@shared/models/customer.model';
+import { CustomerInfo } from '@shared/models/customer.model';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
@@ -47,7 +47,7 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
   templateUrl: './customer.component.html',
   styleUrls: ['./customer.component.scss']
 })
-export class CustomerComponent extends GroupContactBasedComponent<Customer> {
+export class CustomerComponent extends GroupContactBasedComponent<CustomerInfo> {
 
   isPublic = false;
 
@@ -57,9 +57,9 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: Customer,
+              @Inject('entity') protected entityValue: CustomerInfo,
               @Inject('entitiesTableConfig')
-              protected entitiesTableConfigValue: EntityTableConfig<Customer> | GroupEntityTableConfig<Customer>,
+              protected entitiesTableConfigValue: EntityTableConfig<CustomerInfo> | GroupEntityTableConfig<CustomerInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -129,7 +129,7 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     }
   }
 
-  buildEntityForm(entity: Customer): UntypedFormGroup {
+  buildEntityForm(entity: CustomerInfo): UntypedFormGroup {
     return this.fb.group(
       {
         title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
@@ -147,7 +147,7 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     );
   }
 
-  updateEntityForm(entity: Customer) {
+  updateEntityForm(entity: CustomerInfo) {
     this.isPublic = entity.additionalInfo && entity.additionalInfo.isPublic;
     this.entityForm.patchValue({title: entity.title});
     this.entityForm.patchValue({additionalInfo: {

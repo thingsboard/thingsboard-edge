@@ -182,6 +182,15 @@ public class ModelConstants {
     public static final String CUSTOMER_INFO_VIEW_COLUMN_FAMILY_NAME = "customer_info_view";
 
     /**
+     * Owner view constants.
+     */
+
+    public static final String OWNER_INFO_VIEW_COLUMN_FAMILY_NAME = "owner_info_view";
+
+    public static final String OWNER_INFO_VIEW_IS_PUBLIC_PROPERTY = "is_public";
+
+
+    /**
      * Cassandra device constants.
      */
     public static final String DEVICE_COLUMN_FAMILY_NAME = "device";

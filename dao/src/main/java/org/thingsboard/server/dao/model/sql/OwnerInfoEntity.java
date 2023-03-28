@@ -28,40 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.model.sql;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.ModelConstants;
 
-import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-@ApiModel
+import java.util.UUID;
+
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.OWNER_INFO_VIEW_IS_PUBLIC_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_PROPERTY;
+
 @Data
-public class DashboardInfo extends Dashboard {
+@Slf4j
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Immutable
+@Table(name = ModelConstants.OWNER_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class OwnerInfoEntity extends BaseSqlEntity<EntityInfo> {
 
-    @Valid
-    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
+    @Column(name = TENANT_ID_PROPERTY)
+    private UUID tenantId;
 
-    @Valid
-    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private List<EntityInfo> groups;
+    @Column(name = ENTITY_TYPE_COLUMN)
+    private String entityType;
 
-    public DashboardInfo() {
+    @Column(name = NAME_PROPERTY)
+    private String name;
+
+    @Column(name = OWNER_INFO_VIEW_IS_PUBLIC_PROPERTY)
+    private boolean isPublic;
+
+    public OwnerInfoEntity() {
         super();
     }
 
-    public DashboardInfo(Dashboard dashboard) {
-        super(dashboard);
-        this.groups = Collections.emptyList();
-    }
-
-    public DashboardInfo(Dashboard dashboard, String ownerName, List<EntityInfo> groups) {
-        super(dashboard);
-        this.ownerName = ownerName;
-        this.groups = groups;
+    @Override
+    public EntityInfo toData() {
+        return new EntityInfo(this.id, this.entityType, this.name);
     }
 }

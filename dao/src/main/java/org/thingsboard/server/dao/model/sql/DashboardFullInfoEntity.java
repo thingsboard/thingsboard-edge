@@ -28,40 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.model.sql;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
-import javax.validation.Valid;
-import java.util.Collections;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.List;
 
-@ApiModel
 @Data
-public class DashboardInfo extends Dashboard {
+@Slf4j
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
+@Immutable
+@Table(name = ModelConstants.DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class DashboardFullInfoEntity extends AbstractDashboardEntity<DashboardInfo> {
 
-    @Valid
-    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Type(type = "json")
+    @Column(name = ModelConstants.DASHBOARD_CONFIGURATION_PROPERTY)
+    private JsonNode configuration;
+
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
 
-    @Valid
-    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
     private List<EntityInfo> groups;
 
-    public DashboardInfo() {
+    public DashboardFullInfoEntity() {
         super();
     }
 
-    public DashboardInfo(Dashboard dashboard) {
-        super(dashboard);
-        this.groups = Collections.emptyList();
-    }
-
-    public DashboardInfo(Dashboard dashboard, String ownerName, List<EntityInfo> groups) {
-        super(dashboard);
-        this.ownerName = ownerName;
-        this.groups = groups;
+    @Override
+    public DashboardInfo toData() {
+        DashboardInfo dashboardInfo = new DashboardInfo(super.toDashboard(), this.ownerName, this.groups);
+        dashboardInfo.setConfiguration(configuration);
+        return dashboardInfo;
     }
 }

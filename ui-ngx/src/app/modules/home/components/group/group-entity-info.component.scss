@@ -28,40 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+:host {
+  .tb-group-chip {
+    &.mat-mdc-standard-chip.mdc-evolution-chip--disabled {
+      opacity: 1;
+      a {
+        color: #212121;
+        border: none;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-
-import javax.validation.Valid;
-import java.util.Collections;
-import java.util.List;
-
-@ApiModel
-@Data
-public class DashboardInfo extends Dashboard {
-
-    @Valid
-    @ApiModelProperty(position = 13, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
-
-    @Valid
-    @ApiModelProperty(position = 14, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private List<EntityInfo> groups;
-
-    public DashboardInfo() {
-        super();
+      }
     }
-
-    public DashboardInfo(Dashboard dashboard) {
-        super(dashboard);
-        this.groups = Collections.emptyList();
-    }
-
-    public DashboardInfo(Dashboard dashboard, String ownerName, List<EntityInfo> groups) {
-        super(dashboard);
-        this.ownerName = ownerName;
-        this.groups = groups;
-    }
+  }
 }
