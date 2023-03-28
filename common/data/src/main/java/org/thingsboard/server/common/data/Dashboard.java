@@ -51,7 +51,6 @@ import javax.validation.Valid;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -309,32 +308,6 @@ public class Dashboard extends SearchTextBased<DashboardId> implements GroupEnti
                         .map(jsonNode -> (ObjectNode) jsonNode)
                         .collect(Collectors.toList()))
                 .orElse(Collections.emptyList());
-    }
-
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((tenantId == null) ? 0 : tenantId.hashCode());
-        result = prime * result + ((customerId == null) ? 0 : customerId.hashCode());
-        result = prime * result + ((title == null) ? 0 : title.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        Dashboard that = (Dashboard) o;
-        return mobileHide == that.mobileHide
-                && Objects.equals(tenantId, that.tenantId)
-                && Objects.equals(customerId, that.customerId)
-                && Objects.equals(title, that.title)
-                && Objects.equals(image, that.image)
-                && Objects.equals(assignedCustomers, that.assignedCustomers)
-                && Objects.equals(mobileOrder, that.mobileOrder);
     }
 
     @Override

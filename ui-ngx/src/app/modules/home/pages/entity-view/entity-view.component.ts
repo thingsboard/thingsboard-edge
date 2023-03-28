@@ -43,6 +43,7 @@ import { EntityViewInfo } from '@shared/models/entity-view.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-entity-view',
@@ -70,8 +71,9 @@ export class EntityViewComponent extends GroupEntityComponent<EntityViewInfo> {
               @Inject('entitiesTableConfig')
               protected entitiesTableConfigValue: EntityTableConfig<EntityViewInfo> | GroupEntityTableConfig<EntityViewInfo>,
               protected fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {

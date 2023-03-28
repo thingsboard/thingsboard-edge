@@ -2448,7 +2448,10 @@
         "copyId": "Copy entity group Id",
         "idCopiedMessage": "Entity group Id has been copied to clipboard",
         "entity-group-name": "Entity group name",
-        "all-users": "All users"
+        "all-users": "All users",
+        "owner": "Owner",
+        "owner-required": "Owner is required.",
+        "manage-owner-and-groups": "Manage owner and groups"
     },
     "entity-field": {
         "created-time": "Created time",

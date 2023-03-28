@@ -391,9 +391,9 @@ export class EntityGroupService {
     return this.http.post(`/api/entityGroup/${entityGroupId}/addEntities`, entityIds, defaultHttpOptionsFromConfig(config));
   }
 
-  public changeEntityOwner(ownerId: EntityId, entityId: EntityId, config?: RequestConfig): Observable<any> {
+  public changeEntityOwner(ownerId: EntityId, entityId: EntityId, entityGroupIds?: string[], config?: RequestConfig): Observable<any> {
     return this.http.post(`/api/owner/${ownerId.entityType}/${ownerId.id}/${entityId.entityType}/${entityId.id}`,
-      null, defaultHttpOptionsFromConfig(config));
+      entityGroupIds, defaultHttpOptionsFromConfig(config));
   }
 
   public removeEntityFromEntityGroup(entityGroupId: string, entityId: string, config?: RequestConfig): Observable<any> {

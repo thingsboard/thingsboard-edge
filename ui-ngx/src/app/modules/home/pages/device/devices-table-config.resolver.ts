@@ -35,10 +35,12 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
-  DateEntityTableColumn, EntityColumn,
+  DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor, GroupChipsEntityTableColumn,
+  GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -302,6 +304,16 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     });
   }
 
+  manageOwnerAndGroups($event: Event, device: DeviceInfo, config: EntityTableConfig<DeviceInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, device).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onDeviceAction(action: EntityAction<DeviceInfo>, config: EntityTableConfig<DeviceInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -312,6 +324,9 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         return true;
       case 'viewCredentials':
         this.manageCredentials(action.event, action.entity, true, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

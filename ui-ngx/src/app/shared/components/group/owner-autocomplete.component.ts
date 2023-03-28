@@ -90,6 +90,9 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   }
 
   @Input()
+  useOwnerInfoValue = false;
+
+  @Input()
   disabled: boolean;
 
   @ViewChild('ownerInput', {static: true}) ownerInput: ElementRef<HTMLInputElement>;
@@ -209,7 +212,11 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   updateView(value: EntityId | null) {
     if (this.modelValue !== value) {
       this.modelValue = value;
-      this.propagateChange(this.modelValue);
+      if (this.useOwnerInfoValue) {
+        this.propagateChange(this.selectOwnerFormGroup.get('owner').value);
+      } else {
+        this.propagateChange(this.modelValue);
+      }
     }
   }
 

@@ -30,11 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form (ngSubmit)="add()" style="min-width: 450px;">
+<form [formGroup]="ownerAndGroupsFormGroup" (ngSubmit)="update()" style="width: 800px;">
   <mat-toolbar color="primary">
-    <h2 translate>user.add</h2>
+    <h2>{{ 'entity-group.manage-owner-and-groups' | translate }}</h2>
     <span fxFlex></span>
-    <div [tb-help]="'users'"></div>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -45,30 +44,27 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
-    <tb-user
-       [entitiesTableConfig]="entitiesTableConfig">
-    </tb-user>
-    <mat-form-field class="mat-block">
-      <mat-label translate>user.activation-method</mat-label>
-      <mat-select [ngModelOptions]="{standalone: true}" [(ngModel)]="activationMethod">
-        <mat-option *ngFor="let activationMethod of activationMethods" [value]="activationMethod">
-          {{ activationMethodTranslations.get(activationMethodEnum[activationMethod]) | translate }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+    <fieldset [disabled]="isLoading$ | async">
+      <section fxFlex fxLayout="column">
+        <tb-owner-and-groups
+          [entityType]="entityType"
+          formControlName="ownerAndGroups">
+        </tb-owner-and-groups>
+      </section>
+    </fieldset>
   </div>
-  <div mat-dialog-actions fxLayoutAlign="end center">
+  <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
     <button mat-button color="primary"
             type="button"
-            cdkFocusInitial
             [disabled]="(isLoading$ | async)"
-            (click)="cancel()">
-      {{ 'action.cancel' | translate }}
+            (click)="cancel()" cdkFocusInitial>
+      {{ (readonly ? 'action.close' : 'action.cancel') | translate }}
     </button>
-    <button mat-raised-button color="primary"
+    <button *ngIf="!readonly" mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || detailsForm.invalid || !detailsForm.dirty">
-      {{ 'action.add' | translate }}
+            [disabled]="(isLoading$ | async) || ownerAndGroupsFormGroup.invalid
+            || !ownerAndGroupsFormGroup.dirty">
+      {{ 'action.update' | translate }}
     </button>
   </div>
 </form>

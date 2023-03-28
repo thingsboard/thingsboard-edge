@@ -212,6 +212,16 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
+  manageOwnerAndGroups($event: Event, device: DeviceInfo, config: GroupEntityTableConfig<DeviceInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, device).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onDeviceAction(action: EntityAction<DeviceInfo>, config: GroupEntityTableConfig<DeviceInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
@@ -222,6 +232,9 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         return true;
       case 'viewCredentials':
         this.manageCredentials(action.event, action.entity, true, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

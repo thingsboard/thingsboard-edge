@@ -67,6 +67,7 @@ import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
 import { AuthUser } from '@shared/models/user.model';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
 export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig<EntityViewInfo>> {
@@ -78,6 +79,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
               private customerService: CustomerService,
               private edgeService: EdgeService,
               private dialogService: DialogService,
+              private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService,
@@ -202,10 +204,23 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     this.router.navigateByUrl(url);
   }
 
+  manageOwnerAndGroups($event: Event, entityView: EntityViewInfo, config: EntityTableConfig<EntityViewInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, entityView).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onEntityViewAction(action: EntityAction<EntityViewInfo>, config: EntityTableConfig<EntityViewInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openEntityView(action.event, action.entity, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;
