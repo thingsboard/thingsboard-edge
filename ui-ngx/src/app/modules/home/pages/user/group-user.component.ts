@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, Optional } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { User } from '@shared/models/user.model';
+import { UserInfo } from '@shared/models/user.model';
 import { selectAuth } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
@@ -48,7 +48,7 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './group-user.component.html',
   styleUrls: ['./user.component.scss']
 })
-export class GroupUserComponent extends GroupEntityComponent<User> {
+export class GroupUserComponent extends GroupEntityComponent<UserInfo> {
 
   authority = Authority;
 
@@ -63,8 +63,8 @@ export class GroupUserComponent extends GroupEntityComponent<User> {
   );
 
   constructor(protected store: Store<AppState>,
-              @Optional() @Inject('entity') protected entityValue: User,
-              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<User>,
+              @Optional() @Inject('entity') protected entityValue: UserInfo,
+              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<UserInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
               private translate: TranslateService) {
@@ -87,7 +87,7 @@ export class GroupUserComponent extends GroupEntityComponent<User> {
     }
   }
 
-  buildForm(entity: User): UntypedFormGroup {
+  buildForm(entity: UserInfo): UntypedFormGroup {
     return this.fb.group(
       {
         email: [entity ? entity.email : '', [Validators.required, Validators.email]],
@@ -107,7 +107,7 @@ export class GroupUserComponent extends GroupEntityComponent<User> {
     );
   }
 
-  updateForm(entity: User) {
+  updateForm(entity: UserInfo) {
     this.entityForm.patchValue({email: entity.email});
     this.entityForm.patchValue({firstName: entity.firstName});
     this.entityForm.patchValue({lastName: entity.lastName});

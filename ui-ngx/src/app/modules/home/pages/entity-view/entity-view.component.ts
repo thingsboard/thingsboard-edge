@@ -39,16 +39,17 @@ import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
-import { EntityView } from '@shared/models/entity-view.models';
+import { EntityViewInfo } from '@shared/models/entity-view.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-entity-view',
   templateUrl: './entity-view.component.html',
   styleUrls: ['./entity-view.component.scss']
 })
-export class EntityViewComponent extends GroupEntityComponent<EntityView> {
+export class EntityViewComponent extends GroupEntityComponent<EntityViewInfo> {
 
   entityType = EntityType;
 
@@ -65,8 +66,9 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: EntityView,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<EntityView>,
+              @Inject('entity') protected entityValue: EntityViewInfo,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<EntityViewInfo> | GroupEntityTableConfig<EntityViewInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -92,7 +94,7 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: EntityView): UntypedFormGroup {
+  buildForm(entity: EntityViewInfo): UntypedFormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -121,7 +123,7 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
     );
   }
 
-  updateForm(entity: EntityView) {
+  updateForm(entity: EntityViewInfo) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type});
     this.entityForm.patchValue({entityId: entity.entityId});

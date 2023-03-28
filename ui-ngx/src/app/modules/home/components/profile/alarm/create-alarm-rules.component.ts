@@ -42,7 +42,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { AlarmRule, alarmRuleValidator } from '@shared/models/device.models';
+import { DeviceProfileAlarmRule, alarmRuleValidator } from '@shared/models/device.models';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { AlarmSeverity, alarmSeverityTranslations } from '@shared/models/alarm.models';
@@ -116,7 +116,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
     }
   }
 
-  writeValue(createAlarmRules: {[severity: string]: AlarmRule}): void {
+  writeValue(createAlarmRules: {[severity: string]: DeviceProfileAlarmRule}): void {
     if (this.valueChangeSubscription) {
       this.valueChangeSubscription.unsubscribe();
     }
@@ -153,7 +153,7 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
   }
 
   public addCreateAlarmRule() {
-    const createAlarmRule: AlarmRule = {
+    const createAlarmRule: DeviceProfileAlarmRule = {
       condition: {
         condition: []
       }
@@ -194,15 +194,15 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
 
   private updateUsedSeverities() {
     this.usedSeverities = [];
-    const value: {severity: string, alarmRule: AlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
+    const value: {severity: string, alarmRule: DeviceProfileAlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
     value.forEach((rule, index) => {
       this.usedSeverities[index] = AlarmSeverity[rule.severity];
     });
   }
 
   private updateModel() {
-    const value: {severity: string, alarmRule: AlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
-    const createAlarmRules: {[severity: string]: AlarmRule} = {};
+    const value: {severity: string, alarmRule: DeviceProfileAlarmRule}[] = this.createAlarmRulesFormGroup.get('createAlarmRules').value;
+    const createAlarmRules: {[severity: string]: DeviceProfileAlarmRule} = {};
     value.forEach(v => {
       createAlarmRules[v.severity] = v.alarmRule;
     });

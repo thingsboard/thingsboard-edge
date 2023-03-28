@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -54,8 +56,10 @@ public class SearchCustomerTest extends AbstractDriverBaseTest {
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Search customer")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "customerNameForSearchByFirstAndSecondWord")
-    @Description
+    @Description("Search customer by first word in the name/*CHANGE TESTCASE*")
     public void searchFirstWord(String namePath) {
         sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.searchEntity(namePath);
@@ -63,8 +67,10 @@ public class SearchCustomerTest extends AbstractDriverBaseTest {
         customerPage.allEntity().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Search customer")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
-    @Description
+    @Description("Search customer by symbol in the name/Search customer by number in the name")
     public void searchNumber(String name, String namePath) {
         testRestClient.postCustomer(defaultCustomerPrototype(name));
 

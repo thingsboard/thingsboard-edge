@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Directive } from '@angular/core';
+import { ChangeDetectorRef, Directive, Input } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
@@ -38,28 +38,36 @@ import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-
 import { PageLink } from '@shared/models/page/page-link';
 import { ShortEntityView } from '@shared/models/entity-group.models';
 import { BaseData, HasId } from '@shared/models/base-data';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 // @dynamic
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class GroupEntityComponent<T extends BaseData<HasId>>
-  extends EntityComponent<T, PageLink, ShortEntityView, GroupEntityTableConfig<T>> {
+  extends EntityComponent<T, PageLink, T | ShortEntityView, EntityTableConfig<T> | GroupEntityTableConfig<T>> {
 
-  entityGroup = this.entitiesTableConfig?.entityGroup;
+  get groupEntitiesTableConfig(): GroupEntityTableConfig<T> {
+    return this.entitiesTableConfigValue as GroupEntityTableConfig<T>;
+  }
+
+  entityGroup = this.groupEntitiesTableConfig?.entityGroup;
 
   constructor(protected store: Store<AppState>,
               protected fb: UntypedFormBuilder,
               protected entityValue: T,
-              protected entitiesTableConfigValue: GroupEntityTableConfig<T>,
+              protected entitiesTableConfigValue: EntityTableConfig<T> | GroupEntityTableConfig<T>,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
-  protected setEntitiesTableConfig(entitiesTableConfig: GroupEntityTableConfig<T>) {
+  protected setEntitiesTableConfig(entitiesTableConfig: EntityTableConfig<T> | GroupEntityTableConfig<T>) {
     super.setEntitiesTableConfig(entitiesTableConfig);
     if (entitiesTableConfig) {
-      this.entityGroup = entitiesTableConfig.entityGroup;
+      this.entityGroup = (entitiesTableConfig as GroupEntityTableConfig<T>).entityGroup;
     }
   }
 
+  protected isGroupMode(): boolean {
+    return this.entitiesTableConfig && this.entitiesTableConfig instanceof GroupEntityTableConfig;
+  }
 }

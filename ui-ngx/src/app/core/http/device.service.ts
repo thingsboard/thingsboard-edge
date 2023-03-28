@@ -39,7 +39,7 @@ import {
   ClaimRequest,
   ClaimResult,
   Device,
-  DeviceCredentials,
+  DeviceCredentials, DeviceInfo,
   DeviceSearchQuery
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
@@ -48,6 +48,7 @@ import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 import { PersistentRpc, RpcStatus } from '@shared/models/rpc.models';
+import { DashboardInfo } from '@shared/models/dashboard.models';
 
 @Injectable({
   providedIn: 'root'
@@ -110,9 +111,30 @@ export class DeviceService {
       defaultHttpOptionsFromConfig(config));
   }
 
-/*  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
+  public getAllDeviceInfos(includeCustomers: boolean,
+                           pageLink: PageLink, deviceProfileId: string = '', config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    let url = `/api/deviceInfos/all${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DeviceInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerDeviceInfos(includeCustomers: boolean, customerId: string,
+                                pageLink: PageLink, deviceProfileId: string = '',
+                                config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    let url = `/api/customer/${customerId}/deviceInfos${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<DeviceInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
     return this.http.get<DeviceInfo>(`/api/device/info/${deviceId}`, defaultHttpOptionsFromConfig(config));
-  }*/
+  }
 
   public saveDevice(device: Device, entityGroupId?: string, config?: RequestConfig): Observable<Device> {
     let url = '/api/device';

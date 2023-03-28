@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.assetProfileSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -63,8 +65,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Sort by name")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSort")
-    @Description
+    @Description("Sort asset profile 'UP'")
     public void specialCharacterUp(String name) {
         testRestClient.postAssetProfile(defaultAssetProfile(name));
         this.name = name;
@@ -76,8 +80,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         Assert.assertEquals(profilesPage.getProfileName(), name);
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Sort by name")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForAllSort")
-    @Description
+    @Description("Sort asset profile 'UP'")
     public void allSortUp(String assetProfile, String assetProfileSymbol, String assetProfileNumber) {
         testRestClient.postAssetProfile(defaultAssetProfile(assetProfileSymbol));
         testRestClient.postAssetProfile(defaultAssetProfile(assetProfile));
@@ -101,8 +107,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         Assert.assertEquals(thirdAssetProfile, assetProfile);
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Sort by name")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSort")
-    @Description
+    @Description("Sort asset profile 'DAWN'")
     public void specialCharacterDown(String name) {
         testRestClient.postAssetProfile(defaultAssetProfile(name));
         this.name = name;
@@ -114,8 +122,10 @@ public class SortByNameTest extends AbstractDriverBaseTest {
         Assert.assertEquals(profilesPage.getProfileName(), name);
     }
 
+    @Epic("Asset profiles smoke")
+    @Feature("Sort by name")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForAllSort")
-    @Description
+    @Description("Sort asset profile 'DOWN'")
     public void allSortDown(String assetProfile, String assetProfileSymbol, String assetProfileNumber) {
         testRestClient.postAssetProfile(defaultAssetProfile(assetProfileSymbol));
         testRestClient.postAssetProfile(defaultAssetProfile(assetProfile));

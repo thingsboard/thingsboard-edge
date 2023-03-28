@@ -42,6 +42,7 @@ import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { SubscriptSizing } from '@angular/material/form-field';
+import { coerceBoolean } from '@shared/decorators/coerce-boolean';
 
 interface EntityTypeInfo {
   name: string;
@@ -89,6 +90,7 @@ export class EntityTypeListComponent implements ControlValueAccessor, OnInit, Af
   allowedEntityTypes: Array<EntityType | AliasEntityType>;
 
   @Input()
+  @coerceBoolean()
   ignoreAuthorityFilter: boolean;
 
   @ViewChild('entityTypeInput') entityTypeInput: ElementRef<HTMLInputElement>;

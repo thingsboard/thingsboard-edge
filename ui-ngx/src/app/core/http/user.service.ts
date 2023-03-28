@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { User, UserEmailInfo } from '@shared/models/user.model';
+import { User, UserEmailInfo, UserInfo } from '@shared/models/user.model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
@@ -71,6 +71,10 @@ export class UserService {
     return this.http.get<User>(`/api/user/${userId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getUserInfo(userId: string, config?: RequestConfig): Observable<UserInfo> {
+    return this.http.get<UserInfo>(`/api/user/info/${userId}`, defaultHttpOptionsFromConfig(config));
+  }
+
   public getUsers(userIds: Array<string>, config?: RequestConfig): Observable<Array<User>> {
     return this.http.get<Array<User>>(`/api/users?userIds=${userIds.join(',')}`, defaultHttpOptionsFromConfig(config)).pipe(
       map((users) => sortEntitiesByIds(users, userIds))
@@ -80,6 +84,26 @@ export class UserService {
   public getUserUsers(pageLink: PageLink,
                       config?: RequestConfig): Observable<PageData<User>> {
     return this.http.get<PageData<User>>(`/api/user/users${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllUserInfos(includeCustomers: boolean,
+                         pageLink: PageLink, config?: RequestConfig): Observable<PageData<UserInfo>> {
+    let url = `/api/userInfos/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<UserInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerUserInfos(includeCustomers: boolean, customerId: string,
+                              pageLink: PageLink, config?: RequestConfig): Observable<PageData<UserInfo>> {
+    let url = `/api/customer/${customerId}/userInfos${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<UserInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

@@ -39,7 +39,7 @@ import {
 } from '@home/models/group/group-entities-table-config.models';
 import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
-import { tap } from 'rxjs/operators';
+import { mergeMap, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -49,7 +49,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { Edge, EdgeInstallInstructions } from '@shared/models/edge.models';
+import { EdgeInfo, EdgeInstallInstructions } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { EdgeComponent } from '@home/pages/edge/edge.component';
 import { Router } from '@angular/router';
@@ -66,9 +66,9 @@ import {
 } from '@home/pages/edge/edge-instructions-dialog.component';
 
 @Injectable()
-export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
+export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<EdgeInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Edge>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<EdgeInfo>,
               private userPermissionsService: UserPermissionsService,
               private store: Store<AppState>,
               private translate: TranslateService,
@@ -81,8 +81,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
-    const config = new GroupEntityTableConfig<Edge>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EdgeInfo>): Observable<GroupEntityTableConfig<EdgeInfo>> {
+    const config = new GroupEntityTableConfig<EdgeInfo>(entityGroup, params);
 
     const authUser: AuthUser = getCurrentAuthUser(this.store);
 
@@ -96,13 +96,13 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     config.deleteEntitiesTitle = count => this.translate.instant('edge.delete-edges-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('edge.delete-edges-text');
 
-    config.loadEntity = id => this.edgeService.getEdge(id.id);
-    config.saveEntity = edge => {
-      return this.edgeService.saveEdge(edge).pipe(
+    config.loadEntity = id => this.edgeService.getEdgeInfo(id.id);
+    config.saveEntity = edge => this.edgeService.saveEdge(edge).pipe(
         tap(() => {
           this.broadcast.broadcast('edgeSaved');
-        }));
-    };
+        }),
+      mergeMap((savedEdge) => this.edgeService.getEdgeInfo(savedEdge.id.id)
+      ));
     config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
 
     config.onEntityAction = action => this.onEdgeAction(action, config, params);
@@ -223,7 +223,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  importEdges($event: Event, config: GroupEntityTableConfig<Edge>) {
+  importEdges($event: Event, config: GroupEntityTableConfig<EdgeInfo>) {
     const entityGroup = config.entityGroup;
     const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
     let customerId: CustomerId = null;
@@ -238,7 +238,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     });
   }
 
-  onEdgeAction(action: EntityAction<Edge>, config: GroupEntityTableConfig<Edge>, params: EntityGroupParams): boolean {
+  onEdgeAction(action: EntityAction<EdgeInfo>, config: GroupEntityTableConfig<EdgeInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openEdge(action.event, action.entity, config, params);
@@ -277,13 +277,13 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     return false;
   }
 
-  private openEdge($event: Event, edge: Edge,  config: GroupEntityTableConfig<Edge>, params: EntityGroupParams) {
+  private openEdge($event: Event, edge: EdgeInfo,  config: GroupEntityTableConfig<EdgeInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      const url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'edgeGroups', params.childEntityGroupId, edge.id.id]);
+      const url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'edgeManagement', 'instances', 'groups', params.childEntityGroupId, edge.id.id]);
       this.window.open(window.location.origin + url, '_blank');
     } else {
       const url = this.router.createUrlTree([edge.id.id], {relativeTo: config.getActivatedRoute()});
@@ -291,119 +291,119 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
   }
 
-  manageUsers($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageUsers($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
               params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.USER);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/userGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/userGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/userGroups');
     }
   }
 
-  manageAssets($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageAssets($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ASSET);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/assetGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/assetGroups');
     }
   }
 
-  manageDevices($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageDevices($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                 params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/deviceGroups');
     }
   }
 
-  manageEntityViews($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageEntityViews($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                     params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ENTITY_VIEW);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/entityViewGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/entityViewGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/entityViewGroups');
     }
   }
 
-  manageDashboards($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageDashboards($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                    params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/dashboardGroups`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/dashboardGroups');
     }
   }
 
-  manageSchedulerEvents($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageSchedulerEvents($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                         params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/scheduler`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/scheduler`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/scheduler');
     }
   }
 
-  manageRuleChains($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageRuleChains($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                    params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.RULE_CHAIN);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/ruleChains`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/ruleChains');
     }
   }
 
-  manageIntegrations($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+  manageIntegrations($event: Event, edge: EdgeInfo | ShortEntityView, config: GroupEntityTableConfig<EdgeInfo>,
                      params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.INTEGRATION);
-    } else if (this.isCustomerScope(params)) {
-      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/integrations`);
-    } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/integrations`);
+    } else  {
+      this.navigateToChildEdgePage(config, edge, '/integrations');
     }
   }
 
-  syncEdge($event, edge) {
+  private navigateToChildEdgePage(config: GroupEntityTableConfig<EdgeInfo>, edge: EdgeInfo | ShortEntityView, page: string) {
+    if (this.isCustomerScope(config.groupParams)) {
+      if (config.groupParams.childEntityGroupId) {
+        const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+        this.router.navigateByUrl(`customers/${targetGroups}/${config.groupParams.entityGroupId}/${config.groupParams.customerId}` +
+      `/edgeManagement/instances/groups/${config.groupParams.childEntityGroupId}/${edge.id.id}${page}`);
+      } else {
+        this.router.navigateByUrl(`customers/all/${config.groupParams.customerId}` +
+      `/edgeManagement/instances/groups/${config.groupParams.entityGroupId}/${edge.id.id}${page}`);
+      }
+    } else {
+      const targetGroups = config.groupParams.shared ? 'shared' : 'groups';
+      this.router.navigateByUrl(`edgeManagement/instances/${targetGroups}/${config.entityGroup.id.id}/${edge.id.id}${page}`);
+    }
+  }
+
+  syncEdge($event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -421,7 +421,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     );
   }
 
-  openInstructions($event, edge) {
+  openInstructions($event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }

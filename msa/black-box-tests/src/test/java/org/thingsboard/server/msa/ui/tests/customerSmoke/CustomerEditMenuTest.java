@@ -31,6 +31,8 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -80,8 +82,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change title by edit menu")
     public void changeTitle() {
         String newCustomerName = "Changed" + getRandomNumber();
         String customerName = ENTITY_NAME + random();
@@ -103,8 +107,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(titleAfter, newCustomerName);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Delete title and save")
     public void deleteTitle() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
@@ -118,8 +124,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.doneBtnEditViewVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Save only with space in title")
     public void saveOnlyWithSpace() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
@@ -139,8 +147,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getCustomerName(), customerPage.getCustomerHeaderName());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
-    @Description
+    @Description("Write the description and save the changes/Change the description and save the changes/Delete the description and save the changes")
     public void editDescription(String description, String newDescription, String finalDescription) {
         String name = ENTITY_NAME + random();
         testRestClient.postCustomer(EntityPrototypes.defaultCustomerPrototype(name, description));
@@ -156,8 +166,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getDescription(), finalDescription);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add country")
     public void addCountry() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
@@ -172,8 +184,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.countrySelectMenuEntityView().getText(), customerPage.getCountry());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add phone number")
     public void addPhoneNumber() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
@@ -188,8 +202,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.phoneNumberEntityView().getAttribute("value").contains(number));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "incorrectPhoneNumber")
-    @Description
+    @Description("Add incorrect phone number")
     public void addIncorrectPhoneNumber(String number) {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
@@ -206,8 +222,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.errorMessage().getText(), PHONE_NUMBER_ERROR_MESSAGE);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 30, groups = "smoke")
-    @Description
+    @Description("Add all information")
     public void addAllInformation() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
