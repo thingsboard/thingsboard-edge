@@ -45,9 +45,9 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
-    <tb-group-user
+    <tb-user
        [entitiesTableConfig]="entitiesTableConfig">
-    </tb-group-user>
+    </tb-user>
     <mat-form-field class="mat-block">
       <mat-label translate>user.activation-method</mat-label>
       <mat-select [ngModelOptions]="{standalone: true}" [(ngModel)]="activationMethod">

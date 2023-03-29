@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -43,8 +43,9 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-attribute-key-value-table',
@@ -58,7 +59,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
     }
   ]
 })
-export class AttributeKeyValueTableComponent extends PageComponent implements ControlValueAccessor, OnInit {
+export class AttributeKeyValueTableComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
@@ -79,7 +80,7 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
 
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -87,9 +88,18 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
   }
 
   ngOnInit(): void {
-    this.kvListFormGroup = this.fb.group({});
-    this.kvListFormGroup.addControl('keyVals',
-      this.fb.array([]));
+    this.kvListFormGroup = this.fb.group({
+      keyVals: this.fb.array([])
+    });
+
+    this.kvListFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   keyValsFormArray(): UntypedFormArray {
@@ -113,9 +123,6 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
   }
 
   writeValue(keyValMap: {[key: string]: string}): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const keyValsControls: Array<AbstractControl> = [];
     if (keyValMap) {
       for (const property of Object.keys(keyValMap)) {
@@ -127,10 +134,7 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
         }
       }
     }
-    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls));
-    this.valueChangeSubscription = this.kvListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
+    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls), {emitEvent: false});
   }
 
   public removeKeyVal(index: number) {

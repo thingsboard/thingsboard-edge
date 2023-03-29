@@ -122,6 +122,13 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
+    public AssetInfo findAssetInfoById(TenantId tenantId, AssetId assetId) {
+        log.trace("Executing findAssetInfoById [{}]", assetId);
+        validateId(assetId, INCORRECT_ASSET_ID + assetId);
+        return assetInfoDao.findById(tenantId, assetId.getId());
+    }
+
+    @Override
     public ListenableFuture<Asset> findAssetByIdAsync(TenantId tenantId, AssetId assetId) {
         log.trace("Executing findAssetById [{}]", assetId);
         validateId(assetId, INCORRECT_ASSET_ID + assetId);

@@ -130,6 +130,28 @@ public class CustomerController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Customer info (getCustomerInfoById)",
+            notes = "Get the Customer info object based on the provided Customer Id. "
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/info/{customerId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CustomerInfo getCustomerInfoById(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
+            @PathVariable(CUSTOMER_ID) String strCustomerId) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        try {
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            CustomerInfo customer = checkCustomerInfoId(customerId, Operation.READ);
+            if (!customer.getAdditionalInfo().isNull()) {
+                processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
+            }
+            return customer;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 
     @ApiOperation(value = "Get short Customer info (getShortCustomerInfoById)",
             notes = "Get the short customer object that contains only the title and 'isPublic' flag. "

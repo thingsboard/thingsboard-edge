@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { EntityId } from '@shared/models/id/entity-id';
 import { HasUUID } from '@shared/models/id/has-uuid';
@@ -100,10 +100,7 @@ export interface Edge extends BaseData<EdgeId> {
   rootRuleChainId?: RuleChainId;
 }
 
-export interface EdgeInfo extends Edge {
-  ownerName?: string;
-  groups?: EntityInfoData[];
-}
+export type EdgeInfo = Edge & GroupEntityInfo<EdgeId>;
 
 export interface EdgeSearchQuery extends EntitySearchQuery {
   edgeTypes: Array<string>;

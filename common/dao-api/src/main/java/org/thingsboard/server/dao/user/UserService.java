@@ -52,6 +52,8 @@ public interface UserService extends EntityDaoService {
 
 	User findUserById(TenantId tenantId, UserId userId);
 
+    UserInfo findUserInfoById(TenantId tenantId, UserId userId);
+
 	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
 
     ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds);

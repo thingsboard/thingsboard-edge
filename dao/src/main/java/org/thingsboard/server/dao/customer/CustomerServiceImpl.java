@@ -138,6 +138,13 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     }
 
     @Override
+    public CustomerInfo findCustomerInfoById(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing findCustomerInfoById [{}]", customerId);
+        Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        return customerInfoDao.findById(tenantId, customerId.getId());
+    }
+
+    @Override
     public Optional<Customer> findCustomerByTenantIdAndTitle(TenantId tenantId, String title) {
         log.trace("Executing findCustomerByTenantIdAndTitle [{}] [{}]", tenantId, title);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
