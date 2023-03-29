@@ -183,7 +183,7 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
     }, 0);
   }
 
-  getUserDisplayName(entity: User) {
+  getUserDisplayName(entity: UserEmailInfo) {
     let displayName = '';
     if ((entity.firstName && entity.firstName.length > 0) ||
       (entity.lastName && entity.lastName.length > 0)) {
@@ -202,7 +202,7 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
     return displayName;
   }
 
-  getUserInitials(entity: User): string {
+  getUserInitials(entity: UserEmailInfo): string {
     let initials = '';
     if (entity.firstName && entity.firstName.length ||
       entity.lastName && entity.lastName.length) {
@@ -218,7 +218,7 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
     return initials.toUpperCase();
   }
 
-  getFullName(entity: User): string {
+  getFullName(entity: UserEmailInfo): string {
     let fullName = '';
     if ((entity.firstName && entity.firstName.length > 0) ||
       (entity.lastName && entity.lastName.length > 0)) {
@@ -235,7 +235,7 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
     return fullName;
   }
 
-  getAvatarBgColor(entity: User) {
+  getAvatarBgColor(entity: UserEmailInfo) {
     return this.utilsService.stringToHslColor(this.getUserDisplayName(entity), 40, 60);
   }
 

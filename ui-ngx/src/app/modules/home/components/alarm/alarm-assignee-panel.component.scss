@@ -92,11 +92,21 @@
           color: rgba(0, 0, 0, 0.38);
         }
       }
-      .mdc-list-item__primary-text {
-        display: flex;
-        justify-content: start;
-        align-items: center;
-        line-height: normal;
+      &.tb-not-found {
+        padding: 0;
+        border-bottom: none;
+        .mdc-list-item__primary-text {
+          display: block;
+          width: 100%;
+          height: 100%;
+          .tb-not-found-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        }
       }
     }
   }
