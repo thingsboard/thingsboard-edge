@@ -114,22 +114,23 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public boolean hasPermission(SecurityUser user, Operation operation, AlarmId alarmId, Alarm alarm) {
+        @SuppressWarnings("unchecked")
+        public boolean hasPermission(SecurityUser user, Operation operation, AlarmId alarmId, Alarm alarm) throws ThingsboardException {
             if (!user.getTenantId().equals(alarm.getTenantId())) {
                 return false;
             }
             if (!(user.getUserPermissions().hasGenericPermission(Resource.ALARM, operation))) {
                 return false;
+            } else if (user.getCustomerId().equals(alarm.getCustomerId())) {
+                return true;
             } else {
                 EntityId originatorId = alarm.getOriginator();
-                Resource originatorResource = Resource.resourceFromEntityType(originatorId.getEntityType());
-                EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(originatorId.getEntityType());
-                Optional<HasId<?>> entityOpt = entityDaoService.findEntity(user.getTenantId(), originatorId);
-                if (entityOpt.isPresent() && entityOpt.get() instanceof TenantEntity) {
-                    try {
-                        return CustomerUserPermissions.super.get(originatorResource).hasPermission(user, operation, originatorId, (TenantEntity) entityOpt.get());
-                    } catch (ThingsboardException e) {
-                        log.warn("Exception was thrown during permission check!", e);
+                if (alarm.getOriginator() != null) {
+                    Resource originatorResource = Resource.resourceFromEntityType(originatorId.getEntityType());
+                    EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(originatorId.getEntityType());
+                    Optional<HasId<?>> entityOpt = entityDaoService.findEntity(user.getTenantId(), originatorId);
+                    if (entityOpt.isPresent()) {
+                        return CustomerUserPermissions.this.get(originatorResource).hasPermission(user, operation, originatorId, (TenantEntity) entityOpt.get());
                     }
                 }
             }
