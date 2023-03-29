@@ -103,8 +103,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
             serviceTypes = Collections.singletonList(ServiceType.of(serviceType));
         }
 
-
-        serviceInfo = getServiceInfoWithCurrentSystemInfo();
+       generateNewServiceInfoWithCurrentSystemInfo();
     }
 
     @Override
@@ -169,7 +168,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     }
 
     @Override
-    public ServiceInfo getServiceInfoWithCurrentSystemInfo() {
+    public ServiceInfo generateNewServiceInfoWithCurrentSystemInfo() {
         ServiceInfo.Builder builder = ServiceInfo.newBuilder()
                 .setServiceId(serviceId)
                 .addAllServiceTypes(serviceTypes.stream().map(ServiceType::name).collect(Collectors.toList()))
@@ -178,7 +177,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
 
         supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
 
-        return builder.build();
+        return serviceInfo = builder.build();
     }
 
     private TransportProtos.SystemInfoProto getCurrentSystemInfoProto() {
