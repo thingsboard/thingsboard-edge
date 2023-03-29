@@ -54,6 +54,11 @@ import {
   ShareEntityGroupDialogComponent,
   ShareEntityGroupDialogData
 } from '@home/dialogs/share-entity-group-dialog.component';
+import { GroupEntityInfo } from '@shared/models/base-data';
+import {
+  ManageOwnerAndGroupsDialogComponent,
+  ManageOwnerAndGroupsDialogData
+} from '@home/dialogs/manage-owner-and-groups-dialog.component';
 
 @Injectable()
 export class HomeDialogsService {
@@ -137,6 +142,20 @@ export class HomeDialogsService {
           }
         }
       ));
+  }
+
+  public manageOwnerAndGroups($event: Event, groupEntity: GroupEntityInfo<EntityId>): Observable<boolean> {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    return this.dialog.open<ManageOwnerAndGroupsDialogComponent, ManageOwnerAndGroupsDialogData,
+      boolean>(ManageOwnerAndGroupsDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        groupEntity
+      }
+    }).afterClosed();
   }
 
   public selectOwner($event: Event, selectOwnerTitle: string, confirmSelectTitle: string,

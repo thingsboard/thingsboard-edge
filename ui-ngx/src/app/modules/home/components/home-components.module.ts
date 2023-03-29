@@ -228,6 +228,7 @@ import { AllEntitiesTableConfigService } from '@home/components/entity/all-entit
 import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
 import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
 import { GroupChipsComponent } from '@home/components/group/group-chips.component';
+import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
 
 @NgModule({
   declarations:
@@ -302,6 +303,7 @@ import { GroupChipsComponent } from '@home/components/group/group-chips.componen
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
       GroupChipsComponent,
+      GroupEntityInfoComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -479,6 +481,7 @@ import { GroupChipsComponent } from '@home/components/group/group-chips.componen
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
     GroupChipsComponent,
+    GroupEntityInfoComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
