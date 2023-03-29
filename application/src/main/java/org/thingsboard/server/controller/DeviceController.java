@@ -195,12 +195,13 @@ public class DeviceController extends BaseController {
     public Device saveDevice(@ApiParam(value = "A JSON value representing the device.", required = true) @RequestBody Device device,
                              @ApiParam(value = "Optional value of the device credentials to be used during device creation. " +
                                      "If omitted, access token will be auto-generated.") @RequestParam(name = "accessToken", required = false) String accessToken,
-                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(device, strEntityGroupId,
-                (device1, entityGroup) -> {
+        return saveGroupEntity(device, strEntityGroupId, strEntityGroupIds,
+                (device1, entityGroups) -> {
                     try {
-                        return tbDeviceService.save(device1, accessToken, entityGroup, user);
+                        return tbDeviceService.save(device1, accessToken, entityGroups, user);
                     } catch (Exception e) {
                         throw handleException(e);
                     }

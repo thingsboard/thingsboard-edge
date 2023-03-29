@@ -138,6 +138,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     config.entityTabsComponent = GroupEntityTabsComponent<Dashboard>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
+    config.addDialogStyle = {height: '800px'};
 
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';

@@ -133,10 +133,14 @@ export class DashboardService {
     return this.http.get<DashboardInfo>(`/api/dashboard/info/${dashboardId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDashboard(dashboard: Dashboard, entityGroupId?: string, config?: RequestConfig): Observable<Dashboard> {
+  public saveDashboard(dashboard: Dashboard, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Dashboard> {
     let url = '/api/dashboard';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Dashboard>(url, dashboard, defaultHttpOptionsFromConfig(config));
   }

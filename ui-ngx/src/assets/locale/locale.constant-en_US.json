@@ -2452,7 +2452,8 @@
         "all-users": "All users",
         "owner": "Owner",
         "owner-required": "Owner is required.",
-        "manage-owner-and-groups": "Manage owner and groups"
+        "manage-owner-and-groups": "Manage owner and groups",
+        "owner-and-groups": "Owner and groups"
     },
     "entity-field": {
         "created-time": "Created time",

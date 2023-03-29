@@ -134,6 +134,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     config.entityTabsComponent = GroupEntityTabsComponent<EdgeInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.EDGE);
     config.entityResources = entityTypeResources.get(EntityType.EDGE);
+    config.addDialogStyle = {height: '1000px'};
 
     config.entityTitle = (edge) => edge ?
       this.utils.customTranslation(edge.name, edge.name) : '';

@@ -75,6 +75,7 @@ import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
@@ -205,7 +206,9 @@ public class CustomerController extends BaseController {
     @ResponseBody
     public Customer saveCustomer(@ApiParam(value = "A JSON value representing the customer.") @RequestBody Customer customer,
                                  @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                                 @ApiParam(value = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+                                 @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
             String prevHomeDashboardId = null;
             boolean prevHideDashboardToolbar = true;
@@ -228,9 +231,9 @@ public class CustomerController extends BaseController {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(customer, strEntityGroupId, (customer1, entityGroup) -> {
+        return saveGroupEntity(customer, strEntityGroupId, strEntityGroupIds, (customer1, entityGroups) -> {
             try {
-                return tbCustomerService.save(customer, entityGroup, user);
+                return tbCustomerService.save(customer, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }

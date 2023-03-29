@@ -268,23 +268,34 @@ public class UserController extends BaseController {
             @ApiParam(value = "Send activation email (or use activation link)", defaultValue = "true")
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds,
             HttpServletRequest request) throws ThingsboardException {
 
         if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
             user.setTenantId(getCurrentUser().getTenantId());
         }
 
-        EntityGroupId entityGroupId = null;
-        EntityGroup entityGroup = null;
+        List<EntityGroupId> entityGroupIds = new ArrayList<>();
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        String[] groupIds = null;
         if (!StringUtils.isEmpty(strEntityGroupId)) {
-            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            groupIds = new String[]{strEntityGroupId};
+        } else if (strEntityGroupIds != null && strEntityGroupIds.length > 0) {
+            groupIds = strEntityGroupIds;
+        }
+        if (groupIds != null) {
+            for (String id : groupIds) {
+                EntityGroupId entityGroupId = new EntityGroupId(toUUID(id));
+                EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                entityGroupIds.add(entityGroupId);
+                entityGroups.add(entityGroup);
+            }
         }
 
         if (user.getId() == null && getCurrentUser().getAuthority() != Authority.SYS_ADMIN &&
                 (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
-            if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
-                user.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+            if (!entityGroups.isEmpty() && entityGroups.get(0).getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                user.setOwnerId(new CustomerId(entityGroups.get(0).getOwnerId().getId()));
             } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                 user.setOwnerId(getCurrentUser().getCustomerId());
             }
@@ -293,7 +304,7 @@ public class UserController extends BaseController {
         if (getCurrentUser().getId().equals(user.getId())) {
             accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
         } else {
-            checkEntity(user.getId(), user, Resource.USER, entityGroupId);
+            checkEntityWithGroupIds(user.getId(), user, Resource.USER, entityGroupIds);
         }
 
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
@@ -319,7 +330,7 @@ public class UserController extends BaseController {
         }
 
         return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
-                user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
+                user, sendActivationMail, request, entityGroups, getCurrentUser());
     }
 
     @ApiOperation(value = "Send or re-send the activation email",
