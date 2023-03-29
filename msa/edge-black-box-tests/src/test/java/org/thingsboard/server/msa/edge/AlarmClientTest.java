@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm");
         alarm.setSeverity(AlarmSeverity.CRITICAL);
         Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
@@ -98,7 +97,6 @@ public class AlarmClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm from edge");
         alarm.setSeverity(AlarmSeverity.MAJOR);
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);

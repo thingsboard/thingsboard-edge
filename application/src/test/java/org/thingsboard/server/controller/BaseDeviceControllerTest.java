@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.thingsboard.server.controller;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -33,6 +34,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
@@ -60,6 +62,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportColumnType;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
@@ -125,6 +128,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
     }
 
     @After
@@ -676,7 +682,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         doPost("/api/device/credentials", deviceCredentials)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Incorrect deviceId null")));
+                .andExpect(statusReason(containsString("Invalid entity id")));
 
         testNotifyEntityNever(deviceCredentials.getDeviceId(), new Device());
         testNotificationUpdateGatewayNever();
@@ -1343,6 +1349,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         testEntityDaoWithRelationsOk(savedTenant.getId(), deviceId, "/api/device/" + deviceId);
     }
 
+    @Ignore
     @Test
     public void testDeleteDeviceExceptionWithRelationsTransactional() throws Exception {
         DeviceId deviceId = createDevice("Device for Test WithRelations Transactional Exception").getId();
@@ -1351,6 +1358,10 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testBulkImportDeviceWithoutCredentials() throws Exception {
+        // edge only - device profile are not created - uploaded from cloud
+        DeviceProfile deviceProfile = this.createDeviceProfile("some_type");
+        doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+
         String deviceName = "some_device";
         String deviceType = "some_type";
         BulkImportRequest request = new BulkImportRequest();

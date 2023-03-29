@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,7 @@
       width: 60%;
     }
     .mat-headline {
-      margin: 0;
-    }
-    .mat-subheader {
-      line-height: 24px;
-      color: rgba(0,0,0,0.54);
-      font-size: 14px;
-      font-weight: 400;
-    }
-    .edge-status-ts {
-      font-size: 16px;
-      font-weight: 400;
+      margin-left: 16px;
     }
   }
 }

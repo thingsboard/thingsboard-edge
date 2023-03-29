@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,15 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.entity.EntityDaoService;
+
+import java.util.List;
 
 public interface UserService extends EntityDaoService {
 	
@@ -48,7 +51,7 @@ public interface UserService extends EntityDaoService {
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
+	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
 	
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 	
@@ -64,6 +67,16 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 
+    PageData<User> findSysAdmins(PageLink pageLink);
+
+    PageData<User> findAllTenantAdmins(PageLink pageLink);
+
+    PageData<User> findTenantAdminsByTenantsIds(List<TenantId> tenantsIds, PageLink pageLink);
+
+    PageData<User> findTenantAdminsByTenantProfilesIds(List<TenantProfileId> tenantProfilesIds, PageLink pageLink);
+
+    PageData<User> findAllUsers(PageLink pageLink);
+
     void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
@@ -77,8 +90,4 @@ public interface UserService extends EntityDaoService {
     int increaseFailedLoginAttempts(TenantId tenantId, UserId userId);
 
     void setLastLoginTs(TenantId tenantId, UserId userId);
-
-	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials);
-
-	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials, boolean updatePasswordHistory);
 }

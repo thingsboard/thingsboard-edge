@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -681,12 +681,17 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed updating schema!!!", e);
                 }
                 break;
-            case "3.4.3":
+            case "3.4.4":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
                     if (isOldSchema(conn, 3004002)) {
-                        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.3", SCHEMA_UPDATE_SQL);
+                        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.4", SCHEMA_UPDATE_SQL);
                         loadSql(schemaUpdateFile, conn);
+
+                        try {
+                            conn.createStatement().execute("VACUUM FULL ANALYZE alarm;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception e) {
+                        }
 
                         try {
                             conn.createStatement().execute("ALTER TABLE asset_profile ADD COLUMN default_edge_rule_chain_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script

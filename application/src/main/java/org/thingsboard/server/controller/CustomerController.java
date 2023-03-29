@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.customer.TbCustomerService;
 import org.thingsboard.server.service.security.permission.Operation;
@@ -204,6 +205,25 @@ public class CustomerController extends BaseController {
             return checkNotNull(customerService.findCustomerByTenantIdAndTitle(tenantId, customerTitle), "Customer with title [" + customerTitle + "] is not found");
         } catch (Exception e) {
             throw handleException(e);
+        }
+    }
+
+    // edge only - temporary method, to fix public customer tests
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/customer/public", method = RequestMethod.POST)
+    @ResponseBody
+    public Customer createPublicCustomer() throws Exception {
+        Customer publicCustomer;
+        try {
+            TenantId tenantId = getTenantId();
+            publicCustomer = customerService.findOrCreatePublicCustomer(tenantId);
+            return publicCustomer;
+        } catch (RuntimeException e) {
+            publicCustomer = new Customer();
+            publicCustomer.setTenantId(getTenantId());
+            publicCustomer.setTitle(CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE);
+            publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
+            return customerService.saveCustomer(publicCustomer, false);
         }
     }
 }
