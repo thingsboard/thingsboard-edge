@@ -683,23 +683,22 @@ public class UserController extends BaseController {
         try {
             checkParameter("alarmId", strAlarmId);
             AlarmId alarmEntityId = new AlarmId(toUUID(strAlarmId));
-            PageData<User> pageData = new PageData<>();
             Alarm alarm = checkAlarmId(alarmEntityId, Operation.WRITE);
             SecurityUser currentUser = getCurrentUser();
             TenantId tenantId = currentUser.getTenantId();
-            Optional<CustomerId> originatorCustomerId = entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator());
+            CustomerId originatorCustomerId = entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator()).get();
+            PageData<User> pageData;
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (Authority.TENANT_ADMIN.equals(currentUser.getAuthority())) {
-                if (originatorCustomerId.isEmpty()) {
+                if (CustomerId.NULL_UUID.equals(originatorCustomerId.getId())) {
                     pageData = userService.findTenantAdmins(tenantId, pageLink);
                 } else {
-                    pageData = userService.findTenantAndCustomerUsers(tenantId, originatorCustomerId.get(), pageLink);
+                    pageData = userService.findTenantAndCustomerUsers(tenantId, originatorCustomerId, pageLink);
                 }
-            } else if (originatorCustomerId.isPresent()) {
-                pageData = userService.findCustomerUsers(tenantId, originatorCustomerId.get(), pageLink);
+            } else {
+                pageData = userService.findCustomerUsers(tenantId, originatorCustomerId, pageLink);
             }
-            PageData<User> filteredUsersPageData = toPageData(filterUsersByWritePermission(pageData.getData()), pageLink);
-            return filteredUsersPageData.mapData(user -> new UserEmailInfo(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName()));
+            return pageData.mapData(user -> new UserEmailInfo(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName()));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -738,17 +737,9 @@ public class UserController extends BaseController {
     }
 
     private List<User> filterUsersByReadPermission(List<User> users) {
-        return filterUsersPermission(users, Operation.READ);
-    }
-
-    private List<User> filterUsersByWritePermission(List<User> users) {
-        return filterUsersPermission(users, Operation.WRITE);
-    }
-
-    private List<User> filterUsersPermission(List<User> users, Operation operation) {
         return users.stream().filter(user -> {
             try {
-                return accessControlService.hasPermission(getCurrentUser(), Resource.USER, operation, user.getId(), user);
+                return accessControlService.hasPermission(getCurrentUser(), Resource.USER, Operation.READ, user.getId(), user);
             } catch (ThingsboardException e) {
                 return false;
             }

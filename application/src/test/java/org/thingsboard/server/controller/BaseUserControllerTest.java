@@ -722,7 +722,10 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
 
         String email = "testEmail1";
+        String password = "testPassword";
+        User customerAdminUser = createCustomerAdminWithAllPermission(customerId, password);
         List<UserId> expectedCustomerUserIds = new ArrayList<>();
+        expectedCustomerUserIds.add(customerAdminUser.getId());
         expectedCustomerUserIds.add(customerUserId);
         for (int i = 0; i < 45; i++) {
             User customerUser = createCustomerUser( customerId);
@@ -757,9 +760,8 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId().getId().toString());
 
-        savedDevice.setCustomerId(customerId);
-        savedDevice = doPost("/api/customer/" + customerId.getId()
-                + "/device/" + savedDevice.getId().getId(), Device.class);
+        savedDevice.setOwnerId(customerId);
+        savedDevice = doPost("/api/device", savedDevice, Device.class);
 
         alarm = createTestAlarm(savedDevice);
 
@@ -780,7 +782,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         Assert.assertEquals(expectedTenantUserIds, loadedUserIds);
 
-        loginCustomerUser();
+        login(customerAdminUser.getEmail(), password);
 
         loadedUserIds = new ArrayList<>();
         pageLink = new PageLink(16, 0);
