@@ -40,28 +40,23 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     }
 
     private static final String RULE_CHAINS_BTN = "//mat-toolbar//a[@href='/ruleChains']";
-    private static final String CUSTOMER_GROUPS_BTN = "//mat-toolbar//a[@href='/customerGroups']";
+    private static final String CUSTOMERS_BTN = "//mat-toolbar//a[@href='/customers']";
     private static final String DASHBOARD_BTN = "//mat-toolbar//a[@href='/dashboards']";
-    private static final String PROFILES_BTN = "//mat-toolbar//a[@href='/profiles']";
+    private static final String PROFILES_BTN = "//mat-toolbar//mat-icon[text()='badge']/ancestor::tb-menu-toggle";
     private static final String DEVICE_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/deviceProfiles']";
     private static final String ASSET_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/assetProfiles']";
     private static final String DASHBOARD_GROUPS_BTN = "//mat-toolbar//a[@href='/dashboardGroups']";
     private static final String SOLUTION_TEMPLATES = "//mat-toolbar//a[@href='/solutionTemplates']";
     private static final String ROLES = "//mat-toolbar//a[@href='/roles']";
     private static final String DEVICE_GROUPS = "//mat-toolbar//a[@href='/deviceGroups']";
+    private static final String ASSET_GROUPS = "//mat-toolbar//a[@href='/assetGroups']";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
     }
 
-    public WebElement customerGroupsBtn() {
-        return waitUntilElementToBeClickable(CUSTOMER_GROUPS_BTN);
-    }
-    private static final String ASSET_GROUPS = "//mat-toolbar//a[@href='/assetGroups']";
-
-    public void goToAllCustomerGroupBtn() {
-        customerGroupsBtn().click();
-        new OtherPageElements(driver).entity("All").click();
+    public WebElement customersBtn() {
+        return waitUntilElementToBeClickable(CUSTOMERS_BTN);
     }
 
     public WebElement profilesBtn() {
