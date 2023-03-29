@@ -97,6 +97,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -682,21 +683,23 @@ public class UserController extends BaseController {
         try {
             checkParameter("alarmId", strAlarmId);
             AlarmId alarmEntityId = new AlarmId(toUUID(strAlarmId));
-            Alarm alarm = checkAlarmId(alarmEntityId, Operation.READ);
+            PageData<User> pageData = new PageData<>();
+            Alarm alarm = checkAlarmId(alarmEntityId, Operation.WRITE);
             SecurityUser currentUser = getCurrentUser();
             TenantId tenantId = currentUser.getTenantId();
+            Optional<CustomerId> originatorCustomerId = entityService.fetchEntityCustomerId(tenantId, alarm.getOriginator());
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            PageData<User> pageData;
             if (Authority.TENANT_ADMIN.equals(currentUser.getAuthority())) {
-                if (alarm.getCustomerId() == null) {
+                if (originatorCustomerId.isEmpty()) {
                     pageData = userService.findTenantAdmins(tenantId, pageLink);
                 } else {
-                    pageData = userService.findTenantAndCustomerUsers(tenantId, alarm.getCustomerId(), pageLink);
+                    pageData = userService.findTenantAndCustomerUsers(tenantId, originatorCustomerId.get(), pageLink);
                 }
-            } else {
-                pageData = userService.findCustomerUsers(tenantId, alarm.getCustomerId(), pageLink);
+            } else if (originatorCustomerId.isPresent()) {
+                pageData = userService.findCustomerUsers(tenantId, originatorCustomerId.get(), pageLink);
             }
-            return pageData.mapData(user -> new UserEmailInfo(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName()));
+            PageData<User> filteredUsersPageData = toPageData(filterUsersByWritePermission(pageData.getData()), pageLink);
+            return filteredUsersPageData.mapData(user -> new UserEmailInfo(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName()));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -735,9 +738,17 @@ public class UserController extends BaseController {
     }
 
     private List<User> filterUsersByReadPermission(List<User> users) {
+        return filterUsersPermission(users, Operation.READ);
+    }
+
+    private List<User> filterUsersByWritePermission(List<User> users) {
+        return filterUsersPermission(users, Operation.WRITE);
+    }
+
+    private List<User> filterUsersPermission(List<User> users, Operation operation) {
         return users.stream().filter(user -> {
             try {
-                return accessControlService.hasPermission(getCurrentUser(), Resource.USER, Operation.READ, user.getId(), user);
+                return accessControlService.hasPermission(getCurrentUser(), Resource.USER, operation, user.getId(), user);
             } catch (ThingsboardException e) {
                 return false;
             }
