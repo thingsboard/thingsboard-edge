@@ -150,7 +150,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     private Dashboard doSaveDashboard(Dashboard dashboard, boolean doValidate) {
         log.trace("Executing saveDashboard [{}]", dashboard);
         if (doValidate) {
-            dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
+            dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         }
         try {
             Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);

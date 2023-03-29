@@ -78,7 +78,7 @@ export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
           const changeOwnerObservables: Observable<any>[] = [];
           entities.forEach((entity) => {
             changeOwnerObservables.push(
-              this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, {ignoreErrors}).pipe(
+              this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, null, {ignoreErrors}).pipe(
                 catchError((err) => {
                   if (ignoreErrors) {
                     return of(null);

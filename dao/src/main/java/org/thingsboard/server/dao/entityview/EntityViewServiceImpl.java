@@ -152,6 +152,13 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     }
 
     @Override
+    public EntityViewInfo findEntityViewInfoById(TenantId tenantId, EntityViewId entityViewId) {
+        log.trace("Executing findEntityViewInfoById [{}]", entityViewId);
+        validateId(entityViewId, INCORRECT_ENTITY_VIEW_ID + entityViewId);
+        return entityViewInfoDao.findById(tenantId, entityViewId.getId());
+    }
+
+    @Override
     public EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findEntityViewByTenantIdAndName [{}][{}]", tenantId, name);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

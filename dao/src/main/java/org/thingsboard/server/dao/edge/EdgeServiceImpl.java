@@ -163,6 +163,13 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
+    public EdgeInfo findEdgeInfoById(TenantId tenantId, EdgeId edgeId) {
+        log.trace("Executing findEdgeInfoById [{}]", edgeId);
+        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
+        return edgeInfoDao.findById(tenantId, edgeId.getId());
+    }
+
+    @Override
     public ListenableFuture<Edge> findEdgeByIdAsync(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing findEdgeById [{}]", edgeId);
         validateId(edgeId, INCORRECT_EDGE_ID + edgeId);

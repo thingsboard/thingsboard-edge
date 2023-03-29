@@ -132,9 +132,9 @@ export class DeviceService {
       defaultHttpOptionsFromConfig(config));
   }
 
-/*  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
+  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
     return this.http.get<DeviceInfo>(`/api/device/info/${deviceId}`, defaultHttpOptionsFromConfig(config));
-  }*/
+  }
 
   public saveDevice(device: Device, entityGroupId?: string, config?: RequestConfig): Observable<Device> {
     let url = '/api/device';
