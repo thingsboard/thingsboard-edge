@@ -46,14 +46,19 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entity.EntityServiceRegistry;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component(value="customerUserPermissions")
@@ -67,6 +72,9 @@ public class CustomerUserPermissions extends AbstractPermissions {
 
     @Autowired
     private OwnersCacheService ownersCacheService;
+
+    @Autowired
+    EntityServiceRegistry entityServiceRegistry;
 
     public CustomerUserPermissions() {
         super();
@@ -112,14 +120,20 @@ public class CustomerUserPermissions extends AbstractPermissions {
             }
             if (!(user.getUserPermissions().hasGenericPermission(Resource.ALARM, operation))) {
                 return false;
-            } else if (alarm.getCustomerId().equals(user.getCustomerId())) {
-                return true;
-            } else if (alarm.getCustomerId().getId().equals(CustomerId.NULL_UUID)) {
-                return false;
             } else {
-                //TODO: ybondarenko should be refactored in 3.5 (check originator permissions)
-                return ownersCacheService.getOwners(alarm.getTenantId(), alarm.getCustomerId(), null).contains(user.getCustomerId());
+                EntityId originatorId = alarm.getOriginator();
+                Resource originatorResource = Resource.resourceFromEntityType(originatorId.getEntityType());
+                EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(originatorId.getEntityType());
+                Optional<HasId<?>> entityOpt = entityDaoService.findEntity(user.getTenantId(), originatorId);
+                if (entityOpt.isPresent() && entityOpt.get() instanceof TenantEntity) {
+                    try {
+                        return CustomerUserPermissions.super.get(originatorResource).hasPermission(user, operation, originatorId, (TenantEntity) entityOpt.get());
+                    } catch (ThingsboardException e) {
+                        log.warn("Exception was thrown during permission check!", e);
+                    }
+                }
             }
+            return false;
         }
     };
 
