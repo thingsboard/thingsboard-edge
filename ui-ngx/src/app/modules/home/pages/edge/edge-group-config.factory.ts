@@ -273,6 +273,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'openInstructions':
         this.openInstructions(action.event, action.entity);
         return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
+        return true;
     }
     return false;
   }
@@ -434,6 +437,16 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
             instructions: edgeInstructionsTemplate.dockerInstallInstructions
           }
         });
+      }
+    );
+  }
+
+  manageOwnerAndGroups($event: Event, edge: EdgeInfo, config: GroupEntityTableConfig<EdgeInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, edge).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
       }
     );
   }

@@ -34,10 +34,12 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  DateEntityTableColumn, EntityColumn,
+  DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor, GroupChipsEntityTableColumn,
+  GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -67,7 +69,6 @@ import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-t
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
-import { EntityViewInfo } from '@shared/models/entity-view.models';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo>> {
@@ -257,6 +258,16 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.exportDashboard(dashboard.id.id);
   }
 
+  manageOwnerAndGroups($event: Event, dashboard: DashboardInfo, config: EntityTableConfig<DashboardInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, dashboard).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onDashboardAction(action: EntityAction<DashboardInfo>, config: EntityTableConfig<DashboardInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -264,6 +275,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

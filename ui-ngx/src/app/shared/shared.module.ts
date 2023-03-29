@@ -206,6 +206,7 @@ import { CustomPaginatorIntl } from '@shared/services/custom-paginator-intl';
 import { TbScriptLangComponent } from '@shared/components/script-lang.component';
 import { NotificationComponent } from '@shared/components/notification/notification.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
+import { OwnerAndGroupsComponent } from '@shared/components/group/owner-and-groups.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -366,6 +367,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent,
+    OwnerAndGroupsComponent,
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
     CopyButtonComponent,
@@ -597,6 +599,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent,
+    OwnerAndGroupsComponent,
     OtaPackageAutocompleteComponent,
     WidgetsBundleSearchComponent,
     CopyButtonComponent,

@@ -30,33 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block" [appearance]="appearance">
-  <mat-label>{{ label | translate }}</mat-label>
-  <input matInput type="text"
-         #entityInput
-         formControlName="entity"
-         (focusin)="onFocus()"
-         [required]="required"
-         [matAutocomplete]="entityAutocomplete">
-  <button *ngIf="selectEntityFormGroup.get('entity').value && !disabled"
-          type="button"
-          matSuffix mat-icon-button aria-label="Clear"
-          (click)="clear()">
-    <mat-icon class="material-icons">close</mat-icon>
-  </button>
-  <mat-autocomplete class="tb-autocomplete"
-                    #entityAutocomplete="matAutocomplete"
-                    [displayWith]="displayEntityFn">
-    <mat-option *ngFor="let entity of filteredEntities | async" [value]="entity">
-      <span [innerHTML]="entity.name | highlight:searchText"></span>
-    </mat-option>
-    <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
-      <span>
-          {{ translate.get(noEntitiesMatchingText, {entity: searchText}) | async }}
-      </span>
-    </mat-option>
-  </mat-autocomplete>
-  <mat-error *ngIf="selectEntityFormGroup.get('entity').hasError('required')">
-    {{ requiredErrorText | translate }}
-  </mat-error>
-</mat-form-field>
+<div fxLayout="column" [formGroup]="ownerAndGroupsFormGroup">
+  <tb-owner-autocomplete
+    fxFlex
+    required
+    [useOwnerInfoValue]="true"
+    placeholderText="entity-group.owner"
+    notFoundText="entity-group.no-owners-matching"
+    requiredText="entity-group.owner-required"
+    formControlName="owner">
+  </tb-owner-autocomplete>
+  <tb-entity-group-list
+    fxFlex
+    labelText="{{ 'entity.groups' | translate }}"
+    [excludeGroupAll]="true"
+    [useGroupInfoValue]="true"
+    [groupType]="entityType"
+    [ownerId]="ownerId()"
+    formControlName="groups">
+  </tb-entity-group-list>
+</div>

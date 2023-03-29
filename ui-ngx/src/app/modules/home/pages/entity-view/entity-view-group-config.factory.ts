@@ -119,11 +119,24 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     }
   }
 
+  manageOwnerAndGroups($event: Event, entityView: EntityViewInfo, config: GroupEntityTableConfig<EntityViewInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, entityView).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onEntityViewAction(action: EntityAction<EntityViewInfo>,
                      config: GroupEntityTableConfig<EntityViewInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openEntityView(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

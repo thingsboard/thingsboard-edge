@@ -218,6 +218,16 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     });
   }
 
+  manageOwnerAndGroups($event: Event, dashboard: DashboardInfo, config: GroupEntityTableConfig<DashboardInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, dashboard).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onDashboardAction(action: EntityAction<DashboardInfo>,
                     config: GroupEntityTableConfig<DashboardInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
@@ -226,6 +236,9 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

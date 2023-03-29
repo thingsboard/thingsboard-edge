@@ -38,6 +38,7 @@ import { SelectOwnerDialogComponent } from '@home/dialogs/select-owner-dialog.co
 import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-group-dialog.component';
 import { ShareEntityGroupDialogComponent } from '@home/dialogs/share-entity-group-dialog.component';
 import { AddEntityGroupsToEdgeDialogComponent } from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
+import { ManageOwnerAndGroupsDialogComponent } from '@home/dialogs/manage-owner-and-groups-dialog.component';
 
 @NgModule({
   declarations:
@@ -46,7 +47,8 @@ import { AddEntityGroupsToEdgeDialogComponent } from "@home/dialogs/add-entity-g
     SelectEntityGroupDialogComponent,
     ShareEntityGroupDialogComponent,
     AddEntityGroupsToEdgeDialogComponent,
-    AddEntitiesToEdgeDialogComponent
+    AddEntitiesToEdgeDialogComponent,
+    ManageOwnerAndGroupsDialogComponent
   ],
   imports: [
     CommonModule,
@@ -57,7 +59,8 @@ import { AddEntityGroupsToEdgeDialogComponent } from "@home/dialogs/add-entity-g
     SelectEntityGroupDialogComponent,
     ShareEntityGroupDialogComponent,
     AddEntityGroupsToEdgeDialogComponent,
-    AddEntitiesToEdgeDialogComponent
+    AddEntitiesToEdgeDialogComponent,
+    ManageOwnerAndGroupsDialogComponent
   ],
   providers: [
     HomeDialogsService

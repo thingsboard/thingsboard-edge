@@ -77,6 +77,7 @@ import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
 import { UserTableHeaderComponent } from '@home/pages/user/user-table-header.component';
 import { Customer } from '@shared/models/customer.model';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 export interface UsersTableRouteData {
   authority: Authority;
@@ -93,6 +94,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
               private customerService: CustomerService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
+              private homeDialogs: HomeDialogsService,
               private datePipe: DatePipe,
               private router: Router,
               private dialog: MatDialog) {
@@ -343,6 +345,16 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     });
   }
 
+  manageOwnerAndGroups($event: Event, user: UserInfo, config: EntityTableConfig<UserInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, user).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onUserAction(action: EntityAction<UserInfo>, config: EntityTableConfig<UserInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -362,6 +374,9 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
         return true;
       case 'enableAccount':
         this.setUserCredentialsEnabled(action.event, action.entity, true);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

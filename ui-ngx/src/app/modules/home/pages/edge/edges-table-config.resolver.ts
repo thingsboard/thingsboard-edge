@@ -75,6 +75,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UtilsService } from '@core/services/utils.service';
+import { EntityViewInfo } from '@shared/models/entity-view.models';
 
 @Injectable()
 export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
@@ -419,6 +420,16 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
+  manageOwnerAndGroups($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, edge).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onEdgeAction(action: EntityAction<EdgeInfo>, config: EntityTableConfig<EdgeInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -453,6 +464,9 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         return true;
       case 'openInstructions':
         this.openInstructions(action.event, action.entity);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
   }

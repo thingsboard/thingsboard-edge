@@ -59,13 +59,13 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              private userPermissionsService: UserPermissionsService,
               @Inject('entity') protected entityValue: EdgeInfo,
               @Inject('entitiesTableConfig')
               protected entitiesTableConfigValue: EntityTableConfig<EdgeInfo> | GroupEntityTableConfig<EdgeInfo>,
               public fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {

@@ -40,6 +40,7 @@ import { Asset, AssetInfo } from '@shared/models/asset.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 
 @Component({
@@ -59,8 +60,9 @@ export class AssetComponent extends GroupEntityComponent<AssetInfo> {
               @Inject('entitiesTableConfig')
               protected entitiesTableConfigValue: EntityTableConfig<AssetInfo> | GroupEntityTableConfig<AssetInfo>,
               protected fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {

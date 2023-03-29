@@ -225,10 +225,23 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     });
   }
 
+  manageOwnerAndGroups($event: Event, asset: AssetInfo, config: EntityTableConfig<AssetInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, asset).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onAssetAction(action: EntityAction<AssetInfo>, config: EntityTableConfig<AssetInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openAsset(action.event, action.entity, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

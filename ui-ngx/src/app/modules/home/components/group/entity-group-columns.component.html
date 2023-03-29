@@ -50,7 +50,7 @@
       <mat-list class="tb-drop-list" cdkDropList cdkDropListOrientation="vertical"
                 (cdkDropListDropped)="onDrop($event)"
                 [cdkDropListDisabled]="disabled" formArrayName="columns">
-        <mat-list-item *ngFor="let columnControl of columnsFormArray().controls; trackBy: trackByColumnControl; let $index = index"
+        <mat-list-item *ngFor="let columnControl of columnsFormArray.controls; trackBy: trackByColumnControl; let $index = index"
                        cdkDrag class="tb-entity-group-column tb-draggable"
                        [cdkDragDisabled]="disabled">
           <div fxFlex fxLayout="row" fxLayoutAlign="start center">
