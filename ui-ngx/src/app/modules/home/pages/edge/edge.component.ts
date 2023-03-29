@@ -38,18 +38,20 @@ import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { generateSecret, guid } from '@core/utils';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
-import { Edge } from '@shared/models/edge.models';
+import { EdgeInfo } from '@shared/models/edge.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-edge',
   templateUrl: './edge.component.html',
   styleUrls: ['./edge.component.scss']
 })
-export class EdgeComponent extends GroupEntityComponent<Edge> {
+export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
 
   entityType = EntityType;
 
@@ -57,11 +59,13 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: Edge,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
+              @Inject('entity') protected entityValue: EdgeInfo,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<EdgeInfo> | GroupEntityTableConfig<EdgeInfo>,
               public fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {
@@ -132,7 +136,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Edge): UntypedFormGroup {
+  buildForm(entity: EdgeInfo): UntypedFormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -153,7 +157,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     return form;
   }
 
-  updateForm(entity: Edge) {
+  updateForm(entity: EdgeInfo) {
     this.entityForm.patchValue({
       name: entity.name,
       type: entity.type,
@@ -204,7 +208,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     return authUser?.authority === Authority.TENANT_ADMIN;
   }
 
-  private generateRoutingKeyAndSecret(entity: Edge, form: UntypedFormGroup) {
+  private generateRoutingKeyAndSecret(entity: EdgeInfo, form: UntypedFormGroup) {
     if (entity && (!entity.id || (entity.id && !entity.id.id))) {
       form.get('edgeLicenseKey').patchValue('6qcGys6gz4M2ZuIqZ6hRDjWT', { emitEvent: false });
       form.get('routingKey').patchValue(guid(), { emitEvent: false });
