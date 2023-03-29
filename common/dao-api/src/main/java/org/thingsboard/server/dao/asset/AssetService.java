@@ -50,6 +50,8 @@ public interface AssetService extends EntityDaoService {
 
     Asset findAssetById(TenantId tenantId, AssetId assetId);
 
+    AssetInfo findAssetInfoById(TenantId tenantId, AssetId assetId);
+
     ListenableFuture<Asset> findAssetByIdAsync(TenantId tenantId, AssetId assetId);
 
     Asset findAssetByTenantIdAndName(TenantId tenantId, String name);

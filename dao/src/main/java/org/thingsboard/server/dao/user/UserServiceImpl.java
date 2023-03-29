@@ -135,6 +135,13 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public UserInfo findUserInfoById(TenantId tenantId, UserId userId) {
+        log.trace("Executing findUserInfoById [{}]", userId);
+        validateId(userId, INCORRECT_USER_ID + userId);
+        return userInfoDao.findById(tenantId, userId.getId());
+    }
+
+    @Override
     public ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId) {
         log.trace("Executing findUserByIdAsync [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);

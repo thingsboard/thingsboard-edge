@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from './base-data';
+import { BaseData, GroupEntityInfo } from './base-data';
 import { UserId } from './id/user-id';
 import { CustomerId } from './id/customer-id';
 import { Authority } from './authority.enum';
@@ -47,10 +47,7 @@ export interface User extends BaseData<UserId> {
   additionalInfo: any;
 }
 
-export interface UserInfo extends User {
-  ownerName?: string;
-  groups?: EntityInfoData[];
-}
+export type UserInfo = User & GroupEntityInfo<UserId>;
 
 export enum ActivationMethod {
   DISPLAY_ACTIVATION_LINK = 'DISPLAY_ACTIVATION_LINK',

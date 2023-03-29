@@ -47,7 +47,7 @@ import { Router } from '@angular/router';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Authority } from '@shared/models/authority.enum';
-import { GroupUserComponent } from '@home/pages/user/group-user.component';
+import { UserComponent } from '@home/pages/user/user.component';
 
 export interface AddGroupUserDialogData {
   entitiesTableConfig: GroupEntityTableConfig<User>;
@@ -72,7 +72,7 @@ export class AddGroupUserDialogComponent extends DialogComponent<AddGroupUserDia
 
   entitiesTableConfig: GroupEntityTableConfig<User>;
 
-  @ViewChild(GroupUserComponent, {static: true}) userComponent: GroupUserComponent;
+  @ViewChild(UserComponent, {static: true}) userComponent: UserComponent;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,

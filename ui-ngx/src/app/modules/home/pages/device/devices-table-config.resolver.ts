@@ -33,24 +33,25 @@ import { Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
-  BaseEntityTableColumn,
   CellActionDescriptor,
   checkBoxCell,
-  DateEntityTableColumn, EntityColumn,
+  DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor, GroupChipsEntityTableColumn, groupsCell,
+  GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { Device, DeviceCredentials, DeviceInfo } from '@app/shared/models/device.models';
+import { DeviceCredentials, DeviceInfo } from '@app/shared/models/device.models';
 import { Observable, of, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map, tap } from 'rxjs/operators';
+import { map, mergeMap, tap } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { DeviceService } from '@app/core/http/device.service';
 import { Authority } from '@app/shared/models/authority.enum';
@@ -81,9 +82,9 @@ import {
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 
 @Injectable()
-export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<DeviceInfo | Device>> {
+export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<DeviceInfo>> {
 
-  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DeviceInfo | Device>,
+  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DeviceInfo>,
               private store: Store<AppState>,
               private userPermissionsService: UserPermissionsService,
               private broadcast: BroadcastService,
@@ -98,9 +99,9 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
               private dialog: MatDialog) {
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DeviceInfo | Device>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DeviceInfo>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<DeviceInfo | Device>(groupParams);
+    const config = new EntityTableConfig<DeviceInfo>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {
@@ -132,10 +133,10 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     );
   }
 
-  configDefaults(config: EntityTableConfig<DeviceInfo | Device>) {
+  configDefaults(config: EntityTableConfig<DeviceInfo>) {
     config.entityType = EntityType.DEVICE;
     config.entityComponent = DeviceComponent;
-    config.entityTabsComponent = GroupEntityTabsComponent<Device>;
+    config.entityTabsComponent = GroupEntityTabsComponent<DeviceInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.DEVICE);
     config.entityResources = entityTypeResources.get(EntityType.DEVICE);
 
@@ -149,16 +150,18 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     config.deleteEntitiesTitle = count => this.translate.instant('device.delete-devices-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('device.delete-devices-text');
 
-    config.loadEntity = id => this.deviceService.getDevice(id.id);
+    config.loadEntity = id => this.deviceService.getDeviceInfo(id.id);
     config.saveEntity = device => this.deviceService.saveDevice(device).pipe(
         tap(() => {
           this.broadcast.broadcast('deviceSaved');
-        }));
+        }),
+      mergeMap((savedDevice) => this.deviceService.getDeviceInfo(savedDevice.id.id)
+      ));
     config.onEntityAction = action => this.onDeviceAction(action, config);
     config.headerComponent = DeviceTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<DeviceInfo | Device>): Array<EntityColumn<DeviceInfo>> {
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<DeviceInfo>): Array<EntityColumn<DeviceInfo>> {
     const columns: Array<EntityColumn<DeviceInfo>> = [
       new DateEntityTableColumn<DeviceInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<DeviceInfo>('name', 'device.name', '20%', config.entityTitle),
@@ -180,7 +183,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     return columns;
   }
 
-  configureEntityFunctions(config: EntityTableConfig<DeviceInfo | Device>): void {
+  configureEntityFunctions(config: EntityTableConfig<DeviceInfo>): void {
     if (config.customerId) {
       config.entitiesFetchFunction = pageLink =>
         this.deviceService.getCustomerDeviceInfos(config.componentsData.includeCustomers,
@@ -195,7 +198,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
   }
 
-  configureCellActions(config: EntityTableConfig<DeviceInfo | Device>): Array<CellActionDescriptor<DeviceInfo>> {
+  configureCellActions(config: EntityTableConfig<DeviceInfo>): Array<CellActionDescriptor<DeviceInfo>> {
     const actions: Array<CellActionDescriptor<DeviceInfo>> = [];
     if (this.userPermissionsService.hasGenericPermission(Resource.DEVICE, Operation.READ_CREDENTIALS) &&
       !this.userPermissionsService.hasGenericPermission(Resource.DEVICE, Operation.WRITE_CREDENTIALS)) {
@@ -222,12 +225,12 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     return actions;
   }
 
-  configureGroupActions(config: EntityTableConfig<DeviceInfo | Device>): Array<GroupActionDescriptor<DeviceInfo>> {
+  configureGroupActions(config: EntityTableConfig<DeviceInfo>): Array<GroupActionDescriptor<DeviceInfo>> {
     const actions: Array<GroupActionDescriptor<DeviceInfo>> = [];
     return actions;
   }
 
-  configureAddActions(config: EntityTableConfig<DeviceInfo | Device>): Array<HeaderActionDescriptor> {
+  configureAddActions(config: EntityTableConfig<DeviceInfo>): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     actions.push(
       {
@@ -246,7 +249,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     return actions;
   }
 
-  private openDevice($event: Event, device: DeviceInfo, config: EntityTableConfig<DeviceInfo | Device>) {
+  private openDevice($event: Event, device: DeviceInfo, config: EntityTableConfig<DeviceInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -254,7 +257,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     this.router.navigateByUrl(url);
   }
 
-  importDevices($event: Event, config: EntityTableConfig<DeviceInfo | Device>) {
+  importDevices($event: Event, config: EntityTableConfig<DeviceInfo>) {
     const customerId = config.customerId ? new CustomerId(config.customerId) : null;
     this.homeDialogs.importEntities(customerId, EntityType.DEVICE, null).subscribe((res) => {
       if (res) {
@@ -264,7 +267,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     });
   }
 
-  deviceWizard($event: Event, config: EntityTableConfig<DeviceInfo | Device>) {
+  deviceWizard($event: Event, config: EntityTableConfig<DeviceInfo>) {
     this.dialog.open<DeviceWizardDialogComponent, DeviceWizardDialogData,
       boolean>(DeviceWizardDialogComponent, {
       disableClose: true,
@@ -281,7 +284,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     );
   }
 
-  manageCredentials($event: Event, device: DeviceInfo, isReadOnly: boolean, config: EntityTableConfig<DeviceInfo | Device>) {
+  manageCredentials($event: Event, device: DeviceInfo, isReadOnly: boolean, config: EntityTableConfig<DeviceInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -301,7 +304,17 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     });
   }
 
-  onDeviceAction(action: EntityAction<Device>, config: EntityTableConfig<DeviceInfo | Device>): boolean {
+  manageOwnerAndGroups($event: Event, device: DeviceInfo, config: EntityTableConfig<DeviceInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, device).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onDeviceAction(action: EntityAction<DeviceInfo>, config: EntityTableConfig<DeviceInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openDevice(action.event, action.entity, config);
@@ -311,6 +324,9 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         return true;
       case 'viewCredentials':
         this.manageCredentials(action.event, action.entity, true, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;
