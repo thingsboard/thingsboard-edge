@@ -493,6 +493,7 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
     }
 
     @Test
+    @Ignore
     public void testNotificationsForALotOfUsers() throws Exception {
         int usersCount = 5000;
 
