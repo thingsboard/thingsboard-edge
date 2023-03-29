@@ -46,7 +46,7 @@ public interface TbServiceInfoProvider {
 
     boolean isService(ServiceType serviceType);
 
-    ServiceInfo getServiceInfoWithCurrentSystemInfo();
+    ServiceInfo generateNewServiceInfoWithCurrentSystemInfo();
 
     List<IntegrationType> getSupportedIntegrationTypes();
 
