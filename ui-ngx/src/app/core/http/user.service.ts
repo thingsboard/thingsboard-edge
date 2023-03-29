@@ -71,6 +71,10 @@ export class UserService {
     return this.http.get<User>(`/api/user/${userId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getUserInfo(userId: string, config?: RequestConfig): Observable<UserInfo> {
+    return this.http.get<UserInfo>(`/api/user/info/${userId}`, defaultHttpOptionsFromConfig(config));
+  }
+
   public getUsers(userIds: Array<string>, config?: RequestConfig): Observable<Array<User>> {
     return this.http.get<Array<User>>(`/api/users?userIds=${userIds.join(',')}`, defaultHttpOptionsFromConfig(config)).pipe(
       map((users) => sortEntitiesByIds(users, userIds))

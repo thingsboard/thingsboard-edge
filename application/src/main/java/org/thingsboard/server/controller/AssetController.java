@@ -133,6 +133,26 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Asset Info (getAssetInfoById)",
+            notes = "Fetch the Asset Info object based on the provided Asset Id. " +
+                    "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
+                    "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer."
+                    + ASSET_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/asset/info/{assetId}", method = RequestMethod.GET)
+    @ResponseBody
+    public AssetInfo getAssetInfoById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION, required = true)
+                                      @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+        checkParameter(ASSET_ID, strAssetId);
+        try {
+            AssetId assetId = new AssetId(toUUID(strAssetId));
+            return checkAssetInfoId(assetId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Create Or Update Asset (saveAsset)",
             notes = "Creates or Updates the Asset. When creating asset, platform generates Asset Id as " + UUID_WIKI_LINK +
                     "The newly created Asset id will be present in the response. " +

@@ -46,8 +46,7 @@ import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { User } from '@shared/models/user.model';
-import { GroupUserComponent } from '@home/pages/user/group-user.component';
+import { UserInfo } from '@shared/models/user.model';
 import { AddGroupUserDialogComponent, AddGroupUserDialogData } from '@home/pages/user/add-group-user-dialog.component';
 import { UserService } from '@core/http/user.service';
 import {
@@ -61,11 +60,13 @@ import { AuthService } from '@core/auth/auth.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Router, UrlTree } from '@angular/router';
 import { WINDOW } from '@core/services/window.service';
+import { mergeMap } from 'rxjs/operators';
+import { UserComponent } from '@home/pages/user/user.component';
 
 @Injectable()
-export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<User> {
+export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<UserInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<User>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<UserInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -78,10 +79,10 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<User>): Observable<GroupEntityTableConfig<User>> {
-    const config = new GroupEntityTableConfig<User>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<UserInfo>): Observable<GroupEntityTableConfig<UserInfo>> {
+    const config = new GroupEntityTableConfig<UserInfo>(entityGroup, params);
 
-    config.entityComponent = GroupUserComponent;
+    config.entityComponent = UserComponent;
 
     config.entityTitle = (user) => user ? user.email : '';
 
@@ -90,8 +91,10 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     config.deleteEntitiesTitle = count => this.translate.instant('user.delete-users-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('user.delete-users-text');
 
-    config.loadEntity = id => this.userService.getUser(id.id);
-    config.saveEntity = user => this.userService.saveUser(user);
+    config.loadEntity = id => this.userService.getUserInfo(id.id);
+    config.saveEntity = user => this.userService.saveUser(user).pipe(
+      mergeMap((savedUser) => this.userService.getUserInfo(savedUser.id.id))
+    );
     config.deleteEntity = id => this.userService.deleteUser(id.id);
 
     config.onEntityAction = action => this.onUserAction(action, config, params);
@@ -117,9 +120,9 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  addUser(config: GroupEntityTableConfig<User>): Observable<User> {
+  addUser(config: GroupEntityTableConfig<UserInfo>): Observable<UserInfo> {
     return this.dialog.open<AddGroupUserDialogComponent, AddGroupUserDialogData,
-      User>(AddGroupUserDialogComponent, {
+      UserInfo>(AddGroupUserDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -128,7 +131,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     }).afterClosed();
   }
 
-  private openUser($event: Event, user: User, config: GroupEntityTableConfig<User>, params: EntityGroupParams) {
+  private openUser($event: Event, user: UserInfo, config: GroupEntityTableConfig<UserInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -148,14 +151,14 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     }
   }
 
-  loginAsUser($event: Event, user: User | ShortEntityView) {
+  loginAsUser($event: Event, user: UserInfo | ShortEntityView) {
     if ($event) {
       $event.stopPropagation();
     }
     this.authService.loginAsUser(user.id.id).subscribe();
   }
 
-  displayActivationLink($event: Event, user: User) {
+  displayActivationLink($event: Event, user: UserInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -173,7 +176,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     );
   }
 
-  resendActivation($event: Event, user: User) {
+  resendActivation($event: Event, user: UserInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -186,7 +189,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     });
   }
 
-  setUserCredentialsEnabled($event: Event, user: User, userCredentialsEnabled: boolean) {
+  setUserCredentialsEnabled($event: Event, user: UserInfo, userCredentialsEnabled: boolean) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -203,7 +206,17 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     });
   }
 
-  onUserAction(action: EntityAction<User>, config: GroupEntityTableConfig<User>, params: EntityGroupParams): boolean {
+  manageOwnerAndGroups($event: Event, user: UserInfo, config: GroupEntityTableConfig<UserInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, user).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onUserAction(action: EntityAction<UserInfo>, config: GroupEntityTableConfig<UserInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openUser(action.event, action.entity, config, params);
@@ -222,6 +235,9 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
         return true;
       case 'enableAccount':
         this.setUserCredentialsEnabled(action.event, action.entity, true);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

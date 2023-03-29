@@ -94,6 +94,13 @@
             [fxShow]="!isEdit">
       {{ 'edge.manage-integrations' | translate }}
     </button>
+    <button mat-raised-button color="primary"
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'manageOwnerAndGroups')"
+            *ngIf="canManageOwnerAndGroups()"
+            [fxShow]="!isEdit">
+      {{'entity-group.manage-owner-and-groups' | translate }}
+    </button>
     <button mat-raised-button color="primary" fxFlex.xs
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'delete')"
@@ -229,4 +236,5 @@
       </div>
     </fieldset>
   </form>
+  <tb-group-entity-info *ngIf="!isEdit" [groupEntity]="entity"></tb-group-entity-info>
 </div>
