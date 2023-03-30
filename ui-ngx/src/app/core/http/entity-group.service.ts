@@ -153,7 +153,7 @@ export class EntityGroupService {
     return this.http.post<DeviceGroupOtaPackage>('/api/deviceGroupOtaPackage', deviceGroupOtaPackage, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDeviceEntityGroup(entityGroup: DeviceEntityGroupInfo, originalEntityGroup: DeviceEntityGroupInfo,
+  public saveDeviceEntityGroup(entityGroup: DeviceEntityGroupInfo, originalEntityGroup?: DeviceEntityGroupInfo,
                                config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
     if (isDefinedAndNotNull(entityGroup.id)) {
       return this.otaPackageService.confirmDialogUpdatePackage(entityGroup, originalEntityGroup).pipe(
