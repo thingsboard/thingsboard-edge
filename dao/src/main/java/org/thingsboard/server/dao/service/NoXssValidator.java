@@ -80,5 +80,4 @@ public class NoXssValidator implements ConstraintValidator<NoXss, Object> {
             return false;
         }
     }
-
 }
