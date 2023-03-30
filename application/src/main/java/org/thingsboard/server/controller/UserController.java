@@ -185,6 +185,36 @@ public class UserController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get User info (getUserInfoById)",
+            notes = "Fetch the User info object based on the provided User Id. " +
+                    "If the user has the authority of 'SYS_ADMIN', the server does not perform additional checks. " +
+                    "If the user has the authority of 'TENANT_ADMIN', the server checks that the requested user is owned by the same tenant. " +
+                    "If the user has the authority of 'CUSTOMER_USER', the server checks that the requested user is owned by the same customer.\n\n" + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/info/{userId}", method = RequestMethod.GET)
+    @ResponseBody
+    public UserInfo getUserInfoById(
+            @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
+            @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
+        checkParameter(USER_ID, strUserId);
+        try {
+            UserId userId = new UserId(toUUID(strUserId));
+            UserInfo user = checkUserInfoId(userId, Operation.READ);
+            if (user.getAdditionalInfo().isObject()) {
+                ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
+                processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
+                processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+                if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
+                    additionalInfo.put("userCredentialsEnabled", true);
+                }
+            }
+            return user;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Check Token Access Enabled (isUserTokenAccessEnabled)",
             notes = "Checks that the system is configured to allow administrators to impersonate themself as other users. " +
                     "If the user who performs the request has the authority of 'SYS_ADMIN', it is possible to login as any tenant administrator. " +
@@ -242,23 +272,34 @@ public class UserController extends BaseController {
             @ApiParam(value = "Send activation email (or use activation link)", defaultValue = "true")
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds,
             HttpServletRequest request) throws ThingsboardException {
 
         if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
             user.setTenantId(getCurrentUser().getTenantId());
         }
 
-        EntityGroupId entityGroupId = null;
-        EntityGroup entityGroup = null;
+        List<EntityGroupId> entityGroupIds = new ArrayList<>();
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        String[] groupIds = null;
         if (!StringUtils.isEmpty(strEntityGroupId)) {
-            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            groupIds = new String[]{strEntityGroupId};
+        } else if (strEntityGroupIds != null && strEntityGroupIds.length > 0) {
+            groupIds = strEntityGroupIds;
+        }
+        if (groupIds != null) {
+            for (String id : groupIds) {
+                EntityGroupId entityGroupId = new EntityGroupId(toUUID(id));
+                EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                entityGroupIds.add(entityGroupId);
+                entityGroups.add(entityGroup);
+            }
         }
 
         if (user.getId() == null && getCurrentUser().getAuthority() != Authority.SYS_ADMIN &&
                 (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
-            if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
-                user.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+            if (!entityGroups.isEmpty() && entityGroups.get(0).getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                user.setOwnerId(new CustomerId(entityGroups.get(0).getOwnerId().getId()));
             } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                 user.setOwnerId(getCurrentUser().getCustomerId());
             }
@@ -267,7 +308,7 @@ public class UserController extends BaseController {
         if (getCurrentUser().getId().equals(user.getId())) {
             accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
         } else {
-            checkEntity(user.getId(), user, Resource.USER, entityGroupId);
+            checkEntityWithGroupIds(user.getId(), user, Resource.USER, entityGroupIds);
         }
 
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
@@ -293,7 +334,7 @@ public class UserController extends BaseController {
         }
 
         return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
-                user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
+                user, sendActivationMail, request, entityGroups, getCurrentUser());
     }
 
     @ApiOperation(value = "Send or re-send the activation email",

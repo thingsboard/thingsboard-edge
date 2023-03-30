@@ -163,6 +163,23 @@ public class DeviceController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Device (getDeviceInfoById)",
+            notes = "Fetch the Device info object based on the provided Device Id. "
+                    + DEVICE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/device/info/{deviceId}", method = RequestMethod.GET)
+    @ResponseBody
+    public DeviceInfo getDeviceInfoById(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
+                                        @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
+        checkParameter(DEVICE_ID, strDeviceId);
+        try {
+            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
+            return checkDeviceInfoId(deviceId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Create Or Update Device (saveDevice)",
             notes = "Create or update the Device. When creating device, platform generates Device Id as " + UUID_WIKI_LINK +
                     "Device credentials are also generated if not provided in the 'accessToken' request parameter. " +
@@ -178,12 +195,13 @@ public class DeviceController extends BaseController {
     public Device saveDevice(@ApiParam(value = "A JSON value representing the device.", required = true) @RequestBody Device device,
                              @ApiParam(value = "Optional value of the device credentials to be used during device creation. " +
                                      "If omitted, access token will be auto-generated.") @RequestParam(name = "accessToken", required = false) String accessToken,
-                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(device, strEntityGroupId,
-                (device1, entityGroup) -> {
+        return saveGroupEntity(device, strEntityGroupId, strEntityGroupIds,
+                (device1, entityGroups) -> {
                     try {
-                        return tbDeviceService.save(device1, accessToken, entityGroup, user);
+                        return tbDeviceService.save(device1, accessToken, entityGroups, user);
                     } catch (Exception e) {
                         throw handleException(e);
                     }

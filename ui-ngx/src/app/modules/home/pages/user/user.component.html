@@ -40,14 +40,14 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'disableAccount')"
-          *ngIf="resource.USER | hasGenericPermission: operation.WRITE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
           [fxShow]="!isEdit && isUserCredentialPresent() && isUserCredentialsEnabled()">
     {{'user.disable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'enableAccount')"
-          *ngIf="resource.USER | hasGenericPermission: operation.WRITE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
           [fxShow]="!isEdit && isUserCredentialPresent() && !isUserCredentialsEnabled()">
     {{'user.enable-account' | translate }}
   </button>
@@ -72,8 +72,15 @@
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageOwnerAndGroups')"
+          *ngIf="(isSysAdmin$ | async) === false && canManageOwnerAndGroups()"
+          [fxShow]="!isEdit">
+    {{'entity-group.manage-owner-and-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          *ngIf="resource.USER | hasGenericPermission: operation.DELETE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit">
     {{'user.delete' | translate }}
   </button>
@@ -149,4 +156,5 @@
       </div>
     </fieldset>
   </form>
+  <tb-group-entity-info *ngIf="(isSysAdmin$ | async) === false && !isEdit" [groupEntity]="entity"></tb-group-entity-info>
 </div>

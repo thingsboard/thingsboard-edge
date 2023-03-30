@@ -357,3 +357,13 @@ SELECT eg.*,
                                                FROM customer ce2, owner_ids parent WHERE ce2.id = parent.id and eg.owner_type = 'CUSTOMER')
                            SELECT json_build_object('id', id, 'entityType', type) FROM owner_ids order by lvl)) owner_ids
 FROM entity_group eg;
+
+DROP VIEW IF EXISTS owner_info_view CASCADE;
+CREATE OR REPLACE VIEW owner_info_view as
+(SELECT t.id as id, t.created_time as created_time, '13814000-1dd2-11b2-8080-808080808080'::uuid as tenant_id, 'TENANT' as entity_type, t.title as name, false as is_public from tenant t
+ UNION
+ SELECT c.id as id, c.created_time as created_time, c.tenant_id as tenant_id, 'CUSTOMER' as entity_type, c.title as name,
+       (CASE
+            WHEN c.additional_info is not null and c.additional_info::json ->> 'isPublic' = 'true' THEN true
+            ELSE false END) as is_public
+FROM customer c);

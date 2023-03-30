@@ -53,12 +53,15 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.OtaPackage;
@@ -72,10 +75,12 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
@@ -84,6 +89,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -682,10 +688,28 @@ public abstract class BaseController {
         return checkEntityId(customerId, customerService::findCustomerById, operation);
     }
 
+    CustomerInfo checkCustomerInfoId(CustomerId customerId, Operation operation) throws ThingsboardException {
+        return checkEntityId(customerId, customerService::findCustomerInfoById, operation);
+    }
+
     User checkUserId(UserId userId, Operation operation) throws ThingsboardException {
         try {
             validateId(userId, "Incorrect userId " + userId);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
+            checkNotNull(user, "User with id [" + userId + "] is not found");
+            if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
+            }
+            return user;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    UserInfo checkUserInfoId(UserId userId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(userId, "Incorrect userId " + userId);
+            UserInfo user = userService.findUserInfoById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user, "User with id [" + userId + "] is not found");
             if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation, userId, user);
@@ -707,30 +731,56 @@ public abstract class BaseController {
 
     protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId,
                                                                                TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
+        return saveGroupEntity(entity, strEntityGroupId, null,
+                (t, entityGroups) -> saveEntityFunction.apply(t, entityGroups != null ? entityGroups.get(0) : null));
+    }
+
+    protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId, String[] strEntityGroupIds,
+                                                                               TbBiFunction<T, List<EntityGroup>, T> saveEntityFunction) throws ThingsboardException {
         try {
             entity.setTenantId(getCurrentUser().getTenantId());
 
-            EntityGroupId entityGroupId = null;
-            EntityGroup entityGroup = null;
+            List<EntityGroupId> entityGroupIds = new ArrayList<>();
+            List<EntityGroup> entityGroups = new ArrayList<>();
+            String[] groupIds = null;
             if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                groupIds = new String[]{strEntityGroupId};
+            } else if (strEntityGroupIds != null && strEntityGroupIds.length > 0) {
+                groupIds = strEntityGroupIds;
+            }
+            if (groupIds != null) {
+                for (String id : groupIds) {
+                    EntityGroupId entityGroupId = new EntityGroupId(toUUID(id));
+                    EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                    entityGroupIds.add(entityGroupId);
+                    entityGroups.add(entityGroup);
+                }
             }
             if (entity.getId() == null && (entity.getCustomerId() == null || entity.getCustomerId().isNullUid())) {
-                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
-                    entity.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                if (!entityGroups.isEmpty() && entityGroups.get(0).getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    entity.setOwnerId(new CustomerId(entityGroups.get(0).getOwnerId().getId()));
                 } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                     entity.setOwnerId(getCurrentUser().getCustomerId());
                 }
             }
 
-            checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
+            checkEntityWithGroupIds(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupIds);
 
-            return saveEntityFunction.apply(entity, entityGroup);
+            return saveEntityFunction.apply(entity, entityGroups);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(entity.getEntityType()), entity,
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
+        }
+    }
+
+    protected <I extends EntityId, T extends TenantEntity> void checkEntityWithGroupIds(I entityId, T entity, Resource resource, List<EntityGroupId> entityGroupIds) throws ThingsboardException {
+        if (entityGroupIds != null && !entityGroupIds.isEmpty()) {
+            for (EntityGroupId entityGroupId : entityGroupIds) {
+                checkEntity(entityId, entity, resource, entityGroupId);
+            }
+        } else {
+            checkEntity(entityId, entity, resource, null);
         }
     }
 
@@ -867,12 +917,20 @@ public abstract class BaseController {
         return checkEntityId(deviceId, deviceService::findDeviceById, operation);
     }
 
+    DeviceInfo checkDeviceInfoId(DeviceId deviceId, Operation operation) throws ThingsboardException {
+        return checkEntityId(deviceId, deviceService::findDeviceInfoById, operation);
+    }
+
     DeviceProfile checkDeviceProfileId(DeviceProfileId deviceProfileId, Operation operation) throws ThingsboardException {
         return checkEntityId(deviceProfileId, deviceProfileService::findDeviceProfileById, operation);
     }
 
     protected EntityView checkEntityViewId(EntityViewId entityViewId, Operation operation) throws ThingsboardException {
         return checkEntityId(entityViewId, entityViewService::findEntityViewById, operation);
+    }
+
+    protected EntityViewInfo checkEntityViewInfoId(EntityViewId entityViewId, Operation operation) throws ThingsboardException {
+        return checkEntityId(entityViewId, entityViewService::findEntityViewInfoById, operation);
     }
 
     protected Role checkRoleId(RoleId roleId, Operation operation) throws ThingsboardException {
@@ -891,6 +949,10 @@ public abstract class BaseController {
 
     Asset checkAssetId(AssetId assetId, Operation operation) throws ThingsboardException {
         return checkEntityId(assetId, assetService::findAssetById, operation);
+    }
+
+    AssetInfo checkAssetInfoId(AssetId assetId, Operation operation) throws ThingsboardException {
+        return checkEntityId(assetId, assetService::findAssetInfoById, operation);
     }
 
     Integration checkIntegrationId(IntegrationId integrationId, Operation operation) throws ThingsboardException {
@@ -941,6 +1003,10 @@ public abstract class BaseController {
 
     Edge checkEdgeId(EdgeId edgeId, Operation operation) throws ThingsboardException {
         return checkEntityId(edgeId, edgeService::findEdgeById, operation);
+    }
+
+    EdgeInfo checkEdgeInfoId(EdgeId edgeId, Operation operation) throws ThingsboardException {
+        return checkEntityId(edgeId, edgeService::findEdgeInfoById, operation);
     }
 
     DashboardInfo checkDashboardInfoId(DashboardId dashboardId, Operation operation) throws ThingsboardException {

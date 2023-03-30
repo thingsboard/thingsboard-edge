@@ -34,10 +34,12 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
-  DateEntityTableColumn, EntityColumn,
+  DateEntityTableColumn,
+  EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor, GroupChipsEntityTableColumn,
+  GroupActionDescriptor,
+  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -47,7 +49,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Observable, of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
@@ -67,12 +69,11 @@ import { DashboardTableHeaderComponent } from '@home/pages/dashboard/dashboard-t
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
-import { EntityViewInfo } from '@shared/models/entity-view.models';
 
 @Injectable()
-export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
+export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo>> {
 
-  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DashboardInfo | Dashboard>,
+  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DashboardInfo>,
               private store: Store<AppState>,
               private userPermissionsService: UserPermissionsService,
               private dashboardService: DashboardService,
@@ -86,9 +87,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
               private utils: UtilsService) {
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DashboardInfo | Dashboard>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<DashboardInfo>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<DashboardInfo | Dashboard>(groupParams);
+    const config = new EntityTableConfig<DashboardInfo>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {
@@ -131,12 +132,13 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     );
   }
 
-  configDefaults(config: EntityTableConfig<DashboardInfo | Dashboard>) {
+  configDefaults(config: EntityTableConfig<DashboardInfo>) {
     config.entityType = EntityType.DASHBOARD;
     config.entityComponent = DashboardFormComponent;
     config.entityTabsComponent = GroupEntityTabsComponent<Dashboard>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
+    config.addDialogStyle = {height: '800px'};
 
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';
@@ -149,13 +151,15 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     config.deleteEntitiesTitle = count => this.translate.instant('dashboard.delete-dashboards-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('dashboard.delete-dashboards-text');
 
-    config.loadEntity = id => this.dashboardService.getDashboard(id.id);
-    config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard as Dashboard);
+    config.loadEntity = id => this.dashboardService.getDashboardInfo(id.id);
+    config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard).pipe(
+      mergeMap((savedDashboard) => this.dashboardService.getDashboardInfo(savedDashboard.id.id))
+    );
     config.onEntityAction = action => this.onDashboardAction(action, config);
     config.headerComponent = DashboardTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<DashboardInfo | Dashboard>): Array<EntityColumn<DashboardInfo>> {
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<DashboardInfo>): Array<EntityColumn<DashboardInfo>> {
     const columns: Array<EntityColumn<DashboardInfo>> = [
       new DateEntityTableColumn<DashboardInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<DashboardInfo>('title', 'dashboard.title',
@@ -172,7 +176,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     return columns;
   }
 
-  configureEntityFunctions(config: EntityTableConfig<DashboardInfo | Dashboard>): void {
+  configureEntityFunctions(config: EntityTableConfig<DashboardInfo>): void {
     if (config.customerId) {
       config.entitiesFetchFunction = pageLink =>
         this.dashboardService.getCustomerDashboards(config.componentsData.includeCustomers,
@@ -184,7 +188,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
   }
 
-  configureCellActions(config: EntityTableConfig<DashboardInfo | Dashboard>): Array<CellActionDescriptor<DashboardInfo>> {
+  configureCellActions(config: EntityTableConfig<DashboardInfo>): Array<CellActionDescriptor<DashboardInfo>> {
     const actions: Array<CellActionDescriptor<DashboardInfo>> = [];
     actions.push(
       {
@@ -205,12 +209,12 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     return actions;
   }
 
-  configureGroupActions(config: EntityTableConfig<DashboardInfo | Dashboard>): Array<GroupActionDescriptor<DashboardInfo>> {
+  configureGroupActions(config: EntityTableConfig<DashboardInfo>): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
     return actions;
   }
 
-  configureAddActions(config: EntityTableConfig<DashboardInfo | Dashboard>): Array<HeaderActionDescriptor> {
+  configureAddActions(config: EntityTableConfig<DashboardInfo>): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     actions.push(
       {
@@ -229,7 +233,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     return actions;
   }
 
-  openDashboard($event: Event, dashboard: DashboardInfo, config: EntityTableConfig<DashboardInfo | Dashboard>) {
+  openDashboard($event: Event, dashboard: DashboardInfo, config: EntityTableConfig<DashboardInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -237,7 +241,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.router.navigateByUrl(url);
   }
 
-  importDashboard($event: Event, config: EntityTableConfig<DashboardInfo | Dashboard>) {
+  importDashboard($event: Event, config: EntityTableConfig<DashboardInfo>) {
     const customerId = config.customerId ? new CustomerId(config.customerId) : null;
     this.importExport.importDashboard(customerId).subscribe(
       (dashboard) => {
@@ -255,13 +259,26 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.exportDashboard(dashboard.id.id);
   }
 
-  onDashboardAction(action: EntityAction<DashboardInfo>, config: EntityTableConfig<DashboardInfo | Dashboard>): boolean {
+  manageOwnerAndGroups($event: Event, dashboard: DashboardInfo, config: EntityTableConfig<DashboardInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, dashboard).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onDashboardAction(action: EntityAction<DashboardInfo>, config: EntityTableConfig<DashboardInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openDashboard(action.event, action.entity, config);
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

@@ -100,6 +100,9 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
   @Input()
   excludeGroupAll: boolean;
 
+  @Input()
+  labelText: string;
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;
@@ -112,6 +115,9 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
       this.updateValidators();
     }
   }
+
+  @Input()
+  useGroupInfoValue = false;
 
   @Input()
   disabled: boolean;
@@ -226,7 +232,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
       this.entityGroupInput.nativeElement.value = '';
     }
     this.entityGroupListFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
-    this.propagateChange(this.modelValue);
+    this.updateView();
     this.dirty = true;
   }
 
@@ -239,7 +245,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
       this.entityGroups.push(entityGroup);
       this.entityGroupListFormGroup.get('entityGroups').setValue(this.entityGroups);
     }
-    this.propagateChange(this.modelValue);
+    this.updateView();
     this.clear();
   }
 
@@ -252,8 +258,16 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
       if (!this.modelValue.length) {
         this.modelValue = null;
       }
-      this.propagateChange(this.modelValue);
+      this.updateView();
       this.clear();
+    }
+  }
+
+  updateView() {
+    if (this.useGroupInfoValue) {
+      this.propagateChange(this.entityGroups);
+    } else {
+      this.propagateChange(this.modelValue);
     }
   }
 
