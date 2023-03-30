@@ -83,6 +83,7 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.UserSettings;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.user.TbUserService;
 import org.thingsboard.server.service.query.EntityQueryService;
@@ -95,6 +96,7 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -154,6 +156,9 @@ public class UserController extends BaseController {
 
     @Autowired
     private EntityQueryService entityQueryService;
+
+    @Autowired
+    private EntityService entityService;
 
     @ApiOperation(value = "Get User (getUserById)",
             notes = "Fetch the User object based on the provided User Id. " +
@@ -734,10 +739,18 @@ public class UserController extends BaseController {
                 if (CustomerId.NULL_UUID.equals(originatorCustomerId.getId())) {
                     pageData = userService.findTenantAdmins(tenantId, pageLink);
                 } else {
-                    pageData = userService.findTenantAndCustomerUsers(tenantId, originatorCustomerId, pageLink);
+                    ArrayList<CustomerId> customerIds = new ArrayList<>(Collections.singletonList(new CustomerId(CustomerId.NULL_UUID)));
+                    if (!CustomerId.NULL_UUID.equals(originatorCustomerId.getId())) {
+                        customerIds.add(originatorCustomerId);
+                    }
+                    pageData = userService.findUsersByCustomerIds(tenantId, customerIds, pageLink);
                 }
             } else {
-                pageData = userService.findCustomerUsers(tenantId, originatorCustomerId, pageLink);
+                ArrayList<CustomerId> customerIds = new ArrayList<>(Collections.singletonList(currentUser.getCustomerId()));
+                if (!currentUser.getCustomerId().equals(originatorCustomerId)) {
+                    customerIds.add(originatorCustomerId);
+                }
+                pageData = userService.findUsersByCustomerIds(tenantId, customerIds, pageLink);
             }
             return pageData.mapData(user -> new UserEmailInfo(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName()));
         } catch (Exception e) {
