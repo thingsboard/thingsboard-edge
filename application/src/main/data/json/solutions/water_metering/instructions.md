@@ -98,6 +98,12 @@ Optionally, this solution can be deployed to the edge.
 <a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
 At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
 
+As example, in the context of Water metering solution, edge computing could be useful if you have remote facilities that are located in different parts of town, country or worldwide.
+In this case, ThingsBoard Edge can be deployed into every remote facility to process data from water meters, calculating daily consumption, enabling real-time analysis and decision-making, such as alarm generation in case no data from sensors after X hours. 
+Edge is going to process data in case there is no network connection to the central ThingsBoard server, and thus no data will be lost and required decisions are going to be taken locally. 
+Eventually, required data is going to be pushed to the cloud, once network connection is established. 
+Configuration of edge computing business logic is centralized in a single place - ThingsBoard server.
+
 In the scope of this solution, new edge entity <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">Remote Facility R1</a> was added to a customer "Water Metering Customer A".
 
 Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
@@ -120,7 +126,7 @@ Once the edge is installed and connected to the cloud, you will be able to log i
 **"Water Meters"** *DEVICE* group of customer "Water Metering Customer A" was assigned to the edge entity "Remote Facility R1".
 This means that all devices from this group will be automatically provisioned to the edge.
 
-You can see devices from this group once you log in into edge and navigate to the **Device groups** page of customer "Water Metering Customer A".
+You can see devices from this group once you log in into edge and navigate to the **Entities -> Devices** page.
 
 To emulate the data upload on behalf of device "WM0000123" to the edge, one should execute the following command:
 

@@ -8,4 +8,5 @@ Press the install button and you will have a ready-to-use generic application th
 
 * "Fleet tracking" dashboard;
 * Four "bus" devices and corresponding device profile;
-* Bus routes, speed and fuel level history.  
+* Bus routes, speed and fuel level history;
+* [Optional] Edge instance - add edge computing to your solution.

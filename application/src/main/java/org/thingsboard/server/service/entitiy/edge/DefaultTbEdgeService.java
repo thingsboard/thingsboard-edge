@@ -99,6 +99,12 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
     }
 
     @Override
+    public void delete(EdgeId edgeId, User user) {
+        Edge edge = edgeService.findEdgeById(user.getTenantId(), edgeId);
+        this.delete(edge, user);
+    }
+
+    @Override
     public void delete(Edge edge, User user) {
         EdgeId edgeId = edge.getId();
         TenantId tenantId = edge.getTenantId();
