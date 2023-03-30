@@ -36,26 +36,25 @@ import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -75,7 +74,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
         customerGroupName = name;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.sortByNameBtn().click();
         customerPage.setEntityGroupName();
 
@@ -90,7 +89,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
         customerGroupName = name;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.sortByNameDown();
         customerPage.setEntityGroupName(customerPage.entityGroups().size() - 1);
 
@@ -106,7 +105,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customer, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerNumber, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.sortByNameBtn().click();
         customerPage.setEntityGroupName(0);
         String firstGroup = customerPage.getEntityGroupName();
@@ -133,7 +132,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customer, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerNumber, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         int lastIndex = customerPage.entityGroups().size() - 1;
         customerPage.sortByNameDown();
         customerPage.setEntityGroupName(lastIndex);

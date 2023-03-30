@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_GROUP_NAME_MESSAGE;
@@ -52,7 +52,7 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultEntity
 
 public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private final String title = ENTITY_NAME + random();
     private String groupName1;
@@ -61,7 +61,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -91,14 +91,14 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         this.groupName1 = groupName1;
         this.groupName2 = groupName2;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         jsClick(customerPage.selectGroupViewExistField());
         customerPage.entityFromDropDown(groupName2).click();
         customerPage.selectGroupViewSubmitBtn().click();
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName2).click();
 
         Assert.assertNotNull(customerPage.entity(title));
@@ -115,7 +115,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         groupName1 = groupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
@@ -134,7 +134,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         groupName1 = groupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
@@ -142,7 +142,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         customerPage.selectGroupViewNewGroupField().sendKeys(newGroupName);
         customerPage.selectGroupViewSubmitBtn().click();
         groupName2 = newGroupName;
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
 
         Assert.assertNotNull(customerPage.entity(newGroupName));
         Assert.assertTrue(customerPage.entity(newGroupName).isDisplayed());
@@ -158,7 +158,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         groupName1 = groupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
@@ -177,7 +177,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         groupName1 = groupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
@@ -202,7 +202,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title), getEntityGroupByName(EntityType.CUSTOMER, groupName).getId());
         groupName1 = groupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();

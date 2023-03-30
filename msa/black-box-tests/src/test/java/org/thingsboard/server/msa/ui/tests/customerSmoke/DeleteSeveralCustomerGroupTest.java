@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
@@ -48,13 +48,13 @@ import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
 public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -68,7 +68,7 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName1, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName2, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.clickOnCheckBoxes(2);
         customerPage.deleteSelectedBtn().click();
         customerPage.warningPopUpYesBtn().click();
@@ -89,7 +89,7 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName1, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName2, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.selectAllCheckBox().click();
         customerPage.deleteSelectedBtn().click();
         customerPage.warningPopUpYesBtn().click();
@@ -110,7 +110,7 @@ public class DeleteSeveralCustomerGroupTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName1, EntityType.CUSTOMER));
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(entityGroupName2, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.clickOnCheckBoxes(2);
         customerPage.deleteSelectedBtn().click();
         customerPage.warningPopUpYesBtn().click();

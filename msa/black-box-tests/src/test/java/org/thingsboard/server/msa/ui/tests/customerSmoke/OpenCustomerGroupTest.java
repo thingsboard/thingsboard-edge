@@ -40,17 +40,17 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -59,7 +59,7 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description("Open customer group by click on its name")
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.setEntityGroupName();
         String entityGroupName = customerPage.getEntityGroupName();
         customerPage.entity(entityGroupName).click();
@@ -77,7 +77,7 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description("Open customer group by click on 'Open entity group' btn in customer group view")
     public void openWindowByViewBtn() {
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.setEntityGroupName();
         String entityGroupName = customerPage.getEntityGroupName();
         customerPage.detailsBtn(entityGroupName).click();
