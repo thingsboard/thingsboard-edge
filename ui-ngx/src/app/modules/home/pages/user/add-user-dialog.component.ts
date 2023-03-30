@@ -223,15 +223,8 @@ export class AddUserDialogComponent extends DialogComponent<AddUserDialogCompone
         this.user.authority = Authority.CUSTOMER_USER;
         this.user.customerId = targetOwnerId as CustomerId;
       }
-
-      let saveUserObservable: Observable<User>;
-      if (this.isSysAdmin) {
-        saveUserObservable = this.userService.saveUser(this.user, sendActivationEmail);
-      } else {
-        const entityGroupIds = targetOwnerAndGroups.groups.map(group => group.id.id);
-        saveUserObservable = this.userService.saveUser(this.user, sendActivationEmail, entityGroupIds);
-      }
-      saveUserObservable.subscribe(
+      const entityGroupIds = targetOwnerAndGroups.groups.map(group => group.id.id);
+      this.userService.saveUser(this.user, sendActivationEmail, entityGroupIds).subscribe(
         (user) => {
           if (this.activationMethod === ActivationMethod.DISPLAY_ACTIVATION_LINK) {
             this.userService.getActivationLink(user.id.id).subscribe(
