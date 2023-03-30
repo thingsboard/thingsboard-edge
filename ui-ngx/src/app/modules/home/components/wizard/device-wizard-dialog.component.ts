@@ -75,7 +75,7 @@ import { ServiceType } from '@shared/models/queue.models';
 import { deepTrim } from '@core/utils';
 import { EntityGroup } from '@shared/models/entity-group.models';
 import { EntityInfoData } from '@shared/models/entity.models';
-import { OwnerAndGroupsData } from '@shared/components/group/owner-and-groups.component';
+import { OwnerAndGroupsData } from '@home/components/group/owner-and-groups.component';
 
 export interface DeviceWizardDialogData {
   customerId?: string;

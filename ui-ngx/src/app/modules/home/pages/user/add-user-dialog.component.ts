@@ -56,7 +56,7 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { OwnerAndGroupsData } from '@shared/components/group/owner-and-groups.component';
+import { OwnerAndGroupsData } from '@home/components/group/owner-and-groups.component';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
