@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -60,6 +61,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.customer.TbCustomerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -74,11 +76,13 @@ import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_HIDE_TOOLBAR;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_ID;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -121,6 +125,28 @@ public class CustomerController extends BaseController {
             processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
         }
         return customer;
+    }
+
+    @ApiOperation(value = "Get Customer info (getCustomerInfoById)",
+            notes = "Get the Customer info object based on the provided Customer Id. "
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/info/{customerId}", method = RequestMethod.GET)
+    @ResponseBody
+    public CustomerInfo getCustomerInfoById(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
+            @PathVariable(CUSTOMER_ID) String strCustomerId) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        try {
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            CustomerInfo customer = checkCustomerInfoId(customerId, Operation.READ);
+            if (!customer.getAdditionalInfo().isNull()) {
+                processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
+            }
+            return customer;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
 
@@ -169,7 +195,9 @@ public class CustomerController extends BaseController {
     @ResponseBody
     public Customer saveCustomer(@ApiParam(value = "A JSON value representing the customer.") @RequestBody Customer customer,
                                  @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
+                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+                                 @ApiParam(value = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+                                 @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
             String prevHomeDashboardId = null;
             boolean prevHideDashboardToolbar = true;
@@ -192,7 +220,7 @@ public class CustomerController extends BaseController {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(customer, strEntityGroupId, (customer1, entityGroup) -> tbCustomerService.save(customer, entityGroup, user));
+        return saveGroupEntity(customer, strEntityGroupId, strEntityGroupIds, (customer1, entityGroups) -> tbCustomerService.save(customer, entityGroups, user));
     }
 
     @ApiOperation(value = "Delete Customer (deleteCustomer)",
@@ -268,6 +296,88 @@ public class CustomerController extends BaseController {
         MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
         return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.CUSTOMER,
                 Operation.READ, null, pageLink);
+    }
+
+    @ApiOperation(value = "Get All Customer Infos for current user (getAllCustomerInfos)",
+            notes = "Returns a page of customer info objects owned by the tenant or the customer of a current user. " +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customerInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<CustomerInfo> getAllCustomerInfos(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = CUSTOMER_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                if (includeCustomers != null && includeCustomers) {
+                    return checkNotNull(customerService.findCustomerInfosByTenantId(tenantId, pageLink));
+                } else {
+                    return checkNotNull(customerService.findTenantCustomerInfosByTenantId(tenantId, pageLink));
+                }
+            } else {
+                CustomerId customerId = getCurrentUser().getCustomerId();
+                if (includeCustomers != null && includeCustomers) {
+                    return checkNotNull(customerService.findCustomerInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                } else {
+                    return checkNotNull(customerService.findCustomerInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Customer sub-customers Infos (getCustomerCustomerInfos)",
+            notes = "Returns a page of customer info objects owned by the specified customer. " +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/{customerId}/customerInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<CustomerInfo> getCustomerCustomerInfos(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(CUSTOMER_ID) String strCustomerId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = CUSTOMER_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (includeCustomers != null && includeCustomers) {
+                return checkNotNull(customerService.findCustomerInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+            } else {
+                return checkNotNull(customerService.findCustomerInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get customers by Customer Ids (getCustomersByEntityGroupId)",

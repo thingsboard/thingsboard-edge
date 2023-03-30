@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -69,6 +68,9 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,22 +87,25 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
+public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
     static final int TIMEOUT = 30;
 
     @Autowired
     private AttributesService attributesService;
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    EntityGroupService entityGroupService;
+    @Autowired
+    EdgeService edgeService;
 
     private MergedUserPermissions mergedUserPermissions;
-
-    private TenantId tenantId;
 
     ListeningExecutorService executor;
 
     @Before
     public void beforeRun() {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
-        tenantId = before();
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
         mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
@@ -109,7 +114,6 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
     @After
     public void after() {
         executor.shutdownNow();
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
@@ -133,7 +137,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         EntityGroup devicesGroup = devicesGroupOptional.get();
 
         PageLink pageLink = new PageLink(Integer.MAX_VALUE);
-        List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, devicesGroup.getId(), pageLink).get();
+        List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(tenantId, devicesGroup.getId(), pageLink).get();
         assertThat(entityIds).containsExactlyInAnyOrderElementsOf(
                 devices.stream().map(IdBased::getId).collect(Collectors.toList()));
 

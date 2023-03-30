@@ -53,6 +53,7 @@ import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-entity-list',
@@ -90,6 +91,15 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   // @Input()
   // subType: string;
 
+  @Input()
+  labelText: string;
+
+  @Input()
+  placeholderText = this.translate.instant('entity.entity-list');
+
+  @Input()
+  requiredText = this.translate.instant('entity.entity-list-empty');
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;
@@ -105,6 +115,12 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
+
+  @Input()
+  hint: string;
 
   @ViewChild('entityInput') entityInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityAutocomplete') matAutocomplete: MatAutocomplete;
@@ -265,6 +281,15 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
       this.entityInput.nativeElement.blur();
       this.entityInput.nativeElement.focus();
     }, 0);
+  }
+
+  get placeholder(): string {
+    return this.placeholderText ? this.placeholderText : (this.entityListText ? this.translate.instant(this.entityListText): undefined);
+  }
+
+  get requiredLabel(): string {
+    return this.requiredText ? this.requiredText :
+      (this.entitiesRequiredText ? this.translate.instant(this.entitiesRequiredText): undefined);
   }
 
 }

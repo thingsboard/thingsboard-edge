@@ -98,8 +98,8 @@ import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.telemetry.AttributeData;
 import org.thingsboard.server.service.telemetry.TsData;
-import org.thingsboard.server.service.telemetry.exception.InvalidParametersException;
-import org.thingsboard.server.service.telemetry.exception.UncheckedApiException;
+import org.thingsboard.server.exception.InvalidParametersException;
+import org.thingsboard.server.exception.UncheckedApiException;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;

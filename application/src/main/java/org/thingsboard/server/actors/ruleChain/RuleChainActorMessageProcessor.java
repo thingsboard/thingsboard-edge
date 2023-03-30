@@ -109,7 +109,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     @Override
     public String getComponentName() {
-        return null;
+        return ruleChainName;
     }
 
     @Override

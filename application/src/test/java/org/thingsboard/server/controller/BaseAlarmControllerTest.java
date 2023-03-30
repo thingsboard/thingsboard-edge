@@ -1022,6 +1022,40 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         return foundAlarm;
     }
 
+
+    @Test
+    public void testCreateAlarmWithOtherTenantsAssignee() throws Exception {
+        loginDifferentTenant();
+        loginTenantAdmin();
+
+        Alarm alarm = Alarm.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .originator(customerDevice.getId())
+                .severity(AlarmSeverity.CRITICAL)
+                .assigneeId(savedDifferentTenantUser.getId())
+                .build();
+
+        doPost("/api/alarm", alarm).andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testCreateAlarmWithOtherCustomerAsAssignee() throws Exception {
+        loginDifferentCustomer();
+        loginCustomerUser();
+
+        Alarm alarm = Alarm.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .originator(customerDevice.getId())
+                .severity(AlarmSeverity.CRITICAL)
+                .assigneeId(differentCustomerUser.getId())
+                .build();
+
+        doPost("/api/alarm", alarm).andExpect(status().isForbidden());
+    }
+
+
     private Alarm createAlarm(Customer customer, EntityId originatorId, String type) throws Exception {
         Alarm alarm = Alarm.builder()
                 .tenantId(customer.getTenantId())

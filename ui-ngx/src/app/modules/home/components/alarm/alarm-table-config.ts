@@ -50,6 +50,7 @@ import {
   AlarmSearchStatus,
   alarmSeverityColors,
   alarmSeverityTranslations,
+  AlarmsMode,
   alarmStatusTranslations
 } from '@app/shared/models/alarm.models';
 import { AlarmService } from '@app/core/http/alarm.service';
@@ -89,6 +90,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
+              private alarmsMode: AlarmsMode = AlarmsMode.ALL,
               public entityId: EntityId = null,
               private defaultSearchStatus: AlarmSearchStatus = AlarmSearchStatus.ANY,
               private store: Store<AppState>,
@@ -96,12 +98,13 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private overlay: Overlay,
               private cd: ChangeDetectorRef,
               private utilsService: UtilsService,
-              private readonly) {
+              private readonly,
+              pageMode = false) {
     super();
     this.loadDataOnInit = false;
     this.tableTitle = '';
     this.useTimePageLink = true;
-    this.pageMode = false;
+    this.pageMode = pageMode;
     this.defaultTimewindowInterval = historyInterval(DAY * 30);
     this.detailsPanelEnabled = false;
     this.selectionEnabled = false;
@@ -180,7 +183,12 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
 
   fetchAlarms(pageLink: TimePageLink): Observable<PageData<AlarmInfo>> {
     const query = new AlarmQuery(this.entityId, pageLink, this.searchStatus, null, true, null);
-    return this.alarmService.getAlarms(query);
+    switch (this.alarmsMode) {
+      case AlarmsMode.ALL:
+        return this.alarmService.getAllAlarms(query);
+      case AlarmsMode.ENTITY:
+        return this.alarmService.getAlarms(query);
+    }
   }
 
   showAlarmDetails(entity: AlarmInfo) {

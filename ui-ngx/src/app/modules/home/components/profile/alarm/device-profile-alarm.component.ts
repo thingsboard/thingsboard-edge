@@ -40,7 +40,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { AlarmRule, DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/device.models';
+import { DeviceProfileAlarmRule, DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/device.models';
 import { MatDialog } from '@angular/material/dialog';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
@@ -144,7 +144,7 @@ export class DeviceProfileAlarmComponent implements ControlValueAccessor, OnInit
   }
 
   public addClearAlarmRule() {
-    const clearAlarmRule: AlarmRule = {
+    const clearAlarmRule: DeviceProfileAlarmRule = {
       condition: {
         condition: []
       }

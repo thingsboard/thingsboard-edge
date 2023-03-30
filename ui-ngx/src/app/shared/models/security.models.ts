@@ -111,7 +111,8 @@ export enum Resource {
   EDGE_GROUP = 'EDGE_GROUP',
   OTA_PACKAGE = 'OTA_PACKAGE',
   QUEUE = 'QUEUE',
-  VERSION_CONTROL = 'VERSION_CONTROL'
+  VERSION_CONTROL = 'VERSION_CONTROL',
+  NOTIFICATION = 'NOTIFICATION'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();

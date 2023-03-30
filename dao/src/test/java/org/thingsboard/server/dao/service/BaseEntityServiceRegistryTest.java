@@ -43,7 +43,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 public abstract class BaseEntityServiceRegistryTest extends AbstractServiceTest {
 
     @Autowired
-    private EntityServiceRegistry entityServiceRegistry;
+    EntityServiceRegistry entityServiceRegistry;
 
     @Test
     public void givenAllEntityTypes_whenGetServiceByEntityTypeCalled_thenAllBeansExists() {

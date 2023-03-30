@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -58,6 +59,8 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -72,16 +75,23 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_OWNERS_CACHE;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
 public class DefaultOwnerService implements OwnerService {
+
+    private static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    private static final String INCORRECT_OWNER_IDS = "Incorrect ownerIds ";
 
     @Autowired
     private CacheManager cacheManager;
@@ -115,6 +125,9 @@ public class DefaultOwnerService implements OwnerService {
 
     @Autowired
     private SchedulerEventService schedulerEventService;
+
+    @Autowired
+    private OwnerInfoDao ownerInfoDao;
 
     @Override
     public Set<EntityId> fetchOwnersHierarchy(TenantId tenantId, EntityId ownerId) {
@@ -172,6 +185,40 @@ public class DefaultOwnerService implements OwnerService {
         Cache cache = cacheManager.getCache(ENTITY_OWNERS_CACHE);
         cache.evict(getOwnersCacheKey(entityId));
         cache.evict(getOwnerCacheKey(entityId));
+    }
+
+    @Override
+    public PageData<EntityInfo> findTenantOwnerByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantOwnerByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return this.ownerInfoDao.findTenantOwnerByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findCustomerOwnersByTenantIdIncludingTenant(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findCustomerOwnersByTenantIdIncludingTenant, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return this.ownerInfoDao.findCustomerOwnersByTenantIdIncludingTenant(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findCustomerOwnersByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findCustomerOwnersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return this.ownerInfoDao.findCustomerOwnersByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityInfo> findCustomerOwnersByIdsAndTenantId(TenantId tenantId, List<CustomerId> ownerIds, PageLink pageLink) {
+        log.trace("Executing findCustomerOwnersByIdsAndTenantIdIncludingTenant, tenantId [{}], ownerIds [{}], pageLink [{}]", tenantId, ownerIds, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(ownerIds, INCORRECT_OWNER_IDS + ownerIds);
+        validatePageLink(pageLink);
+        return this.ownerInfoDao.findCustomerOwnersByIdsAndTenantId(tenantId.getId(),
+                ownerIds.stream().map(CustomerId::getId).collect(Collectors.toList()), pageLink);
     }
 
     private Set<EntityId> fetchOwners(TenantId tenantId, EntityId entityId, Function<EntityId, HasOwnerId> fetchHasOwnerId) {

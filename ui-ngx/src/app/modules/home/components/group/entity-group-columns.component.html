@@ -31,7 +31,7 @@
 
 -->
 <div class="tb-entity-group-columns mat-padding">
-  <div class="mat-elevation-z1">
+  <div class="tb-outlined-border">
     <div fxFlex fxLayout="row" fxLayoutAlign="start center" class="tb-header" style="padding-left: 16px; padding-right: 16px;">
       <span *ngIf="!disabled" style="min-width: 48px;">&nbsp;</span>
       <span style="padding-left: 10px; min-width: 30px;">&nbsp;</span>
@@ -50,7 +50,7 @@
       <mat-list class="tb-drop-list" cdkDropList cdkDropListOrientation="vertical"
                 (cdkDropListDropped)="onDrop($event)"
                 [cdkDropListDisabled]="disabled" formArrayName="columns">
-        <mat-list-item *ngFor="let columnControl of columnsFormArray().controls; trackBy: trackByColumnControl; let $index = index"
+        <mat-list-item *ngFor="let columnControl of columnsFormArray.controls; trackBy: trackByColumnControl; let $index = index"
                        cdkDrag class="tb-entity-group-column tb-draggable"
                        [cdkDragDisabled]="disabled">
           <div fxFlex fxLayout="row" fxLayoutAlign="start center">

@@ -87,18 +87,23 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     final Map<TenantId, Map<EntityId, List<EntityView>>> localCache = new ConcurrentHashMap<>();
 
     @Override
-    public EntityView save(EntityView entityView, EntityGroup entityGroup, User user) throws Exception {
+    public EntityView save(EntityView entityView, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = entityView.getTenantId();
-        EntityView existingEntityView = entityView.getId() == null ? null : entityViewService.findEntityViewById(tenantId, entityView.getId());
-        EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
-        this.updateEntityViewAttributes(tenantId, savedEntityView, existingEntityView, user);
-        createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);
-        autoCommit(user, savedEntityView.getId());
-        localCache.computeIfAbsent(savedEntityView.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>()).clear();
-        tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
-                entityView.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        return savedEntityView;
+        try {
+            EntityView existingEntityView = entityView.getId() == null ? null : entityViewService.findEntityViewById(tenantId, entityView.getId());
+            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
+            this.updateEntityViewAttributes(tenantId, savedEntityView, existingEntityView, user);
+            createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroups, actionType, user);
+            autoCommit(user, savedEntityView.getId());
+            localCache.computeIfAbsent(savedEntityView.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>()).clear();
+            tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
+                    entityView.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            return savedEntityView;
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(user.getTenantId(), emptyId(EntityType.ENTITY_VIEW), entityView, null, actionType, user, e);
+            throw e;
+        }
     }
 
     @Override

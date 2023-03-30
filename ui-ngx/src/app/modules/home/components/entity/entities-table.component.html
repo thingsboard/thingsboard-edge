@@ -49,10 +49,17 @@
   </mat-drawer>
   <mat-drawer-content>
     <div class="mat-padding tb-entity-table tb-absolute-fill">
-      <div fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
+      <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
         <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
           <div class="mat-toolbar-tools">
             <div fxLayout="row" fxLayoutAlign="start center" fxLayout.xs="column" fxLayoutAlign.xs="center start" class="title-container">
+              <button *ngIf="entitiesTableConfig.displayBackButton()" mat-icon-button
+                      matTooltip="{{ 'action.back' | translate }}"
+                      matTooltipPosition="above"
+                      (click)="goBack()"
+                      style="margin-right: 8px;">
+                <mat-icon>arrow_back</mat-icon>
+              </button>
               <span *ngIf="entitiesTableConfig.tableTitle" class="tb-entity-table-title">{{ entitiesTableConfig.tableTitle }}</span>
               <tb-anchor #entityTableHeader></tb-anchor>
               <tb-timewindow *ngIf="entitiesTableConfig.useTimePageLink" [(ngModel)]="timewindow"
@@ -97,10 +104,11 @@
               </ng-template>
             </div>
             <button mat-icon-button [disabled]="isLoading$ | async"
+                    #headerButton
                     [fxShow]="actionDescriptor.isEnabled()" *ngFor="let actionDescriptor of headerActionDescriptors"
                     matTooltip="{{ actionDescriptor.name }}"
                     matTooltipPosition="above"
-                    (click)="actionDescriptor.onAction($event)">
+                    (click)="actionDescriptor.onAction($event, headerButton)">
               <mat-icon *ngIf="actionDescriptor.isMdiIcon" [svgIcon]="actionDescriptor.icon"></mat-icon>
               <mat-icon *ngIf="!actionDescriptor.isMdiIcon">{{actionDescriptor.icon}}</mat-icon>
             </button>
@@ -181,12 +189,17 @@
                         [matTooltip]="cellTooltip(entity, column, row)"
                         matTooltipPosition="above"
                         [ngStyle]="cellStyle(entity, column, row)">
-                <ng-container *ngIf="column.type == 'chart'; else defaultContent">
-                  <tb-spark-line [chartData]="cellContent(entity, column, row)" [chartProperty]="cellChartStyle(entity, column, row)"></tb-spark-line>
+                <ng-container [ngSwitch]="column.type">
+                  <ng-template [ngSwitchCase]="'chart'">
+                    <tb-spark-line [chartData]="cellContent(entity, column, row)" [chartProperty]="cellChartStyle(entity, column, row)"></tb-spark-line>
+                  </ng-template>
+                  <ng-template [ngSwitchCase]="'groups'">
+                    <tb-group-chips [groupEntity]="entity"></tb-group-chips>
+                  </ng-template>
+                  <ng-template ngSwitchDefault>
+                    <span [innerHTML]="cellContent(entity, column, row)"></span>
+                  </ng-template>
                 </ng-container>
-                <ng-template #defaultContent>
-                  <span [innerHTML]="cellContent(entity, column, row)"></span>
-                </ng-template>
                 <ng-template [ngIf]="column.actionCell">
                   <ng-container [ngSwitch]="column.actionCell.type">
                     <ng-template [ngSwitchCase]="cellActionType.COPY_BUTTON">
