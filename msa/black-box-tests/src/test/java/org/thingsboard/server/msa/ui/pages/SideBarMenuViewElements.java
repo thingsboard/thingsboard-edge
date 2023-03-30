@@ -52,6 +52,8 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     private static final String ASSETS_BTN = "//ul[@id='docs-menu-entity.entities']//span[text()='Assets']";
     private static final String ENTITIES_DROPDOWN = "//mat-toolbar//mat-icon[text()='category']/ancestor::span//span[contains(@class,'pull-right')]";
     private static final String SECURITY_DROPDOWN = "//mat-toolbar//mat-icon[text()='security']/ancestor::span//span[contains(@class,'pull-right')]";
+    private static final String ADVANCED_FEATURES_DROPDOWN = "//mat-toolbar//mat-icon[text()='construction']/ancestor::span//span[contains(@class,'pull-right')]";
+    private static final String SCHEDULER_BTN = "//mat-toolbar//span[text()='Scheduler']";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -99,5 +101,13 @@ public class SideBarMenuViewElements extends AbstractBasePage {
 
     public WebElement securityDropdown() {
         return waitUntilElementToBeClickable(SECURITY_DROPDOWN);
+    }
+
+    public WebElement advancedFeaturesDropdown() {
+        return waitUntilElementToBeClickable(ADVANCED_FEATURES_DROPDOWN);
+    }
+
+    public WebElement schedulerBtn() {
+        return waitUntilElementToBeClickable(SCHEDULER_BTN);
     }
 }

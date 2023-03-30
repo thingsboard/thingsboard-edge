@@ -39,14 +39,12 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     }
 
     public void openDeviceProfiles() {
-        if (dropdownIsClose(profilesDropdown())) {
-            profilesDropdown().click();
-        }
+        openProfilesDropdown();
         deviceProfileBtn().click();
     }
 
     public void openAssetProfiles() {
-        profilesDropdown().click();
+        openProfilesDropdown();
         assetProfileBtn().click();
     }
 
@@ -60,9 +58,7 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     }
 
     public void goToAllDevices() {
-        if (dropdownIsClose(entitiesDropdown())) {
-            entitiesDropdown().click();
-        }
+        openEntitiesDropdown();
         devicesBtn().click();
     }
 
@@ -72,9 +68,7 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     }
 
     public void goToAllAssets() {
-        if (dropdownIsClose(entitiesDropdown())) {
-            entitiesDropdown().click();
-        }
+        openEntitiesDropdown();
         assetsBtn().click();
     }
 
@@ -93,13 +87,56 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     }
 
     public void goToRoles() {
-        if (dropdownIsClose(securityDropdown())) {
-            securityDropdown().click();
-        }
+        openSecurityDropdown();
         rolesBtn().click();
     }
 
-    public boolean dropdownIsClose(WebElement dropdown) {
+    public void goToScheduler() {
+        openAdvancedFeaturesDropdown();
+        schedulerBtn().click();
+    }
+
+    public void openEntitiesDropdown() {
+        if (entitiesDropdownIsClose()) {
+            entitiesDropdown().click();
+        }
+    }
+
+    public void openSecurityDropdown() {
+        if (securityDropdownIsClose()) {
+            securityDropdown().click();
+        }
+    }
+
+    public void openProfilesDropdown() {
+        if (profilesDropdownIsClose()) {
+            profilesDropdown().click();
+        }
+    }
+
+    public void openAdvancedFeaturesDropdown() {
+        if (advancedFeaturesDropdownIsClose()) {
+            advancedFeaturesDropdown().click();
+        }
+    }
+
+    public boolean entitiesDropdownIsClose() {
+        return dropdownIsClose(entitiesDropdown());
+    }
+
+    public boolean securityDropdownIsClose() {
+        return dropdownIsClose(securityDropdown());
+    }
+
+    public boolean profilesDropdownIsClose() {
+        return dropdownIsClose(profilesDropdown());
+    }
+
+    public boolean advancedFeaturesDropdownIsClose() {
+        return dropdownIsClose(advancedFeaturesDropdown());
+    }
+
+    private boolean dropdownIsClose(WebElement dropdown) {
         return !dropdown.getAttribute("class").contains("tb-toggled");
     }
 }

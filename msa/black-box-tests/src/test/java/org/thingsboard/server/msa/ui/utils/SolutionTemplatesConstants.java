@@ -290,4 +290,8 @@ public class SolutionTemplatesConstants {
     public static final String SMART_IRRIGATION_DEVICE_GROUP = "Smart Irrigation";
     public static final String SMART_IRRIGATION_ASSET_GROUP = "Smart Irrigation";
     public static final String SMART_IRRIGATION_DASHBOARD_GROUP = "Smart Irrigation";
+
+    //Scheduler events
+    public static final String EVENING_SCHEDULER_EVENT = "Evening";
+    public static final String MORNING_SCHEDULER_EVENT = "Morning";
 }

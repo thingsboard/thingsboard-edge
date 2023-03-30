@@ -49,6 +49,7 @@ import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.ProfilesPageHelper;
 import org.thingsboard.server.msa.ui.pages.RolesPageElements;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
+import org.thingsboard.server.msa.ui.pages.SchedulerPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.pages.SolutionTemplateDetailsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SolutionTemplatesHomePageElements;
@@ -60,8 +61,9 @@ import java.util.Set;
 
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.EVENING_SCHEDULER_EVENT;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.IRRIGATION_MANAGEMENT_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MORNING_SCHEDULER_EVENT;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_1_ASSET;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_2_ASSET;
@@ -86,6 +88,7 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_WATER_METER_1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_WATER_METER_2_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DEVICE_GROUP;
 
 public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
@@ -101,6 +104,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
     AssetPageElements assetPage;
     DashboardPageHelper dashboardPage;
     UsersPageElements usersPageHelper;
+    SchedulerPageHelper schedulerPage;
 
     @BeforeClass
     public void login() {
@@ -117,6 +121,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         assetPage = new AssetPageElements(driver);
         dashboardPage = new DashboardPageHelper(driver);
         usersPageHelper = new UsersPageElements(driver);
+        schedulerPage = new SchedulerPageHelper(driver);
     }
 
     @AfterMethod
@@ -274,6 +279,13 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entity(IRRIGATION_MANAGEMENT_DASHBOARD).isDisplayed());
+
+        sideBarMenuView.goToScheduler();
+
+        Assert.assertEquals(schedulerPage.schedulers(MORNING_SCHEDULER_EVENT).size(), 2);
+        Assert.assertEquals(schedulerPage.schedulers(EVENING_SCHEDULER_EVENT).size(), 2);
+        schedulerPage.schedulers(MORNING_SCHEDULER_EVENT).forEach(element -> Assert.assertTrue(element.isDisplayed()));
+        schedulerPage.schedulers(EVENING_SCHEDULER_EVENT).forEach(element -> Assert.assertTrue(element.isDisplayed()));
     }
 
     @Epic("Solution templates")
@@ -498,6 +510,11 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(IRRIGATION_MANAGEMENT_DASHBOARD));
+
+        sideBarMenuView.goToScheduler();
+
+        Assert.assertTrue(schedulerPage.schedulerIsNotPresent(MORNING_SCHEDULER_EVENT));
+        Assert.assertTrue(schedulerPage.schedulerIsNotPresent(EVENING_SCHEDULER_EVENT));
     }
 
     @Epic("Solution templates")
