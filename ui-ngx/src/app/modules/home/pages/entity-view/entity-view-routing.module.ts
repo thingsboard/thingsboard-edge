@@ -207,7 +207,7 @@ const routes: Routes = [
     redirectTo: '/entities/entityViews/all'
   },
   {
-    path: 'entityViews/all/:entityId',
+    path: 'entityViews/:entityId',
     redirectTo: '/entities/entityViews/all/:entityId'
   }
 ];

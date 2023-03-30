@@ -31,7 +31,6 @@
 
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
 import {
-  AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -100,7 +99,7 @@ import { moveItemInArray } from '@angular/cdk/drag-drop';
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class DataKeysComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges, ErrorStateMatcher {
+export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChanges, ErrorStateMatcher {
 
   datasourceTypes = DatasourceType;
   widgetTypes = widgetType;
@@ -343,17 +342,6 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, AfterVie
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = this.required && !this.modelValue;
     return originalErrorState || customErrorState;
-  }
-
-  ngAfterViewInit(): void {
-    this.chipList._chips.forEach((chip) => {
-      chip._mousedown = () => {};
-    });
-    this.chipList._chips.changes.subscribe(() => {
-      this.chipList._chips.forEach((chip) => {
-        chip._mousedown = () => {};
-      });
-    });
   }
 
   setDisabledState(isDisabled: boolean): void {

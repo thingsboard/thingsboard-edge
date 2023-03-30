@@ -206,7 +206,7 @@ const routes: Routes = [
     redirectTo: '/entities/devices/all'
   },
   {
-    path: 'devices/all/:entityId',
+    path: 'devices/:entityId',
     redirectTo: '/entities/devices/all/:entityId'
   }
 ];
