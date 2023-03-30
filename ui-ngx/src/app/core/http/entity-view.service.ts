@@ -108,15 +108,18 @@ export class EntityViewService {
       defaultHttpOptionsFromConfig(config));
   }
 
-
-  /* public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
+  public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
     return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));
-  } */
+  }
 
-  public saveEntityView(entityView: EntityView, entityGroupId?: string, config?: RequestConfig): Observable<EntityView> {
+  public saveEntityView(entityView: EntityView, entityGroupIds?: string | string[], config?: RequestConfig): Observable<EntityView> {
     let url = '/api/entityView';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<EntityView>(url, entityView, defaultHttpOptionsFromConfig(config));
   }

@@ -58,10 +58,18 @@ export class EdgeService {
     return this.http.get<Edge>(`/api/edge/${edgeId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveEdge(edge: Edge, entityGroupId?: string, config?: RequestConfig): Observable<Edge> {
+  public getEdgeInfo(edgeId: string, config?: RequestConfig): Observable<EdgeInfo> {
+    return this.http.get<EdgeInfo>(`/api/edge/info/${edgeId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveEdge(edge: Edge, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Edge> {
     let url = '/api/edge';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Edge>(url, edge, defaultHttpOptionsFromConfig(config));
   }

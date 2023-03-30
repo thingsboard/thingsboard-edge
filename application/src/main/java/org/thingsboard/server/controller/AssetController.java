@@ -86,6 +86,7 @@ import static org.thingsboard.server.controller.ControllerConstants.ASSET_TYPE_D
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
@@ -133,6 +134,26 @@ public class AssetController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Asset Info (getAssetInfoById)",
+            notes = "Fetch the Asset Info object based on the provided Asset Id. " +
+                    "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
+                    "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer."
+                    + ASSET_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/asset/info/{assetId}", method = RequestMethod.GET)
+    @ResponseBody
+    public AssetInfo getAssetInfoById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION, required = true)
+                                      @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+        checkParameter(ASSET_ID, strAssetId);
+        try {
+            AssetId assetId = new AssetId(toUUID(strAssetId));
+            return checkAssetInfoId(assetId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Create Or Update Asset (saveAsset)",
             notes = "Creates or Updates the Asset. When creating asset, platform generates Asset Id as " + UUID_WIKI_LINK +
                     "The newly created Asset id will be present in the response. " +
@@ -147,11 +168,13 @@ public class AssetController extends BaseController {
             @ApiParam(value = "A JSON value representing the asset.", required = true)
             @RequestBody Asset asset,
             @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @ApiParam(value = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
+        return saveGroupEntity(asset, strEntityGroupId, strEntityGroupIds, (asset1, entityGroups) -> {
             try {
-                return tbAssetService.save(asset, entityGroup, user);
+                return tbAssetService.save(asset, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }

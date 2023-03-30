@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -40,25 +39,15 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityInfo;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Data
 @Slf4j
@@ -67,41 +56,13 @@ import java.util.UUID;
 @TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
 @Table(name = ModelConstants.DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME)
-public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
+public class DashboardInfoEntity extends AbstractDashboardEntity<DashboardInfo> {
 
     public static final Map<String, String> dashboardColumnMap = new HashMap<>();
 
     static {
         dashboardColumnMap.put("name", "title");
     }
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final JavaType assignedCustomersType =
-            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
-
-    @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
-    private UUID tenantId;
-
-    @Column(name = ModelConstants.DASHBOARD_CUSTOMER_ID_PROPERTY)
-    private UUID customerId;
-
-    @Column(name = ModelConstants.DASHBOARD_TITLE_PROPERTY)
-    private String title;
-
-    @Column(name = ModelConstants.DASHBOARD_IMAGE_PROPERTY)
-    private String image;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
-    @Column(name = ModelConstants.DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY)
-    private String assignedCustomers;
-
-    @Column(name = ModelConstants.DASHBOARD_MOBILE_HIDE_PROPERTY)
-    private boolean mobileHide;
-
-    @Column(name = ModelConstants.DASHBOARD_MOBILE_ORDER_PROPERTY)
-    private Integer mobileOrder;
 
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
     private String ownerName;
@@ -115,42 +76,7 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
     }
 
     @Override
-    public String getSearchTextSource() {
-        return title;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    @Override
     public DashboardInfo toData() {
-        DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
-        dashboardInfo.setCreatedTime(createdTime);
-        if (tenantId != null) {
-            dashboardInfo.setTenantId(TenantId.fromUUID(tenantId));
-        }
-        if (customerId != null) {
-            dashboardInfo.setCustomerId(new CustomerId(customerId));
-        }
-        dashboardInfo.setTitle(title);
-        dashboardInfo.setImage(image);
-        if (!StringUtils.isEmpty(assignedCustomers)) {
-            try {
-                dashboardInfo.setAssignedCustomers(objectMapper.readValue(assignedCustomers, assignedCustomersType));
-            } catch (IOException e) {
-                log.warn("Unable to parse assigned customers!", e);
-            }
-        }
-        dashboardInfo.setMobileHide(mobileHide);
-        dashboardInfo.setMobileOrder(mobileOrder);
-        dashboardInfo.setOwnerName(ownerName);
-        dashboardInfo.setGroups(groups);
-        return dashboardInfo;
+        return new DashboardInfo(super.toDashboard(), this.ownerName, this.groups);
     }
 }

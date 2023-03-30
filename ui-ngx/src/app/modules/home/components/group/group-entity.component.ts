@@ -39,6 +39,8 @@ import { PageLink } from '@shared/models/page/page-link';
 import { ShortEntityView } from '@shared/models/entity-group.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation } from '@shared/models/security.models';
 
 // @dynamic
 @Directive()
@@ -56,7 +58,8 @@ export abstract class GroupEntityComponent<T extends BaseData<HasId>>
               protected fb: UntypedFormBuilder,
               protected entityValue: T,
               protected entitiesTableConfigValue: EntityTableConfig<T> | GroupEntityTableConfig<T>,
-              protected cd: ChangeDetectorRef) {
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
@@ -69,5 +72,12 @@ export abstract class GroupEntityComponent<T extends BaseData<HasId>>
 
   protected isGroupMode(): boolean {
     return this.entitiesTableConfig && this.entitiesTableConfig instanceof GroupEntityTableConfig;
+  }
+
+  canManageOwnerAndGroups(): boolean {
+    return (!this.isGroupMode() || this.userPermissionsService.isOwnedGroup(this.entityGroup)) &&
+      (this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, this.entitiesTableConfig.entityType)
+    || (this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.ADD_TO_GROUP, this.entitiesTableConfig.entityType) &&
+    this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.REMOVE_FROM_GROUP, this.entitiesTableConfig.entityType)));
   }
 }

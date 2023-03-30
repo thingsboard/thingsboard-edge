@@ -36,9 +36,11 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms
 import { EntityType } from '@shared/models/entity-type.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
-import { Asset } from '@shared/models/asset.models';
+import { Asset, AssetInfo } from '@shared/models/asset.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 
 @Component({
@@ -46,7 +48,7 @@ import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss']
 })
-export class AssetComponent extends GroupEntityComponent<Asset> {
+export class AssetComponent extends GroupEntityComponent<AssetInfo> {
 
   entityType = EntityType;
 
@@ -54,11 +56,13 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: Asset,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Asset>,
+              @Inject('entity') protected entityValue: AssetInfo,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<AssetInfo> | GroupEntityTableConfig<AssetInfo>,
               protected fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {
@@ -78,7 +82,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Asset): UntypedFormGroup {
+  buildForm(entity: AssetInfo): UntypedFormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -93,7 +97,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
     );
   }
 
-  updateForm(entity: Asset) {
+  updateForm(entity: AssetInfo) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({assetProfileId: entity.assetProfileId});
     this.entityForm.patchValue({label: entity.label});

@@ -132,14 +132,18 @@ export class DeviceService {
       defaultHttpOptionsFromConfig(config));
   }
 
-/*  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
+  public getDeviceInfo(deviceId: string, config?: RequestConfig): Observable<DeviceInfo> {
     return this.http.get<DeviceInfo>(`/api/device/info/${deviceId}`, defaultHttpOptionsFromConfig(config));
-  }*/
+  }
 
-  public saveDevice(device: Device, entityGroupId?: string, config?: RequestConfig): Observable<Device> {
+  public saveDevice(device: Device, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Device> {
     let url = '/api/device';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Device>(url, device, defaultHttpOptionsFromConfig(config));
   }

@@ -49,7 +49,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Observable, of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { map, tap } from 'rxjs/operators';
+import { map, mergeMap, tap } from 'rxjs/operators';
 import { AppState } from '@core/core.state';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
@@ -58,7 +58,7 @@ import { BroadcastService } from '@core/services/broadcast.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { Edge, EdgeInfo, EdgeInstallInstructions } from '@shared/models/edge.models';
+import { EdgeInfo, EdgeInstallInstructions } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import {
@@ -75,11 +75,12 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UtilsService } from '@core/services/utils.service';
+import { EntityViewInfo } from '@shared/models/entity-view.models';
 
 @Injectable()
-export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo | Edge>> {
+export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeInfo>> {
 
-  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<EdgeInfo | Edge>,
+  constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<EdgeInfo>,
               private userPermissionsService: UserPermissionsService,
               private store: Store<AppState>,
               private broadcast: BroadcastService,
@@ -94,9 +95,9 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
               private dialog: MatDialog) {
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EdgeInfo | Edge>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EdgeInfo>> {
     const groupParams = resolveGroupParams(route);
-    const config = new EntityTableConfig<EdgeInfo | Edge>(groupParams);
+    const config = new EntityTableConfig<EdgeInfo>(groupParams);
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {
@@ -127,12 +128,13 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  configDefaults(config: EntityTableConfig<EdgeInfo | Edge>) {
+  configDefaults(config: EntityTableConfig<EdgeInfo>) {
     config.entityType = EntityType.EDGE;
     config.entityComponent = EdgeComponent;
-    config.entityTabsComponent = GroupEntityTabsComponent<Edge>;
+    config.entityTabsComponent = GroupEntityTabsComponent<EdgeInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.EDGE);
     config.entityResources = entityTypeResources.get(EntityType.EDGE);
+    config.addDialogStyle = {height: '1000px'};
 
     config.entityTitle = (edge) => edge ?
       this.utils.customTranslation(edge.name, edge.name) : '';
@@ -144,16 +146,18 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     config.deleteEntitiesTitle = count => this.translate.instant('edge.delete-edges-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('edge.delete-edges-text');
 
-    config.loadEntity = id => this.edgeService.getEdge(id.id);
+    config.loadEntity = id => this.edgeService.getEdgeInfo(id.id);
     config.saveEntity = edge => this.edgeService.saveEdge(edge).pipe(
       tap(() => {
         this.broadcast.broadcast('edgeSaved');
-      }));
+      }),
+      mergeMap((savedEdge) => this.edgeService.getEdgeInfo(savedEdge.id.id)
+      ));
     config.onEntityAction = action => this.onEdgeAction(action, config);
     config.headerComponent = EdgeTableHeaderComponent;
   }
 
-  configureColumns(authUser: AuthUser, config: EntityTableConfig<EdgeInfo | Edge>): Array<EntityColumn<EdgeInfo>> {
+  configureColumns(authUser: AuthUser, config: EntityTableConfig<EdgeInfo>): Array<EntityColumn<EdgeInfo>> {
     const columns: Array<EntityColumn<EdgeInfo>> = [
       new DateEntityTableColumn<EdgeInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<EdgeInfo>('name', 'edge.name', '20%', config.entityTitle),
@@ -171,7 +175,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     return columns;
   }
 
-  configureEntityFunctions(config: EntityTableConfig<EdgeInfo | Edge>): void {
+  configureEntityFunctions(config: EntityTableConfig<EdgeInfo>): void {
     if (config.customerId) {
       config.entitiesFetchFunction = pageLink =>
         this.edgeService.getCustomerEdgeInfos(config.componentsData.includeCustomers,
@@ -184,7 +188,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
   }
 
-  configureCellActions(authUser: AuthUser, config: EntityTableConfig<EdgeInfo | Edge>): Array<CellActionDescriptor<EdgeInfo>> {
+  configureCellActions(authUser: AuthUser, config: EntityTableConfig<EdgeInfo>): Array<CellActionDescriptor<EdgeInfo>> {
     const actions: Array<CellActionDescriptor<EdgeInfo>> = [];
     if (this.userPermissionsService.hasGenericPermission(Resource.USER_GROUP, Operation.READ)) {
       actions.push(
@@ -271,12 +275,12 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     return actions;
   }
 
-  configureGroupActions(config: EntityTableConfig<EdgeInfo | Edge>): Array<GroupActionDescriptor<EdgeInfo>> {
+  configureGroupActions(config: EntityTableConfig<EdgeInfo>): Array<GroupActionDescriptor<EdgeInfo>> {
     const actions: Array<GroupActionDescriptor<EdgeInfo>> = [];
     return actions;
   }
 
-  configureAddActions(config: EntityTableConfig<EdgeInfo | Edge>): Array<HeaderActionDescriptor> {
+  configureAddActions(config: EntityTableConfig<EdgeInfo>): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
     actions.push(
       {
@@ -295,7 +299,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     return actions;
   }
 
-  importEdges($event: Event, config: EntityTableConfig<EdgeInfo | Edge>) {
+  importEdges($event: Event, config: EntityTableConfig<EdgeInfo>) {
     const customerId = config.customerId ? new CustomerId(config.customerId) : null;
     this.homeDialogs.importEntities(customerId, EntityType.EDGE, null).subscribe((res) => {
       if (res) {
@@ -305,7 +309,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     });
   }
 
-  private openEdge($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  private openEdge($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -313,63 +317,63 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     this.router.navigateByUrl(url);
   }
 
-  manageUsers($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageUsers($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/userGroups');
   }
 
-  manageAssets($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageAssets($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/assetGroups');
   }
 
-  manageDevices($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageDevices($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/deviceGroups');
   }
 
-  manageEntityViews($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageEntityViews($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/entityViewGroups');
   }
 
-  manageDashboards($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageDashboards($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/dashboardGroups');
   }
 
-  manageSchedulerEvents($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageSchedulerEvents($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/scheduler');
   }
 
-  manageRuleChains($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageRuleChains($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/ruleChains');
   }
 
-  manageIntegrations($event: Event, edge: Edge, config: EntityTableConfig<EdgeInfo | Edge>) {
+  manageIntegrations($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
     if ($event) {
       $event.stopPropagation();
     }
     this.navigateToChildEdgePage(config, edge, '/integrations');
   }
 
-  private navigateToChildEdgePage(config: EntityTableConfig<EdgeInfo | Edge>, edge: Edge, page: string) {
+  private navigateToChildEdgePage(config: EntityTableConfig<EdgeInfo>, edge: EdgeInfo, page: string) {
     let url = `edgeManagement/instances/all/${edge.id.id}${page}`;
     if (config.customerId) {
       if (config.groupParams.childEntityGroupId) {
@@ -382,7 +386,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     this.router.navigateByUrl(url);
   }
 
-  syncEdge($event, edge: Edge) {
+  syncEdge($event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -400,7 +404,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  openInstructions($event, edge: Edge) {
+  openInstructions($event, edge: EdgeInfo) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -417,7 +421,17 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
     );
   }
 
-  onEdgeAction(action: EntityAction<Edge>, config: EntityTableConfig<EdgeInfo | Edge>): boolean {
+  manageOwnerAndGroups($event: Event, edge: EdgeInfo, config: EntityTableConfig<EdgeInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, edge).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onEdgeAction(action: EntityAction<EdgeInfo>, config: EntityTableConfig<EdgeInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openEdge(action.event, action.entity, config);
@@ -451,6 +465,9 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
         return true;
       case 'openInstructions':
         this.openInstructions(action.event, action.entity);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
   }

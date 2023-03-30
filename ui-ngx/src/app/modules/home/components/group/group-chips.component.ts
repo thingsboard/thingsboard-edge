@@ -34,32 +34,38 @@ import { EntityInfoData } from '@shared/models/entity.models';
 import { EntityType, groupUrlPrefixByEntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { GroupEntityInfo } from '@shared/models/base-data';
 
 @Component({
   selector: 'tb-group-chips',
   templateUrl: './group-chips.component.html',
   styleUrls: ['./group-chips.component.scss']
 })
-export class GroupChipsComponent implements OnInit {
+export class GroupChipsComponent {
+
+  groupEntityValue?: GroupEntityInfo<EntityId>;
 
   @Input()
-  groups?: EntityInfoData[];
+  set groupEntity(value: GroupEntityInfo<EntityId>) {
+    this.groupEntityValue = value;
+    this.update();
+  }
 
-  @Input()
-  ownerId?: EntityId;
-
-  @Input()
-  entityType: EntityType;
+  get groupEntity(): GroupEntityInfo<EntityId> {
+    return this.groupEntityValue;
+  }
 
   groupPrefixUrl: string;
 
   constructor(private userPermissionsService: UserPermissionsService) {
   }
 
-  ngOnInit(): void {
-    this.groupPrefixUrl = groupUrlPrefixByEntityType.get(this.entityType);
-    if (this.ownerId && !this.userPermissionsService.isDirectOwner(this.ownerId)) {
-      this.groupPrefixUrl = `/customers/all/${this.ownerId.id}${this.groupPrefixUrl}`;
+  update(): void {
+    if (this.groupEntity && this.groupEntity.id) {
+      this.groupPrefixUrl = groupUrlPrefixByEntityType.get(this.groupEntity.id.entityType as EntityType);
+      if (this.groupEntity.ownerId && !this.userPermissionsService.isDirectOwner(this.groupEntity.ownerId)) {
+        this.groupPrefixUrl = `/customers/all/${this.groupEntity.ownerId.id}${this.groupPrefixUrl}`;
+      }
     }
   }
 

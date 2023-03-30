@@ -155,6 +155,28 @@ public class EdgeController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Edge Info (getEdgeInfoById)",
+            notes = "Get the Edge info object based on the provided Edge Id. " + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/info/{edgeId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeInfo getEdgeInfoById(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+                                    @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
+        checkParameter(EDGE_ID, strEdgeId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            EdgeInfo edge = checkEdgeInfoId(edgeId, Operation.READ);
+            SecurityUser user = getCurrentUser();
+            if (!hasPermissionEdgeCreateOrWrite(user)) {
+                cleanUpLicenseKey(edge);
+            }
+            return edge;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Create Or Update Edge (saveEdge)",
             notes = "Create or update the Edge. When creating edge, platform generates Edge Id as " + UUID_WIKI_LINK +
                     "The newly created edge id will be present in the response. " +
@@ -169,7 +191,8 @@ public class EdgeController extends BaseController {
     public Edge saveEdge(
             @ApiParam(value = "A JSON value representing the edge.", required = true)
             @RequestBody Edge edge,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         TenantId tenantId = getCurrentUser().getTenantId();
         edge.setTenantId(tenantId);
         boolean created = edge.getId() == null;
@@ -182,19 +205,36 @@ public class EdgeController extends BaseController {
             }
         }
 
-        EntityGroupId entityGroupId = null;
-        EntityGroup entityGroup = null;
+        List<EntityGroupId> entityGroupIds = new ArrayList<>();
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        String[] groupIds = null;
         if (!StringUtils.isEmpty(strEntityGroupId)) {
-            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            groupIds = new String[]{strEntityGroupId};
+        } else if (strEntityGroupIds != null && strEntityGroupIds.length > 0) {
+            groupIds = strEntityGroupIds;
+        }
+        if (groupIds != null) {
+            for (String id : groupIds) {
+                EntityGroupId entityGroupId = new EntityGroupId(toUUID(id));
+                EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                entityGroupIds.add(entityGroupId);
+                entityGroups.add(entityGroup);
+            }
         }
 
         Operation operation = created ? Operation.CREATE : Operation.WRITE;
 
-        accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
-                edge.getId(), edge, entityGroupId);
+        if (!entityGroupIds.isEmpty()) {
+            for (EntityGroupId entityGroupId : entityGroupIds) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
+                        edge.getId(), edge, entityGroupId);
+            }
+        } else {
+            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
+                    edge.getId(), edge, null);
+        }
 
-        return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
+        return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroups, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete edge (deleteEdge)",

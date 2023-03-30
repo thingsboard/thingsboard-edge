@@ -71,6 +71,16 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getOwnerInfos(pageLink: PageLink, config?: RequestConfig): Observable<PageData<EntityInfoData>> {
+    return this.http.get<PageData<EntityInfoData>>(`/api/ownerInfos${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getOwnerInfo(ownerId: EntityId, config?: RequestConfig): Observable<EntityInfoData> {
+    return this.http.get<EntityInfoData>(`/api/ownerInfo/${ownerId.entityType}/${ownerId.id}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getEntityGroup(entityGroupId: string, config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/${entityGroupId}`,
       defaultHttpOptionsFromConfig(config)).pipe(
@@ -367,6 +377,11 @@ export class EntityGroupService {
     }
   }
 
+  public getEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType,
+                                   config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.getEntityGroups(pageLink, groupType, true, config);
+  }
+
   public getEntityGroupAllByOwnerId(ownerType: EntityType, ownerId: string, groupType: EntityType,
                                     config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/all/${ownerType}/${ownerId}/${groupType}`,
@@ -381,9 +396,9 @@ export class EntityGroupService {
     return this.http.post(`/api/entityGroup/${entityGroupId}/addEntities`, entityIds, defaultHttpOptionsFromConfig(config));
   }
 
-  public changeEntityOwner(ownerId: EntityId, entityId: EntityId, config?: RequestConfig): Observable<any> {
+  public changeEntityOwner(ownerId: EntityId, entityId: EntityId, entityGroupIds?: string[], config?: RequestConfig): Observable<any> {
     return this.http.post(`/api/owner/${ownerId.entityType}/${ownerId.id}/${entityId.entityType}/${entityId.id}`,
-      null, defaultHttpOptionsFromConfig(config));
+      entityGroupIds, defaultHttpOptionsFromConfig(config));
   }
 
   public removeEntityFromEntityGroup(entityGroupId: string, entityId: string, config?: RequestConfig): Observable<any> {

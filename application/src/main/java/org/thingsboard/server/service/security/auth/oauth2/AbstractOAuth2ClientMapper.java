@@ -180,7 +180,7 @@ public abstract class AbstractOAuth2ClientMapper {
 
                     user.setAdditionalInfo(additionalInfo);
 
-                    user = tbUserService.save(tenantId, customerId, null, user, false, null, null, null, null);
+                    user = tbUserService.save(tenantId, customerId, null, user, false, null, (EntityGroup) null, null);
                     if (config.isActivateUser()) {
                         UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                         userService.activateUserCredentials(user.getTenantId(), userCredentials.getActivateToken(), passwordEncoder.encode(""));

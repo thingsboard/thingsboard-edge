@@ -131,6 +131,24 @@ public class EntityViewController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get entity view info (getEntityViewInfoById)",
+            notes = "Fetch the Entity View info object based on the provided entity view id. "
+                    + ENTITY_VIEW_INFO_DESCRIPTION + MODEL_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityView/info/{entityViewId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EntityViewInfo getEntityViewInfoById(
+            @ApiParam(value = ENTITY_VIEW_ID_PARAM_DESCRIPTION)
+            @PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
+        checkParameter(ENTITY_VIEW_ID, strEntityViewId);
+        try {
+            return checkEntityViewInfoId(new EntityViewId(toUUID(strEntityViewId)), Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Save or update entity view (saveEntityView)",
             notes = ENTITY_VIEW_DESCRIPTION + MODEL_DESCRIPTION +
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Entity View entity." +
@@ -142,11 +160,12 @@ public class EntityViewController extends BaseController {
     public EntityView saveEntityView(
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> {
+        return saveGroupEntity(entityView, strEntityGroupId, strEntityGroupIds, (entityView1, entityGroups) -> {
             try {
-                return tbEntityViewService.save(entityView1, entityGroup, user);
+                return tbEntityViewService.save(entityView1, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }

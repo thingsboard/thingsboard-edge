@@ -55,6 +55,8 @@ public interface EntityViewService extends EntityDaoService {
 
     EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId);
 
+    EntityViewInfo findEntityViewInfoById(TenantId tenantId, EntityViewId entityViewId);
+
     EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name);
 
     PageData<EntityView> findEntityViewByTenantId(TenantId tenantId, PageLink pageLink);
