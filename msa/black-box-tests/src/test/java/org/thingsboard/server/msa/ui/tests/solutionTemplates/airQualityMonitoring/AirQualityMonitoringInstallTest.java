@@ -214,7 +214,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.entity(AQI_SENSOR_RULE_CHAIN).isDisplayed());
         Assert.assertTrue(ruleChainsPage.entity(AQI_CITY_RULE_CHAIN).isDisplayed());
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entity(AIR_QUALITY_MONITORING_DEVICE_GROUP).isDisplayed());
 
@@ -226,7 +226,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_4_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_5_DEVICE).isDisplayed());
 
-        sideBarMenuView.assetGroups().click();
+        sideBarMenuView.goToAssetGroups();
 
         Assert.assertTrue(assetPage.entity(AIR_QUALITY_MONITORING_ASSET_GROUP).isDisplayed());
 
@@ -238,7 +238,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entity(AQI_CITY_ASSET_PROFILE).isDisplayed());
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entity(AIR_QUALITY_MONITORING_DASHBOARD).isDisplayed());
         Assert.assertTrue(dashboardPage.entity(AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD).isDisplayed());
@@ -422,7 +422,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(AQI_SENSOR_RULE_CHAIN));
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(AQI_CITY_RULE_CHAIN));
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_MONITORING_DEVICE_GROUP));
 
@@ -434,7 +434,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_4_DEVICE));
         Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_5_DEVICE));
 
-        sideBarMenuView.assetGroups().click();
+        sideBarMenuView.goToAssetGroups();
 
         Assert.assertTrue(assetPage.entityIsNotPresent(AIR_QUALITY_MONITORING_ASSET_GROUP));
 
@@ -446,7 +446,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(AQI_CITY_ASSET_PROFILE));
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(AIR_QUALITY_MONITORING_DASHBOARD));
         Assert.assertTrue(dashboardPage.entityIsNotPresent(AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD));

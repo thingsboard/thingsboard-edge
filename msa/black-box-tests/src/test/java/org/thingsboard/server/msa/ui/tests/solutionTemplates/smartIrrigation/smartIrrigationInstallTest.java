@@ -238,7 +238,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.entity(SI_WATER_METER_DEVICE_PROFILE).isDisplayed());
         Assert.assertTrue(profilesPage.entity(SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE).isDisplayed());;
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entity(SMART_IRRIGATION_DEVICE_GROUP).isDisplayed());
 
@@ -258,7 +258,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_7_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(SI_SOIL_MOISTURE_8_DEVICE).isDisplayed());
 
-        sideBarMenuView.assetGroups().click();
+        sideBarMenuView.goToAssetGroups();
 
         Assert.assertTrue(assetPage.entity(SMART_IRRIGATION_ASSET_GROUP).isDisplayed());
 
@@ -271,8 +271,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entity(SI_FIELD_ASSET).isDisplayed());
 
-        sideBarMenuView.dashboardGroupsBtn().click();
-        dashboardPage.entity("All").click();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entity(IRRIGATION_MANAGEMENT_DASHBOARD).isDisplayed());
     }
@@ -464,7 +463,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.entityIsNotPresent(SI_WATER_METER_DEVICE_PROFILE));
         Assert.assertTrue(profilesPage.entityIsNotPresent(SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE));
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entityIsNotPresent(SMART_IRRIGATION_DEVICE_GROUP));
 
@@ -483,7 +482,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_7_DEVICE));
         Assert.assertTrue(devicePage.entityIsNotPresent(SI_SOIL_MOISTURE_8_DEVICE));
 
-        sideBarMenuView.assetGroups().click();
+        sideBarMenuView.goToAssetGroups();
 
         Assert.assertTrue(assetPage.entityIsNotPresent(SMART_IRRIGATION_ASSET_GROUP));
 
@@ -496,7 +495,7 @@ public class smartIrrigationInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(SI_FIELD_ASSET));
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(IRRIGATION_MANAGEMENT_DASHBOARD));
     }

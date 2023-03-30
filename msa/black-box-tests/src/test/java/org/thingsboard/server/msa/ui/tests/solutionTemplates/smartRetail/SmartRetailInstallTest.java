@@ -273,13 +273,13 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(ruleChainsPage.entity(SUPERMARKET_DEVICES_RULE_CHAIN).isDisplayed());
 
-        sideBarMenuView.rolesBtn().click();
+        sideBarMenuView.goToRoles();
 
         Assert.assertTrue(rolesPage.entity(SMART_RETAIL_READ_ONLY_ROLE).isDisplayed());
         Assert.assertTrue(rolesPage.entity(SMART_RETAIL_USER_ROLE).isDisplayed());
         Assert.assertTrue(rolesPage.entity(SMART_RETAIL_ADMINISTRATOR_ROLE).isDisplayed());
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
 
         Assert.assertTrue(customerPage.entity(SMART_RETAIL_CUSTOMER_GROUP).isDisplayed());
 
@@ -295,7 +295,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(usersPage.entity(user1RetailCompanyA).isDisplayed());
         Assert.assertTrue(usersPage.entity(user2RetailCompanyA).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
         Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
@@ -306,7 +306,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(usersPage.entity(user1RetailCompanyB).isDisplayed());
         Assert.assertTrue(usersPage.entity(user2RetailCompanyB).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
 
         Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
@@ -342,7 +342,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_5_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_6_DEVICE).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
         Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
@@ -354,7 +354,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(FREEZER_67478).isDisplayed());
         Assert.assertTrue(devicePage.entity(DOOR_SENSOR_3456_DEVICE).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
 
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
@@ -364,7 +364,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_S1_ASSET).isDisplayed());
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_S2_ASSET).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
@@ -389,7 +389,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entity(SUPERMARKET_ASSET_PROFILE).isDisplayed());
 
-        sideBarMenuView.dashboardGroupsBtn().click();
+        sideBarMenuView.goToDashboardGroups();
 
         Assert.assertTrue(dashboardPage.entity(SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).isDisplayed());
         Assert.assertTrue(dashboardPage.entity(SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP).isDisplayed());
@@ -579,13 +579,13 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(SUPERMARKET_DEVICES_RULE_CHAIN));
 
-        sideBarMenuView.rolesBtn().click();
+        sideBarMenuView.goToRoles();
 
         Assert.assertTrue(rolesPage.entityIsNotPresent(SMART_RETAIL_READ_ONLY_ROLE));
         Assert.assertTrue(rolesPage.entityIsNotPresent(SMART_RETAIL_USER_ROLE));
         Assert.assertTrue(rolesPage.entityIsNotPresent(SMART_RETAIL_ADMINISTRATOR_ROLE));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(SMART_RETAIL_CUSTOMER_GROUP));
 
@@ -610,7 +610,7 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(SUPERMARKET_ASSET_PROFILE));
 
-        sideBarMenuView.dashboardGroupsBtn().click();
+        sideBarMenuView.goToDashboardGroups();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(SUPERMARKET_USER_SHARED_DASHBOARD_GROUP));
         Assert.assertTrue(dashboardPage.entityIsNotPresent(SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP));

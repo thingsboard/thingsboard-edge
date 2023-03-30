@@ -42,14 +42,16 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     private static final String RULE_CHAINS_BTN = "//mat-toolbar//a[@href='/ruleChains']";
     private static final String CUSTOMERS_BTN = "//mat-toolbar//a[@href='/customers']";
     private static final String DASHBOARD_BTN = "//mat-toolbar//a[@href='/dashboards']";
-    private static final String PROFILES_BTN = "//mat-toolbar//mat-icon[text()='badge']/ancestor::tb-menu-toggle";
+    private static final String PROFILES_DROPDOWN = "//mat-toolbar//mat-icon[text()='badge']/ancestor::span//span[contains(@class,'pull-right')]";
     private static final String DEVICE_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/deviceProfiles']";
     private static final String ASSET_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/assetProfiles']";
-    private static final String DASHBOARD_GROUPS_BTN = "//mat-toolbar//a[@href='/dashboardGroups']";
+    private static final String DASHBOARDS_BTN = "//mat-toolbar//a[@href='/dashboards']";
     private static final String SOLUTION_TEMPLATES = "//mat-toolbar//a[@href='/solutionTemplates']";
-    private static final String ROLES = "//mat-toolbar//a[@href='/roles']";
-    private static final String DEVICE_GROUPS = "//mat-toolbar//a[@href='/deviceGroups']";
-    private static final String ASSET_GROUPS = "//mat-toolbar//a[@href='/assetGroups']";
+    private static final String ROLES_BTN = "//mat-toolbar//a[@href='/security-settings/roles']/span";
+    private static final String DEVICES_BTN = "//ul[@id='docs-menu-entity.entities']//span[text()='Devices']";
+    private static final String ASSETS_BTN = "//ul[@id='docs-menu-entity.entities']//span[text()='Assets']";
+    private static final String ENTITIES_DROPDOWN = "//mat-toolbar//mat-icon[text()='category']/ancestor::span//span[contains(@class,'pull-right')]";
+    private static final String SECURITY_DROPDOWN = "//mat-toolbar//mat-icon[text()='security']/ancestor::span//span[contains(@class,'pull-right')]";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -59,8 +61,8 @@ public class SideBarMenuViewElements extends AbstractBasePage {
         return waitUntilElementToBeClickable(CUSTOMERS_BTN);
     }
 
-    public WebElement profilesBtn() {
-        return waitUntilElementToBeClickable(PROFILES_BTN);
+    public WebElement profilesDropdown() {
+        return waitUntilElementToBeClickable(PROFILES_DROPDOWN);
     }
 
     public WebElement deviceProfileBtn() {
@@ -71,8 +73,8 @@ public class SideBarMenuViewElements extends AbstractBasePage {
         return waitUntilElementToBeClickable(ASSET_PROFILE_BTN);
     }
 
-    public WebElement dashboardGroupsBtn() {
-        return waitUntilElementToBeClickable(DASHBOARD_GROUPS_BTN);
+    public WebElement dashboardsBtn() {
+        return waitUntilElementToBeClickable(DASHBOARDS_BTN);
     }
 
     public WebElement solutionTemplates() {
@@ -80,14 +82,22 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     }
 
     public WebElement rolesBtn() {
-        return waitUntilElementToBeClickable(ROLES);
+        return waitUntilElementToBeClickable(ROLES_BTN);
     }
 
-    public WebElement deviceGroups() {
-        return waitUntilElementToBeClickable(DEVICE_GROUPS);
+    public WebElement devicesBtn() {
+        return waitUntilElementToBeClickable(DEVICES_BTN);
     }
 
-    public WebElement assetGroups() {
-        return waitUntilElementToBeClickable(ASSET_GROUPS);
+    public WebElement assetsBtn() {
+        return waitUntilElementToBeClickable(ASSETS_BTN);
+    }
+
+    public WebElement entitiesDropdown() {
+        return waitUntilElementToBeClickable(ENTITIES_DROPDOWN);
+    }
+
+    public WebElement securityDropdown() {
+        return waitUntilElementToBeClickable(SECURITY_DROPDOWN);
     }
 }

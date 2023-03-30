@@ -219,11 +219,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(ruleChainsPage.entity(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN).isDisplayed());
 
-        sideBarMenuView.rolesBtn().click();
+        sideBarMenuView.goToRoles();
 
         Assert.assertTrue(rolesPage.entity(READ_ONLY_ROLES).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
 
         Assert.assertTrue(customerPage.entity(CUSTOMER_D).isDisplayed());
 
@@ -232,7 +232,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(devicePage.entity(SENSOR_C1_DEVICE).isDisplayed());
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(CUSTOMER_D).click();
         customerPage.entity("All").click();
 
@@ -243,7 +243,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(profilesPage.entity(TEMPERATURE_SENSOR_DEVICE_PROFILE).isDisplayed());
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).isDisplayed());
 
@@ -251,7 +251,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(devicePage.entity(SENSOR_T1_DEVICE).isDisplayed());
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entity(TEMPERATURE_HUMIDITY_DASHBOARD).isDisplayed());
     }
@@ -425,11 +425,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(ruleChainsPage.elementIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN));
 
-        sideBarMenuView.rolesBtn().click();
+        sideBarMenuView.goToRoles();
 
         Assert.assertTrue(rolesPage.entityIsNotPresent(READ_ONLY_ROLES));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(CUSTOMER_D));
 
@@ -437,7 +437,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(TEMPERATURE_SENSOR_DEVICE_PROFILE));
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP));
 
@@ -445,7 +445,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
 
         Assert.assertTrue(devicePage.entityIsNotPresent(SENSOR_T1_DEVICE));
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(TEMPERATURE_HUMIDITY_DASHBOARD));
     }

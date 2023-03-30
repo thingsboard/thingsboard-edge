@@ -214,7 +214,7 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entity(BUS_DEVICE_PROFILE).isDisplayed());
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entity(BUS_DEVICES_DEVICE_GROUP).isDisplayed());
 
@@ -225,7 +225,7 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(BUS_C_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(BUS_D_DEVICE).isDisplayed());
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entity(FLEET_TRACKING_DASHBOARD).isDisplayed());
     }
@@ -406,7 +406,7 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(BUS_DEVICE_PROFILE));
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entityIsNotPresent(BUS_DEVICES_DEVICE_GROUP));
 
@@ -417,7 +417,7 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entityIsNotPresent(BUS_C_DEVICE));
         Assert.assertTrue(devicePage.entityIsNotPresent(BUS_D_DEVICE));
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(FLEET_TRACKING_DASHBOARD));
     }

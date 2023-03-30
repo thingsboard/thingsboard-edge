@@ -218,12 +218,12 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.entity(WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN).isDisplayed());
         Assert.assertTrue(ruleChainsPage.entity(WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN).isDisplayed());
 
-        sideBarMenuView.rolesBtn().click();
+        sideBarMenuView.goToRoles();
 
         Assert.assertTrue(rolesPage.entity(WATER_METERING_READ_ONLY_ROLES).isDisplayed());
         Assert.assertTrue(rolesPage.entity(WATER_METERING_USER_ROLES).isDisplayed());
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
 
         Assert.assertTrue(customerPage.entity(WATER_METERING_CUSTOMER_GROUP).isDisplayed());
 
@@ -231,7 +231,7 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entity(WATER_METER_DEVICE_PROFILE_WM).isDisplayed());
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entity(WATER_METERS_DEVICE_GROUP).isDisplayed());
 
@@ -241,7 +241,7 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(WM0000124_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(WM0000125_DEVICE).isDisplayed());
 
-        sideBarMenuView.dashboardGroupsBtn().click();
+        sideBarMenuView.goToDashboardGroups();
 
         Assert.assertTrue(dashboardPage.entity(WATER_METERING_DASHBOARD_GROUP).isDisplayed());
         Assert.assertTrue(dashboardPage.entity(WATER_METERING_SHARED_DASHBOARD_GROUP).isDisplayed());
@@ -424,12 +424,12 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN));
         Assert.assertTrue(ruleChainsPage.entityIsNotPresent(WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN));
 
-        sideBarMenuView.rolesBtn().click();
+        sideBarMenuView.goToRoles();
 
         Assert.assertTrue(rolesPage.entityIsNotPresent(WATER_METERING_READ_ONLY_ROLES));
         Assert.assertTrue(rolesPage.entityIsNotPresent(WATER_METERING_USER_ROLES));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(WATER_METERING_CUSTOMER_GROUP));
 
@@ -437,7 +437,7 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(WATER_METER_DEVICE_PROFILE_WM));
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entityIsNotPresent(WATER_METERS_DEVICE_GROUP));
 
@@ -447,7 +447,7 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entityIsNotPresent(WM0000124_DEVICE));
         Assert.assertTrue(devicePage.entityIsNotPresent(WM0000125_DEVICE));
 
-        sideBarMenuView.dashboardGroupsBtn().click();
+        sideBarMenuView.goToDashboardGroups();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(WATER_METERING_DASHBOARD_GROUP));
         Assert.assertTrue(dashboardPage.entityIsNotPresent(WATER_METERING_SHARED_DASHBOARD_GROUP));

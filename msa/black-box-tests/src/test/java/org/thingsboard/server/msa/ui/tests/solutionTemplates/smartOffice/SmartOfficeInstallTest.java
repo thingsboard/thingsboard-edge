@@ -219,7 +219,7 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.entity(ENERGY_METER_DEVICE_PROFILE).isDisplayed());
         Assert.assertTrue(profilesPage.entity(WATER_METERING_DEVICE_PROFILE_SO).isDisplayed());
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entity(OFFICE_SENSORS_DEVICE_GROUPS).isDisplayed());
 
@@ -230,7 +230,7 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(ENERGY_METER_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(WATER_METER_DEVICE).isDisplayed());
 
-        sideBarMenuView.assetGroups().click();
+        sideBarMenuView.goToAssetGroups();
 
         Assert.assertTrue(assetPage.entity(BUILDINGS_ASSET_GROUP).isDisplayed());
 
@@ -242,7 +242,7 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entity(OFFICE_ASSET_PROFILE).isDisplayed());
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entity(SMART_OFFICE_DASHBOARD).isDisplayed());
     }
@@ -427,7 +427,7 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(profilesPage.entityIsNotPresent(ENERGY_METER_DEVICE_PROFILE));
         Assert.assertTrue(profilesPage.entityIsNotPresent(WATER_METERING_DEVICE_PROFILE_SO));
 
-        sideBarMenuView.deviceGroups().click();
+        sideBarMenuView.goToDeviceGroups();
 
         Assert.assertTrue(devicePage.entityIsNotPresent(OFFICE_SENSORS_DEVICE_GROUPS));
 
@@ -438,7 +438,7 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entityIsNotPresent(ENERGY_METER_DEVICE));
         Assert.assertTrue(devicePage.entityIsNotPresent(WATER_METER_DEVICE));
 
-        sideBarMenuView.assetGroups().click();
+        sideBarMenuView.goToAssetGroups();
 
         Assert.assertTrue(assetPage.entityIsNotPresent(BUILDINGS_ASSET_GROUP));
 
@@ -450,7 +450,7 @@ public class SmartOfficeInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(profilesPage.entityIsNotPresent(OFFICE_ASSET_PROFILE));
 
-        dashboardPage.goToAllDashboards();
+        sideBarMenuView.goToAllDashboards();
 
         Assert.assertTrue(dashboardPage.entityIsNotPresent(SMART_OFFICE_DASHBOARD));
     }

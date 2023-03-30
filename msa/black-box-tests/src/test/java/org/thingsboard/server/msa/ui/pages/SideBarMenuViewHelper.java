@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.ui.pages;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     public SideBarMenuViewHelper(WebDriver driver) {
@@ -38,12 +39,14 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     }
 
     public void openDeviceProfiles() {
-        profilesBtn().click();
+        if (dropdownIsClose(profilesDropdown())) {
+            profilesDropdown().click();
+        }
         deviceProfileBtn().click();
     }
 
     public void openAssetProfiles() {
-        profilesBtn().click();
+        profilesDropdown().click();
         assetProfileBtn().click();
     }
 
@@ -54,5 +57,49 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     public void goToCustomerGroups() {
         goToAllCustomers();
         new CustomerPageHelper(driver).groupsBtn().click();
+    }
+
+    public void goToAllDevices() {
+        if (dropdownIsClose(entitiesDropdown())) {
+            entitiesDropdown().click();
+        }
+        devicesBtn().click();
+    }
+
+    public void goToDeviceGroups() {
+        goToAllDevices();
+        new DevicePageElements(driver).groupsBtn().click();
+    }
+
+    public void goToAllAssets() {
+        if (dropdownIsClose(entitiesDropdown())) {
+            entitiesDropdown().click();
+        }
+        assetsBtn().click();
+    }
+
+    public void goToAssetGroups() {
+        goToAllAssets();
+        new AssetPageElements(driver).groupsBtn().click();
+    }
+
+    public void goToAllDashboards() {
+        dashboardsBtn().click();
+    }
+
+    public void goToDashboardGroups() {
+        goToAllDashboards();
+        new DashboardPageHelper(driver).groupsBtn().click();
+    }
+
+    public void goToRoles() {
+        if (dropdownIsClose(securityDropdown())) {
+            securityDropdown().click();
+        }
+        rolesBtn().click();
+    }
+
+    public boolean dropdownIsClose(WebElement dropdown) {
+        return !dropdown.getAttribute("class").contains("tb-toggled");
     }
 }

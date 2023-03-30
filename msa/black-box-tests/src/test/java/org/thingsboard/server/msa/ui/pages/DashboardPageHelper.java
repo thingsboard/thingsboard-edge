@@ -52,9 +52,4 @@ public class DashboardPageHelper extends DashboardPageElements {
         jsClick(manageAssignedEntity(title));
         jsClick(manageAssignedUpdateBtn());
     }
-
-    public void goToAllDashboards() {
-        new SideBarMenuViewElements(driver).dashboardGroupsBtn().click();
-        entity("All").click();
-    }
 }
