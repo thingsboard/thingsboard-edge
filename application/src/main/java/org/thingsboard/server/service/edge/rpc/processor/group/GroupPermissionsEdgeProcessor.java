@@ -110,7 +110,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                         if (pageData.getData().size() > 0) {
                             for (EdgeId edgeId : pageData.getData()) {
                                 ListenableFuture<Boolean> checkFuture =
-                                        entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                        entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
                                 futures.add(Futures.transformAsync(checkFuture, exists -> {
                                     if (Boolean.TRUE.equals(exists)) {
                                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);

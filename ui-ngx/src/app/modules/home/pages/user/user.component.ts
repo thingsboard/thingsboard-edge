@@ -34,7 +34,7 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { User } from '@shared/models/user.model';
+import { User, UserInfo } from '@shared/models/user.model';
 import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
@@ -42,13 +42,16 @@ import { isDefinedAndNotNull, isUndefined } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
 })
-export class UserComponent extends EntityComponent<User> {
+export class UserComponent extends GroupEntityComponent<UserInfo> {
 
   authority = Authority;
 
@@ -68,12 +71,14 @@ export class UserComponent extends EntityComponent<User> {
   );
 
   constructor(protected store: Store<AppState>,
-              @Optional() @Inject('entity') protected entityValue: User,
-              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<User>,
+              @Optional() @Inject('entity') protected entityValue: UserInfo,
+              @Optional() @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<UserInfo> | GroupEntityTableConfig<UserInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
-              protected translate: TranslateService) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected translate: TranslateService,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   hideDelete() {
@@ -92,12 +97,13 @@ export class UserComponent extends EntityComponent<User> {
     return this.entity && this.entity.additionalInfo && isDefinedAndNotNull(this.entity.additionalInfo.userCredentialsEnabled);
   }
 
-  buildForm(entity: User): UntypedFormGroup {
+  buildForm(entity: UserInfo): UntypedFormGroup {
     return this.fb.group(
       {
         email: [entity ? entity.email : '', [Validators.required, Validators.email]],
         firstName: [entity ? entity.firstName : ''],
         lastName: [entity ? entity.lastName : ''],
+        phone: [entity ? entity.phone : ''],
         additionalInfo: this.fb.group(
           {
             description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
@@ -112,10 +118,11 @@ export class UserComponent extends EntityComponent<User> {
     );
   }
 
-  updateForm(entity: User) {
+  updateForm(entity: UserInfo) {
     this.entityForm.patchValue({email: entity.email});
     this.entityForm.patchValue({firstName: entity.firstName});
     this.entityForm.patchValue({lastName: entity.lastName});
+    this.entityForm.patchValue({phone: entity.phone});
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
     this.entityForm.patchValue({additionalInfo:
         {defaultDashboardId: entity.additionalInfo ? entity.additionalInfo.defaultDashboardId : null}});
@@ -137,7 +144,7 @@ export class UserComponent extends EntityComponent<User> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }
-    ))
+    ));
   }
 
 }

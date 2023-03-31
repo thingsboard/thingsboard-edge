@@ -35,6 +35,7 @@ import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.transport.mqtt.sparkplug.AbstractMqttV5ClientSparkplugTest;
 import org.thingsboard.server.transport.mqtt.util.sparkplug.MetricDataType;
 import org.thingsboard.server.transport.mqtt.util.sparkplug.SparkplugMessageType;
@@ -65,6 +66,7 @@ public abstract class AbstractMqttV5ClientSparkplugAttributesTest extends Abstra
         String SHARED_ATTRIBUTES_PAYLOAD = "{\"" + keyNodeRebirth + "\":" + value + "}";
         Assert.assertTrue("Connection node is failed", client.isConnected());
         client.subscribeAndWait(NAMESPACE + "/" + groupId + "/" + NCMD.name() + "/" + edgeNode + "/#", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedGateway.getId(), FeatureType.ATTRIBUTES, 1);
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedGateway.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         await(alias + SparkplugMessageType.NBIRTH.name())
                 .atMost(40, TimeUnit.SECONDS)
@@ -90,6 +92,7 @@ public abstract class AbstractMqttV5ClientSparkplugAttributesTest extends Abstra
         connectionWithNBirth(metricDataType, metricKey, metricValue);
         Assert.assertTrue("Connection node is failed", client.isConnected());
         client.subscribeAndWait(NAMESPACE + "/" + groupId + "/" + NCMD.name() + "/" + edgeNode + "/#", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedGateway.getId(), FeatureType.ATTRIBUTES, 1);
 
         // Boolean <-> String
         boolean expectedValue = true;
@@ -153,6 +156,7 @@ public abstract class AbstractMqttV5ClientSparkplugAttributesTest extends Abstra
         connectionWithNBirth(metricDataType, metricKey, metricValue);
         Assert.assertTrue("Connection node is failed", client.isConnected());
         client.subscribeAndWait(NAMESPACE + "/" + groupId + "/" + NCMD.name() + "/" + edgeNode + "/#", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedGateway.getId(), FeatureType.ATTRIBUTES, 1);
 
         // Long <-> String
         String valueStr = "123";
@@ -204,6 +208,7 @@ public abstract class AbstractMqttV5ClientSparkplugAttributesTest extends Abstra
         connectionWithNBirth(metricDataType, metricKey, metricValue);
         Assert.assertTrue("Connection node is failed", client.isConnected());
         client.subscribeAndWait(NAMESPACE + "/" + groupId + "/" + NCMD.name() + "/" + edgeNode + "/#", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedGateway.getId(), FeatureType.ATTRIBUTES, 1);
 
         // Float <-> String
         String valueStr = "123.345";
@@ -255,6 +260,7 @@ public abstract class AbstractMqttV5ClientSparkplugAttributesTest extends Abstra
         connectionWithNBirth(metricDataType, metricKey, metricValue);
         Assert.assertTrue("Connection node is failed", client.isConnected());
         client.subscribeAndWait(NAMESPACE + "/" + groupId + "/" + NCMD.name() + "/" + edgeNode + "/#", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedGateway.getId(), FeatureType.ATTRIBUTES, 1);
 
         // Double <-> String
         String valueStr = "123345456";
@@ -306,6 +312,7 @@ public abstract class AbstractMqttV5ClientSparkplugAttributesTest extends Abstra
         connectionWithNBirth(metricDataType, metricKey, metricValue);
         Assert.assertTrue("Connection node is failed", client.isConnected());
         client.subscribeAndWait(NAMESPACE + "/" + groupId + "/" + NCMD.name() + "/" + edgeNode + "/#", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedGateway.getId(), FeatureType.ATTRIBUTES, 1);
 
         // String <-> Long
         long valueLong = 123345456L;

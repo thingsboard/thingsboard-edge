@@ -40,56 +40,63 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageUsers')"
-          *ngIf="resource.USER_GROUP | hasGenericPermission: operation.READ"
+          *ngIf="resource.USER | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageUsers() && !isEdit && !isPublic">
-    {{'customer.manage-user-groups' | translate }}
+    {{'customer.manage-users' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageCustomers')"
-          *ngIf="resource.CUSTOMER_GROUP | hasGenericPermission: operation.READ"
+          *ngIf="resource.CUSTOMER | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageCustomers() && !isEdit && !isPublic">
-    {{'customer.manage-customer-groups' | translate }}
+    {{'customer.manage-customers' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageAssets')"
-          *ngIf="resource.ASSET_GROUP | hasGenericPermission: operation.READ"
+          *ngIf="resource.ASSET | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageAssets() && !isEdit">
-    {{'customer.manage-asset-groups' | translate }}
+    {{'customer.manage-assets' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDevices')"
-          *ngIf="resource.DEVICE_GROUP | hasGenericPermission: operation.READ"
+          *ngIf="resource.DEVICE | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageDevices() && !isEdit">
-    {{'customer.manage-device-groups' | translate }}
+    {{'customer.manage-devices' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEntityViews')"
-          *ngIf="resource.ENTITY_VIEW_GROUP | hasGenericPermission: operation.READ"
+          *ngIf="resource.ENTITY_VIEW | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageEntityViews() && !isEdit">
-    {{'customer.manage-entity-view-groups' | translate }}
+    {{'customer.manage-entity-views' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEdges')"
           [fxShow]="!hideManageEdges() && !isEdit"
-          *ngIf="edgesSupportEnabled && (resource.EDGE_GROUP | hasGenericPermission: operation.READ)">
-    {{'customer.manage-edge-groups' | translate }}
+          *ngIf="edgesSupportEnabled && (resource.EDGE | hasGenericPermission: operation.READ)">
+    {{'customer.manage-edges' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDashboards')"
-          *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
+          *ngIf="resource.DASHBOARD | hasGenericPermission: operation.READ"
           [fxShow]="!hideManageDashboards() && !isEdit">
-    {{'customer.manage-dashboard-groups' | translate }}
+    {{'customer.manage-dashboards' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageOwnerAndGroups')"
+          *ngIf="canManageOwnerAndGroups()"
+          [fxShow]="!isEdit">
+    {{'entity-group.manage-owner-and-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.CUSTOMER: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit && !isPublic">
     {{'customer.delete' | translate }}
   </button>
@@ -145,4 +152,5 @@
       <tb-contact [parentForm]="entityForm" [isEdit]="isEdit"></tb-contact>
     </fieldset>
   </form>
+  <tb-group-entity-info *ngIf="!isEdit" [groupEntity]="entity"></tb-group-entity-info>
 </div>

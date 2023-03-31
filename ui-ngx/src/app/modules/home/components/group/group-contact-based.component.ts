@@ -38,6 +38,8 @@ import { POSTAL_CODE_PATTERNS } from '@home/models/contact.models';
 import { HasId } from '@shared/models/base-data';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Directive()
 export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> extends GroupEntityComponent<T> implements AfterViewInit {
@@ -45,9 +47,10 @@ export abstract class GroupContactBasedComponent<T extends ContactBased<HasId>> 
   protected constructor(protected store: Store<AppState>,
                         protected fb: UntypedFormBuilder,
                         protected entityValue: T,
-                        protected entitiesTableConfigValue: GroupEntityTableConfig<T>,
-                        protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+                        protected entitiesTableConfigValue: EntityTableConfig<T> | GroupEntityTableConfig<T>,
+                        protected cd: ChangeDetectorRef,
+                        protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   buildForm(entity: T): UntypedFormGroup {

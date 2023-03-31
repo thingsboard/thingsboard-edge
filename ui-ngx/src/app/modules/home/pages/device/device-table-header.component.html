@@ -30,10 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<tb-device-profile-autocomplete
-  subscriptSizing="dynamic"
-  [ngModel]="entitiesTableConfig.componentsData.deviceProfileId"
-  (ngModelChange)="deviceProfileChanged($event)"
-  [displayAllOnEmpty]="true"
-  [editProfileEnabled]="false">
-</tb-device-profile-autocomplete>
+<div fxLayout="row" fxLayoutAlign="start center">
+  <tb-device-profile-autocomplete
+    subscriptSizing="dynamic"
+    [ngModel]="entitiesTableConfig.componentsData.deviceProfileId"
+    (ngModelChange)="deviceProfileChanged($event)"
+    [displayAllOnEmpty]="true"
+    [editProfileEnabled]="false">
+  </tb-device-profile-autocomplete>
+  <mat-slide-toggle
+    style="margin-left: 32px;"
+    [ngModel]="entitiesTableConfig.componentsData.includeCustomers"
+    (ngModelChange)="includeCustomersChanged($event)">
+    {{ includeCustomersLabel | translate }}
+  </mat-slide-toggle>
+</div>

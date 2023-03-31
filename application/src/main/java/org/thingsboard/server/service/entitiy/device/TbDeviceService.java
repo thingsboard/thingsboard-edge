@@ -43,11 +43,15 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 
+import java.util.List;
+
 public interface TbDeviceService {
 
     Device save(Device device, EntityGroup entityGroup) throws Exception;
 
     Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws Exception;
+
+    Device save(Device device, String accessToken, List<EntityGroup> entityGroups, User user) throws Exception;
 
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials, EntityGroup entityGroup, User user) throws ThingsboardException;
 

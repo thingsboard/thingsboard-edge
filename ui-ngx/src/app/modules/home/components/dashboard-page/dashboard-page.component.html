@@ -172,6 +172,7 @@
                                [(ngModel)]="currentDashboardId"
                                (ngModelChange)="currentDashboardIdChanged(currentDashboardId)"
                                [groupId]="entityGroupId"
+                               [customerId]="customerId"
                                [operation]="readonly ? operation.READ : operation.WRITE">
           </tb-dashboard-select>
         </div>

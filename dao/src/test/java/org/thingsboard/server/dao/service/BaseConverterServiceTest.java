@@ -33,42 +33,31 @@ package org.thingsboard.server.dao.service;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
+public abstract class BaseConverterServiceTest extends AbstractServiceTest {
 
-    private IdComparator<Converter> idComparator = new IdComparator<>();
+    @Autowired
+    ConverterService converterService;
 
-    private TenantId tenantId;
-
-    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
+    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
             .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
-
-
-    @Before
-    public void beforeRun() {
-        tenantId = before();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
+    private IdComparator<Converter> idComparator = new IdComparator<>();
 
     @Test
     public void testSaveConverter() {

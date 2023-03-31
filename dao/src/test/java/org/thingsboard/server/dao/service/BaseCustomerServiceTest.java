@@ -40,6 +40,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -55,24 +57,23 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
-    static final int TIMEOUT = 300;
+public abstract class BaseCustomerServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    CustomerService customerService;
+
+    static final int TIMEOUT = 30;
 
     ListeningExecutorService executor;
-
-    private TenantId tenantId;
 
     @Before
     public void beforeRun() {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
-        tenantId = before();
-    }
+      }
 
     @After
     public void after() {
         executor.shutdownNow();
-
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
@@ -162,11 +163,6 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindCustomersByTenantId() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
 
         List<ListenableFuture<Customer>> futures = new ArrayList<>(135);
         for (int i = 0; i < 135; i++) {
@@ -197,8 +193,6 @@ public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
         pageData = customerService.findCustomersByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test

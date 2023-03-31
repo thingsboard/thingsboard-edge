@@ -40,7 +40,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { AlarmRule } from '@shared/models/device.models';
+import { DeviceProfileAlarmRule } from '@shared/models/device.models';
 import { MatDialog } from '@angular/material/dialog';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -86,7 +86,7 @@ export class AlarmRuleComponent implements ControlValueAccessor, OnInit, Validat
   @Input()
   deviceProfileId: EntityId;
 
-  private modelValue: AlarmRule;
+  private modelValue: DeviceProfileAlarmRule;
 
   alarmRuleFormGroup: UntypedFormGroup;
 
@@ -127,7 +127,7 @@ export class AlarmRuleComponent implements ControlValueAccessor, OnInit, Validat
     }
   }
 
-  writeValue(value: AlarmRule): void {
+  writeValue(value: DeviceProfileAlarmRule): void {
     this.modelValue = value;
     const model = this.modelValue ? {
       ...this.modelValue,
