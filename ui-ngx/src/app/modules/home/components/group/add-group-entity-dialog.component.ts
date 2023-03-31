@@ -64,7 +64,7 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityInfoData } from '@shared/models/entity.models';
 import { MatStepper } from '@angular/material/stepper';
-import { OwnerAndGroupsData } from '@shared/components/group/owner-and-groups.component';
+import { OwnerAndGroupsData } from '@home/components/group/owner-and-groups.component';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';

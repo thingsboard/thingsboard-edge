@@ -49,16 +49,14 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
-import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
+import { EntityAction } from '@home/models/entity/entity-component.models';
 import { EntityGroupComponent } from '@home/components/group/entity-group.component';
 import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  EntityGroupWizardDialogComponent,
-  EntityGroupWizardDialogResult
-} from '@home/components/wizard/entity-group-wizard-dialog.component';
+import { EntityGroupWizardDialogResult } from '@home/components/wizard/entity-group-wizard-dialog.component';
 import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -293,14 +291,14 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private entityGroupWizard(): Observable<EntityGroupInfo> {
-    return this.dialog.open<EntityGroupWizardDialogComponent, AddEntityDialogData<EntityGroupInfo>,
-      EntityGroupWizardDialogResult>(EntityGroupWizardDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        entitiesTableConfig: this
-      }
-    }).afterClosed().pipe(
+    let ownerId: EntityId = null;
+    if (this.customerId) {
+      ownerId = {
+        entityType: EntityType.CUSTOMER,
+        id: this.customerId
+      };
+    }
+    return this.homeDialogs.createEntityGroup(this.groupType, '', ownerId).pipe(
       map((result) => {
         if (result && result.shared) {
           this.notifyEntityGroupUpdated();

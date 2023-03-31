@@ -732,7 +732,7 @@ public abstract class BaseController {
     protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId,
                                                                                TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
         return saveGroupEntity(entity, strEntityGroupId, null,
-                (t, entityGroups) -> saveEntityFunction.apply(t, entityGroups != null ? entityGroups.get(0) : null));
+                (t, entityGroups) -> saveEntityFunction.apply(t, entityGroups != null && !entityGroups.isEmpty() ? entityGroups.get(0) : null));
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId, String[] strEntityGroupIds,
