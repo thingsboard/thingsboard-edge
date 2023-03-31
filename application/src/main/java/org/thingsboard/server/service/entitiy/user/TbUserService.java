@@ -39,11 +39,16 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 public interface TbUserService {
     User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser,
-              boolean sendActivationMail, HttpServletRequest request, EntityGroupId entityGroupId,
+              boolean sendActivationMail, HttpServletRequest request,
               EntityGroup entityGroup, User user) throws ThingsboardException;
+
+    User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser,
+              boolean sendActivationMail, HttpServletRequest request,
+              List<EntityGroup> entityGroups, User user) throws ThingsboardException;
 
     void delete(TenantId tenantId, CustomerId customerId, User tbUser, User user) throws ThingsboardException;
 }

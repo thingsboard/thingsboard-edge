@@ -40,9 +40,9 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     }
 
     private static final String RULE_CHAINS_BTN = "//mat-toolbar//a[@href='/ruleChains']";
-    private static final String CUSTOMER_GROUPS_BTN = "//mat-toolbar//a[@href='/customerGroups']";
+    private static final String CUSTOMERS_BTN = "//mat-toolbar//a[@href='/customers']";
     private static final String DASHBOARD_BTN = "//mat-toolbar//a[@href='/dashboards']";
-    private static final String PROFILES_BTN = "//mat-toolbar//a[@href='/profiles']";
+    private static final String PROFILES_BTN = "//mat-toolbar//mat-icon[text()='badge']/ancestor::tb-menu-toggle";
     private static final String DEVICE_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/deviceProfiles']";
     private static final String ASSET_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/assetProfiles']";
 
@@ -50,13 +50,8 @@ public class SideBarMenuViewElements extends AbstractBasePage {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
     }
 
-    public WebElement customerGroupsBtn() {
-        return waitUntilElementToBeClickable(CUSTOMER_GROUPS_BTN);
-    }
-
-    public void goToAllCustomerGroupBtn() {
-        customerGroupsBtn().click();
-        new OtherPageElements(driver).entity("All").click();
+    public WebElement customersBtn() {
+        return waitUntilElementToBeClickable(CUSTOMERS_BTN);
     }
 
     public WebElement profilesBtn() {

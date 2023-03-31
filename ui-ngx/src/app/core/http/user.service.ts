@@ -108,11 +108,15 @@ export class UserService {
   }
 
   public saveUser(user: User, sendActivationMail: boolean = false,
-                  entityGroupId?: string,
+                  entityGroupIds?: string | string[],
                   config?: RequestConfig): Observable<User> {
     let url = `/api/user?sendActivationMail=${sendActivationMail}`;
-    if (entityGroupId) {
-      url += `&entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `&entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `&entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<User>(url, user, defaultHttpOptionsFromConfig(config));
   }

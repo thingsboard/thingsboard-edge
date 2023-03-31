@@ -59,6 +59,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
+import java.util.Collections;
 import java.util.List;
 
 @AllArgsConstructor
@@ -79,12 +80,17 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
 
     @Override
     public Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws Exception {
+        return save(device, accessToken, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Device save(Device device, String accessToken, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = device.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = device.getTenantId();
         Device oldDevice = device.getId() == null ? null : deviceService.findDeviceById(tenantId, device.getId());
         Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
         autoCommit(user, savedDevice.getId());
-        createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
+        createOrUpdateGroupEntity(tenantId, savedDevice, entityGroups, actionType, user);
         tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false);
         return savedDevice;
     }
@@ -97,7 +103,7 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
         try {
             Device oldDevice = isCreate ? null : deviceService.findDeviceById(tenantId, device.getId());
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
-            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
+            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup != null ? Collections.singletonList(entityGroup) : null, actionType, user);
             tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false);
             return savedDevice;
         } catch (Exception e) {
