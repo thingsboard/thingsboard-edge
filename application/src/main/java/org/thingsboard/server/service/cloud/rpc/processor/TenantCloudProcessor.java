@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TenantCloudProcessor extends BaseEdgeProcessor {
 
-    public void createTenantIfNotExists(TenantId tenantId) {
+    public void createTenantIfNotExists(TenantId tenantId, Long queueStartTs) throws Exception {
         Tenant tenant = tenantService.findTenantById(tenantId);
         if (tenant != null) {
             return;
@@ -45,6 +45,8 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         tenant.setId(tenantId);
         Tenant savedTenant = tenantService.saveTenant(tenant, false);
         apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+
+        requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
     }
 
     public void cleanUp() {

@@ -227,7 +227,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
                     sequenceDependencyLock.lock();
                     try {
-                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg));
+                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, queueStartTs));
                     } finally {
                         sequenceDependencyLock.unlock();
                     }

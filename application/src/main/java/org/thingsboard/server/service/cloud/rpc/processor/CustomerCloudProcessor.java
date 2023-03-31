@@ -40,7 +40,8 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
+                                                              Long queueStartTs) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -68,17 +69,17 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 } finally {
                     customerCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, customerId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Customer customerById = customerService.findCustomerById(tenantId, customerId);
                 if (customerById != null) {
                    customerService.deleteCustomer(tenantId, customerId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
-        return Futures.immediateFuture(null);
     }
 
     public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
