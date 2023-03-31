@@ -160,11 +160,12 @@ public class EntityViewController extends BaseController {
     public EntityView saveEntityView(
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> {
+        return saveGroupEntity(entityView, strEntityGroupId, strEntityGroupIds, (entityView1, entityGroups) -> {
             try {
-                return tbEntityViewService.save(entityView1, entityGroup, user);
+                return tbEntityViewService.save(entityView1, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }

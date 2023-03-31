@@ -125,10 +125,14 @@ export class AssetService {
     return this.http.get<AssetInfo>(`/api/asset/info/${assetId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveAsset(asset: Asset, entityGroupId?: string, config?: RequestConfig): Observable<Asset> {
+  public saveAsset(asset: Asset, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Asset> {
     let url = '/api/asset';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Asset>(url, asset, defaultHttpOptionsFromConfig(config));
   }

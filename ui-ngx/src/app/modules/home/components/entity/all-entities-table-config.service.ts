@@ -40,6 +40,10 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, mergeMap } from 'rxjs/operators';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
+import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
+import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
@@ -47,7 +51,8 @@ export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
   constructor(private entityGroupService: EntityGroupService,
               private userPermissionsService: UserPermissionsService,
               private homeDialogs: HomeDialogsService,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private dialog: MatDialog) {
   }
 
   prepareConfiguration(config: EntityTableConfig<T>): EntityTableConfig<T> {
@@ -64,7 +69,21 @@ export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
         }
       );
     }
+    if (!config.addEntity) {
+      config.addEntity = () => this.addGroupEntity(config);
+    }
     return config;
+  }
+
+  private addGroupEntity(config: EntityTableConfig<T>): Observable<T> {
+    return this.dialog.open<AddGroupEntityDialogComponent, AddGroupEntityDialogData<T>,
+      T>(AddGroupEntityDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entitiesTableConfig: config
+      }
+    }).afterClosed();
   }
 
   private changeEntitiesOwner($event: MouseEvent, entities: T[],
@@ -78,7 +97,7 @@ export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
           const changeOwnerObservables: Observable<any>[] = [];
           entities.forEach((entity) => {
             changeOwnerObservables.push(
-              this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, {ignoreErrors}).pipe(
+              this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, null, {ignoreErrors}).pipe(
                 catchError((err) => {
                   if (ignoreErrors) {
                     return of(null);

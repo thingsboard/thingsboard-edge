@@ -42,13 +42,16 @@ import { isDefinedAndNotNull, isUndefined } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss']
 })
-export class UserComponent extends EntityComponent<UserInfo> {
+export class UserComponent extends GroupEntityComponent<UserInfo> {
 
   authority = Authority;
 
@@ -69,11 +72,13 @@ export class UserComponent extends EntityComponent<UserInfo> {
 
   constructor(protected store: Store<AppState>,
               @Optional() @Inject('entity') protected entityValue: UserInfo,
-              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<UserInfo>,
+              @Optional() @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<UserInfo> | GroupEntityTableConfig<UserInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
-              protected translate: TranslateService) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected translate: TranslateService,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   hideDelete() {

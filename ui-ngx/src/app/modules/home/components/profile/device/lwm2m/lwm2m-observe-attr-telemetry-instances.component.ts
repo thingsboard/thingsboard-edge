@@ -46,7 +46,8 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Instance, ResourceLwM2M, ResourceSettingTelemetry, } from './lwm2m-profile-config.models';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-profile-lwm2m-observe-attr-telemetry-instances',
@@ -87,7 +88,7 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
   @Input()
   disabled: boolean;
 
-  private valueChange$: Subscription = null;
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private fb: UntypedFormBuilder,
@@ -95,12 +96,15 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
     this.instancesFormGroup = this.fb.group({
       instances: this.fb.array([])
     });
+
+    this.instancesFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.updateModel(value.instances));
   }
 
   ngOnDestroy() {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   registerOnChange(fn: any): void {
@@ -137,22 +141,16 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
     if (instances.length === this.instancesFormArray.length) {
       this.instancesFormArray.patchValue(instances, {emitEvent: false});
     } else {
-      if (this.valueChange$) {
-        this.valueChange$.unsubscribe();
-      }
       const instancesControl: Array<AbstractControl> = [];
       if (instances) {
         instances.forEach((instance) => {
           instancesControl.push(this.createInstanceFormGroup(instance));
         });
       }
-      this.instancesFormGroup.setControl('instances', this.fb.array(instancesControl));
+      this.instancesFormGroup.setControl('instances', this.fb.array(instancesControl), {emitEvent: false});
       if (this.disabled) {
         this.instancesFormGroup.disable({emitEvent: false});
       }
-      this.valueChange$ = this.instancesFormGroup.valueChanges.subscribe(value => {
-        this.updateModel(value.instances);
-      });
     }
   }
 

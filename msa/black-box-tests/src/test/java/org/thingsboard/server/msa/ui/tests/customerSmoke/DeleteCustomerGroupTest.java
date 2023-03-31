@@ -35,7 +35,6 @@ import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
@@ -43,6 +42,7 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
@@ -50,14 +50,14 @@ import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
 public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private RuleChainsPageHelper ruleChainsPage;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
@@ -70,7 +70,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         String deletedCustomerGroup = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
@@ -85,7 +85,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         String deletedCustomer = customerPage.deleteSelected(customerGroupName);
         ruleChainsPage.refreshBtn().click();
 
@@ -100,7 +100,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupViewDeleteBtn().click();
         customerPage.warningPopUpYesBtn().click();
@@ -117,7 +117,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         String deletedCustomer = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 

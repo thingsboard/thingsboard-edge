@@ -785,7 +785,7 @@ public class EntityGroupController extends AutoCommitController {
     public void addEntitiesToEntityGroup(
             @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "A list of entity ids, separated by comma ','", required = true)
+            @ApiParam(value = "A list of entity ids", required = true)
             @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
@@ -846,7 +846,7 @@ public class EntityGroupController extends AutoCommitController {
     public void removeEntitiesFromEntityGroup(
             @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "A list of entity ids, separated by comma ','", required = true)
+            @ApiParam(value = "A list of entity ids", required = true)
             @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);

@@ -55,6 +55,7 @@ import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { WINDOW } from '@core/services/window.service';
 import { mergeMap } from 'rxjs/operators';
+import { DeviceInfo } from '@shared/models/device.models';
 
 @Injectable()
 export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<CustomerInfo> {
@@ -77,6 +78,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     const config = new GroupEntityTableConfig<CustomerInfo>(entityGroup, params);
 
     config.entityComponent = CustomerComponent;
+    config.addDialogStyle = {height: '1060px'};
 
     config.entityTitle = (customer) => customer ?
       this.utils.customTranslation(customer.title, customer.title) : '';
@@ -295,6 +297,16 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     this.router.navigateByUrl(`customers/${targetGroups}/${config.entityGroup.id.id}/${customer.id.id}${page}`);
   }
 
+  manageOwnerAndGroups($event: Event, customer: CustomerInfo, config: GroupEntityTableConfig<CustomerInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, customer).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onCustomerAction(action: EntityAction<CustomerInfo>, config: GroupEntityTableConfig<CustomerInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
@@ -320,6 +332,9 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
         return true;
       case 'manageDashboards':
         this.manageDashboards(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

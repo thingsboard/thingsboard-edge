@@ -123,6 +123,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     config.entityTabsComponent = GroupEntityTabsComponent<AssetInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     config.entityResources = entityTypeResources.get(EntityType.ASSET);
+    config.addDialogStyle = {height: '620px'};
 
     config.entityTitle = (asset) => asset ?
       this.utils.customTranslation(asset.name, asset.name) : '';
@@ -225,10 +226,23 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     });
   }
 
+  manageOwnerAndGroups($event: Event, asset: AssetInfo, config: EntityTableConfig<AssetInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, asset).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onAssetAction(action: EntityAction<AssetInfo>, config: EntityTableConfig<AssetInfo>): boolean {
     switch (action.action) {
       case 'open':
         this.openAsset(action.event, action.entity, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

@@ -33,11 +33,17 @@ import { Component, Inject, OnDestroy, SkipSelf, ViewChild } from '@angular/core
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormGroupDirective,
+  NgForm,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { MatStepper } from '@angular/material/stepper';
-import { AddEntityDialogData } from '@home/models/entity/entity-component.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Observable, of, Subscription } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
@@ -49,6 +55,13 @@ import { EntityGroupInfo, ShareGroupRequest } from '@shared/models/entity-group.
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntityId } from '@shared/models/id/entity-id';
+
+export interface EntityGroupWizardDialogData {
+  ownerId?: EntityId;
+  groupName?: string;
+  groupType: EntityType;
+}
 
 export interface EntityGroupWizardDialogResult {
   entityGroup: EntityGroupInfo;
@@ -82,13 +95,11 @@ export class EntityGroupWizardDialogComponent extends
 
   labelPosition = 'end';
 
-  entitiesTableConfig = this.data.entitiesTableConfig;
-
   private subscriptions: Subscription[] = [];
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: AddEntityDialogData<EntityGroupInfo>,
+              @Inject(MAT_DIALOG_DATA) public data: EntityGroupWizardDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<EntityGroupWizardDialogComponent, EntityGroupWizardDialogResult>,
               private entityGroupService: EntityGroupService,
@@ -97,7 +108,7 @@ export class EntityGroupWizardDialogComponent extends
               private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
     this.entityGroupWizardFormGroup = this.fb.group({
-        name: ['', [Validators.required, Validators.maxLength(255)]],
+        name: [this.data.groupName, [Validators.required, Validators.maxLength(255)]],
         description: ['']
       }
     );
@@ -196,9 +207,20 @@ export class EntityGroupWizardDialogComponent extends
       additionalInfo: {
         description: this.entityGroupWizardFormGroup.get('description').value.trim()
       },
-      customerId: null
+      type: this.data.groupType
     } as EntityGroupInfo;
-    return this.entitiesTableConfig.saveEntity(entityGroup);
+    if (this.data.ownerId) {
+      entityGroup.ownerId = this.data.ownerId;
+    } else {
+      entityGroup.ownerId = this.userPermissionService.getUserOwnerId();
+    }
+    let saveEntity$: Observable<EntityGroupInfo>;
+    if (entityGroup.type === EntityType.DEVICE) {
+      saveEntity$ = this.entityGroupService.saveDeviceEntityGroup(entityGroup);
+    } else {
+      saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
+    }
+    return saveEntity$;
   }
 
   private shareEntityGroup(entityGroup: EntityGroupInfo): Observable<boolean> {

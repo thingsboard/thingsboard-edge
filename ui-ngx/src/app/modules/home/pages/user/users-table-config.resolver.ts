@@ -55,7 +55,6 @@ import { Authority } from '@shared/models/authority.enum';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { AddUserDialogComponent, AddUserDialogData } from '@modules/home/pages/user/add-user-dialog.component';
 import { AuthState } from '@core/auth/auth.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -77,6 +76,8 @@ import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
 import { UserTableHeaderComponent } from '@home/pages/user/user-table-header.component';
 import { Customer } from '@shared/models/customer.model';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { AddUserDialogComponent, AddUserDialogData } from '@home/pages/user/add-user-dialog.component';
 
 export interface UsersTableRouteData {
   authority: Authority;
@@ -93,6 +94,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
               private customerService: CustomerService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
+              private homeDialogs: HomeDialogsService,
               private datePipe: DatePipe,
               private router: Router,
               private dialog: MatDialog) {
@@ -166,7 +168,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     config.loadEntity = id => this.userService.getUserInfo(id.id);
     config.saveEntity = user => this.saveUser(authUser, config, user, tenantId);
     config.onEntityAction = action => this.onUserAction(action, config);
-    config.addEntity = () => this.addUser(authUser, config, tenantId);
+    config.addEntity = () => this.addUser(config, tenantId);
     config.headerComponent = UserTableHeaderComponent;
   }
 
@@ -255,27 +257,14 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     );
   }
 
-  private addUser(authUser: AuthUser, config: EntityTableConfig<UserInfo>, tenantId?: string): Observable<UserInfo> {
-    if (authUser.authority !== Authority.SYS_ADMIN || !tenantId) {
-      tenantId = authUser.tenantId;
-    }
-    let customerId: string = NULL_UUID;
-    let authority = Authority.TENANT_ADMIN;
-    if (authUser.authority === Authority.TENANT_ADMIN) {
-      customerId = config.customerId ? config.customerId : NULL_UUID;
-      authority = config.customerId ? Authority.CUSTOMER_USER : Authority.TENANT_ADMIN;
-    } else if (authUser.authority === Authority.CUSTOMER_USER) {
-      customerId = config.customerId ? config.customerId : authUser.customerId;
-      authority = Authority.CUSTOMER_USER;
-    }
+  private addUser(config: EntityTableConfig<UserInfo>, tenantId?: string): Observable<UserInfo> {
     return this.dialog.open<AddUserDialogComponent, AddUserDialogData,
-      User>(AddUserDialogComponent, {
+      UserInfo>(AddUserDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        tenantId,
-        customerId,
-        authority
+        entitiesTableConfig: config,
+        tenantId
       }
     }).afterClosed();
   }
@@ -343,6 +332,16 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
     });
   }
 
+  manageOwnerAndGroups($event: Event, user: UserInfo, config: EntityTableConfig<UserInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, user).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onUserAction(action: EntityAction<UserInfo>, config: EntityTableConfig<UserInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -362,6 +361,9 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
         return true;
       case 'enableAccount':
         this.setUserCredentialsEnabled(action.event, action.entity, true);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

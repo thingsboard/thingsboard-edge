@@ -41,10 +41,10 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     }
 
     private static final String CUSTOMER = "//mat-row//span[contains(text(),'%s')]";
-    private static final String EMAIL = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column2')]/span";
-    private static final String COUNTRY = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column3')]/span";
-    private static final String CITY = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column4')]/span";
-    private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
+    private static final String EMAIL = ENTITY + "/ancestor::mat-row//mat-cell[contains(@class, 'cdk-column-email')]/span";
+    private static final String COUNTRY = ENTITY + "/ancestor::mat-row//mat-cell[contains(@class, 'cdk-column-country')]/span";
+    private static final String CITY = ENTITY + "/ancestor::mat-row//mat-cell[contains(@class, 'cdk-column-city')]/span";
+    private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-title')]/span";
     protected static final String EDIT_MENU_DASHBOARD_FIELD = "//input[@formcontrolname='dashboard']";
     private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span[contains(text(),'%s')]";
     private static final String MANAGE_CUSTOMERS_USERS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' account_circle')]";
@@ -74,7 +74,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String HIDE_HOME_DASHBOARD_TOOLBAR = "//mat-checkbox[@formcontrolname='homeDashboardHideToolbar']//label";
     private static final String FILTER_BTN = "//tb-filters-edit";
     private static final String TIME_BTN = "//tb-timewindow";
-    private static final String CUSTOMER_ICON_HEADER = "//div[@class='tb-breadcrumb']/span[3]/span";
+    private static final String CUSTOMER_ICON_HEADER = "//div[@class='tb-breadcrumb']/span[3]/a";
     private static final String CUSTOMER_USER_ICON_HEADER = "User groups";
     private static final String CUSTOMER_ASSETS_ICON_HEADER = "Assets";
     private static final String CUSTOMER_DEVICES_ICON_HEADER = "Devices";
@@ -82,15 +82,16 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String CUSTOMER_EDGE_ICON_HEADER = "edge instances";
     private static final String CUSTOMER_USER_ICON_HEAD = "(//mat-drawer-content//span[contains(@class,'tb-entity-table')])[1]";
     private static final String MANAGE_BTN_VIEW = "//span[contains(text(),'%s')]";
-    private static final String MANAGE_CUSTOMERS_USER_GROUPS_BTN_VIEW = "Manage user groups";
-    private static final String MANAGE_CUSTOMERS_ASSET_GROUP_BTN_VIEW = "Manage asset groups";
-    private static final String MANAGE_CUSTOMERS_GROUP_BTN_VIEW = "Manage customer groups";
-    private static final String MANAGE_CUSTOMER_ENTITY_VIEW_BTN_VIEW = "Manage entity view groups";
-    private static final String MANAGE_CUSTOMERS_DEVICE_GROUPS_BTN_VIEW = "Manage device groups";
-    private static final String MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW = "Manage dashboard groups";
-    private static final String MANAGE_CUSTOMERS_EDGE_BTN_VIEW = "Manage edge groups";
+    private static final String MANAGE_CUSTOMERS_USER_GROUPS_BTN_VIEW = "Manage users";
+    private static final String MANAGE_CUSTOMERS_ASSET_GROUP_BTN_VIEW = "Manage assets";
+    private static final String MANAGE_CUSTOMERS_GROUP_BTN_VIEW = "Manage customers";
+    private static final String MANAGE_CUSTOMER_ENTITY_VIEW_BTN_VIEW = "Manage entity views";
+    private static final String MANAGE_CUSTOMERS_DEVICE_GROUPS_BTN_VIEW = "Manage devices";
+    private static final String MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW = "Manage dashboards";
+    private static final String MANAGE_CUSTOMERS_EDGE_BTN_VIEW = "Manage edges";
     private static final String DELETE_FROM_VIEW_BTN = "//tb-customer//span[contains(text(),' Delete')]";
     private static final String HEADER_NAME_VIEW = "//span[text()='Customer details']/parent::div/div/span";
+    private static final String GROUPS_BTN = "//a[@href='/customers/groups']/span[@class='mdc-tab__content']";
 
     public WebElement titleFieldAddEntityView() {
         return waitUntilElementToBeClickable(ADD_ENTITY_VIEW + String.format(INPUT_FIELD, INPUT_FIELD_NAME_TITLE));
@@ -318,5 +319,9 @@ public class CustomerPageElements extends OtherPageElementsHelper {
 
     public WebElement headerNameCustomerView() {
         return waitUntilVisibilityOfElementLocated(HEADER_NAME_VIEW);
+    }
+
+    public WebElement groupsBtn() {
+        return waitUntilElementToBeClickable(GROUPS_BTN);
     }
 }

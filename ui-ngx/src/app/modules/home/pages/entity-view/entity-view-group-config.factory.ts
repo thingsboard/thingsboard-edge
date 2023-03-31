@@ -73,6 +73,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     const config = new GroupEntityTableConfig<EntityViewInfo>(entityGroup, params);
 
     config.entityComponent = EntityViewComponent;
+    config.addDialogStyle = {maxWidth: '800px', height: '1060px'};
 
     config.entityTitle = (entityView) => entityView ?
       this.utils.customTranslation(entityView.name, entityView.name) : '';
@@ -119,11 +120,24 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     }
   }
 
+  manageOwnerAndGroups($event: Event, entityView: EntityViewInfo, config: GroupEntityTableConfig<EntityViewInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, entityView).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onEntityViewAction(action: EntityAction<EntityViewInfo>,
                      config: GroupEntityTableConfig<EntityViewInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openEntityView(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;
