@@ -28,24 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.user;
+package org.thingsboard.server.dao.dashboard;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.settings.UserSettings;
-import org.thingsboard.server.common.data.settings.UserSettingsType;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbFSTRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.DashboardId;
 
-import java.util.List;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("DashboardTitlesCache")
+public class DashboardTitlesRedisCache extends RedisTbTransactionalCache<DashboardId, String> {
 
-public interface UserSettingsService {
-
-    void updateUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, JsonNode settings);
-
-    UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings);
-
-    UserSettings findUserSettings(TenantId tenantId, UserId userId, UserSettingsType type);
-
-    void deleteUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, List<String> jsonPaths);
-
+    public DashboardTitlesRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.DASHBOARD_TITLES_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
+    }
 }

@@ -28,24 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.user;
+package org.thingsboard.server.common.data.settings;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.settings.UserSettings;
-import org.thingsboard.server.common.data.settings.UserSettingsType;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import org.thingsboard.server.common.data.HasTitle;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.UUID;
 
-public interface UserSettingsService {
+@ApiModel
+@Data
+public abstract class AbstractUserDashboardInfo implements HasTitle, Serializable {
 
-    void updateUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, JsonNode settings);
+    private static final long serialVersionUID = -6461562426034242608L;
 
-    UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings);
-
-    UserSettings findUserSettings(TenantId tenantId, UserId userId, UserSettingsType type);
-
-    void deleteUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, List<String> jsonPaths);
+    @ApiModelProperty(position = 1, value = "JSON object with Dashboard id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private UUID id;
+    @ApiModelProperty(position = 2, value = "Title of the dashboard.")
+    private String title;
 
 }

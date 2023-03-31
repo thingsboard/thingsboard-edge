@@ -28,24 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.user;
+package org.thingsboard.server.common.data.settings;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.settings.UserSettings;
-import org.thingsboard.server.common.data.settings.UserSettingsType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.UUID;
 
-public interface UserSettingsService {
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class UserSettingsCompositeKey implements Serializable {
 
-    void updateUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, JsonNode settings);
+    private static final long serialVersionUID = -7883642552545291489L;
 
-    UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings);
+    private UUID userId;
+    private String type;
 
-    UserSettings findUserSettings(TenantId tenantId, UserId userId, UserSettingsType type);
+    public UserSettingsCompositeKey(UserSettings userSettings) {
+        this.userId = userSettings.getUserId().getId();
+        this.type = userSettings.getType().name();
+    }
 
-    void deleteUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, List<String> jsonPaths);
-
+    @Override
+    public String toString() {
+        return userId.toString() + "_" + type;
+    }
 }

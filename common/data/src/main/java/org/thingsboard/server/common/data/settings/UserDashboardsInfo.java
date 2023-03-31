@@ -28,24 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.user;
+package org.thingsboard.server.common.data.settings;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.settings.UserSettings;
-import org.thingsboard.server.common.data.settings.UserSettingsType;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public interface UserSettingsService {
+@ApiModel
+@Data
+@AllArgsConstructor
+public class UserDashboardsInfo implements Serializable {
 
-    void updateUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, JsonNode settings);
+    private static final long serialVersionUID = 2628320657987010348L;
+    public static final UserDashboardsInfo EMPTY = new UserDashboardsInfo(Collections.emptyList(), Collections.emptyList());
 
-    UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings);
+    @ApiModelProperty(position = 1, value = "List of last visited dashboards.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private List<LastVisitedDashboardInfo> last;
 
-    UserSettings findUserSettings(TenantId tenantId, UserId userId, UserSettingsType type);
+    @ApiModelProperty(position = 2, value = "List of starred dashboards.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private List<StarredDashboardInfo> starred;
 
-    void deleteUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, List<String> jsonPaths);
-
+    public UserDashboardsInfo() {
+        this(new ArrayList<>(), new ArrayList<>());
+    }
 }
