@@ -47,7 +47,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserInfo } from '@shared/models/user.model';
-import { AddGroupUserDialogComponent, AddGroupUserDialogData } from '@home/pages/user/add-group-user-dialog.component';
+import { AddUserDialogComponent, AddUserDialogData } from '@home/pages/user/add-user-dialog.component';
 import { UserService } from '@core/http/user.service';
 import {
   ActivationLinkDialogComponent,
@@ -121,8 +121,8 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
   }
 
   addUser(config: GroupEntityTableConfig<UserInfo>): Observable<UserInfo> {
-    return this.dialog.open<AddGroupUserDialogComponent, AddGroupUserDialogData,
-      UserInfo>(AddGroupUserDialogComponent, {
+    return this.dialog.open<AddUserDialogComponent, AddUserDialogData,
+      UserInfo>(AddUserDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

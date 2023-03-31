@@ -81,6 +81,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     const config = new GroupEntityTableConfig<DashboardInfo>(entityGroup, params);
 
     config.entityComponent = DashboardFormComponent;
+    config.addDialogStyle = {height: '800px'};
 
     config.entityTitle = (dashboard) => dashboard ?
       this.utils.customTranslation(dashboard.title, dashboard.title) : '';

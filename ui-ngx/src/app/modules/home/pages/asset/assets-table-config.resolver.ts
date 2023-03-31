@@ -123,6 +123,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     config.entityTabsComponent = GroupEntityTabsComponent<AssetInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     config.entityResources = entityTypeResources.get(EntityType.ASSET);
+    config.addDialogStyle = {height: '620px'};
 
     config.entityTitle = (asset) => asset ?
       this.utils.customTranslation(asset.name, asset.name) : '';

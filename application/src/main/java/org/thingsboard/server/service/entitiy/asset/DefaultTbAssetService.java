@@ -49,6 +49,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
@@ -67,6 +68,11 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
 
     @Override
     public Asset save(Asset asset, EntityGroup entityGroup, User user) throws Exception {
+        return save(asset, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Asset save(Asset asset, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = asset.getTenantId();
         try {
@@ -80,7 +86,7 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
             }
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
             autoCommit(user, savedAsset.getId());
-            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
+            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroups, actionType, user);
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAsset.getId(),
                     asset.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return savedAsset;

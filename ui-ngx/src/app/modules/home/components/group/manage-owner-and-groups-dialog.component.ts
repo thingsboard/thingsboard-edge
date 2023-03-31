@@ -49,7 +49,7 @@ import { GroupEntityInfo } from '@shared/models/base-data';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
-import { OwnerAndGroupsData } from '@shared/components/group/owner-and-groups.component';
+import { OwnerAndGroupsData } from '@home/components/group/owner-and-groups.component';
 import { EntityInfoData } from '@shared/models/entity.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { forkJoin, Observable } from 'rxjs';

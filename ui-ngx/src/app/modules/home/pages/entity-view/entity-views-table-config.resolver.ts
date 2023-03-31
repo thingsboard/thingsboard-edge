@@ -127,7 +127,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     config.entityTranslations = entityTypeTranslations.get(EntityType.ENTITY_VIEW);
     config.entityResources = entityTypeResources.get(EntityType.ENTITY_VIEW);
 
-    config.addDialogStyle = {maxWidth: '800px'};
+    config.addDialogStyle = {maxWidth: '800px', height: '1060px'};
 
     config.entityTitle = (entityView) => entityView ?
       this.utils.customTranslation(entityView.name, entityView.name) : '';

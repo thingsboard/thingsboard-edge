@@ -182,6 +182,17 @@
           </tb-device-credentials>
         </form>
       </mat-step>
+      <mat-step [stepControl]="ownerAndGroupsFormGroup" [optional]="true">
+        <ng-template matStepLabel>{{ 'entity-group.owner-and-groups' | translate }}</ng-template>
+        <form [formGroup]="ownerAndGroupsFormGroup">
+          <tb-owner-and-groups
+            [entityType]="entityType.DEVICE"
+            [defaultOwnerId]="initialOwnerId"
+            [skipDefaultPermissionCheck]="true"
+            formControlName="ownerAndGroups">
+          </tb-owner-and-groups>
+        </form>
+      </mat-step>
     </mat-horizontal-stepper>
   </div>
 <div mat-dialog-actions style="padding: 0">

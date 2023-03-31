@@ -74,6 +74,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     const config = new GroupEntityTableConfig<AssetInfo>(entityGroup, params);
 
     config.entityComponent = AssetComponent;
+    config.addDialogStyle = {height: '620px'};
 
     config.entityTitle = (asset) => asset ?
       this.utils.customTranslation(asset.name, asset.name) : '';

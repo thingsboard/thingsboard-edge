@@ -62,6 +62,10 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { EntityInfoData } from '@shared/models/entity.models';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
+import { TruncatePipe } from '@shared/pipe/truncate.pipe';
+import { ENTER } from '@angular/cdk/keycodes';
+
+export type CreateEntityGroupFunction = (groupType: EntityType, groupName?: string, ownerId?: EntityId) => Observable<EntityInfoData>;
 
 @Component({
   selector: 'tb-entity-group-list',
@@ -120,6 +124,9 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
   useGroupInfoValue = false;
 
   @Input()
+  createGroupFunction: CreateEntityGroupFunction;
+
+  @Input()
   disabled: boolean;
 
   @ViewChild('entityGroupInput') entityGroupInput: ElementRef<HTMLInputElement>;
@@ -138,7 +145,8 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityGroupService: EntityGroupService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              public truncate: TruncatePipe) {
     this.entityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
       entityGroup: [null]
@@ -288,6 +296,9 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
         if (this.excludeGroupAll) {
           data = data.filter(group => group.name !== 'All');
         }
+        if (this.modelValue) {
+          data = data.filter(group => !this.modelValue.includes(group.id.id));
+        }
         return data;
       })
     );
@@ -309,6 +320,10 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
     }
   }
 
+  textIsNotEmpty(text: string): boolean {
+    return (text && text != null && text.length > 0) ? true : false;
+  }
+
   clear(value: string = '') {
     this.entityGroupInput.nativeElement.value = value;
     this.entityGroupListFormGroup.get('entityGroup').patchValue(value, {emitEvent: true});
@@ -316,6 +331,31 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
       this.entityGroupInput.nativeElement.blur();
       this.entityGroupInput.nativeElement.focus();
     }, 0);
+  }
+
+  entityGroupEnter($event: KeyboardEvent) {
+    if ($event.keyCode === ENTER) {
+      $event.preventDefault();
+      this.createEntityGroup($event, this.searchText);
+    }
+  }
+
+  createEntityGroup($event: Event, groupName: string) {
+    $event.preventDefault();
+    if (this.createGroupFunction) {
+      this.createGroupFunction(this.groupType, groupName, this.ownerId).subscribe(
+        (newGroup) => {
+          if (!newGroup) {
+            setTimeout(() => {
+              this.entityGroupInput.nativeElement.blur();
+              this.entityGroupInput.nativeElement.focus();
+            }, 0);
+          } else {
+            this.add(newGroup);
+          }
+        }
+      );
+    }
   }
 
 }

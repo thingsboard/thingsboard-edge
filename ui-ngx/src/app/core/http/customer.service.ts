@@ -61,10 +61,14 @@ export class CustomerService {
     return this.http.get<CustomerInfo>(`/api/customer/info/${customerId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveCustomer(customer: Customer, entityGroupId?: string, config?: RequestConfig): Observable<Customer> {
+  public saveCustomer(customer: Customer, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Customer> {
     let url = '/api/customer';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Customer>(url, customer, defaultHttpOptionsFromConfig(config));
   }

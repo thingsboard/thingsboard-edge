@@ -47,6 +47,9 @@ import { EntityInfoData } from '@shared/models/entity.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { CreateEntityGroupFunction } from '@shared/components/group/entity-group-list.component';
+import { map } from 'rxjs/operators';
 
 export interface OwnerAndGroupsData {
   owner?: EntityId | EntityInfoData;
@@ -73,6 +76,12 @@ export class OwnerAndGroupsComponent extends PageComponent implements OnInit, Co
   @Input()
   entityType: EntityType;
 
+  @Input()
+  defaultOwnerId: EntityId | null;
+
+  @Input()
+  skipDefaultPermissionCheck = false;
+
   ownerAndGroupsFormGroup: UntypedFormGroup;
 
   modelValue: OwnerAndGroupsData | null;
@@ -81,28 +90,53 @@ export class OwnerAndGroupsComponent extends PageComponent implements OnInit, Co
 
   private propagateChange = (v: any) => { };
 
+  private ownerDisabled = false;
+  private groupsDisabled = false;
+
+  createGroupFunction: CreateEntityGroupFunction;
+
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private fb: UntypedFormBuilder,
-              private userPermissionsService: UserPermissionsService) {
+              private userPermissionsService: UserPermissionsService,
+              private homeDialogs: HomeDialogsService) {
     super(store);
   }
 
   ngOnInit(): void {
+    if (!this.skipDefaultPermissionCheck) {
+      this.ownerDisabled = !this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, this.entityType);
+      this.groupsDisabled = !this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.ADD_TO_GROUP, this.entityType) ||
+                            !this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.REMOVE_FROM_GROUP, this.entityType);
+    }
+    if (this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.entityType)) {
+      this.createGroupFunction = (groupType, groupName, ownerId) =>
+        this.homeDialogs.createEntityGroup(groupType, groupName, ownerId).pipe(
+        map((result) => {
+          if (result && result.entityGroup) {
+            return {
+              id: result.entityGroup.id,
+              name: result.entityGroup.name
+            };
+          } else {
+            return null;
+          }
+        }
+      ));
+    }
+
     this.ownerAndGroupsFormGroup = this.fb.group({
       owner: this.fb.control({value: null,
-        disabled: !this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, this.entityType)},
+        disabled: this.ownerDisabled},
         [Validators.required]),
       groups: this.fb.control({value: null,
-        disabled: !(this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.ADD_TO_GROUP, this.entityType) &&
-          this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.REMOVE_FROM_GROUP, this.entityType))
+        disabled: this.groupsDisabled
       }, [])
     });
     this.ownerAndGroupsFormGroup.valueChanges.subscribe((value: OwnerAndGroupsData) => {
       if (!value.owner) {
         this.ownerAndGroupsFormGroup.get('groups').disable({emitEvent: false});
-      } else if (this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.ADD_TO_GROUP, this.entityType) &&
-        this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.REMOVE_FROM_GROUP, this.entityType)) {
+      } else if (!this.groupsDisabled) {
         this.ownerAndGroupsFormGroup.get('groups').enable({emitEvent: false});
       }
       this.updateModel();

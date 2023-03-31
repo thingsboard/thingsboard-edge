@@ -78,6 +78,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
     const config = new GroupEntityTableConfig<CustomerInfo>(entityGroup, params);
 
     config.entityComponent = CustomerComponent;
+    config.addDialogStyle = {height: '1060px'};
 
     config.entityTitle = (customer) => customer ?
       this.utils.customTranslation(customer.title, customer.title) : '';
