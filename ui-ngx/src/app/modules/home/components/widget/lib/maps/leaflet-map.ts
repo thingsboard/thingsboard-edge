@@ -51,7 +51,7 @@ import { Observable, of } from 'rxjs';
 import { Polyline } from './polyline';
 import { Polygon } from './polygon';
 import { Circle } from './circle';
-import { createTooltip, isCutPolygon, isJSON } from '@home/components/widget/lib/maps/maps-utils';
+import { createTooltip, entitiesParseName, isCutPolygon, isJSON } from '@home/components/widget/lib/maps/maps-utils';
 import { checkLngLat, createLoadingDiv } from '@home/components/widget/lib/maps/common-maps-utils';
 import { WidgetContext } from '@home/models/widget-component.models';
 import {
@@ -230,6 +230,7 @@ export default abstract class LeafletMap {
         default:
           return of(null);
       }
+      entities = entitiesParseName(entities, labelSettings);
       if (entities.length === 1) {
         return of(entities[0]);
       }
@@ -239,8 +240,7 @@ export default abstract class LeafletMap {
           disableClose: true,
           panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
           data: {
-            entities,
-            labelSettings
+            entities
           }
         }).afterClosed();
     }
@@ -254,38 +254,38 @@ export default abstract class LeafletMap {
           let customTranslation;
           switch (type) {
             case 'tbMarker':
-              tooltipText = this.translateService.instant('widgets.maps.tooltips.placeMarker', {entityName: data.parseName});
+              tooltipText = this.translateService.instant('widgets.maps.tooltips.placeMarker', {entityName: data.entityParseName});
               // @ts-ignore
               this.map.pm.Draw.tbMarker._hintMarker.setTooltipContent(tooltipText);
               break;
             case 'tbCircle':
-              tooltipText = this.translateService.instant('widgets.maps.tooltips.startCircle', {entityName: data.parseName});
+              tooltipText = this.translateService.instant('widgets.maps.tooltips.startCircle', {entityName: data.entityParseName});
               // @ts-ignore
               this.map.pm.Draw.tbCircle._hintMarker.setTooltipContent(tooltipText);
               customTranslation = {
                 tooltips: {
-                  finishCircle: this.translateService.instant('widgets.maps.tooltips.finishCircle', {entityName: data.parseName})
+                  finishCircle: this.translateService.instant('widgets.maps.tooltips.finishCircle', {entityName: data.entityParseName})
                 }
               };
               break;
             case 'tbRectangle':
-              tooltipText = this.translateService.instant('widgets.maps.tooltips.firstVertex', {entityName: data.parseName});
+              tooltipText = this.translateService.instant('widgets.maps.tooltips.firstVertex', {entityName: data.entityParseName});
               // @ts-ignore
               this.map.pm.Draw.tbRectangle._hintMarker.setTooltipContent(tooltipText);
               customTranslation = {
                 tooltips: {
-                  finishRect: this.translateService.instant('widgets.maps.tooltips.finishRect', {entityName: data.parseName})
+                  finishRect: this.translateService.instant('widgets.maps.tooltips.finishRect', {entityName: data.entityParseName})
                 }
               };
               break;
             case 'tbPolygon':
-              tooltipText = this.translateService.instant('widgets.maps.tooltips.firstVertex', {entityName: data.parseName});
+              tooltipText = this.translateService.instant('widgets.maps.tooltips.firstVertex', {entityName: data.entityParseName});
               // @ts-ignore
               this.map.pm.Draw.tbPolygon._hintMarker.setTooltipContent(tooltipText);
               customTranslation = {
                 tooltips: {
-                  continueLine: this.translateService.instant('widgets.maps.tooltips.continueLine', {entityName: data.parseName}),
-                  finishPoly: this.translateService.instant('widgets.maps.tooltips.finishPoly', {entityName: data.parseName})
+                  continueLine: this.translateService.instant('widgets.maps.tooltips.continueLine', {entityName: data.entityParseName}),
+                  finishPoly: this.translateService.instant('widgets.maps.tooltips.finishPoly', {entityName: data.entityParseName})
                 }
               };
               break;
