@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -127,7 +126,7 @@ public class OtherPageElementsHelper extends OtherPageElements {
         doubleClick(sortByNameBtn());
     }
 
-    public void changeOwner(String customerName){
+    public void changeOwner(String customerName) {
         changeOwnerViewField().click();
         entityFromDropDown(customerName).click();
         changeOwnerViewChangeOwnerBtn().click();

@@ -211,7 +211,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public boolean invisibilityOf(WebElement element){
+    public boolean invisibilityOf(WebElement element) {
         try {
             return new WebDriverWait(driver, Duration.ofMillis(5000)).until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {

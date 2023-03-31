@@ -63,7 +63,7 @@ public class SolutionTemplateDetailsPageElements extends AbstractBasePage {
         return waitUntilVisibilityOfElementLocated(SOLUTION_DESCRIPTION_PARAGRAPH);
     }
 
-    public List <WebElement> screenshotCircles() {
+    public List<WebElement> screenshotCircles() {
         return waitUntilElementsToBeClickable(SCREENSHOT_CIRCLES);
     }
 

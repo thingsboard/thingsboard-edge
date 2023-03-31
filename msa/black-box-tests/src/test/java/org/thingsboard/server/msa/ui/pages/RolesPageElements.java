@@ -35,10 +35,11 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
-public class RolesPageElements extends OtherPageElementsHelper{
+public class RolesPageElements extends OtherPageElementsHelper {
     public RolesPageElements(WebDriver driver) {
         super(driver);
     }
+
     private static final String ALL_NAMES = "//mat-cell[contains(@class,'name')]/span";
 
     public List<WebElement> allNames() {

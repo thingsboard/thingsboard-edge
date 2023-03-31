@@ -84,7 +84,7 @@ public class SolutionTemplateDetailsPageHelper extends SolutionTemplateDetailsPa
             int imageNumber = screenshots().indexOf(screenshot);
             checkScreenshotContent(screenshot, urlScreenshotPath);
             Allure.step("Check screenshot at point " + imageNumber, () ->
-                captureScreen(driver, "Screenshot #" + imageNumber));
+                    captureScreen(driver, "Screenshot #" + imageNumber));
             if (imageNumber != screenshotCircles().size() - 1) {
                 swipeScreenshotRightBtn().click();
                 waitUntilInvisibilityOfElementLocated(screenshot);

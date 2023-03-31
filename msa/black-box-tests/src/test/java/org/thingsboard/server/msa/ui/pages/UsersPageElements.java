@@ -35,7 +35,7 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
-public class UsersPageElements extends OtherPageElementsHelper{
+public class UsersPageElements extends OtherPageElementsHelper {
     public UsersPageElements(WebDriver driver) {
         super(driver);
     }
