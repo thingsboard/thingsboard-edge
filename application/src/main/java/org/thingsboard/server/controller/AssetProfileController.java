@@ -63,6 +63,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID_PARAM_DESCRIPTION;
@@ -101,12 +102,8 @@ public class AssetProfileController extends BaseController {
             @ApiParam(value = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable(ASSET_PROFILE_ID) String strAssetProfileId) throws ThingsboardException {
         checkParameter(ASSET_PROFILE_ID, strAssetProfileId);
-        try {
-            AssetProfileId assetProfileId = new AssetProfileId(toUUID(strAssetProfileId));
-            return checkAssetProfileId(assetProfileId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        AssetProfileId assetProfileId = new AssetProfileId(toUUID(strAssetProfileId));
+        return checkAssetProfileId(assetProfileId, Operation.READ);
     }
 
     @ApiOperation(value = "Get Asset Profile Info (getAssetProfileInfoById)",
@@ -120,16 +117,12 @@ public class AssetProfileController extends BaseController {
             @ApiParam(value = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable(ASSET_PROFILE_ID) String strAssetProfileId) throws ThingsboardException {
         checkParameter(ASSET_PROFILE_ID, strAssetProfileId);
-        try {
-            AssetProfileId assetProfileId = new AssetProfileId(toUUID(strAssetProfileId));
-            AssetProfileInfo assetProfileInfo = checkNotNull(assetProfileService.findAssetProfileInfoById(getTenantId(), assetProfileId));
-            if (!getTenantId().equals(assetProfileInfo.getTenantId())) {
-                throw permissionDenied();
-            }
-            return assetProfileInfo;
-        } catch (Exception e) {
-            throw handleException(e);
+        AssetProfileId assetProfileId = new AssetProfileId(toUUID(strAssetProfileId));
+        AssetProfileInfo assetProfileInfo = checkNotNull(assetProfileService.findAssetProfileInfoById(getTenantId(), assetProfileId));
+        if (!getTenantId().equals(assetProfileInfo.getTenantId())) {
+            throw permissionDenied();
         }
+        return assetProfileInfo;
     }
 
     @ApiOperation(value = "Get Default Asset Profile (getDefaultAssetProfileInfo)",
@@ -140,11 +133,7 @@ public class AssetProfileController extends BaseController {
     @RequestMapping(value = "/assetProfileInfo/default", method = RequestMethod.GET)
     @ResponseBody
     public AssetProfileInfo getDefaultAssetProfileInfo() throws ThingsboardException {
-        try {
-            return checkNotNull(assetProfileService.findDefaultAssetProfileInfo(getTenantId()));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkNotNull(assetProfileService.findDefaultAssetProfileInfo(getTenantId()));
     }
 
     @ApiOperation(value = "Create Or Update Asset Profile (saveAssetProfile)",
@@ -218,13 +207,9 @@ public class AssetProfileController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(assetProfileService.findAssetProfiles(getTenantId(), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(assetProfileService.findAssetProfiles(getTenantId(), pageLink));
     }
 
     @ApiOperation(value = "Get Asset Profile infos (getAssetProfileInfos)",
@@ -245,13 +230,9 @@ public class AssetProfileController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(assetProfileService.findAssetProfileInfos(getTenantId(), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(assetProfileService.findAssetProfileInfos(getTenantId(), pageLink));
     }
 
     @ApiOperation(value = "Get Asset Profiles By Ids (getAssetProfilesByIds)",
@@ -262,21 +243,17 @@ public class AssetProfileController extends BaseController {
     @ResponseBody
     public List<AssetProfileInfo> getAssetProfilesByIds(
             @ApiParam(value = "A list of asset profile ids, separated by comma ','", required = true)
-            @RequestParam("assetProfileIds") String[] strAssetProfileIds) throws ThingsboardException {
+            @RequestParam("assetProfileIds") String[] strAssetProfileIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("assetProfileIds", strAssetProfileIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<AssetProfileId> assetProfileIds = new ArrayList<>();
-            for (String strAssetProfileId : strAssetProfileIds) {
-                assetProfileIds.add(new AssetProfileId(toUUID(strAssetProfileId)));
-            }
-            return checkNotNull(assetProfileService.findAssetProfilesByIdsAsync(tenantId, assetProfileIds).get());
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ)) {
+            return Collections.emptyList();
         }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<AssetProfileId> assetProfileIds = new ArrayList<>();
+        for (String strAssetProfileId : strAssetProfileIds) {
+            assetProfileIds.add(new AssetProfileId(toUUID(strAssetProfileId)));
+        }
+        return checkNotNull(assetProfileService.findAssetProfilesByIdsAsync(tenantId, assetProfileIds).get());
     }
 }

@@ -190,22 +190,18 @@ public class UserController extends BaseController {
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
-        try {
-            UserId userId = new UserId(toUUID(strUserId));
-            UserInfo user = checkUserInfoId(userId, Operation.READ);
-            if (user.getAdditionalInfo().isObject()) {
-                ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
-                processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
-                processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-                if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
-                    additionalInfo.put("userCredentialsEnabled", true);
-                }
+        UserId userId = new UserId(toUUID(strUserId));
+        UserInfo user = checkUserInfoId(userId, Operation.READ);
+        if (user.getAdditionalInfo().isObject()) {
+            ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
+            processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
+            processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+            if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
+                additionalInfo.put("userCredentialsEnabled", true);
             }
-            return user;
-        } catch (Exception e) {
-            throw handleException(e);
         }
+        return user;
     }
 
     @ApiOperation(value = "Check Token Access Enabled (isUserTokenAccessEnabled)",
@@ -553,26 +549,22 @@ public class UserController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                if (includeCustomers != null && includeCustomers) {
-                    return checkNotNull(userService.findUserInfosByTenantId(tenantId, pageLink));
-                } else {
-                    return checkNotNull(userService.findTenantUserInfosByTenantId(tenantId, pageLink));
-                }
+        accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (includeCustomers != null && includeCustomers) {
+                return checkNotNull(userService.findUserInfosByTenantId(tenantId, pageLink));
             } else {
-                CustomerId customerId = getCurrentUser().getCustomerId();
-                if (includeCustomers != null && includeCustomers) {
-                    return checkNotNull(userService.findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                } else {
-                    return checkNotNull(userService.findUserInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                }
+                return checkNotNull(userService.findTenantUserInfosByTenantId(tenantId, pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            CustomerId customerId = getCurrentUser().getCustomerId();
+            if (includeCustomers != null && includeCustomers) {
+                return checkNotNull(userService.findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+            } else {
+                return checkNotNull(userService.findUserInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
         }
     }
 
@@ -599,19 +591,15 @@ public class UserController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (includeCustomers != null && includeCustomers) {
-                return checkNotNull(userService.findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-            } else {
-                return checkNotNull(userService.findUserInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (includeCustomers != null && includeCustomers) {
+            return checkNotNull(userService.findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+        } else {
+            return checkNotNull(userService.findUserInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
         }
     }
 

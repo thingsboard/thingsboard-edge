@@ -143,12 +143,8 @@ public class AssetController extends BaseController {
     public AssetInfo getAssetInfoById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION, required = true)
                                       @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
         checkParameter(ASSET_ID, strAssetId);
-        try {
-            AssetId assetId = new AssetId(toUUID(strAssetId));
-            return checkAssetInfoId(assetId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        AssetId assetId = new AssetId(toUUID(strAssetId));
+        return checkAssetInfoId(assetId, Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update Asset (saveAsset)",
@@ -313,46 +309,42 @@ public class AssetController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                if (includeCustomers != null && includeCustomers) {
-                    if (assetProfileId != null && assetProfileId.length() > 0) {
-                        AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
-                        return checkNotNull(assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));
-                    } else {
-                        return checkNotNull(assetService.findAssetInfosByTenantId(tenantId, pageLink));
-                    }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (includeCustomers != null && includeCustomers) {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));
                 } else {
-                    if (assetProfileId != null && assetProfileId.length() > 0) {
-                        AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
-                        return checkNotNull(assetService.findTenantAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));
-                    } else {
-                        return checkNotNull(assetService.findTenantAssetInfosByTenantId(tenantId, pageLink));
-                    }
+                    return checkNotNull(assetService.findAssetInfosByTenantId(tenantId, pageLink));
                 }
             } else {
-                CustomerId customerId = getCurrentUser().getCustomerId();
-                if (includeCustomers != null && includeCustomers) {
-                    if (assetProfileId != null && assetProfileId.length() > 0) {
-                        AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
-                        return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
-                    } else {
-                        return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                    }
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findTenantAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));
                 } else {
-                    if (assetProfileId != null && assetProfileId.length() > 0) {
-                        AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
-                        return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));
-                    } else {
-                        return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                    }
+                    return checkNotNull(assetService.findTenantAssetInfosByTenantId(tenantId, pageLink));
                 }
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            CustomerId customerId = getCurrentUser().getCustomerId();
+            if (includeCustomers != null && includeCustomers) {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
+                } else {
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                }
+            } else {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));
+                } else {
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
         }
     }
 
@@ -381,29 +373,25 @@ public class AssetController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (includeCustomers != null && includeCustomers) {
-                if (assetProfileId != null && assetProfileId.length() > 0) {
-                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
-                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
-                } else {
-                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (includeCustomers != null && includeCustomers) {
+            if (assetProfileId != null && assetProfileId.length() > 0) {
+                AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
             } else {
-                if (assetProfileId != null && assetProfileId.length() > 0) {
-                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
-                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));
-                } else {
-                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                }
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            if (assetProfileId != null && assetProfileId.length() > 0) {
+                AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));
+            } else {
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
         }
     }
 
