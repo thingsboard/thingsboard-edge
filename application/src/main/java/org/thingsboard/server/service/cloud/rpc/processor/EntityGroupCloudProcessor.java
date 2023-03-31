@@ -128,7 +128,7 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                             }, dbCallbackExecutorService);
                         } else {
                             log.info("[{}] Entity group [{}] was not found!", tenantId, entityGroupId);
-                            return null;
+                            return Futures.immediateFuture(null);
                         }
                     }, dbCallbackExecutorService);
                     futures.add(deleteFuture);
