@@ -32,7 +32,6 @@ package org.thingsboard.server.service.solutions.data;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
@@ -40,6 +39,4 @@ public class EdgeLinkInfo {
 
     private final EdgeId edgeId;
     private final EntityId ownerId;
-    private final EntityGroupId allEdgeGroupId;
-    private final EntityGroupId allCustomerGroupId;
 }

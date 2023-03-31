@@ -1000,7 +1000,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                             .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
                     return Futures.transformAsync(currentEntityGroupFuture, currentEntityGroup -> {
                         if (currentEntityGroup.isEmpty()) {
-                            EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId);
+                            EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId, groupType);
                             entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(),
                                     edge.getId(), groupType);
                             return Futures.immediateFuture(entityGroup);
@@ -1017,10 +1017,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }, MoreExecutors.directExecutor());
     }
 
-    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId) {
+    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId, EntityType groupType) {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(entityGroupName);
-        entityGroup.setType(EntityType.DEVICE);
+        entityGroup.setType(groupType);
         return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 

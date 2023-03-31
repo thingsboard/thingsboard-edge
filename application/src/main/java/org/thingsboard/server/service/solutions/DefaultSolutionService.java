@@ -106,7 +106,6 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -120,9 +119,9 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
-import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.entitiy.asset.TbAssetService;
 import org.thingsboard.server.service.entitiy.device.TbDeviceService;
+import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -225,7 +224,7 @@ public class DefaultSolutionService implements SolutionService {
     private final CustomerService customerService;
     private final UserService userService;
 
-    private final EdgeService edgeService;
+    private final TbEdgeService tbEdgeService;
     private final EntityGroupService entityGroupService;
     private final TbEntityGroupService tbEntityGroupService;
     private final GroupPermissionService groupPermissionService;
@@ -498,7 +497,7 @@ public class DefaultSolutionService implements SolutionService {
 
             updateRuleChains(ctx);
 
-            provisionEdges(ctx, request);
+            provisionEdges(user, ctx, request);
 
             launchEmulators(ctx, devices, assets);
 
@@ -619,9 +618,9 @@ public class DefaultSolutionService implements SolutionService {
             EdgeLinkInfo edgeLinkInfo = edgeLinkInfoEntry.getValue();
             StringBuilder edgeDetailsUrl = new StringBuilder();
             if (EntityType.CUSTOMER.equals(edgeLinkInfo.getOwnerId().getEntityType())) {
-                edgeDetailsUrl.append("/customerGroups/").append(edgeLinkInfo.getAllCustomerGroupId()).append("/").append(edgeLinkInfo.getOwnerId().getId());
+                edgeDetailsUrl.append("/customers/all/").append(edgeLinkInfo.getOwnerId().getId());
             }
-            edgeDetailsUrl.append("/edgeGroups/").append(edgeLinkInfo.getAllEdgeGroupId().getId()).append("/").append(edgeLinkInfo.getEdgeId().getId());
+            edgeDetailsUrl.append("/edgeManagement/instances/all/").append(edgeLinkInfo.getEdgeId().getId());
             String edgeName = edgeLinkInfoEntry.getKey();
             template = template.replace("${" + edgeName + "EDGE_DETAILS_URL}", edgeDetailsUrl.toString());
         }
@@ -1191,7 +1190,7 @@ public class DefaultSolutionService implements SolutionService {
         throw new RuntimeException(finalE);
     }
 
-    private void provisionEdges(SolutionInstallContext ctx, HttpServletRequest request) throws ThingsboardException {
+    private void provisionEdges(User user, SolutionInstallContext ctx, HttpServletRequest request) throws Exception {
         List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
         RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
         for (EdgeDefinition entityDef : edges) {
@@ -1216,9 +1215,8 @@ public class DefaultSolutionService implements SolutionService {
                 }
             }
             entity.setRootRuleChainId(rootRuleChainId);
-            entity = edgeService.saveEdge(entity);
-            ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), rootRuleChainId, entity.getId());
-            edgeService.assignTenantAdministratorsAndUsersGroupToEdge(ctx.getTenantId(), entity.getId());
+            RuleChain rootRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), rootRuleChainId);
+            entity = tbEdgeService.save(entity, rootRuleChain, null, user);
             assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
@@ -1235,15 +1233,7 @@ public class DefaultSolutionService implements SolutionService {
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
 
-            Optional<EntityGroup> allEdgeGroup =
-                    entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entity.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
-            EntityGroupId allCustomerGroupId = null;
-            if (EntityType.CUSTOMER.equals(entity.getOwnerId().getEntityType())) {
-                Optional<EntityGroup> allCustomerGroup =
-                        entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entity.getTenantId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
-                allCustomerGroupId = allCustomerGroup.get().getId();
-            }
-            EdgeLinkInfo edgeLinkInfo = new EdgeLinkInfo(entity.getId(), entity.getOwnerId(), allEdgeGroup.get().getId(), allCustomerGroupId);
+            EdgeLinkInfo edgeLinkInfo = new EdgeLinkInfo(entity.getId(), entity.getOwnerId());
             ctx.addEdgeLinkInfo(entity.getName(), edgeLinkInfo);
         }
     }
@@ -1521,9 +1511,9 @@ public class DefaultSolutionService implements SolutionService {
         }
         switch (entityId.getEntityType()) {
             case RULE_CHAIN:
-                var ruleChainid = new RuleChainId(entityId.getId());
-                ruleChainService.deleteRuleChainById(tenantId, ruleChainid);
-                tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainid, ComponentLifecycleEvent.DELETED);
+                var ruleChainId = new RuleChainId(entityId.getId());
+                ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+                tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                 break;
             case DEVICE_PROFILE:
                 deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));
@@ -1556,7 +1546,7 @@ public class DefaultSolutionService implements SolutionService {
                 schedulerEventService.deleteSchedulerEvent(tenantId, new SchedulerEventId(entityId.getId()));
                 break;
             case EDGE:
-                edgeService.deleteEdge(tenantId, new EdgeId(entityId.getId()));
+                tbEdgeService.delete(new EdgeId(entityId.getId()), user);
                 break;
         }
     }
