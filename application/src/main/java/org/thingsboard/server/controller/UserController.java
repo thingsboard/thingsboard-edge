@@ -801,7 +801,7 @@ public class UserController extends BaseController {
                     "{A:5, B:{C:10, D:30}}. The same could be achieved by putting {B.D:30}")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(value = "/user/settings/{type}")
-    public void putUserSettings(@ApiParam(value = "Settings type, one of: \"visit\", \"star\" or \"unstar\".")
+    public void putUserSettings(@ApiParam(value = "Settings type, case insensitive, one of: \"general\", \"quick_links\", \"doc_links\" or \"dashboards\".")
                                 @PathVariable("type") String strType, @RequestBody JsonNode settings) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         UserSettingsType type = checkEnumParameter("Settings type", strType, UserSettingsType::valueOf);
@@ -813,7 +813,7 @@ public class UserController extends BaseController {
             notes = "Fetch the User settings based on authorized user. ")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/user/settings/{type}")
-    public JsonNode getUserSettings(@ApiParam(value = "Settings type, one of: \"visit\", \"star\" or \"unstar\".")
+    public JsonNode getUserSettings(@ApiParam(value = "Settings type, case insensitive, one of: \"general\", \"quick_links\", \"doc_links\" or \"dashboards\".")
                                     @PathVariable("type") String strType) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         UserSettingsType type = checkEnumParameter("Settings type", strType, UserSettingsType::valueOf);
@@ -829,7 +829,7 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/user/settings/{type}/{paths}", method = RequestMethod.DELETE)
     public void deleteUserSettings(@ApiParam(value = PATHS)
                                    @PathVariable(PATHS) String paths,
-                                   @ApiParam(value = "Settings type, one of: \"visit\", \"star\" or \"unstar\".")
+                                   @ApiParam(value = "Settings type, case insensitive, one of: \"general\", \"quick_links\", \"doc_links\" or \"dashboards\".")
                                    @PathVariable("type") String strType) throws ThingsboardException {
         checkParameter(USER_ID, paths);
         UserSettingsType type = checkEnumParameter("Settings type", strType, UserSettingsType::valueOf);
@@ -839,7 +839,7 @@ public class UserController extends BaseController {
     }
 
     @ApiOperation(value = "Get information about last visited and starred dashboards (getLastVisitedDashboards)",
-            notes = "Fetch the list of last visited and starred dashboards. Both lists are limited to 10 items.")
+            notes = "Fetch the list of last visited and starred dashboards. Both lists are limited to 10 items." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/user/dashboards")
     public UserDashboardsInfo getUserDashboardsInfo() throws ThingsboardException {
