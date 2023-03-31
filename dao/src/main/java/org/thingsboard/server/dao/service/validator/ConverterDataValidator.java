@@ -54,7 +54,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     @Override
     protected void validateCreate(TenantId tenantId, Converter converter) {
         validateNumberOfEntitiesPerTenant(tenantId, EntityType.CONVERTER);
-        converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
+        converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
                 d -> {
                     throw new DataValidationException("Converter with such name already exists!");
                 }
@@ -63,7 +63,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
 
     @Override
     protected Converter validateUpdate(TenantId tenantId, Converter converter) {
-        var oldConverter = converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName());
+        var oldConverter = converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType());
         oldConverter.ifPresent(
                 d -> {
                     if (!d.getId().equals(converter.getId())) {
