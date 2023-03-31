@@ -76,8 +76,8 @@ import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
@@ -282,7 +282,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
                     sequenceDependencyLock.lock();
                     try {
-                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg));
+                        result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, queueStartTs));
                         updateCustomerId(tenantId, customerUpdateMsg);
                     } finally {
                         sequenceDependencyLock.unlock();

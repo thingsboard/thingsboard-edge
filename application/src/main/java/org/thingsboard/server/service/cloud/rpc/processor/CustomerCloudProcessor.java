@@ -40,7 +40,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -58,8 +57,8 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId,
-                                                              CustomerUpdateMsg customerUpdateMsg) throws ThingsboardException {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
+                                                              Long queueStartTs) throws Exception {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -102,17 +101,17 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 } finally {
                     customerCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, customerId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Customer customerById = customerService.findCustomerById(tenantId, customerId);
                 if (customerById != null) {
                     customerService.deleteCustomer(tenantId, customerId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
-        return Futures.immediateFuture(null);
     }
 
     public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {

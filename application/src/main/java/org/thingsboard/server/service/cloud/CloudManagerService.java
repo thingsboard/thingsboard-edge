@@ -518,7 +518,8 @@ public class CloudManagerService {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
-        tenantProcessor.createTenantIfNotExists(this.tenantId);
+        queueStartTs = getQueueStartTs().get();
+        tenantProcessor.createTenantIfNotExists(this.tenantId, queueStartTs);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {
             customerProcessor.createCustomerIfNotExists(this.tenantId, edgeConfiguration);
