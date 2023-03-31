@@ -170,11 +170,9 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         if (downlinkConverter != null) {
             Exception exception = null;
             try {
-                ArrayNode result = doProcessDownLinkMsg(msg);
-                if (!result.isEmpty()) {
+                if (doProcessDownLinkMsg(msg)) {
                     integrationStatistics.incMessagesProcessed();
                 }
-                resultHandler("DownlinkResponse", result.toString(), null);
             } catch (Exception e) {
                 exception = e;
             }
@@ -233,7 +231,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                 .build();
     }
 
-    private ArrayNode doProcessDownLinkMsg(TbMsg msg) throws Exception {
+    private boolean doProcessDownLinkMsg(TbMsg msg) throws Exception {
         Map<String, String> mdMap = metadataTemplate.getKvMap();
         mdMap.putAll(msg.getMetaData().getData());
         List<DownlinkData> convertedDownlinkData = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
@@ -263,7 +261,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                         if (data.has("code")) {
                             arrayNode.add(data);
                         } else {
-                            throw new RuntimeException("Downlink message format is not correct, downlink message should contain code field or commands array!");
+                            throw new RuntimeException("Downlink message format is not correct, downlink message should contain one of the following: code field, service RPC method, commands array!");
                         }
                     }
                     commandsNode.set("commands", arrayNode);
@@ -277,7 +275,14 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                     } else {
                         path = String.format(path, deviceId);
                     }
-                    result.add(sendGetRequest(path));
+                    ObjectNode responseBody = sendGetRequest(path);
+                    Map<String, String> metadata = new HashMap<>(metadataTemplate.getKvMap());
+                    metadata.put("msgType", "DownlinkResponse");
+                    metadata.put("deviceId", deviceId);
+                    metadata.put("t", responseBody.get("t").asText());
+                    JsonNode dataNode = responseBody.get("result");
+                    TuyaIntegrationMsg tuyaIntegrationMsg = new TuyaIntegrationMsg(dataNode, metadata);
+                    this.process(tuyaIntegrationMsg);
                 }
             } catch (Exception e) {
                 error = e;
@@ -286,7 +291,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         if (error != null) {
             throw error;
         }
-        return result;
+        return true;
     }
 
     private ServiceRPC extractServiceRPC(JsonNode data) {
@@ -332,18 +337,18 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
     }
 
 
-    private JsonNode sendPostRequest(String path, ObjectNode commandsNode) throws Exception {
+    private ObjectNode sendPostRequest(String path, ObjectNode commandsNode) throws Exception {
         RequestEntity<Object> requestEntity = createPostRequest(path, commandsNode);
         ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
-        JsonNode result = responseEntity.getBody().get("result");
+        ObjectNode result = responseEntity.getBody();
         log.debug("[{}] Received response: [{}]", configuration.getId(), result);
         return result;
     }
 
-    private JsonNode sendGetRequest(String path) throws Exception {
+    private ObjectNode sendGetRequest(String path) throws Exception {
         RequestEntity<Object> requestEntity = createGetRequest(path, false);
         ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
-        JsonNode result = responseEntity.getBody().get("result");
+        ObjectNode result = responseEntity.getBody();
         log.debug("[{}] Received response: [{}]", configuration.getId(), result);
         return result;
     }
@@ -359,8 +364,6 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
                     responseEntity.getStatusCode()));
         }
         if (Objects.requireNonNull(responseEntity.getBody()).get("success").asBoolean()) {
-            JsonNode result = responseEntity.getBody().get("result");
-            log.info("result: [{}]", result);
             return responseEntity;
         } else {
             throw new RuntimeException(String.format("[%s] Tuya integration response error code: [%s], msg: [%s]",
@@ -448,7 +451,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
     }
 
     private boolean hasValidAccessToken() {
-        return accessToken.getExpireAt() + 20_000 > System.currentTimeMillis();
+        return accessToken != null && accessToken.getExpireAt() + 20_000 > System.currentTimeMillis();
     }
 
     private boolean validateResponse(ResponseEntity<ObjectNode> responseEntity) {
