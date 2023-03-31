@@ -202,7 +202,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
           alarm: entity,
           allowAcknowledgment: !this.readonly,
           allowClear: !this.readonly,
-          displayDetails: true
+          displayDetails: true,
+          allowAssign: true
         }
       }).afterClosed().subscribe(
       (res) => {
