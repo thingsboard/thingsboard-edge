@@ -797,35 +797,6 @@ export class ImportExportService {
     return true;
   }
 
-  private processCSVCell(cellData: any): any {
-    if (isString(cellData)) {
-      let result = cellData.replace(/"/g, '""');
-      if (result.search(/([",\n])/g) >= 0) {
-        result = `"${result}"`;
-      }
-      return result;
-    }
-    return cellData;
-  }
-
-  public exportCsv(data: {[key: string]: any}[], filename: string) {
-    let colsHead: string;
-    let colsData: string;
-    if (data && data.length) {
-      colsHead = Object.keys(data[0]).map(key => [this.processCSVCell(key)]).join(';');
-      colsData = data.map(obj => [
-        Object.keys(obj).map(col => [
-          this.processCSVCell(obj[col])
-        ]).join(';')
-      ]).join('\n');
-    } else {
-      colsHead = '';
-      colsData = '';
-    }
-    const csvData = `${colsHead}\n${colsData}`;
-    this.downloadFile(csvData, filename, CSV_TYPE);
-  }
-
   public exportText(data: string | Array<string>, filename: string) {
     let content = data;
     if (Array.isArray(data)) {

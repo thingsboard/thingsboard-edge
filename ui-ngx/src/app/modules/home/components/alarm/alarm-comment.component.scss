@@ -29,25 +29,37 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
-@import '../theme.scss';
+@import "../theme/app-theme.scss";
 
-$primary-color: rgba(mat.get-color-from-palette($tb-primary, 50), 0.4);
+$primary-color: mat.get-color-from-palette($tb-primary);
 $border: 1px solid mat.get-color-from-palette($tb-primary);
+@mixin primary-theme-background {
+  &:before {
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: $primary-color;
+    opacity: 0.04;
+  }
+}
 
 :host {
   .tb-alarm-comments {
-    background-color: $primary-color;
     max-width: 600px;
     width: 100%;
 
     .comment-input {
       position: sticky;
-      z-index: 1;
+      z-index: 2;
+      background-color: transparent;
+      @include primary-theme-background;
 
       .inner-wrap {
         border: $border;
         padding: 0 24px;
-        background-color: $primary-color;
       }
 
       &.oldest-first {
@@ -87,7 +99,7 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
     }
 
     .header {
-      z-index: 1;
+      z-index: 2;
       position: sticky;
       top: -24px;
       background-color: white;
@@ -98,10 +110,12 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
 
       &-container {
         padding: 0 24px;
-        background-color: $primary-color;
         border: $border;
         border-bottom: none;
         border-radius: 8px 8px 0px 0px;
+        position: relative;
+        background-color: transparent;
+        @include primary-theme-background;
 
         &.activity-only {
           border: none;
@@ -132,6 +146,13 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
       border: $border;
       border-top: none;
       border-radius: 0px 0px 8px 8px;
+      position: relative;
+      background-color: transparent;
+      @include primary-theme-background;
+
+      & > div {
+        z-index: 1;
+      }
 
       &.activity-only {
         border: none;
@@ -146,8 +167,11 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
     .user-comment {
       padding: 4px;
       border-radius: 8px;
+      position: relative;
+      background-color: transparent;
+
       &:hover {
-        background-color: $primary-color;
+        @include primary-theme-background;
       }
     }
 
@@ -176,6 +200,8 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
       letter-spacing: 0.2px;
       border-radius: 16px;
       padding: 0 3px;
+      z-index: 1;
+
       &:hover {
         background: rgba(0, 0, 0, 0.04);
       }
@@ -198,6 +224,7 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
 
     .action-buttons {
       visibility: hidden;
+      z-index: 1;
       .mat-icon {
         color: rgba(0, 0, 0, 0.38);
       }
