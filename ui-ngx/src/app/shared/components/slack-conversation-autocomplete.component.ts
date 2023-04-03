@@ -32,7 +32,7 @@
 import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of, ReplaySubject } from 'rxjs';
-import { debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -192,7 +192,7 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
   }
 
   displaySlackConversationFn(slackConversation?: SlackConversation): string | undefined {
-    return slackConversation ? slackConversation.name : undefined;
+    return slackConversation ? slackConversation.title : undefined;
   }
 
   private fetchSlackConversation(searchText?: string): Observable<Array<SlackConversation>> {
@@ -216,6 +216,7 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
         fetchObservable = of([]);
       }
       this.slackConversetionFetchObservable$ = fetchObservable.pipe(
+        catchError(() => of([])),
         share({
           connector: () => new ReplaySubject(1),
           resetOnError: false,
@@ -229,7 +230,7 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
 
   private createSlackConversationFilter(query: string): (key: SlackConversation) => boolean {
     const lowercaseQuery = query.toLowerCase();
-    return key => key.name.toLowerCase().includes(lowercaseQuery);
+    return key => key.title.toLowerCase().includes(lowercaseQuery);
   }
 
   private clearSlackCache(): void {
