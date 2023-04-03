@@ -39,6 +39,7 @@ import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
@@ -75,6 +76,7 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-azure-service-bus";
     private static final String SECRET_KEY = "secret-key-azure-service-bus";
     protected static final String HUMIDITY_KEY = "humidity";
+    protected static final String INFO_KEY = "info";
     private static final String CONNECTION_STRING = System.getProperty("blackBoxTests.azureServiceBusConnectionString", "");
     private static final String TOPIC_NAME = System.getProperty("blackBoxTests.azureServiceBusTopicName", "");
     private static final String SUBSCRIPTION_NAME = System.getProperty("blackBoxTests.azureServiceBusSubName", "");
@@ -92,11 +94,13 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
     private static final String TEXT_CONVERTER_CONFIG = "var strArray = decodeToString(payload);\n" +
             "var payloadArray = strArray.replace(/\\\"/g, \"\").replace(/\\s/g, \"\").replace(/\\\\n/g, \"\").split(',');\n" +
             "var telemetryPayload = {};\n" +
-            "for (var i = 2; i < payloadArray.length; i = i + 2) {\n" +
+            "for (var i = 2; i < 6; i = i + 2) {\n" +
             "    var telemetryKey = payloadArray[i];\n" +
             "    var telemetryValue = parseFloat(payloadArray[i + 1]);\n" +
             "    telemetryPayload[telemetryKey] = telemetryValue;\n" +
             "}\n" +
+            "telemetryPayload[payloadArray[6]] = payloadArray[7];\n" +
+            "// Result object with device attributes/telemetry data\n" +
             "var result = {\n" +
             "    deviceName: payloadArray[0],\n" +
             "    deviceType: payloadArray[1],\n" +
@@ -112,6 +116,9 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
             .createObjectNode().put("encoder", "var data = {};\n" +
                     "data.booleanKey = msg.booleanKey;\n" +
                     "data.stringKey = msg.stringKey;\n" +
+                    "data.stringKey2 = msg.stringKey2;\n" +
+                    "data.stringKey3 = msg.stringKey3;\n" +
+                    "data.stringKey4 = msg.stringKey4;\n" +
                     "data.doubleKey = msg.doubleKey;\n" +
                     "data.longKey = msg.longKey;\n" +
                     "\n" +
@@ -171,18 +178,19 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
 
         String temp = "27.7";
         String humidity = "67";
-        sendMessageToServiceBusTopic(device, temp, humidity);
+        String info = "漢字special$_українськаלום";
+        sendMessageToServiceBusTopic(device, temp, humidity, info);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         log.info("Received telemetry: {}", actualLatestTelemetry);
         wsClient.closeBlocking();
 
-        Assert.assertEquals(2, actualLatestTelemetry.getData().size());
-        Assert.assertEquals(Sets.newHashSet(TELEMETRY_KEY, HUMIDITY_KEY),
-                actualLatestTelemetry.getLatestValues().keySet());
+        Assert.assertEquals(3, actualLatestTelemetry.getData().size());
+        Assert.assertEquals(actualLatestTelemetry.getLatestValues().keySet(), Sets.newHashSet(TELEMETRY_KEY, HUMIDITY_KEY, INFO_KEY));
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, temp));
         Assert.assertTrue(verify(actualLatestTelemetry, HUMIDITY_KEY, humidity));
+        Assert.assertTrue(verify(actualLatestTelemetry, INFO_KEY, info));
     }
 
     @Test
@@ -229,6 +237,9 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
             JsonNode actual = JacksonUtil.toJsonNode(messageList.poll());
 
             assertThat(actual.get("stringKey")).isEqualTo(attributes.get("stringKey"));
+            assertThat(actual.get("stringKey2")).isEqualTo(attributes.get("stringKey2"));
+            assertThat(actual.get("stringKey3")).isEqualTo(attributes.get("stringKey3"));
+            assertThat(actual.get("stringKey4")).isEqualTo(attributes.get("stringKey4"));
             assertThat(actual.get("booleanKey")).isEqualTo(attributes.get("booleanKey"));
             assertThat(actual.get("doubleKey")).isEqualTo(attributes.get("doubleKey"));
             assertThat(actual.get("longKey")).isEqualTo(attributes.get("longKey"));
@@ -251,18 +262,31 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
         messageList.add(new String(message.getBody().toBytes()));
     }
 
-    void sendMessageToServiceBusTopic(Device device, String temp, String humidity) {
+    void sendMessageToServiceBusTopic(Device device, String temp, String humidity, String info) {
         try (ServiceBusSenderClient serviceBusSenderClient = new ServiceBusClientBuilder()
                 .connectionString(CONNECTION_STRING)
                 .sender()
                 .topicName(TOPIC_NAME)
                 .buildClient()){
-            serviceBusSenderClient.sendMessage(new ServiceBusMessage(String.format( "%s,default,temperature,%s,humidity,%s", device.getName(), temp, humidity)));
+            serviceBusSenderClient.sendMessage(new ServiceBusMessage(String.format( "%s,default,temperature,%s,humidity,%s,info,%s", device.getName(), temp, humidity, info)));
         }
     }
 
     @Override
     protected String getDevicePrototypeSufix() {
         return "azure_service_bus_";
+    }
+
+    public JsonObject createPayload() {
+        JsonObject values = new JsonObject();
+        values.addProperty("stringKey", "漢字");
+        values.addProperty("stringKey2", "special$");
+        values.addProperty("stringKey3", "українська");
+        values.addProperty("stringKey4", "שלום");
+        values.addProperty("booleanKey", true);
+        values.addProperty("doubleKey", 42.6);
+        values.addProperty("longKey", 73L);
+
+        return values;
     }
 }
