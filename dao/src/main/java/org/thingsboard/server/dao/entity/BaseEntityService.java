@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,14 +45,12 @@ import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasEmail;
 import org.thingsboard.server.common.data.HasLabel;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTitle;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.HasTitle;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.NameLabelAndCustomerDetails;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -63,6 +60,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.NameLabelAndCustomerDetails;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -143,7 +141,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         return findUserEntities(tenantId, customerId, userPermissions, entityType, operation, type, pageLink, false);
     }
 
-        @Override
+    @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
                                                                                     MergedUserPermissions userPermissions,
                                                                                     EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile) {
@@ -368,18 +366,6 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             dashboard.setImage(row.get("image") != null ? row.get("image").toString() : null);
             dashboard.setMobileHide(row.get("mobile_hide") != null ? (Boolean) row.get("mobile_hide") : false);
             dashboard.setMobileOrder(row.get("mobile_order") != null ? (Integer) row.get("mobile_order") : null);
-            Object assignedCustomers = row.get("assigned_customers");
-            if (assignedCustomers != null) {
-                String assignedCustomersStr = assignedCustomers.toString();
-                if (!StringUtils.isEmpty(assignedCustomersStr)) {
-                    try {
-                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, new TypeReference<>() {
-                        }));
-                    } catch (IllegalArgumentException e) {
-                        log.warn("Unable to parse assigned customers!", e);
-                    }
-                }
-            }
             return dashboard;
         };
     }

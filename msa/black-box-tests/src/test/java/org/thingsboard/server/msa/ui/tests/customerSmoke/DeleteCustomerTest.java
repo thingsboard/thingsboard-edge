@@ -40,7 +40,7 @@ import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
@@ -48,14 +48,14 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustom
 
 public class DeleteCustomerTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private RuleChainsPageHelper ruleChainsPage;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
@@ -68,7 +68,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customer = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         String deletedCustomer = customerPage.deleteRuleChainTrash(customer);
         customerPage.refreshBtn().click();
 
@@ -83,7 +83,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         String deletedCustomer = customerPage.deleteSelected(customerName);
         ruleChainsPage.refreshBtn().click();
 
@@ -98,7 +98,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         jsClick(customerPage.customerViewDeleteBtn());
         customerPage.warningPopUpYesBtn().click();
@@ -115,7 +115,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customer = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         String deletedCustomer = customerPage.deleteRuleChainTrash(customer);
         customerPage.refreshBtn().click();
 

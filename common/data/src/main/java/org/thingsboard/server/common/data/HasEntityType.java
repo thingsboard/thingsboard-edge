@@ -30,7 +30,11 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public interface HasEntityType {
 
+    @JsonIgnore
     EntityType getEntityType();
+
 }

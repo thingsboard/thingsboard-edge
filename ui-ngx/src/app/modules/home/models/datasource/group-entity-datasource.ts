@@ -41,7 +41,7 @@ import {
 import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
 import { isDefined } from '@core/utils';
 import { PageLink } from '@shared/models/page/page-link';
-import { EntityDataCmd, TelemetryService, TelemetrySubscriber } from '@shared/models/telemetry/telemetry.models';
+import { EntityDataCmd, TelemetrySubscriber } from '@shared/models/telemetry/telemetry.models';
 import { NgZone } from '@angular/core';
 import { CollectionViewer } from '@angular/cdk/collections';
 import { EntityData, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
@@ -49,10 +49,11 @@ import { AliasFilterType } from '@shared/models/alias.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 
 interface EntitiesUpdate {
   allEntities: Array<ShortEntityView>;
-  updatedRows: Array<{ row: number, columns: number[] }>;
+  updatedRows: Array<{ row: number; columns: number[] }>;
 }
 
 class GroupEntitiesSubscription {
@@ -72,7 +73,7 @@ class GroupEntitiesSubscription {
   constructor(private columns: EntityGroupColumn[],
               private entityGroupId: string,
               private groupType: EntityType,
-              private telemetryService: TelemetryService,
+              private telemetryService: TelemetryWebsocketService,
               private zone: NgZone) {
     this.columnsMap = prepareEntityDataColumnMap(columns);
     this.columnKeyToEntityKeyMap = {};
@@ -119,7 +120,7 @@ class GroupEntitiesSubscription {
     };
     this.dataCommand.latestCmd = {
       keys: latestValues
-    }
+    };
   }
 
   public getEntityGroupEntities(pageLink: PageLink): Observable<PageData<ShortEntityView>> {
@@ -174,7 +175,7 @@ class GroupEntitiesSubscription {
   }
 
   private onDataUpdate(update: Array<EntityData>) {
-    const updatedRows: Array<{ row: number, columns: number[] }> = [];
+    const updatedRows: Array<{ row: number; columns: number[] }> = [];
     for (const entityData of update) {
       const dataIndex = this.entityIdToDataIndex[entityData.entityId.id];
       if (isDefined(dataIndex) && dataIndex >= 0) {
@@ -210,15 +211,12 @@ export class GroupEntitiesDataSource extends EntitiesDataSource<ShortEntityView>
   constructor(private columns: EntityGroupColumn[],
               private entityGroupId: string,
               private groupType: EntityType,
-              private telemetryService: TelemetryService,
+              private telemetryService: TelemetryWebsocketService,
               private zone: NgZone,
               protected selectionEnabledFunction: EntityBooleanFunction<ShortEntityView>,
               protected dataLoadedFunction: (col?: number, row?: number) => void) {
     super(
-      (pageLink =>
-        {
-          return this.groupEntitiesSubscription.getEntityGroupEntities(pageLink);
-        }),
+      (pageLink => this.groupEntitiesSubscription.getEntityGroupEntities(pageLink)),
       selectionEnabledFunction,
       dataLoadedFunction
     );

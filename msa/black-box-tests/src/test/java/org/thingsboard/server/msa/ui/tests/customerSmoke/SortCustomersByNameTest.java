@@ -41,19 +41,20 @@ import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 
 public class SortCustomersByNameTest extends AbstractDriverBaseTest {
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerName;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -73,7 +74,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         this.customerName = title;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.sortByTitleBtn().click();
         customerPage.setCustomerName();
 
@@ -89,7 +90,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
         testRestClient.postCustomer(defaultCustomerPrototype(customerNumber));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.sortByTitleBtn().click();
         customerPage.setCustomerName(0);
         String firstCustomer = customerPage.getCustomerName();
@@ -115,7 +116,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         customerName = title;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.sortByTitleDown();
         customerPage.setCustomerName(customerPage.allEntity().size() - 1);
 
@@ -131,7 +132,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
         testRestClient.postCustomer(defaultCustomerPrototype(customerNumber));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         int lastIndex = customerPage.allEntity().size() - 1;
         customerPage.sortByTitleDown();
         customerPage.setCustomerName(lastIndex);

@@ -126,7 +126,9 @@
 }
 
 :host ::ng-deep {
-  width: 720px;
+  max-width: 720px;
+  min-width: 100%;
+  width: 100%;
   display: block;
   .mat-mdc-dialog-content {
     display: flex;

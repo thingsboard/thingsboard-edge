@@ -58,4 +58,9 @@ public class EntityGroupInfo extends EntityGroup {
     public EntityGroupInfo(EntityGroup entityGroup) {
         super(entityGroup);
     }
+
+    public EntityGroupInfo(EntityGroup entityGroup, Set<EntityId> ownerIds) {
+        super(entityGroup);
+        this.ownerIds = ownerIds;
+    }
 }

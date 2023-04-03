@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.entityview;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -53,6 +54,8 @@ public interface EntityViewService extends EntityDaoService {
     EntityView saveEntityView(EntityView entityView);
 
     EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId);
+
+    EntityViewInfo findEntityViewInfoById(TenantId tenantId, EntityViewId entityViewId);
 
     EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name);
 
@@ -87,4 +90,20 @@ public interface EntityViewService extends EntityDaoService {
     PageData<EntityView> findEntityViewsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
 
     PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
+
+    PageData<EntityViewInfo> findEntityViewInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
+
+    PageData<EntityViewInfo> findTenantEntityViewInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<EntityViewInfo> findTenantEntityViewInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
+
+    PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
+
+    PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
 }

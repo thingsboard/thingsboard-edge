@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
@@ -49,14 +49,14 @@ import static org.thingsboard.server.msa.ui.utils.Const.COPY_ENTITY_GROUP_ID_MES
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
 public class CopyCustomerGroupIDTest extends AbstractDriverBaseTest {
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -72,11 +72,11 @@ public class CopyCustomerGroupIDTest extends AbstractDriverBaseTest {
     @Feature("Copy ID")
     @Test(priority = 20, groups = "smoke")
     @Description("Copy customer group Id by click on 'Copy entity group Id' btn in customer group view")
-    public void removeFromCustomerView() {
+    public void copyCustomerGroupId() {
         customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.copyEntityIdBtn().click();
 

@@ -32,7 +32,7 @@
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityType } from '@shared/models/entity-type.models';
-import {forkJoin, Observable, of} from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import {
   ImportDialogCsvComponent,
   ImportDialogCsvData
@@ -40,7 +40,7 @@ import {
 import { CustomerId } from '@shared/models/id/customer-id';
 import { DialogService } from '@core/services/dialog.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import {EntityGroup, EntityGroupInfo} from '@shared/models/entity-group.models';
+import { EntityGroup, EntityGroupInfo } from '@shared/models/entity-group.models';
 import { TranslateService } from '@ngx-translate/core';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -54,6 +54,16 @@ import {
   ShareEntityGroupDialogComponent,
   ShareEntityGroupDialogData
 } from '@home/dialogs/share-entity-group-dialog.component';
+import { GroupEntityInfo } from '@shared/models/base-data';
+import {
+  ManageOwnerAndGroupsDialogComponent,
+  ManageOwnerAndGroupsDialogData
+} from '@home/components/group/manage-owner-and-groups-dialog.component';
+import {
+  EntityGroupWizardDialogComponent,
+  EntityGroupWizardDialogData,
+  EntityGroupWizardDialogResult
+} from '@home/components/wizard/entity-group-wizard-dialog.component';
 
 @Injectable()
 export class HomeDialogsService {
@@ -139,6 +149,20 @@ export class HomeDialogsService {
       ));
   }
 
+  public manageOwnerAndGroups($event: Event, groupEntity: GroupEntityInfo<EntityId>): Observable<boolean> {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    return this.dialog.open<ManageOwnerAndGroupsDialogComponent, ManageOwnerAndGroupsDialogData,
+      boolean>(ManageOwnerAndGroupsDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        groupEntity
+      }
+    }).afterClosed();
+  }
+
   public selectOwner($event: Event, selectOwnerTitle: string, confirmSelectTitle: string,
                      placeholderText: string, notFoundText: string,  requiredText: string,
                      onOwnerSelected?: (targetOwnerId: EntityId) => Observable<boolean>,
@@ -184,6 +208,19 @@ export class HomeDialogsService {
         requiredText,
         onEntityGroupSelected,
         excludeGroupIds
+      }
+    }).afterClosed();
+  }
+
+  public createEntityGroup(groupType: EntityType, groupName?: string, ownerId?: EntityId): Observable<EntityGroupWizardDialogResult> {
+    return this.dialog.open<EntityGroupWizardDialogComponent, EntityGroupWizardDialogData,
+      EntityGroupWizardDialogResult>(EntityGroupWizardDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        ownerId,
+        groupName,
+        groupType
       }
     }).afterClosed();
   }

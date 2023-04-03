@@ -31,7 +31,7 @@
 
 -->
 <div class="mat-padding tb-entity-table" [ngClass]="{'tb-absolute-fill': groupPermissionsMode === 'group'}">
-  <div fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
+  <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
     <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span class="tb-entity-table-title">{{(isUserGroup ? 'group-permission.user-group-roles' : 'group-permission.entity-group-permissions') | translate}}</span>

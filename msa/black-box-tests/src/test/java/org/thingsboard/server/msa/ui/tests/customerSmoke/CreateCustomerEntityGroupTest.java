@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
@@ -51,14 +51,14 @@ import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_ENTITY
 
 public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -77,7 +77,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     public void createCustomerGroup() {
         customerGroupName = ENTITY_NAME + random();
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.plusBtn().click();
         customerPage.addEntityGroupViewNameField().click();
         customerPage.addEntityGroupViewNameField().sendKeys(customerGroupName);
@@ -93,7 +93,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description("Add customer's group without the name")
     public void createCustomerGroupWithoutName() {
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.plusBtn().click();
         customerPage.addBtnC().click();
 
@@ -107,7 +107,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description("Create customer's group only with spase in name")
     public void createCustomerWithOnlySpace() {
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.plusBtn().click();
         customerPage.addEntityGroupViewNameField().click();
         customerPage.addEntityGroupViewNameField().sendKeys(" ");
@@ -128,7 +128,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
         customerGroupName = ENTITY_NAME + random();
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.plusBtn().click();
         customerPage.addEntityGroupViewNameField().sendKeys(customerGroupName);
         customerPage.addBtnC().click();
@@ -147,7 +147,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     public void documentation() {
         String urlPath = "/docs/pe/user-guide/groups/";
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.setEntityGroupName();
         customerPage.detailsBtn(customerPage.getEntityGroupName()).click();
         customerPage.goToHelpEntityGroupPage();

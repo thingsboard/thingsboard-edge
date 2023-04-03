@@ -32,6 +32,14 @@
 @import "../../../../../scss/constants";
 
 .tb-entity-group-columns {
+
+  .tb-outlined-border {
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 20%), 0 0 0 0 rgb(0 0 0 / 14%), 0 0 0 0 rgb(0 0 0 / 12%);
+    border: solid 1px #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
   .tb-header {
     font-size: 12px;
     font-weight: 700;
