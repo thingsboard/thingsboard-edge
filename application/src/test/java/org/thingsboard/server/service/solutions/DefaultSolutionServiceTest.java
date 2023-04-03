@@ -51,6 +51,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import static org.mockito.Mockito.mock;
 import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.mapper;
 
 @RunWith(SpringRunner.class)
@@ -63,9 +64,10 @@ public class DefaultSolutionServiceTest {
                 DefaultSolutionService.class.getDeclaredMethod("getSchedulerEvent", SolutionInstallContext.class, SchedulerEventDefinition.class);
         getSchedulerEvent.setAccessible(true);
 
+        DefaultSolutionService defaultSolutionService = mock(DefaultSolutionService.class);
         SchedulerEventDefinition schedulerEventDefinition = mockSchedulerEventDefinition();
         SolutionInstallContext ctx = mockSolutionInstallContext(schedulerEventDefinition);
-        SchedulerEvent schedulerEvent = (SchedulerEvent) getSchedulerEvent.invoke(DefaultSolutionService.class, ctx, schedulerEventDefinition);
+        SchedulerEvent schedulerEvent = (SchedulerEvent) getSchedulerEvent.invoke(defaultSolutionService, ctx, schedulerEventDefinition);
         Assert.assertTrue(schedulerEvent.getOriginatorId() instanceof DeviceId);
     }
 

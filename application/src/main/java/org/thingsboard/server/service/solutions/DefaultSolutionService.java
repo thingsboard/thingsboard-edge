@@ -776,7 +776,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     @NotNull
-    private static SchedulerEvent getSchedulerEvent(SolutionInstallContext ctx, SchedulerEventDefinition entityDef) {
+    private SchedulerEvent getSchedulerEvent(SolutionInstallContext ctx, SchedulerEventDefinition entityDef) {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setTenantId(ctx.getTenantId());
         schedulerEvent.setName(entityDef.getName());
