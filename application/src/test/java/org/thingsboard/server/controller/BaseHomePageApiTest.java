@@ -91,6 +91,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+    @Autowired
     private TbTenantProfileCache tenantProfileCache;
 
     //For system administrator
