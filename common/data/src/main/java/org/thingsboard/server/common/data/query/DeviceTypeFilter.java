@@ -57,7 +57,7 @@ public class DeviceTypeFilter implements EntityFilter {
     private List<String> deviceTypes;
 
     public List<String> getDeviceTypes() {
-        if (CollectionUtils.isEmpty(deviceTypes)) {
+        if (deviceType != null) {
             deviceTypes = Collections.singletonList(deviceType);
         }
         return deviceTypes;
