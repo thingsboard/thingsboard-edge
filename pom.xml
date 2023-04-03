@@ -175,6 +175,7 @@
         <allure-maven.version>2.12.0</allure-maven.version>
         <slack-api.version>1.12.1</slack-api.version>
         <oshi.version>3.4.0</oshi.version>
+        <azure-sdk-bom.version>1.2.11</azure-sdk-bom.version>
     </properties>
 
     <modules>
@@ -2240,7 +2241,7 @@
             <dependency>
                 <groupId>com.azure</groupId>
                 <artifactId>azure-sdk-bom</artifactId>
-                <version>1.2.11</version>
+                <version>${azure-sdk-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
                 <exclusions>
