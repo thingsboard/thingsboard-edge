@@ -152,6 +152,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.settings.UserDashboardAction;
 import org.thingsboard.server.common.data.util.ThrowingBiFunction;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -206,6 +207,7 @@ import org.thingsboard.server.service.edge.EdgeLicenseService;
 import org.thingsboard.server.service.edge.instructions.EdgeInstallService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.user.TbUserSettingsService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -236,6 +238,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
@@ -271,7 +274,7 @@ public abstract class BaseController {
     protected UserService userService;
 
     @Autowired
-    protected UserSettingsService userSettingsService;
+    protected TbUserSettingsService userSettingsService;
 
     @Autowired
     protected DeviceService deviceService;
@@ -559,6 +562,14 @@ public abstract class BaseController {
         }
     }
 
+    protected <T> T checkEnumParameter(String name, String param, Function<String, T> valueOf) throws ThingsboardException {
+        try {
+            return valueOf.apply(param.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ThingsboardException(name + " \"" + param + "\" is not supported!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
     RoleType checkStrRoleType(String name, String strGroupType) throws ThingsboardException {
         checkParameter(name, strGroupType);
         RoleType groupType;
@@ -731,30 +742,56 @@ public abstract class BaseController {
 
     protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId,
                                                                                TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
+        return saveGroupEntity(entity, strEntityGroupId, null,
+                (t, entityGroups) -> saveEntityFunction.apply(t, entityGroups != null && !entityGroups.isEmpty() ? entityGroups.get(0) : null));
+    }
+
+    protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId, String[] strEntityGroupIds,
+                                                                               TbBiFunction<T, List<EntityGroup>, T> saveEntityFunction) throws ThingsboardException {
         try {
             entity.setTenantId(getCurrentUser().getTenantId());
 
-            EntityGroupId entityGroupId = null;
-            EntityGroup entityGroup = null;
+            List<EntityGroupId> entityGroupIds = new ArrayList<>();
+            List<EntityGroup> entityGroups = new ArrayList<>();
+            String[] groupIds = null;
             if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                groupIds = new String[]{strEntityGroupId};
+            } else if (strEntityGroupIds != null && strEntityGroupIds.length > 0) {
+                groupIds = strEntityGroupIds;
+            }
+            if (groupIds != null) {
+                for (String id : groupIds) {
+                    EntityGroupId entityGroupId = new EntityGroupId(toUUID(id));
+                    EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                    entityGroupIds.add(entityGroupId);
+                    entityGroups.add(entityGroup);
+                }
             }
             if (entity.getId() == null && (entity.getCustomerId() == null || entity.getCustomerId().isNullUid())) {
-                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
-                    entity.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                if (!entityGroups.isEmpty() && entityGroups.get(0).getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    entity.setOwnerId(new CustomerId(entityGroups.get(0).getOwnerId().getId()));
                 } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                     entity.setOwnerId(getCurrentUser().getCustomerId());
                 }
             }
 
-            checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
+            checkEntityWithGroupIds(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupIds);
 
-            return saveEntityFunction.apply(entity, entityGroup);
+            return saveEntityFunction.apply(entity, entityGroups);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(entity.getEntityType()), entity,
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
+        }
+    }
+
+    protected <I extends EntityId, T extends TenantEntity> void checkEntityWithGroupIds(I entityId, T entity, Resource resource, List<EntityGroupId> entityGroupIds) throws ThingsboardException {
+        if (entityGroupIds != null && !entityGroupIds.isEmpty()) {
+            for (EntityGroupId entityGroupId : entityGroupIds) {
+                checkEntity(entityId, entity, resource, entityGroupId);
+            }
+        } else {
+            checkEntity(entityId, entity, resource, null);
         }
     }
 

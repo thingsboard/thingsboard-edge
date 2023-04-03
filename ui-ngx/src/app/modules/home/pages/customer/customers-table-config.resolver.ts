@@ -120,6 +120,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     config.entityTabsComponent = GroupEntityTabsComponent<CustomerInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.CUSTOMER);
     config.entityResources = entityTypeResources.get(EntityType.CUSTOMER);
+    config.addDialogStyle = {height: '1060px'};
 
     config.entityTitle = (customer) => customer ?
       this.utils.customTranslation(customer.title, customer.title) : '';
@@ -318,6 +319,16 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     this.router.navigateByUrl(`customers/all/${customer.id.id}${page}`, {onSameUrlNavigation: forceReload ? 'reload' : undefined});
   }
 
+  manageOwnerAndGroups($event: Event, customer: CustomerInfo, config: EntityTableConfig<CustomerInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, customer).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onCustomerAction(action: EntityAction<CustomerInfo>, config: EntityTableConfig<CustomerInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -343,6 +354,9 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         return true;
       case 'manageEdges':
         this.manageCustomerEdges(action.event, action.entity, config);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

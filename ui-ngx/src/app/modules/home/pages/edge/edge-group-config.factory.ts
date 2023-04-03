@@ -87,6 +87,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     const authUser: AuthUser = getCurrentAuthUser(this.store);
 
     config.entityComponent = EdgeComponent;
+    config.addDialogStyle = {height: '1000px'};
 
     config.entityTitle = (edge) => edge ?
       this.utils.customTranslation(edge.name, edge.name) : '';
@@ -273,6 +274,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'openInstructions':
         this.openInstructions(action.event, action.entity);
         return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
+        return true;
     }
     return false;
   }
@@ -434,6 +438,16 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
             instructions: edgeInstructionsTemplate.dockerInstallInstructions
           }
         });
+      }
+    );
+  }
+
+  manageOwnerAndGroups($event: Event, edge: EdgeInfo, config: GroupEntityTableConfig<EdgeInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, edge).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
       }
     );
   }

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -45,7 +45,8 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { SubscriptSizing } from '@angular/material/form-field';
 import { isDefinedAndNotNull, isEqual } from '@core/utils';
 
@@ -66,7 +67,7 @@ import { isDefinedAndNotNull, isEqual } from '@core/utils';
     }
   ]
 })
-export class KeyValMapComponent extends PageComponent implements ControlValueAccessor, OnInit, Validator {
+export class KeyValMapComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy, Validator {
 
   @Input() disabled: boolean;
 
@@ -87,9 +88,8 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
 
   kvListFormGroup: UntypedFormGroup;
 
+  private destroy$ = new Subject<void>();
   private propagateChange = null;
-
-  private valueChangeSubscription: Subscription = null;
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -97,9 +97,18 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
   }
 
   ngOnInit(): void {
-    this.kvListFormGroup = this.fb.group({});
-    this.kvListFormGroup.addControl('keyVals',
-      this.fb.array([]));
+    this.kvListFormGroup = this.fb.group({
+      keyVals: this.fb.array([])
+    });
+
+    this.kvListFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   keyValsFormArray(): UntypedFormArray {
@@ -123,9 +132,6 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
   }
 
   writeValue(keyValMap: {[key: string]: string}): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const keyValsControls: Array<AbstractControl> = [];
     if (keyValMap && !isEqual(keyValMap, {})) {
       for (const property of Object.keys(keyValMap)) {
@@ -137,13 +143,10 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
         }
       }
     }
-    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls));
+    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls), {emitEvent: false});
     if (this.isSinglePredefinedKey && !keyValsControls.length) {
       this.addKeyVal();
     }
-    this.valueChangeSubscription = this.kvListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
     if (this.disabled) {
       this.kvListFormGroup.disable({emitEvent: false});
     } else {

@@ -41,6 +41,7 @@ import { GroupEntityComponent } from '@home/components/group/group-entity.compon
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { isEqual } from '@core/utils';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-dashboard-form',
@@ -63,8 +64,9 @@ export class DashboardFormComponent extends GroupEntityComponent<DashboardInfo> 
               @Inject('entitiesTableConfig')
               protected entitiesTableConfigValue: EntityTableConfig<DashboardInfo> | GroupEntityTableConfig<DashboardInfo>,
               protected fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
     if (this.entityGroup && this.entityGroup.additionalInfo && this.entityGroup.additionalInfo.isPublic) {
       this.isPublic = true;
     } else {

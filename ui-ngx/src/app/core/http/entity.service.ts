@@ -301,7 +301,7 @@ export class EntityService {
   }
 
   private saveGroupEntityObservable(entity: BaseData<EntityId>,
-                                    entityGroupId: string,
+                                    entityGroupIds: string | string[],
                                     config?: RequestConfig): Observable<BaseData<EntityId>> {
     let observable: Observable<BaseData<EntityId>>;
     const entityType = entity.id.entityType;
@@ -310,34 +310,34 @@ export class EntityService {
     }
     switch (entityType) {
       case EntityType.DEVICE:
-        observable = this.deviceService.saveDevice(entity as Device, entityGroupId, config);
+        observable = this.deviceService.saveDevice(entity as Device, entityGroupIds, config);
         break;
       case EntityType.ASSET:
-        observable = this.assetService.saveAsset(entity as Asset, entityGroupId, config);
+        observable = this.assetService.saveAsset(entity as Asset, entityGroupIds, config);
         break;
       case EntityType.ENTITY_VIEW:
-        observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupId, config);
+        observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupIds, config);
         break;
       case EntityType.EDGE:
-        observable = this.edgeService.saveEdge(entity as Edge, entityGroupId, config);
+        observable = this.edgeService.saveEdge(entity as Edge, entityGroupIds, config);
         break;
       case EntityType.CUSTOMER:
-        observable = this.customerService.saveCustomer(entity as Customer, entityGroupId, config);
+        observable = this.customerService.saveCustomer(entity as Customer, entityGroupIds, config);
         break;
       case EntityType.DASHBOARD:
-        observable = this.dashboardService.saveDashboard(entity as Dashboard, entityGroupId, config);
+        observable = this.dashboardService.saveDashboard(entity as Dashboard, entityGroupIds, config);
         break;
       case EntityType.USER:
-        observable = this.userService.saveUser(entity as User, false, entityGroupId, config);
+        observable = this.userService.saveUser(entity as User, false, entityGroupIds, config);
         break;
     }
     return observable;
   }
 
   public saveGroupEntity(entity: BaseData<EntityId>,
-                         entityGroupId: string,
+                         entityGroupIds: string | string[],
                          config?: RequestConfig): Observable<BaseData<EntityId>> {
-    const entityObservable = this.saveGroupEntityObservable(entity, entityGroupId, config);
+    const entityObservable = this.saveGroupEntityObservable(entity, entityGroupIds, config);
     if (entityObservable) {
       return entityObservable;
     } else {
@@ -1479,7 +1479,7 @@ export class EntityService {
           additionalInfo: {
             description: edgeEntityData.description
           },
-          edgeLicenseKey: edgeEntityData.edgeLicenseKey,
+          edgeLicenseKey: edgeEntityData.edgeLicenseKey !== '' ? edgeEntityData.edgeLicenseKey : '6qcGys6gz4M2ZuIqZ6hRDjWT',
           cloudEndpoint: edgeEntityData.cloudEndpoint !== '' ? edgeEntityData.cloudEndpoint : window.location.origin,
           routingKey: edgeEntityData.routingKey !== '' ? edgeEntityData.routingKey : guid(),
           secret: edgeEntityData.secret !== '' ? edgeEntityData.secret : generateSecret(20)

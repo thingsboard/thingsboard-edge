@@ -74,6 +74,7 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     const config = new GroupEntityTableConfig<AssetInfo>(entityGroup, params);
 
     config.entityComponent = AssetComponent;
+    config.addDialogStyle = {height: '620px'};
 
     config.entityTitle = (asset) => asset ?
       this.utils.customTranslation(asset.name, asset.name) : '';
@@ -142,10 +143,23 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     }
   }
 
+  manageOwnerAndGroups($event: Event, asset: AssetInfo, config: GroupEntityTableConfig<AssetInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, asset).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onAssetAction(action: EntityAction<AssetInfo>, config: GroupEntityTableConfig<AssetInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openAsset(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

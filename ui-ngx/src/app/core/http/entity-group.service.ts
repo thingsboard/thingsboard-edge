@@ -153,7 +153,7 @@ export class EntityGroupService {
     return this.http.post<DeviceGroupOtaPackage>('/api/deviceGroupOtaPackage', deviceGroupOtaPackage, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDeviceEntityGroup(entityGroup: DeviceEntityGroupInfo, originalEntityGroup: DeviceEntityGroupInfo,
+  public saveDeviceEntityGroup(entityGroup: DeviceEntityGroupInfo, originalEntityGroup?: DeviceEntityGroupInfo,
                                config?: RequestConfig): Observable<DeviceEntityGroupInfo> {
     if (isDefinedAndNotNull(entityGroup.id)) {
       return this.otaPackageService.confirmDialogUpdatePackage(entityGroup, originalEntityGroup).pipe(
@@ -377,6 +377,11 @@ export class EntityGroupService {
     }
   }
 
+  public getEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType,
+                                   config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+    return this.getEntityGroups(pageLink, groupType, true, config);
+  }
+
   public getEntityGroupAllByOwnerId(ownerType: EntityType, ownerId: string, groupType: EntityType,
                                     config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/all/${ownerType}/${ownerId}/${groupType}`,
@@ -391,9 +396,9 @@ export class EntityGroupService {
     return this.http.post(`/api/entityGroup/${entityGroupId}/addEntities`, entityIds, defaultHttpOptionsFromConfig(config));
   }
 
-  public changeEntityOwner(ownerId: EntityId, entityId: EntityId, config?: RequestConfig): Observable<any> {
+  public changeEntityOwner(ownerId: EntityId, entityId: EntityId, entityGroupIds?: string[], config?: RequestConfig): Observable<any> {
     return this.http.post(`/api/owner/${ownerId.entityType}/${ownerId.id}/${entityId.entityType}/${entityId.id}`,
-      null, defaultHttpOptionsFromConfig(config));
+      entityGroupIds, defaultHttpOptionsFromConfig(config));
   }
 
   public removeEntityFromEntityGroup(entityGroupId: string, entityId: string, config?: RequestConfig): Observable<any> {

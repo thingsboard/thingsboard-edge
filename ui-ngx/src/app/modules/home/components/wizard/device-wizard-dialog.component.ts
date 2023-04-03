@@ -33,7 +33,14 @@ import { Component, Inject, OnDestroy, SkipSelf, ViewChild } from '@angular/core
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import {
+  FormGroupDirective,
+  NgForm,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import {
@@ -60,7 +67,6 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
-import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -68,6 +74,8 @@ import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { ServiceType } from '@shared/models/queue.models';
 import { deepTrim } from '@core/utils';
 import { EntityGroup } from '@shared/models/entity-group.models';
+import { EntityInfoData } from '@shared/models/entity.models';
+import { OwnerAndGroupsData } from '@home/components/group/owner-and-groups.component';
 
 export interface DeviceWizardDialogData {
   customerId?: string;
@@ -113,11 +121,16 @@ export class DeviceWizardDialogComponent extends
 
   credentialsFormGroup: UntypedFormGroup;
 
+  ownerAndGroupsFormGroup: UntypedFormGroup;
+
   labelPosition: MatStepper['labelPosition'] = 'end';
 
   entityGroup = this.data.entityGroup;
 
   customerId = this.data.customerId;
+
+  initialOwnerId: EntityId;
+  initialGroups: EntityInfoData[];
 
   serviceType = ServiceType.TB_RULE_ENGINE;
 
@@ -131,7 +144,7 @@ export class DeviceWizardDialogComponent extends
               public dialogRef: MatDialogRef<DeviceWizardDialogComponent, Device>,
               private deviceProfileService: DeviceProfileService,
               private deviceService: DeviceService,
-              private userPermissionService: UserPermissionsService,
+              private userPermissionsService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
               private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
@@ -212,6 +225,29 @@ export class DeviceWizardDialogComponent extends
       }
     }));
 
+    this.initialGroups = [];
+    if (this.entityGroup) {
+      this.initialOwnerId = this.entityGroup.ownerId;
+      if (!this.entityGroup.groupAll) {
+        this.initialGroups = [{id: this.entityGroup.id, name: this.entityGroup.name}];
+      }
+    } else {
+      if (this.customerId) {
+        this.initialOwnerId = new CustomerId(this.customerId);
+      } else {
+        this.initialOwnerId = this.userPermissionsService.getUserOwnerId();
+      }
+    }
+
+    const ownerAndGroups: OwnerAndGroupsData = {
+      owner: this.initialOwnerId,
+      groups: this.initialGroups
+    };
+
+    this.ownerAndGroupsFormGroup = this.fb.group({
+      ownerAndGroups: [ownerAndGroups, [Validators.required]]
+    });
+
     this.labelPosition = this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm']) ? 'end' : 'bottom';
 
     this.subscriptions.push(this.breakpointObserver
@@ -266,6 +302,8 @@ export class DeviceWizardDialogComponent extends
         return 'device-profile.device-provisioning';
       case 4:
         return 'device.credentials';
+      case 5:
+        return 'entity-group.owner-and-groups';
     }
   }
 
@@ -362,16 +400,19 @@ export class DeviceWizardDialogComponent extends
       },
       customerId: null
     } as Device;
-    let entityGroupId: string;
-    if (this.entityGroup) {
-      if (this.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
-        device.customerId = this.entityGroup.ownerId as CustomerId;
-      }
-      entityGroupId = !this.entityGroup.groupAll ? this.entityGroup.id.id : null;
-    } else if (this.customerId) {
-      device.customerId = new CustomerId(this.customerId);
+    const targetOwnerAndGroups: OwnerAndGroupsData = this.ownerAndGroupsFormGroup.get('ownerAndGroups').value;
+    const targetOwner = targetOwnerAndGroups.owner;
+    let targetOwnerId: EntityId;
+    if ((targetOwner as EntityInfoData).name) {
+      targetOwnerId = (targetOwner as EntityInfoData).id;
+    } else {
+      targetOwnerId = targetOwner as EntityId;
     }
-    return this.deviceService.saveDevice(deepTrim(device), entityGroupId).pipe(
+    if (targetOwnerId.entityType === EntityType.CUSTOMER) {
+      device.customerId = targetOwnerId as CustomerId;
+    }
+    const entityGroupIds = targetOwnerAndGroups.groups.map(group => group.id.id);
+    return this.deviceService.saveDevice(deepTrim(device), entityGroupIds).pipe(
       catchError(e => {
         this.addDeviceWizardStepper.selectedIndex = 0;
         return throwError(e);
@@ -418,10 +459,6 @@ export class DeviceWizardDialogComponent extends
 
   changeStep($event: StepperSelectionEvent): void {
     this.selectedIndex = $event.selectedIndex;
-    if (this.selectedIndex === this.maxStepperIndex) {
-      this.showNext = false;
-    } else {
-      this.showNext = true;
-    }
+    this.showNext = this.selectedIndex !== this.maxStepperIndex;
   }
 }

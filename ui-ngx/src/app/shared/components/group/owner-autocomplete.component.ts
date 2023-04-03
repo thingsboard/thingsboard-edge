@@ -51,6 +51,7 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { EntityInfoData } from '@shared/models/entity.models';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 
 @Component({
   selector: 'tb-owner-autocomplete',
@@ -90,8 +91,15 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   }
 
   @Input()
+  useOwnerInfoValue = false;
+
+  @Input()
+  defaultOwnerId: EntityId | null;
+
+  @Input()
   disabled: boolean;
 
+  @ViewChild('ownerAutocomplete') matAutocomplete: MatAutocomplete;
   @ViewChild('ownerInput', {static: true}) ownerInput: ElementRef<HTMLInputElement>;
 
   filteredOwners: Observable<Array<EntityInfoData>>;
@@ -100,6 +108,8 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
 
   private dirty = false;
   private excludeOwnerIdsChanged = false;
+
+  private clearButtonClicked = false;
 
   private propagateChange = (v: any) => { };
 
@@ -172,6 +182,19 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
     }
   }
 
+  selectDefaultOwnerIfNeeded(): void {
+    if (this.defaultOwnerId && !this.modelValue) {
+      setTimeout(() => {
+        this.entityGroupService.getOwnerInfo(this.defaultOwnerId, {ignoreLoading: true}).subscribe(
+          (owner) => {
+            this.selectOwnerFormGroup.get('owner').patchValue(owner, {emitEvent: false});
+            this.updateView(owner.id);
+          }
+        );
+      }, 0);
+    }
+  }
+
   writeValue(value: EntityId | EntityInfoData | null): void {
     this.searchText = '';
     if (value !== null) {
@@ -191,6 +214,7 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
     } else {
       this.modelValue = null;
       this.selectOwnerFormGroup.get('owner').patchValue('', {emitEvent: false});
+      this.selectDefaultOwnerIfNeeded();
     }
     this.dirty = true;
   }
@@ -202,6 +226,18 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
     }
   }
 
+  onBlur() {
+    if (this.clearButtonClicked) {
+      this.clearButtonClicked = false;
+    } else if (!this.matAutocomplete.isOpen) {
+      this.selectDefaultOwnerIfNeeded();
+    }
+  }
+
+  onPanelClosed() {
+    this.selectDefaultOwnerIfNeeded();
+  }
+
   reset() {
     this.selectOwnerFormGroup.get('owner').patchValue('', {emitEvent: false});
   }
@@ -209,7 +245,11 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   updateView(value: EntityId | null) {
     if (this.modelValue !== value) {
       this.modelValue = value;
-      this.propagateChange(this.modelValue);
+      if (this.useOwnerInfoValue) {
+        this.propagateChange(this.selectOwnerFormGroup.get('owner').value);
+      } else {
+        this.propagateChange(this.modelValue);
+      }
     }
   }
 
@@ -250,6 +290,7 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   }
 
   clear() {
+    this.clearButtonClicked = true;
     this.selectOwnerFormGroup.get('owner').patchValue('', {emitEvent: true});
     setTimeout(() => {
       this.ownerInput.nativeElement.blur();

@@ -86,6 +86,7 @@ import static org.thingsboard.server.controller.ControllerConstants.ASSET_TYPE_D
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
@@ -167,11 +168,13 @@ public class AssetController extends BaseController {
             @ApiParam(value = "A JSON value representing the asset.", required = true)
             @RequestBody Asset asset,
             @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @ApiParam(value = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
+        return saveGroupEntity(asset, strEntityGroupId, strEntityGroupIds, (asset1, entityGroups) -> {
             try {
-                return tbAssetService.save(asset, entityGroup, user);
+                return tbAssetService.save(asset, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }

@@ -47,8 +47,7 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserInfo } from '@shared/models/user.model';
-import { GroupUserComponent } from '@home/pages/user/group-user.component';
-import { AddGroupUserDialogComponent, AddGroupUserDialogData } from '@home/pages/user/add-group-user-dialog.component';
+import { AddUserDialogComponent, AddUserDialogData } from '@home/pages/user/add-user-dialog.component';
 import { UserService } from '@core/http/user.service';
 import {
   ActivationLinkDialogComponent,
@@ -62,6 +61,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { Router, UrlTree } from '@angular/router';
 import { WINDOW } from '@core/services/window.service';
 import { mergeMap } from 'rxjs/operators';
+import { UserComponent } from '@home/pages/user/user.component';
 
 @Injectable()
 export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<UserInfo> {
@@ -82,7 +82,7 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<UserInfo>): Observable<GroupEntityTableConfig<UserInfo>> {
     const config = new GroupEntityTableConfig<UserInfo>(entityGroup, params);
 
-    config.entityComponent = GroupUserComponent;
+    config.entityComponent = UserComponent;
 
     config.entityTitle = (user) => user ? user.email : '';
 
@@ -121,8 +121,8 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
   }
 
   addUser(config: GroupEntityTableConfig<UserInfo>): Observable<UserInfo> {
-    return this.dialog.open<AddGroupUserDialogComponent, AddGroupUserDialogData,
-      UserInfo>(AddGroupUserDialogComponent, {
+    return this.dialog.open<AddUserDialogComponent, AddUserDialogData,
+      UserInfo>(AddUserDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -206,6 +206,16 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     });
   }
 
+  manageOwnerAndGroups($event: Event, user: UserInfo, config: GroupEntityTableConfig<UserInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, user).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
   onUserAction(action: EntityAction<UserInfo>, config: GroupEntityTableConfig<UserInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
@@ -225,6 +235,9 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
         return true;
       case 'enableAccount':
         this.setUserCredentialsEnabled(action.event, action.entity, true);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;
