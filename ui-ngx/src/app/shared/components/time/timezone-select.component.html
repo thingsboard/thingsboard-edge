@@ -39,8 +39,8 @@
          [required]="required"
          [matAutocomplete]="timezoneAutocomplete">
   <button *ngIf="selectTimezoneFormGroup.get('timezone').value && !disabled"
-          type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          type="button" style="margin-right: 1px"
+          matSuffix mat-icon-button aria-label="Clear"
           (mousedown)="ignoreClosePanel = true"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>

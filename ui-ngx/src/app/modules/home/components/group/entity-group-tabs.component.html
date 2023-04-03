@@ -68,14 +68,14 @@
          label="{{ 'entity-group.permissions' | translate }}" #entityGroupPermissionsTab="matTab">
   <tb-group-permissions
     (permissionsChanged)="onPermissionsChanged()"
-    [readonly]="!(entity | hasEntityGroupPermission: operation.WRITE)"
+    [readonly]="sharedGroup() || !(entity | hasEntityGroupPermission: operation.WRITE)"
     [entityGroup]="entity"
     [active]="entityGroupPermissionsTab.isActive"></tb-group-permissions>
 </mat-tab>
 <mat-tab *ngIf="entity && !isEdit && (entity | hasEntityGroupPermission: operation.READ_ATTRIBUTES)"
          label="{{ 'attribute.attributes' | translate }}" #attributesTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="attributeScopes.SERVER_SCOPE"
-                      [readonly]="!(entity | hasEntityGroupPermission: operation.WRITE_ATTRIBUTES)"
+                      [readonly]="sharedGroup() || !(entity | hasEntityGroupPermission: operation.WRITE_ATTRIBUTES)"
                       [active]="attributesTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name">
@@ -84,7 +84,7 @@
 <mat-tab *ngIf="entity && !isEdit && (entity | hasEntityGroupPermission: operation.READ_TELEMETRY)"
          label="{{ 'attribute.latest-telemetry' | translate }}" #telemetryTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="latestTelemetryTypes.LATEST_TELEMETRY"
-                      [readonly]="!(entity | hasEntityGroupPermission: operation.WRITE_TELEMETRY)"
+                      [readonly]="sharedGroup() || !(entity | hasEntityGroupPermission: operation.WRITE_TELEMETRY)"
                       disableAttributeScopeSelection
                       [active]="telemetryTab.isActive"
                       [entityId]="entity.id"

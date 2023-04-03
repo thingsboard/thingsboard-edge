@@ -34,13 +34,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -50,12 +50,10 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Component(value="customerUserPermissions")
@@ -232,7 +230,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
                     }
                 }
                 try {
-                    List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
+                    List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntityAsync(entity.getTenantId(), entityId).get();
                     for (EntityGroupId groupId : entityGroupIds) {
                         if (user.getUserPermissions().hasGroupPermissions(groupId, operation)) {
                             if (operation.isAllowedForGroupOwnerOnly()) {
@@ -288,6 +286,30 @@ public class CustomerUserPermissions extends AbstractPermissions {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
             boolean isOwner = ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId());
+            if (isOwner) {
+                // This entity is a group, so we are checking group generic permission first
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
+            }
+            if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+            if (operation.isGroupOperationAllowedForGroupOwnerOnly()) {
+                return false;
+            }
+            //Just in case, we are also checking specific group permission
+            return user.getUserPermissions().hasGroupPermissions(entityGroup.getId(), operation);
+        }
+
+        @Override
+        public boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) {
+
+            Resource resource = Resource.groupResourceFromGroupType(entityGroup.getType());
+            if (operation == Operation.CREATE) {
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
+            }
+            boolean isOwner = entityGroup.getOwnerIds().contains(user.getOwnerId());
             if (isOwner) {
                 // This entity is a group, so we are checking group generic permission first
                 if (user.getUserPermissions().hasGenericPermission(resource, operation)) {

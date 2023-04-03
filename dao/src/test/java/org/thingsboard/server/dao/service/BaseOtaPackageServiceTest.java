@@ -35,13 +35,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,6 +49,10 @@ import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
@@ -57,6 +61,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 
 public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
@@ -73,18 +78,19 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
 
     private final IdComparator<OtaPackageInfo> idComparator = new IdComparator<>();
 
-    private TenantId tenantId;
-
     private DeviceProfileId deviceProfileId;
+
+    @Autowired
+    DeviceProfileService deviceProfileService;
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    OtaPackageService otaPackageService;
+    @Autowired
+    TenantProfileService tenantProfileService;
 
     @Before
     public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-
         DeviceProfile deviceProfile = this.createDeviceProfile(tenantId, "Device Profile");
         DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile);
         Assert.assertNotNull(savedDeviceProfile);
@@ -108,9 +114,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         createAndSaveFirmware(tenantId, "1");
         Assert.assertEquals(1, otaPackageService.sumDataSizeByTenantId(tenantId));
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage(String.format("Failed to create the ota package, files size limit is exhausted %d bytes!", DATA_SIZE));
-        createAndSaveFirmware(tenantId, "2");
+        assertThatThrownBy(() -> createAndSaveFirmware(tenantId, "2"))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Failed to create the ota package, files size limit is exhausted %d bytes!", DATA_SIZE);
     }
 
     @Test
@@ -252,9 +258,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage should be assigned to tenant!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage should be assigned to tenant!");
     }
 
     @Test
@@ -270,9 +276,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("Type should be specified!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Type should be specified!");
     }
 
     @Test
@@ -288,9 +294,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage title should be specified!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage title should be specified!");
     }
 
     @Test
@@ -306,9 +312,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage file name should be specified!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage file name should be specified!");
     }
 
     @Test
@@ -324,9 +330,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage content type should be specified!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage content type should be specified!");
     }
 
     @Test
@@ -342,9 +348,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksumAlgorithm(CHECKSUM_ALGORITHM);
         firmware.setChecksum(CHECKSUM);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage data should be specified!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage data should be specified!");
     }
 
     @Test
@@ -361,9 +367,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage is referencing to non-existent tenant!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage is referencing to non-existent tenant!");
     }
 
     @Test
@@ -380,9 +386,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksum(CHECKSUM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage is referencing to non-existent device profile!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage is referencing to non-existent device profile!");
     }
 
     @Test
@@ -398,9 +404,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmware.setChecksumAlgorithm(CHECKSUM_ALGORITHM);
         firmware.setData(DATA);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage checksum should be specified!");
-        otaPackageService.saveOtaPackage(firmware);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackage(firmware))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage checksum should be specified!");
     }
 
     @Test
@@ -420,17 +426,17 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         newFirmwareInfo.setTitle(TITLE);
         newFirmwareInfo.setVersion(VERSION);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage with such title and version already exists!");
-        otaPackageService.saveOtaPackageInfo(newFirmwareInfo, false);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackageInfo(newFirmwareInfo, false))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage with such title and version already exists!");
     }
 
     @Test
     public void testSaveFirmwareWithExistingTitleAndVersion() {
         createAndSaveFirmware(tenantId, VERSION);
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("OtaPackage with such title and version already exists!");
-        createAndSaveFirmware(tenantId, VERSION);
+        assertThatThrownBy(() -> createAndSaveFirmware(tenantId, VERSION))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("OtaPackage with such title and version already exists!");
     }
 
     @Test
@@ -445,9 +451,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         Device savedDevice = deviceService.saveDevice(device);
 
         try {
-            thrown.expect(DataValidationException.class);
-            thrown.expectMessage("The otaPackage referenced by the devices cannot be deleted!");
-            otaPackageService.deleteOtaPackage(tenantId, savedFirmware.getId());
+            assertThatThrownBy(() -> otaPackageService.deleteOtaPackage(tenantId, savedFirmware.getId()))
+                    .isInstanceOf(DataValidationException.class)
+                    .hasMessageContaining("The otaPackage referenced by the devices cannot be deleted!");
         } finally {
             deviceService.deleteDevice(tenantId, savedDevice.getId());
             otaPackageService.deleteOtaPackage(tenantId, savedFirmware.getId());
@@ -457,12 +463,12 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
     @Test
     public void testUpdateDeviceProfileId() {
         OtaPackage savedFirmware = createAndSaveFirmware(tenantId, VERSION);
+        savedFirmware.setDeviceProfileId(null);
 
         try {
-            thrown.expect(DataValidationException.class);
-            thrown.expectMessage("Updating otaPackage deviceProfile is prohibited!");
-            savedFirmware.setDeviceProfileId(null);
-            otaPackageService.saveOtaPackage(savedFirmware);
+            assertThatThrownBy(() -> otaPackageService.saveOtaPackage(savedFirmware))
+                    .isInstanceOf(DataValidationException.class)
+                    .hasMessageContaining("Updating otaPackage deviceProfile is prohibited!");
         } finally {
             otaPackageService.deleteOtaPackage(tenantId, savedFirmware.getId());
         }
@@ -491,9 +497,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         deviceProfileService.saveDeviceProfile(savedDeviceProfile);
 
         try {
-            thrown.expect(DataValidationException.class);
-            thrown.expectMessage("The otaPackage referenced by the device profile cannot be deleted!");
-            otaPackageService.deleteOtaPackage(tenantId, savedFirmware.getId());
+            assertThatThrownBy(() -> otaPackageService.deleteOtaPackage(tenantId, savedFirmware.getId()))
+                    .isInstanceOf(DataValidationException.class)
+                    .hasMessageContaining("The otaPackage referenced by the device profile cannot be deleted!");
         } finally {
             deviceProfileService.deleteDeviceProfile(tenantId, savedDeviceProfile.getId());
         }
@@ -645,12 +651,18 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmwareInfo.setType(FIRMWARE);
         firmwareInfo.setTitle(TITLE);
         firmwareInfo.setVersion(VERSION);
+
         firmwareInfo.setUrl("   ");
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("Ota package URL should be specified!");
-        otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackageInfo(firmwareInfo, true))
+                .as("firmwareInfo url set whitespaces")
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Ota package URL should be specified!");
+
         firmwareInfo.setUrl("");
-        otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackageInfo(firmwareInfo, true))
+                .as("firmwareInfo url is empty")
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Ota package URL should be specified!");
     }
 
     @Test
@@ -664,12 +676,10 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmwareInfo.setTenantId(tenantId);
 
         OtaPackageInfo savedFirmwareInfo = otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
-
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("Updating otaPackage URL is prohibited!");
-
         savedFirmwareInfo.setUrl("https://newurl.com");
-        otaPackageService.saveOtaPackageInfo(savedFirmwareInfo, true);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackageInfo(savedFirmwareInfo, true))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("Updating otaPackage URL is prohibited!");
     }
 
     @Test
@@ -682,10 +692,9 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmwareInfo.setUrl(URL);
         firmwareInfo.setTenantId(tenantId);
 
-        thrown.expect(DataValidationException.class);
-        thrown.expectMessage("title length must be equal or less than 255");
-
-        otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackageInfo(firmwareInfo, true))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("title length must be equal or less than 255");
     }
 
     @Test
@@ -696,11 +705,11 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmwareInfo.setUrl(URL);
         firmwareInfo.setTenantId(tenantId);
         firmwareInfo.setTitle(TITLE);
-
         firmwareInfo.setVersion(StringUtils.random(257));
-        thrown.expectMessage("version length must be equal or less than 255");
 
-        otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
+        assertThatThrownBy(() -> otaPackageService.saveOtaPackageInfo(firmwareInfo, true))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessageContaining("version length must be equal or less than 255");
     }
 
     private OtaPackage createAndSaveFirmware(TenantId tenantId, String version) {

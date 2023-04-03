@@ -151,7 +151,7 @@ public class SolutionController extends BaseController {
         checkParameter("solutionTemplateId", solutionTemplateId);
         try {
             checkAllPermissions();
-            solutionService.deleteSolution(getTenantId(), solutionTemplateId);
+            solutionService.deleteSolution(getTenantId(), solutionTemplateId, getCurrentUser());
         } catch (Exception e) {
             throw handleException(e);
         }

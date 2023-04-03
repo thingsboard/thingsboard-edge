@@ -220,10 +220,20 @@ import { ConverterTestDialogComponent } from '@home/components/converter/convert
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
+import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
+import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
+import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
+import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
+import { GroupChipsComponent } from '@home/components/group/group-chips.component';
+import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
+import { ManageOwnerAndGroupsDialogComponent } from '@home/components/group/manage-owner-and-groups-dialog.component';
+import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups.component';
 
 @NgModule({
   declarations:
     [
+      RouterTabsComponent,
       EntitiesTableComponent,
       AddEntityDialogComponent,
       DetailsPanelComponent,
@@ -242,6 +252,7 @@ import { modulesMap } from '@modules/common/modules-map';
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      AlarmAssigneePanelComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -291,6 +302,10 @@ import { modulesMap } from '@modules/common/modules-map';
       EntityGroupColumnsComponent,
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
+      GroupChipsComponent,
+      GroupEntityInfoComponent,
+      OwnerAndGroupsComponent,
+      ManageOwnerAndGroupsDialogComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -388,7 +403,9 @@ import { modulesMap } from '@modules/common/modules-map';
       RateLimitsTextComponent,
       IntegrationWizardDialogComponent,
       ConverterComponent,
-      ConverterTestDialogComponent
+      ConverterTestDialogComponent,
+      SlackConversationAutocompleteComponent,
+      SendNotificationButtonComponent
     ],
   imports: [
     CommonModule,
@@ -405,6 +422,7 @@ import { modulesMap } from '@modules/common/modules-map';
   ],
   exports: [
     SharedHomeComponentsModule,
+    RouterTabsComponent,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,
@@ -417,6 +435,7 @@ import { modulesMap } from '@modules/common/modules-map';
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    AlarmAssigneePanelComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
@@ -461,6 +480,10 @@ import { modulesMap } from '@modules/common/modules-map';
     EntityGroupColumnsComponent,
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
+    GroupChipsComponent,
+    GroupEntityInfoComponent,
+    OwnerAndGroupsComponent,
+    ManageOwnerAndGroupsDialogComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
@@ -550,12 +573,15 @@ import { modulesMap } from '@modules/common/modules-map';
     RateLimitsComponent,
     RateLimitsListComponent,
     RateLimitsTextComponent,
-    IntegrationWizardDialogComponent
+    IntegrationWizardDialogComponent,
+    SlackConversationAutocompleteComponent,
+    SendNotificationButtonComponent
   ],
   providers: [
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
+    AllEntitiesTableConfigService,
     GroupConfigTableConfigService,
     EntityGroupsTableConfigResolver,
     EntityGroupConfigResolver,

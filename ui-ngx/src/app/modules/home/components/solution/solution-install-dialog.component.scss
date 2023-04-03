@@ -31,8 +31,9 @@
 :host {
   h2 {
     mat-icon {
-      line-height: 16px;
       padding-right: 8px;
+      box-sizing: initial;
+      vertical-align: sub;
     }
   }
 }

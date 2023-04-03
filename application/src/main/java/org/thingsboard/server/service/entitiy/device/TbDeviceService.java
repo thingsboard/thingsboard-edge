@@ -37,10 +37,13 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
+
+import java.util.List;
 
 public interface TbDeviceService {
 
@@ -48,9 +51,13 @@ public interface TbDeviceService {
 
     Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws Exception;
 
+    Device save(Device device, String accessToken, List<EntityGroup> entityGroups, User user) throws Exception;
+
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials, EntityGroup entityGroup, User user) throws ThingsboardException;
 
     ListenableFuture<Void> delete(Device device, User user);
+
+    ListenableFuture<Void> delete(DeviceId deviceId, User user);
 
     DeviceCredentials getDeviceCredentialsByDeviceId(Device device, User user) throws ThingsboardException;
 

@@ -31,9 +31,3 @@
 :host {
 
 }
-
-:host ::ng-deep {
-  .mat-form-field-infix {
-    border-top: none;
-  }
-}

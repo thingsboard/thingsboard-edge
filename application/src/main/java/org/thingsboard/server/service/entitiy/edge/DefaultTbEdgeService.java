@@ -47,6 +47,9 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
+import java.util.Collections;
+import java.util.List;
+
 @AllArgsConstructor
 @TbCoreComponent
 @Service
@@ -58,6 +61,11 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
 
     @Override
     public Edge save(Edge edge, RuleChain edgeTemplateRootRuleChain, EntityGroup entityGroup, User user) throws Exception {
+        return save(edge, edgeTemplateRootRuleChain, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Edge save(Edge edge, RuleChain edgeTemplateRootRuleChain, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = edge.getTenantId();
         try {
@@ -74,8 +82,10 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
             Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
             EdgeId edgeId = savedEdge.getId();
 
-            if (entityGroup != null && actionType == ActionType.ADDED) {
-                entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), edgeId);
+            if (!entityGroups.isEmpty() && actionType == ActionType.ADDED) {
+                for (EntityGroup entityGroup : entityGroups) {
+                    entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), edgeId);
+                }
             }
 
             if (actionType == ActionType.ADDED) {

@@ -46,4 +46,13 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
         profilesBtn().click();
         assetProfileBtn().click();
     }
+
+    public void goToAllCustomers() {
+        customersBtn().click();
+    }
+
+    public void goToCustomerGroups() {
+        goToAllCustomers();
+        new CustomerPageHelper(driver).groupsBtn().click();
+    }
 }

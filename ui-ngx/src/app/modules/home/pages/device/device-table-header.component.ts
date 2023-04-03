@@ -29,30 +29,44 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
-import { Device } from '@app/shared/models/device.models';
+import { Device, DeviceInfo } from '@app/shared/models/device.models';
 import { EntityType } from '@shared/models/entity-type.models';
-import { DeviceProfileId } from '../../../../shared/models/id/device-profile-id';
+import { DeviceProfileId } from '@shared/models/id/device-profile-id';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-device-table-header',
   templateUrl: './device-table-header.component.html',
-  styleUrls: ['./device-table-header.component.scss']
+  styleUrls: []
 })
-export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Device> {
+export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<DeviceInfo | Device> implements OnInit {
 
   entityType = EntityType;
+
+  includeCustomersLabel: string;
 
   constructor(protected store: Store<AppState>) {
     super(store);
   }
 
+  ngOnInit() {
+    super.ngOnInit();
+    this.includeCustomersLabel = (getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER ||
+      this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
+  }
+
   deviceProfileChanged(deviceProfileId: DeviceProfileId) {
     this.entitiesTableConfig.componentsData.deviceProfileId = deviceProfileId;
     this.entitiesTableConfig.getTable().resetSortAndFilter(true);
+  }
+
+  includeCustomersChanged(includeCustomers: boolean) {
+    this.entitiesTableConfig.componentsData.includeCustomersChanged(includeCustomers);
   }
 
 }

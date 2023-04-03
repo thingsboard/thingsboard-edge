@@ -31,19 +31,23 @@
 
 -->
 <mat-form-field [formGroup]="selectOwnerFormGroup" class="mat-block">
-  <input matInput type="text" placeholder="{{ placeholderText | translate }}"
+  <mat-label>{{ placeholderText | translate }}</mat-label>
+  <input matInput type="text"
          #ownerInput
+         #ownerMatInput="matInput"
          formControlName="owner"
          (focusin)="onFocus()"
+         (blur)="onBlur()"
          [required]="required"
          [matAutocomplete]="ownerAutocomplete">
   <button *ngIf="selectOwnerFormGroup.get('owner').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
   <mat-autocomplete class="tb-autocomplete"
+                    (closed)="!ownerMatInput.focused ? onPanelClosed() : false"
                     #ownerAutocomplete="matAutocomplete"
                     [displayWith]="displayOwnerFn">
     <mat-option *ngFor="let owner of filteredOwners | async" [value]="owner">

@@ -36,7 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { Edge, EdgeEvent, EdgeInstallInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
+import { Edge, EdgeEvent, EdgeInfo, EdgeInstallInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 
@@ -58,10 +58,18 @@ export class EdgeService {
     return this.http.get<Edge>(`/api/edge/${edgeId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveEdge(edge: Edge, entityGroupId?: string, config?: RequestConfig): Observable<Edge> {
+  public getEdgeInfo(edgeId: string, config?: RequestConfig): Observable<EdgeInfo> {
+    return this.http.get<EdgeInfo>(`/api/edge/info/${edgeId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveEdge(edge: Edge, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Edge> {
     let url = '/api/edge';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Edge>(url, edge, defaultHttpOptionsFromConfig(config));
   }
@@ -74,11 +82,11 @@ export class EdgeService {
     return this.http.get<Array<EntitySubtype>>('/api/edge/types', defaultHttpOptionsFromConfig(config));
   }
 
-  public getCustomerEdgeInfos(customerId: string, pageLink: PageLink, type: string = '',
+  /* public getCustomerEdgeInfos(customerId: string, pageLink: PageLink, type: string = '',
                                config?: RequestConfig): Observable<PageData<Edge>> {
     return this.http.get<PageData<Edge>>(`/api/customer/${customerId}/edgeInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
-  }
+  } */
 
   public assignEdgeToCustomer(customerId: string, edgeId: string,
                               config?: RequestConfig): Observable<Edge> {
@@ -109,6 +117,27 @@ export class EdgeService {
 
   public getUserEdges(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<Edge>> {
     return this.http.get<PageData<Edge>>(`/api/user/edges${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAllEdgeInfos(includeCustomers: boolean,
+                         pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EdgeInfo>> {
+    let url = `/api/edgeInfos/all${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EdgeInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerEdgeInfos(includeCustomers: boolean, customerId: string,
+                              pageLink: PageLink, type: string = '',
+                              config?: RequestConfig): Observable<PageData<EdgeInfo>> {
+    let url = `/api/customer/${customerId}/edgeInfos${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EdgeInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

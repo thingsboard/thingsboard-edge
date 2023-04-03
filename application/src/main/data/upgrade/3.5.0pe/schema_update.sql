@@ -204,6 +204,7 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
+DROP VIEW IF EXISTS integration_info CASCADE;
 CREATE OR REPLACE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
        allow_create_devices_or_assets, is_edge_template, search_text,
@@ -226,3 +227,143 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
                   ORDER BY last_update_ts
                  LIMIT 1) END) as status
 FROM integration i;
+
+DROP VIEW IF EXISTS dashboard_info_view CASCADE;
+CREATE OR REPLACE VIEW dashboard_info_view as
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DASHBOARD'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM dashboard d
+         LEFT JOIN customer c ON c.id = d.customer_id;
+
+DROP VIEW IF EXISTS asset_info_view CASCADE;
+CREATE OR REPLACE VIEW asset_info_view as
+SELECT a.*,
+       c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = a.id
+                             and re.to_type = 'ASSET'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM asset a
+         LEFT JOIN customer c ON c.id = a.customer_id;
+
+DROP VIEW IF EXISTS device_info_view CASCADE;
+CREATE OR REPLACE VIEW device_info_view as
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DEVICE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM device d
+         LEFT JOIN customer c ON c.id = d.customer_id;
+
+DROP VIEW IF EXISTS entity_view_info_view CASCADE;
+CREATE OR REPLACE VIEW entity_view_info_view as
+SELECT e.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = e.id
+                             and re.to_type = 'ENTITY_VIEW'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM entity_view e
+         LEFT JOIN customer c ON c.id = e.customer_id;
+
+DROP VIEW IF EXISTS customer_info_view CASCADE;
+CREATE OR REPLACE VIEW customer_info_view as
+SELECT c.*, c2.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = c.id
+                             and re.to_type = 'CUSTOMER'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM customer c
+         LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
+
+DROP VIEW IF EXISTS user_info_view CASCADE;
+CREATE OR REPLACE VIEW user_info_view as
+SELECT u.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = u.id
+                             and re.to_type = 'USER'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM tb_user u
+         LEFT JOIN customer c ON c.id = u.customer_id;
+
+DROP VIEW IF EXISTS edge_info_view CASCADE;
+CREATE OR REPLACE VIEW edge_info_view as
+SELECT e.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = e.id
+                             and re.to_type = 'EDGE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups
+FROM edge e
+         LEFT JOIN customer c ON c.id = e.customer_id;
+
+DROP VIEW IF EXISTS entity_group_info_view CASCADE;
+CREATE OR REPLACE VIEW entity_group_info_view as
+SELECT eg.*,
+       array_to_json(ARRAY(WITH RECURSIVE owner_ids(id, type, lvl) AS
+                                              (SELECT eg.owner_id id, eg.owner_type::varchar(15) as type, 1 as lvl
+                                               UNION
+                                               SELECT (CASE
+                                                           WHEN ce2.parent_customer_id IS NULL OR ce2.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080' THEN ce2.tenant_id
+                                                           ELSE ce2.parent_customer_id END) as id,
+                                                      (CASE
+                                                           WHEN ce2.parent_customer_id IS NULL OR ce2.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080' THEN 'TENANT'
+                                                           ELSE 'CUSTOMER' END)::varchar(15) as type,
+                                                      parent.lvl + 1 as lvl
+                                               FROM customer ce2, owner_ids parent WHERE ce2.id = parent.id and eg.owner_type = 'CUSTOMER')
+                           SELECT json_build_object('id', id, 'entityType', type) FROM owner_ids order by lvl)) owner_ids
+FROM entity_group eg;
+
+DROP VIEW IF EXISTS owner_info_view CASCADE;
+CREATE OR REPLACE VIEW owner_info_view as
+(SELECT t.id as id, t.created_time as created_time, '13814000-1dd2-11b2-8080-808080808080'::uuid as tenant_id, 'TENANT' as entity_type, t.title as name, false as is_public from tenant t
+ UNION
+ SELECT c.id as id, c.created_time as created_time, c.tenant_id as tenant_id, 'CUSTOMER' as entity_type, c.title as name,
+       (CASE
+            WHEN c.additional_info is not null and c.additional_info::json ->> 'isPublic' = 'true' THEN true
+            ELSE false END) as is_public
+FROM customer c);

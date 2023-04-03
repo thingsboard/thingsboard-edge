@@ -31,14 +31,17 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
@@ -51,15 +54,17 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustom
 
 public class CustomerEditMenuTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
+    private LoginPageHelper loginPage;
     private CustomerPageHelper customerPage;
     private String customerName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        loginPage = new LoginPageHelper(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
+        loginPage.authorizationTenant();
     }
 
     @AfterMethod
@@ -70,15 +75,24 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         }
     }
 
+    @BeforeMethod
+    public void reLogin() {
+        if (getJwtTokenFromLocalStorage() == null) {
+            loginPage.authorizationTenant();
+        }
+    }
+
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change title by edit menu")
     public void changeTitle() {
         String newCustomerName = "Changed" + getRandomNumber();
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.setCustomerHeaderName();
         String titleBefore = customerPage.getCustomerHeaderName();
@@ -93,14 +107,16 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(titleAfter, newCustomerName);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Delete title and save")
     public void deleteTitle() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.titleFieldEntityView().clear();
@@ -108,14 +124,16 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.doneBtnEditViewVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Save only with space in title")
     public void saveOnlyWithSpace() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
@@ -129,14 +147,16 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getCustomerName(), customerPage.getCustomerHeaderName());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "editMenuDescription")
-    @Description
+    @Description("Write the description and save the changes/Change the description and save the changes/Delete the description and save the changes")
     public void editDescription(String description, String newDescription, String finalDescription) {
         String name = ENTITY_NAME + random();
         testRestClient.postCustomer(EntityPrototypes.defaultCustomerPrototype(name, description));
         customerName = name;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.descriptionEntityView().sendKeys(newDescription);
@@ -146,14 +166,16 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getDescription(), finalDescription);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add country")
     public void addCountry() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.selectCountryEntityView();
@@ -162,35 +184,37 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.countrySelectMenuEntityView().getText(), customerPage.getCountry());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add phone number")
     public void addPhoneNumber() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
         String number = "2015550123";
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
-        customerPage.doneBtnEditView().click();
 
         Assert.assertTrue(customerPage.phoneNumberEntityView().getAttribute("value").contains(number));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "incorrectPhoneNumber")
-    @Description
+    @Description("Add incorrect phone number")
     public void addIncorrectPhoneNumber(String number) {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
-        customerPage.doneBtnEditViewVisible().click();
 
         Assert.assertFalse(customerPage.doneBtnIsEnable());
         Assert.assertNotNull(customerPage.errorMessage());
@@ -198,8 +222,10 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.errorMessage().getText(), PHONE_NUMBER_ERROR_MESSAGE);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Edit customer")
     @Test(priority = 30, groups = "smoke")
-    @Description
+    @Description("Add all information")
     public void addAllInformation() {
         String customerName = ENTITY_NAME + random();
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
@@ -208,7 +234,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         String email = "email@mail.com";
         String number = "2015550123";
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.selectCountryEntityView();

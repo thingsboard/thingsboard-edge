@@ -29,6 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+export * from './date-ago.pipe';
 export * from './enum-to-array.pipe';
 export * from './highlight.pipe';
 export * from './keyboard-shortcut.pipe';

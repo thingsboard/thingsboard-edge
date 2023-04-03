@@ -40,13 +40,14 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId> {
+public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -60,6 +61,8 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
     @NoXss
     @Length(fieldName = "last name")
     private String lastName;
+    @NoXss
+    private String phone;
 
     public User() {
         super();
@@ -77,6 +80,7 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
         this.authority = user.getAuthority();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
+        this.phone = user.getPhone();
     }
 
 
@@ -171,7 +175,16 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
         this.lastName = lastName;
     }
 
-    @ApiModelProperty(position = 10, value = "Additional parameters of the user", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 10, required = true, value = "Phone number of the user", example = "38012345123")
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    @ApiModelProperty(position = 11, value = "Additional parameters of the user", dataType = "com.fasterxml.jackson.databind.JsonNode")
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();

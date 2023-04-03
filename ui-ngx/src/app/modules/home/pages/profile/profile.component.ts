@@ -78,6 +78,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
       email: ['', [Validators.required, Validators.email]],
       firstName: [''],
       lastName: [''],
+      phone: [''],
       language: [''],
       homeDashboardId: [null],
       homeDashboardHideToolbar: [true]
@@ -102,6 +103,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
             tenantId: user.tenantId,
             customerId: user.customerId,
             email: user.email,
+            phone: user.phone,
             firstName: user.firstName,
             id: user.id,
             lastName: user.lastName,

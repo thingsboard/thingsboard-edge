@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { User } from '@shared/models/user.model';
+import { User, UserEmailInfo, UserInfo } from '@shared/models/user.model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
@@ -71,6 +71,10 @@ export class UserService {
     return this.http.get<User>(`/api/user/${userId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getUserInfo(userId: string, config?: RequestConfig): Observable<UserInfo> {
+    return this.http.get<UserInfo>(`/api/user/info/${userId}`, defaultHttpOptionsFromConfig(config));
+  }
+
   public getUsers(userIds: Array<string>, config?: RequestConfig): Observable<Array<User>> {
     return this.http.get<Array<User>>(`/api/users?userIds=${userIds.join(',')}`, defaultHttpOptionsFromConfig(config)).pipe(
       map((users) => sortEntitiesByIds(users, userIds))
@@ -83,12 +87,36 @@ export class UserService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getAllUserInfos(includeCustomers: boolean,
+                         pageLink: PageLink, config?: RequestConfig): Observable<PageData<UserInfo>> {
+    let url = `/api/userInfos/all${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<UserInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerUserInfos(includeCustomers: boolean, customerId: string,
+                              pageLink: PageLink, config?: RequestConfig): Observable<PageData<UserInfo>> {
+    let url = `/api/customer/${customerId}/userInfos${pageLink.toQuery()}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<UserInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public saveUser(user: User, sendActivationMail: boolean = false,
-                  entityGroupId?: string,
+                  entityGroupIds?: string | string[],
                   config?: RequestConfig): Observable<User> {
     let url = `/api/user?sendActivationMail=${sendActivationMail}`;
-    if (entityGroupId) {
-      url += `&entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `&entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `&entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<User>(url, user, defaultHttpOptionsFromConfig(config));
   }
@@ -113,6 +141,10 @@ export class UserService {
       url += `?userCredentialsEnabled=${userCredentialsEnabled}`;
     }
     return this.http.post<User>(url, null, defaultHttpOptionsFromConfig(config));
+  }
+
+  public findUsersByQuery(pageLink: PageLink, config?: RequestConfig) : Observable<PageData<UserEmailInfo>> {
+    return this.http.get<PageData<UserEmailInfo>>(`/api/users/info${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
   }
 
 }

@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,6 +58,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserEmailInfo;
+import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -80,9 +80,9 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.UserSettings;
 import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.user.TbUserService;
-import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -92,11 +92,10 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
@@ -107,6 +106,7 @@ import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_HIDE_TOOLBAR;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_ID;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -139,7 +139,6 @@ public class UserController extends BaseController {
     public static final String ACTIVATE_URL_PATTERN = "%s/api/noauth/activate?activateToken=%s";
 
     @Value("${security.user_token_access_enabled}")
-    @Getter
     private boolean userTokenAccessEnabled;
 
     private final MailService mailService;
@@ -167,6 +166,36 @@ public class UserController extends BaseController {
         try {
             UserId userId = new UserId(toUUID(strUserId));
             User user = checkUserId(userId, Operation.READ);
+            if (user.getAdditionalInfo().isObject()) {
+                ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
+                processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
+                processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+                if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
+                    additionalInfo.put("userCredentialsEnabled", true);
+                }
+            }
+            return user;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get User info (getUserInfoById)",
+            notes = "Fetch the User info object based on the provided User Id. " +
+                    "If the user has the authority of 'SYS_ADMIN', the server does not perform additional checks. " +
+                    "If the user has the authority of 'TENANT_ADMIN', the server checks that the requested user is owned by the same tenant. " +
+                    "If the user has the authority of 'CUSTOMER_USER', the server checks that the requested user is owned by the same customer.\n\n" + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/user/info/{userId}", method = RequestMethod.GET)
+    @ResponseBody
+    public UserInfo getUserInfoById(
+            @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
+            @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
+        checkParameter(USER_ID, strUserId);
+        try {
+            UserId userId = new UserId(toUUID(strUserId));
+            UserInfo user = checkUserInfoId(userId, Operation.READ);
             if (user.getAdditionalInfo().isObject()) {
                 ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
                 processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
@@ -239,23 +268,34 @@ public class UserController extends BaseController {
             @ApiParam(value = "Send activation email (or use activation link)", defaultValue = "true")
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds,
             HttpServletRequest request) throws ThingsboardException {
 
         if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
             user.setTenantId(getCurrentUser().getTenantId());
         }
 
-        EntityGroupId entityGroupId = null;
-        EntityGroup entityGroup = null;
+        List<EntityGroupId> entityGroupIds = new ArrayList<>();
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        String[] groupIds = null;
         if (!StringUtils.isEmpty(strEntityGroupId)) {
-            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            groupIds = new String[]{strEntityGroupId};
+        } else if (strEntityGroupIds != null && strEntityGroupIds.length > 0) {
+            groupIds = strEntityGroupIds;
+        }
+        if (groupIds != null) {
+            for (String id : groupIds) {
+                EntityGroupId entityGroupId = new EntityGroupId(toUUID(id));
+                EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                entityGroupIds.add(entityGroupId);
+                entityGroups.add(entityGroup);
+            }
         }
 
         if (user.getId() == null && getCurrentUser().getAuthority() != Authority.SYS_ADMIN &&
                 (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
-            if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
-                user.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+            if (!entityGroups.isEmpty() && entityGroups.get(0).getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                user.setOwnerId(new CustomerId(entityGroups.get(0).getOwnerId().getId()));
             } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                 user.setOwnerId(getCurrentUser().getCustomerId());
             }
@@ -264,7 +304,7 @@ public class UserController extends BaseController {
         if (getCurrentUser().getId().equals(user.getId())) {
             accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
         } else {
-            checkEntity(user.getId(), user, Resource.USER, entityGroupId);
+            checkEntityWithGroupIds(user.getId(), user, Resource.USER, entityGroupIds);
         }
 
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
@@ -290,7 +330,7 @@ public class UserController extends BaseController {
         }
 
         return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
-                user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
+                user, sendActivationMail, request, entityGroups, getCurrentUser());
     }
 
     @ApiOperation(value = "Send or re-send the activation email",
@@ -519,6 +559,88 @@ public class UserController extends BaseController {
             MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
             return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.USER,
                     Operation.READ, null, pageLink);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get All User Infos for current user (getAllUserInfos)",
+            notes = "Returns a page of user info objects owned by the tenant or the customer of a current user. " +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/userInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<UserInfo> getAllUserInfos(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = USER_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = USER_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                if (includeCustomers != null && includeCustomers) {
+                    return checkNotNull(userService.findUserInfosByTenantId(tenantId, pageLink));
+                } else {
+                    return checkNotNull(userService.findTenantUserInfosByTenantId(tenantId, pageLink));
+                }
+            } else {
+                CustomerId customerId = getCurrentUser().getCustomerId();
+                if (includeCustomers != null && includeCustomers) {
+                    return checkNotNull(userService.findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                } else {
+                    return checkNotNull(userService.findUserInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Customer user Infos (getCustomerUserInfos)",
+            notes = "Returns a page of user info objects owned by the specified customer. " +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/{customerId}/userInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<UserInfo> getCustomerUserInfos(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(CUSTOMER_ID) String strCustomerId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = USER_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = USER_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            if (includeCustomers != null && includeCustomers) {
+                return checkNotNull(userService.findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+            } else {
+                return checkNotNull(userService.findUserInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
