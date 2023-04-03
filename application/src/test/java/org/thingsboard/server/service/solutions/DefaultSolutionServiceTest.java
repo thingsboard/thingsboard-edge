@@ -35,6 +35,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -51,7 +53,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.mapper;
 
-//@RunWith(SpringRunner.class)
+@RunWith(SpringRunner.class)
 public class DefaultSolutionServiceTest {
 
     @Test
