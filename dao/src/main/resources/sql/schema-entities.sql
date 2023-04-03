@@ -997,9 +997,11 @@ FROM integration i;
 
 
 CREATE TABLE IF NOT EXISTS user_settings (
-    user_id uuid NOT NULL CONSTRAINT user_settings_pkey PRIMARY KEY,
+    user_id uuid NOT NULL,
+    type VARCHAR(50) NOT NULL,
     settings varchar(10000),
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE,
+    CONSTRAINT user_settings_pkey PRIMARY KEY (user_id, type)
 );
 
 CREATE OR REPLACE VIEW dashboard_info_view as
