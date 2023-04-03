@@ -259,7 +259,7 @@ ${all_entities}
 
 ### Edge computing
 
-Optionally, this solution can be extended to use edge computing.
+**Optionally**, this solution can be extended to use edge computing.
 
 <a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
 At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
