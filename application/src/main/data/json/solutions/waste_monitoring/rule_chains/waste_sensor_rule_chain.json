@@ -160,7 +160,7 @@
           "layoutY": 138
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
-        "name": "To Active Telemetry",
+        "name": "To Attributes",
         "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
