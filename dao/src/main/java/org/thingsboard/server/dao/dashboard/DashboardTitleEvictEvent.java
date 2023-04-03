@@ -28,49 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security;
+package org.thingsboard.server.dao.dashboard;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.validation.Length;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
-
-@ApiModel
 @Data
-public class UserSettings implements Serializable {
-
-    private static final long serialVersionUID = 2628320657987010348L;
-
-    @ApiModelProperty(position = 1, value = "JSON object with User id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private UserId userId;
-
-    @ApiModelProperty(position = 2, value = "JSON object with user settings.", dataType = "com.fasterxml.jackson.databind.JsonNode")
-    @NoXss
-    @Length(fieldName = "settings", max = 100000)
-    private transient JsonNode settings;
-
-    @JsonIgnore
-    private byte[] settingsBytes;
-
-    public JsonNode getSettings() {
-        return getJson(() -> settings, () -> settingsBytes);
-    }
-
-    public void setSettings(JsonNode settings) {
-        setJson(settings, json -> this.settings = json, bytes -> this.settingsBytes = bytes);
-    }
+public class DashboardTitleEvictEvent {
+    private final DashboardId key;
 }
