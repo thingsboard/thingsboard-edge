@@ -100,9 +100,9 @@ As part of this solution, the following entities were created:
 
 ${all_entities}
 
-### [Optional] Edge computing
+### Edge computing
 
-Optionally, this solution can be deployed to the edge.
+Optionally, this solution can be extended to use edge computing.
 
 <a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
 At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
@@ -121,11 +121,7 @@ Additionally, particular entity groups were already assigned to the edge entity 
 * **"Office sensors"** *DEVICE* group;
 * **"Smart office dashboards"** *DASHBOARD* group.
 
-ThingsBoard Edge is a separate service that must be installed, configured and connected to the cloud.
-The easiest way to install ThingsBoard Edge is to use <a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a>.
-
-Docker compose installation instructions are available on the edge details page.
-Please navigate to <a href="${Remote Office R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
+To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Office R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
 
 Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials.
 

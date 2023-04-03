@@ -21,4 +21,4 @@ Press the "install" button, and you will have a ready-to-use generic application
 * Multiple device and asset profiles with pre-configured alarm rules: "SI Water Meter", "SI Smart Valve", "SI Soil Moisture Sensor", "SI Field";
 * Rule Chains to control the irrigation logic and process data from devices and assets;
 * Each device type generates a specific alarm based on configurable thresholds;
-* [Optional] Edge instance - add edge computing to your solution.
+* Edge instance - optionally, add edge computing to your solution.

@@ -16,4 +16,4 @@ Press the install button and you will have a ready-to-use generic application th
    * "Water Metering Solution Main" contains data aggregation rule nodes. 
    * "Water Metering Solution Tenant Alarm Routing" responsible for sending alarm notifications over SMS or email if corresponding administrator settings are enabled.
    * "Water Metering Solution User Alarm Routing" responsible for sending alarm notifications over SMS or email if corresponding user settings are enabled.
-* [Optional] Edge instance - add edge computing to your solution.
+* Edge instance - optionally, add edge computing to your solution.

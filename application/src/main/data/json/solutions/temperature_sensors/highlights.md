@@ -10,4 +10,4 @@ Those users will have the dashboard assigned to them and the user will see the d
 * "Read only" role;  
 * Two "Temperature Sensor" devices and their device profile;
 * Customer with two users;
-* [Optional] Edge instance - add edge computing to your solution.
+* Edge instance - optionally, add edge computing to your solution.

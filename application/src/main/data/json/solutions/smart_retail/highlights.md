@@ -20,4 +20,4 @@ Press the "install" button, and you will have a ready-to-use generic application
 * "Smart Supermarket" dashboard for supermarket managers to browse state of the supermarkets they are responsible for;
 * Multiple device profiles with pre-configured alarm rules: "Smart Shelf", "Chiller", "Freezer", "Smart Bin" and other devices;
 * Each device type generates specific alarm based on configurable thresholds;
-* [Optional] Edge instance - add edge computing to your scenario.
+* Edge instance - optionally, add edge computing to your solution.
