@@ -6,7 +6,8 @@
     "firstRuleNodeId": null,
     "root": true,
     "debugMode": false,
-    "configuration": null
+    "configuration": null,
+    "externalId": null
   },
   "metadata": {
     "firstNodeIndex": 3,
@@ -24,7 +25,8 @@
           "originatorTypes": [
             "ENTITY_GROUP"
           ]
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -40,7 +42,8 @@
             "POST_ATTRIBUTES_REQUEST",
             "RPC_CALL_FROM_SERVER_TO_DEVICE"
           ]
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -54,7 +57,8 @@
         "configuration": {
           "entityGroupId": null,
           "entityGroupIsMessageOriginator": true
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -68,7 +72,8 @@
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -80,7 +85,8 @@
         "debugMode": false,
         "configuration": {
           "defaultTTL": 0
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -93,7 +99,8 @@
         "configuration": {
           "scope": "CLIENT_SCOPE",
           "notifyDevice": "false"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -105,7 +112,8 @@
         "debugMode": false,
         "configuration": {
           "version": 0
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -119,12 +127,13 @@
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
-          "layoutX": 830,
-          "layoutY": 474
+          "layoutX": 824,
+          "layoutY": 475
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -133,31 +142,47 @@
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
-          "layoutX": 838,
-          "layoutY": 576
+          "layoutX": 827,
+          "layoutY": 575
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
         "debugMode": false,
         "configuration": {
           "timeoutInSeconds": 60
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
-          "layoutX": 1134,
-          "layoutY": 154
+          "layoutX": 1125,
+          "layoutY": 202
         },
         "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
         "name": "Push to cloud",
         "debugMode": false,
         "configuration": {
           "scope": "SERVER_SCOPE"
-        }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 651,
+          "layoutY": 676
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "Push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -203,13 +228,8 @@
       },
       {
         "fromIndex": 6,
-        "toIndex": 9,
-        "type": "RPC Request to Device"
-      },
-      {
-        "fromIndex": 6,
-        "toIndex": 8,
-        "type": "Other"
+        "toIndex": 4,
+        "type": "Post telemetry"
       },
       {
         "fromIndex": 6,
@@ -218,33 +238,28 @@
       },
       {
         "fromIndex": 6,
-        "toIndex": 4,
-        "type": "Post telemetry"
-      },
-      {
-        "fromIndex": 6,
         "toIndex": 7,
         "type": "RPC Request from Device"
       },
       {
         "fromIndex": 6,
-        "toIndex": 10,
-        "type": "Attributes Updated"
+        "toIndex": 8,
+        "type": "Other"
       },
       {
         "fromIndex": 6,
-        "toIndex": 10,
+        "toIndex": 9,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 11,
         "type": "Attributes Deleted"
       },
       {
         "fromIndex": 6,
-        "toIndex": 10,
-        "type": "Timeseries Deleted"
-      },
-      {
-        "fromIndex": 6,
-        "toIndex": 10,
-        "type": "Timeseries Updated"
+        "toIndex": 11,
+        "type": "Attributes Updated"
       }
     ],
     "ruleChainConnections": null

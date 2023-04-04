@@ -223,6 +223,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         }
       );
     }
+    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ) && authState.edgesSupportEnabled) {
       actions.push(
         {
@@ -233,6 +234,8 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         }
       );
     }
+    */
+
     if (this.userPermissionsService.hasGenericPermission(Resource.DASHBOARD, Operation.READ)) {
       actions.push(
         {
