@@ -41,11 +41,11 @@ services:
       POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge"'
       POSTGRES_PASSWORD: postgres
     volumes:
-      - ./tb-node/pg_test:/var/lib/postgresql/data
+      - ./tb-node/postgres:/var/lib/postgresql/data
       - ./docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
   tb-monolith:
     env_file:
-      - tb-node.postgres.env
+      - tb-node.env
     depends_on:
       - postgres
   tb-edge:
