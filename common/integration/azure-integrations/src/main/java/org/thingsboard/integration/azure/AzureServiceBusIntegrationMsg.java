@@ -28,31 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.integration.azure;
 
-import io.swagger.annotations.ApiModelProperty;
+import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
-import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.common.util.JacksonUtil;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Data
-public class SystemInfoData {
-    @ApiModelProperty(position = 1, value = "Service Id.")
-    private String serviceId;
-    @ApiModelProperty(position = 2, value = "Service type.")
-    private String serviceType;
-    @ApiModelProperty(position = 3, value = "CPU usage, in percent.")
-    private Long cpuUsage;
-    @ApiModelProperty(position = 4, value = "Total CPU usage.")
-    private Long cpuCount;
-    @ApiModelProperty(position = 5, value = "Memory usage, in percent.")
-    private Long memoryUsage;
-    @ApiModelProperty(position = 6, value = "Total memory in bytes.")
-    private Long totalMemory;
-    @ApiModelProperty(position = 7, value = "Disk usage, in percent.")
-    private Long discUsage;
-    @ApiModelProperty(position = 8, value = "Total disc space in bytes.")
-    private Long totalDiscSpace;
+public class AzureServiceBusIntegrationMsg {
+
+    private final ServiceBusReceivedMessageContext context;
+
+    public AzureServiceBusIntegrationMsg(ServiceBusReceivedMessageContext context) {
+        this.context = context;
+    }
+
+    public byte[] getPayload() {
+        return this.context.getMessage().getBody().toBytes();
+    }
+
+    public Map<String, Object> getSystemProperties() {
+        return this.context.getMessage().getApplicationProperties();
+    }
+
+    public JsonNode toJson() {
+        ObjectNode json = JacksonUtil.newObjectNode();
+        Map<String, Object> properties = this.context.getMessage().getApplicationProperties();
+        ObjectNode sysPropsJson =  JacksonUtil.newObjectNode();
+        properties.forEach(
+                (key, val) -> {
+                    if (val != null) {
+                        sysPropsJson.put(key, val.toString());
+                    }
+                }
+        );
+        json.set("systemProperties", sysPropsJson);
+        JsonNode payloadJson = JacksonUtil.fromBytes(this.context.getMessage().getBody().toBytes());
+        if (payloadJson != null) {
+            json.set("payload", payloadJson);
+        } else {
+            json.put("payload", this.context.getMessage().getBody().toBytes());
+        }
+        return json;
+    }
 
 }
