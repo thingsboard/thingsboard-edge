@@ -59,12 +59,11 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
   smsProvider: FormGroup;
   private adminSettings: AdminSettings<SmsProviderConfiguration>;
 
-  readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
-
   slackSettingsForm: FormGroup;
   private notificationSettings: NotificationSettings;
 
-  private readonly authUser: AuthUser;
+  private readonly authUser = getCurrentAuthUser(this.store);
+  readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
   constructor(protected store: Store<AppState>,
               private router: Router,
@@ -74,7 +73,6 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
               private userPermissionsService: UserPermissionsService,
               public fb: FormBuilder) {
     super(store);
-    this.authUser = getCurrentAuthUser(this.store);
     this.buildSmsProviderForm();
     this.buildGeneralServerSettingsForm();
     this.notificationService.getNotificationSettings().subscribe(
