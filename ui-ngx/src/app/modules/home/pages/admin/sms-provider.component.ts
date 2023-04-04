@@ -222,9 +222,4 @@ export class SmsProviderComponent extends PageComponent implements HasConfirmFor
       this.slackSettingsForm.reset(this.notificationSettings);
     });
   }
-
-  isSysAdmin(): boolean {
-    return this.authUser.authority === Authority.SYS_ADMIN;
-  }
-
 }
