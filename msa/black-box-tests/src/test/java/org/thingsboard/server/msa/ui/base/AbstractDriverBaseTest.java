@@ -65,6 +65,7 @@ import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.fail;
@@ -83,6 +84,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     protected static final PageLink pageLink = new PageLink(10);
     private static final ContainerTestSuite instance = ContainerTestSuite.getInstance();
     private JavascriptExecutor js;
+    public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
 
     @BeforeClass
     public void startUp() throws MalformedURLException {
@@ -137,7 +139,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     protected boolean urlContains(String urlPath) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(5000));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT));
         try {
             wait.until(ExpectedConditions.urlContains(urlPath));
         } catch (WebDriverException e) {
@@ -213,7 +215,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
 
     public boolean invisibilityOf(WebElement element) {
         try {
-            return new WebDriverWait(driver, Duration.ofMillis(5000)).until(ExpectedConditions.invisibilityOf(element));
+            return new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT)).until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {
             return fail("Element is present: " + element.toString().split(":")[2].replaceAll("]", ""));
         }
@@ -221,7 +223,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
 
     public void refreshPage() {
         driver.navigate().refresh();
-        new WebDriverWait(driver, Duration.ofMillis(8000)).until(
+        new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT)).until(
                 webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
     }
 
