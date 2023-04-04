@@ -32,8 +32,10 @@ package org.thingsboard.server.common.data;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class ApiUsageRecordState {
+public class ApiUsageRecordState implements Serializable {
 
     private final ApiFeature apiFeature;
     private final ApiUsageRecordKey key;

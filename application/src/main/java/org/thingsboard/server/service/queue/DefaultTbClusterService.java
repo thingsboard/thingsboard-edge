@@ -76,6 +76,7 @@ import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
 import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
+import org.thingsboard.server.common.msg.notification.trigger.NotificationRuleTrigger;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -614,6 +615,17 @@ public class DefaultTbClusterService implements TbClusterService {
         if (entityId != null && (EntityType.DEVICE.equals(entityGroupType) || EntityType.DEVICE.equals(entityId.getEntityType()))) {
             pushDeviceUpdateMessage(tenantId, edgeId, entityId, action, entityGroupType, entityGroupId);
         }
+    }
+
+    @Override
+    public void pushToNotificationRuleProcessingService(NotificationRuleTrigger notificationRuleTrigger) {
+        TransportProtos.NotificationRuleProcessingServiceMsg.Builder msg = TransportProtos.NotificationRuleProcessingServiceMsg.newBuilder()
+                .setTrigger(ByteString.copyFrom(encodingService.encode(notificationRuleTrigger)));
+
+        pushMsgToCore(notificationRuleTrigger.getTenantId(), notificationRuleTrigger.getOriginatorEntityId(),
+                ToCoreMsg.newBuilder()
+                        .setNotificationRuleProcessingServiceMsg(msg)
+                        .build(), null);
     }
 
     private void pushDeviceUpdateMessage(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action,

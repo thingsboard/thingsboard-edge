@@ -28,31 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 
 @Data
 @Builder
-public class RuleEngineMsgTrigger implements NotificationRuleTrigger {
+public class AlarmTrigger implements NotificationRuleTrigger {
 
     private final TenantId tenantId;
-    private final TbMsg msg;
-    private final NotificationRuleTriggerType triggerType;
+    private final AlarmApiCallResult alarmUpdate;
 
     @Override
     public NotificationRuleTriggerType getType() {
-        return triggerType;
+        return NotificationRuleTriggerType.ALARM;
     }
 
     @Override
     public EntityId getOriginatorEntityId() {
-        return msg.getOriginator();
+        return alarmUpdate.getAlarm().getId();
     }
 
 }
