@@ -43,6 +43,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -153,6 +154,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
     private static final List<EntityKey> PERSISTENT_ENTITY_FIELDS = Arrays.asList(
             new EntityKey(EntityKeyType.ENTITY_FIELD, "name"),
             new EntityKey(EntityKeyType.ENTITY_FIELD, "type"),
+            new EntityKey(EntityKeyType.ENTITY_FIELD, "label"),
             new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"));
 
     private final TenantService tenantService;
@@ -164,7 +166,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
     private final TbServiceInfoProvider serviceInfoProvider;
     private final EntityQueryRepository entityQueryRepository;
     private final DbTypeInfoComponent dbTypeInfoComponent;
-
+    @Autowired @Lazy
     private TelemetrySubscriptionService tsSubService;
 
     @Value("${state.defaultInactivityTimeoutInSec}")
@@ -209,11 +211,6 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
         this.serviceInfoProvider = serviceInfoProvider;
         this.entityQueryRepository = entityQueryRepository;
         this.dbTypeInfoComponent = dbTypeInfoComponent;
-    }
-
-    @Autowired
-    public void setTsSubService(TelemetrySubscriptionService tsSubService) {
-        this.tsSubService = tsSubService;
     }
 
     @PostConstruct
@@ -348,6 +345,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                         DeviceStateData stateData = getOrFetchDeviceStateData(device.getId());
                         TbMsgMetaData md = new TbMsgMetaData();
                         md.putValue("deviceName", device.getName());
+                        md.putValue("deviceLabel", device.getLabel());
                         md.putValue("deviceType", device.getType());
                         stateData.setMetaData(md);
                         callback.onSuccess();
@@ -600,6 +598,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                             .build();
                     TbMsgMetaData md = new TbMsgMetaData();
                     md.putValue("deviceName", device.getName());
+                    md.putValue("deviceLabel", device.getLabel());
                     md.putValue("deviceType", device.getType());
                     DeviceStateData deviceStateData = DeviceStateData.builder()
                             .customerId(device.getCustomerId())
@@ -679,6 +678,7 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                 .build();
         TbMsgMetaData md = new TbMsgMetaData();
         md.putValue("deviceName", getEntryValue(ed, EntityKeyType.ENTITY_FIELD, "name", ""));
+        md.putValue("deviceLabel", getEntryValue(ed, EntityKeyType.ENTITY_FIELD, "label", ""));
         md.putValue("deviceType", getEntryValue(ed, EntityKeyType.ENTITY_FIELD, "type", ""));
         return DeviceStateData.builder()
                 .customerId(deviceIdInfo.getCustomerId())

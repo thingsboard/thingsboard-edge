@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Device } from '@shared/models/device.models';
+import { Device, DeviceInfo } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
   createDeviceTransportConfiguration, DeviceCredentials,
@@ -53,13 +53,15 @@ import { Subject } from 'rxjs';
 import { OtaUpdateType } from '@shared/models/ota-package.models';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getEntityDetailsPageURL } from '@core/utils';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-device',
   templateUrl: './device.component.html',
   styleUrls: ['./device.component.scss']
 })
-export class DeviceComponent extends GroupEntityComponent<Device> {
+export class DeviceComponent extends GroupEntityComponent<DeviceInfo> {
 
   entityType = EntityType;
 
@@ -73,11 +75,13 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
               protected translate: TranslateService,
               private deviceService: DeviceService,
               private clipboardService: ClipboardService,
-              @Inject('entity') protected entityValue: Device,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
+              @Inject('entity') protected entityValue: DeviceInfo,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<DeviceInfo> | GroupEntityTableConfig<DeviceInfo>,
               protected fb: UntypedFormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {
@@ -95,8 +99,8 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
   }
 
   hideManageCredentials() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.manageCredentialsEnabled(this.entity);
+    if (this.isGroupMode()) {
+      return !this.groupEntitiesTableConfig.manageCredentialsEnabled(this.entity);
     } else {
       return false;
     }
@@ -106,7 +110,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: Device): UntypedFormGroup {
+  buildForm(entity: DeviceInfo): UntypedFormGroup {
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -137,7 +141,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
     return form;
   }
 
-  updateForm(entity: Device) {
+  updateForm(entity: DeviceInfo) {
     this.entityForm.patchValue({
       name: entity.name,
       deviceProfileId: entity.deviceProfileId,

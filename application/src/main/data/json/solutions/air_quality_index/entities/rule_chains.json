@@ -9,5 +9,15 @@
     "name": "AQI City",
     "file": "aqi_city.json",
     "jsonId": "6108fe10-7ad7-11ed-8dfa-af035b781d56"
+  },
+  {
+    "name": "AQI City (Remote Location)",
+    "file": "remote_location_aqi_city.json",
+    "jsonId": "9ae5aac7-1126-467c-8bc0-1d0d0feb3464"
+  },
+  {
+    "name": "AQI Sensor (Remote Location)",
+    "file": "remote_location_aqi_sensor.json",
+    "jsonId": "3bc41c36-776c-4d4f-b53f-b7ed7f9a76f3"
   }
 ]

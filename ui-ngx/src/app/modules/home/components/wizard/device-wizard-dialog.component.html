@@ -30,7 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div>
   <mat-toolbar color="primary">
     <h2 translate>device.add-device-text</h2>
     <span fxFlex></span>
@@ -183,9 +182,21 @@
           </tb-device-credentials>
         </form>
       </mat-step>
+      <mat-step [stepControl]="ownerAndGroupsFormGroup" [optional]="true">
+        <ng-template matStepLabel>{{ 'entity-group.owner-and-groups' | translate }}</ng-template>
+        <form [formGroup]="ownerAndGroupsFormGroup">
+          <tb-owner-and-groups
+            [entityType]="entityType.DEVICE"
+            [defaultOwnerId]="initialOwnerId"
+            [skipDefaultPermissionCheck]="true"
+            formControlName="ownerAndGroups">
+          </tb-owner-and-groups>
+        </form>
+      </mat-step>
     </mat-horizontal-stepper>
   </div>
-  <div mat-dialog-actions fxLayout="row">
+<div mat-dialog-actions style="padding: 0">
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutAlign="end center">
     <button mat-stroked-button *ngIf="selectedIndex > 0"
             [disabled]="(isLoading$ | async)"
             (click)="previousStep()">{{ 'action.back' | translate }}</button>
@@ -196,8 +207,8 @@
             [disabled]="(isLoading$ | async)"
             (click)="nextStep()">{{ 'action.next-with-label' | translate:{label: (getFormLabel(this.selectedIndex+1) | translate)} }}</button>
   </div>
-  <mat-divider></mat-divider>
-  <div mat-dialog-actions fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end">
+  <mat-divider style="width: 100%"></mat-divider>
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end center">
     <button mat-button
             [disabled]="(isLoading$ | async)"
             (click)="cancel()">{{ 'action.cancel' | translate }}</button>

@@ -59,6 +59,7 @@ public class ModelConstants {
     public static final String ASSIGNEE_ID_PROPERTY = "assignee_id";
     public static final String DEVICE_ID_PROPERTY = "device_id";
     public static final String TITLE_PROPERTY = "title";
+    public static final String NAME_PROPERTY = "name";
     public static final String ALIAS_PROPERTY = "alias";
     public static final String SEARCH_TEXT_PROPERTY = "search_text";
     public static final String CONFIGURATION_PROPERTY = "configuration";
@@ -71,6 +72,12 @@ public class ModelConstants {
     public static final String ATTRIBUTE_TYPE_COLUMN = "attribute_type";
     public static final String ATTRIBUTE_KEY_COLUMN = "attribute_key";
     public static final String LAST_UPDATE_TS_COLUMN = "last_update_ts";
+
+    public static final String OWNER_NAME_COLUMN = "owner_name";
+
+    public static final String OWNER_IDS_COLUMN = "owner_ids";
+
+    public static final String GROUPS_COLUMN = "groups";
 
     /**
      * Cassandra user constants.
@@ -90,6 +97,8 @@ public class ModelConstants {
     public static final String ALL_USERS_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "all_users_by_tenant_and_search_text";
     public static final String USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_customer_and_search_text";
     public static final String USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_authority_and_search_text";
+
+    public static final String USER_INFO_VIEW_COLUMN_FAMILY_NAME = "user_info_view";
 
     /**
      * Cassandra user_credentials constants.
@@ -111,6 +120,7 @@ public class ModelConstants {
      */
     public static final String USER_SETTINGS_COLUMN_FAMILY_NAME = "user_settings";
     public static final String USER_SETTINGS_USER_ID_PROPERTY = USER_ID_PROPERTY;
+    public static final String USER_SETTINGS_TYPE_PROPERTY = "type";
     public static final String USER_SETTINGS_SETTINGS = "settings";
 
     /**
@@ -170,6 +180,17 @@ public class ModelConstants {
     public static final String CUSTOMER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "customer_by_tenant_and_search_text";
     public static final String CUSTOMER_BY_TENANT_AND_TITLE_VIEW_NAME = "customer_by_tenant_and_title";
 
+    public static final String CUSTOMER_INFO_VIEW_COLUMN_FAMILY_NAME = "customer_info_view";
+
+    /**
+     * Owner view constants.
+     */
+
+    public static final String OWNER_INFO_VIEW_COLUMN_FAMILY_NAME = "owner_info_view";
+
+    public static final String OWNER_INFO_VIEW_IS_PUBLIC_PROPERTY = "is_public";
+
+
     /**
      * Cassandra device constants.
      */
@@ -192,6 +213,8 @@ public class ModelConstants {
     public static final String DEVICE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_customer_by_type_and_search_text";
     public static final String DEVICE_BY_TENANT_AND_NAME_VIEW_NAME = "device_by_tenant_and_name";
     public static final String DEVICE_TYPES_BY_TENANT_VIEW_NAME = "device_types_by_tenant";
+
+    public static final String DEVICE_INFO_VIEW_COLUMN_FAMILY_NAME = "device_info_view";
 
     /**
      * Device profile constants.
@@ -249,6 +272,8 @@ public class ModelConstants {
     public static final String ENTITY_VIEW_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_CF = "entity_view_by_tenant_by_type_and_search_text";
     public static final String ENTITY_VIEW_BY_TENANT_AND_NAME = "entity_view_by_tenant_and_name";
 
+    public static final String ENTITY_VIEW_INFO_VIEW_COLUMN_FAMILY_NAME = "entity_view_info_view";
+
     /**
      * Cassandra audit log constants.
      */
@@ -293,6 +318,8 @@ public class ModelConstants {
     public static final String ASSET_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "asset_by_customer_by_type_and_search_text";
     public static final String ASSET_BY_TENANT_AND_NAME_VIEW_NAME = "asset_by_tenant_and_name";
     public static final String ASSET_TYPES_BY_TENANT_VIEW_NAME = "asset_types_by_tenant";
+
+    public static final String ASSET_INFO_VIEW_COLUMN_FAMILY_NAME = "asset_info_view";
 
     /**
      * Cassandra converter constants.
@@ -416,6 +443,8 @@ public class ModelConstants {
     public static final String ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String ENTITY_GROUP_CONFIGURATION_PROPERTY = "configuration";
 
+    public static final String ENTITY_GROUP_INFO_VIEW_COLUMN_FAMILY_NAME = "entity_group_info_view";
+
     /**
      * Cassandra device_credentials constants.
      */
@@ -469,6 +498,8 @@ public class ModelConstants {
     public static final String DASHBOARD_MOBILE_ORDER_PROPERTY = "mobile_order";
 
     public static final String DASHBOARD_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "dashboard_by_tenant_and_search_text";
+
+    public static final String DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME = "dashboard_info_view";
 
     /**
      * Cassandra plugin component metadata constants.
@@ -781,6 +812,8 @@ public class ModelConstants {
     public static final String EDGE_LICENSE_KEY_PROPERTY = "edge_license_key";
     public static final String EDGE_CLOUD_ENDPOINT_KEY_PROPERTY = "cloud_endpoint";
 
+    public static final String EDGE_INFO_VIEW_COLUMN_FAMILY_NAME = "edge_info_view";
+
     /**
      * Edge queue constants.
      */
@@ -844,6 +877,45 @@ public class ModelConstants {
     public static final String QUEUE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
 
+    /**
+     * Notification constants
+     * */
+
+    public static final String NOTIFICATION_TARGET_TABLE_NAME = "notification_target";
+    public static final String NOTIFICATION_TARGET_CONFIGURATION_PROPERTY = "configuration";
+
+    public static final String NOTIFICATION_TABLE_NAME = "notification";
+    public static final String NOTIFICATION_REQUEST_ID_PROPERTY = "request_id";
+    public static final String NOTIFICATION_RECIPIENT_ID_PROPERTY = "recipient_id";
+    public static final String NOTIFICATION_TYPE_PROPERTY = "type";
+    public static final String NOTIFICATION_SUBJECT_PROPERTY = "subject";
+    public static final String NOTIFICATION_TEXT_PROPERTY = "body";
+    public static final String NOTIFICATION_ADDITIONAL_CONFIG_PROPERTY = "additional_config";
+    public static final String NOTIFICATION_STATUS_PROPERTY = "status";
+
+    public static final String NOTIFICATION_REQUEST_TABLE_NAME = "notification_request";
+    public static final String NOTIFICATION_REQUEST_TARGETS_PROPERTY = "targets";
+    public static final String NOTIFICATION_REQUEST_TEMPLATE_ID_PROPERTY = "template_id";
+    public static final String NOTIFICATION_REQUEST_TEMPLATE_PROPERTY = "template";
+    public static final String NOTIFICATION_REQUEST_INFO_PROPERTY = "info";
+    public static final String NOTIFICATION_REQUEST_ORIGINATOR_ENTITY_ID_PROPERTY = "originator_entity_id";
+    public static final String NOTIFICATION_REQUEST_ORIGINATOR_ENTITY_TYPE_PROPERTY = "originator_entity_type";
+    public static final String NOTIFICATION_REQUEST_ADDITIONAL_CONFIG_PROPERTY = "additional_config";
+    public static final String NOTIFICATION_REQUEST_STATUS_PROPERTY = "status";
+    public static final String NOTIFICATION_REQUEST_RULE_ID_PROPERTY = "rule_id";
+    public static final String NOTIFICATION_REQUEST_STATS_PROPERTY = "stats";
+
+    public static final String NOTIFICATION_RULE_TABLE_NAME = "notification_rule";
+    public static final String NOTIFICATION_RULE_TEMPLATE_ID_PROPERTY = "template_id";
+    public static final String NOTIFICATION_RULE_TRIGGER_TYPE_PROPERTY = "trigger_type";
+    public static final String NOTIFICATION_RULE_TRIGGER_CONFIG_PROPERTY = "trigger_config";
+    public static final String NOTIFICATION_RULE_RECIPIENTS_CONFIG_PROPERTY = "recipients_config";
+    public static final String NOTIFICATION_RULE_ADDITIONAL_CONFIG_PROPERTY = "additional_config";
+
+    public static final String NOTIFICATION_TEMPLATE_TABLE_NAME = "notification_template";
+    public static final String NOTIFICATION_TEMPLATE_NOTIFICATION_TYPE_PROPERTY = "notification_type";
+    public static final String NOTIFICATION_TEMPLATE_CONFIGURATION_PROPERTY = "configuration";
+
     protected static final String[] NONE_AGGREGATION_COLUMNS = new String[]{LONG_VALUE_COLUMN, DOUBLE_VALUE_COLUMN, BOOLEAN_VALUE_COLUMN, STRING_VALUE_COLUMN, JSON_VALUE_COLUMN, KEY_COLUMN, TS_COLUMN};
 
     protected static final String[] COUNT_AGGREGATION_COLUMNS = new String[]{count(LONG_VALUE_COLUMN), count(DOUBLE_VALUE_COLUMN), count(BOOLEAN_VALUE_COLUMN), count(STRING_VALUE_COLUMN), count(JSON_VALUE_COLUMN), max(TS_COLUMN)};
@@ -890,4 +962,14 @@ public class ModelConstants {
                 throw new RuntimeException("Aggregation type: " + aggregation + " is not supported!");
         }
     }
+
+    public static final String SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
+            "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
+            "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
+            "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
+
+    public static final String CUSTOMERS_SUB_CUSTOMERS_QUERY = " e.tenant_id = :tenantId AND e.parent_customer_id IN (WITH RECURSIVE customers_ids(id) AS " +
+            "(SELECT id id FROM customer ce WHERE ce.tenant_id = :tenantId and id = :customerId " +
+            "UNION SELECT ce1.id id FROM customer ce1, customers_ids parent WHERE ce1.tenant_id = :tenantId " +
+            "and ce1.parent_customer_id = parent.id) SELECT id FROM customers_ids) ";
 }

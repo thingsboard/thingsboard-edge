@@ -36,7 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { EntityView, EntityViewSearchQuery } from '@app/shared/models/entity-view.models';
+import { EntityView, EntityViewInfo, EntityViewSearchQuery } from '@app/shared/models/entity-view.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 
@@ -87,14 +87,39 @@ export class EntityViewService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  /* public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
-    return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));
-  } */
+  public getAllEntityViewInfos(includeCustomers: boolean,
+                               pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
+    let url = `/api/entityViewInfos/all${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EntityViewInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
 
-  public saveEntityView(entityView: EntityView, entityGroupId?: string, config?: RequestConfig): Observable<EntityView> {
+  public getCustomerEntityViewInfos(includeCustomers: boolean, customerId: string,
+                                    pageLink: PageLink, type: string = '',
+                                    config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
+    let url = `/api/customer/${customerId}/entityViewInfos${pageLink.toQuery()}&type=${type}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<EntityViewInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
+    return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveEntityView(entityView: EntityView, entityGroupIds?: string | string[], config?: RequestConfig): Observable<EntityView> {
     let url = '/api/entityView';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<EntityView>(url, entityView, defaultHttpOptionsFromConfig(config));
   }

@@ -80,7 +80,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         this.customerGroupName = customerGroupName;
         String changedName = "Changed" + getRandomNumber();
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.setHeaderName();
         String nameBefore = customerPage.getHeaderName();
@@ -104,7 +104,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.nameFieldEditMenu().clear();
@@ -121,7 +121,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
         this.customerGroupName = customerGroupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.changeNameEditMenu(" ");
@@ -143,7 +143,7 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER, description));
         this.customerGroupName = customerGroupName;
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.descriptionEntityView().sendKeys(newDescription);
