@@ -41,6 +41,7 @@ public enum NotificationType {
     ALARM_ASSIGNMENT,
     NEW_PLATFORM_VERSION,
     ENTITIES_LIMIT,
-    API_USAGE_LIMIT
+    API_USAGE_LIMIT,
+    RULE_ENGINE
 
 }
