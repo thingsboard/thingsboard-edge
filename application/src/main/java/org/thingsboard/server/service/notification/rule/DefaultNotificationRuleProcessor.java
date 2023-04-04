@@ -50,13 +50,12 @@ import org.thingsboard.server.common.data.notification.rule.NotificationRule;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
-import org.thingsboard.server.dao.notification.NotificationRequestService;
-import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
-import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.common.msg.notification.trigger.NotificationRuleTrigger;
 import org.thingsboard.server.common.msg.notification.trigger.RuleEngineMsgTrigger;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.notification.rule.trigger.NotificationRuleTriggerProcessor;
 import org.thingsboard.server.service.notification.rule.trigger.RuleEngineMsgNotificationRuleTriggerProcessor;
@@ -74,7 +73,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class DefaultNotificationRuleProcessingService implements NotificationRuleProcessingService {
+public class DefaultNotificationRuleProcessor implements NotificationRuleProcessor {
 
     private final NotificationRuleService notificationRuleService;
     private final NotificationRequestService notificationRequestService;
@@ -84,12 +83,13 @@ public class DefaultNotificationRuleProcessingService implements NotificationRul
 
     private final Map<NotificationRuleTriggerType, NotificationRuleTriggerProcessor> triggerProcessors = new EnumMap<>(NotificationRuleTriggerType.class);
 
-    private final Map<String, NotificationRuleTriggerType> ruleEngineMsgTypeToTriggerType = new HashMap<>();
-
     @Override
     public void process(NotificationRuleTrigger trigger) {
-        List<NotificationRule> rules = notificationRuleService.findNotificationRulesByTenantIdAndTriggerType(
-                trigger.getType().isTenantLevel() ? trigger.getTenantId() : TenantId.SYS_TENANT_ID, trigger.getType());
+        NotificationRuleTriggerType triggerType = trigger.getType();
+        if (triggerType == null) return;
+        TenantId tenantId = triggerType.isTenantLevel() ? trigger.getTenantId() : TenantId.SYS_TENANT_ID;
+
+        List<NotificationRule> rules = notificationRuleService.findNotificationRulesByTenantIdAndTriggerType(tenantId, triggerType);
         for (NotificationRule rule : rules) {
             notificationExecutor.submit(() -> {
                 try {
@@ -99,19 +99,6 @@ public class DefaultNotificationRuleProcessingService implements NotificationRul
                 }
             });
         }
-    }
-
-    @Override
-    public void process(TenantId tenantId, TbMsg ruleEngineMsg) {
-        NotificationRuleTriggerType triggerType = ruleEngineMsgTypeToTriggerType.get(ruleEngineMsg.getType());
-        if (triggerType == null) {
-            return;
-        }
-        process(RuleEngineMsgTrigger.builder()
-                .tenantId(tenantId)
-                .msg(ruleEngineMsg)
-                .triggerType(triggerType)
-                .build());
     }
 
     private void processNotificationRule(NotificationRule rule, NotificationRuleTrigger trigger) {
@@ -207,6 +194,7 @@ public class DefaultNotificationRuleProcessingService implements NotificationRul
 
     @Autowired
     public void setTriggerProcessors(Collection<NotificationRuleTriggerProcessor> processors) {
+        Map<String, NotificationRuleTriggerType> ruleEngineMsgTypeToTriggerType = new HashMap<>();
         processors.forEach(processor -> {
             triggerProcessors.put(processor.getTriggerType(), processor);
             if (processor instanceof RuleEngineMsgNotificationRuleTriggerProcessor) {
@@ -216,6 +204,7 @@ public class DefaultNotificationRuleProcessingService implements NotificationRul
                 });
             }
         });
+        RuleEngineMsgTrigger.msgTypeToTriggerType = ruleEngineMsgTypeToTriggerType;
     }
 
 }

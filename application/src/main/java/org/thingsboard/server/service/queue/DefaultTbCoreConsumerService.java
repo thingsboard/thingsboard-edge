@@ -50,13 +50,13 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.common.msg.notification.trigger.NotificationRuleTrigger;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
-import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -163,7 +163,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final GitVersionControlQueueService vcQueueService;
     private final TbCoreIntegrationApiService tbCoreIntegrationApiService;
     private final NotificationSchedulerService notificationSchedulerService;
-    private final NotificationRuleProcessingService notificationRuleProcessingService;
+    private final NotificationRuleProcessor notificationRuleProcessor;
     private final TbCoreConsumerStats stats;
     protected final TbQueueConsumer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
     private final TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
@@ -188,7 +188,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         ApplicationEventPublisher eventPublisher,
                                         Optional<JwtSettingsService> jwtSettingsService,
                                         NotificationSchedulerService notificationSchedulerService,
-                                        NotificationRuleProcessingService notificationRuleProcessingService) {
+                                        NotificationRuleProcessor notificationRuleProcessor) {
         super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, eventPublisher, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
@@ -208,7 +208,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.vcQueueService = vcQueueService;
         this.tbCoreIntegrationApiService = tbCoreIntegrationApiService;
         this.notificationSchedulerService = notificationSchedulerService;
-        this.notificationRuleProcessingService = notificationRuleProcessingService;
+        this.notificationRuleProcessor = notificationRuleProcessor;
     }
 
     @PostConstruct
@@ -321,9 +321,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                     TransportProtos.NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = toCoreMsg.getNotificationSchedulerServiceMsg();
                                     log.trace("[{}] Forwarding message to notification scheduler service {}", id, toCoreMsg.getNotificationSchedulerServiceMsg());
                                     forwardToNotificationSchedulerService(notificationSchedulerServiceMsg, callback);
-                                } else if (toCoreMsg.hasNotificationRuleProcessingServiceMsg()) {
-                                    Optional<NotificationRuleTrigger> notificationRuleTrigger = encodingService.decode(toCoreMsg.getNotificationRuleProcessingServiceMsg().getTrigger().toByteArray());
-                                    notificationRuleTrigger.ifPresent(notificationRuleProcessingService::process);
+                                } else if (toCoreMsg.hasNotificationRuleProcessorMsg()) {
+                                    Optional<NotificationRuleTrigger> notificationRuleTrigger = encodingService.decode(toCoreMsg.getNotificationRuleProcessorMsg().getTrigger().toByteArray());
+                                    notificationRuleTrigger.ifPresent(notificationRuleProcessor::process);
                                 } else {
                                     log.warn("[{}] No rule how to forward message from main consumer for message: {}", id, toCoreMsg);
                                 }

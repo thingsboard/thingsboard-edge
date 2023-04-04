@@ -28,16 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.common.msg.notification;
 
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.notification.trigger.NotificationRuleTrigger;
-import org.thingsboard.server.common.msg.TbMsg;
 
-public interface NotificationRuleProcessingService {
+public interface NotificationRuleProcessor {
 
     void process(NotificationRuleTrigger trigger);
-
-    void process(TenantId tenantId, TbMsg ruleEngineMsg);
 
 }

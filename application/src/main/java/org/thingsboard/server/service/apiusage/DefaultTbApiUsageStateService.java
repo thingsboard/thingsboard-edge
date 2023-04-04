@@ -63,12 +63,12 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.common.msg.notification.trigger.ApiUsageLimitTrigger;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.SchedulerUtils;
-import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
-import org.thingsboard.server.common.msg.notification.trigger.ApiUsageLimitTrigger;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -127,7 +127,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     private final MailService mailService;
     private final OwnersCacheService ownersCacheService;
     private final TbQueueProducerProvider producerProvider;
-    private final NotificationRuleProcessingService notificationRuleProcessingService;
+    private final NotificationRuleProcessor notificationRuleProcessor;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;
     private final DbCallbackExecutorService dbExecutor;
     private final MailExecutorService mailExecutor;
@@ -378,7 +378,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
             String email = tenantService.findTenantById(state.getTenantId()).getEmail();
             result.forEach((apiFeature, stateValue) -> {
                 ApiUsageRecordState recordState = createApiUsageRecordState((TenantApiUsageState) state, apiFeature, stateValue);
-                notificationRuleProcessingService.process(ApiUsageLimitTrigger.builder()
+                notificationRuleProcessor.process(ApiUsageLimitTrigger.builder()
                         .tenantId(state.getTenantId())
                         .state(recordState)
                         .status(stateValue)
