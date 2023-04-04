@@ -34,8 +34,10 @@
   <mat-label>{{ placeholderText | translate }}</mat-label>
   <input matInput type="text"
          #ownerInput
+         #ownerMatInput="matInput"
          formControlName="owner"
          (focusin)="onFocus()"
+         (blur)="onBlur()"
          [required]="required"
          [matAutocomplete]="ownerAutocomplete">
   <button *ngIf="selectOwnerFormGroup.get('owner').value && !disabled"
@@ -45,6 +47,7 @@
     <mat-icon class="material-icons">close</mat-icon>
   </button>
   <mat-autocomplete class="tb-autocomplete"
+                    (closed)="!ownerMatInput.focused ? onPanelClosed() : false"
                     #ownerAutocomplete="matAutocomplete"
                     [displayWith]="displayOwnerFn">
     <mat-option *ngFor="let owner of filteredOwners | async" [value]="owner">

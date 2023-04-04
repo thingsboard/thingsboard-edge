@@ -11,5 +11,4 @@ Also, when installing this solution, the possibility of managing air quality con
 * Interactive map with mapped sensors;
 * Pollution statistic;
 * Public dashboard;
-* [Optional] Edge instance - add edge computing to your solution.
-
+* Edge instance - optionally, add edge computing to your solution.

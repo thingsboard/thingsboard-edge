@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
@@ -54,7 +54,7 @@ import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustom
 
 public class CustomerEditMenuTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private LoginPageHelper loginPage;
     private CustomerPageHelper customerPage;
     private String customerName;
@@ -62,7 +62,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @BeforeClass
     public void login() {
         loginPage = new LoginPageHelper(driver);
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
         loginPage.authorizationTenant();
     }
@@ -92,7 +92,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.setCustomerHeaderName();
         String titleBefore = customerPage.getCustomerHeaderName();
@@ -116,7 +116,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.titleFieldEntityView().clear();
@@ -133,7 +133,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
@@ -156,7 +156,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(EntityPrototypes.defaultCustomerPrototype(name, description));
         customerName = name;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.descriptionEntityView().sendKeys(newDescription);
@@ -175,7 +175,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.selectCountryEntityView();
@@ -194,7 +194,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         this.customerName = customerName;
         String number = "2015550123";
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
@@ -211,7 +211,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
@@ -234,7 +234,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         String email = "email@mail.com";
         String number = "2015550123";
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.selectCountryEntityView();

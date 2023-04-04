@@ -54,12 +54,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.common.util.SystemUtil.getCpuUsage;
-import static org.thingsboard.common.util.SystemUtil.getFreeDiscSpace;
-import static org.thingsboard.common.util.SystemUtil.getFreeMemory;
 import static org.thingsboard.common.util.SystemUtil.getMemoryUsage;
-import static org.thingsboard.common.util.SystemUtil.getTotalCpuUsage;
-import static org.thingsboard.common.util.SystemUtil.getTotalDiscSpace;
+import static org.thingsboard.common.util.SystemUtil.getDiscSpaceUsage;
+
+import static org.thingsboard.common.util.SystemUtil.getCpuCount;
 import static org.thingsboard.common.util.SystemUtil.getTotalMemory;
+import static org.thingsboard.common.util.SystemUtil.getTotalDiscSpace;
+
 
 @Component
 @Slf4j
@@ -103,8 +104,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
             serviceTypes = Collections.singletonList(ServiceType.of(serviceType));
         }
 
-
-        serviceInfo = getServiceInfoWithCurrentSystemInfo();
+       generateNewServiceInfoWithCurrentSystemInfo();
     }
 
     @Override
@@ -169,7 +169,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     }
 
     @Override
-    public ServiceInfo getServiceInfoWithCurrentSystemInfo() {
+    public ServiceInfo generateNewServiceInfoWithCurrentSystemInfo() {
         ServiceInfo.Builder builder = ServiceInfo.newBuilder()
                 .setServiceId(serviceId)
                 .addAllServiceTypes(serviceTypes.stream().map(ServiceType::name).collect(Collectors.toList()))
@@ -178,18 +178,18 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
 
         supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
 
-        return builder.build();
+        return serviceInfo = builder.build();
     }
 
     private TransportProtos.SystemInfoProto getCurrentSystemInfoProto() {
         TransportProtos.SystemInfoProto.Builder builder = TransportProtos.SystemInfoProto.newBuilder();
 
-        getMemoryUsage().ifPresent(builder::setMemoryUsage);
-        getTotalMemory().ifPresent(builder::setTotalMemory);
-        getFreeMemory().ifPresent(builder::setFreeMemory);
         getCpuUsage().ifPresent(builder::setCpuUsage);
-        getTotalCpuUsage().ifPresent(builder::setTotalCpuUsage);
-        getFreeDiscSpace().ifPresent(builder::setFreeDiscSpace);
+        getMemoryUsage().ifPresent(builder::setMemoryUsage);
+        getDiscSpaceUsage().ifPresent(builder::setDiskUsage);
+
+        getCpuCount().ifPresent(builder::setCpuCount);
+        getTotalMemory().ifPresent(builder::setTotalMemory);
         getTotalDiscSpace().ifPresent(builder::setTotalDiscSpace);
 
         return builder.build();

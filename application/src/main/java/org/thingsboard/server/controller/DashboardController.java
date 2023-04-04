@@ -213,11 +213,12 @@ public class DashboardController extends BaseController {
     public Dashboard saveDashboard(
             @ApiParam(value = "A JSON value representing the dashboard.")
             @RequestBody Dashboard dashboard,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> {
+        return saveGroupEntity(dashboard, strEntityGroupId, strEntityGroupIds, (dashboard1, entityGroups) -> {
             try {
-                return tbDashboardService.save(dashboard1, entityGroup, user);
+                return tbDashboardService.save(dashboard1, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }

@@ -137,18 +137,20 @@ public abstract class AbstractTbEntityService {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
 
-    protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, EntityGroup entityGroup,
+    protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, List<EntityGroup> entityGroups,
                                                                                             ActionType actionType, User user) throws ThingsboardException {
         EntityId entityId = entity.getId();
         CustomerId customerId = entity.getCustomerId();
-        if (entityGroup != null && actionType == ActionType.ADDED) {
-            EntityGroupId entityGroupId = entityGroup.getId();
-            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
-            notificationEntityService.notifyAddToEntityGroup(tenantId, entityId, entity, customerId, entityGroupId, user,
-                    entityId.toString(), entityGroupId.toString(), entityGroup.getName());
+        if (entityGroups != null && actionType == ActionType.ADDED) {
+            for (EntityGroup entityGroup : entityGroups) {
+                EntityGroupId entityGroupId = entityGroup.getId();
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+                notificationEntityService.notifyAddToEntityGroup(tenantId, entityId, entity, customerId, entityGroupId, user,
+                        entityId.toString(), entityGroupId.toString(), entityGroup.getName());
+            }
         }
 
-        if (entityGroup == null && actionType == ActionType.ADDED) {
+        if ((entityGroups == null || entityGroups.isEmpty()) && actionType == ActionType.ADDED) {
             notificationEntityService.sendNotificationMsgToCloud(tenantId, entityId, EdgeEventActionType.ADDED);
         }
 

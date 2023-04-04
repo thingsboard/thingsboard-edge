@@ -80,7 +80,7 @@ export class SolutionTemplateDetailsComponent extends PageComponent implements O
     this.solutionsService.installSolutionTemplate(this.solutionTemplateDetails.id).subscribe(
       (response) => {
         if (response.success) {
-          const url = this.router.createUrlTree(['dashboardGroups', response.dashboardGroupId.id, response.dashboardId.id],
+          const url = this.router.createUrlTree(['dashboards', 'groups', response.dashboardGroupId.id, response.dashboardId.id],
             {
               queryParams: {
                 solutionTemplateId: this.solutionTemplateDetails.id

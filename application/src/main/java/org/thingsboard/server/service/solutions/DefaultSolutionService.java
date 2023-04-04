@@ -1216,7 +1216,7 @@ public class DefaultSolutionService implements SolutionService {
             }
             entity.setRootRuleChainId(rootRuleChainId);
             RuleChain rootRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), rootRuleChainId);
-            entity = tbEdgeService.save(entity, rootRuleChain, null, user);
+            entity = tbEdgeService.save(entity, rootRuleChain, Collections.emptyList(), user);
             assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);

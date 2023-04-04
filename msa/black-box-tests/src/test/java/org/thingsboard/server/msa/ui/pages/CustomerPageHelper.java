@@ -166,6 +166,7 @@ public class CustomerPageHelper extends CustomerPageElements {
         assignedField().click();
         setDashboard();
         listOfEntity().get(0).click();
+        assignedField().sendKeys(Keys.ESCAPE);
         submitAssignedBtn().click();
     }
 

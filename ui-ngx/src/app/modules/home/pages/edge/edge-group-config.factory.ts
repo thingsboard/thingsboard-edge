@@ -87,6 +87,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     const authUser: AuthUser = getCurrentAuthUser(this.store);
 
     config.entityComponent = EdgeComponent;
+    config.addDialogStyle = {height: '1000px'};
 
     config.entityTitle = (edge) => edge ?
       this.utils.customTranslation(edge.name, edge.name) : '';

@@ -251,6 +251,10 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-iot-device-sdk-java-samples</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-servicebus</artifactId>
         </dependency> -->
     </dependencies>
     <profiles>

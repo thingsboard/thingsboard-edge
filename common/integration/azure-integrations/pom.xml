@@ -73,6 +73,10 @@
             <artifactId>iot-service-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-servicebus</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.qpid</groupId>
             <artifactId>proton-j</artifactId>
         </dependency>

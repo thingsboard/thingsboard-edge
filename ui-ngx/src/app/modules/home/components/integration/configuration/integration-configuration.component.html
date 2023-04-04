@@ -192,6 +192,13 @@
                                          [allowLocalNetwork]="allowLocalNetwork">
       </tb-azure-iot-hub-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AZURE_SERVICE_BUS">
+      <tb-azure-services-bus-integration-form formControlName="configuration"
+                                              [isSetDownlink]="isSetDownlink"
+                                              [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                              [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-azure-services-bus-integration-form>
+    </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.COAP">
       <tb-coap-integration-form formControlName="configuration"
                                 [routingKey]="routingKey"

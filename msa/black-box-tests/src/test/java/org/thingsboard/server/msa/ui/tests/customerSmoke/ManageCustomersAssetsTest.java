@@ -39,18 +39,18 @@ import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String iconText = ": Asset groups";
+    private final String iconText = ": Assets";
 
     @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -59,11 +59,11 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description("Open manage window by right corner btn")
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.manageCustomersAssetGroupsBtn(customerPage.getCustomerName()).click();
 
-        Assert.assertTrue(urlContains("assetGroups"));
+        Assert.assertTrue(urlContains("assets"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());
         Assert.assertTrue(customerPage.customerUserIconHeader().isDisplayed());
         Assert.assertTrue(customerPage.customerUserIconHeader().getText().contains(customerPage.getCustomerName() + iconText));
@@ -75,12 +75,12 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description("Open manage window by btn in entity view")
     public void openWindowByView() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
         jsClick(customerPage.manageCustomersAssetGroupsBtnView());
 
-        Assert.assertTrue(urlContains("assetGroups"));
+        Assert.assertTrue(urlContains("assets"));
         Assert.assertNotNull(customerPage.customerUserIconHeader());
         Assert.assertTrue(customerPage.customerUserIconHeader().isDisplayed());
         Assert.assertTrue(customerPage.customerUserIconHeader().getText().contains(customerPage.getCustomerName() + iconText));

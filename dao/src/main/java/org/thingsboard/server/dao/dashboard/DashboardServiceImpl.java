@@ -37,9 +37,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -102,6 +106,25 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Autowired
     private DataValidator<Dashboard> dashboardValidator;
 
+    @Autowired
+    protected TbTransactionalCache<DashboardId, String> cache;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    protected void publishEvictEvent(DashboardTitleEvictEvent event) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            eventPublisher.publishEvent(event);
+        } else {
+            handleEvictEvent(event);
+        }
+    }
+
+    @TransactionalEventListener(classes = DashboardTitleEvictEvent.class)
+    public void handleEvictEvent(DashboardTitleEvictEvent event) {
+        cache.evict(event.getKey());
+    }
+
     @Override
     public Dashboard findDashboardById(TenantId tenantId, DashboardId dashboardId) {
         log.trace("Executing findDashboardById [{}]", dashboardId);
@@ -121,6 +144,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing findDashboardInfoById [{}]", dashboardId);
         Validator.validateId(dashboardId, INCORRECT_DASHBOARD_ID + dashboardId);
         return dashboardInfoDao.findById(tenantId, dashboardId.getId());
+    }
+
+    @Override
+    public String findDashboardTitleById(TenantId tenantId, DashboardId dashboardId) {
+        return cache.getAndPutInTransaction(dashboardId,
+                () -> dashboardInfoDao.findTitleById(tenantId.getId(), dashboardId.getId()), true);
     }
 
     @Override
@@ -157,8 +186,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             if (dashboard.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
             }
+            publishEvictEvent(new DashboardTitleEvictEvent(savedDashboard.getId()));
             return savedDashboard;
         } catch (Exception e) {
+            if (dashboard.getId() != null) {
+                publishEvictEvent(new DashboardTitleEvictEvent(dashboard.getId()));
+            }
             checkConstraintViolation(e, "dashboard_external_id_unq_key", "Dashboard with such external id already exists!");
             throw e;
         }
@@ -215,6 +248,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         deleteEntityRelations(tenantId, dashboardId);
         try {
             dashboardDao.removeById(tenantId, dashboardId.getId());
+            publishEvictEvent(new DashboardTitleEvictEvent(dashboardId));
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_default_dashboard_device_profile")) {

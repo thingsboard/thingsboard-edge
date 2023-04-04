@@ -229,6 +229,8 @@ import { SlackConversationAutocompleteComponent } from '@home/components/notific
 import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
 import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
+import { ManageOwnerAndGroupsDialogComponent } from '@home/components/group/manage-owner-and-groups-dialog.component';
+import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups.component';
 
 @NgModule({
   declarations:
@@ -304,6 +306,8 @@ import { GroupEntityInfoComponent } from '@home/components/group/group-entity-in
       AddGroupEntityDialogComponent,
       GroupChipsComponent,
       GroupEntityInfoComponent,
+      OwnerAndGroupsComponent,
+      ManageOwnerAndGroupsDialogComponent,
       RegistrationPermissionsComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
@@ -482,6 +486,8 @@ import { GroupEntityInfoComponent } from '@home/components/group/group-entity-in
     AddGroupEntityDialogComponent,
     GroupChipsComponent,
     GroupEntityInfoComponent,
+    OwnerAndGroupsComponent,
+    ManageOwnerAndGroupsDialogComponent,
     RegistrationPermissionsComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,

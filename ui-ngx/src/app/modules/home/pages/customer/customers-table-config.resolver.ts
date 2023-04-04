@@ -120,6 +120,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     config.entityTabsComponent = GroupEntityTabsComponent<CustomerInfo>;
     config.entityTranslations = entityTypeTranslations.get(EntityType.CUSTOMER);
     config.entityResources = entityTypeResources.get(EntityType.CUSTOMER);
+    config.addDialogStyle = {height: '1060px'};
 
     config.entityTitle = (customer) => customer ?
       this.utils.customTranslation(customer.title, customer.title) : '';

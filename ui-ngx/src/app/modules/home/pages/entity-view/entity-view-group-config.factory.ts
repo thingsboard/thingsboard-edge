@@ -73,6 +73,7 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     const config = new GroupEntityTableConfig<EntityViewInfo>(entityGroup, params);
 
     config.entityComponent = EntityViewComponent;
+    config.addDialogStyle = {maxWidth: '800px', height: '1060px'};
 
     config.entityTitle = (entityView) => entityView ?
       this.utils.customTranslation(entityView.name, entityView.name) : '';

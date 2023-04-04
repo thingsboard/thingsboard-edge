@@ -53,6 +53,7 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.thingsboard.server.controller.UserController.ACTIVATE_URL_PATTERN;
@@ -69,7 +70,14 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
 
     @Override
     public User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser, boolean sendActivationMail,
-                     HttpServletRequest request, EntityGroupId entityGroupId, EntityGroup entityGroup, User user) throws ThingsboardException {
+                     HttpServletRequest request, EntityGroup entityGroup, User user) throws ThingsboardException {
+        return save(tenantId, customerId, authority, tbUser,
+                sendActivationMail, request, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser, boolean sendActivationMail,
+                     HttpServletRequest request, List<EntityGroup> entityGroups, User user) throws ThingsboardException {
         ActionType actionType = tbUser.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             boolean sendEmail = tbUser.getId() == null && sendActivationMail;
@@ -83,10 +91,12 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
                     notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
                             savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, false, null);
-                } else if (entityGroup != null && tbUser.getId() == null) {
-                    entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
-                    notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
-                            entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
+                } else if (!entityGroups.isEmpty() && tbUser.getId() == null) {
+                    for (EntityGroup entityGroup : entityGroups) {
+                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), savedUser.getId());
+                        notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
+                                entityGroup.getId(), user, savedUser.getId().toString(), entityGroup.getId().toString(), entityGroup.getName());
+                    }
                 }
             }
 

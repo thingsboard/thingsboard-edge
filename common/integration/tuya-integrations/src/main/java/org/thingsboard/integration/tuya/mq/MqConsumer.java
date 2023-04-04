@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.PulsarClient;
+import org.apache.pulsar.client.api.RegexSubscriptionMode;
 import org.apache.pulsar.client.api.SubscriptionType;
 
 @Builder
@@ -82,7 +83,10 @@ public class MqConsumer {
                         .topic(String.format("%s/out/%s", accessId, (env != null ? env : MqEnv.PROD).getValue()))
                         .subscriptionName(String.format("%s-sub", accessId))
                         .subscriptionType(SubscriptionType.Failover)
-                        .autoUpdatePartitions(Boolean.FALSE).subscribe();
+//                        .subscriptionType(SubscriptionType.Exclusive)
+                        .subscriptionTopicsMode(RegexSubscriptionMode.AllTopics)
+                        .autoUpdatePartitions(Boolean.FALSE)
+                        .subscribe();
                 if (!checkConnection()) {
                     throw new RuntimeException("Cannot connect to message producer.");
                 }

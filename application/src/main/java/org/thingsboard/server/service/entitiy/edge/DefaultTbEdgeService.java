@@ -33,11 +33,13 @@ package org.thingsboard.server.service.entitiy.edge;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -46,6 +48,9 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+
+import java.util.Collections;
+import java.util.List;
 
 @AllArgsConstructor
 @TbCoreComponent
@@ -58,6 +63,11 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
 
     @Override
     public Edge save(Edge edge, RuleChain edgeTemplateRootRuleChain, EntityGroup entityGroup, User user) throws Exception {
+        return save(edge, edgeTemplateRootRuleChain, entityGroup != null ? Collections.singletonList(entityGroup) : null, user);
+    }
+
+    @Override
+    public Edge save(Edge edge, RuleChain edgeTemplateRootRuleChain, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = edge.getTenantId();
         try {
@@ -74,8 +84,10 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
             Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
             EdgeId edgeId = savedEdge.getId();
 
-            if (entityGroup != null && actionType == ActionType.ADDED) {
-                entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), edgeId);
+            if (!entityGroups.isEmpty() && actionType == ActionType.ADDED) {
+                for (EntityGroup entityGroup : entityGroups) {
+                    entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), edgeId);
+                }
             }
 
             if (actionType == ActionType.ADDED) {
@@ -83,6 +95,10 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                 edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
                 edgeService.assignTenantAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId());
+                if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+                    Customer customerById = customerService.findCustomerById(tenantId, new CustomerId(edge.getOwnerId().getId()));
+                    edgeService.assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId(), customerById.getId(), customerById.getParentCustomerId());
+                }
             }
 
             if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
