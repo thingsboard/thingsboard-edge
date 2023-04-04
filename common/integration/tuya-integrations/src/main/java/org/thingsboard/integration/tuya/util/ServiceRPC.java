@@ -28,53 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.tuya.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+public enum ServiceRPC {
+    GET_STATUS("getStatus", "/v1.0/iot-03/devices/%s/status", false),
+    GET_CATEGORY("getCategory", "/v1.0/iot-03/categories/%s/status", false),
+    GET_LOGS("getLogs", "/v1.0/iot-03/devices/%s/logs", false),
+    GET_REPORT_LOGS("getReportLogs", "/v1.0/iot-03/devices/%s/report-logs", false),
+    GET_SPECIFICATION("getSpecification", "/v1.0/iot-03/devices/%s/specification", false),
+    GET_FUNCTIONS("getFunctions", "/v1.0/iot-03/devices/%s/functions", false);
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(false),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(false),
-    AZURE_SERVICE_BUS(true);
+    public final String method;
+    public final String path;
+    public final boolean requiresParameter;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+    ServiceRPC(String method, String path, Boolean requiresParameter) {
+        this.method = method;
+        this.path = path;
+        this.requiresParameter = requiresParameter;
     }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
 }
