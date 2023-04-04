@@ -30,30 +30,24 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.Getter;
+import lombok.Data;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-@Getter
-public enum NotificationRuleTriggerType {
+import java.util.Set;
+import java.util.UUID;
 
-    ALARM,
-    ALARM_COMMENT,
-    DEVICE_ACTIVITY,
-    ENTITY_ACTION,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    ALARM_ASSIGNMENT,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false),
-    API_USAGE_LIMIT(false),
-    INTEGRATION_LIFECYCLE_EVENT;
+@Data
+public class IntegrationLifecycleEventNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final boolean tenantLevel;
+    private Set<IntegrationType> integrationTypes;
+    private Set<UUID> integrations; // set either integrationTypes or integrations or none
+    private Set<ComponentLifecycleEvent> notifyOn; // STARTED, UPDATED or STOPPED
+    private boolean onlyOnError;
 
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
-    }
-
-    NotificationRuleTriggerType() {
-        this(true);
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.INTEGRATION_LIFECYCLE_EVENT;
     }
 
 }

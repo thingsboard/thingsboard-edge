@@ -28,32 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.info;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-@Getter
-public enum NotificationRuleTriggerType {
+import java.util.Map;
 
-    ALARM,
-    ALARM_COMMENT,
-    DEVICE_ACTIVITY,
-    ENTITY_ACTION,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    ALARM_ASSIGNMENT,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false),
-    API_USAGE_LIMIT(false),
-    INTEGRATION_LIFECYCLE_EVENT;
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
-    private final boolean tenantLevel;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class IntegrationLifecycleEventNotificationInfo implements RuleOriginatedNotificationInfo {
 
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
+    private IntegrationId integrationId;
+    private IntegrationType integrationType;
+    private String integrationName;
+    private String action;
+    private ComponentLifecycleEvent eventType;
+    private String error;
+
+    @Override
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "integrationId", integrationId.toString(),
+                "integrationType", integrationType.name(),
+                "integrationName", integrationName,
+                "action", action,
+                "eventType", eventType.name().toLowerCase(),
+                "error", error
+        );
     }
 
-    NotificationRuleTriggerType() {
-        this(true);
+    @Override
+    public EntityId getStateEntityId() {
+        return integrationId;
     }
 
 }

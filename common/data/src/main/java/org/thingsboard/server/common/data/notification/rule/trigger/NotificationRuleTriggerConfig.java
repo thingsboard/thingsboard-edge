@@ -49,6 +49,7 @@ import java.io.Serializable;
         @Type(value = NewPlatformVersionNotificationRuleTriggerConfig.class, name = "NEW_PLATFORM_VERSION"),
         @Type(value = EntitiesLimitNotificationRuleTriggerConfig.class, name = "ENTITIES_LIMIT"),
         @Type(value = ApiUsageLimitNotificationRuleTriggerConfig.class, name = "API_USAGE_LIMIT"),
+        @Type(value = IntegrationLifecycleEventNotificationRuleTriggerConfig.class, name = "INTEGRATION_LIFECYCLE_EVENT"),
 })
 public interface NotificationRuleTriggerConfig extends Serializable {
 
