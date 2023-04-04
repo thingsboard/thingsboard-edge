@@ -28,34 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
 @Data
 @Builder
-public class NewPlatformVersionTrigger implements NotificationRuleTrigger {
+public class EntitiesLimitTrigger implements NotificationRuleTrigger {
 
-    private final UpdateMessage message;
+    private final TenantId tenantId;
+    private final EntityType entityType;
+    private final long currentCount;
+    private final long limit;
 
     @Override
     public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
-    }
-
-    @Override
-    public TenantId getTenantId() {
-        return TenantId.SYS_TENANT_ID;
+        return NotificationRuleTriggerType.ENTITIES_LIMIT;
     }
 
     @Override
     public EntityId getOriginatorEntityId() {
-        return TenantId.SYS_TENANT_ID;
+        return tenantId;
     }
 
 }
