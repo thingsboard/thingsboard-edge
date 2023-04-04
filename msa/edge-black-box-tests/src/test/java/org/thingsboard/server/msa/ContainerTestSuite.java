@@ -77,7 +77,7 @@ public class ContainerTestSuite {
                 testContainer = new DockerComposeContainerImpl<>(
                         new File("./../../docker-edge/docker-compose.yml"),
                         new File("./../../docker-edge/docker-compose.postgres.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
+                        new File("./../../docker-edge/docker-compose.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)

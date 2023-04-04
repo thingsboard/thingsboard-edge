@@ -891,7 +891,6 @@ export class MenuService {
         }
       );
     }
-     */
     sections.push(
       {
         id: guid(),
@@ -911,6 +910,7 @@ export class MenuService {
         ]
       }
     );
+     */
     return sections;
   }
 
