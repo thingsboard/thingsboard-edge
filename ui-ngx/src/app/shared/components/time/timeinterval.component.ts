@@ -79,8 +79,6 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
   @coerceBoolean()
   isEdit = false;
 
-  hideFlagValue = false;
-
   @Input()
   @coerceBoolean()
   hideFlag = false;
@@ -223,7 +221,7 @@ export class TimeintervalComponent implements OnInit, ControlValueAccessor {
   }
 
   onHideFlagChange() {
-    this.hideFlagChange.emit(this.hideFlagValue);
+    this.hideFlagChange.emit(this.hideFlag);
   }
 
   onTimeInputChange(type: string) {
