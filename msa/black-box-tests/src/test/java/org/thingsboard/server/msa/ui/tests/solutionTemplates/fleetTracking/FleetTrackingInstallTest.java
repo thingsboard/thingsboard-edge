@@ -144,10 +144,10 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText()
-                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText()
-                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText().toLowerCase()
+                .contains(FLEET_TRACKING_DASHBOARD.toLowerCase()));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText().toLowerCase()
+                .contains(FLEET_TRACKING_DASHBOARD.toLowerCase()));
     }
 
     @Epic("Solution templates")
@@ -167,10 +167,10 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
         Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText()
-                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText()
-                .contains(FLEET_TRACKING_DASHBOARD.replace("T", "t")));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText().toLowerCase()
+                .contains(FLEET_TRACKING_DASHBOARD.toLowerCase()));
+        Assert.assertTrue(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText().toLowerCase()
+                .contains(FLEET_TRACKING_DASHBOARD.toLowerCase()));
     }
 
     @Epic("Solution templates")
@@ -381,6 +381,7 @@ public class FleetTrackingInstallTest extends AbstractDriverBaseTest {
     @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void fleetTrackingInstructionGoToMainDashboard() {
         testRestClient.postFleetTracking();
+        refreshPage();
 
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstructionBtn().click();

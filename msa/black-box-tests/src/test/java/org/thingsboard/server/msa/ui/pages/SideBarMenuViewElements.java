@@ -47,7 +47,7 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     private static final String ASSET_PROFILE_BTN = "//mat-toolbar//a[@href='/profiles/assetProfiles']";
     private static final String DASHBOARDS_BTN = "//mat-toolbar//a[@href='/dashboards']";
     private static final String SOLUTION_TEMPLATES = "//mat-toolbar//a[@href='/solutionTemplates']";
-    private static final String ROLES_BTN = "//mat-toolbar//a[@href='/security-settings/roles']/span";
+    private static final String ROLES_BTN = "//mat-toolbar//a[@href='/security-settings/roles']/span[@class='mdc-button__label']";
     private static final String DEVICES_BTN = "//ul[@id='docs-menu-entity.entities']//span[text()='Devices']";
     private static final String ASSETS_BTN = "//ul[@id='docs-menu-entity.entities']//span[text()='Assets']";
     private static final String ENTITIES_DROPDOWN = "//mat-toolbar//mat-icon[text()='category']/ancestor::span//span[contains(@class,'pull-right')]";

@@ -41,6 +41,10 @@ public class SolutionTemplatesConstants {
     public static final String WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN = "Water Metering Solution Customer Alarm Routing";
     public static final String WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN = "Water Metering Solution Tenant Alarm Routing";
 
+    //Customers
+    public static final String WATER_METERING_CUSTOMER_A_CUSTOMER = "Water Metering Customer A";
+    public static final String WATER_METERING_CUSTOMER_B_CUSTOMER = "Water Metering Customer B";
+
     //Roles
     public static final String WATER_METERING_READ_ONLY_ROLES = "Water Metering Read Only";
     public static final String WATER_METERING_USER_ROLES = "Water Metering User";
@@ -219,7 +223,7 @@ public class SolutionTemplatesConstants {
     public static final String BUS_DEVICES_DEVICE_GROUP = "Bus devices";
 
     /**
-     * Fleet tracking
+     * Air Quality Monitoring
      **/
     
     //Rule chains
@@ -244,8 +248,8 @@ public class SolutionTemplatesConstants {
     public static final String AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD = "Air Quality Monitoring Administration";
     
     //Entity groups
-    public static final String AIR_QUALITY_MONITORING_DEVICE_GROUP = "Air Quality Monitoring";
-    public static final String AIR_QUALITY_MONITORING_ASSET_GROUP = "Air Quality Monitoring";
+    public static final String AQI_SENSOR_DEVICE_GROUP = "AQI Sensor";
+    public static final String AQI_CITY_ASSET_GROUP = "AQI City";
     public static final String AIR_QUALITY_MONITORING_DASHBOARD_GROUP = "Air Quality Monitoring Public";
 
     /**

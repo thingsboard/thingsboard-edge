@@ -228,13 +228,15 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractDriverBaseTes
         Assert.assertTrue(customerPage.entity(CUSTOMER_D).isDisplayed());
 
         customerPage.manageCustomersDeviceGroupsBtn(CUSTOMER_D).click();
-        customerPage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).click();
 
         Assert.assertTrue(devicePage.entity(SENSOR_C1_DEVICE).isDisplayed());
 
+        devicePage.groupsBtn().click();
+
+        Assert.assertTrue(customerPage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).isDisplayed());
+
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(CUSTOMER_D).click();
-        customerPage.entity("All").click();
 
         Assert.assertTrue(usersPageHelper.entity(user1).isDisplayed());
         Assert.assertTrue(usersPageHelper.entity(user2).isDisplayed());

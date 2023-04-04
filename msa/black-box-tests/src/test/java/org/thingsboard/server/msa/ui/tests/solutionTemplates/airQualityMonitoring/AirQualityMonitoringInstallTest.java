@@ -62,7 +62,7 @@ import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LOS_ANGELES_CA_ASSET;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_PROFILE;
@@ -72,7 +72,7 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_3_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_4_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_5_DEVICE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_DEVICE_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_RULE_CHAIN;
@@ -216,7 +216,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.goToDeviceGroups();
 
-        Assert.assertTrue(devicePage.entity(AIR_QUALITY_MONITORING_DEVICE_GROUP).isDisplayed());
+        Assert.assertTrue(devicePage.entity(AQI_SENSOR_DEVICE_GROUP).isDisplayed());
 
         devicePage.entity("All").click();
 
@@ -228,7 +228,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.goToAssetGroups();
 
-        Assert.assertTrue(assetPage.entity(AIR_QUALITY_MONITORING_ASSET_GROUP).isDisplayed());
+        Assert.assertTrue(assetPage.entity(AQI_CITY_ASSET_GROUP).isDisplayed());
 
         assetPage.entity("All").click();
 
@@ -424,7 +424,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.goToDeviceGroups();
 
-        Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_MONITORING_DEVICE_GROUP));
+        Assert.assertTrue(devicePage.entityIsNotPresent(AQI_SENSOR_DEVICE_GROUP));
 
         devicePage.entity("All").click();
 
@@ -436,7 +436,7 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.goToAssetGroups();
 
-        Assert.assertTrue(assetPage.entityIsNotPresent(AIR_QUALITY_MONITORING_ASSET_GROUP));
+        Assert.assertTrue(assetPage.entityIsNotPresent(AQI_CITY_ASSET_GROUP));
 
         assetPage.entity("All").click();
 

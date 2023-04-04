@@ -62,21 +62,23 @@ import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.DASHBOARD_GIDE_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_CUSTOMER_A_CUSTOMER;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_CUSTOMER_B_CUSTOMER;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_CUSTOMER_GROUP;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_TENANT_DASHBOARD;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SHARED_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_READ_ONLY_ROLES;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SHARED_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SOLUTION_MAIN_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_TENANT_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_USER_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_USER_ROLES;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERS_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METER_DEVICE_PROFILE_WM;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WM0000123_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WM0000124_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WM0000125_DEVICE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERS_DEVICE_GROUP;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WM0000123_DEVICE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METER_DEVICE_PROFILE_WM;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_USER_ROLES;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_READ_ONLY_ROLES;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_SOLUTION_MAIN_RULE_CHAIN;
 
 public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
     SideBarMenuViewHelper sideBarMenuView;
@@ -211,7 +213,14 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
     @Test
     @Description("Check entity installation after solution template installation")
     public void installEntities() {
-        testRestClient.postWaterMetering();
+        sideBarMenuView.solutionTemplates().click();
+        solutionTemplatesHomePage.waterMeteringInstallBtn().click();
+        solutionTemplatesInstalledView.waitUntilInstallFinish();
+        solutionTemplatesInstalledView.setFirstUserName();
+        solutionTemplatesInstalledView.setSecondUserName();
+        String userCustomerA = solutionTemplatesInstalledView.getFirstUserName();
+        String userCustomerB = solutionTemplatesInstalledView.getSecondUserName();
+        solutionTemplatesInstalledView.closeBtn().click();
         sideBarMenuView.ruleChainsBtn().click();
 
         Assert.assertTrue(ruleChainsPage.entity(WATER_METERING_SOLUTION_MAIN_RULE_CHAIN).isDisplayed());
@@ -227,15 +236,37 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
 
         Assert.assertTrue(customerPage.entity(WATER_METERING_CUSTOMER_GROUP).isDisplayed());
 
+        customerPage.entity("All").click();
+
+        Assert.assertTrue(customerPage.entity(WATER_METERING_CUSTOMER_A_CUSTOMER).isDisplayed());
+        Assert.assertTrue(customerPage.entity(WATER_METERING_CUSTOMER_B_CUSTOMER).isDisplayed());
+
+        customerPage.manageCustomersUserBtn(WATER_METERING_CUSTOMER_A_CUSTOMER).click();
+
+        Assert.assertTrue(usersPageHelper.entity(userCustomerA).isDisplayed());
+
+        sideBarMenuView.goToAllCustomers();
+        customerPage.manageCustomersUserBtn(WATER_METERING_CUSTOMER_B_CUSTOMER).click();
+
+        Assert.assertTrue(usersPageHelper.entity(userCustomerB).isDisplayed());
+
+        sideBarMenuView.goToAllCustomers();
+        customerPage.manageCustomersDeviceGroupsBtn(WATER_METERING_CUSTOMER_A_CUSTOMER).click();
+        devicePage.groupsBtn().click();
+
+        Assert.assertTrue(devicePage.entity(WATER_METERS_DEVICE_GROUP).isDisplayed());
+
+        sideBarMenuView.goToAllCustomers();
+        customerPage.manageCustomersDeviceGroupsBtn(WATER_METERING_CUSTOMER_B_CUSTOMER).click();
+        devicePage.groupsBtn().click();
+
+        Assert.assertTrue(devicePage.entity(WATER_METERS_DEVICE_GROUP).isDisplayed());
+
         sideBarMenuView.openDeviceProfiles();
 
         Assert.assertTrue(profilesPage.entity(WATER_METER_DEVICE_PROFILE_WM).isDisplayed());
 
-        sideBarMenuView.goToDeviceGroups();
-
-        Assert.assertTrue(devicePage.entity(WATER_METERS_DEVICE_GROUP).isDisplayed());
-
-        devicePage.entity("All").click();
+        sideBarMenuView.goToAllDevices();
 
         Assert.assertTrue(devicePage.entity(WM0000123_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(WM0000124_DEVICE).isDisplayed());
@@ -432,6 +463,11 @@ public class WaterMeteringInstallTest extends AbstractDriverBaseTest {
         sideBarMenuView.goToCustomerGroups();
 
         Assert.assertTrue(customerPage.entityIsNotPresent(WATER_METERING_CUSTOMER_GROUP));
+
+        customerPage.entity("All").click();
+
+        Assert.assertTrue(customerPage.entityIsNotPresent(WATER_METERING_CUSTOMER_A_CUSTOMER));
+        Assert.assertTrue(customerPage.entityIsNotPresent(WATER_METERING_CUSTOMER_B_CUSTOMER));
 
         sideBarMenuView.openDeviceProfiles();
 

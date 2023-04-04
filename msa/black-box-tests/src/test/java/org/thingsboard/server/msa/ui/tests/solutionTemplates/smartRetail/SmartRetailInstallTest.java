@@ -286,32 +286,27 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         customerPage.entity("All").click();
         customerPage.manageCustomersUserBtn(RETAIL_COMPANY_A_CUSTOMER).click();
 
-        Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
-        Assert.assertTrue(usersPage.entity(SMART_RETAIL_ADMINISTRATORS_USER_GROUP).isDisplayed());
-
-
-        usersPage.entity("All").click();
-
         Assert.assertTrue(usersPage.entity(user1RetailCompanyA).isDisplayed());
         Assert.assertTrue(usersPage.entity(user2RetailCompanyA).isDisplayed());
+
+        usersPage.groupsBtn().click();
+
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_ADMINISTRATORS_USER_GROUP).isDisplayed());
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
-        Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
-        Assert.assertTrue(usersPage.entity(SMART_RETAIL_ADMINISTRATORS_USER_GROUP).isDisplayed());
-
-        usersPage.entity("All").click();
-
         Assert.assertTrue(usersPage.entity(user1RetailCompanyB).isDisplayed());
         Assert.assertTrue(usersPage.entity(user2RetailCompanyB).isDisplayed());
 
+        usersPage.groupsBtn().click();
+
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_USERS_USER_GROUP).isDisplayed());
+        Assert.assertTrue(usersPage.entity(SMART_RETAIL_ADMINISTRATORS_USER_GROUP).isDisplayed());
+
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
-
-        Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
-
-        devicePage.entity("All").click();
         devicePage.changeItemsCountPerPage(30);
 
         Assert.assertTrue(devicePage.entity(CHILLER3_DEVICE).isDisplayed());
@@ -342,36 +337,40 @@ public class SmartRetailInstallTest extends AbstractDriverBaseTest {
         Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_5_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(SMOKE_SENSOR_6_DEVICE).isDisplayed());
 
-        sideBarMenuView.goToAllCustomers();
-        customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
+        devicePage.groupsBtn().click();
 
         Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
 
-        devicePage.entity("All").click();
+        sideBarMenuView.goToAllCustomers();
+        customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
         Assert.assertTrue(devicePage.entity(SMART_SHELF_89546_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(CHILLER_378876_DEVICE).isDisplayed());
         Assert.assertTrue(devicePage.entity(FREEZER_67478).isDisplayed());
         Assert.assertTrue(devicePage.entity(DOOR_SENSOR_3456_DEVICE).isDisplayed());
 
+        devicePage.groupsBtn().click();
+
+        Assert.assertTrue(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed());
+
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
-
-        Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
-
-        assetPage.entity("All").click();
 
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_S1_ASSET).isDisplayed());
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_S2_ASSET).isDisplayed());
 
-        sideBarMenuView.goToAllCustomers();
-        customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
+        assetPage.groupsBtn().click();
 
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
 
-        assetPage.entity("All").click();
+        sideBarMenuView.goToAllCustomers();
+        customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
 
         Assert.assertTrue(assetPage.entity(SUPERMARKETS_S3_ASSET).isDisplayed());
+
+        assetPage.groupsBtn().click();
+
+        Assert.assertTrue(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed());
 
         sideBarMenuView.openDeviceProfiles();
 
