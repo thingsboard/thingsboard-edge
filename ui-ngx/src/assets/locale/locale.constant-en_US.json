@@ -3362,6 +3362,8 @@
         "type-apache-pulsar-description": "Distributed pub-sub messaging and streaming platform.",
         "type-tuya": "Tuya",
         "type-tuya-description": "Cloud-hosted messaging. device platform.",
+        "type-azure-service-bus": "Azure Service Bus",
+        "type-azure-service-bus-description": "Fully managed enterprise message broker with message queues and publish-subscribe topics.",
         "opc-ua-application-name": "Application name",
         "opc-ua-application-uri": "Application uri",
         "opc-ua-scan-period-in-seconds": "Scan period in seconds",
@@ -3543,7 +3545,15 @@
         "region-cn": "China",
         "region-us": "United States",
         "region-eu": "Europe",
-        "region-in": "India"
+        "region-in": "India",
+        "topic-name": "Topic name",
+        "topic-name-required": "Topic name is required",
+        "sub-name": "Subscription name",
+        "sub-name-required": "Subscription name is required",
+        "downlink-connection-string": "Downlink connection string",
+        "downlink-connection-string-required": "Downlink connection string is required",
+        "downlink-topic-name": "Downlink topic name",
+        "downlink-topic-name-required": "Downlink topic name is required"
     },
     "item": {
         "selected": "Selected"
