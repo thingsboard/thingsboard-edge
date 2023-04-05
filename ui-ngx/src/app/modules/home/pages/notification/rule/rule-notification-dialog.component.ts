@@ -81,6 +81,7 @@ import {
   ApiUsageStateValue,
   ApiUsageStateValueTranslationMap
 } from '@shared/models/api-usage.models';
+import { IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
 
 export interface RuleNotificationDialogData {
   rule?: NotificationRule;
@@ -110,6 +111,7 @@ export class RuleNotificationDialogComponent extends
   ruleEngineEventsTemplateForm: FormGroup;
   entitiesLimitTemplateForm: FormGroup;
   apiUsageLimitTemplateForm: FormGroup;
+  integrationEventsTemplateForm: FormGroup;
 
   triggerType = TriggerType;
   triggerTypes: TriggerType[];
@@ -143,6 +145,9 @@ export class RuleNotificationDialogComponent extends
 
   apiFeatures: ApiFeature[] = Object.values(ApiFeature);
   apiFeatureTranslationMap = ApiFeatureTranslationMap;
+
+  integrationTypes: IntegrationType[] = Object.values(IntegrationType);
+  integrationTypeInfoMap = integrationTypeInfoMap;
 
   entityType = EntityType;
   entityTypes = Array.from(entityTypeTranslations.keys()).filter(type => !!this.entityType[type]);
@@ -301,6 +306,28 @@ export class RuleNotificationDialogComponent extends
       })
     });
 
+    this.integrationEventsTemplateForm = this.fb.group({
+      triggerConfig: this.fb.group({
+        filterByIntegration: [false],
+        integrationTypes: [[]],
+        integrations: [{value: null, disabled: true}],
+        notifyOn: [[ComponentLifecycleEvent.STOPPED], Validators.required],
+        onlyOnError: [false]
+      })
+    });
+
+    this.integrationEventsTemplateForm.get('triggerConfig.filterByIntegration').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => {
+      if (value) {
+        this.integrationEventsTemplateForm.get('triggerConfig.integrations').enable({emitEvent: false});
+        this.integrationEventsTemplateForm.get('triggerConfig.integrationTypes').disable({emitEvent: false});
+      } else {
+        this.integrationEventsTemplateForm.get('triggerConfig.integrationTypes').enable({emitEvent: false});
+        this.integrationEventsTemplateForm.get('triggerConfig.integrations').disable({emitEvent: false});
+      }
+    });
+
     this.triggerTypeFormsMap = new Map<TriggerType, FormGroup>([
       [TriggerType.ALARM, this.alarmTemplateForm],
       [TriggerType.ALARM_COMMENT, this.alarmCommentTemplateForm],
@@ -309,7 +336,8 @@ export class RuleNotificationDialogComponent extends
       [TriggerType.ALARM_ASSIGNMENT, this.alarmAssignmentTemplateForm],
       [TriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT, this.ruleEngineEventsTemplateForm],
       [TriggerType.ENTITIES_LIMIT, this.entitiesLimitTemplateForm],
-      [TriggerType.API_USAGE_LIMIT, this.apiUsageLimitTemplateForm]
+      [TriggerType.API_USAGE_LIMIT, this.apiUsageLimitTemplateForm],
+      [TriggerType.INTEGRATION_LIFECYCLE_EVENT, this.integrationEventsTemplateForm],
     ]);
 
     if (data.isAdd || data.isCopy) {
@@ -329,6 +357,10 @@ export class RuleNotificationDialogComponent extends
       if (this.ruleNotification.triggerType === TriggerType.DEVICE_ACTIVITY) {
         this.deviceInactivityTemplateForm.get('triggerConfig.filterByDevice')
           .patchValue(!!this.ruleNotification.triggerConfig.devices, {onlySelf: true});
+      }
+      if (this.ruleNotification.triggerType === TriggerType.INTEGRATION_LIFECYCLE_EVENT) {
+        this.integrationEventsTemplateForm.get('triggerConfig.filterByIntegration')
+          .patchValue(!!this.ruleNotification.triggerConfig.integrations, {onlySelf: true});
       }
     }
 
@@ -380,6 +412,9 @@ export class RuleNotificationDialogComponent extends
       Object.assign(formValue, currentForm.value);
       if (triggerType === TriggerType.DEVICE_ACTIVITY) {
         delete formValue.triggerConfig.filterByDevice;
+      }
+      if (triggerType === TriggerType.INTEGRATION_LIFECYCLE_EVENT) {
+        delete formValue.triggerConfig.filterByIntegration;
       }
       formValue.recipientsConfig.triggerType = triggerType;
       formValue.triggerConfig.triggerType = triggerType;

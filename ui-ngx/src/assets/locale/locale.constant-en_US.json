@@ -3122,6 +3122,7 @@
         "events": "Events",
         "enabled": "Enable integration",
         "allow-create-devices-or-assets": "Allow create devices or assets",
+        "all-types": "All integration types",
         "add": "Add Integration",
         "search": "Search integrations",
         "integration-details": "Integration details",
@@ -3773,6 +3774,8 @@
         "inbox": "Inbox",
         "input-field-support-templatization": "Input field support templatization.",
         "input-fields-support-templatization": "Input fields support templatization.",
+        "integration-action-trigger-settings": "Integration events trigger settings",
+        "integration-list-rule-hint": "If the field is empty, the trigger will be applied to all integrations",
         "link": "Link",
         "link-required": "Link is required",
         "link-type": {
@@ -3814,6 +3817,7 @@
         "notify-on-comment-update": "Notify on comment update",
         "notify-on-required": "Notify on is required",
         "notify-on-unassign": "Notify on unassign",
+        "notify-only-integrations-errors": "Notify only integrations error",
         "notify-only-user-comments": "Notify only user comments",
         "only-rule-chain-lifecycle-failures": "Only rule chain lifecycle failures",
         "only-rule-node-lifecycle-failures": "Only rule node lifecycle failures",
@@ -3890,6 +3894,7 @@
             "entities-limit": "Entities limit",
             "entity-action": "Entity action",
             "general": "General",
+            "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "rule-engine": "Rule engine"
         },
@@ -3907,6 +3912,7 @@
             "device-activity": "Device activity",
             "entities-limit": "Entities limit",
             "entity-action": "Entity action",
+            "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "trigger": "Trigger",
             "trigger-required": "Trigger is required"

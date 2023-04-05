@@ -493,6 +493,66 @@
         </section>
       </form>
     </mat-step>
+
+    <mat-step *ngIf="ruleNotificationForm.get('triggerType').value === triggerType.INTEGRATION_LIFECYCLE_EVENT"
+              [stepControl]="integrationEventsTemplateForm">
+      <ng-template matStepLabel>{{ 'notification.integration-action-trigger-settings' | translate }}</ng-template>
+      <form [formGroup]="integrationEventsTemplateForm">
+        <fieldset class="fields-group tb-margin" formGroupName="triggerConfig">
+          <legend translate>notification.filter</legend>
+          <div fxFlex fxLayoutAlign="center center">
+            <mat-button-toggle-group class="tb-notification-unread-toggle-group"
+                                     style="width: 320px;"
+                                     formControlName="filterByIntegration">
+              <mat-button-toggle fxFlex [value]=false>{{ 'integration.type' | translate }}</mat-button-toggle>
+              <mat-button-toggle fxFlex [value]=true>{{ 'integration.integration' | translate }}</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+          <ng-container *ngIf="integrationEventsTemplateForm.get('triggerConfig.filterByIntegration').value; else integrationType">
+            <tb-entity-list
+              formControlName="integrations"
+              subscriptSizing="dynamic"
+              labelText="{{ 'integration.integrations' | translate }}"
+              placeholderText="{{ 'integration.integrations' | translate }}"
+              hint="{{ 'notification.integration-list-rule-hint' | translate }}"
+              [entityType]="entityType.INTEGRATION">
+            </tb-entity-list>
+          </ng-container>
+          <ng-template #integrationType>
+            <mat-form-field fxFlex class="mat-block" floatLabel="always">
+              <mat-label translate>integration.type</mat-label>
+              <mat-select formControlName="integrationTypes" multiple
+                          placeholder="{{ !integrationEventsTemplateForm.get('triggerConfig.integrationTypes').value?.length ? ('integration.all-types' | translate) : '' }}">
+                <mat-option *ngFor="let integrationType of integrationTypes" [value]="integrationType">
+                  {{ integrationTypeInfoMap.get(integrationType).name | translate }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </ng-template>
+
+          <mat-form-field fxFlex class="mat-block" floatLabel="always">
+            <mat-label translate>notification.notify-on</mat-label>
+            <mat-select formControlName="notifyOn" multiple
+                        placeholder="{{ !integrationEventsTemplateForm.get('triggerConfig.notifyOn').value?.length ? ('event.all-events' | translate) : '' }}">
+              <mat-option *ngFor="let componentLifecycleEvent of componentLifecycleEvents" [value]="componentLifecycleEvent">
+                {{ componentLifecycleEventTranslationMap.get(componentLifecycleEvent) | translate }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-slide-toggle formControlName="onlyOnError">
+            {{ 'notification.notify-only-integrations-errors' | translate }}
+          </mat-slide-toggle>
+        </fieldset>
+      </form>
+      <form [formGroup]="ruleNotificationForm">
+        <section formGroupName="additionalConfig">
+          <mat-form-field class="mat-block">
+            <mat-label translate>notification.description</mat-label>
+            <input matInput formControlName="description">
+          </mat-form-field>
+        </section>
+      </form>
+    </mat-step>
   </mat-horizontal-stepper>
 </div>
 <mat-divider></mat-divider>
