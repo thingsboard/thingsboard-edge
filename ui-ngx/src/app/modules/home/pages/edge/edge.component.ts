@@ -40,11 +40,11 @@ import { generateSecret, guid } from '@core/utils';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { EdgeInfo } from '@shared/models/edge.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-edge',
@@ -210,6 +210,7 @@ export class EdgeComponent extends GroupEntityComponent<EdgeInfo> {
 
   private generateRoutingKeyAndSecret(entity: EdgeInfo, form: UntypedFormGroup) {
     if (entity && (!entity.id || (entity.id && !entity.id.id))) {
+      form.get('edgeLicenseKey').patchValue('6qcGys6gz4M2ZuIqZ6hRDjWT', { emitEvent: false });
       form.get('routingKey').patchValue(guid(), { emitEvent: false });
       form.get('secret').patchValue(generateSecret(20), { emitEvent: false });
     }

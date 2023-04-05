@@ -15,7 +15,8 @@
         "direction": "FROM",
         "type": "Contains"
       }
-    ]
+    ],
+    "jsonId": "ea951240-cf1e-11ed-9cfd-ffa4950210f7"
   },
   {
     "name": "Floor 2",
@@ -33,7 +34,8 @@
         "direction": "FROM",
         "type": "Contains"
       }
-    ]
+    ],
+    "jsonId": "eaa90f70-cf1e-11ed-9cfd-ffa4950210f7"
   },
   {
     "name": "Room 101",
@@ -52,7 +54,8 @@
         "direction": "FROM",
         "type": "Contains"
       }
-    ]
+    ],
+    "jsonId": "ea9debe0-cf1e-11ed-9cfd-ffa4950210f7"
   },
   {
     "name": "Room 102",
@@ -71,7 +74,8 @@
         "direction": "FROM",
         "type": "Contains"
       }
-    ]
+    ],
+    "jsonId": "ea9f2460-cf1e-11ed-9cfd-ffa4950210f7"
   },
   {
     "name": "Room 103",

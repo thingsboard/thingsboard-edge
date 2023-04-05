@@ -33,11 +33,13 @@ package org.thingsboard.server.service.entitiy.edge;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -93,6 +95,10 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
                 edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
                 edgeService.assignTenantAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId());
+                if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+                    Customer customerById = customerService.findCustomerById(tenantId, new CustomerId(edge.getOwnerId().getId()));
+                    edgeService.assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId(), customerById.getId(), customerById.getParentCustomerId());
+                }
             }
 
             if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
@@ -106,6 +112,12 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.EDGE), edge, actionType, user, e);
             throw e;
         }
+    }
+
+    @Override
+    public void delete(EdgeId edgeId, User user) {
+        Edge edge = edgeService.findEdgeById(user.getTenantId(), edgeId);
+        this.delete(edge, user);
     }
 
     @Override
