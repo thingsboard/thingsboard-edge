@@ -2183,7 +2183,7 @@ public class RestClient implements Closeable {
 
     public UsageInfo getUsageInfo() {
         return restTemplate.exchange(
-                baseURL + "/api/tenant/usageInfo",
+                baseURL + "/api/usage",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 UsageInfo.class).getBody();
