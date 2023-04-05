@@ -42,7 +42,6 @@ import {
   RecipientNotificationDialogComponent
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { RecipientTableHeaderComponent } from '@home/pages/notification/recipient/recipient-table-header.component';
-import { TemplateAutocompleteComponent } from '@home/pages/notification/template/template-autocomplete.component';
 import {
   TemplateNotificationDialogComponent
 } from '@home/pages/notification/template/template-notification-dialog.component';
@@ -60,7 +59,6 @@ import { RuleTableHeaderComponent } from '@home/pages/notification/rule/rule-tab
     SentNotificationDialogComponent,
     RecipientNotificationDialogComponent,
     RecipientTableHeaderComponent,
-    TemplateAutocompleteComponent,
     TemplateNotificationDialogComponent,
     TemplateTableHeaderComponent,
     EscalationFormComponent,

@@ -55,6 +55,7 @@ public class TbSlackNodeConfiguration implements NodeConfiguration<TbSlackNodeCo
     @Override
     public TbSlackNodeConfiguration defaultConfiguration() {
         TbSlackNodeConfiguration config = new TbSlackNodeConfiguration();
+        config.setUseSystemSettings(true);
         config.setBotToken("xoxb-");
         config.setMessageTemplate("Device ${deviceId}: temperature is $[temperature]");
         config.setConversationType(SlackConversationType.PUBLIC_CHANNEL);
