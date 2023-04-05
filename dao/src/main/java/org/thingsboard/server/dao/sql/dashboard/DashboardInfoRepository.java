@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,23 +35,39 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.DashboardFullInfoEntity;
 import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.thingsboard.server.dao.model.ModelConstants.SUB_CUSTOMERS_QUERY;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEntity, UUID> {
 
+    @Query("SELECT di FROM DashboardFullInfoEntity di " +
+            "WHERE di.id = :dashboardId")
+    DashboardFullInfoEntity findFullInfoById(@Param("dashboardId") UUID dashboardId);
+
     DashboardInfoEntity findFirstByTenantIdAndTitle(UUID tenantId, String title);
 
-    @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId " +
-            "AND LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    @Query("SELECT di FROM DashboardInfoEntity di " +
+            "WHERE di.tenantId = :tenantId " +
+            "AND (LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "OR LOWER(di.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
     Page<DashboardInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
+
+    @Query("SELECT di FROM DashboardInfoEntity di " +
+            "WHERE di.tenantId = :tenantId AND (di.customerId IS NULL OR di.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<DashboardInfoEntity> findTenantDashboardsByTenantId(@Param("tenantId") UUID tenantId,
+                                                             @Param("searchText") String searchText,
+                                                             Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId " +
             "AND di.mobileHide = false " +
@@ -66,6 +82,25 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
                                                           @Param("customerId") UUID customerId,
                                                           @Param("searchText") String searchText,
                                                           Pageable pageable);
+
+    @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
+            "FROM (select d.id, d.created_time, d.assigned_customers, d.search_text, d.tenant_id, " +
+            "d.customer_id, d.title, d.mobile_hide, d.mobile_order, d.image, d.groups, d.external_id, " +
+            "c.title as owner_name from dashboard_info_view d " +
+            "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
+            "WHERE" + SUB_CUSTOMERS_QUERY +
+            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            countQuery = "SELECT count(e.id) FROM dashboard e " +
+                    "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
+                    "WHERE" + SUB_CUSTOMERS_QUERY +
+                    "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+            nativeQuery = true)
+    Page<DashboardInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
+                                                                               @Param("customerId") UUID customerId,
+                                                                               @Param("searchText") String searchText,
+                                                                               Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di, RelationEntity re WHERE di.tenantId = :tenantId " +
             "AND di.mobileHide = false " +
@@ -121,4 +156,6 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
                                                       @Param("searchText") String searchText,
                                                       Pageable pageable);
 
+    @Query("SELECT di.title FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId AND di.id = :dashboardId")
+    String findTitleByTenantIdAndId(@Param("tenantId") UUID tenantId, @Param("dashboardId") UUID dashboardId);
 }

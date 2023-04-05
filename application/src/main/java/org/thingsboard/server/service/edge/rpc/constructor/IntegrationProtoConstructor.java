@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,9 +57,10 @@ public class IntegrationProtoConstructor {
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
-                .setConfiguration(JacksonUtil.toString(configuration))
-                .setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
-
+                .setConfiguration(JacksonUtil.toString(configuration));
+        if (integration.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
+        }
         if (integration.getSecret() != null) {
             builder.setSecret(integration.getSecret());
         }

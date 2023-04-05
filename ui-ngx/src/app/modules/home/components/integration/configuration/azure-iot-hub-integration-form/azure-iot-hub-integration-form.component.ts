@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -44,6 +44,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { AzureIotHubIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-azure-iot-hub-integration-form',
@@ -62,13 +63,13 @@ import { AzureIotHubIntegration, IntegrationCredentialType } from '@shared/model
 })
 export class AzureIotHubIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  azureIotConfigForm: FormGroup;
+  azureIotConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.azureIotConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
@@ -118,5 +119,14 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationForm impleme
     return this.azureIotConfigForm.valid ? null : {
       azureIotConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.azureIotConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.azureIotConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+    }
+    this.azureIotConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
   }
 }

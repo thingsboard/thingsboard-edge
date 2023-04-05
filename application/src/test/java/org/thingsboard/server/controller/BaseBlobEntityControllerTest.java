@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.Futures;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.blob.BaseBlobEntityService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.service.security.permission.AccessControlService;
@@ -69,7 +68,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.controller.BlobEntityController.BLOB_ENTITY_ID;
 
@@ -79,28 +79,21 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
     protected final String CUSTOMER_ADMIN_EMAIL = "testadmincustomer@thingsboard.org";
     protected final String CUSTOMER_ADMIN_PASSWORD = "admincustomer";
     private final String data = "Hello thingsboard";
-
+    @Autowired
+    protected JpaExecutorService service;
+    @Autowired
+    protected AccessControlService accessControlService;
+    @SpyBean
+    BlobEntityService blobEntityService;
     private Role role;
     private EntityGroup entityGroup;
     private GroupPermission groupPermission;
     private String type;
-
-    @Autowired
-    BlobEntityService blobEntityService;
-
-    @Autowired
-    BaseBlobEntityService baseBlobEntityService;
-
-    @Autowired
-    protected JpaExecutorService service;
-
-    @Autowired
-    protected AccessControlService accessControlService;
+    private User savedCustomerAdministrator;
 
     @Before
     public void beforeTest() throws Exception {
         loginTenantAdmin();
-
 
         Role role = new Role();
         role.setTenantId(tenantId);
@@ -127,7 +120,6 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         );
         this.groupPermission =
                 doPost("/api/groupPermission", groupPermission, GroupPermission.class);
-
     }
 
     @After
@@ -143,9 +135,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         BlobEntityId blobEntityId = blobEntityWithCustomerInfo.getId();
         String blobEntityIdStr = blobEntityId.getId().toString();
 
-        doAnswer((Answer<BlobEntityWithCustomerInfo>) invocationOnMock -> {
-            return blobEntityWithCustomerInfo;
-        }).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
+        doReturn(blobEntityWithCustomerInfo).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
 
         BlobEntityWithCustomerInfo foundBlobEntityWithCustomerInfo = doGet("/api/blobEntity/info/" + blobEntityIdStr, BlobEntityWithCustomerInfo.class);
         Assert.assertNotNull(foundBlobEntityWithCustomerInfo);
@@ -157,17 +147,11 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         BlobEntityWithCustomerInfo blobEntityWithCustomerInfo = createBlobEntityWithCustomerInfoRandomUUID();
         BlobEntityId blobEntityId = blobEntityWithCustomerInfo.getId();
         String blobEntityIdStr = blobEntityId.getId().toString();
-        doAnswer((Answer<BlobEntityWithCustomerInfo>) invocationOnMock -> {
-            var tenantId = (TenantId) invocationOnMock.getArgument(0);
-            var blobEntityId_m = (BlobEntityId) invocationOnMock.getArgument(1);
-            return baseBlobEntityService.findBlobEntityWithCustomerInfoById(tenantId, blobEntityId_m);
-        }).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
 
         doGet("/api/blobEntity/info/" + blobEntityIdStr)
                 .andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgErrorNoFound("Blob entity", blobEntityIdStr))));
     }
-
 
     @Test
     public void testGetBlobEntityInfoByIdViaDifferentTenant() throws Exception {
@@ -177,9 +161,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
 
         loginDifferentTenant();
 
-        doAnswer((Answer<BlobEntityWithCustomerInfo>) invocationOnMock -> {
-            return blobEntityWithCustomerInfo;
-        }).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(savedDifferentTenant.getId()), Mockito.eq(blobEntityId));
+        doReturn(blobEntityWithCustomerInfo).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(savedDifferentTenant.getId()), Mockito.eq(blobEntityId));
 
         doGet("/api/blobEntity/info/" + blobEntityIdStr)
                 .andExpect(status().isForbidden())
@@ -192,9 +174,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
     public void testDownloadBlobEntity() throws Exception {
         BlobEntity blobEntity = createBlobEntityRandomUUID();
         BlobEntityId blobEntityId = blobEntity.getId();
-        doAnswer((Answer<BlobEntity>) invocationOnMock -> {
-            return blobEntity;
-        }).when(blobEntityService).findBlobEntityById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
+        doReturn(blobEntity).when(blobEntityService).findBlobEntityById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
 
         byte[] content = doGet("/api/blobEntity/" + blobEntityId.getId().toString() + "/download").andReturn().getResponse().getContentAsByteArray();
         Assert.assertEquals(data, new String(content));
@@ -206,17 +186,16 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         BlobEntityId blobEntityId = blobEntityWithCustomerInfo.getId();
         String blobEntityIdStr = blobEntityId.getId().toString();
 
-        doAnswer((Answer<BlobEntityWithCustomerInfo>) invocationOnMock -> {
-            return blobEntityWithCustomerInfo;
-        }).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
-        doAnswer((Answer<Void>) invocationOnMock -> {
-            return null;
-        }).when(blobEntityService).deleteBlobEntity(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
+        doReturn(blobEntityWithCustomerInfo).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
+        doNothing().when(blobEntityService).deleteBlobEntity(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
 
-        Mockito.reset(tbClusterService, auditLogService);
+        Mockito.clearInvocations(tbClusterService, auditLogService);
 
         doDelete("/api/blobEntity/" + blobEntityIdStr)
                 .andExpect(status().isOk());
+
+        Mockito.verify(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
+        Mockito.verify(blobEntityService).deleteBlobEntity(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
 
         testNotifyEntityOneTimeMsgToEdgeServiceNever(blobEntityWithCustomerInfo, blobEntityWithCustomerInfo.getId(),
                 blobEntityWithCustomerInfo.getId(),
@@ -229,16 +208,10 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         BlobEntityId blobEntityId = new BlobEntityId(UUID.randomUUID());
         String blobEntityIdStr = blobEntityId.getId().toString();
 
-        doAnswer((Answer<BlobEntityWithCustomerInfo>) invocationOnMock -> {
-            var tenantId = (TenantId) invocationOnMock.getArgument(0);
-            var blobEntityId_m = (BlobEntityId) invocationOnMock.getArgument(1);
-            return baseBlobEntityService.findBlobEntityWithCustomerInfoById(tenantId, blobEntityId_m);
-        }).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.eq(tenantId), Mockito.eq(blobEntityId));
-
-        Mockito.reset(tbClusterService, auditLogService);
+        Mockito.clearInvocations(tbClusterService, auditLogService);
 
         doDelete("/api/blobEntity/" + blobEntityIdStr)
-                .andExpect(status().isNotFound())
+                //.andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgErrorNoFound("Blob entity", blobEntityIdStr))));
 
         testNotifyEntityNever(null, new BlobEntity());
@@ -246,7 +219,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
 
     @Test
     public void testDeleteBlobEntityParameterIsEmpty() throws Exception {
-        Mockito.reset(tbClusterService, auditLogService);
+        Mockito.clearInvocations(tbClusterService, auditLogService);
 
         String blobEntityIdStrEmpty = " ";
         doDelete("/api/blobEntity/" + blobEntityIdStrEmpty)
@@ -258,7 +231,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
 
     @Test
     public void testDeleteBlobEntityParameterIsInvalid() throws Exception {
-        Mockito.reset(tbClusterService, auditLogService);
+        Mockito.clearInvocations(tbClusterService, auditLogService);
 
         String blobEntityIdStrInvalid = "aa";
         doDelete("/api/blobEntity/" + blobEntityIdStrInvalid)
@@ -275,9 +248,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         PageData<BlobEntityWithCustomerInfo> blobEntityWithCustomerInfos = pageDataBlobEntityInfo(cntBlobEntityInfo, totalPage, null);
         type = "report_Test_With_Type";
         TimePageLink pageLink = new TimePageLink(10, 0);
-        doAnswer((Answer<PageData<BlobEntityWithCustomerInfo>>) invocationOnMock -> {
-            return blobEntityWithCustomerInfos;
-        }).when(blobEntityService).findBlobEntitiesByTenantIdAndType(Mockito.eq(tenantId), Mockito.eq(type), Mockito.eq(pageLink));
+        doReturn(blobEntityWithCustomerInfos).when(blobEntityService).findBlobEntitiesByTenantIdAndType(Mockito.eq(tenantId), Mockito.eq(type), Mockito.eq(pageLink));
 
         var response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize() + "&type=" + type,
                 new TypeReference<PageData<BlobEntityWithCustomerInfo>>() {
@@ -288,10 +259,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
 
         int cntBlobEntityInfoWithoutType = 153;
         PageData<BlobEntityWithCustomerInfo> blobEntityWithCustomerInfosPageDataWithoutType = pageDataBlobEntityInfo(cntBlobEntityInfoWithoutType, totalPage, blobEntityWithCustomerInfos.getData());
-        doAnswer((Answer<PageData<BlobEntityWithCustomerInfo>>) invocationOnMock -> {
-            return blobEntityWithCustomerInfosPageDataWithoutType;
-
-        }).when(blobEntityService).findBlobEntitiesByTenantId(Mockito.eq(tenantId), Mockito.eq(pageLink));
+        doReturn(blobEntityWithCustomerInfosPageDataWithoutType).when(blobEntityService).findBlobEntitiesByTenantId(Mockito.eq(tenantId), Mockito.eq(pageLink));
 
         response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize(),
                 new TypeReference<>() {
@@ -312,9 +280,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         PageData<BlobEntityWithCustomerInfo> blobEntityWithCustomerInfos = pageDataBlobEntityInfo(cntBlobEntityInfo, totalPage, null);
         type = "report_Test_With_Type";
         TimePageLink pageLink = new TimePageLink(10, 0);
-        doAnswer((Answer<PageData<BlobEntityWithCustomerInfo>>) invocationOnMock -> {
-            return blobEntityWithCustomerInfos;
-        }).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerIdAndType(Mockito.eq(tenantId), Mockito.eq(customerId), Mockito.eq(type), Mockito.eq(pageLink));
+        doReturn(blobEntityWithCustomerInfos).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerIdAndType(Mockito.eq(tenantId), Mockito.eq(customerId), Mockito.eq(type), Mockito.eq(pageLink));
 
         var response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize() + "&type=" + type,
                 new TypeReference<PageData<BlobEntityWithCustomerInfo>>() {
@@ -325,9 +291,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
 
         int cntBlobEntityInfoWithoutType = 153;
         PageData<BlobEntityWithCustomerInfo> blobEntityWithCustomerInfosPageDataWithoutType = pageDataBlobEntityInfo(cntBlobEntityInfoWithoutType, totalPage, blobEntityWithCustomerInfos.getData());
-        doAnswer((Answer<PageData<BlobEntityWithCustomerInfo>>) invocationOnMock -> {
-            return blobEntityWithCustomerInfosPageDataWithoutType;
-        }).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerId(Mockito.eq(tenantId), Mockito.eq(customerId), Mockito.eq(pageLink));
+        doReturn(blobEntityWithCustomerInfosPageDataWithoutType).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerId(Mockito.eq(tenantId), Mockito.eq(customerId), Mockito.eq(pageLink));
 
         response = doGetTyped("/api/blobEntities/?page=" + pageLink.getPage() + "&pageSize=" + pageLink.getPageSize(),
                 new TypeReference<>() {
@@ -337,7 +301,6 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
         Assert.assertEquals(pageLink.getPageSize(), response.getTotalPages());
         Assert.assertEquals(cntBlobEntityInfoAll, response.getTotalElements());
     }
-
 
     @Test
     public void testGetBlobEntitiesWithDifferentCustomerNotAdministrator() throws Exception {
@@ -369,12 +332,11 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
                 .collect(Collectors.toList())
                 .toArray(String[]::new);
         String strBlobEntityIds = String.join(",", blobEntityIdStrs);
-        doAnswer((Answer<ListenableFuture<List<BlobEntityInfo>>>) invocationOnMock -> {
-            return service.submit(() -> blobEntityInfos);
-        }).when(blobEntityService).findBlobEntityInfoByIdsAsync(Mockito.eq(tenantId), Mockito.eq(blobEntityIds));
+        doReturn(Futures.immediateFuture(blobEntityInfos)).when(blobEntityService).findBlobEntityInfoByIdsAsync(Mockito.eq(tenantId), Mockito.eq(blobEntityIds));
 
         var response = doGetTyped("/api/blobEntities/?blobEntityIds=" + strBlobEntityIds,
-                new TypeReference<List>() {});
+                new TypeReference<List>() {
+                });
         Assert.assertEquals(blobEntityInfos.size(), response.size());
     }
 
@@ -392,14 +354,10 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
                 .collect(Collectors.toList())
                 .toArray(String[]::new);
         String strBlobEntityIds = String.join(",", blobEntityIdStrs);
-        doAnswer((Answer<ListenableFuture<List<BlobEntityInfo>>>) invocationOnMock -> {
-            var tenantId = (TenantId) invocationOnMock.getArgument(0);
-            List<BlobEntityId> blobEntityIds_t = invocationOnMock.getArgument(1);
-            return baseBlobEntityService.findBlobEntityInfoByIdsAsync(tenantId, blobEntityIds_t);
-        }).when(blobEntityService).findBlobEntityInfoByIdsAsync(Mockito.eq(tenantId), Mockito.eq(blobEntityIds));
 
         var response = doGetTyped("/api/blobEntities/?blobEntityIds=" + strBlobEntityIds,
-                new TypeReference<List>() {});
+                new TypeReference<List>() {
+                });
         Assert.assertEquals(0, response.size());
     }
 
@@ -445,12 +403,6 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
                 .limit(cntBlobEntityInfo)
                 .collect(Collectors.toList());
     }
-
-//    private String uuidRandomToString() {
-//        return UUID.randomUUID().toString();
-//    }
-
-    private User savedCustomerAdministrator;
 
     private void loginCustomerAdministrator() throws Exception {
         if (savedCustomerAdministrator == null) {

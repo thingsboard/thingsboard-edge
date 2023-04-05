@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,17 +40,21 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
 import org.thingsboard.server.service.solutions.data.definition.CustomerDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EntitySearchKey;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
+import org.thingsboard.server.service.solutions.data.definition.SchedulerEventDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 
@@ -65,6 +69,7 @@ public class SolutionInstallContext {
 
     private final TenantId tenantId;
     private final String solutionId;
+    private final User user;
     private final TenantSolutionTemplateInstructions solutionInstructions;
     private final List<EntityId> createdEntitiesList = new ArrayList<>();
     private final Map<String, String> realIds = new HashMap<>();
@@ -76,10 +81,12 @@ public class SolutionInstallContext {
     private final Map<String, UserCredentialsInfo> createdUsers = new LinkedHashMap<>();
     private final Map<String, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
     private final List<DashboardLinkInfo> dashboardLinks = new ArrayList<>();
+    private final Map<String, EdgeLinkInfo> createdEdges = new LinkedHashMap<>();
 
-    public SolutionInstallContext(TenantId tenantId, String solutionId, TenantSolutionTemplateInstructions solutionInstructions) {
+    public SolutionInstallContext(TenantId tenantId, String solutionId, User user, TenantSolutionTemplateInstructions solutionInstructions) {
         this.tenantId = tenantId;
         this.solutionId = solutionId;
+        this.user = user;
         this.solutionInstructions = solutionInstructions;
         put(new EntitySearchKey(tenantId, EntityType.TENANT, null, false), tenantId);
     }
@@ -145,6 +152,15 @@ public class SolutionInstallContext {
         createdEntities.put(assetProfile.getName(), new CreatedEntityInfo(assetProfile.getName(), "Asset profile", "Tenant"));
     }
 
+    public void register(EdgeDefinition definition, Edge edge) {
+        register(definition.getJsonId(), edge.getId());
+        createdEntities.put(edge.getName(), new CreatedEntityInfo(edge.getName(), "Edge", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
+    }
+
+    public void register(SchedulerEventDefinition definition, SchedulerEvent schedulerEvent) {
+        register(definition.getJsonId(), schedulerEvent.getId());
+    }
+
     public void put(EntitySearchKey entitySearchKey, EntityId entityId) {
         entityIdMap.put(entitySearchKey, entityId);
     }
@@ -188,4 +204,7 @@ public class SolutionInstallContext {
         createdUsers.put(userCredentialsInfo.getName(), userCredentialsInfo);
     }
 
+    public void addEdgeLinkInfo(String edgeName, EdgeLinkInfo edgeLinkInfo) {
+        createdEdges.put(edgeName, edgeLinkInfo);
+    }
 }

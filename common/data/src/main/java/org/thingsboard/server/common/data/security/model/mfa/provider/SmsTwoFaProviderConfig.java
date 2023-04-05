@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,8 @@ import javax.validation.constraints.Pattern;
 @Data
 public class SmsTwoFaProviderConfig extends OtpBasedTwoFaProviderConfig {
 
-    @NotBlank(message = "verification message template is required")
-    @Pattern(regexp = ".*\\$\\{code}.*", message = "template must contain verification code")
+    @NotBlank(message = "is required")
+    @Pattern(regexp = ".*\\$\\{code}.*", message = "must contain verification code")
     private String smsVerificationMessageTemplate;
 
     @Override

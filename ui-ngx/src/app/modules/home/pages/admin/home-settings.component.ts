@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { DashboardService } from '@core/http/dashboard.service';
 import { HomeDashboardInfo } from '@shared/models/dashboard.models';
@@ -61,12 +61,12 @@ export class HomeSettingsComponent extends PageComponent implements OnInit, HasC
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
 
-  homeSettings: FormGroup;
+  homeSettings: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private router: Router,
               private dashboardService: DashboardService,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               private userPermissionsService: UserPermissionsService) {
     super(store);
   }
@@ -119,7 +119,7 @@ export class HomeSettingsComponent extends PageComponent implements OnInit, HasC
     }
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.homeSettings;
   }
 

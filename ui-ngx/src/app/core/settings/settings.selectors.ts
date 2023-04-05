@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { SettingsState } from './settings.models';
 import { AppState } from '@app/core/core.state';
 
-export const selectSettingsState = createFeatureSelector<AppState, SettingsState>(
+export const selectSettingsState = createFeatureSelector< SettingsState>(
   'settings'
 );
 

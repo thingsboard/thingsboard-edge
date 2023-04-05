@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
@@ -80,7 +81,6 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationValidatio
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
@@ -95,7 +95,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -106,14 +105,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.ACTIVATED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.FAILED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STARTED;
-import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.UPDATED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -137,6 +132,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
     private final IntegrationStatisticsService integrationStatisticsService;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reInitEnabled;
@@ -334,7 +330,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             return Futures.immediateFailedFuture(new DataValidationException("Integration routing key should be specified!"));
         }
         try {
-            if (configuration.getType().isRemoteOnly()) {
+            if (configuration.getType().isRemoteOnly() || configuration.isRemote()) {
                 return Futures.immediateFuture(null);
             }
             if (configuration.getId() == null) {
@@ -350,7 +346,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
-                        .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(configuration.getType()));
+                        .newByTopic(integrationExecutorSettings.getIntegrationDownlinkTopic(configuration.getType()));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
                         .setIdLSB(task.getUuid().getLeastSignificantBits())
@@ -532,6 +528,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 case STOPPED:
                 case SUSPENDED:
                 case DELETED:
+                    persistCurrentStatistics(state);
                     processStop(state, pendingEvent);
                     break;
             }
@@ -580,6 +577,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                     state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 } else {
+                    persistCurrentStatistics(state);
                     processStop(state, ComponentLifecycleEvent.STOPPED);
                 }
             } catch (Exception e) {
@@ -681,14 +679,27 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private void persistStatistics() {
         long ts = System.currentTimeMillis();
         integrations.forEach((id, integration) -> {
-            IntegrationStatistics statistics = integration.getIntegration().popStatistics();
-            Integration integrationInfo = integration.getIntegration().getConfiguration();
-            try {
-                eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integration.getCurrentState());
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist statistics: {}", id, statistics, e);
-            }
+            doPersistStatistics(integration, ts, false);
         });
+    }
+
+    private void persistCurrentStatistics(IntegrationState integrationState) {
+        if (statisticsEnabled) {
+            doPersistStatistics(integrationState, System.currentTimeMillis(), true);
+        }
+    }
+
+    private void doPersistStatistics(IntegrationState integrationState, long ts, boolean skipEmptyStatistics) {
+            IntegrationStatistics statistics = integrationState.getIntegration().popStatistics();
+            if (skipEmptyStatistics && statistics.isEmpty()) {
+                return;
+            }
+            Integration integrationInfo = integrationState.getIntegration().getConfiguration();
+            try {
+                eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integrationState.getCurrentState());
+            } catch (Exception e) {
+                log.warn("[{}] Failed to persist statistics: {}", integrationInfo.getId(), statistics, e);
+            }
     }
 
     private RuntimeException handleException(Exception e) {

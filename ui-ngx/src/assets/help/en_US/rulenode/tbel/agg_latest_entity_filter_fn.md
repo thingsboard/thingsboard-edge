@@ -5,7 +5,7 @@
 
 *function Filter(attributes): boolean*
 
-JavaScript function evaluating **true/false** condition on child entity attributes.
+[TBEL{:target="_blank"}](${siteBaseUrl}/docs/user-guide/tbel/) function evaluating **true/false** condition on child entity attributes.
 
 **Parameters:**
 
@@ -41,7 +41,7 @@ Should return `boolean` value. If `true` - use child entity attributes for aggre
 * Include only child entities with client attribute `state` having value `true`:
 
 ```javascript
-return attributes['cs_state'] === 'true';
+return attributes['cs_state'] == 'true';
 {:copy-code}
 ```
 

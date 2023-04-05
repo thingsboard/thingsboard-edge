@@ -5,7 +5,7 @@
 
 *function Encoder(msg, metadata, msgType, integrationMetadata): {msg: object, metadata: object, msgType: string}*
 
-JavaScript function used to transform the incoming rule engine message and its metadata to the format that is used by corresponding Integration.
+[TBEL{:target="_blank"}](${siteBaseUrl}/docs/user-guide/tbel/) function used to transform the incoming rule engine message and its metadata to the format that is used by corresponding Integration.
 
 **Parameters:**
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -65,7 +65,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
 
   modelValue: EntityGroupColumn | null;
 
-  columnFormGroup: FormGroup;
+  columnFormGroup: UntypedFormGroup;
 
   @Input()
   entityType: EntityType;
@@ -94,7 +94,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 

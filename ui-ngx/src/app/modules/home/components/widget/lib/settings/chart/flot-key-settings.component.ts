@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,10 +33,10 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -137,12 +137,12 @@ export class FlotKeySettingsComponent extends PageComponent implements OnInit, C
 
   private propagateChange = null;
 
-  public flotKeySettingsFormGroup: FormGroup;
+  public flotKeySettingsFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -253,7 +253,7 @@ export class FlotKeySettingsComponent extends PageComponent implements OnInit, C
     this.updateValidators(false);
   }
 
-  validate(c: FormControl) {
+  validate(c: UntypedFormControl) {
     return (this.flotKeySettingsFormGroup.valid) ? null : {
       flotKeySettings: {
         valid: false,
@@ -310,8 +310,8 @@ export class FlotKeySettingsComponent extends PageComponent implements OnInit, C
     this.flotKeySettingsFormGroup.get('comparisonSettings.color').updateValueAndValidity({emitEvent: false});
   }
 
-  thresholdsFormArray(): FormArray {
-    return this.flotKeySettingsFormGroup.get('thresholds') as FormArray;
+  thresholdsFormArray(): UntypedFormArray {
+    return this.flotKeySettingsFormGroup.get('thresholds') as UntypedFormArray;
   }
 
   public trackByThreshold(index: number, thresholdControl: AbstractControl): any {
@@ -319,7 +319,7 @@ export class FlotKeySettingsComponent extends PageComponent implements OnInit, C
   }
 
   public removeThreshold(index: number) {
-    (this.flotKeySettingsFormGroup.get('thresholds') as FormArray).removeAt(index);
+    (this.flotKeySettingsFormGroup.get('thresholds') as UntypedFormArray).removeAt(index);
   }
 
   public addThreshold() {
@@ -331,7 +331,7 @@ export class FlotKeySettingsComponent extends PageComponent implements OnInit, C
       lineWidth: null,
       color: null
     };
-    const thresholdsArray = this.flotKeySettingsFormGroup.get('thresholds') as FormArray;
+    const thresholdsArray = this.flotKeySettingsFormGroup.get('thresholds') as UntypedFormArray;
     const thresholdControl = this.fb.control(threshold, []);
     (thresholdControl as any).new = true;
     thresholdsArray.push(thresholdControl);
@@ -339,7 +339,7 @@ export class FlotKeySettingsComponent extends PageComponent implements OnInit, C
   }
 
   thresholdDrop(event: CdkDragDrop<string[]>) {
-    const thresholdsArray = this.flotKeySettingsFormGroup.get('thresholds') as FormArray;
+    const thresholdsArray = this.flotKeySettingsFormGroup.get('thresholds') as UntypedFormArray;
     const threshold = thresholdsArray.at(event.previousIndex);
     thresholdsArray.removeAt(event.previousIndex);
     thresholdsArray.insert(event.currentIndex, threshold);

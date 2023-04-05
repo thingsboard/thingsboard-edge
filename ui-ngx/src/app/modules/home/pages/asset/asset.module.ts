@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,16 +37,20 @@ import { AssetComponent } from './asset.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { ASSET_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { AssetGroupConfigFactory } from '@home/pages/asset/asset-group-config.factory';
+import { AssetRoutingModule } from '@home/pages/asset/asset-routing.module';
+import { AssetTableHeaderComponent } from '@home/pages/asset/asset-table-header.component';
 
 @NgModule({
   declarations: [
-    AssetComponent
+    AssetComponent,
+    AssetTableHeaderComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule
+    HomeDialogsModule,
+    AssetRoutingModule
   ],
   providers: [
     {

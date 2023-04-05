@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @EqualsAndHashCode(callSuper = true)
-public class Customer extends ContactBased<CustomerId> implements GroupEntity<CustomerId>, ExportableEntity<CustomerId> {
+public class Customer extends ContactBased<CustomerId> implements HasTenantId, HasTitle, GroupEntity<CustomerId>, ExportableEntity<CustomerId> {
 
     private static final long serialVersionUID = -1599722990298929275L;
 
@@ -72,6 +72,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
     public Customer(Customer customer) {
         super(customer);
         this.tenantId = customer.getTenantId();
+        this.parentCustomerId = customer.getParentCustomerId();
         this.title = customer.getTitle();
         this.externalId = customer.getExternalId();
     }

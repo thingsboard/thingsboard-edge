@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -118,6 +118,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
     @Column(name = ModelConstants.DEVICE_PROFILE_SOFTWARE_ID_PROPERTY)
     private UUID softwareId;
 
+    @Column(name = ModelConstants.DEVICE_PROFILE_DEFAULT_EDGE_RULE_CHAIN_ID_PROPERTY, columnDefinition = "uuid")
+    private UUID defaultEdgeRuleChainId;
+
     @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
@@ -154,6 +157,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         }
         if (deviceProfile.getSoftwareId() != null) {
             this.softwareId = deviceProfile.getSoftwareId().getId();
+        }
+        if (deviceProfile.getDefaultEdgeRuleChainId() != null) {
+            this.defaultEdgeRuleChainId = deviceProfile.getDefaultEdgeRuleChainId().getId();
         }
         if (deviceProfile.getExternalId() != null) {
             this.externalId = deviceProfile.getExternalId().getId();
@@ -203,6 +209,9 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> impl
         }
         if (softwareId != null) {
             deviceProfile.setSoftwareId(new OtaPackageId(softwareId));
+        }
+        if (defaultEdgeRuleChainId != null) {
+            deviceProfile.setDefaultEdgeRuleChainId(new RuleChainId(defaultEdgeRuleChainId));
         }
         if (externalId != null) {
             deviceProfile.setExternalId(new DeviceProfileId(externalId));

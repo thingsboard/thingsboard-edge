@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -214,11 +214,14 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
     }
   }
 
-  public navigatePrevState(index: number): void {
+  public navigatePrevState(index: number, params?: StateParams): void {
     if (index < this.stateObject.length - 1) {
       this.stateObject.splice(index + 1, this.stateObject.length - index - 1);
       this.selectedStateIndex = this.stateObject.length - 1;
-      this.gotoState(this.stateObject[this.stateObject.length - 1].id, true);
+      if (params) {
+        this.stateObject[this.selectedStateIndex].params = params;
+      }
+      this.gotoState(this.stateObject[this.selectedStateIndex].id, true);
     }
   }
 

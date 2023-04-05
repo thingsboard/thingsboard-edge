@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ public class ConverterPrototypes {
         converter.setName("Uplink converter " + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(config);
+        converter.setDebugMode(true);
         return converter;
     }
 
@@ -50,6 +51,7 @@ public class ConverterPrototypes {
         converter.setName("Downlink converter " + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.DOWNLINK);
         converter.setConfiguration(config);
+        converter.setDebugMode(true);
         return converter;
     }
 }

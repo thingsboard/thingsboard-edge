@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,9 +71,18 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
   }
 
   hasVersionControl(): boolean {
-    if (this.authUser.authority === this.authorities.TENANT_ADMIN && this.entity && exportableEntityTypes.includes(this.entity.type)) {
+    if (!this.sharedGroup() &&
+      this.authUser.authority === this.authorities.TENANT_ADMIN && this.entity && exportableEntityTypes.includes(this.entity.type)) {
       const entityResource = groupResourceByGroupType.get(this.entity.type);
       return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.READ);
+    } else {
+      return false;
+    }
+  }
+
+  sharedGroup(): boolean {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.shared === true;
     } else {
       return false;
     }

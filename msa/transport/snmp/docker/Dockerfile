@@ -1,12 +1,12 @@
 #
-# The Thingsboard Authors ("COMPANY") CONFIDENTIAL
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2021 The Thingsboard Authors All Rights Reserved.
+# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
-# the property of The Thingsboard Authors and its suppliers,
+# the property of ThingsBoard, Inc. and its suppliers,
 # if any.  The intellectual and technical concepts contained
-# herein are proprietary to The Thingsboard Authors
+# herein are proprietary to ThingsBoard, Inc.
 # and its suppliers and may be covered by U.S. and Foreign Patents,
 # patents in process, and are protected by trade secret or copyright law.
 #

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -278,7 +278,10 @@ public class RemoteIntegrationManagerService {
                     integrationEvent = ComponentLifecycleEvent.STARTED;
                     persistLifecycleEvent(ComponentLifecycleEvent.STARTED, null);
                 }
-            } else if (!ComponentLifecycleEvent.STOPPED.equals(integrationEvent)) {
+            } else if (!ComponentLifecycleEvent.STOPPED.equals(integrationEvent) && integration != null) {
+                if (statisticsEnabled) {
+                    persistStatistics();
+                }
                 integrationEvent = ComponentLifecycleEvent.STOPPED;
                 persistLifecycleEvent(ComponentLifecycleEvent.STOPPED, null);
                 integration = null;

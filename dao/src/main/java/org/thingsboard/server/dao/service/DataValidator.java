@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,13 +32,15 @@ package org.thingsboard.server.dao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.TenantEntityDao;
 import org.thingsboard.server.dao.TenantEntityWithDataDao;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -56,6 +58,9 @@ public abstract class DataValidator<D extends BaseData<?>> {
 
     private static final String NAME = "name";
     private static final String TOPIC = "topic";
+
+    @Autowired @Lazy
+    private ApiLimitService apiLimitService;
 
     // Returns old instance of the same object that is fetched during validation.
     public D validate(D data, Function<D, TenantId> tenantIdFunction) {
@@ -102,7 +107,7 @@ public abstract class DataValidator<D extends BaseData<?>> {
         }
     }
 
-    private static boolean doValidateEmail(String email) {
+    public static boolean doValidateEmail(String email) {
         if (email == null) {
             return false;
         }
@@ -112,15 +117,9 @@ public abstract class DataValidator<D extends BaseData<?>> {
     }
 
     protected void validateNumberOfEntitiesPerTenant(TenantId tenantId,
-                                                     TenantEntityDao tenantEntityDao,
-                                                     long maxEntities,
                                                      EntityType entityType) {
-        if (maxEntities > 0) {
-            long currentEntitiesCount = tenantEntityDao.countByTenantId(tenantId);
-            if (currentEntitiesCount >= maxEntities) {
-                throw new DataValidationException(String.format("Can't create more then %d %ss!",
-                        maxEntities, entityType.name().toLowerCase().replaceAll("_", " ")));
-            }
+        if (!apiLimitService.checkEntitiesLimit(tenantId, entityType)) {
+            throw new DataValidationException(entityType.getNormalName() + "s limit reached");
         }
     }
 

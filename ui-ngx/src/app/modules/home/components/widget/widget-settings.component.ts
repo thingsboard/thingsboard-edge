@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import {
   IRuleNodeConfigurationComponent,
   RuleNodeConfiguration,
@@ -93,7 +93,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, On
 
   definedDirectiveError: string;
 
-  widgetSettingsFormGroup: FormGroup;
+  widgetSettingsFormGroup: UntypedFormGroup;
 
   changeSubscription: Subscription;
 
@@ -107,7 +107,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, On
   constructor(private translate: TranslateService,
               private cfr: ComponentFactoryResolver,
               private widgetService: WidgetService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     this.widgetSettingsFormGroup = this.fb.group({
       settings: [null, Validators.required]
     });

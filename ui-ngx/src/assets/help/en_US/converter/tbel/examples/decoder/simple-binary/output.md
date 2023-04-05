@@ -2,14 +2,12 @@
 
 ```json
 {
-  "deviceName": "SN-111",
-  "deviceType": "Thermostat",
+  "deviceName": "SN-12345678",
+  "deviceType": "Thermometer",
   "telemetry": {
-    "ts": 1637504859000,
-    "values": {
-      "temperature": 36.6,
-      "humidity": 70
-    }
+    "battery": 95,
+    "temperature": 36.6,
+    "saturation": 99
   }
 }
 {:copy-code}

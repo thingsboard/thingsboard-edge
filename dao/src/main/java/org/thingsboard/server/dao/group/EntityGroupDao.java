@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,23 +45,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
-    /**
-     * Find entity groups by entity group Ids.
-     *
-     * @param tenantId the tenantId
-     * @param entityGroupIds the entity group Ids
-     * @return the list of entity group objects
-     */
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType);
-
-    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
+    PageData<EntityGroup> findEntityGroupsByType
             (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
 
-    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID tenantId, EntityType groupType, PageLink pageLink);
+    PageData<EntityGroup> findEntityGroupsByType(UUID tenantId, EntityType groupType, PageLink pageLink);
 
-    ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
+    PageData<EntityGroup> findAllEntityGroupsByParentRelation(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink);
+
+    PageData<EntityGroup> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, PageLink pageLink);
 
     Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
                                                        EntityType parentEntityType, EntityType groupType, String name);

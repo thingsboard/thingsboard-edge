@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.ApiUsageStateId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -115,7 +116,7 @@ import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
+import org.thingsboard.server.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -689,13 +690,13 @@ public class AccessValidator {
         if (currentUser.isSystemAdmin()) {
             callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
         } else {
-            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(currentUser.getTenantId(), new EntityGroupId(entityId.getId()));
+            ListenableFuture<EntityGroupInfo> entityGroupFuture = entityGroupService.findEntityGroupInfoByIdAsync(currentUser.getTenantId(), new EntityGroupId(entityId.getId()));
             Futures.addCallback(entityGroupFuture, getCallback(callback, entityGroup -> {
                 if (entityGroup == null) {
                     return ValidationResult.entityNotFound("Entity group with requested id wasn't found!");
                 } else {
                     try {
-                        accessControlService.checkEntityGroupPermission(currentUser, operation, entityGroup);
+                        accessControlService.checkEntityGroupInfoPermission(currentUser, operation, entityGroup);
                     } catch (ThingsboardException e) {
                         return ValidationResult.accessDenied(e.getMessage());
                     }

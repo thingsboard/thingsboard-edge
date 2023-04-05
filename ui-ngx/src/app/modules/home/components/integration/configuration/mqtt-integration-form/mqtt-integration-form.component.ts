@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -42,7 +42,8 @@ import {
 } from '@angular/forms';
 import {
   mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator
+  mqttClientIdPatternValidator,
+  privateNetworkAddressValidator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -68,19 +69,20 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
 
   @Input() isEdgeTemplate = false;
 
-  mqttIntegrationConfigForm: FormGroup;
+  mqttIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.mqttIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
         host: ['', Validators.required],
         port: [1883, [Validators.min(1), Validators.max(65535)]],
         cleanSession: [true],
+        retainedMessage: [false],
         ssl: [false],
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],
@@ -136,5 +138,14 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
     return this.mqttIntegrationConfigForm.valid ? null : {
       mqttIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.mqttIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.mqttIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+    }
+    this.mqttIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
   }
 }

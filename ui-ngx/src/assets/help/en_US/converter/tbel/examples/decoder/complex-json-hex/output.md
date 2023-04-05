@@ -10,7 +10,7 @@
       "batteryVoltage": 3.99,
       "temperature": 27.05,
       "rawData": {
-        "serialNumber": "SN-111",
+        "serialNumber": "SN-222",
         "timestamp": "2021-11-21 14:27:39 UTC",
         "value": "018f0a91"
       }

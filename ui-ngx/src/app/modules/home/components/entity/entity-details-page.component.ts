@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,9 +44,9 @@ import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isUndefined } from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isUndefined, isUndefinedOrNull } from '@core/utils';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 import { DialogService } from '@core/services/dialog.service';
@@ -95,7 +95,7 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
               private dialogService: DialogService,
               protected store: Store<AppState>) {
     super(store, injector, cd, componentFactoryResolver);
-    if (isDefined(this.route.snapshot.data.entityGroup) && isUndefined(this.route.snapshot.data.entitiesTableConfig)) {
+    if (isDefinedAndNotNull(this.route.snapshot.data.entityGroup) && isUndefinedOrNull(this.route.snapshot.data.entitiesTableConfig)) {
       this.entityGroup = this.route.snapshot.data.entityGroup;
       this.entitiesTableConfig = this.entityGroup.entityGroupConfig;
     } else {
@@ -162,8 +162,12 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
     });
   }
 
-  confirmForm(): FormGroup {
+  confirmForm(): UntypedFormGroup {
     return this.detailsForm;
+  }
+
+  goBack(): void {
+    this.router.navigate(['../'], { relativeTo: this.route });
   }
 
   private onUpdateEntity() {
@@ -186,7 +190,7 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
       if (result) {
         this.entitiesTableConfig.deleteEntity(entity.id).subscribe(
           () => {
-            this.router.navigate(['../'], {relativeTo: this.route});
+            this.goBack();
           }
         );
       }

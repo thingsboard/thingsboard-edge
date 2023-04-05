@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,13 +29,13 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   Validators
 } from '@angular/forms';
@@ -49,8 +49,9 @@ import {
   entityGroupEntityFields,
   EntityGroupSortOrder
 } from '@shared/models/entity-group.models';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-entity-group-columns',
@@ -65,20 +66,20 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class EntityGroupColumnsComponent extends PageComponent implements ControlValueAccessor, OnInit {
+export class EntityGroupColumnsComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
   @Input() entityType: EntityType;
 
-  columnsFormGroup: FormGroup;
+  columnsFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -88,10 +89,18 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
         columns: this.fb.array([])
       }
     );
+    this.columnsFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  columnsFormArray(): FormArray {
-    return this.columnsFormGroup.get('columns') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get columnsFormArray(): UntypedFormArray {
+    return this.columnsFormGroup.get('columns') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -111,32 +120,30 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
   }
 
   writeValue(columns: EntityGroupColumn[]): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
-    const columnsControls: Array<AbstractControl> = [];
-    if (columns) {
-      columns.forEach((column) => {
-        columnsControls.push(this.fb.control(column, [Validators.required]));
-      });
-    }
-    this.columnsFormGroup.setControl('columns', this.fb.array(columnsControls));
-    if (this.disabled) {
-      this.columnsFormGroup.disable({emitEvent: false});
+    if (columns?.length === this.columnsFormArray.length) {
+      this.columnsFormArray.patchValue(columns, {emitEvent: false});
     } else {
-      this.columnsFormGroup.enable({emitEvent: false});
+      const columnsControls: Array<AbstractControl> = [];
+      if (columns) {
+        columns.forEach((column) => {
+          columnsControls.push(this.fb.control(column, [Validators.required]));
+        });
+      }
+      this.columnsFormGroup.setControl('columns', this.fb.array(columnsControls), {emitEvent: false});
+      if (this.disabled) {
+        this.columnsFormGroup.disable({emitEvent: false});
+      } else {
+        this.columnsFormGroup.enable({emitEvent: false});
+      }
     }
-    this.valueChangeSubscription = this.columnsFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
   }
 
   public removeColumn(index: number) {
-    (this.columnsFormGroup.get('columns') as FormArray).removeAt(index);
+    (this.columnsFormGroup.get('columns') as UntypedFormArray).removeAt(index);
   }
 
   public addColumn() {
-    const columnsArray = this.columnsFormGroup.get('columns') as FormArray;
+    const columnsArray = this.columnsFormGroup.get('columns') as UntypedFormArray;
     columnsArray.push(this.fb.control({
       type: EntityGroupColumnType.ENTITY_FIELD,
       key: entityGroupEntityFields.name.value,
@@ -146,7 +153,7 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
   }
 
   public defaultSortOrderChanged(index: number, sortOrder?: EntityGroupSortOrder) {
-    const columnsControls: FormArray = this.columnsFormGroup.get('columns') as FormArray;
+    const columnsControls: UntypedFormArray = this.columnsFormGroup.get('columns') as UntypedFormArray;
     const column: EntityGroupColumn = columnsControls.at(index).value;
     sortOrder = sortOrder || column.sortOrder;
     if (sortOrder !== EntityGroupSortOrder.NONE) {
@@ -169,7 +176,7 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
   }
 
   public onDrop(event: CdkDragDrop<string[]>) {
-    const columnsFormArray = this.columnsFormArray();
+    const columnsFormArray = this.columnsFormArray;
     const columnForm = columnsFormArray.at(event.previousIndex);
     columnsFormArray.removeAt(event.previousIndex);
     columnsFormArray.insert(event.currentIndex, columnForm);

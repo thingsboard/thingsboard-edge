@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,12 +31,12 @@
 
 -->
 <div class="mat-padding tb-entity-table" [ngClass]="{'tb-absolute-fill': groupPermissionsMode === 'group'}">
-  <div fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+  <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span class="tb-entity-table-title">{{(isUserGroup ? 'group-permission.user-group-roles' : 'group-permission.entity-group-permissions') | translate}}</span>
         <span fxFlex></span>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+        <button mat-icon-button [disabled]="isLoading$ | async"
                 type="button"
                 *ngIf="addEnabled"
                 (click)="addGroupPermission($event)"
@@ -44,13 +44,13 @@
                 matTooltipPosition="above">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="enterFilterMode()"
+        <button mat-icon-button [disabled]="isLoading$ | async" (click)="enterFilterMode()"
                 type="button"
                 matTooltip="{{ 'action.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="reloadGroupPermissions()"
+        <button mat-icon-button [disabled]="isLoading$ | async" (click)="reloadGroupPermissions()"
                 type="button"
                 matTooltip="{{ 'action.refresh' | translate }}"
                 matTooltipPosition="above">
@@ -58,9 +58,9 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
-        <button mat-button mat-icon-button
+        <button mat-icon-button
                 type="button"
                 matTooltip="{{ 'action.search' | translate }}"
                 matTooltipPosition="above">
@@ -72,7 +72,7 @@
                  [(ngModel)]="pageLink.textSearch"
                  placeholder="{{ 'common.enter-search' | translate }}"/>
         </mat-form-field>
-        <button mat-button mat-icon-button (click)="exitFilterMode()"
+        <button mat-icon-button (click)="exitFilterMode()"
                 type="button"
                 matTooltip="{{ 'action.close' | translate }}"
                 matTooltipPosition="above">
@@ -80,13 +80,13 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
           <span>
             {{ translate.get('group-permission.selected-group-permissions', {count: dataSource.selection.selected.length}) | async }}
           </span>
         <span fxFlex></span>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+        <button mat-icon-button [disabled]="isLoading$ | async"
                 type="button"
                 matTooltip="{{ 'action.delete' | translate }}"
                 matTooltipPosition="above"
@@ -168,7 +168,7 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             <div fxFlex fxLayout="row" fxLayoutAlign="end">
-              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+              <button mat-icon-button [disabled]="isLoading$ | async"
                       type="button"
                       [style.visibility]="!groupPermission.readOnly && editEnabled ? 'visible' : 'hidden'"
                       matTooltip="{{ 'group-permission.edit' | translate }}"
@@ -176,7 +176,7 @@
                       (click)="editGroupPermission($event, groupPermission)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+              <button mat-icon-button [disabled]="isLoading$ | async"
                       type="button"
                       [style.visibility]="!groupPermission.readOnly && deleteEnabled ? 'visible' : 'hidden'"
                       matTooltip="{{ 'group-permission.delete' | translate }}"

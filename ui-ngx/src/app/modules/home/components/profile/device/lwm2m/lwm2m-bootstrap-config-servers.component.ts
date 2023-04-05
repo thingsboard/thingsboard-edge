@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,23 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder, FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder, UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR
 } from '@angular/forms';
-import { of, Subscription } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { ServerSecurityConfig } from '@home/components/profile/device/lwm2m/lwm2m-profile-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@core/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
 import { Lwm2mBootstrapAddConfigServerDialogComponent } from '@home/components/profile/device/lwm2m/lwm2m-bootstrap-add-config-server-dialog.component';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, takeUntil } from 'rxjs/operators';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { Lwm2mSecurityType } from '@shared/models/lwm2m-security-config.models';
 
@@ -65,9 +65,9 @@ import { Lwm2mSecurityType } from '@shared/models/lwm2m-security-config.models';
     }
   ]
 })
-export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValueAccessor {
+export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValueAccessor, OnDestroy {
 
-  bootstrapConfigServersFormGroup: FormGroup;
+  bootstrapConfigServersFormGroup: UntypedFormGroup;
 
   @Input()
   disabled: boolean;
@@ -87,15 +87,14 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
     }
   }
 
-  private valueChangeSubscription: Subscription = null;
-
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(public translate: TranslateService,
               public matDialog: MatDialog,
               private dialogService: DialogService,
               private deviceProfileService: DeviceProfileService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -109,10 +108,18 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
     this.bootstrapConfigServersFormGroup = this.fb.group({
       serverConfigs: this.fb.array([])
     });
+    this.bootstrapConfigServersFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  serverConfigsFromArray(): FormArray {
-    return this.bootstrapConfigServersFormGroup.get('serverConfigs') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get serverConfigsFromArray(): UntypedFormArray {
+    return this.bootstrapConfigServersFormGroup.get('serverConfigs') as UntypedFormArray;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -125,24 +132,22 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
   }
 
   writeValue(serverConfigs: Array<ServerSecurityConfig> | null): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
-    const serverConfigsControls: Array<AbstractControl> = [];
-    if (serverConfigs) {
-      serverConfigs.forEach((serverConfig) => {
-        serverConfigsControls.push(this.fb.control(serverConfig));
-      });
-    }
-    this.bootstrapConfigServersFormGroup.setControl('serverConfigs', this.fb.array(serverConfigsControls));
-    if (this.disabled) {
-      this.bootstrapConfigServersFormGroup.disable({emitEvent: false});
+    if (serverConfigs?.length === this.serverConfigsFromArray.length) {
+      this.serverConfigsFromArray.patchValue(serverConfigs, {emitEvent: false});
     } else {
-      this.bootstrapConfigServersFormGroup.enable({emitEvent: false});
+      const serverConfigsControls: Array<AbstractControl> = [];
+      if (serverConfigs) {
+        serverConfigs.forEach((serverConfig) => {
+          serverConfigsControls.push(this.fb.control(serverConfig));
+        });
+      }
+      this.bootstrapConfigServersFormGroup.setControl('serverConfigs', this.fb.array(serverConfigsControls), {emitEvent: false});
+      if (this.disabled) {
+        this.bootstrapConfigServersFormGroup.disable({emitEvent: false});
+      } else {
+        this.bootstrapConfigServersFormGroup.enable({emitEvent: false});
+      }
     }
-    this.valueChangeSubscription = this.bootstrapConfigServersFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
   }
 
   trackByParams(index: number): number {
@@ -162,7 +167,7 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
       true
     ).subscribe((result) => {
       if (result) {
-        this.serverConfigsFromArray().removeAt(index);
+        this.serverConfigsFromArray.removeAt(index);
       }
     });
   }
@@ -184,7 +189,7 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
     addServerConfigObs.subscribe((serverConfig) => {
       if (serverConfig) {
         serverConfig.securityMode = Lwm2mSecurityType.NO_SEC;
-        this.serverConfigsFromArray().push(this.fb.control(serverConfig));
+        this.serverConfigsFromArray.push(this.fb.control(serverConfig));
         this.updateModel();
       } else {
         this.isTransportWasRunWithBootstrap = false;
@@ -198,7 +203,7 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
     this.isTransportWasRunWithBootstrapChange.emit(this.isTransportWasRunWithBootstrap);
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return (this.bootstrapConfigServersFormGroup.valid) ? null : {
       serverConfigs: {
         valid: false,
@@ -211,7 +216,7 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
   }
 
   private isBootstrapAdded(): boolean {
-    const serverConfigsArray =  this.serverConfigsFromArray().getRawValue();
+    const serverConfigsArray =  this.serverConfigsFromArray.getRawValue();
     for (let i = 0; i < serverConfigsArray.length; i++) {
       if (serverConfigsArray[i].bootstrapServerIs) {
         return true;
@@ -222,15 +227,15 @@ export class Lwm2mBootstrapConfigServersComponent implements OnInit, ControlValu
 
   private removeBootstrapServerConfig(): void {
     if (this.bootstrapConfigServersFormGroup) {
-      const bootstrapServerIndex = this.serverConfigsFromArray().getRawValue().findIndex(server => server.bootstrapServerIs === true);
+      const bootstrapServerIndex = this.serverConfigsFromArray.getRawValue().findIndex(server => server.bootstrapServerIs === true);
       if (bootstrapServerIndex !== -1) {
-        this.serverConfigsFromArray().removeAt(bootstrapServerIndex);
+        this.serverConfigsFromArray.removeAt(bootstrapServerIndex);
       }
     }
   }
 
   private updateModel() {
-    const serverConfigs: Array<ServerSecurityConfig> = this.serverConfigsFromArray().value;
+    const serverConfigs: Array<ServerSecurityConfig> = this.serverConfigsFromArray.value;
     this.propagateChange(serverConfigs);
   }
 }

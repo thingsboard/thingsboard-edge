@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,9 +32,9 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -45,6 +45,7 @@ import { isDefinedAndNotNull, isNumber } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
+  privateNetworkAddressValidator,
   ThingsStartHostType,
   ThingsStartHostTypeTranslation,
   ttnVersion,
@@ -69,10 +70,10 @@ import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integ
 })
 export class TtnIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  ttnIntegrationConfigForm: FormGroup;
+  ttnIntegrationConfigForm: UntypedFormGroup;
 
-  hostEdit: FormControl;
-  apiVersion: FormControl;
+  hostEdit: UntypedFormControl;
+  apiVersion: UntypedFormControl;
 
   ThingsStartHostType = ThingsStartHostType;
   ThingsStartHostTypes = Object.values(ThingsStartHostType).filter(v => isNumber(v));
@@ -90,7 +91,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
   private downlinkPattern = ttnVersionMap.get(ttnVersion.v3).downlinkPattern;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: FormBuilder) {
+  constructor(protected fb: UntypedFormBuilder) {
     super();
     this.hostEdit = this.fb.control('', Validators.required);
     this.apiVersion = this.fb.control(true);
@@ -221,5 +222,17 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
       pattern = this.downlinkPattern.replace('${applicationId}', name);
     }
     this.ttnIntegrationConfigForm.get('downlinkTopicPattern').patchValue(pattern, {emitEvent});
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.ttnIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+      this.hostEdit.removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.ttnIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+      this.hostEdit.addValidators(privateNetworkAddressValidator);
+    }
+    this.ttnIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
+    this.hostEdit.updateValueAndValidity({emitEvent: false});
   }
 }

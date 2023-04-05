@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div>
   <mat-toolbar color="primary">
     <h2 translate>device.add-device-text</h2>
     <span fxFlex></span>
@@ -183,6 +182,17 @@
           </tb-device-credentials>
         </form>
       </mat-step>
+      <mat-step [stepControl]="ownerAndGroupsFormGroup" [optional]="true">
+        <ng-template matStepLabel>{{ 'entity-group.owner-and-groups' | translate }}</ng-template>
+        <form [formGroup]="ownerAndGroupsFormGroup">
+          <tb-owner-and-groups
+            [entityType]="entityType.DEVICE"
+            [defaultOwnerId]="initialOwnerId"
+            [skipDefaultPermissionCheck]="true"
+            formControlName="ownerAndGroups">
+          </tb-owner-and-groups>
+        </form>
+      </mat-step>
     </mat-horizontal-stepper>
     <div *ngIf="deviceCredentials" class="commands-container">
       <tb-gateway-command *ngIf="device.additionalInfo?.gateway"
@@ -193,7 +203,8 @@
       </tb-device-example-command>
     </div>
   </div>
-  <div mat-dialog-actions fxLayout="row" *ngIf="!deviceCredentials">
+<div mat-dialog-actions style="padding: 0">
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutAlign="end center" *ngIf="!deviceCredentials">
     <button mat-stroked-button *ngIf="selectedIndex > 0"
             [disabled]="(isLoading$ | async)"
             (click)="previousStep()">{{ 'action.back' | translate }}</button>
@@ -204,8 +215,8 @@
             [disabled]="(isLoading$ | async)"
             (click)="nextStep()">{{ 'action.next-with-label' | translate:{label: (getFormLabel(this.selectedIndex+1) | translate)} }}</button>
   </div>
-  <mat-divider></mat-divider>
-  <div mat-dialog-actions fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end">
+  <mat-divider style="width: 100%"></mat-divider>
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end center">
     <button mat-button
             [disabled]="(isLoading$ | async)"
             (click)="cancel()">{{ 'action.cancel' | translate }}</button>

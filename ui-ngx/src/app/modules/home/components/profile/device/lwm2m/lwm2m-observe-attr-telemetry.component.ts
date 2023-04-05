@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { ChangeDetectorRef, Component, forwardRef, Input, OnDestroy } from '@ang
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -51,7 +51,8 @@ import {
   Lwm2mObjectAddInstancesDialogComponent
 } from '@home/components/profile/device/lwm2m/lwm2m-object-add-instances-dialog.component';
 import _ from 'lodash';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-profile-lwm2m-observe-attr-telemetry',
@@ -73,7 +74,7 @@ import { Subscription } from 'rxjs';
 
 export class Lwm2mObserveAttrTelemetryComponent implements ControlValueAccessor, OnDestroy, Validator {
 
-  modelsFormGroup: FormGroup;
+  modelsFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -92,21 +93,24 @@ export class Lwm2mObserveAttrTelemetryComponent implements ControlValueAccessor,
   @Input()
   disabled: boolean;
 
-  private valueChange$: Subscription = null;
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               private dialog: MatDialog,
               private cd: ChangeDetectorRef) {
     this.modelsFormGroup = this.fb.group({
       models: this.fb.array([])
     });
+
+    this.modelsFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.updateModel(value.models));
   }
 
   ngOnDestroy() {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   registerOnChange(fn: any): void {
@@ -137,32 +141,26 @@ export class Lwm2mObserveAttrTelemetryComponent implements ControlValueAccessor,
     };
   }
 
-  get modelsFormArray(): FormArray {
-    return this.modelsFormGroup.get('models') as FormArray;
+  get modelsFormArray(): UntypedFormArray {
+    return this.modelsFormGroup.get('models') as UntypedFormArray;
   }
 
   private updateModels(models: ObjectLwM2M[]) {
     if (models.length === this.modelsFormArray.length) {
       this.modelsFormArray.patchValue(models, {emitEvent: false});
     } else {
-      if (this.valueChange$) {
-        this.valueChange$.unsubscribe();
-      }
       const modelControls: Array<AbstractControl> = [];
       models.forEach(model => {
         modelControls.push(this.createModelFormGroup(model));
       });
-      this.modelsFormGroup.setControl('models', this.fb.array(modelControls));
+      this.modelsFormGroup.setControl('models', this.fb.array(modelControls), {emitEvent: false});
       if (this.disabled) {
         this.modelsFormGroup.disable({emitEvent: false});
       }
-      this.valueChange$ = this.modelsFormGroup.valueChanges.subscribe(value => {
-        this.updateModel(value.models);
-      });
     }
   }
 
-  private createModelFormGroup(objectLwM2M: ObjectLwM2M): FormGroup {
+  private createModelFormGroup(objectLwM2M: ObjectLwM2M): UntypedFormGroup {
     return this.fb.group({
       id: [objectLwM2M.id],
       keyId: [objectLwM2M.keyId],

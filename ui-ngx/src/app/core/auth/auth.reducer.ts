@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 
 import { AuthPayload, AuthState } from './auth.models';
 import { AuthActions, AuthActionTypes } from './auth.actions';
+import { initialUserSettings } from '@shared/models/user-settings.models';
 
 const emptyUserAuthState: AuthPayload = {
   authUser: null,
@@ -42,6 +43,7 @@ const emptyUserAuthState: AuthPayload = {
   customerWhiteLabelingAllowed: false,
   hasRepository: false,
   tbelEnabled: false,
+  userSettings: initialUserSettings,
   allowedDashboardIds: []
 };
 
@@ -52,10 +54,10 @@ export const initialState: AuthState = {
   ...emptyUserAuthState
 };
 
-export function authReducer(
+export const authReducer = (
   state: AuthState = initialState,
   action: AuthActions
-): AuthState {
+): AuthState => {
   switch (action.type) {
     case AuthActionTypes.AUTHENTICATED:
       return { ...state, isAuthenticated: true, ...action.payload };
@@ -76,7 +78,19 @@ export function authReducer(
     case AuthActionTypes.UPDATE_HAS_REPOSITORY:
       return { ...state, ...action.payload};
 
+    case AuthActionTypes.UPDATE_OPENED_MENU_SECTION:
+      const openedMenuSections = new Set(state.userSettings.openedMenuSections);
+      if (action.payload.opened) {
+        if (!openedMenuSections.has(action.payload.path)) {
+          openedMenuSections.add(action.payload.path);
+        }
+      } else {
+        openedMenuSections.delete(action.payload.path);
+      }
+      const userSettings = {...state.userSettings, ...{ openedMenuSections: Array.from(openedMenuSections)}};
+      return { ...state, ...{ userSettings }};
+
     default:
       return state;
   }
-}
+};

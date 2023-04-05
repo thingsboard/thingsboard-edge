@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -42,14 +42,26 @@
   <section class="tb-widget-settings" formGroupName="credentials">
     <fieldset class="fields-group">
       <legend class="group-title" translate>widgets.maps.credentials</legend>
-      <mat-form-field fxFlex class="mat-block">
-        <mat-label translate>widgets.maps.here-app-id</mat-label>
-        <input required matInput formControlName="app_id">
-      </mat-form-field>
-      <mat-form-field fxFlex class="mat-block">
-        <mat-label translate>widgets.maps.here-app-code</mat-label>
-        <input required matInput formControlName="app_code">
-      </mat-form-field>
+      <mat-slide-toggle formControlName="useV3" style="margin-bottom: 16px;">
+        {{ 'widgets.maps.here-use-new-version-api-3' | translate }}
+      </mat-slide-toggle>
+      <div *ngIf="!providerSettingsFormGroup.get('credentials.useV3').value; else apiKey" fxLayout="row" fxLayoutGap="8px"
+        fxLayout.xs="column" fxLayoutGap.xs="0">
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>widgets.maps.here-app-id</mat-label>
+          <input required matInput formControlName="app_id">
+        </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>widgets.maps.here-app-code</mat-label>
+          <input required matInput formControlName="app_code">
+        </mat-form-field>
+      </div>
+      <ng-template #apiKey>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>widgets.maps.here-api-key</mat-label>
+          <input required matInput formControlName="apiKey">
+        </mat-form-field>
+      </ng-template>
     </fieldset>
   </section>
 </section>
