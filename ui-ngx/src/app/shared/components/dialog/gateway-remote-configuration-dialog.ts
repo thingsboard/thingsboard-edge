@@ -29,50 +29,48 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, OnInit} from '@angular/core';
-import {UtilsService} from '@core/services/utils.service';
-import {TranslateService} from '@ngx-translate/core';
-import {DeviceService} from '@core/http/device.service';
-import {AttributeService} from '@core/http/attribute.service';
-import {GatewayListTableConfig} from "@home/components/gateway/gateway-list-table-config";
-import {DatePipe} from "@angular/common";
-import {MatDialog} from "@angular/material/dialog";
-import {Store} from "@ngrx/store";
-import {AppState} from "@core/core.state";
-import {EntityService} from "@core/http/entity.service";
+import { Component, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { DialogComponent } from '@shared/components/dialog.component';
+import { Router } from '@angular/router';
+import { FormBuilder, FormControl } from '@angular/forms';
+
+export interface GatewayRemoteConfigurationDialogData {
+  gatewayName: string;
+}
 
 @Component({
-  selector: 'tb-gateway-list',
-  templateUrl: './gateway-list.component.html',
-  styleUrls: ['./gateway-list.component.scss']
+  selector: 'tb-activation-link-dialog',
+  templateUrl: './gateway-remote-configuration-dialog.html'
 })
 
+export class GatewayRemoteConfigurationDialogComponent extends DialogComponent<GatewayRemoteConfigurationDialogComponent,
+  boolean> implements OnInit {
 
-export class GatewayListComponent implements OnInit {
-  gatewayListTableConfig: GatewayListTableConfig;
+  gatewayName: string;
 
-  constructor(
-    protected store: Store<AppState>,
-    private utils: UtilsService,
-    private translate: TranslateService,
-    private datePipe: DatePipe,
-    private deviceService: DeviceService,
-    private entityService: EntityService,
-    private attributeService: AttributeService,
-    private dialog: MatDialog,
-  ) {
+  gatewayForm: FormControl;
+
+  constructor(protected store: Store<AppState>,
+              protected router: Router,
+              @Inject(MAT_DIALOG_DATA) public data: GatewayRemoteConfigurationDialogData,
+              public dialogRef: MatDialogRef<GatewayRemoteConfigurationDialogComponent, boolean>,
+              private fb: FormBuilder) {
+    super(store, router, dialogRef);
+    this.gatewayName = this.data.gatewayName;
+    this.gatewayForm = this.fb.control(null);
   }
 
   ngOnInit(): void {
-    this.gatewayListTableConfig = new GatewayListTableConfig(
-      this.store,
-      this.deviceService,
-      this.attributeService,
-      this.entityService,
-      this.datePipe,
-      this.translate,
-      this.utils,
-      this.dialog
-    );
+  }
+
+  close(): void {
+    this.dialogRef.close();
+  }
+
+  turnOff(): void {
+    this.dialogRef.close(true);
   }
 }

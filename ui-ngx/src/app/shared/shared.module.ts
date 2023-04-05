@@ -202,6 +202,9 @@ import { TbSparkLineComponent } from './components/spark-line/tb-spark-line.comp
 import { CustomDateAdapter } from '@shared/adapter/custom-datatime-adapter';
 import { CustomPaginatorIntl } from '@shared/services/custom-paginator-intl';
 import { TbScriptLangComponent } from '@shared/components/script-lang.component';
+import { DeviceGatewayCommandComponent } from '@shared/components/device/device-gateway-command.component';
+import { GatewayConnectorComponent } from '@shared/components/device/gateway-connector.component';
+import { GatewayRemoteConfigurationDialogComponent } from '@shared/components/dialog/gateway-remote-configuration-dialog';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -256,6 +259,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HelpComponent,
     HelpMarkdownComponent,
     HelpPopupComponent,
+    DeviceGatewayCommandComponent,
+    GatewayConnectorComponent,
+    GatewayRemoteConfigurationDialogComponent,
     TbCheckboxComponent,
     TbSnackBarComponent,
     TbErrorComponent,
@@ -431,6 +437,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HelpComponent,
     HelpMarkdownComponent,
     HelpPopupComponent,
+    DeviceGatewayCommandComponent,
+    GatewayConnectorComponent,
+    GatewayRemoteConfigurationDialogComponent,
     TbCheckboxComponent,
     TbErrorComponent,
     TbCheatSheetComponent,

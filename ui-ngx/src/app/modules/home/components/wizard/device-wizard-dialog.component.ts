@@ -39,7 +39,7 @@ import { Router } from '@angular/router';
 import {
   createDeviceProfileConfiguration,
   createDeviceProfileTransportConfiguration,
-  Device,
+  Device, DeviceCredentials,
   DeviceProfile,
   DeviceProfileInfo,
   DeviceProfileType,
@@ -77,7 +77,7 @@ import { deepTrim } from '@core/utils';
 export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatHorizontalStepper;
+  @ViewChild('addDeviceWizardStepper') addDeviceWizardStepper: MatHorizontalStepper;
 
   resource = Resource;
 
@@ -91,7 +91,7 @@ export class DeviceWizardDialogComponent extends
 
   entityType = EntityType;
 
-  deviceTransportTypes = Object.values(DeviceTransportType);
+  deviceTransportTypes = Object.values(DeviceTransportType) as DeviceTransportType[];
 
   deviceTransportTypeTranslations = deviceTransportTypeTranslationMap;
 
@@ -114,6 +114,10 @@ export class DeviceWizardDialogComponent extends
   entityGroup = this.entitiesTableConfig.entityGroup;
 
   serviceType = ServiceType.TB_RULE_ENGINE;
+
+  device: Device;
+
+  deviceCredentials: DeviceCredentials;
 
   private subscriptions: Subscription[] = [];
   private currentDeviceProfileTransportType = DeviceTransportType.DEFAULT;
@@ -281,13 +285,15 @@ export class DeviceWizardDialogComponent extends
   }
 
   add(): void {
-    if (this.allValid()) {
+    if (this.deviceCredentials)  {
+      this.dialogRef.close(this.device);
+    } else if (this.allValid()) {
       this.createDeviceProfile().pipe(
         mergeMap(profileId => this.createDevice(profileId)),
-        mergeMap(device => this.saveCredentials(device))
+        mergeMap(device => this.saveCredentials(device)),
       ).subscribe(
         (device) => {
-          this.dialogRef.close(device);
+          this.device = device;
         }
       );
     }
@@ -387,6 +393,13 @@ export class DeviceWizardDialogComponent extends
           }
         ),
         map(() => device));
+    } else {
+      return this.deviceService.getDeviceCredentials(device.id.id).pipe(
+        map((deviceCredentials) =>  {
+          this.deviceCredentials = deviceCredentials;
+          return device;
+        })
+      );
     }
     return of(device);
   }

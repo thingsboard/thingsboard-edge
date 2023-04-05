@@ -43,6 +43,10 @@
 }
 
 :host ::ng-deep {
+
+  .commands-container {
+    padding: 24px;
+  }
   .mat-dialog-content {
     display: flex;
     flex-direction: column;

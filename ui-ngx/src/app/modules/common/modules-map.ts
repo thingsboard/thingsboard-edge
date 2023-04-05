@@ -124,6 +124,9 @@ import * as TbMarkdownComponent from '@shared/components/markdown.component';
 import * as HelpComponent from '@shared/components/help.component';
 import * as HelpMarkdownComponent from '@shared/components/help-markdown.component';
 import * as HelpPopupComponent from '@shared/components/help-popup.component';
+import * as DeviceGatewayCommandComponent from '@shared/components/device/device-gateway-command.component';
+import * as GatewayConnectorComponent from '@shared/components/device/gateway-connector.component';
+import * as GatewayRemoteConfigurationDialogComponent from '@shared/components/dialog/gateway-remote-configuration-dialog';
 import * as TbCheckboxComponent from '@shared/components/tb-checkbox.component';
 import * as TbToast from '@shared/components/toast.directive';
 import * as TbErrorComponent from '@shared/components/tb-error.component';
@@ -455,6 +458,9 @@ class ModulesMap implements IModulesMap {
     '@shared/components/help.component': HelpComponent,
     '@shared/components/help-markdown.component': HelpMarkdownComponent,
     '@shared/components/help-popup.component': HelpPopupComponent,
+    '@shared/components/device/device-gateway-command.component': DeviceGatewayCommandComponent,
+    '@shared/components/device/gateway-connector.component': GatewayConnectorComponent,
+    '@shared/components/device/gateway-remote-configuration-dialog': GatewayRemoteConfigurationDialogComponent,
     '@shared/components/tb-checkbox.component': TbCheckboxComponent,
     '@shared/components/toast.directive': TbToast,
     '@shared/components/tb-error.component': TbErrorComponent,

@@ -45,7 +45,7 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
-    <mat-horizontal-stepper [linear]="true" [labelPosition]="labelPosition" #addDeviceWizardStepper (selectionChange)="changeStep($event)">
+    <mat-horizontal-stepper [linear]="true" [labelPosition]="labelPosition" #addDeviceWizardStepper (selectionChange)="changeStep($event)" *ngIf="!deviceCredentials">
       <ng-template matStepperIcon="edit">
         <mat-icon>check</mat-icon>
       </ng-template>
@@ -184,8 +184,16 @@
         </form>
       </mat-step>
     </mat-horizontal-stepper>
+    <div *ngIf="deviceCredentials" class="commands-container">
+      <tb-gateway-command *ngIf="device.additionalInfo?.gateway"
+                          [token]="deviceCredentials.credentialsId">
+      </tb-gateway-command>
+      <tb-device-example-command *ngIf="!device.additionalInfo?.gateway"
+                                 [token]="deviceCredentials.credentialsId">
+      </tb-device-example-command>
+    </div>
   </div>
-  <div mat-dialog-actions fxLayout="row">
+  <div mat-dialog-actions fxLayout="row" *ngIf="!deviceCredentials">
     <button mat-stroked-button *ngIf="selectedIndex > 0"
             [disabled]="(isLoading$ | async)"
             (click)="previousStep()">{{ 'action.back' | translate }}</button>
@@ -204,6 +212,6 @@
     <button mat-raised-button
             [disabled]="(isLoading$ | async)"
             color="primary"
-            (click)="add()">{{ 'action.add' | translate }}</button>
+            (click)="add()">{{ (deviceCredentials ? 'action.close': 'action.add') | translate }}</button>
   </div>
 </div>
