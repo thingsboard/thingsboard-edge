@@ -48,9 +48,12 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.DynamicValue;
@@ -70,6 +73,8 @@ import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.SchedulerEventFilter;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.scheduler.MonthlyRepeat;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
@@ -87,8 +92,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public abstract class BaseEntityQueryControllerTest extends AbstractControllerTest {
 
+    protected final String CUSTOMER_ADMIN_EMAIL = "testadmincustomer@thingsboard.org";
+    protected final String CUSTOMER_ADMIN_PASSWORD = "admincustomer";
+
     private Tenant savedTenant;
     private User tenantAdmin;
+    private User savedCustomerAdministrator;
+
+    private Role role;
+    private EntityGroup entityGroup;
+    private GroupPermission groupPermission;
+    private final String classNameAlarm = "ALARM";
 
     @Before
     public void beforeTest() throws Exception {
@@ -115,6 +129,37 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
+    }
+
+    @Before
+    public void setup() throws Exception {
+        loginTenantAdmin();
+
+        Role role = new Role();
+        role.setTenantId(tenantId);
+        role.setCustomerId(customerId);
+        role.setType(RoleType.GENERIC);
+        role.setName("Test customer administrator");
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+
+        this.role = doPost("/api/role", role, Role.class);
+
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Test customer administrators");
+        entityGroup.setType(EntityType.USER);
+        entityGroup.setOwnerId(customerId);
+        this.entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        GroupPermission groupPermission = new GroupPermission(
+                tenantId,
+                this.entityGroup.getId(),
+                this.role.getId(),
+                null,
+                null,
+                false
+        );
+        this.groupPermission =
+                doPost("/api/groupPermission", groupPermission, GroupPermission.class);
     }
 
     @Test
@@ -255,7 +300,7 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
             Thread.sleep(1);
         }
 
-        loginCustomerUser();
+        loginCustomerAdministrator();
 
         for (int i = 0; i < devices.size(); i++) {
             Alarm alarm = new Alarm();
@@ -824,6 +869,46 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
 
         ResultActions result = doPost("/api/entitiesQuery/find", query).andExpect(status().isBadRequest());
         assertThat(getErrorMessage(result)).contains("Invalid").contains("sort property");
+    }
+
+    private void clearCustomerAdminPermissionGroup() throws Exception {
+        loginTenantAdmin();
+        doDelete("/api/groupPermission/" + groupPermission.getUuidId())
+                .andExpect(status().isOk());
+        doDelete("/api/entityGroup/" + entityGroup.getUuidId())
+                .andExpect(status().isOk());
+        doDelete("/api/role/" + role.getUuidId())
+                .andExpect(status().isOk());
+    }
+
+    private void loginCustomerAdministrator() throws Exception {
+        if (savedCustomerAdministrator == null) {
+            savedCustomerAdministrator = createCustomerAdministrator(
+                    tenantId,
+                    customerId,
+                    CUSTOMER_ADMIN_EMAIL,
+                    CUSTOMER_ADMIN_PASSWORD
+            );
+        }
+        login(savedCustomerAdministrator.getEmail(), CUSTOMER_ADMIN_PASSWORD);
+    }
+
+    private User createCustomerAdministrator(TenantId tenantId, CustomerId customerId, String email, String pass) throws Exception {
+        loginTenantAdmin();
+
+        User user = new User();
+        user.setEmail(email);
+        user.setTenantId(tenantId);
+        user.setCustomerId(customerId);
+        user.setFirstName("customer");
+        user.setLastName("admin");
+        user.setAuthority(Authority.CUSTOMER_USER);
+
+        user = createUser(user, pass, entityGroup.getId());
+        customerAdminUserId = user.getId();
+        resetTokens();
+
+        return user;
     }
 
 }
