@@ -139,5 +139,5 @@ public interface AlarmService extends EntityDaoService {
 
     void deleteEntityAlarmRelations(TenantId tenantId, EntityId entityId);
 
-    long countAlarmsByQuery(TenantId tenantId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
+    long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
 }

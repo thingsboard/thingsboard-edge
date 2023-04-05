@@ -228,7 +228,7 @@ public class DefaultEntityQueryService implements EntityQueryService {
 
     @Override
     public long countAlarmsByQuery(SecurityUser securityUser, AlarmCountQuery query) {
-        return alarmService.countAlarmsByQuery(securityUser.getTenantId(), securityUser.getUserPermissions(), query);
+        return alarmService.countAlarmsByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getUserPermissions(), query);
     }
 
     private EntityDataQuery buildEntityDataQuery(AlarmDataQuery query) {

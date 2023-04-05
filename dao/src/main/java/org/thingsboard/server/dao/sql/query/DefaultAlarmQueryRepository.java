@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -331,18 +332,26 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
     }
 
     @Override
-    public long countAlarmsByQuery(TenantId tenantId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query) {
-        QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, null, EntityType.ALARM, mergedUserPermissions, null));
+    public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query) {
+        QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
 
         ctx.append("select count(id) from alarm_info a ");
 
         if (query.isSearchPropagatedAlarms()) {
             ctx.append(JOIN_ENTITY_ALARMS);
-            ctx.append(" where");
-            ctx.append(buildPermissionsQuery(tenantId, ctx, mergedUserPermissions));
+            ctx.append("where a.tenant_id = :tenantId and ea.tenant_id = :tenantId");
+            ctx.addUuidParameter("tenantId", tenantId.getId());
+            if (customerId != null && !customerId.isNullUid()) {
+                ctx.append(" and a.customer_id = :customerId and ea.customer_id = :customerId");
+                ctx.addUuidParameter("customerId", customerId.getId());
+            }
         } else {
             ctx.append("where a.tenant_id = :tenantId");
             ctx.addUuidParameter("tenantId", tenantId.getId());
+            if (customerId != null && !customerId.isNullUid()) {
+                ctx.append(" and a.customer_id = :customerId");
+                ctx.addUuidParameter("customerId", customerId.getId());
+            }
         }
 
         long startTs;
