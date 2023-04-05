@@ -32,7 +32,6 @@ package org.thingsboard.server.service.notification.rule.trigger;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.notification.info.IntegrationLifecycleEventNotificationInfo;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
@@ -65,7 +64,7 @@ public class IntegrationLifecycleEventTriggerProcessor implements NotificationRu
                         : trigger.getEvent() == ComponentLifecycleEvent.UPDATED ? "update"
                         : trigger.getEvent() == ComponentLifecycleEvent.STOPPED ? "stop" : null)
                 .eventType(trigger.getEvent())
-                .error(trigger.getError() != null ? StringUtils.abbreviate(ExceptionUtils.getStackTrace(trigger.getError()), 200) : null)
+                .error(trigger.getError() != null ? StringUtils.abbreviate(trigger.getError().getMessage(), 50) : null)
                 .build();
     }
 

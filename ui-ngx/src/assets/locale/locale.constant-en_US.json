@@ -3817,7 +3817,7 @@
         "notify-on-comment-update": "Notify on comment update",
         "notify-on-required": "Notify on is required",
         "notify-on-unassign": "Notify on unassign",
-        "notify-only-integrations-errors": "Notify only integrations error",
+        "notify-only-integrations-errors": "Only notify on error",
         "notify-only-user-comments": "Notify only user comments",
         "only-rule-chain-lifecycle-failures": "Only rule chain lifecycle failures",
         "only-rule-node-lifecycle-failures": "Only rule node lifecycle failures",

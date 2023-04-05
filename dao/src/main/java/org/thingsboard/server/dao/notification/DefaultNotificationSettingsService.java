@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.notification.rule.trigger.DeviceActivi
 import org.thingsboard.server.common.data.notification.rule.trigger.DeviceActivityNotificationRuleTriggerConfig.DeviceEvent;
 import org.thingsboard.server.common.data.notification.rule.trigger.EntitiesLimitNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.EntityActionNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.IntegrationLifecycleEventNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.notification.rule.trigger.RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig;
@@ -256,6 +257,17 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         createRule(tenantId, "Rule node initialization failure", ruleEngineComponentLifecycleFailureNotificationTemplate.getId(),
                 ruleEngineComponentLifecycleEventRuleTriggerConfig, List.of(tenantAdmins.getId()),
                 "Send notification to tenant admins when any Rule chain or Rule node failed to start, update or stop");
+
+        NotificationTemplate integrationStartFailureNotificationTemplate = createTemplate(tenantId, "Integration start failure", NotificationType.INTEGRATION_LIFECYCLE_EVENT,
+                "${integrationType} integration start failure",
+                "Integration '${integrationName}' failed to start:<br/>${error}",
+                null, "Go to integration", "/integrations/${integrationId}");
+        IntegrationLifecycleEventNotificationRuleTriggerConfig integrationLifecycleEventRuleTriggerConfig = new IntegrationLifecycleEventNotificationRuleTriggerConfig();
+        integrationLifecycleEventRuleTriggerConfig.setNotifyOn(Set.of(ComponentLifecycleEvent.STARTED, ComponentLifecycleEvent.UPDATED));
+        integrationLifecycleEventRuleTriggerConfig.setOnlyOnError(true);
+        createRule(tenantId, "Integration start failure", integrationStartFailureNotificationTemplate.getId(),
+                integrationLifecycleEventRuleTriggerConfig, List.of(tenantAdmins.getId()),
+                "Send notification to tenant admins when any integration fails to start");
     }
 
     private NotificationTarget createTarget(TenantId tenantId, String name, UsersFilter filter, String description) {

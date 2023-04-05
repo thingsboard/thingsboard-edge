@@ -714,6 +714,11 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void processNotificationRule(Integration integration, ComponentLifecycleEvent event, Exception error) {
+        if (!integration.getType().isSingleton()) {
+            if (!partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), integration.getTenantId(), integration.getId()).isMyPartition()) {
+                return;
+            }
+        }
         notificationRuleProcessor.process(IntegrationLifecycleEventTrigger.builder()
                 .tenantId(integration.getTenantId())
                 .integrationId(integration.getId())
