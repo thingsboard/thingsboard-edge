@@ -57,8 +57,10 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.tuya.mq.MessageVO;
 import org.thingsboard.integration.tuya.mq.MqConsumer;
 import org.thingsboard.integration.tuya.mq.TuyaMessageUtil;
+import org.thingsboard.integration.tuya.util.ServiceRPC;
 import org.thingsboard.integration.tuya.util.TuyaToken;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.net.URI;
@@ -81,8 +83,11 @@ import java.util.stream.Collectors;
 public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
 
     private static final String EMPTY_HASH = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    private final static int TOKEN_GRANT_TYPE = 1;
     private final static String GET_TOKEN_URL_PATH = "/v1.0/token";
-    private final static String POST_COMMANDS_URL_PATH = "/v1.0/iot-03/devices/{deviceId}/commands";
+    private final static String GET_REFRESH_TOKEN_URL_PATH = "/v1.0/token/%s";
+    private final static String POST_COMMANDS_URL_PATH = "/v1.0/iot-03/devices/%s/commands";
+
     private final static Set<Integer> unauthorizedErrorCodes = new HashSet<>(Arrays.asList(1010, 1011, 1012));
 
     private final RestTemplate httpClient = new RestTemplate();
@@ -234,27 +239,51 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
             throw new RuntimeException("Data should contain commands array or code and value of the command");
         }
         Exception error = null;
+        ArrayNode result = JacksonUtil.newArrayNode();
         for (DownlinkData downlinkData : convertedDownlinkData) {
             try {
                 String deviceId = getDeviceIdentifier(downlinkData.getMetadata());
                 ObjectNode commandsNode = JacksonUtil.newObjectNode();
                 ArrayNode arrayNode = JacksonUtil.OBJECT_MAPPER.createArrayNode();
                 JsonNode data = JacksonUtil.fromBytes(downlinkData.getData());
-                if (data instanceof ArrayNode) {
-                    arrayNode = (ArrayNode) data;
-                } else {
-                    if (data.has("code")) {
-                        arrayNode.add(data);
-                    } else {
-                        throw new RuntimeException("Downlink message format is not correct, downlink message should contain code field or commands array!");
-                    }
+                ServiceRPC serviceRPC = extractServiceRPC(data);
+                if (!hasValidAccessToken()) {
+                    accessToken = getToken();
                 }
-                commandsNode.set("commands", arrayNode);
-                accessToken = getToken();
+
                 if (accessToken == null) {
                     throw new RuntimeException("Cannot obtain access token from the server: " + tuyaIntegrationConfiguration.getRegion().getApiServerUrl());
                 }
-                sendCommands(deviceId, commandsNode);
+                if (serviceRPC == null) {
+                    if (data instanceof ArrayNode) {
+                        arrayNode = (ArrayNode) data;
+                    } else {
+                        if (data.has("code")) {
+                            arrayNode.add(data);
+                        } else {
+                            throw new RuntimeException("Downlink message format is not correct, downlink message should contain one of the following: code field, service RPC method, commands array!");
+                        }
+                    }
+                    commandsNode.set("commands", arrayNode);
+
+                    String path = String.format(POST_COMMANDS_URL_PATH, deviceId);
+                    result.add(sendPostRequest(path, commandsNode));
+                } else {
+                    String path = serviceRPC.path;
+                    if (serviceRPC.requiresParameter) {
+                        path = createServiceRPCPathWithParameter(path, data);
+                    } else {
+                        path = String.format(path, deviceId);
+                    }
+                    ObjectNode responseBody = sendGetRequest(path);
+                    Map<String, String> metadata = new HashMap<>(metadataTemplate.getKvMap());
+                    metadata.put("msgType", "DownlinkResponse");
+                    metadata.put("deviceId", deviceId);
+                    metadata.put("t", responseBody.get("t").asText());
+                    JsonNode dataNode = responseBody.get("result");
+                    TuyaIntegrationMsg tuyaIntegrationMsg = new TuyaIntegrationMsg(dataNode, metadata);
+                    this.process(tuyaIntegrationMsg);
+                }
             } catch (Exception e) {
                 error = e;
             }
@@ -265,21 +294,36 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         return true;
     }
 
-    private TuyaToken getToken() throws Exception {
-        return getToken(false);
+    private ServiceRPC extractServiceRPC(JsonNode data) {
+        if (data.has("method")) {
+            String method = data.get("method").asText();
+            for (ServiceRPC serviceRPC : ServiceRPC.values()) {
+                if (serviceRPC.method.equalsIgnoreCase(method)) return serviceRPC;
+            }
+        }
+        return null;
     }
 
-    private TuyaToken getToken(boolean force) throws Exception {
-        boolean hasAccess = hasValidAccessToken();
-        if (!force && hasAccess) {
-            return accessToken;
+    private String createServiceRPCPathWithParameter(String path, JsonNode data) {
+        if (!data.has("parameter")) {
+            throw new RuntimeException(String.format("[%s] Required \"parameter\" field not found!", configuration.getId()));
         }
-        Map<String, Object> queries = new HashMap<>();
-        queries.put("grant_type", 1);
-        HttpMethod httpMethod = HttpMethod.GET;
-        RequestEntity<Object> requestEntity = createRequest(GET_TOKEN_URL_PATH, httpMethod, null, queries);
-        ResponseEntity<ObjectNode> responseEntity = httpClient.exchange(requestEntity.getUrl(), httpMethod, requestEntity, ObjectNode.class);
-        if (HttpStatus.OK.equals(responseEntity.getStatusCode()) && Objects.requireNonNull(responseEntity.getBody()).get("success").asBoolean()) {
+        return String.format(path, data.get("parameter").asText());
+    }
+
+    private TuyaToken getToken() throws Exception {
+        String path = "";
+        if (hasValidAccessToken()) {
+            path = String.format(GET_REFRESH_TOKEN_URL_PATH, accessToken.getRefreshToken());
+        } else {
+            Map<String, Object> queries = new HashMap<>();
+            queries.put("grant_type", TOKEN_GRANT_TYPE);
+            path = GET_TOKEN_URL_PATH + "?" + queries.entrySet().stream().map(it -> it.getKey() + "=" + it.getValue())
+                    .collect(Collectors.joining("&"));
+        }
+        RequestEntity<Object> requestEntity = createGetRequest(path, true);
+        ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
+        if (validateResponse(responseEntity)) {
             JsonNode result = responseEntity.getBody().get("result");
             Long expireAt = responseEntity.getBody().get("t").asLong() + result.get("expire_time").asLong() * 1000;
             return TuyaToken.builder()
@@ -292,66 +336,90 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         return null;
     }
 
-    private void sendCommands(String deviceId, ObjectNode commandsNode) throws Exception {
-        String path = POST_COMMANDS_URL_PATH.replace("{deviceId}", deviceId);
-        HttpMethod httpMethod = HttpMethod.POST;
-        RequestEntity<Object> requestEntity = createRequest(path, httpMethod, commandsNode, null);
-        ResponseEntity<ObjectNode> responseEntity = httpClient.exchange(requestEntity.getUrl(), httpMethod, requestEntity, ObjectNode.class);
-        // If errors appear Tuya returns 200 OK and error in the body of the response.
-        if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
-            throw new RuntimeException(String.format("No response for device command request! Reason code from Tuya Cloud: %s", responseEntity.getStatusCode().toString()));
+
+    private ObjectNode sendPostRequest(String path, ObjectNode commandsNode) throws Exception {
+        RequestEntity<Object> requestEntity = createPostRequest(path, commandsNode);
+        ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
+        ObjectNode result = responseEntity.getBody();
+        log.debug("[{}] Received response: [{}]", configuration.getId(), result);
+        return result;
+    }
+
+    private ObjectNode sendGetRequest(String path) throws Exception {
+        RequestEntity<Object> requestEntity = createGetRequest(path, false);
+        ResponseEntity<ObjectNode> responseEntity = sendRequest(requestEntity);
+        ObjectNode result = responseEntity.getBody();
+        log.debug("[{}] Received response: [{}]", configuration.getId(), result);
+        return result;
+    }
+
+    private ResponseEntity<ObjectNode> sendRequest(RequestEntity<Object> requestEntity) {
+        ResponseEntity<ObjectNode> responseEntity = httpClient.exchange(requestEntity.getUrl(),
+                Objects.requireNonNull(requestEntity.getMethod()),
+                requestEntity,
+                ObjectNode.class);
+        if (!validateResponse(responseEntity)) {
+            throw new RuntimeException(String.format("[%s] No response for RPC request! Reason code from Tuya Cloud: %s",
+                    configuration.getId(),
+                    responseEntity.getStatusCode()));
         }
-        ObjectNode responseBody = responseEntity.getBody();
-        if (responseBody != null && responseBody.has("code") && unauthorizedErrorCodes.contains(responseBody.get("code").asInt())) {
-            accessToken = getToken(true);
-            requestEntity = createRequest(path, httpMethod, commandsNode, null);
-            responseEntity = httpClient.exchange(requestEntity.getUrl(), httpMethod, requestEntity, ObjectNode.class);
-            responseBody = responseEntity.getBody();
-        }
-        if (responseBody != null && !responseBody.get("success").asBoolean()) {
-            throw new RuntimeException(String.format("Downlink failed! with response from Tuya: %s", responseBody.get("msg")));
+        if (Objects.requireNonNull(responseEntity.getBody()).get("success").asBoolean()) {
+            return responseEntity;
+        } else {
+            throw new RuntimeException(String.format("[%s] Tuya integration response error code: [%s], msg: [%s]",
+                    configuration.getId(),
+                    responseEntity.getBody().get("code").asInt(),
+                    responseEntity.getBody().get("msg").asText()));
         }
     }
 
-    private RequestEntity<Object> createRequest(String path, HttpMethod httpMethod, ObjectNode body, Map<String, Object> queries) throws Exception {
-        boolean hasAccess = hasValidAccessToken();
+    private RequestEntity<Object> createGetRequest(String path, boolean getToken) throws Exception {
+        HttpMethod httpMethod = HttpMethod.GET;
         String ts = String.valueOf(System.currentTimeMillis());
         MultiValueMap<String, String> httpHeaders = createHeaders(ts);
-        if (hasAccess) {
-            httpHeaders.add("access_token", accessToken.getAccessToken());
-        }
-        String pathWithQueries = path;
-        if (queries != null) {
-            pathWithQueries += "?" + queries.entrySet().stream().map(it -> it.getKey() + "=" + it.getValue())
-                    .collect(Collectors.joining("&"));
-        }
         String strToSign;
-        if (body != null) {
-            strToSign = tuyaIntegrationConfiguration.getAccessId() + accessToken.getAccessToken() +
-                    ts + stringToSign(pathWithQueries, body.toString(), httpMethod);
+        if (getToken) {
+            strToSign = tuyaIntegrationConfiguration.getAccessId() + ts + formatStringToSign(path, getBodyHash(null), httpMethod);
         } else {
-            strToSign = tuyaIntegrationConfiguration.getAccessId() + ts + stringToSign(pathWithQueries, null, httpMethod);
+            httpHeaders.add("access_token", accessToken.getAccessToken());
+            strToSign = tuyaIntegrationConfiguration.getAccessId() + accessToken.getAccessToken() + ts + formatStringToSign(path, getBodyHash(null), httpMethod);
         }
         String signedStr = sign(strToSign, tuyaIntegrationConfiguration.getAccessKey());
         httpHeaders.add("sign", signedStr);
-        URI uri = URI.create(tuyaIntegrationConfiguration.getRegion().getApiServerUrl() + pathWithQueries +
-                (hasAccess ? getAccessTokenPostfix(httpMethod) : ""));
-        return new RequestEntity<>(body == null ? null : body.toString(), httpHeaders, httpMethod, uri);
+        URI uri = URI.create(tuyaIntegrationConfiguration.getRegion().getApiServerUrl() + path);
+        return new RequestEntity<>(httpHeaders, httpMethod, uri);
     }
 
-    private String stringToSign(String path, String body, HttpMethod httpMethod) throws Exception {
+    private RequestEntity<Object> createPostRequest(String path, ObjectNode body) throws Exception {
+        HttpMethod httpMethod = HttpMethod.POST;
+        String ts = String.valueOf(System.currentTimeMillis());
+        MultiValueMap<String, String> httpHeaders = createHeaders(ts);
+        httpHeaders.add("access_token", accessToken.getAccessToken());
+        String strToSign = tuyaIntegrationConfiguration.getAccessId() + accessToken.getAccessToken() +
+                ts + formatStringToSign(path, getBodyHash(body.toString()), httpMethod);
+        String signedStr = sign(strToSign, tuyaIntegrationConfiguration.getAccessKey());
+        httpHeaders.add("sign", signedStr);
+        URI uri = URI.create(tuyaIntegrationConfiguration.getRegion().getApiServerUrl() + path);
+        return new RequestEntity<>(body.toString(), httpHeaders, httpMethod, uri);
+    }
+
+    private String formatStringToSign(String path, String bodyHash, HttpMethod httpMethod) {
         List<String> lines = new ArrayList<>(16);
         lines.add(httpMethod.name());
-        String bodyHash = EMPTY_HASH;
-        if (body != null && body.length() > 0) {
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-            messageDigest.update(body.getBytes(StandardCharsets.UTF_8));
-            bodyHash = Hex.encodeHexString(messageDigest.digest());
-        }
         lines.add(bodyHash);
         lines.add("");
         lines.add(path);
         return String.join("\n", lines);
+    }
+
+    private String getBodyHash(String body) throws Exception {
+        if (StringUtils.isBlank(body)) {
+            return EMPTY_HASH;
+        } else {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            messageDigest.update(body.getBytes(StandardCharsets.UTF_8));
+            return Hex.encodeHexString(messageDigest.digest());
+        }
     }
 
     private String sign(String content, String secret) throws Exception {
@@ -382,11 +450,13 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
         return deviceId;
     }
 
-    private String getAccessTokenPostfix(HttpMethod httpMethod) {
-        return (accessToken != null && HttpMethod.GET.equals(httpMethod) ? "/" + accessToken.getRefreshToken() : "");
-    }
-
     private boolean hasValidAccessToken() {
         return accessToken != null && accessToken.getExpireAt() + 20_000 > System.currentTimeMillis();
+    }
+
+    private boolean validateResponse(ResponseEntity<ObjectNode> responseEntity) {
+        return responseEntity != null
+                && HttpStatus.OK.equals(responseEntity.getStatusCode())
+                && responseEntity.getBody() != null;
     }
 }

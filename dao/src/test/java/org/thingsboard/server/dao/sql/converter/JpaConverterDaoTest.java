@@ -96,6 +96,24 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         assertFalse("Optional expected to be empty", converterOpt2.isPresent());
     }
 
+    @Test
+    public void testFindConvertersByTenantIdAndNameAndType() {
+        UUID converterId1 = Uuids.timeBased();
+        UUID converterId2 = Uuids.timeBased();
+        UUID tenantId = Uuids.timeBased();
+        String name = "TEST_CONVERTER";
+        saveConverter(converterId1, tenantId, name, ConverterType.UPLINK);
+        saveConverter(converterId2, tenantId, name, ConverterType.DOWNLINK);
+
+        Optional<Converter> converterOpt1 = converterDao.findConverterByTenantIdAndNameAndType(tenantId, name, ConverterType.UPLINK);
+        assertTrue("Optional expected to be non-empty", converterOpt1.isPresent());
+        assertEquals(converterId1, converterOpt1.get().getId().getId());
+
+        Optional<Converter> converterOpt2 = converterDao.findConverterByTenantIdAndNameAndType(tenantId, name, ConverterType.DOWNLINK);
+        assertTrue("Optional expected to be non-empty", converterOpt2.isPresent());
+        assertEquals(converterId2, converterOpt2.get().getId().getId());
+    }
+
     private void saveConverter(UUID id, UUID tenantId, String name, ConverterType type) {
         Converter converter = new Converter();
         converter.setId(new ConverterId(id));
