@@ -583,7 +583,7 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
   [NotificationType.RULE_ENGINE,
     {
       name: 'notification.template-type.rule-engine',
-      helpId: 'notification/rule-engine'
+      helpId: 'notification/rule_engine'
     }
   ],
   [NotificationType.INTEGRATION_LIFECYCLE_EVENT,
