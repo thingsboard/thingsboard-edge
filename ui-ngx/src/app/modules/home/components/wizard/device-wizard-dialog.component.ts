@@ -91,7 +91,7 @@ export interface DeviceWizardDialogData {
 export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
-  @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatStepper;
+  @ViewChild('addDeviceWizardStepper') addDeviceWizardStepper: MatStepper;
 
   resource = Resource;
 

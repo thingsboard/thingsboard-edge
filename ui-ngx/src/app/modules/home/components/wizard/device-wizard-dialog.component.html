@@ -219,6 +219,7 @@
   <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end center">
     <button mat-button
             [disabled]="(isLoading$ | async)"
+            *ngIf="!deviceCredentials"
             (click)="cancel()">{{ 'action.cancel' | translate }}</button>
     <button mat-raised-button
             [disabled]="(isLoading$ | async)"

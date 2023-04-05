@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -76,8 +76,8 @@
                 matTooltipPosition="above">
           <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
         </button>
-        <pre class="tb-highlight" fxFill><code
-          class="pre-wrap">JSON example: {{'[{"key1":"value1"}, {"key2":true}]'}}</code></pre>
+        <pre class="tb-highlight" fxFlex="100"><code
+          class="pre-wrap">JSON example: {{'[{"temperature": 40}, {"isRainy": true}]'}}</code></pre>
       </div>
     </div>
     <div class="mat-content" fxLayout="column" *ngIf="protocolCtrl.value === 'http'">
