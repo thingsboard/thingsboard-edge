@@ -158,7 +158,10 @@ export class RuleNotificationDialogComponent extends
     EntityType.CUSTOMER,
     EntityType.USER,
     EntityType.DASHBOARD,
-    EntityType.RULE_CHAIN
+    EntityType.RULE_CHAIN,
+    EntityType.INTEGRATION,
+    EntityType.CONVERTER,
+    EntityType.SCHEDULER_EVENT
   ];
 
   selectedIndex = 0;
@@ -504,7 +507,8 @@ export class RuleNotificationDialogComponent extends
         EntityType.QUEUE,
         EntityType.NOTIFICATION,
         EntityType.NOTIFICATION_REQUEST,
-        EntityType.WIDGET_TYPE
+        EntityType.WIDGET_TYPE,
+        EntityType.GROUP_PERMISSION
       ]);
       this._allowEntityTypeForEntityAction = Object.values(EntityType).filter(type => !excludeEntityType.has(type));
     }
