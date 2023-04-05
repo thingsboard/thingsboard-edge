@@ -156,7 +156,13 @@ public class EntityViewController extends BaseController {
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(entityView, strEntityGroupId, strEntityGroupIds, (entityView1, entityGroups) -> tbEntityViewService.save(entityView1, entityGroups, user));
+        return saveGroupEntity(entityView, strEntityGroupId, strEntityGroupIds, (entityView1, entityGroups) -> {
+            try {
+                return tbEntityViewService.save(entityView1, entityGroups, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete entity view (deleteEntityView)",

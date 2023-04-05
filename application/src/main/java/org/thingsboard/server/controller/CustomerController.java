@@ -216,7 +216,13 @@ public class CustomerController extends BaseController {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(customer, strEntityGroupId, strEntityGroupIds, (customer1, entityGroups) -> tbCustomerService.save(customer, entityGroups, user));
+        return saveGroupEntity(customer, strEntityGroupId, strEntityGroupIds, (customer1, entityGroups) -> {
+            try {
+                return tbCustomerService.save(customer, entityGroups, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete Customer (deleteCustomer)",

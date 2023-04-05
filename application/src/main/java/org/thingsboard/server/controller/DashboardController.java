@@ -208,7 +208,13 @@ public class DashboardController extends BaseController {
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(dashboard, strEntityGroupId, strEntityGroupIds, (dashboard1, entityGroups) -> tbDashboardService.save(dashboard1, entityGroups, user));
+        return saveGroupEntity(dashboard, strEntityGroupId, strEntityGroupIds, (dashboard1, entityGroups) -> {
+            try {
+                return tbDashboardService.save(dashboard1, entityGroups, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",
