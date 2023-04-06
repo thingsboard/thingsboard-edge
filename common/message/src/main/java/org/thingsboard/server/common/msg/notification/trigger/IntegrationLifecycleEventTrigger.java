@@ -28,35 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
 @Data
 @Builder
-public class RuleEngineComponentLifecycleEventTrigger implements NotificationRuleTrigger {
+public class IntegrationLifecycleEventTrigger implements NotificationRuleTrigger {
 
-    private final RuleChainId ruleChainId;
-    private final String ruleChainName;
-    private final EntityId componentId;
-    private final String componentName;
-    private final ComponentLifecycleEvent eventType;
+    private final TenantId tenantId;
+    private final IntegrationId integrationId;
+    private final IntegrationType integrationType;
+    private final String integrationName;
+    private final ComponentLifecycleEvent event;
     private final Throwable error;
 
     @Override
     public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT;
+        return NotificationRuleTriggerType.INTEGRATION_LIFECYCLE_EVENT;
     }
 
     @Override
     public EntityId getOriginatorEntityId() {
-        return componentId;
+        return integrationId;
     }
 
 }

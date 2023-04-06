@@ -28,30 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+
+import java.util.Set;
+import java.util.UUID;
 
 @Data
-@Builder
-public class RuleEngineMsgTrigger implements NotificationRuleTrigger {
+public class IntegrationLifecycleEventNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final TbMsg msg;
-    private final NotificationRuleTriggerType triggerType;
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return triggerType;
-    }
+    private Set<IntegrationType> integrationTypes;
+    private Set<UUID> integrations; // set either integrationTypes or integrations or none
+    private Set<ComponentLifecycleEvent> notifyOn; // STARTED, UPDATED or STOPPED
+    private boolean onlyOnError;
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return msg.getOriginator();
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.INTEGRATION_LIFECYCLE_EVENT;
     }
 
 }

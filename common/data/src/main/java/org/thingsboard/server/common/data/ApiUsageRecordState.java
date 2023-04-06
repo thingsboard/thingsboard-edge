@@ -28,14 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.Data;
 
-public interface NotificationRuleTrigger {
+import java.io.Serializable;
 
-    NotificationRuleTriggerType getType();
+@Data
+public class ApiUsageRecordState implements Serializable {
 
-    EntityId getOriginatorEntityId();
+    private final ApiFeature apiFeature;
+    private final ApiUsageRecordKey key;
+    private final long threshold;
+    private final long value;
+
+    public String getValueAsString() {
+        return valueAsString(value);
+    }
+
+    public String getThresholdAsString() {
+        return valueAsString(threshold);
+    }
+
+    private String valueAsString(long value) {
+        if (value > 1_000_000 && value % 1_000_000 < 10_000) {
+            return value / 1_000_000 + "M";
+        } else if (value > 10_000) {
+            return String.format("%.2fM", ((double) value) / 1_000_000);
+        } else {
+            return value + "";
+        }
+    }
 
 }

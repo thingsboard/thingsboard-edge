@@ -52,11 +52,15 @@ import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificationInfo {
 
     private String action;
+
+    private String assigneeEmail;
     private String assigneeFirstName;
     private String assigneeLastName;
-    private String assigneeEmail;
     private UserId assigneeId;
-    private String userName;
+
+    private String userEmail;
+    private String userFirstName;
+    private String userLastName;
 
     private String alarmType;
     private UUID alarmId;
@@ -74,7 +78,9 @@ public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificati
                 "assigneeLastName", assigneeLastName,
                 "assigneeEmail", assigneeEmail,
                 "assigneeId", assigneeId != null ? assigneeId.toString() : null,
-                "userName", userName,
+                "userEmail", userEmail,
+                "userFirstName", userFirstName,
+                "userLastName", userLastName,
                 "alarmType", alarmType,
                 "alarmId", alarmId.toString(),
                 "alarmSeverity", alarmSeverity.name().toLowerCase(),
@@ -86,12 +92,12 @@ public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificati
     }
 
     @Override
-    public CustomerId getOriginatorEntityCustomerId() {
+    public CustomerId getAffectedCustomerId() {
         return alarmCustomerId;
     }
 
     @Override
-    public UserId getTargetUserId() {
+    public UserId getAffectedUserId() {
         return assigneeId;
     }
 

@@ -28,51 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.info;
+package org.thingsboard.server.common.msg.notification.trigger;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
-
-import java.util.Map;
-import java.util.UUID;
-
-import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class DeviceInactivityNotificationInfo implements RuleOriginatedNotificationInfo {
+public class EntitiesLimitTrigger implements NotificationRuleTrigger {
 
-    private UUID deviceId;
-    private String deviceName;
-    private String deviceLabel;
-    private String deviceType;
-    private CustomerId deviceCustomerId;
+    private final TenantId tenantId;
+    private final EntityType entityType;
+    private final long currentCount;
+    private final long limit;
 
     @Override
-    public CustomerId getOriginatorEntityCustomerId() {
-        return deviceCustomerId;
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.ENTITIES_LIMIT;
     }
 
     @Override
-    public Map<String, String> getTemplateData() {
-        return mapOf(
-                "deviceId", deviceId.toString(),
-                "deviceName", deviceName,
-                "deviceLabel", deviceLabel,
-                "deviceType", deviceType
-        );
-    }
-
-    @Override
-    public EntityId getStateEntityId() {
-        return new DeviceId(deviceId);
+    public EntityId getOriginatorEntityId() {
+        return tenantId;
     }
 
 }

@@ -28,33 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.data.notification.info;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+
+import java.util.Map;
+import java.util.UUID;
+
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class EntitiesLimitTrigger implements NotificationRuleTrigger {
+public class DeviceActivityNotificationInfo implements RuleOriginatedNotificationInfo {
 
-    private final TenantId tenantId;
-    private final EntityType entityType;
-    private final long currentCount;
-    private final long limit;
+    private String eventType;
+    private UUID deviceId;
+    private String deviceName;
+    private String deviceLabel;
+    private String deviceType;
+    private CustomerId deviceCustomerId;
 
     @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.ENTITIES_LIMIT;
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "eventType", eventType,
+                "deviceId", deviceId.toString(),
+                "deviceName", deviceName,
+                "deviceLabel", deviceLabel,
+                "deviceType", deviceType
+        );
     }
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return TenantId.SYS_TENANT_ID;
+    public CustomerId getAffectedCustomerId() {
+        return deviceCustomerId;
+    }
+
+    @Override
+    public EntityId getStateEntityId() {
+        return new DeviceId(deviceId);
     }
 
 }

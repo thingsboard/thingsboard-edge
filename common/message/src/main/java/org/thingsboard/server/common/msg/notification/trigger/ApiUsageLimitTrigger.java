@@ -28,29 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
 import lombok.Builder;
 import lombok.Data;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
+import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
-import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
 
 @Data
 @Builder
-public class AlarmTrigger implements NotificationRuleTrigger {
+public class ApiUsageLimitTrigger implements NotificationRuleTrigger {
 
-    private final AlarmApiCallResult alarmUpdate;
+    private final TenantId tenantId;
+    private final ApiUsageRecordState state;
+    private final ApiUsageStateValue status;
 
     @Override
     public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.ALARM;
+        return NotificationRuleTriggerType.API_USAGE_LIMIT;
+    }
+
+    @Override
+    public TenantId getTenantId() {
+        return tenantId;
     }
 
     @Override
     public EntityId getOriginatorEntityId() {
-        return alarmUpdate.getAlarm().getId();
+        return tenantId;
     }
 
 }

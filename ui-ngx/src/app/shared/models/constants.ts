@@ -92,6 +92,7 @@ export const HelpLinks = {
     docs: helpBaseUrl + '/docs/pe',
     outgoingMailSettings: helpBaseUrl + '/docs/pe/user-guide/ui/mail-settings',
     smsProviderSettings: helpBaseUrl + '/docs/pe/user-guide/ui/sms-provider-settings',
+    slackSettings: helpBaseUrl + '/docs/pe/user-guide/ui/slack-settings',
     securitySettings: helpBaseUrl + '/docs/pe/user-guide/ui/security-settings',
     oauth2Settings: helpBaseUrl + '/docs/pe/user-guide/oauth-2-support/',
     twoFactorAuthSettings: helpBaseUrl + '/docs/',

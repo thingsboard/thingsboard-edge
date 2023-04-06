@@ -32,7 +32,7 @@
 import { Component, ElementRef, forwardRef, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Observable, of, ReplaySubject } from 'rxjs';
-import { debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -82,6 +82,9 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
 
   @Input()
   slackChanelType: SlackChanelType;
+
+  @Input()
+  token: string;
 
   @ViewChild('slackInput', {static: true}) slackInput: ElementRef;
 
@@ -134,7 +137,7 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
             this.clear();
           }
         }),
-        map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
+        map(value => value ? (typeof value === 'string' ? value : value.title) : ''),
         switchMap(name => this.fetchSlackConversation(name)),
         share()
       );
@@ -144,8 +147,9 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
     for (const propName of Object.keys(changes)) {
       const change = changes[propName];
       if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (propName === 'slackChanelType') {
+        if (propName === 'slackChanelType' || propName === 'token') {
           this.clearSlackCache();
+          this.dirty = true;
           this.conversationSlackFormGroup.get('conversation').patchValue('');
         }
       }
@@ -179,8 +183,8 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
 
   onFocus() {
     if (this.dirty) {
-      this.conversationSlackFormGroup.get('conversation').updateValueAndValidity({onlySelf: true, emitEvent: true});
       this.dirty = false;
+      this.conversationSlackFormGroup.get('conversation').updateValueAndValidity({onlySelf: true, emitEvent: true});
     }
   }
 
@@ -192,10 +196,13 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
   }
 
   displaySlackConversationFn(slackConversation?: SlackConversation): string | undefined {
-    return slackConversation ? slackConversation.name : undefined;
+    return slackConversation ? slackConversation.title : undefined;
   }
 
   private fetchSlackConversation(searchText?: string): Observable<Array<SlackConversation>> {
+    if (this.dirty) {
+      return of([]);
+    }
     if (this.slackSearchText !== searchText || this.latestSearchConversetionResult === null) {
       this.slackSearchText = searchText;
       const slackConversationFilter = this.createSlackConversationFilter(this.slackSearchText);
@@ -211,11 +218,12 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
     if (this.slackConversetionFetchObservable$ === null) {
       let fetchObservable: Observable<Array<SlackConversation>>;
       if (this.slackChanelType) {
-        fetchObservable = this.notificationService.listSlackConversations(this.slackChanelType, {ignoreLoading: true});
+        fetchObservable = this.notificationService.listSlackConversations(this.slackChanelType, this.token, {ignoreLoading: true});
       } else {
         fetchObservable = of([]);
       }
       this.slackConversetionFetchObservable$ = fetchObservable.pipe(
+        catchError(() => of([])),
         share({
           connector: () => new ReplaySubject(1),
           resetOnError: false,
@@ -229,7 +237,7 @@ export class SlackConversationAutocompleteComponent implements ControlValueAcces
 
   private createSlackConversationFilter(query: string): (key: SlackConversation) => boolean {
     const lowercaseQuery = query.toLowerCase();
-    return key => key.name.toLowerCase().includes(lowercaseQuery);
+    return key => key.title.toLowerCase().includes(lowercaseQuery);
   }
 
   private clearSlackCache(): void {

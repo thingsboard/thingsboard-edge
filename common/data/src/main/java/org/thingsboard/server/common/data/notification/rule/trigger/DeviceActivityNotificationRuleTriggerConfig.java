@@ -28,16 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
-import org.thingsboard.server.common.msg.TbMsg;
+import lombok.Data;
 
-public interface NotificationRuleProcessingService {
+import javax.validation.constraints.NotEmpty;
+import java.util.Set;
+import java.util.UUID;
 
-    void process(TenantId tenantId, NotificationRuleTrigger trigger);
+@Data
+public class DeviceActivityNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    void process(TenantId tenantId, TbMsg ruleEngineMsg);
+    private Set<UUID> devices;
+    private Set<UUID> deviceProfiles; // set either devices or profiles
+    @NotEmpty
+    private Set<DeviceEvent> notifyOn;
+
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.DEVICE_ACTIVITY;
+    }
+
+    public enum DeviceEvent {
+        ACTIVE, INACTIVE
+    }
 
 }
