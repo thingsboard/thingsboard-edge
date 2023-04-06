@@ -225,28 +225,28 @@ public class SolutionTemplatesConstants {
     /**
      * Air Quality Monitoring
      **/
-    
+
     //Rule chains
     public static final String AQI_SENSOR_RULE_CHAIN = "AQI Sensor";
     public static final String AQI_CITY_RULE_CHAIN = "AQI City";
-    
+
     //Profiles
     public static final String AQI_CITY_ASSET_PROFILE = "AQI City";
-    
+
     //Devices
     public static final String AIR_QUALITY_SENSOR_1_DEVICE = "Air Quality Sensor 1";
     public static final String AIR_QUALITY_SENSOR_2_DEVICE = "Air Quality Sensor 2";
     public static final String AIR_QUALITY_SENSOR_3_DEVICE = "Air Quality Sensor 3";
     public static final String AIR_QUALITY_SENSOR_4_DEVICE = "Air Quality Sensor 4";
     public static final String AIR_QUALITY_SENSOR_5_DEVICE = "Air Quality Sensor 5";
-    
+
     //Assets
     public static final String LOS_ANGELES_CA_ASSET = "Los Angeles, CA";
 
     //Dashboards
     public static final String AIR_QUALITY_MONITORING_DASHBOARD = "Air Quality Monitoring";
     public static final String AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD = "Air Quality Monitoring Administration";
-    
+
     //Entity groups
     public static final String AQI_SENSOR_DEVICE_GROUP = "AQI Sensor";
     public static final String AQI_CITY_ASSET_GROUP = "AQI City";
@@ -267,6 +267,7 @@ public class SolutionTemplatesConstants {
     public static final String SI_SMART_VALVE_DEVICE_PROFILE = "SI Smart Valve";
     public static final String SI_WATER_METER_DEVICE_PROFILE = "SI Water Meter";
     public static final String SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE = "SI Soil Moisture Sensor";
+    public static final String SI_FIELD_ASSET_PROFILE = "SI Field";
 
     //Devices
     public static final String SI_WATER_WATER_METER_1_DEVICE = "SI Water Meter 1";
@@ -285,7 +286,6 @@ public class SolutionTemplatesConstants {
     //Assets
     public static final String SI_FIELD_1_ASSET = "SI Field 1";
     public static final String SI_FIELD_2_ASSET = "SI Field 2";
-    public static final String SI_FIELD_ASSET = "SI Field";
 
     //Dashboards
     public static final String IRRIGATION_MANAGEMENT_DASHBOARD = "Irrigation Management";

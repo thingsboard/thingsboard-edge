@@ -81,10 +81,11 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     private static final int WIDTH = 1680;
     private static final int HEIGHT = 1050;
     private static final String REMOTE_WEBDRIVER_HOST = "http://localhost:4444";
-    protected static final PageLink pageLink = new PageLink(10);
-    private static final ContainerTestSuite instance = ContainerTestSuite.getInstance();
+    protected final PageLink pageLink = new PageLink(10);
+    private final ContainerTestSuite instance = ContainerTestSuite.getInstance();
     private JavascriptExecutor js;
     public static final long WAIT_TIMEOUT = TimeUnit.SECONDS.toMillis(10);
+    private final Duration duration = Duration.ofMillis(WAIT_TIMEOUT);
 
     @BeforeClass
     public void startUp() throws MalformedURLException {
@@ -139,7 +140,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     protected boolean urlContains(String urlPath) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT));
+        WebDriverWait wait = new WebDriverWait(driver, duration);
         try {
             wait.until(ExpectedConditions.urlContains(urlPath));
         } catch (WebDriverException e) {
@@ -153,7 +154,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         js.executeScript("arguments[0].click();", element);
     }
 
-    public static RuleChain getRuleChainByName(String name) {
+    public RuleChain getRuleChainByName(String name) {
         try {
             return testRestClient.getRuleChains(pageLink).getData().stream()
                     .filter(s -> s.getName().equals(name)).collect(Collectors.toList()).get(0);
@@ -163,7 +164,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public static Customer getCustomerByName(String name) {
+    public Customer getCustomerByName(String name) {
         try {
             return testRestClient.getCustomers(pageLink).getData().stream()
                     .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
@@ -173,7 +174,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public static DeviceProfile getDeviceProfileByName(String name) {
+    public DeviceProfile getDeviceProfileByName(String name) {
         try {
             return testRestClient.getDeviceProfiles(pageLink).getData().stream()
                     .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
@@ -183,7 +184,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public static AssetProfile getAssetProfileByName(String name) {
+    public AssetProfile getAssetProfileByName(String name) {
         try {
             return testRestClient.getAssetProfiles(pageLink).getData().stream()
                     .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
@@ -193,7 +194,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public static EntityGroupInfo getEntityGroupByName(EntityType entityType, String name) {
+    public EntityGroupInfo getEntityGroupByName(EntityType entityType, String name) {
         try {
             return testRestClient.getEntityGroups(entityType).stream()
                     .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
@@ -203,7 +204,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public static Dashboard getDashboardByName(EntityType entityType, String entityGroupName, String name) {
+    public Dashboard getDashboardByName(EntityType entityType, String entityGroupName, String name) {
         try {
             return testRestClient.getDashboardsByEntityGroupId(pageLink, getEntityGroupByName(entityType, entityGroupName).getId())
                     .stream().filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
@@ -213,17 +214,17 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public boolean invisibilityOf(WebElement element) {
+    public void invisibilityOf(WebElement element) {
         try {
-            return new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT)).until(ExpectedConditions.invisibilityOf(element));
+            new WebDriverWait(driver, duration).until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {
-            return fail("Element is present: " + element.toString().split(":")[2].replaceAll("]", ""));
+            fail("Element " + element.toString() + " stay visible");
         }
     }
 
     public void refreshPage() {
         driver.navigate().refresh();
-        new WebDriverWait(driver, Duration.ofMillis(WAIT_TIMEOUT)).until(
+        new WebDriverWait(driver, duration).until(
                 webDriver -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
     }
 

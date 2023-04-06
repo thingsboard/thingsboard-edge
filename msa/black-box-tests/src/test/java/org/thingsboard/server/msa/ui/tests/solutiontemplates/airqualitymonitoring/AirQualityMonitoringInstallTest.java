@@ -28,94 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.ui.tests.solutionTemplates.airQualityMonitoring;
+package org.thingsboard.server.msa.ui.tests.solutiontemplates.airqualitymonitoring;
 
 import io.qameta.allure.Description;
-import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import org.openqa.selenium.WebElement;
-import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
-import org.thingsboard.server.msa.ui.pages.AssetPageElements;
-import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
-import org.thingsboard.server.msa.ui.pages.DashboardPageHelper;
-import org.thingsboard.server.msa.ui.pages.DevicePageElements;
-import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.ProfilesPageHelper;
-import org.thingsboard.server.msa.ui.pages.RolesPageElements;
-import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
-import org.thingsboard.server.msa.ui.pages.SolutionTemplateDetailsPageHelper;
-import org.thingsboard.server.msa.ui.pages.SolutionTemplatesHomePageElements;
-import org.thingsboard.server.msa.ui.pages.SolutionTemplatesInstalledViewHelper;
-import org.thingsboard.server.msa.ui.pages.UsersPageElements;
+import org.thingsboard.server.msa.ui.tests.solutiontemplates.AbstractSolutionTemplateTest;
 import org.thingsboard.server.msa.ui.utils.Const;
 
+import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.ALARM_RULES_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.CONNECTIVITY_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_GROUP;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_DASHBOARD_GROUP;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LOS_ANGELES_CA_ASSET;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_DASHBOARD;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_MONITORING_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_2_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_3_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_4_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_5_DEVICE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_DEVICE_GROUP;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_1_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_DEVICE_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LOS_ANGELES_CA_ASSET;
 
-public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
-    SideBarMenuViewHelper sideBarMenuView;
-    SolutionTemplatesHomePageElements solutionTemplatesHomePage;
-    SolutionTemplateDetailsPageHelper solutionTemplateDetailsPage;
-    SolutionTemplatesInstalledViewHelper solutionTemplatesInstalledView;
-    RuleChainsPageHelper ruleChainsPage;
-    RolesPageElements rolesPage;
-    CustomerPageHelper customerPage;
-    ProfilesPageHelper profilesPage;
-    DevicePageElements devicePage;
-    AssetPageElements assetPage;
-    DashboardPageHelper dashboardPage;
-    UsersPageElements usersPageHelper;
-
-    @BeforeClass
-    public void login() {
-        new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewHelper(driver);
-        solutionTemplatesHomePage = new SolutionTemplatesHomePageElements(driver);
-        solutionTemplateDetailsPage = new SolutionTemplateDetailsPageHelper(driver);
-        solutionTemplatesInstalledView = new SolutionTemplatesInstalledViewHelper(driver);
-        ruleChainsPage = new RuleChainsPageHelper(driver);
-        rolesPage = new RolesPageElements(driver);
-        customerPage = new CustomerPageHelper(driver);
-        profilesPage = new ProfilesPageHelper(driver);
-        devicePage = new DevicePageElements(driver);
-        assetPage = new AssetPageElements(driver);
-        dashboardPage = new DashboardPageHelper(driver);
-        usersPageHelper = new UsersPageElements(driver);
-    }
+@Feature("Installation")
+@Story("Air Quality Monitoring")
+public class AirQualityMonitoringInstallTest extends AbstractSolutionTemplateTest {
 
     @AfterMethod
     public void delete() {
         testRestClient.deleteAirQualityMonitoring();
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Redirect to page with short description (with screenshots) and corresponds to the selected template" +
             " by click on details button from general page")
@@ -126,16 +82,13 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/solutionTemplates/air_quality_index");
-        Assert.assertEquals(solutionTemplateDetailsPage.getHeadOfTitleCardName(), "Air Quality Monitoring");
-        Assert.assertTrue(solutionTemplateDetailsPage.getTitleCardParagraphText().contains("AIR Quality Monitoring template"));
-        Assert.assertTrue(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText().contains("Air Quality Monitoring template"));
-        Assert.assertTrue(solutionTemplateDetailsPage.airQualityMonitoringScreenshotsAreCorrected());
+        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/air_quality_index");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Air Quality Monitoring");
+        assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("AIR Quality Monitoring template");
+        assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description").contains("Air Quality Monitoring template");
+        solutionTemplateDetailsPage.airQualityMonitoringScreenshotsAreCorrected();
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
             " with a detailed description (description corresponds to the selected template) by click on install button from general page")
@@ -143,18 +96,16 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstallBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getUuidId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getUuidId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText().contains(AIR_QUALITY_MONITORING_DASHBOARD));
+        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
+                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText())
+                .as("First paragraph of solution instruction").contains(AIR_QUALITY_MONITORING_DASHBOARD);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Redirects to a new dashboard page and opens a pop-up window (Solution template successfully installed)" +
             " with a detailed description (description corresponds to the selected template) by click on install button from details page")
@@ -163,18 +114,16 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.installBtn().click();
         solutionTemplatesInstalledView.waitUntilInstallFinish();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getUuidId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getUuidId().toString();
 
-        Assert.assertEquals(getUrl(), Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        Assert.assertNotNull(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
-        Assert.assertTrue(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText().contains(AIR_QUALITY_MONITORING_DASHBOARD));
+        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
+                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(solutionTemplatesInstalledView.alarmFirstParagraphAirQualityMonitoring().getText())
+                .as("First paragraph of solution instruction").contains(AIR_QUALITY_MONITORING_DASHBOARD);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("After install close pop-up window the Solution template successfully installed by click on button the close (x mark)")
     public void closeInstallAirQualityMonitoringPopUp() {
@@ -184,12 +133,9 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        Assert.assertTrue(invisibilityOf(element));
+        invisibilityOf(element);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("After install close pop-up window the Solution template successfully installed by click on bottom button")
     public void closeInstallAirQualityMonitoringPopUpByBottomBtn() {
@@ -199,54 +145,38 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        Assert.assertTrue(invisibilityOf(element));
+        invisibilityOf(element);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Check entity installation after solution template installation")
     public void installEntities() {
         testRestClient.postAirQualityMonitoring();
         sideBarMenuView.ruleChainsBtn().click();
-
-        Assert.assertTrue(ruleChainsPage.entity(AQI_SENSOR_RULE_CHAIN).isDisplayed());
-        Assert.assertTrue(ruleChainsPage.entity(AQI_CITY_RULE_CHAIN).isDisplayed());
+        List.of(AQI_SENSOR_RULE_CHAIN, AQI_CITY_RULE_CHAIN).forEach(rc -> assertThat(ruleChainsPage.entity(rc).isDisplayed())
+                .as(rc + " is displayed").isTrue());
 
         sideBarMenuView.goToDeviceGroups();
-
-        Assert.assertTrue(devicePage.entity(AQI_SENSOR_DEVICE_GROUP).isDisplayed());
+        assertThat(devicePage.entity(AQI_SENSOR_DEVICE_GROUP).isDisplayed()).as(AQI_SENSOR_DEVICE_GROUP + " is displayed").isTrue();
 
         devicePage.entity("All").click();
-
-        Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_1_DEVICE).isDisplayed());
-        Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_2_DEVICE).isDisplayed());
-        Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_3_DEVICE).isDisplayed());
-        Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_4_DEVICE).isDisplayed());
-        Assert.assertTrue(devicePage.entity(AIR_QUALITY_SENSOR_5_DEVICE).isDisplayed());
+        List.of(AIR_QUALITY_SENSOR_1_DEVICE, AIR_QUALITY_SENSOR_2_DEVICE, AIR_QUALITY_SENSOR_3_DEVICE, AIR_QUALITY_SENSOR_4_DEVICE,
+                AIR_QUALITY_SENSOR_5_DEVICE).forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
 
         sideBarMenuView.goToAssetGroups();
-
-        Assert.assertTrue(assetPage.entity(AQI_CITY_ASSET_GROUP).isDisplayed());
+        assertThat(assetPage.entity(AQI_CITY_ASSET_GROUP).isDisplayed()).as(AQI_CITY_ASSET_GROUP + " is displayed").isTrue();
 
         assetPage.entity("All").click();
-
-        Assert.assertTrue(assetPage.entity(LOS_ANGELES_CA_ASSET).isDisplayed());
+        assertThat(assetPage.entity(LOS_ANGELES_CA_ASSET).isDisplayed()).as(LOS_ANGELES_CA_ASSET + " is displayed").isTrue();
 
         sideBarMenuView.openAssetProfiles();
-
-        Assert.assertTrue(profilesPage.entity(AQI_CITY_ASSET_PROFILE).isDisplayed());
+        assertThat(profilesPage.entity(AQI_CITY_ASSET_PROFILE).isDisplayed()).as(AQI_CITY_ASSET_PROFILE + " is displayed").isTrue();
 
         sideBarMenuView.goToAllDashboards();
-
-        Assert.assertTrue(dashboardPage.entity(AIR_QUALITY_MONITORING_DASHBOARD).isDisplayed());
-        Assert.assertTrue(dashboardPage.entity(AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD).isDisplayed());
+        List.of(AIR_QUALITY_MONITORING_DASHBOARD, AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD)
+                .forEach(db -> assertThat(dashboardPage.entity(db).isDisplayed()).as(db + " is displayed").isTrue());
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("After install the Install button changed to the Delete button (from general solution templates page)")
     public void airQualityMonitoringDeleteBtn() {
@@ -255,13 +185,11 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         testRestClient.postAirQualityMonitoring();
         refreshPage();
 
-        Assert.assertTrue(invisibilityOf(element));
-        Assert.assertTrue(solutionTemplatesHomePage.airQualityMonitoringDeleteBtn().isDisplayed());
+        invisibilityOf(element);
+        assertThat(solutionTemplatesHomePage.airQualityMonitoringDeleteBtn().isDisplayed())
+                .as("Air Quality Monitoring delete btn is displayed").isTrue();
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("After install the Install button changed to the Delete button (from details solution templates page)")
     public void airQualityMonitoringDeleteBtnDetailsPage() {
@@ -271,27 +199,21 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         testRestClient.postAirQualityMonitoring();
         refreshPage();
 
-        Assert.assertTrue(invisibilityOf(element));
-        Assert.assertTrue(solutionTemplateDetailsPage.deleteBtn().isDisplayed());
+        invisibilityOf(element);
+        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("After install open instruction by click on instruction button (from general solution templates page)")
     public void airQualityMonitoringOpenInstruction() {
         testRestClient.postAirQualityMonitoring();
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstructionBtn().click();
 
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
+        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
+                .as("Solution template installed popup is displayed").isTrue();
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Close instruction pop-up window installed by click on button the close (x mark)")
     public void airQualityMonitoringCloseInstruction() {
@@ -302,47 +224,36 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        Assert.assertTrue(invisibilityOf(element));
+        invisibilityOf(element);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Close instruction pop-up window installed by click on close bottom button")
     public void airQualityMonitoringCloseInstructionByCloseBtn() {
         testRestClient.postAirQualityMonitoring();
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        Assert.assertTrue(invisibilityOf(element));
+        invisibilityOf(element);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from details solution templates page)")
     public void airQualityMonitoringDetailsPageInstructionGoToMainDashboard() {
         testRestClient.postAirQualityMonitoring();
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getUuidId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getUuidId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
+        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("After install open instruction by click on instruction button (from details solution templates page)")
     public void airQualityMonitoringDetailsPageOpenInstruction() {
@@ -352,29 +263,23 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        Assert.assertTrue(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed());
+        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
+                .as("Solution template installed popup is displayed").isTrue();
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Close instruction pop-up window installed by click on button the close (x mark) (from details solution templates page)")
     public void airQualityMonitoringDetailsPageDetailsPageCloseInstruction() {
         testRestClient.postAirQualityMonitoring();
-
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        Assert.assertTrue(invisibilityOf(element));
+        invisibilityOf(element);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Close instruction pop-up window installed by click on close bottom button (from details solution templates page)")
     public void airQualityMonitoringDetailsPageCloseInstructionByCloseBtn() {
@@ -386,12 +291,9 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        Assert.assertTrue(invisibilityOf(element));
+        invisibilityOf(element);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Redirect to main dashboard of solution template by click the 'Go to main dashboard' button (from general solution templates page)")
     public void airQualityMonitoringInstructionGoToMainDashboard() {
@@ -400,15 +302,12 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getUuidId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getUuidId().toString();
 
-        Assert.assertEquals(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId, getUrl());
+        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
     @Test
     @Description("Check delete entity after delete solution template")
     public void deleteEntities() {
@@ -417,44 +316,32 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         solutionTemplatesInstalledView.waitUntilInstallFinish();
         solutionTemplatesInstalledView.closeBtn().click();
         testRestClient.deleteAirQualityMonitoring();
-        sideBarMenuView.ruleChainsBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(AQI_SENSOR_RULE_CHAIN));
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(AQI_CITY_RULE_CHAIN));
+        sideBarMenuView.ruleChainsBtn().click();
+        List.of(AQI_SENSOR_RULE_CHAIN, AQI_CITY_RULE_CHAIN).forEach(rc -> ruleChainsPage.entityIsNotPresent(rc));
 
         sideBarMenuView.goToDeviceGroups();
-
-        Assert.assertTrue(devicePage.entityIsNotPresent(AQI_SENSOR_DEVICE_GROUP));
+        devicePage.entityIsNotPresent(AQI_SENSOR_DEVICE_GROUP);
 
         devicePage.entity("All").click();
-
-        Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_1_DEVICE));
-        Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_2_DEVICE));
-        Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_3_DEVICE));
-        Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_4_DEVICE));
-        Assert.assertTrue(devicePage.entityIsNotPresent(AIR_QUALITY_SENSOR_5_DEVICE));
+        List.of(AIR_QUALITY_SENSOR_1_DEVICE, AIR_QUALITY_SENSOR_2_DEVICE, AIR_QUALITY_SENSOR_3_DEVICE, AIR_QUALITY_SENSOR_4_DEVICE,
+                AIR_QUALITY_SENSOR_5_DEVICE).forEach(d -> devicePage.entityIsNotPresent(d));
 
         sideBarMenuView.goToAssetGroups();
-
-        Assert.assertTrue(assetPage.entityIsNotPresent(AQI_CITY_ASSET_GROUP));
+        assetPage.entityIsNotPresent(AQI_CITY_ASSET_GROUP);
 
         assetPage.entity("All").click();
-
-        Assert.assertTrue(assetPage.entityIsNotPresent(LOS_ANGELES_CA_ASSET));
+        assetPage.entityIsNotPresent(LOS_ANGELES_CA_ASSET);
 
         sideBarMenuView.openAssetProfiles();
-
-        Assert.assertTrue(profilesPage.entityIsNotPresent(AQI_CITY_ASSET_PROFILE));
+        profilesPage.entityIsNotPresent(AQI_CITY_ASSET_PROFILE);
 
         sideBarMenuView.goToAllDashboards();
-
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(AIR_QUALITY_MONITORING_DASHBOARD));
-        Assert.assertTrue(dashboardPage.entityIsNotPresent(AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD));
+        List.of(AIR_QUALITY_MONITORING_DASHBOARD, AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD)
+                .forEach(db -> dashboardPage.entityIsNotPresent(db));
     }
-    @Epic("Solution templates")
-    @Feature("Installation")
-    @Story("Air Quality Monitoring")
-    @Test(groups = "broken")
+
+    @Test
     @Description("Check redirect by click on links in instruction")
     public void linksBtn() {
         sideBarMenuView.solutionTemplates().click();
@@ -465,14 +352,13 @@ public class AirQualityMonitoringInstallTest extends AbstractDriverBaseTest {
         String linkHttpApi = solutionTemplatesInstalledView.getHttpApiLink();
         String linkConnectionDevices = solutionTemplatesInstalledView.getConnectionDevicesLink();
         String linkDeviceProfile = solutionTemplatesInstalledView.getDeviceProfileLink();
-        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getId().toString();
-        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getId().toString();
+        String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getUuidId().toString();
+        String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getUuidId().toString();
 
-        Assert.assertEquals(1, urls.size());
-        Assert.assertTrue(urls.contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId));
-        Assert.assertEquals(ALARM_RULES_DOCS_URL, linkAlarmRules);
-        Assert.assertEquals(HTTP_API_DOCS_URL, linkHttpApi);
-        Assert.assertEquals(CONNECTIVITY_DOCS_URL, linkConnectionDevices);
-        Assert.assertEquals(getBaseUiUrl() + "/profiles/deviceProfiles", linkDeviceProfile);
+        assertThat(urls).hasSize(1).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
+        assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);
+        assertThat(linkAlarmRules).as("Alarm rule link").isEqualTo(ALARM_RULES_DOCS_URL);
+        assertThat(linkDeviceProfile).as("Device profile link").isEqualTo(getBaseUiUrl() + "/profiles/deviceProfiles");
     }
 }

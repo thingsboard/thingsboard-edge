@@ -144,7 +144,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator))));
         } catch (WebDriverException e) {
-            return fail("Element is present");
+            return fail("Element " + locator + " is present");
         }
     }
 
