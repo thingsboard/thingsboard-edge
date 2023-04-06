@@ -567,7 +567,7 @@
                   </mat-form-field>
                 </mat-card>
                 <button mat-icon-button (click)="removeCommandControl($index)"
-
+                        [disabled]="!gatewayConfigGroup.get('thingsboard.remoteConfiguration').value"
                         matTooltip="{{ 'gateway.statistics.remove' | translate }}"
                         matTooltipPosition="above">
                   <mat-icon>close</mat-icon>
@@ -577,6 +577,7 @@
                       style="width: fit-content;"
                       type="button"
                       cdkFocusInitial
+                      [disabled]="!gatewayConfigGroup.get('thingsboard.remoteConfiguration').value"
                       (click)="addCommand()">
                 {{ 'gateway.statistics.add' | translate }}
               </button>

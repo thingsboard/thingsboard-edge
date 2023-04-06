@@ -317,6 +317,9 @@ export class GatewayConnectorComponent implements OnInit {
           }
           this.gatewayConfigGroup.patchValue(configObj, {emitEvent: false});
           this.gatewayConfigGroup.markAsDirty();
+          if (!configObj.thingsboard.remoteConfiguration) {
+            this.gatewayConfigGroup.disable({emitEvent: false});
+          }
         }
         if (remoteLoggingLevel) {
           const remoteLogsFormGroup = this.gatewayConfigGroup.get('logs.remote');
