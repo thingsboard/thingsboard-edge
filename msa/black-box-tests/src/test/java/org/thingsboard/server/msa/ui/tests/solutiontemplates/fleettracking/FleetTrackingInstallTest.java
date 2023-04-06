@@ -57,6 +57,8 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS_D_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FLEET_TRACKING_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FLEET_TRACKING_DASHBOARD_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_BUS_STATION_R1_EDGE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_OFFICE_R1_EDGE;
 
 @Feature("Installation")
 @Story("Fleet tracking")
@@ -163,6 +165,9 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
 
         sideBarMenuView.goToAllDashboards();
         assertIsDisplayed(dashboardPage.entity(FLEET_TRACKING_DASHBOARD));
+
+        sideBarMenuView.goToInstances();
+        assertIsDisplayed(instancesPage.entity(REMOTE_BUS_STATION_R1_EDGE));
     }
 
     @Test
@@ -313,6 +318,9 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
 
         sideBarMenuView.goToAllDashboards();
         dashboardPage.assertEntityIsNotPresent(FLEET_TRACKING_DASHBOARD);
+
+        sideBarMenuView.goToInstances();
+        instancesPage.assertEntityIsNotPresent(REMOTE_BUS_STATION_R1_EDGE);
     }
 
     @Test

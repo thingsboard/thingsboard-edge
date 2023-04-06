@@ -40,6 +40,7 @@ public class SolutionTemplatesConstants {
     public static final String WATER_METERING_SOLUTION_MAIN_RULE_CHAIN = "Water Metering Solution Main";
     public static final String WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN = "Water Metering Solution Customer Alarm Routing";
     public static final String WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN = "Water Metering Solution Tenant Alarm Routing";
+    public static final String WATER_METERING_SOLUTION_MAIN_REMOTE_FACILITY_RULE_CHAIN = WATER_METERING_SOLUTION_MAIN_RULE_CHAIN + " (Remote Facility)";
 
     //Customers
     public static final String WATER_METERING_CUSTOMER_A_CUSTOMER = "Water Metering Customer A";
@@ -67,12 +68,16 @@ public class SolutionTemplatesConstants {
     public static final String WATER_METERING_DASHBOARD_GROUP = "Water Metering";
     public static final String WATER_METERING_SHARED_DASHBOARD_GROUP = "Water Metering Shared";
 
+    //Instances
+    public static final String REMOTE_FACILITY_RI_EDGE = "Remote Facility R1";
+
     /**
      * Temperature & Humidity Sensors
      **/
 
     //Rule chains
     public static final String TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN = "Temperature & Humidity Sensors";
+    public static final String TEMPERATURE_HUMIDITY_SENSORS_REMOTE_FACILITY_RULE_CHAIN = TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN + " (Remote Facility)";
 
     //Roles
     public static final String READ_ONLY_ROLES = "Read Only";
@@ -100,6 +105,7 @@ public class SolutionTemplatesConstants {
 
     //Rule chains
     public static final String SUPERMARKET_DEVICES_RULE_CHAIN = "Supermarket Devices";
+    public static final String SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN = SUPERMARKET_DEVICES_RULE_CHAIN + " (Remote Supermarket)";
 
     //Roles
     public static final String SMART_RETAIL_READ_ONLY_ROLE = "Smart Retail Read Only";
@@ -174,6 +180,9 @@ public class SolutionTemplatesConstants {
     public static final String SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP = "Supermarket Administrators Shared";
     public static final String SMART_RETAIL_CUSTOMER_GROUP = "Smart Retail";
 
+    //Instances
+    public static final String REMOTE_SUPERMARKET_EDGE = "Remote Supermarket R1";
+
     /**
      * Smart office
      **/
@@ -202,6 +211,9 @@ public class SolutionTemplatesConstants {
     public static final String BUILDINGS_ASSET_GROUP = "Buildings";
     public static final String SMART_OFFICE_DASHBOARDS_GROUP = "Smart office dashboards";
 
+    //Instances
+    public static final String REMOTE_OFFICE_R1_EDGE = "Remote Office R1";
+
     /**
      * Fleet tracking
      **/
@@ -222,13 +234,18 @@ public class SolutionTemplatesConstants {
     public static final String FLEET_TRACKING_DASHBOARD_GROUP = "Fleet tracking";
     public static final String BUS_DEVICES_DEVICE_GROUP = "Bus devices";
 
+    //Instances
+    public static final String REMOTE_BUS_STATION_R1_EDGE = "Remote Bus Station R1";
+
     /**
      * Air Quality Monitoring
      **/
 
     //Rule chains
     public static final String AQI_SENSOR_RULE_CHAIN = "AQI Sensor";
+    public static final String AQI_SENSOR_REMOTE_LOCATION_RULE_CHAIN = "AQI Sensor (Remote Location)";
     public static final String AQI_CITY_RULE_CHAIN = "AQI City";
+    public static final String AQI_CITY_REMOTE_LOCATION_RULE_CHAIN = "AQI City (Remote Location)";
 
     //Profiles
     public static final String AQI_CITY_ASSET_PROFILE = "AQI City";
@@ -252,16 +269,24 @@ public class SolutionTemplatesConstants {
     public static final String AQI_CITY_ASSET_GROUP = "AQI City";
     public static final String AIR_QUALITY_MONITORING_DASHBOARD_GROUP = "Air Quality Monitoring Public";
 
+    //Instances
+    public static final String REMOTE_LOCATION_EDGE = "Remote Location R1";
+
     /**
      * Smart Irrigation
      **/
 
     //Rule chains
     public static final String SI_COUNT_ALARMS_RULE_CHAIN = "SI Count Alarms";
+    public static final String SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN = SI_COUNT_ALARMS_RULE_CHAIN + " (Remote Farm)";
     public static final String SI_FIELD_RULE_CHAIN = "SI Field";
+    public static final String SI_FIELD_RULE_REMOTE_FARM_CHAIN = "SI Field  (Remote Farm)";
     public static final String SI_SOIL_MOISTURE_RULE_CHAIN = "SI Soil Moisture";
+    public static final String SI_SOIL_MOISTURE_REMOTE_FARM_RULE_CHAIN = SI_SOIL_MOISTURE_RULE_CHAIN + " (Remote Farm)";
     public static final String SI_WATER_METER_RULE_CHAIN = "SI Water Meter";
+    public static final String SI_WATER_METER_REMOTE_FARM_RULE_CHAIN = SI_WATER_METER_RULE_CHAIN + " (Remote Farm)";
     public static final String SI_SMART_VALVE_RULE_CHAIN = "SI Smart Valve";
+    public static final String SI_SMART_VALVE_REMOTE_FARM_RULE_CHAIN = SI_SMART_VALVE_RULE_CHAIN +  " (Remote Farm)";
 
     //Profiles
     public static final String SI_SMART_VALVE_DEVICE_PROFILE = "SI Smart Valve";
@@ -298,4 +323,7 @@ public class SolutionTemplatesConstants {
     //Scheduler events
     public static final String EVENING_SCHEDULER_EVENT = "Evening";
     public static final String MORNING_SCHEDULER_EVENT = "Morning";
+
+    //Instances
+    public static final String REMOTE_FARM_EDGE = "Remote Farm R1";
 }

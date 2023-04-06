@@ -96,6 +96,16 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
         schedulerBtn().click();
     }
 
+    public void goToInstances() {
+        openEdgeManagementDropdown();
+        instancesBtn().click();
+    }
+
+    public void goToRuleChainTemplates() {
+        openEdgeManagementDropdown();
+        ruleChainTemplatesBtn().click();
+    }
+
     public void openEntitiesDropdown() {
         if (entitiesDropdownIsClose()) {
             entitiesDropdown().click();
@@ -120,6 +130,12 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
         }
     }
 
+    public void openEdgeManagementDropdown() {
+        if (edgeManagementDropdownIsClose()) {
+            edgeManagementDropdown().click();
+        }
+    }
+
     public boolean entitiesDropdownIsClose() {
         return dropdownIsClose(entitiesDropdown());
     }
@@ -134,6 +150,10 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
 
     public boolean advancedFeaturesDropdownIsClose() {
         return dropdownIsClose(advancedFeaturesDropdown());
+    }
+
+    public boolean edgeManagementDropdownIsClose() {
+        return dropdownIsClose(edgeManagementDropdown());
     }
 
     private boolean dropdownIsClose(WebElement dropdown) {

@@ -72,6 +72,7 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MOT
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MOTION_SENSOR_DEVICE_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OCCUPANCY_SENSOR_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OCCUPANCY_SENSOR_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_SUPERMARKET_EDGE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.RETAIL_COMPANY_A_CUSTOMER;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.RETAIL_COMPANY_B_CUSTOMER;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_BIN_1_DEVICE;
@@ -107,6 +108,7 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUP
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_ASSET_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_USER_SHARED_DASHBOARD_GROUP;
 
@@ -296,6 +298,12 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         dashboardPage.entity("All").click();
         List.of(SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD, SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD, SMART_SUPERMARKET_DASHBOARD)
                 .forEach(db -> assertIsDisplayed(dashboardPage.entity(db)));
+
+        sideBarMenuView.goToInstances();
+        assertIsDisplayed(instancesPage.entity(REMOTE_SUPERMARKET_EDGE));
+
+        sideBarMenuView.goToRuleChainTemplates();
+        assertIsDisplayed(ruleChainTemplatesPage.entity(SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN));
     }
 
     @Test
@@ -465,6 +473,12 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         dashboardPage.entity("All").click();
         List.of(SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD, SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD, SMART_SUPERMARKET_DASHBOARD)
                 .forEach(db -> dashboardPage.assertEntityIsNotPresent(db));
+
+        sideBarMenuView.goToInstances();
+        instancesPage.assertEntityIsNotPresent(REMOTE_SUPERMARKET_EDGE);
+
+        sideBarMenuView.goToRuleChainTemplates();
+        ruleChainTemplatesPage.assertEntityIsNotPresent(SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN);
     }
 
     @Test

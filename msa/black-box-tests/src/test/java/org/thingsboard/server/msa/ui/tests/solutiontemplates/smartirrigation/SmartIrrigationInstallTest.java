@@ -49,14 +49,19 @@ import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.EVENING_SCHEDULER_EVENT;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.IRRIGATION_MANAGEMENT_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MORNING_SCHEDULER_EVENT;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FARM_EDGE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_SUPERMARKET_EDGE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_1_ASSET;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_2_ASSET;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_ASSET_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_RULE_REMOTE_FARM_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_2_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_REMOTE_FARM_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_2_DEVICE;
@@ -66,15 +71,18 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_6_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_7_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_8_DEVICE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_REMOTE_FARM_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_DEVICE_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_REMOTE_FARM_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_WATER_METER_1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_WATER_METER_2_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_ASSET_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN;
 
 @Feature("Installation")
 @Story("Smart Irrigation")
@@ -207,6 +215,14 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         assertThat(schedulerPage.schedulers(EVENING_SCHEDULER_EVENT)).hasSize(2).
                 as("2" + EVENING_SCHEDULER_EVENT + "have been created").
                 allSatisfy(this::assertIsDisplayed);
+
+        sideBarMenuView.goToInstances();
+        assertIsDisplayed(instancesPage.entity(REMOTE_FARM_EDGE));
+
+        sideBarMenuView.goToRuleChainTemplates();
+        List.of(SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN, SI_FIELD_RULE_REMOTE_FARM_CHAIN, SI_SOIL_MOISTURE_REMOTE_FARM_RULE_CHAIN,
+                        SI_WATER_METER_REMOTE_FARM_RULE_CHAIN, SI_SMART_VALVE_REMOTE_FARM_RULE_CHAIN)
+                .forEach(rc -> assertIsDisplayed(ruleChainTemplatesPage.entity(rc)));
     }
 
     @Test
@@ -378,6 +394,14 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.goToScheduler();
         List.of(MORNING_SCHEDULER_EVENT, EVENING_SCHEDULER_EVENT)
                 .forEach(sc -> schedulerPage.schedulerIsNotPresent(sc));
+
+        sideBarMenuView.goToInstances();
+        instancesPage.assertEntityIsNotPresent((REMOTE_FARM_EDGE));
+
+        sideBarMenuView.goToRuleChainTemplates();
+        List.of(SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN, SI_FIELD_RULE_REMOTE_FARM_CHAIN, SI_SOIL_MOISTURE_REMOTE_FARM_RULE_CHAIN,
+                        SI_WATER_METER_REMOTE_FARM_RULE_CHAIN, SI_SMART_VALVE_REMOTE_FARM_RULE_CHAIN)
+                .forEach(rc -> ruleChainTemplatesPage.assertEntityIsNotPresent((rc)));
     }
 
     @Test

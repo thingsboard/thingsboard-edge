@@ -37,9 +37,11 @@ import org.thingsboard.server.msa.ui.pages.AssetPageElements;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.DashboardPageHelper;
 import org.thingsboard.server.msa.ui.pages.DevicePageElements;
+import org.thingsboard.server.msa.ui.pages.InstancesPageElements;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.ProfilesPageHelper;
 import org.thingsboard.server.msa.ui.pages.RolesPageElements;
+import org.thingsboard.server.msa.ui.pages.RuleChainTemplatesPageElements;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SchedulerPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
@@ -63,6 +65,8 @@ abstract public class AbstractSolutionTemplateTest extends AbstractDriverBaseTes
     protected UsersPageElements usersPage;
     protected AssetPageElements assetPage;
     protected SchedulerPageHelper schedulerPage;
+    protected InstancesPageElements instancesPage;
+    protected RuleChainTemplatesPageElements ruleChainTemplatesPage;
 
     @BeforeClass
     public void login() {
@@ -80,5 +84,7 @@ abstract public class AbstractSolutionTemplateTest extends AbstractDriverBaseTes
         usersPage = new UsersPageElements(driver);
         assetPage = new AssetPageElements(driver);
         schedulerPage = new SchedulerPageHelper(driver);
+        instancesPage = new InstancesPageElements(driver);
+        ruleChainTemplatesPage = new RuleChainTemplatesPageElements(driver);
     }
 }

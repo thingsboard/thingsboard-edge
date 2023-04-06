@@ -54,6 +54,10 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     private static final String SECURITY_DROPDOWN = "//mat-toolbar//mat-icon[text()='security']/ancestor::span//span[contains(@class,'pull-right')]";
     private static final String ADVANCED_FEATURES_DROPDOWN = "//mat-toolbar//mat-icon[text()='construction']/ancestor::span//span[contains(@class,'pull-right')]";
     private static final String SCHEDULER_BTN = "//mat-toolbar//span[text()='Scheduler']";
+    private static final String EDGE_MANAGEMENT_DROPDOWN = "//mat-toolbar//mat-icon[text()='settings_input_antenna']" +
+            "/ancestor::span//span[contains(@class,'pull-right')]";
+    private static final String INSTANCES_BTN = "//mat-toolbar//span[text()='Instances']";
+    private static final String RULE_CHAIN_TEMPLATES_BTN = "//mat-sidenav//span[text() = 'Rule chain templates']";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -109,5 +113,17 @@ public class SideBarMenuViewElements extends AbstractBasePage {
 
     public WebElement schedulerBtn() {
         return waitUntilElementToBeClickable(SCHEDULER_BTN);
+    }
+
+    public WebElement edgeManagementDropdown() {
+        return waitUntilElementToBeClickable(EDGE_MANAGEMENT_DROPDOWN);
+    }
+
+    public WebElement instancesBtn() {
+        return waitUntilElementToBeClickable(INSTANCES_BTN);
+    }
+
+    public WebElement ruleChainTemplatesBtn() {
+        return waitUntilElementToBeClickable(RULE_CHAIN_TEMPLATES_BTN);
     }
 }

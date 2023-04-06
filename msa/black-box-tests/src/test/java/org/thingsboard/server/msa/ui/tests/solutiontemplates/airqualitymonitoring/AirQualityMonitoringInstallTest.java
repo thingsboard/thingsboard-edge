@@ -58,10 +58,19 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AIR_QUALITY_SENSOR_5_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_ASSET_PROFILE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_REMOTE_LOCATION_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_CITY_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_REMOTE_LOCATION_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LOS_ANGELES_CA_ASSET;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FARM_EDGE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_LOCATION_EDGE;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_RULE_REMOTE_FARM_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_REMOTE_FARM_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_REMOTE_FARM_RULE_CHAIN;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_REMOTE_FARM_RULE_CHAIN;
 
 @Feature("Installation")
 @Story("Air Quality Monitoring")
@@ -176,6 +185,13 @@ public class AirQualityMonitoringInstallTest extends AbstractSolutionTemplateTes
         sideBarMenuView.goToAllDashboards();
         List.of(AIR_QUALITY_MONITORING_DASHBOARD, AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD)
                 .forEach(db -> assertIsDisplayed(dashboardPage.entity(db)));
+
+        sideBarMenuView.goToInstances();
+        assertIsDisplayed(instancesPage.entity((REMOTE_LOCATION_EDGE)));
+
+        sideBarMenuView.goToRuleChainTemplates();
+        List.of(AQI_SENSOR_REMOTE_LOCATION_RULE_CHAIN, AQI_CITY_REMOTE_LOCATION_RULE_CHAIN)
+                .forEach(rc -> assertIsDisplayed(ruleChainTemplatesPage.entity((rc))));
     }
 
     @Test
@@ -339,6 +355,13 @@ public class AirQualityMonitoringInstallTest extends AbstractSolutionTemplateTes
         sideBarMenuView.goToAllDashboards();
         List.of(AIR_QUALITY_MONITORING_DASHBOARD, AIR_QUALITY_MONITORING_ADMINISTRATOR_DASHBOARD)
                 .forEach(db -> dashboardPage.assertEntityIsNotPresent(db));
+
+        sideBarMenuView.goToInstances();
+        instancesPage.assertEntityIsNotPresent((REMOTE_LOCATION_EDGE));
+
+        sideBarMenuView.goToRuleChainTemplates();
+        List.of(AQI_SENSOR_REMOTE_LOCATION_RULE_CHAIN, AQI_CITY_REMOTE_LOCATION_RULE_CHAIN)
+                .forEach(rc -> ruleChainTemplatesPage.assertEntityIsNotPresent((rc)));
     }
 
     @Test

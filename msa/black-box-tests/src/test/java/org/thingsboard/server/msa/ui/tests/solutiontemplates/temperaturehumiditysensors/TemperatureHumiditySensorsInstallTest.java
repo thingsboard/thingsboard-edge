@@ -52,10 +52,12 @@ import static org.thingsboard.server.msa.ui.utils.Const.HTTP_API_DOCS_URL;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CUSTOMER_D;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.CUSTOMER_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.READ_ONLY_ROLES;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FACILITY_RI_EDGE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SENSOR_C1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SENSOR_T1_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP;
+import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_REMOTE_FACILITY_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.TEMPERATURE_SENSOR_DEVICE_PROFILE;
 
@@ -199,6 +201,12 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
 
         sideBarMenuView.goToAllDashboards();
         assertIsDisplayed(dashboardPage.entity(TEMPERATURE_HUMIDITY_DASHBOARD));
+
+        sideBarMenuView.goToInstances();
+        assertIsDisplayed(instancesPage.entity(REMOTE_FACILITY_RI_EDGE));
+
+        sideBarMenuView.goToRuleChainTemplates();
+        assertIsDisplayed(ruleChainTemplatesPage.entity(TEMPERATURE_HUMIDITY_SENSORS_REMOTE_FACILITY_RULE_CHAIN));
     }
 
     @Test
@@ -356,6 +364,12 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
 
         sideBarMenuView.goToAllDashboards();
         dashboardPage.assertEntityIsNotPresent(TEMPERATURE_HUMIDITY_DASHBOARD);
+
+        sideBarMenuView.goToInstances();
+        instancesPage.assertEntityIsNotPresent(REMOTE_FACILITY_RI_EDGE);
+
+        sideBarMenuView.goToRuleChainTemplates();
+        ruleChainTemplatesPage.assertEntityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_REMOTE_FACILITY_RULE_CHAIN);
     }
 
     @Test
