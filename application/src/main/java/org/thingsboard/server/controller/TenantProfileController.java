@@ -97,8 +97,12 @@ public class TenantProfileController extends BaseController {
             @ApiParam(value = TENANT_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable("tenantProfileId") String strTenantProfileId) throws ThingsboardException {
         checkParameter("tenantProfileId", strTenantProfileId);
-        TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
-        return checkTenantProfileId(tenantProfileId, Operation.READ);
+        try {
+            TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
+            return checkTenantProfileId(tenantProfileId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Tenant Profile Info (getTenantProfileInfoById)",
@@ -110,8 +114,12 @@ public class TenantProfileController extends BaseController {
             @ApiParam(value = TENANT_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable("tenantProfileId") String strTenantProfileId) throws ThingsboardException {
         checkParameter("tenantProfileId", strTenantProfileId);
-        TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
-        return checkNotNull(tenantProfileService.findTenantProfileInfoById(getTenantId(), tenantProfileId));
+        try {
+            TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
+            return checkNotNull(tenantProfileService.findTenantProfileInfoById(getTenantId(), tenantProfileId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get default Tenant Profile Info (getDefaultTenantProfileInfo)",
@@ -120,7 +128,11 @@ public class TenantProfileController extends BaseController {
     @RequestMapping(value = "/tenantProfileInfo/default", method = RequestMethod.GET)
     @ResponseBody
     public EntityInfo getDefaultTenantProfileInfo() throws ThingsboardException {
-        return checkNotNull(tenantProfileService.findDefaultTenantProfileInfo(getTenantId()));
+        try {
+            return checkNotNull(tenantProfileService.findDefaultTenantProfileInfo(getTenantId()));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Create Or update Tenant Profile (saveTenantProfile)",
@@ -181,15 +193,19 @@ public class TenantProfileController extends BaseController {
     @ResponseBody
     public TenantProfile saveTenantProfile(@ApiParam(value = "A JSON value representing the tenant profile.")
                                            @RequestBody TenantProfile tenantProfile) throws ThingsboardException {
-        TenantProfile oldProfile;
-        if (tenantProfile.getId() == null) {
-            accessControlService.checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, Operation.CREATE);
-            oldProfile = null;
-        } else {
-            oldProfile = checkTenantProfileId(tenantProfile.getId(), Operation.WRITE);
-        }
+        try {
+            TenantProfile oldProfile;
+            if (tenantProfile.getId() == null) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, Operation.CREATE);
+                oldProfile = null;
+            } else {
+                oldProfile = checkTenantProfileId(tenantProfile.getId(), Operation.WRITE);
+            }
 
-        return tbTenantProfileService.save(getTenantId(), tenantProfile, oldProfile);
+            return tbTenantProfileService.save(getTenantId(), tenantProfile, oldProfile);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Delete Tenant Profile (deleteTenantProfile)",
@@ -199,10 +215,14 @@ public class TenantProfileController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteTenantProfile(@ApiParam(value = TENANT_PROFILE_ID_PARAM_DESCRIPTION)
                                     @PathVariable("tenantProfileId") String strTenantProfileId) throws ThingsboardException {
-        checkParameter("tenantProfileId", strTenantProfileId);
-        TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
-        TenantProfile profile = checkTenantProfileId(tenantProfileId, Operation.DELETE);
-        tbTenantProfileService.delete(getTenantId(), profile);
+        try {
+            checkParameter("tenantProfileId", strTenantProfileId);
+            TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
+            TenantProfile profile = checkTenantProfileId(tenantProfileId, Operation.DELETE);
+            tbTenantProfileService.delete(getTenantId(), profile);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Make tenant profile default (setDefaultTenantProfile)",
@@ -214,10 +234,14 @@ public class TenantProfileController extends BaseController {
             @ApiParam(value = TENANT_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable("tenantProfileId") String strTenantProfileId) throws ThingsboardException {
         checkParameter("tenantProfileId", strTenantProfileId);
-        TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
-        TenantProfile tenantProfile = checkTenantProfileId(tenantProfileId, Operation.WRITE);
-        tenantProfileService.setDefaultTenantProfile(getTenantId(), tenantProfileId);
-        return tenantProfile;
+        try {
+            TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
+            TenantProfile tenantProfile = checkTenantProfileId(tenantProfileId, Operation.WRITE);
+            tenantProfileService.setDefaultTenantProfile(getTenantId(), tenantProfileId);
+            return tenantProfile;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Tenant Profiles (getTenantProfiles)", notes = "Returns a page of tenant profiles registered in the platform. " + PAGE_DATA_PARAMETERS + SYSTEM_AUTHORITY_PARAGRAPH)
@@ -235,8 +259,12 @@ public class TenantProfileController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        return checkNotNull(tenantProfileService.findTenantProfiles(getTenantId(), pageLink));
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(tenantProfileService.findTenantProfiles(getTenantId(), pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Tenant Profiles Info (getTenantProfileInfos)", notes = "Returns a page of tenant profile info objects registered in the platform. "
@@ -255,8 +283,12 @@ public class TenantProfileController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        return checkNotNull(tenantProfileService.findTenantProfileInfos(getTenantId(), pageLink));
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(tenantProfileService.findTenantProfileInfos(getTenantId(), pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @GetMapping(value = "/tenantProfiles", params = {"ids"})

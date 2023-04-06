@@ -78,16 +78,20 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/customTranslation", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public CustomTranslation getCustomTranslation() throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        CustomTranslation customTranslation = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customTranslation = customTranslationService.getMergedCustomerCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            CustomTranslation customTranslation = null;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
+                customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId());
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
+                customTranslation = customTranslationService.getMergedCustomerCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+            }
+            return customTranslation;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return customTranslation;
     }
 
     @ApiOperation(value = "Get Custom Translation configuration (getCurrentCustomTranslation)",
@@ -104,17 +108,21 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/currentCustomTranslation", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public CustomTranslation getCurrentCustomTranslation() throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        checkWhiteLabelingPermissions(Operation.READ);
-        CustomTranslation customTranslation = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customTranslation = customTranslationService.getTenantCustomTranslation(getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customTranslation = customTranslationService.getCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId());
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            checkWhiteLabelingPermissions(Operation.READ);
+            CustomTranslation customTranslation = null;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
+                customTranslation = customTranslationService.getTenantCustomTranslation(getTenantId());
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
+                customTranslation = customTranslationService.getCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId());
+            }
+            return customTranslation;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return customTranslation;
     }
 
     @ApiOperation(value = "Create Or Update Custom Translation (saveCustomTranslation)",
@@ -127,19 +135,23 @@ public class CustomTranslationController extends BaseController {
     public CustomTranslation saveCustomTranslation(
             @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
             @RequestBody CustomTranslation customTranslation) throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        checkWhiteLabelingPermissions(Operation.WRITE);
-        CustomTranslation savedCustomTranslation = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            savedCustomTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedCustomTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            checkWhiteLabelingPermissions(Operation.WRITE);
+            CustomTranslation savedCustomTranslation = null;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                savedCustomTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
+                savedCustomTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
+                savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
+            }
+            notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
+                    getCurrentUser().getOwnerId(), EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED);
+            return savedCustomTranslation;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
-                getCurrentUser().getOwnerId(), EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED);
-        return savedCustomTranslation;
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

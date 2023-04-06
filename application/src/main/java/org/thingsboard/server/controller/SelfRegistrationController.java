@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
@@ -112,23 +111,27 @@ public class SelfRegistrationController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public SelfRegistrationParams saveSelfRegistrationParams(
             @ApiParam(value = "A JSON value representing the Self Registration Parameters.", required = true)
-            @RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException, JsonProcessingException {
-        SecurityUser securityUser = getCurrentUser();
-        Authority authority = securityUser.getAuthority();
-        checkSelfRegistrationPermissions(Operation.WRITE);
-        SelfRegistrationParams savedSelfRegistrationParams = null;
-        if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
-            JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
-            if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
-                savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+            @RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
+        try {
+            SecurityUser securityUser = getCurrentUser();
+            Authority authority = securityUser.getAuthority();
+            checkSelfRegistrationPermissions(Operation.WRITE);
+            SelfRegistrationParams savedSelfRegistrationParams = null;
+            if (Authority.TENANT_ADMIN.equals(authority)) {
+                savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
+                JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+                if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                    savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
+                JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    savedSelfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+                }
             }
-            JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
-            if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
-                savedSelfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
-            }
+            return savedSelfRegistrationParams;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return savedSelfRegistrationParams;
     }
 
     @ApiOperation(value = "Get Self Registration parameters (getSelfRegistrationParams)",
@@ -138,22 +141,26 @@ public class SelfRegistrationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public SelfRegistrationParams getSelfRegistrationParams() throws ThingsboardException, JsonProcessingException {
-        SecurityUser securityUser = getCurrentUser();
-        checkSelfRegistrationPermissions(Operation.READ);
-        SelfRegistrationParams selfRegistrationParams = null;
-        if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
-            selfRegistrationParams = selfRegistrationService.getTenantSelfRegistrationParams(securityUser.getTenantId());
-            JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
-            if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
-                selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+    public SelfRegistrationParams getSelfRegistrationParams() throws ThingsboardException {
+        try {
+            SecurityUser securityUser = getCurrentUser();
+            checkSelfRegistrationPermissions(Operation.READ);
+            SelfRegistrationParams selfRegistrationParams = null;
+            if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
+                selfRegistrationParams = selfRegistrationService.getTenantSelfRegistrationParams(securityUser.getTenantId());
+                JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+                if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                    selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
+                JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+                }
             }
-            JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
-            if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
-                selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
-            }
+            return selfRegistrationParams;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return selfRegistrationParams;
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
@@ -161,32 +168,36 @@ public class SelfRegistrationController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> deleteSelfRegistrationParams(@PathVariable(DOMAIN_NAME) String domainName) throws ThingsboardException {
         checkParameter(DOMAIN_NAME, domainName);
-        DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
-        SecurityUser securityUser = getCurrentUser();
-        Authority authority = securityUser.getAuthority();
-        accessControlService.checkPermission(securityUser, Resource.TENANT, Operation.WRITE_ATTRIBUTES);
-        if (Authority.TENANT_ADMIN.equals(authority)) {
-            ListenableFuture<List<String>> future = attributesService.removeAll(
-                    securityUser.getTenantId(),
-                    securityUser.getTenantId(),
-                    DataConstants.SERVER_SCOPE,
-                    Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
-            Futures.addCallback(future, new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable List<String> keys) {
-                    adminSettingsService.deleteAdminSettingsByKey(
-                            securityUser.getTenantId(),
-                            DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);
-                    responseWriter.setResult(new ResponseEntity<>(HttpStatus.OK));
-                }
+        try {
+            DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
+            SecurityUser securityUser = getCurrentUser();
+            Authority authority = securityUser.getAuthority();
+            accessControlService.checkPermission(securityUser, Resource.TENANT, Operation.WRITE_ATTRIBUTES);
+            if (Authority.TENANT_ADMIN.equals(authority)) {
+                ListenableFuture<List<String>> future = attributesService.removeAll(
+                        securityUser.getTenantId(),
+                        securityUser.getTenantId(),
+                        DataConstants.SERVER_SCOPE,
+                        Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
+                Futures.addCallback(future, new FutureCallback<>() {
+                    @Override
+                    public void onSuccess(@Nullable List<String> keys) {
+                        adminSettingsService.deleteAdminSettingsByKey(
+                                securityUser.getTenantId(),
+                                DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);
+                        responseWriter.setResult(new ResponseEntity<>(HttpStatus.OK));
+                    }
 
-                @Override
-                public void onFailure(Throwable throwable) {
-                    responseWriter.setErrorResult(throwable);
-                }
-            }, MoreExecutors.directExecutor());
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        responseWriter.setErrorResult(throwable);
+                    }
+                }, MoreExecutors.directExecutor());
+            }
+            return responseWriter;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return responseWriter;
     }
 
     @ApiOperation(value = "Get Self Registration form parameters without authentication (getSignUpSelfRegistrationParams)",
@@ -198,42 +209,54 @@ public class SelfRegistrationController extends BaseController {
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(
             @RequestParam(required = false) String pkgName,
             HttpServletRequest request) throws ThingsboardException {
-        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                request.getServerName(), pkgName);
+        try {
+            SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
+                    request.getServerName(), pkgName);
 
-        SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
-        result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
-        result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
-        result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
-        result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
+            SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
+            result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
+            result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
+            result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
+            result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
 
-        return result;
+            return result;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Privacy Policy for Self Registration form (getPrivacyPolicy)",
             notes = "Fetch the Privacy Policy based on the domain name from the request. Available for non-authorized users. ")
     @RequestMapping(value = "/noauth/selfRegistration/privacyPolicy", method = RequestMethod.GET)
     @ResponseBody
-    public String getPrivacyPolicy(HttpServletRequest request) throws ThingsboardException, JsonProcessingException {
-        JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getPrivacyPolicy(TenantId.SYS_TENANT_ID,
-                request.getServerName()));
-        if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
-            return privacyPolicyNode.get(PRIVACY_POLICY).toString();
+    public String getPrivacyPolicy(HttpServletRequest request) throws ThingsboardException {
+        try {
+            JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getPrivacyPolicy(TenantId.SYS_TENANT_ID,
+                    request.getServerName()));
+            if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                return privacyPolicyNode.get(PRIVACY_POLICY).toString();
+            }
+            return "";
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return "";
     }
 
     @ApiOperation(value = "Get Terms of Use for Self Registration form (getTermsOfUse)",
             notes = "Fetch the Terms of Use based on the domain name from the request. Available for non-authorized users. ")
     @RequestMapping(value = "/noauth/selfRegistration/termsOfUse", method = RequestMethod.GET)
     @ResponseBody
-    public String getTermsOfUse(HttpServletRequest request) throws ThingsboardException, JsonProcessingException {
-        JsonNode termsOfUse = MAPPER.readTree(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
-                request.getServerName()));
-        if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
-            return termsOfUse.get(TERMS_OF_USE).toString();
+    public String getTermsOfUse(HttpServletRequest request) throws ThingsboardException {
+        try {
+            JsonNode termsOfUse = MAPPER.readTree(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
+                    request.getServerName()));
+            if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
+                return termsOfUse.get(TERMS_OF_USE).toString();
+            }
+            return "";
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return "";
     }
 
     private void checkSelfRegistrationPermissions(Operation operation) throws ThingsboardException {

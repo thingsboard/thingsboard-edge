@@ -224,7 +224,7 @@ public class OwnerController extends AutoCommitController {
             return previousOwnerId;
         } catch (ThingsboardException e) {
             notificationEntityService.logEntityAction(tenantId, entityId, ActionType.CHANGE_OWNER, getCurrentUser(), e);
-            throw e;
+            throw handleException(e);
         }
     }
 

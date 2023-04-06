@@ -67,7 +67,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
@@ -118,8 +117,12 @@ public class SchedulerEventController extends BaseController {
             @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
-        SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-        return checkSchedulerEventInfoId(schedulerEventId, Operation.READ);
+        try {
+            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+            return checkSchedulerEventInfoId(schedulerEventId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Scheduler Event (getSchedulerEventById)",
@@ -134,8 +137,12 @@ public class SchedulerEventController extends BaseController {
             @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
-        SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
-        return checkSchedulerEventId(schedulerEventId, Operation.READ);
+        try {
+            SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
+            return checkSchedulerEventId(schedulerEventId, Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Save Scheduler Event (saveSchedulerEvent)",
@@ -184,7 +191,7 @@ public class SchedulerEventController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
 
-            throw e;
+            throw handleException(e);
         }
     }
 
@@ -212,7 +219,7 @@ public class SchedulerEventController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
                     ActionType.DELETED, getCurrentUser(), e, strSchedulerEventId);
 
-            throw e;
+            throw handleException(e);
         }
     }
 
@@ -227,21 +234,25 @@ public class SchedulerEventController extends BaseController {
     public List<SchedulerEventWithCustomerInfo> getSchedulerEvents(
             @ApiParam(value = "A string value representing the scheduler type. For example, 'generateReport'")
             @RequestParam(required = false) String type) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
-        TenantId tenantId = getCurrentUser().getTenantId();
-        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndType(tenantId, type));
-            } else {
-                return checkNotNull(schedulerEventService.findSchedulerEventsWithCustomerInfoByTenantId(tenantId));
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                if (type != null && type.trim().length() > 0) {
+                    return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndType(tenantId, type));
+                } else {
+                    return checkNotNull(schedulerEventService.findSchedulerEventsWithCustomerInfoByTenantId(tenantId));
+                }
+            } else { //CUSTOMER_USER
+                CustomerId customerId = getCurrentUser().getCustomerId();
+                if (type != null && type.trim().length() > 0) {
+                    return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndCustomerIdAndType(tenantId, customerId, type));
+                } else {
+                    return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndCustomerId(tenantId, customerId));
+                }
             }
-        } else { //CUSTOMER_USER
-            CustomerId customerId = getCurrentUser().getCustomerId();
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndCustomerIdAndType(tenantId, customerId, type));
-            } else {
-                return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndCustomerId(tenantId, customerId));
-            }
+        } catch (Exception e) {
+            throw handleException(e);
         }
     }
 
@@ -254,19 +265,23 @@ public class SchedulerEventController extends BaseController {
     @ResponseBody
     public List<SchedulerEventInfo> getSchedulerEventsByIds(
             @ApiParam(value = "A list of scheduler event ids, separated by comma ','", required = true)
-            @RequestParam("schedulerEventIds") String[] strSchedulerEventIds) throws ThingsboardException, ExecutionException, InterruptedException {
+            @RequestParam("schedulerEventIds") String[] strSchedulerEventIds) throws ThingsboardException {
         checkArrayParameter("schedulerEventIds", strSchedulerEventIds);
-        if (!accessControlService.hasPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ)) {
-            return Collections.emptyList();
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<SchedulerEventId> schedulerEventIds = new ArrayList<>();
+            for (String strSchedulerEventId : strSchedulerEventIds) {
+                schedulerEventIds.add(new SchedulerEventId(toUUID(strSchedulerEventId)));
+            }
+            List<SchedulerEventInfo> schedulerEvents = checkNotNull(schedulerEventService.findSchedulerEventInfoByIdsAsync(tenantId, schedulerEventIds).get());
+            return filterSchedulerEventsByReadPermission(schedulerEvents);
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        SecurityUser user = getCurrentUser();
-        TenantId tenantId = user.getTenantId();
-        List<SchedulerEventId> schedulerEventIds = new ArrayList<>();
-        for (String strSchedulerEventId : strSchedulerEventIds) {
-            schedulerEventIds.add(new SchedulerEventId(toUUID(strSchedulerEventId)));
-        }
-        List<SchedulerEventInfo> schedulerEvents = checkNotNull(schedulerEventService.findSchedulerEventInfoByIdsAsync(tenantId, schedulerEventIds).get());
-        return filterSchedulerEventsByReadPermission(schedulerEvents);
     }
 
     private List<SchedulerEventInfo> filterSchedulerEventsByReadPermission(List<SchedulerEventInfo> schedulerEvents) {
@@ -315,7 +330,7 @@ public class SchedulerEventController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
                     ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strSchedulerEventId, strEdgeId);
 
-            throw e;
+            throw handleException(e);
         }
     }
 
@@ -354,7 +369,7 @@ public class SchedulerEventController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
                     ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strSchedulerEventId);
 
-            throw e;
+            throw handleException(e);
         }
     }
 
@@ -386,7 +401,7 @@ public class SchedulerEventController extends BaseController {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
         } catch (Exception e) {
-            throw e;
+            throw handleException(e);
         }
     }
 
@@ -400,21 +415,25 @@ public class SchedulerEventController extends BaseController {
     public List<SchedulerEventInfo> getAllSchedulerEvents(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
                                                           @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
-        TenantId tenantId = getCurrentUser().getTenantId();
-        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-        checkEdgeId(edgeId, Operation.READ);
-        List<SchedulerEventInfo> result = new ArrayList<>();
-        PageLink pageLink = new PageLink(DEFAULT_SCHEDULER_EVENT_LIMIT);
-        PageData<SchedulerEventInfo> pageData;
-        do {
-            pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
-            if (pageData.getData().size() > 0) {
-                result.addAll(pageData.getData());
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            checkEdgeId(edgeId, Operation.READ);
+            List<SchedulerEventInfo> result = new ArrayList<>();
+            PageLink pageLink = new PageLink(DEFAULT_SCHEDULER_EVENT_LIMIT);
+            PageData<SchedulerEventInfo> pageData;
+            do {
+                pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+                if (pageData.getData().size() > 0) {
+                    result.addAll(pageData.getData());
+                    if (pageData.hasNext()) {
+                        pageLink = pageLink.nextPageLink();
+                    }
                 }
-            }
-        } while (pageData.hasNext());
-        return checkNotNull(result);
+            } while (pageData.hasNext());
+            return checkNotNull(result);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 }

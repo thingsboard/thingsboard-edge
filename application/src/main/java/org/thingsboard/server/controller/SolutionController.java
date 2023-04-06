@@ -77,8 +77,12 @@ public class SolutionController extends BaseController {
     @RequestMapping(value = "/templates/infos", method = RequestMethod.GET)
     @ResponseBody
     public List<TenantSolutionTemplateInfo> getSolutionTemplateInfos() throws ThingsboardException {
-        checkAllPermissions();
-        return checkNotNull(solutionService.getSolutionInfos(getTenantId()));
+        try {
+            checkAllPermissions();
+            return checkNotNull(solutionService.getSolutionInfos(getTenantId()));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Solution template details (getSolutionTemplateDetails)",
@@ -91,8 +95,12 @@ public class SolutionController extends BaseController {
             @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
-        checkAllPermissions();
-        return checkNotNull(solutionService.getSolutionDetails(getTenantId(), solutionTemplateId));
+        try {
+            checkAllPermissions();
+            return checkNotNull(solutionService.getSolutionDetails(getTenantId(), solutionTemplateId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Solution Template Instructions (getSolutionTemplateInstructions)",
@@ -105,8 +113,12 @@ public class SolutionController extends BaseController {
             @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
-        checkAllPermissions();
-        return checkNotNull(solutionService.getSolutionInstructions(getTenantId(), solutionTemplateId));
+        try {
+            checkAllPermissions();
+            return checkNotNull(solutionService.getSolutionInstructions(getTenantId(), solutionTemplateId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Install Solution Template (installSolutionTemplate)",
@@ -119,8 +131,12 @@ public class SolutionController extends BaseController {
             @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(name = "solutionTemplateId") String solutionTemplateId, HttpServletRequest request) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
-        checkAllPermissions();
-        return checkNotNull(solutionService.installSolution(getCurrentUser(), getTenantId(), solutionTemplateId, request));
+        try {
+            checkAllPermissions();
+            return checkNotNull(solutionService.installSolution(getCurrentUser(), getTenantId(), solutionTemplateId, request));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Uninstall Solution Template (uninstallSolutionTemplate)",
@@ -133,8 +149,12 @@ public class SolutionController extends BaseController {
             @ApiParam(value = SOLUTION_TEMPLATE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(name = "solutionTemplateId") String solutionTemplateId) throws ThingsboardException {
         checkParameter("solutionTemplateId", solutionTemplateId);
-        checkAllPermissions();
-        solutionService.deleteSolution(getTenantId(), solutionTemplateId, getCurrentUser());
+        try {
+            checkAllPermissions();
+            solutionService.deleteSolution(getTenantId(), solutionTemplateId, getCurrentUser());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     private void checkAllPermissions() throws ThingsboardException {
