@@ -129,11 +129,11 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/smart_retail");
-        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Smart Retail");
+        assertThat(getUrl()).as("Redirected URL equals to details ST URL").isEqualTo(Const.URL + "/solutionTemplates/smart_retail");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).as("Title of page").isEqualTo("Smart Retail");
         assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("Smart Retail template");
         assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description").contains("Smart Retail template");
-        solutionTemplateDetailsPage.smartRetailScreenshotsAreCorrected();
+        solutionTemplateDetailsPage.assertSmartRetailScreenshotsAreCorrected();
     }
 
     @Test
@@ -146,9 +146,9 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.dashboardsSmartSupermarketAdministrationFirstParagraphSmartRetail().getText())
                 .as("First paragraph of SSA dashboard section solution instruction").contains(SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.dashboardsSmartSupermarketFirstParagraphSmartRetail().getText())
@@ -168,9 +168,9 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.dashboardsSmartSupermarketAdministrationFirstParagraphSmartRetail().getText())
                 .as("First paragraph of SSA dashboard section solution instruction").contains(SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.dashboardsSmartSupermarketFirstParagraphSmartRetail().getText())
@@ -188,7 +188,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -200,7 +200,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -216,34 +216,32 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplatesInstalledView.closeBtn().click();
 
         sideBarMenuView.ruleChainsBtn().click();
-        assertThat(ruleChainsPage.entity(SUPERMARKET_DEVICES_RULE_CHAIN).isDisplayed())
-                .as(SUPERMARKET_DEVICES_RULE_CHAIN + " is displayed").isTrue();
+        assertIsDisplayed(ruleChainsPage.entity(SUPERMARKET_DEVICES_RULE_CHAIN));
 
         sideBarMenuView.goToRoles();
         List.of(SMART_RETAIL_READ_ONLY_ROLE, SMART_RETAIL_USER_ROLE, SMART_RETAIL_ADMINISTRATOR_ROLE)
-                .forEach(r -> assertThat(rolesPage.entity(r).isDisplayed()).as(r + " is displayed").isTrue());
+                .forEach(r -> assertIsDisplayed(rolesPage.entity(r)));
 
         sideBarMenuView.goToCustomerGroups();
-        assertThat(customerPage.entity(SMART_RETAIL_CUSTOMER_GROUP).isDisplayed())
-                .as(SMART_RETAIL_CUSTOMER_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(customerPage.entity(SMART_RETAIL_CUSTOMER_GROUP));
 
         customerPage.entity("All").click();
         customerPage.manageCustomersUserBtn(RETAIL_COMPANY_A_CUSTOMER).click();
-        List.of(user1RetailCompanyA, user2RetailCompanyA).forEach(u -> assertThat(usersPage.entity(u).isDisplayed())
-                .as(u + " is displayed").isTrue());
+        List.of(user1RetailCompanyA, user2RetailCompanyA)
+                .forEach(u -> assertIsDisplayed(usersPage.entity(u)));
 
         usersPage.groupsBtn().click();
         List.of(SMART_RETAIL_USERS_USER_GROUP, SMART_RETAIL_ADMINISTRATORS_USER_GROUP)
-                .forEach(ug -> assertThat(usersPage.entity(ug).isDisplayed()).as(ug + " is displayed").isTrue());
+                .forEach(ug -> assertIsDisplayed(usersPage.entity(ug)));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(RETAIL_COMPANY_B_CUSTOMER).click();
-        List.of(user1RetailCompanyB, user2RetailCompanyB).forEach(u -> assertThat(usersPage.entity(u).isDisplayed())
-                .as(u + " is displayed").isTrue());
+        List.of(user1RetailCompanyB, user2RetailCompanyB)
+                .forEach(u -> assertIsDisplayed(usersPage.entity(u)));
 
         usersPage.groupsBtn().click();
         List.of(SMART_RETAIL_USERS_USER_GROUP, SMART_RETAIL_ADMINISTRATORS_USER_GROUP)
-                .forEach(ug -> assertThat(usersPage.entity(ug).isDisplayed()).as(ug + " is displayed").isTrue());
+                .forEach(ug -> assertIsDisplayed(usersPage.entity(ug)));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
@@ -254,56 +252,50 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
                         OCCUPANCY_SENSOR_DEVICE, SMART_BIN_1_DEVICE, SMART_BIN_2_DEVICE, SMART_BIN_3_DEVICE, SMART_BIN_4_DEVICE,
                         SMART_SHELF_457321_DEVICE, SMART_SHELF_557322_DEVICE, SMART_SHELF_765765_DEVICE, SMOKE_SENSOR_1_DEVICE,
                         SMOKE_SENSOR_2_DEVICE, SMOKE_SENSOR_3_DEVICE, SMOKE_SENSOR_4_DEVICE, SMOKE_SENSOR_5_DEVICE, SMOKE_SENSOR_6_DEVICE)
-                .forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         devicePage.groupsBtn().click();
-        assertThat(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed())
-                .as(SUPERMARKET_DEVICES_DEVICE_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
         List.of(SMART_SHELF_89546_DEVICE, CHILLER_378876_DEVICE, FREEZER_67478, DOOR_SENSOR_3456_DEVICE)
-                .forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         devicePage.groupsBtn().click();
-        assertThat(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP).isDisplayed())
-                .as(SUPERMARKET_DEVICES_DEVICE_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(SUPERMARKET_DEVICES_DEVICE_GROUP));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_A_CUSTOMER).click();
-        List.of(SUPERMARKETS_S1_ASSET, SUPERMARKETS_S2_ASSET).forEach(a -> assertThat(assetPage.entity(a).isDisplayed())
-                .as(a + " is displayed").isTrue());
+        List.of(SUPERMARKETS_S1_ASSET, SUPERMARKETS_S2_ASSET)
+                .forEach(a -> assertIsDisplayed(assetPage.entity(a)));
 
         assetPage.groupsBtn().click();
-        assertThat(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed())
-                .as(SUPERMARKETS_ASSET_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(assetPage.entity(SUPERMARKETS_ASSET_GROUP));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersAssetGroupsBtn(RETAIL_COMPANY_B_CUSTOMER).click();
-        assertThat(assetPage.entity(SUPERMARKETS_S3_ASSET).isDisplayed())
-                .as(SUPERMARKETS_S3_ASSET + " is displayed").isTrue();
+        assertIsDisplayed(assetPage.entity(SUPERMARKETS_S3_ASSET));
 
         assetPage.groupsBtn().click();
-        assertThat(assetPage.entity(SUPERMARKETS_ASSET_GROUP).isDisplayed())
-                .as(SUPERMARKETS_ASSET_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(assetPage.entity(SUPERMARKETS_ASSET_GROUP));
 
         sideBarMenuView.openDeviceProfiles();
         List.of(DOOR_SENSOR_DEVICE_PROFILE, SMOKE_SENSOR_DEVICE_PROFILE, SMART_SHELF_DEVICE_PROFILE, CHILLER_DEVICE_PROFILE,
-                MOTION_SENSOR_DEVICE_PROFILE, FREEZER_DEVICE_PROFILE, SMART_BIN_DEVICE_PROFILE, OCCUPANCY_SENSOR_DEVICE_PROFILE,
-                LIQUID_LEVEL_SENSOR_DEVICE_PROFILE).forEach(d -> assertThat(devicePage.entity(d).isDisplayed())
-                .as(d + " is displayed").isTrue());
+                        MOTION_SENSOR_DEVICE_PROFILE, FREEZER_DEVICE_PROFILE, SMART_BIN_DEVICE_PROFILE, OCCUPANCY_SENSOR_DEVICE_PROFILE,
+                        LIQUID_LEVEL_SENSOR_DEVICE_PROFILE)
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         sideBarMenuView.openAssetProfiles();
-        assertThat(profilesPage.entity(SUPERMARKET_ASSET_PROFILE).isDisplayed())
-                .as(SUPERMARKET_ASSET_PROFILE + " is displayed").isTrue();
+        assertIsDisplayed(profilesPage.entity(SUPERMARKET_ASSET_PROFILE));
 
         sideBarMenuView.goToDashboardGroups();
         List.of(SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP)
-                .forEach(db -> assertThat(dashboardPage.entity(db).isDisplayed()).as(db + " is displayed").isTrue());
+                .forEach(db -> assertIsDisplayed(dashboardPage.entity(db)));
 
         dashboardPage.entity("All").click();
         List.of(SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD, SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD, SMART_SUPERMARKET_DASHBOARD)
-                .forEach(db -> assertThat(dashboardPage.entity(db).isDisplayed()).as(db + " is displayed").isTrue());
+                .forEach(db -> assertIsDisplayed(dashboardPage.entity(db)));
     }
 
     @Test
@@ -315,9 +307,8 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         refreshPage();
         scrollToElement(solutionTemplatesHomePage.smartRetail());
 
-        invisibilityOf(element);
-        assertThat(solutionTemplatesHomePage.smartRetailDeleteBtn().isDisplayed())
-                .as("Smart Retail delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplatesHomePage.smartRetailDeleteBtn());
     }
 
     @Test
@@ -329,8 +320,8 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartRetail();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplateDetailsPage.deleteBtn());
     }
 
 
@@ -341,8 +332,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartRetailInstructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -354,7 +344,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -367,7 +357,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -380,7 +370,8 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -391,8 +382,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplatesHomePage.smartRetailDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -405,7 +395,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -418,7 +408,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -432,7 +422,8 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SMART_SUPERMARKET_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -445,33 +436,35 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.deleteSmartRetail();
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.entityIsNotPresent(SUPERMARKET_DEVICES_RULE_CHAIN);
+        ruleChainsPage.assertEntityIsNotPresent(SUPERMARKET_DEVICES_RULE_CHAIN);
 
         sideBarMenuView.goToRoles();
         List.of(SMART_RETAIL_READ_ONLY_ROLE, SMART_RETAIL_USER_ROLE, SMART_RETAIL_ADMINISTRATOR_ROLE)
-                .forEach(r -> rolesPage.entityIsNotPresent(r));
+                .forEach(r -> rolesPage.assertEntityIsNotPresent(r));
 
         sideBarMenuView.goToCustomerGroups();
-        customerPage.entityIsNotPresent(SMART_RETAIL_CUSTOMER_GROUP);
+        customerPage.assertEntityIsNotPresent(SMART_RETAIL_CUSTOMER_GROUP);
 
         customerPage.entity("All").click();
-        List.of(RETAIL_COMPANY_A_CUSTOMER, RETAIL_COMPANY_B_CUSTOMER).forEach(c -> customerPage.entityIsNotPresent(c));
+        List.of(RETAIL_COMPANY_A_CUSTOMER, RETAIL_COMPANY_B_CUSTOMER)
+                .forEach(c -> customerPage.assertEntityIsNotPresent(c));
 
         sideBarMenuView.openDeviceProfiles();
         List.of(DOOR_SENSOR_DEVICE_PROFILE, SMOKE_SENSOR_DEVICE_PROFILE, SMART_SHELF_DEVICE_PROFILE, CHILLER_DEVICE_PROFILE,
-                MOTION_SENSOR_DEVICE_PROFILE, FREEZER_DEVICE_PROFILE, SMART_BIN_DEVICE_PROFILE, OCCUPANCY_SENSOR_DEVICE_PROFILE,
-                LIQUID_LEVEL_SENSOR_DEVICE_PROFILE).forEach(dp -> profilesPage.entityIsNotPresent(dp));
+                        MOTION_SENSOR_DEVICE_PROFILE, FREEZER_DEVICE_PROFILE, SMART_BIN_DEVICE_PROFILE, OCCUPANCY_SENSOR_DEVICE_PROFILE,
+                        LIQUID_LEVEL_SENSOR_DEVICE_PROFILE)
+                .forEach(dp -> profilesPage.assertEntityIsNotPresent(dp));
 
         sideBarMenuView.openAssetProfiles();
-        profilesPage.entityIsNotPresent(SUPERMARKET_ASSET_PROFILE);
+        profilesPage.assertEntityIsNotPresent(SUPERMARKET_ASSET_PROFILE);
 
         sideBarMenuView.goToDashboardGroups();
         List.of(SUPERMARKET_USER_SHARED_DASHBOARD_GROUP, SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP)
-                .forEach(dg -> dashboardPage.entityIsNotPresent(dg));
+                .forEach(dg -> dashboardPage.assertEntityIsNotPresent(dg));
 
         dashboardPage.entity("All").click();
         List.of(SMART_SUPERMARKET_USER_MANAGEMENT_DASHBOARD, SMART_SUPERMARKET_ADMINISTRATION_DASHBOARD, SMART_SUPERMARKET_DASHBOARD)
-                .forEach(db -> dashboardPage.entityIsNotPresent(db));
+                .forEach(db -> dashboardPage.assertEntityIsNotPresent(db));
     }
 
     @Test
@@ -493,7 +486,10 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_USER_SHARED_DASHBOARD_GROUP).getUuidId().toString();
         String entityGroup1Id = getEntityGroupByName(EntityType.DASHBOARD, SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(urls).hasSize(2).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId)
+        assertThat(urls).hasSize(2).as("Dashboard links btns redirect to two dashboards")
+                .as("Redirect to " + SUPERMARKET_USER_SHARED_DASHBOARD_GROUP)
+                .contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId)
+                .as("Redirect to " + SUPERMARKET_ADMINISTRATORS_SHARED_DASHBOARD_GROUP)
                 .contains(Const.URL + "/dashboards/groups/" + entityGroup1Id + "/" + dashboard1Id);
         assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
         assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);

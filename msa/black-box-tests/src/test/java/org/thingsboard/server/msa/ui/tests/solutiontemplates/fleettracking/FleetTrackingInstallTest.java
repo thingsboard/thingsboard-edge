@@ -77,11 +77,11 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/fleet_tracking");
-        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Fleet tracking");
+        assertThat(getUrl()).as("Redirected URL equals to details ST URL").isEqualTo(Const.URL + "/solutionTemplates/fleet_tracking");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).as("Title of page").isEqualTo("Fleet tracking");
         assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("Fleet Tracking template");
         assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description").contains("Fleet Tracking template");
-        solutionTemplateDetailsPage.fleetTrackingScreenshotsAreCorrected();
+        solutionTemplateDetailsPage.assertFleetTrackingScreenshotsAreCorrected();
     }
 
     @Test
@@ -94,9 +94,9 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText().toLowerCase())
                 .as("First paragraph of solution instruction").contains(FLEET_TRACKING_DASHBOARD.toLowerCase());
         assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText().toLowerCase())
@@ -114,13 +114,13 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
-        assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText().toLowerCase())
-                .as("First paragraph of solution instruction").contains(FLEET_TRACKING_DASHBOARD.toLowerCase());
-        assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText().toLowerCase())
-                .as("Third paragraph of solution instruction").contains(FLEET_TRACKING_DASHBOARD.toLowerCase());
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
+        assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphFleetTracking().getText())
+                .as("First paragraph of solution instruction").contains("Fleet Tracking");
+        assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphFleetTracking().getText())
+                .as("Third paragraph of solution instruction").contains("Fleet Tracking");
     }
 
     @Test
@@ -132,7 +132,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -144,7 +144,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -152,18 +152,17 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
     public void installEntities() {
         testRestClient.postFleetTracking();
         sideBarMenuView.openDeviceProfiles();
-        assertThat(profilesPage.entity(BUS_DEVICE_PROFILE).isDisplayed()).as(BUS_DEVICE_PROFILE + " is displayed").isTrue();
+        assertIsDisplayed(profilesPage.entity(BUS_DEVICE_PROFILE));
 
         sideBarMenuView.goToDeviceGroups();
-        assertThat(devicePage.entity(BUS_DEVICES_DEVICE_GROUP).isDisplayed()).as(BUS_DEVICES_DEVICE_GROUP).isTrue();
+        assertIsDisplayed(devicePage.entity(BUS_DEVICES_DEVICE_GROUP));
 
         devicePage.entity("All").click();
         List.of(BUS_A_DEVICE, BUS_B_DEVICE, BUS_C_DEVICE, BUS_D_DEVICE)
-                .forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " id displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         sideBarMenuView.goToAllDashboards();
-        assertThat(dashboardPage.entity(FLEET_TRACKING_DASHBOARD).isDisplayed())
-                .as(FLEET_TRACKING_DASHBOARD + " is displayed").isTrue();
+        assertIsDisplayed(dashboardPage.entity(FLEET_TRACKING_DASHBOARD));
     }
 
     @Test
@@ -174,9 +173,8 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postFleetTracking();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplatesHomePage.fleetTrackingDeleteBtn().isDisplayed())
-                .as("Smart Irrigation delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplatesHomePage.fleetTrackingDeleteBtn());
     }
 
     @Test
@@ -188,8 +186,8 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postFleetTracking();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplateDetailsPage.deleteBtn());
     }
 
     @Test
@@ -199,8 +197,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.fleetTrackingInstructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -212,7 +209,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -225,7 +222,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -239,7 +236,8 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -250,8 +248,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplatesHomePage.fleetTrackingDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -264,7 +261,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -277,7 +274,7 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -291,7 +288,8 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -304,16 +302,17 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.deleteFleetTracking();
 
         sideBarMenuView.openDeviceProfiles();
-        profilesPage.entityIsNotPresent(BUS_DEVICE_PROFILE);
+        profilesPage.assertEntityIsNotPresent(BUS_DEVICE_PROFILE);
 
         sideBarMenuView.goToDeviceGroups();
-        devicePage.entityIsNotPresent(BUS_DEVICES_DEVICE_GROUP);
+        devicePage.assertEntityIsNotPresent(BUS_DEVICES_DEVICE_GROUP);
 
         devicePage.entity("All").click();
-        List.of(BUS_A_DEVICE, BUS_B_DEVICE, BUS_C_DEVICE, BUS_D_DEVICE).forEach(d -> devicePage.entityIsNotPresent(d));
+        List.of(BUS_A_DEVICE, BUS_B_DEVICE, BUS_C_DEVICE, BUS_D_DEVICE)
+                .forEach(d -> devicePage.assertEntityIsNotPresent(d));
 
         sideBarMenuView.goToAllDashboards();
-        dashboardPage.entityIsNotPresent(FLEET_TRACKING_DASHBOARD);
+        dashboardPage.assertEntityIsNotPresent(FLEET_TRACKING_DASHBOARD);
     }
 
     @Test
@@ -331,7 +330,8 @@ public class FleetTrackingInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP, FLEET_TRACKING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, FLEET_TRACKING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(urls).hasSize(1).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(urls).hasSize(1).as("All dashboard links btn redirect to dashboard")
+                .contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         assertThat(guide).as("Dashboard guide link").isEqualTo(DASHBOARD_GIDE_DOCS_URL);
         assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
         assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);

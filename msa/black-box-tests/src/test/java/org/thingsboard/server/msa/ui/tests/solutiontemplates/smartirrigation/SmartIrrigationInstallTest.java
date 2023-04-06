@@ -95,11 +95,11 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/smart_irrigation");
-        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Smart Irrigation");
+        assertThat(getUrl()).as("Redirected URL equals to details ST URL").isEqualTo(Const.URL + "/solutionTemplates/smart_irrigation");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).as("Title of page").isEqualTo("Smart Irrigation");
         assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("Smart Irrigation template");
         assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description").contains("Smart Irrigation template");
-        solutionTemplateDetailsPage.smartIrrigationScreenshotsAreCorrected();
+        solutionTemplateDetailsPage.assertSmartIrrigationScreenshotsAreCorrected();
     }
 
     @Test
@@ -112,9 +112,9 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartIrrigation().getText())
                 .as("First paragraph of solution instruction").contains(IRRIGATION_MANAGEMENT_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.dashboardsFirstParagraphSmartIrrigation().getText())
@@ -132,9 +132,9 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartIrrigation().getText())
                 .as("First paragraph of solution instruction").contains(IRRIGATION_MANAGEMENT_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.dashboardsFirstParagraphSmartIrrigation().getText())
@@ -150,7 +150,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -162,7 +162,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -170,48 +170,43 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
     public void installEntities() {
         testRestClient.postSmartIrrigation();
         sideBarMenuView.ruleChainsBtn().click();
-        List.of(SI_COUNT_ALARMS_RULE_CHAIN, SI_FIELD_RULE_CHAIN, SI_SOIL_MOISTURE_RULE_CHAIN, SI_WATER_METER_RULE_CHAIN,
-                SI_SMART_VALVE_RULE_CHAIN).forEach(rc -> assertThat(ruleChainsPage.entity(rc).isDisplayed())
-                .as(rc + " is displayed").isTrue());
+        List.of(SI_COUNT_ALARMS_RULE_CHAIN, SI_FIELD_RULE_CHAIN, SI_SOIL_MOISTURE_RULE_CHAIN, SI_WATER_METER_RULE_CHAIN, SI_SMART_VALVE_RULE_CHAIN)
+                .forEach(rc -> assertIsDisplayed(ruleChainsPage.entity(rc)));
 
         sideBarMenuView.openDeviceProfiles();
         List.of(SI_SMART_VALVE_DEVICE_PROFILE, SI_WATER_METER_DEVICE_PROFILE, SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE)
-                .forEach(dp -> assertThat(profilesPage.entity(dp).isDisplayed()).as(dp + " is displayed").isTrue());
+                .forEach(dp -> assertIsDisplayed(profilesPage.entity(dp)));
 
         sideBarMenuView.goToDeviceGroups();
-        assertThat(devicePage.entity(SMART_IRRIGATION_DEVICE_GROUP).isDisplayed())
-                .as(SMART_IRRIGATION_DEVICE_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(SMART_IRRIGATION_DEVICE_GROUP));
 
         devicePage.entity("All").click();
         devicePage.changeItemsCountPerPage(30);
         List.of(SI_WATER_WATER_METER_1_DEVICE, SI_WATER_WATER_METER_2_DEVICE, SI_SMART_VALVE_1_DEVICE, SI_SMART_VALVE_2_DEVICE,
                         SI_SOIL_MOISTURE_1_DEVICE, SI_SOIL_MOISTURE_2_DEVICE, SI_SOIL_MOISTURE_3_DEVICE, SI_SOIL_MOISTURE_4_DEVICE,
                         SI_SOIL_MOISTURE_5_DEVICE, SI_SOIL_MOISTURE_6_DEVICE, SI_SOIL_MOISTURE_7_DEVICE, SI_SOIL_MOISTURE_8_DEVICE)
-                .forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         sideBarMenuView.goToAssetGroups();
-        assertThat(assetPage.entity(SMART_IRRIGATION_ASSET_GROUP).isDisplayed())
-                .as(SMART_IRRIGATION_ASSET_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(assetPage.entity(SMART_IRRIGATION_ASSET_GROUP));
 
         assetPage.entity("All").click();
-        List.of(SI_FIELD_1_ASSET, SI_FIELD_2_ASSET).forEach(a -> assertThat(assetPage.entity(a).isDisplayed())
-                .as(a + " is displayed").isTrue());
+        List.of(SI_FIELD_1_ASSET, SI_FIELD_2_ASSET)
+                .forEach(a -> assertIsDisplayed(assetPage.entity(a)));
 
         sideBarMenuView.openAssetProfiles();
-        assertThat(profilesPage.entity(SI_FIELD_ASSET_PROFILE).isDisplayed())
-                .as(SI_FIELD_ASSET_PROFILE + " is displayed").isTrue();
+        assertIsDisplayed(profilesPage.entity(SI_FIELD_ASSET_PROFILE));
 
         sideBarMenuView.goToAllDashboards();
-        assertThat(dashboardPage.entity(IRRIGATION_MANAGEMENT_DASHBOARD).isDisplayed())
-                .as(IRRIGATION_MANAGEMENT_DASHBOARD + " is displayed").isTrue();
+        assertIsDisplayed(dashboardPage.entity(IRRIGATION_MANAGEMENT_DASHBOARD));
 
         sideBarMenuView.goToScheduler();
         assertThat(schedulerPage.schedulers(MORNING_SCHEDULER_EVENT)).hasSize(2).
                 as("2" + MORNING_SCHEDULER_EVENT + "have been created").
-                allSatisfy(sc -> assertThat(sc.isDisplayed()).as(MORNING_SCHEDULER_EVENT + " is displayed").isTrue());
+                allSatisfy(this::assertIsDisplayed);
         assertThat(schedulerPage.schedulers(EVENING_SCHEDULER_EVENT)).hasSize(2).
                 as("2" + EVENING_SCHEDULER_EVENT + "have been created").
-                allSatisfy(sc -> assertThat(sc.isDisplayed()).as(EVENING_SCHEDULER_EVENT + " is displayed").isTrue());
+                allSatisfy(this::assertIsDisplayed);
     }
 
     @Test
@@ -222,9 +217,8 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartIrrigation();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplatesHomePage.smartIrrigationDeleteBtn().isDisplayed())
-                .as("Smart Irrigation delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplatesHomePage.smartIrrigationDeleteBtn());
     }
 
     @Test
@@ -236,8 +230,8 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartIrrigation();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplateDetailsPage.deleteBtn());
     }
 
     @Test
@@ -247,8 +241,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartIrrigationInstructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -260,7 +253,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -273,7 +266,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -286,7 +279,8 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -297,8 +291,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplatesHomePage.smartIrrigationDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -311,7 +304,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -324,7 +317,7 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -338,7 +331,8 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -352,35 +346,38 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
 
         sideBarMenuView.ruleChainsBtn().click();
         List.of(SI_COUNT_ALARMS_RULE_CHAIN, SI_FIELD_RULE_CHAIN, SI_SOIL_MOISTURE_RULE_CHAIN, SI_WATER_METER_RULE_CHAIN,
-                SI_SMART_VALVE_RULE_CHAIN).forEach(rc -> ruleChainsPage.entityIsNotPresent(rc));
+                        SI_SMART_VALVE_RULE_CHAIN)
+                .forEach(rc -> ruleChainsPage.assertEntityIsNotPresent(rc));
 
         sideBarMenuView.openDeviceProfiles();
         List.of(SI_SMART_VALVE_DEVICE_PROFILE, SI_WATER_METER_DEVICE_PROFILE, SI_SOIL_MOISTURE_SENSOR_DEVICE_PROFILE)
-                .forEach(dp -> profilesPage.entityIsNotPresent(dp));
+                .forEach(dp -> profilesPage.assertEntityIsNotPresent(dp));
 
         sideBarMenuView.goToDeviceGroups();
-        devicePage.entityIsNotPresent(SMART_IRRIGATION_DEVICE_GROUP);
+        devicePage.assertEntityIsNotPresent(SMART_IRRIGATION_DEVICE_GROUP);
 
         devicePage.entity("All").click();
         List.of(SI_WATER_WATER_METER_1_DEVICE, SI_WATER_WATER_METER_2_DEVICE, SI_SMART_VALVE_1_DEVICE, SI_SMART_VALVE_2_DEVICE,
                         SI_SOIL_MOISTURE_1_DEVICE, SI_SOIL_MOISTURE_2_DEVICE, SI_SOIL_MOISTURE_3_DEVICE, SI_SOIL_MOISTURE_4_DEVICE,
                         SI_SOIL_MOISTURE_5_DEVICE, SI_SOIL_MOISTURE_6_DEVICE, SI_SOIL_MOISTURE_7_DEVICE, SI_SOIL_MOISTURE_8_DEVICE)
-                .forEach(d -> devicePage.entityIsNotPresent(d));
+                .forEach(d -> devicePage.assertEntityIsNotPresent(d));
 
         sideBarMenuView.goToAssetGroups();
-        assetPage.entityIsNotPresent(SMART_IRRIGATION_ASSET_GROUP);
+        assetPage.assertEntityIsNotPresent(SMART_IRRIGATION_ASSET_GROUP);
 
         assetPage.entity("All").click();
-        List.of(SI_FIELD_1_ASSET, SI_FIELD_2_ASSET).forEach(a -> assetPage.entityIsNotPresent(a));
+        List.of(SI_FIELD_1_ASSET, SI_FIELD_2_ASSET)
+                .forEach(a -> assetPage.assertEntityIsNotPresent(a));
 
         sideBarMenuView.openAssetProfiles();
-        profilesPage.entityIsNotPresent(SI_FIELD_ASSET_PROFILE);
+        profilesPage.assertEntityIsNotPresent(SI_FIELD_ASSET_PROFILE);
 
         sideBarMenuView.goToAllDashboards();
-        dashboardPage.entityIsNotPresent(IRRIGATION_MANAGEMENT_DASHBOARD);
+        dashboardPage.assertEntityIsNotPresent(IRRIGATION_MANAGEMENT_DASHBOARD);
 
         sideBarMenuView.goToScheduler();
-        List.of(MORNING_SCHEDULER_EVENT, EVENING_SCHEDULER_EVENT).forEach(sc -> schedulerPage.schedulerIsNotPresent(sc));
+        List.of(MORNING_SCHEDULER_EVENT, EVENING_SCHEDULER_EVENT)
+                .forEach(sc -> schedulerPage.schedulerIsNotPresent(sc));
     }
 
     @Test
@@ -395,7 +392,8 @@ public class SmartIrrigationInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP, IRRIGATION_MANAGEMENT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_IRRIGATION_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(urls).hasSize(1).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(urls).hasSize(1).as("All dashboard links btn redirect to dashboard")
+                .contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
         assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);
     }

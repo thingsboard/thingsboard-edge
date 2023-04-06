@@ -83,11 +83,11 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/smart_office");
-        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Smart office");
+        assertThat(getUrl()).as("Redirected URL equals to details ST URL").isEqualTo(Const.URL + "/solutionTemplates/smart_office");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).as("Title of page").isEqualTo("Smart office");
         assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("Smart Office template");
         assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description").contains("Smart Office template");
-        solutionTemplateDetailsPage.smartOfficeScreenshotsAreCorrected();
+        solutionTemplateDetailsPage.assertSmartOfficeScreenshotsAreCorrected();
     }
 
     @Test
@@ -100,9 +100,9 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartOffice().getText())
                 .as("First paragraph of solution instruction").contains(SMART_OFFICE_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphSmartOffice().getText())
@@ -120,9 +120,9 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphSmartOffice().getText())
                 .as("First paragraph of solution instruction").contains(SMART_OFFICE_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphSmartOffice().getText())
@@ -138,7 +138,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -150,7 +150,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -159,32 +159,27 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartOffice();
         sideBarMenuView.openDeviceProfiles();
         List.of(SMART_SENSOR_DEVICE_PROFILE, HVAC_DEVICE_PROFILE, ENERGY_METER_DEVICE_PROFILE, ENERGY_METER_DEVICE_PROFILE,
-                WATER_METERING_DEVICE_PROFILE_SO).forEach(dp -> assertThat(profilesPage.entity(dp).isDisplayed())
-                .as(dp + " is displayed").isTrue());
+                        WATER_METERING_DEVICE_PROFILE_SO)
+                .forEach(dp -> assertIsDisplayed(profilesPage.entity(dp)));
 
         sideBarMenuView.goToDeviceGroups();
-        assertThat(devicePage.entity(OFFICE_SENSORS_DEVICE_GROUPS).isDisplayed())
-                .as(OFFICE_SENSORS_DEVICE_GROUPS + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(OFFICE_SENSORS_DEVICE_GROUPS));
 
         devicePage.entity("All").click();
         List.of(SMART_SENSOR_DEVICE, HVAC_DEVICE, ENERGY_METER_DEVICE, WATER_METER_DEVICE)
-                .forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         sideBarMenuView.goToAssetGroups();
-        assertThat(assetPage.entity(BUILDINGS_ASSET_GROUP).isDisplayed())
-                .as(BUILDINGS_ASSET_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(assetPage.entity(BUILDINGS_ASSET_GROUP));
 
         assetPage.entity("All").click();
-        assertThat(assetPage.entity(OFFICE_ASSET).isDisplayed()).as(OFFICE_ASSET + " is displayed").isTrue();
+        assertIsDisplayed(assetPage.entity(OFFICE_ASSET));
 
         sideBarMenuView.openAssetProfiles();
-        assertThat(profilesPage.entity(OFFICE_ASSET_PROFILE).isDisplayed())
-                .as(OFFICE_ASSET_PROFILE + " is displayed").isTrue();
-        ;
+        assertIsDisplayed(profilesPage.entity(OFFICE_ASSET_PROFILE));
 
         sideBarMenuView.goToAllDashboards();
-        assertThat(dashboardPage.entity(SMART_OFFICE_DASHBOARD).isDisplayed())
-                .as(SMART_OFFICE_DASHBOARD + " is displayed").isTrue();
+        assertIsDisplayed(dashboardPage.entity(SMART_OFFICE_DASHBOARD));
     }
 
     @Test
@@ -195,9 +190,8 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartOffice();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplatesHomePage.smartOfficeDeleteBtn().isDisplayed())
-                .as("Smart Office delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplatesHomePage.smartOfficeDeleteBtn());
     }
 
     @Test
@@ -209,8 +203,8 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postSmartOffice();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplateDetailsPage.deleteBtn());
     }
 
     @Test
@@ -220,8 +214,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.smartOfficeInstructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -233,7 +226,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -246,7 +239,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -259,7 +252,8 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -270,8 +264,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplatesHomePage.smartOfficeDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -284,7 +277,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -298,7 +291,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -313,7 +306,8 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -327,26 +321,26 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
 
         sideBarMenuView.openDeviceProfiles();
         List.of(SMART_SENSOR_DEVICE_PROFILE, HVAC_DEVICE_PROFILE, ENERGY_METER_DEVICE_PROFILE, WATER_METERING_DEVICE_PROFILE_SO)
-                .forEach(dp -> profilesPage.entityIsNotPresent(dp));
+                .forEach(dp -> profilesPage.assertEntityIsNotPresent(dp));
 
         sideBarMenuView.goToDeviceGroups();
-        devicePage.entityIsNotPresent(OFFICE_SENSORS_DEVICE_GROUPS);
+        devicePage.assertEntityIsNotPresent(OFFICE_SENSORS_DEVICE_GROUPS);
 
         devicePage.entity("All").click();
         List.of(SMART_SENSOR_DEVICE, HVAC_DEVICE, ENERGY_METER_DEVICE, WATER_METER_DEVICE)
-                .forEach(d -> devicePage.entityIsNotPresent(d));
+                .forEach(d -> devicePage.assertEntityIsNotPresent(d));
 
         sideBarMenuView.goToAssetGroups();
-        assetPage.entityIsNotPresent(BUILDINGS_ASSET_GROUP);
+        assetPage.assertEntityIsNotPresent(BUILDINGS_ASSET_GROUP);
 
         assetPage.entity("All").click();
-        assetPage.entityIsNotPresent(OFFICE_ASSET);
+        assetPage.assertEntityIsNotPresent(OFFICE_ASSET);
 
         sideBarMenuView.openAssetProfiles();
-        profilesPage.entityIsNotPresent(OFFICE_ASSET_PROFILE);
+        profilesPage.assertEntityIsNotPresent(OFFICE_ASSET_PROFILE);
 
         sideBarMenuView.goToAllDashboards();
-        dashboardPage.entityIsNotPresent(SMART_OFFICE_DASHBOARD);
+        dashboardPage.assertEntityIsNotPresent(SMART_OFFICE_DASHBOARD);
     }
 
     @Test
@@ -364,7 +358,8 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getUuidId().toString();
 
-        assertThat(urls).hasSize(1).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(urls).hasSize(1).as("All dashboard links btn redirect to dashboard")
+                .contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         assertThat(guide).as("Dashboard guide link").isEqualTo(DASHBOARD_GIDE_DOCS_URL);
         assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
         assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);

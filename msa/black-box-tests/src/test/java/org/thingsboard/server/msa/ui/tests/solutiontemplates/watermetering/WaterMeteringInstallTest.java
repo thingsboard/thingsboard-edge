@@ -86,12 +86,12 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/water_metering");
-        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Water metering");
+        assertThat(getUrl()).as("Redirected URL equals to details ST URL").isEqualTo(Const.URL + "/solutionTemplates/water_metering");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).as("Title of page").isEqualTo("Water metering");
         assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("Water Metering template");
         assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description")
                 .contains("Water Metering template");
-        solutionTemplateDetailsPage.waterMeteringScreenshotsAreCorrected();
+        solutionTemplateDetailsPage.assertWaterMeteringScreenshotsAreCorrected();
     }
 
     @Test
@@ -104,9 +104,9 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP, WATER_METERING_TENANT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphWaterMetering().getText())
                 .as("First paragraph of dashboard section in solution instruction").contains(WATER_METERING_TENANT_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.solutionInstructionSecondParagraphWaterMetering().getText())
@@ -126,9 +126,9 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP, WATER_METERING_TENANT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphWaterMetering().getText())
                 .as("First paragraph of dashboard section in solution instruction ").contains(WATER_METERING_TENANT_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.solutionInstructionSecondParagraphWaterMetering().getText())
@@ -146,7 +146,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -158,7 +158,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -176,56 +176,50 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.ruleChainsBtn().click();
         List.of(WATER_METERING_SOLUTION_MAIN_RULE_CHAIN, WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN,
                         WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN)
-                .forEach(rc -> assertThat(ruleChainsPage.entity(rc).isDisplayed()).as(rc + " is displayed").isTrue());
+                .forEach(rc -> assertIsDisplayed(ruleChainsPage.entity(rc)));
 
         sideBarMenuView.goToRoles();
         List.of(WATER_METERING_READ_ONLY_ROLES, WATER_METERING_USER_ROLES)
-                .forEach(r -> assertThat(rolesPage.entity(r).isDisplayed()).as(r + " is displayed").isTrue());
+                .forEach(r -> assertIsDisplayed(rolesPage.entity(r)));
 
         sideBarMenuView.goToCustomerGroups();
-        assertThat(customerPage.entity(WATER_METERING_CUSTOMER_GROUP).isDisplayed())
-                .as(WATER_METERING_CUSTOMER_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(customerPage.entity(WATER_METERING_CUSTOMER_GROUP));
 
         customerPage.entity("All").click();
         List.of(WATER_METERING_CUSTOMER_A_CUSTOMER, WATER_METERING_CUSTOMER_B_CUSTOMER)
-                .forEach(c -> assertThat(customerPage.entity(c).isDisplayed()).as(c + " is displayed").isTrue());
+                .forEach(c -> assertIsDisplayed(customerPage.entity(c)));
 
         customerPage.manageCustomersUserBtn(WATER_METERING_CUSTOMER_A_CUSTOMER).click();
-        assertThat(usersPage.entity(userCustomerA).isDisplayed())
-                .as(userCustomerA + " is displayed in " + WATER_METERING_CUSTOMER_A_CUSTOMER).isTrue();
+        assertIsDisplayed(usersPage.entity(userCustomerA));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(WATER_METERING_CUSTOMER_B_CUSTOMER).click();
-        assertThat(usersPage.entity(userCustomerB).isDisplayed())
-                .as(userCustomerB + " is displayed in " + WATER_METERING_CUSTOMER_B_CUSTOMER).isTrue();
+        assertIsDisplayed(usersPage.entity(userCustomerB));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(WATER_METERING_CUSTOMER_A_CUSTOMER).click();
         devicePage.groupsBtn().click();
-        assertThat(devicePage.entity(WATER_METERS_DEVICE_GROUP).isDisplayed())
-                .as(WATER_METERS_DEVICE_GROUP + " is displayed in " + WATER_METERING_CUSTOMER_A_CUSTOMER).isTrue();
+        assertIsDisplayed(devicePage.entity(WATER_METERS_DEVICE_GROUP));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersDeviceGroupsBtn(WATER_METERING_CUSTOMER_B_CUSTOMER).click();
         devicePage.groupsBtn().click();
-        assertThat(devicePage.entity(WATER_METERS_DEVICE_GROUP).isDisplayed())
-                .as(WATER_METERS_DEVICE_GROUP + " is displayed in " + WATER_METERING_CUSTOMER_B_CUSTOMER).isTrue();
+        assertIsDisplayed(devicePage.entity(WATER_METERS_DEVICE_GROUP));
 
         sideBarMenuView.openDeviceProfiles();
-        assertThat(profilesPage.entity(WATER_METER_DEVICE_PROFILE_WM).isDisplayed())
-                .as(WATER_METER_DEVICE_PROFILE_WM + " is displayed").isTrue();
+        assertIsDisplayed(profilesPage.entity(WATER_METER_DEVICE_PROFILE_WM));
 
         sideBarMenuView.goToAllDevices();
         List.of(WM0000123_DEVICE, WM0000124_DEVICE, WM0000125_DEVICE)
-                .forEach(d -> assertThat(devicePage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(devicePage.entity(d)));
 
         sideBarMenuView.goToDashboardGroups();
         List.of(WATER_METERING_DASHBOARD_GROUP, WATER_METERING_SHARED_DASHBOARD_GROUP)
-                .forEach(dg -> assertThat(dashboardPage.entity(dg).isDisplayed()).as(dg + " is displayed").isTrue());
+                .forEach(dg -> assertIsDisplayed(dashboardPage.entity(dg)));
 
         dashboardPage.entity("All").click();
         List.of(WATER_METERING_USER_DASHBOARD, WATER_METERING_TENANT_DASHBOARD)
-                .forEach(d -> assertThat(dashboardPage.entity(d).isDisplayed()).as(d + " is displayed").isTrue());
+                .forEach(d -> assertIsDisplayed(dashboardPage.entity(d)));
     }
 
     @Test
@@ -237,9 +231,8 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         refreshPage();
         scrollToElement(solutionTemplatesHomePage.waterMetering());
 
-        invisibilityOf(element);
-        assertThat(solutionTemplatesHomePage.waterMeteringDeleteBtn().isDisplayed()).
-                as("Water metering delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplatesHomePage.waterMeteringDeleteBtn());
     }
 
     @Test
@@ -251,8 +244,8 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postWaterMetering();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplateDetailsPage.deleteBtn());
     }
 
     @Test
@@ -262,8 +255,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.waterMeteringInstructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -275,7 +267,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -288,7 +280,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -301,7 +293,8 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP, WATER_METERING_TENANT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -312,8 +305,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         solutionTemplatesHomePage.waterMeteringDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -326,7 +318,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -339,7 +331,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -353,7 +345,8 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP, WATER_METERING_TENANT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -367,31 +360,36 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
 
         sideBarMenuView.ruleChainsBtn().click();
         List.of(WATER_METERING_SOLUTION_MAIN_RULE_CHAIN, WATER_METERING_SOLUTION_ALARM_ROUTING_RULE_CHAIN,
-                WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN).forEach(rc -> ruleChainsPage.entityIsNotPresent(rc));
+                        WATER_METERING_SOLUTION_TENANT_ALARM_ROUTING_RULE_CHAIN)
+                .forEach(rc -> ruleChainsPage.assertEntityIsNotPresent(rc));
 
         sideBarMenuView.goToRoles();
-        List.of(WATER_METERING_READ_ONLY_ROLES, WATER_METERING_USER_ROLES).forEach(r -> rolesPage.entityIsNotPresent(r));
+        List.of(WATER_METERING_READ_ONLY_ROLES, WATER_METERING_USER_ROLES)
+                .forEach(r -> rolesPage.assertEntityIsNotPresent(r));
 
         sideBarMenuView.goToCustomerGroups();
-        customerPage.entityIsNotPresent(WATER_METERING_CUSTOMER_GROUP);
+        customerPage.assertEntityIsNotPresent(WATER_METERING_CUSTOMER_GROUP);
         customerPage.entity("All").click();
         List.of(WATER_METERING_CUSTOMER_A_CUSTOMER, WATER_METERING_CUSTOMER_B_CUSTOMER)
-                .forEach(c -> customerPage.entityIsNotPresent(c));
+                .forEach(c -> customerPage.assertEntityIsNotPresent(c));
 
         sideBarMenuView.openDeviceProfiles();
-        profilesPage.entityIsNotPresent(WATER_METER_DEVICE_PROFILE_WM);
+        profilesPage.assertEntityIsNotPresent(WATER_METER_DEVICE_PROFILE_WM);
 
         sideBarMenuView.goToDeviceGroups();
-        devicePage.entityIsNotPresent(WATER_METERS_DEVICE_GROUP);
+        devicePage.assertEntityIsNotPresent(WATER_METERS_DEVICE_GROUP);
 
         devicePage.entity("All").click();
-        List.of(WM0000123_DEVICE, WM0000124_DEVICE, WM0000125_DEVICE).forEach(d -> devicePage.entityIsNotPresent(d));
+        List.of(WM0000123_DEVICE, WM0000124_DEVICE, WM0000125_DEVICE)
+                .forEach(d -> devicePage.assertEntityIsNotPresent(d));
 
         sideBarMenuView.goToDashboardGroups();
-        List.of(WATER_METERING_DASHBOARD_GROUP, WATER_METERING_SHARED_DASHBOARD_GROUP).forEach(db -> dashboardPage.entityIsNotPresent(db));
+        List.of(WATER_METERING_DASHBOARD_GROUP, WATER_METERING_SHARED_DASHBOARD_GROUP)
+                .forEach(db -> dashboardPage.assertEntityIsNotPresent(db));
 
         dashboardPage.entity("All").click();
-        List.of(WATER_METERING_USER_DASHBOARD, WATER_METERING_TENANT_DASHBOARD).forEach(db -> dashboardPage.entityIsNotPresent(db));
+        List.of(WATER_METERING_USER_DASHBOARD, WATER_METERING_TENANT_DASHBOARD)
+                .forEach(db -> dashboardPage.assertEntityIsNotPresent(db));
     }
 
     @Test
@@ -409,7 +407,8 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP, WATER_METERING_TENANT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(urls).hasSize(1).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(urls).hasSize(1).as("All dashboard links btn redirect to dashboard")
+                .contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         assertThat(guide).as("Dashboard guide link").isEqualTo(DASHBOARD_GIDE_DOCS_URL);
         assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
         assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);

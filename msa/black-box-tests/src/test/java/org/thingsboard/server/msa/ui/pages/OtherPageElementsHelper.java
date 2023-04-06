@@ -61,7 +61,7 @@ public class OtherPageElementsHelper extends OtherPageElements {
         return entityGroupName;
     }
 
-    public boolean entityIsNotPresent(String entityName) {
+    public boolean assertEntityIsNotPresent(String entityName) {
         return elementIsNotPresent(getEntity(entityName));
     }
 

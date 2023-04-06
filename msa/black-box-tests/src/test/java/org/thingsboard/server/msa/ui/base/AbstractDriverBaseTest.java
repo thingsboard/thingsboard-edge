@@ -68,6 +68,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
@@ -123,8 +124,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public String getJwtTokenFromLocalStorage() {
-        js = (JavascriptExecutor) driver;
-        return (String) js.executeScript("return window.localStorage.getItem('jwt_token');");
+        return (String) getJs().executeScript("return window.localStorage.getItem('jwt_token');");
     }
 
     public void openBaseUiUrl() {
@@ -150,8 +150,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public void jsClick(WebElement element) {
-        js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click();", element);
+        getJs().executeScript("arguments[0].click();", element);
     }
 
     public RuleChain getRuleChainByName(String name) {
@@ -214,7 +213,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
-    public void invisibilityOf(WebElement element) {
+    public void assertInvisibilityOfElement(WebElement element) {
         try {
             new WebDriverWait(driver, duration).until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {
@@ -229,8 +228,7 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public void scrollToElement(WebElement element) {
-        js = (JavascriptExecutor) driver;
-        js.executeScript("arguments[0].scrollIntoView(true);", element);
+        getJs().executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
     public void captureScreen(WebDriver driver, String screenshotName) {
@@ -238,5 +236,13 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
             Allure.addAttachment(screenshotName,
                     new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
         }
+    }
+
+    public void assertIsDisplayed(WebElement element) {
+        assertThat(element.isDisplayed()).as(element + " is displayed").isTrue();
+    }
+
+    public JavascriptExecutor getJs() {
+        return js = (JavascriptExecutor) driver;
     }
 }

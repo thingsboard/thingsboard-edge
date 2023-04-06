@@ -78,7 +78,7 @@ public class SolutionTemplateDetailsPageHelper extends SolutionTemplateDetailsPa
         }
     }
 
-    private void screenshotsAreCorrected(String urlScreenshotPath) {
+    private boolean screenshotsAreCorrected(String urlScreenshotPath) {
         sleep(3); //wait until images completely load on page
         for (WebElement screenshot : screenshots()) {
             int imageNumber = screenshots().indexOf(screenshot);
@@ -90,38 +90,39 @@ public class SolutionTemplateDetailsPageHelper extends SolutionTemplateDetailsPa
                 waitUntilInvisibilityOfElementLocated(screenshot);
             }
         }
+        return true;
     }
 
-    public void temperatureHumiditySensorsScreenshotsAreCorrected() {
-        screenshotsAreCorrected("temperature_sensors/temperature-sensors");
+    public boolean assertTemperatureHumiditySensorsScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("temperature_sensors/temperature-sensors");
     }
 
-    public void smartOfficeScreenshotsAreCorrected() {
-        screenshotsAreCorrected("smart_office/smart-office");
+    public boolean assertSmartOfficeScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("smart_office/smart-office");
     }
 
-    public void fleetTrackingScreenshotsAreCorrected() {
-        screenshotsAreCorrected("fleet_tracking/fleet-tracking");
+    public boolean assertFleetTrackingScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("fleet_tracking/fleet-tracking");
     }
 
-    public void airQualityMonitoringScreenshotsAreCorrected() {
-        screenshotsAreCorrected("air_quality_index/air-quality-index");
+    public boolean assertAirQualityMonitoringScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("air_quality_index/air-quality-index");
     }
 
-    public void waterMeteringScreenshotsAreCorrected() {
-        screenshotsAreCorrected("water_metering/water-metering");
+    public boolean assertWaterMeteringScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("water_metering/water-metering");
     }
 
-    public void smartRetailScreenshotsAreCorrected() {
-        screenshotsAreCorrected("smart_retail/smart-retail");
+    public boolean assertSmartRetailScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("smart_retail/smart-retail");
     }
 
-    public void smartIrrigationScreenshotsAreCorrected() {
-        screenshotsAreCorrected("smart_irrigation/smart-irrigation");
+    public boolean assertSmartIrrigationScreenshotsAreCorrected() {
+        return screenshotsAreCorrected("smart_irrigation/smart-irrigation");
     }
 
-    public void assignedLivingScreenshotsAreCorrected() {
-         screenshotsAreCorrected("assisted_living/assisted-living");
+    public boolean assignedLivingScreenshotsAreCorrected() {
+         return screenshotsAreCorrected("assisted_living/assisted-living");
     }
 }
 

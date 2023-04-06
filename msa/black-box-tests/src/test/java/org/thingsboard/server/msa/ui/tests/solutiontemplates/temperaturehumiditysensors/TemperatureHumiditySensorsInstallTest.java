@@ -78,11 +78,11 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         solutionTemplateDetailsPage.setTitleCardParagraphText();
         solutionTemplateDetailsPage.setSolutionDescriptionParagraphText();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/solutionTemplates/temperature_sensors");
-        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).isEqualTo("Temperature & Humidity Sensors");
+        assertThat(getUrl()).as("Redirected URL equals to details ST URL").isEqualTo(Const.URL + "/solutionTemplates/temperature_sensors");
+        assertThat(solutionTemplateDetailsPage.getHeadOfTitleCardName()).as("Title of page").isEqualTo("Temperature & Humidity Sensors");
         assertThat(solutionTemplateDetailsPage.getTitleCardParagraphText()).as("Title of ST card").contains("Temperature & Humidity sensors");
         assertThat(solutionTemplateDetailsPage.getSolutionDescriptionParagraphText()).as("Solution description").contains("Temperature & Humidity template");
-        solutionTemplateDetailsPage.temperatureHumiditySensorsScreenshotsAreCorrected();
+        solutionTemplateDetailsPage.assertTemperatureHumiditySensorsScreenshotsAreCorrected();
     }
 
     @Test
@@ -95,9 +95,9 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphTemperatureHumiditySensor().getText())
                 .as("First paragraph of solution instruction").contains(TEMPERATURE_HUMIDITY_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphTemperatureHumiditySensor().getText())
@@ -119,9 +119,9 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
         assertThat(solutionTemplatesInstalledView.solutionInstructionFirstParagraphTemperatureHumiditySensor().getText())
                 .as("First paragraph of solution instruction").contains(TEMPERATURE_HUMIDITY_DASHBOARD);
         assertThat(solutionTemplatesInstalledView.solutionInstructionThirdParagraphTemperatureHumiditySensor().getText())
@@ -141,7 +141,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -153,7 +153,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -169,40 +169,36 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         solutionTemplatesInstalledView.closeBtn().click();
 
         sideBarMenuView.ruleChainsBtn().click();
-        assertThat(ruleChainsPage.entity(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN).isDisplayed())
-                .as(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN + " is displayed").isTrue();
+        assertIsDisplayed(ruleChainsPage.entity(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN));
 
         sideBarMenuView.goToRoles();
-        assertThat(rolesPage.entity(READ_ONLY_ROLES).isDisplayed()).as(READ_ONLY_ROLES + " is displayed").isTrue();
+        assertIsDisplayed(rolesPage.entity(READ_ONLY_ROLES));
 
         sideBarMenuView.goToAllCustomers();
-        assertThat(customerPage.entity(CUSTOMER_D).isDisplayed()).as(CUSTOMER_D + " is displayed").isTrue();
+        assertIsDisplayed(customerPage.entity(CUSTOMER_D));
 
         customerPage.manageCustomersDeviceGroupsBtn(CUSTOMER_D).click();
-        assertThat(devicePage.entity(SENSOR_C1_DEVICE).isDisplayed()).as(SENSOR_C1_DEVICE + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(SENSOR_C1_DEVICE));
 
         devicePage.groupsBtn().click();
-        assertThat(devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).isDisplayed())
-                .as(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP));
 
         sideBarMenuView.goToAllCustomers();
         customerPage.manageCustomersUserBtn(CUSTOMER_D).click();
-        List.of(user1, user2).forEach(u -> assertThat(usersPage.entity(u).isDisplayed()).as(u + " is displayed").isTrue());
+        List.of(user1, user2)
+                .forEach(u -> assertIsDisplayed(usersPage.entity(u)));
 
         sideBarMenuView.openDeviceProfiles();
-        assertThat(profilesPage.entity(TEMPERATURE_SENSOR_DEVICE_PROFILE).isDisplayed())
-                .as(TEMPERATURE_SENSOR_DEVICE_PROFILE + " is displayed").isTrue();
+        assertIsDisplayed(profilesPage.entity(TEMPERATURE_SENSOR_DEVICE_PROFILE));
 
         sideBarMenuView.goToDeviceGroups();
-        assertThat(devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).isDisplayed())
-                .as(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP));
 
         devicePage.entity(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP).click();
-        assertThat(devicePage.entity(SENSOR_T1_DEVICE).isDisplayed()).as(SENSOR_T1_DEVICE + " is displayed").isTrue();
+        assertIsDisplayed(devicePage.entity(SENSOR_T1_DEVICE));
 
         sideBarMenuView.goToAllDashboards();
-        assertThat(dashboardPage.entity(TEMPERATURE_HUMIDITY_DASHBOARD).isDisplayed())
-                .as(TEMPERATURE_HUMIDITY_DASHBOARD + " is displayed").isTrue();
+        assertIsDisplayed(dashboardPage.entity(TEMPERATURE_HUMIDITY_DASHBOARD));
     }
 
     @Test
@@ -213,9 +209,8 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         testRestClient.postTemperatureHumidity();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplatesHomePage.temperatureHumiditySensorsDeleteBtn().isDisplayed())
-                .as("Temperature & Humidity Sensors delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplatesHomePage.temperatureHumiditySensorsDeleteBtn());
     }
 
     @Test
@@ -227,8 +222,8 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         testRestClient.postTemperatureHumidity();
         refreshPage();
 
-        invisibilityOf(element);
-        assertThat(solutionTemplateDetailsPage.deleteBtn().isDisplayed()).as("Delete btn is displayed").isTrue();
+        assertInvisibilityOfElement(element);
+        assertIsDisplayed(solutionTemplateDetailsPage.deleteBtn());
     }
 
     @Test
@@ -238,8 +233,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -251,7 +245,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -264,7 +258,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -277,7 +271,8 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -288,8 +283,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         solutionTemplatesHomePage.temperatureHumiditySensorsDetailsBtn().click();
         solutionTemplateDetailsPage.instructionBtn().click();
 
-        assertThat(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp().isDisplayed())
-                .as("Solution template installed popup is displayed").isTrue();
+        assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
     }
 
     @Test
@@ -302,7 +296,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -315,7 +309,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.bottomCloseBtn().click();
 
-        invisibilityOf(element);
+        assertInvisibilityOfElement(element);
     }
 
     @Test
@@ -329,7 +323,8 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(getUrl()).isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(getUrl()).as("Redirected URL equals to main dashboard URL")
+                .isEqualTo(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
     }
 
     @Test
@@ -342,25 +337,25 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         testRestClient.deleteTemperatureHumidity();
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.entityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN);
+        ruleChainsPage.assertEntityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_RULE_CHAIN);
 
         sideBarMenuView.goToRoles();
-        rolesPage.entityIsNotPresent(READ_ONLY_ROLES);
+        rolesPage.assertEntityIsNotPresent(READ_ONLY_ROLES);
 
         sideBarMenuView.goToAllCustomers();
-        customerPage.entityIsNotPresent(CUSTOMER_D);
+        customerPage.assertEntityIsNotPresent(CUSTOMER_D);
 
         sideBarMenuView.openDeviceProfiles();
-        profilesPage.entityIsNotPresent(TEMPERATURE_SENSOR_DEVICE_PROFILE);
+        profilesPage.assertEntityIsNotPresent(TEMPERATURE_SENSOR_DEVICE_PROFILE);
 
         sideBarMenuView.goToDeviceGroups();
-        devicePage.entityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP);
+        devicePage.assertEntityIsNotPresent(TEMPERATURE_HUMIDITY_SENSORS_DEVICE_GROUP);
 
         devicePage.entity("All").click();
-        devicePage.entityIsNotPresent(SENSOR_T1_DEVICE);
+        devicePage.assertEntityIsNotPresent(SENSOR_T1_DEVICE);
 
         sideBarMenuView.goToAllDashboards();
-        dashboardPage.entityIsNotPresent(TEMPERATURE_HUMIDITY_DASHBOARD);
+        dashboardPage.assertEntityIsNotPresent(TEMPERATURE_HUMIDITY_DASHBOARD);
     }
 
     @Test
@@ -378,7 +373,8 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getUuidId().toString();
 
-        assertThat(urls).hasSize(1).contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
+        assertThat(urls).hasSize(1).as("All dashboard links btn redirect to dashboard")
+                .contains(Const.URL + "/dashboards/groups/" + entityGroupId + "/" + dashboardId);
         assertThat(guide).as("Dashboard guide link").isEqualTo(DASHBOARD_GIDE_DOCS_URL);
         assertThat(linkHttpApi).as("HTTP API link").isEqualTo(HTTP_API_DOCS_URL);
         assertThat(linkConnectionDevices).as("Connection devices link").isEqualTo(CONNECTIVITY_DOCS_URL);
