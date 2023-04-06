@@ -95,6 +95,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_AUTHORITY_PARAGRAPH;
@@ -291,17 +292,13 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndType(tenantId, type, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDevicesByTenantId(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(deviceService.findDevicesByTenantIdAndType(tenantId, type, pageLink));
+        } else {
+            return checkNotNull(deviceService.findDevicesByTenantId(tenantId, pageLink));
         }
     }
 
@@ -315,13 +312,9 @@ public class DeviceController extends BaseController {
     public Device getTenantDevice(
             @ApiParam(value = DEVICE_NAME_DESCRIPTION)
             @RequestParam String deviceName) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        return checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
     }
 
     @ApiOperation(value = "Get Customer Devices (getCustomerDevices)",
@@ -346,19 +339,15 @@ public class DeviceController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+        } else {
+            return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerId(tenantId, customerId, pageLink));
         }
     }
 
@@ -482,29 +471,25 @@ public class DeviceController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (includeCustomers != null && includeCustomers) {
-                if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                    DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
-                } else {
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                }
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (includeCustomers != null && includeCustomers) {
+            if (deviceProfileId != null && deviceProfileId.length() > 0) {
+                DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
+                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
             } else {
-                if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                    DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(tenantId, customerId, profileId, pageLink));
-                } else {
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                }
+                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            if (deviceProfileId != null && deviceProfileId.length() > 0) {
+                DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
+                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(tenantId, customerId, profileId, pageLink));
+            } else {
+                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
         }
     }
 
@@ -516,20 +501,16 @@ public class DeviceController extends BaseController {
     @ResponseBody
     public List<Device> getDevicesByIds(
             @ApiParam(value = "A list of devices ids, separated by comma ','")
-            @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException {
+            @RequestParam("deviceIds") String[] strDeviceIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("deviceIds", strDeviceIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<DeviceId> deviceIds = new ArrayList<>();
-            for (String strDeviceId : strDeviceIds) {
-                deviceIds.add(new DeviceId(toUUID(strDeviceId)));
-            }
-            List<Device> devices = checkNotNull(deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds).get());
-            return filterDevicesByReadPermission(devices);
-        } catch (Exception e) {
-            throw handleException(e);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<DeviceId> deviceIds = new ArrayList<>();
+        for (String strDeviceId : strDeviceIds) {
+            deviceIds.add(new DeviceId(toUUID(strDeviceId)));
         }
+        List<Device> devices = checkNotNull(deviceService.findDevicesByTenantIdAndIdsAsync(tenantId, deviceIds).get());
+        return filterDevicesByReadPermission(devices);
     }
 
     @ApiOperation(value = "Find related devices (findByQuery)",
@@ -541,17 +522,13 @@ public class DeviceController extends BaseController {
     @ResponseBody
     public List<Device> findByQuery(
             @ApiParam(value = "The device search query JSON")
-            @RequestBody DeviceSearchQuery query) throws ThingsboardException {
+            @RequestBody DeviceSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
         checkNotNull(query);
         checkNotNull(query.getParameters());
         checkNotNull(query.getDeviceTypes());
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
-        try {
-            List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(getCurrentUser().getTenantId(), query).get());
-            return filterDevicesByReadPermission(devices);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        List<Device> devices = checkNotNull(deviceService.findDevicesByQuery(getCurrentUser().getTenantId(), query).get());
+        return filterDevicesByReadPermission(devices);
     }
 
     @ApiOperation(value = "Get devices by Entity Group Id (getDevicesByEntityGroupId)",
@@ -578,12 +555,8 @@ public class DeviceController extends BaseController {
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
         checkEntityGroupType(EntityType.DEVICE, entityGroup.getType());
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink));
     }
 
     private List<Device> filterDevicesByReadPermission(List<Device> devices) {
@@ -602,15 +575,11 @@ public class DeviceController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device/types", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntitySubtype> getDeviceTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> deviceTypes = deviceService.findDeviceTypesByTenantId(tenantId);
-            return checkNotNull(deviceTypes.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+    public List<EntitySubtype> getDeviceTypes() throws ThingsboardException, ExecutionException, InterruptedException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        ListenableFuture<List<EntitySubtype>> deviceTypes = deviceService.findDeviceTypesByTenantId(tenantId);
+        return checkNotNull(deviceTypes.get());
     }
 
     @ApiOperation(value = "Claim device (claimDevice)",
@@ -754,14 +723,10 @@ public class DeviceController extends BaseController {
                                                        @PathVariable("deviceProfileId") String deviceProfileId) throws ThingsboardException {
         checkParameter("OtaPackageType", otaPackageType);
         checkParameter("DeviceProfileId", deviceProfileId);
-        try {
-            return deviceService.countByDeviceProfileAndEmptyOtaPackage(
-                    getTenantId(),
-                    new DeviceProfileId(UUID.fromString(deviceProfileId)),
-                    OtaPackageType.valueOf(otaPackageType));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return deviceService.countByDeviceProfileAndEmptyOtaPackage(
+                getTenantId(),
+                new DeviceProfileId(UUID.fromString(deviceProfileId)),
+                OtaPackageType.valueOf(otaPackageType));
     }
 
     @ApiOperation(value = "Count devices by device profile  (countByDeviceProfileAndEmptyOtaPackage)",
