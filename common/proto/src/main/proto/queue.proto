@@ -47,13 +47,12 @@ message ServiceInfo {
 }
 
 message SystemInfoProto {
-  double cpuUsage = 1;
-  double totalCpuUsage = 2;
+  int64 cpuUsage = 1;
+  int64 cpuCount = 2;
   int64 memoryUsage = 3;
   int64 totalMemory = 4;
-  int64 freeMemory = 5;
-  int64 freeDiscSpace = 6;
-  int64 totalDiscSpace = 7;
+  int64 diskUsage = 5;
+  int64 totalDiscSpace = 6;
 }
 
 /**
@@ -1056,6 +1055,7 @@ message ToCoreMsg {
   EdgeNotificationMsgProto edgeNotificationMsg = 7;
   DeviceActivityProto deviceActivityMsg = 8;
   NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 9;
+  NotificationRuleProcessorMsg notificationRuleProcessorMsg = 10;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -1143,4 +1143,8 @@ message NotificationSchedulerServiceMsg {
   int64 requestIdMSB = 3;
   int64 requestIdLSB = 4;
   int64 ts = 5;
+}
+
+message NotificationRuleProcessorMsg {
+  bytes trigger = 1;
 }

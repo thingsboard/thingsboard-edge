@@ -52,7 +52,10 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
 
     private String comment;
     private String action;
-    private String userName;
+
+    private String userEmail;
+    private String userFirstName;
+    private String userLastName;
 
     private String alarmType;
     private UUID alarmId;
@@ -67,7 +70,9 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
         return mapOf(
                 "comment", comment,
                 "action", action,
-                "userName", userName,
+                "userEmail", userEmail,
+                "userFirstName", userFirstName,
+                "userLastName", userLastName,
                 "alarmType", alarmType,
                 "alarmId", alarmId.toString(),
                 "alarmSeverity", alarmSeverity.name().toLowerCase(),
@@ -79,7 +84,7 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
     }
 
     @Override
-    public CustomerId getOriginatorEntityCustomerId() {
+    public CustomerId getAffectedCustomerId() {
         return alarmCustomerId;
     }
 

@@ -66,7 +66,7 @@ import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
@@ -297,7 +297,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
         return toAlarmApiResult(alarmRepository.createOrUpdateActiveAlarm(
                 request.getTenantId().getId(),
                 request.getCustomerId() != null ? request.getCustomerId().getId() : CustomerId.NULL_UUID,
-                UUID.randomUUID(),
+                request.getEdgeAlarmId() != null ? request.getEdgeAlarmId().getId() : UUID.randomUUID(),
                 System.currentTimeMillis(),
                 request.getOriginator().getId(),
                 request.getOriginator().getEntityType().ordinal(),

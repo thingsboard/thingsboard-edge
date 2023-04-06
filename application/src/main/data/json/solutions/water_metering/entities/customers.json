@@ -1,6 +1,6 @@
 [
   {
-    "name": "$randomFirstName $randomLastName",
+    "name": "Water Metering Customer A",
     "group": "Water Metering",
     "jsonId": "70d6d5b0-8b0f-11eb-8d54-672ef9e6d207",
     "email": "$randomEmail",
@@ -59,7 +59,7 @@
     ]
   },
   {
-    "name": "$randomFirstName $randomLastName",
+    "name": "Water Metering Customer B",
     "group": "Water Metering",
     "email": "$randomEmail",
     "country": "Germany",

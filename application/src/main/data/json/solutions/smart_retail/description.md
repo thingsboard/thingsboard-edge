@@ -6,7 +6,8 @@ We share this and other templates with you to make the on-boarding faster and si
 
 #### Benefits
 
-No need to develop specific rule chains, set up alarm rules, and spend time with multi-layer interactive dashboard development
+No need to develop specific rule chains, set up alarm rules, and spend time with multi-layer interactive dashboard development.
+
 One-click install and uninstall of the template.
 
 #### What’s available?

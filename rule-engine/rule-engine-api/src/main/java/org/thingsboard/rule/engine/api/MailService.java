@@ -33,7 +33,7 @@ package org.thingsboard.rule.engine.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.thingsboard.server.common.data.ApiFeature;
-import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -67,7 +67,7 @@ public interface MailService {
 
     void sendAccountLockoutEmail(TenantId tenantId, String lockoutEmail, String email, Integer maxFailedLoginAttempts) throws ThingsboardException;
 
-    void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException;
+    void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageRecordState msg) throws ThingsboardException;
 
     void testConnection(TenantId tenantId) throws Exception;
 
