@@ -116,6 +116,9 @@ import {
 import {
   TuyaIntegrationFormComponent
 } from '@home/components/integration/configuration/tuya-integration-form/tuya-integration-form.component';
+import {
+  AzureServicesBusIntegrationFormComponent
+} from '@home/components/integration/configuration/azure-services-bus-integration-form/azure-services-bus-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -152,7 +155,8 @@ import {
     KafkaIntegrationFormComponent,
     RabbitMqIntegrationFormComponent,
     AzureIotHubIntegrationFormComponent,
-    TuyaIntegrationFormComponent
+    TuyaIntegrationFormComponent,
+    AzureServicesBusIntegrationFormComponent
   ],
   imports: [
     CommonModule,

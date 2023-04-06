@@ -95,7 +95,7 @@
         <zookeeper.version>3.5.5</zookeeper.version>
         <protobuf.version>3.21.9</protobuf.version>
         <grpc.version>1.42.1</grpc.version>
-        <tbel.version>1.0.5</tbel.version>
+        <tbel.version>1.0.6</tbel.version>
         <lombok.version>1.18.18</lombok.version>
         <paho.client.version>1.2.4</paho.client.version>
         <paho.mqttv5.client.version>1.2.5</paho.mqttv5.client.version>
@@ -112,7 +112,6 @@
         <bouncycastle.version>1.69</bouncycastle.version>
         <winsw.version>2.0.1</winsw.version>
         <postgresql.driver.version>42.5.0</postgresql.driver.version>
-        <azure-messaging-eventhubs.version>5.15.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <proton-j.version>0.33.2</proton-j.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
@@ -176,6 +175,7 @@
         <allure-maven.version>2.12.0</allure-maven.version>
         <slack-api.version>1.12.1</slack-api.version>
         <oshi.version>3.4.0</oshi.version>
+        <azure-sdk-bom.version>1.2.11</azure-sdk-bom.version>
     </properties>
 
     <modules>
@@ -1955,17 +1955,6 @@
                 <version>${netty-mqtt-client.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.azure</groupId>
-                <artifactId>azure-messaging-eventhubs</artifactId>
-                <version>${azure-messaging-eventhubs.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.dataformat</groupId>
-                        <artifactId>jackson-dataformat-xml</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
                 <groupId>com.microsoft.azure.sdk.iot</groupId>
                 <artifactId>iot-service-client</artifactId>
                 <version>${azure-iot-service-client.version}</version>
@@ -2240,6 +2229,19 @@
                 <artifactId>aws-iot-device-sdk-java-samples</artifactId>
                 <version>${aws-iot-device-sdk.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-sdk-bom</artifactId>
+                <version>${azure-sdk-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.fasterxml.jackson.dataformat</groupId>
+                        <artifactId>jackson-dataformat-xml</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>
