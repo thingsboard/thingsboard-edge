@@ -70,19 +70,23 @@ public class CustomMenuController extends BaseController {
     @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public CustomMenu getCustomMenu() throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        CustomMenu customMenu = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getMergedTenantCustomMenu(getCurrentUser().getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customMenu = customMenuService.getMergedCustomerCustomMenu(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            CustomMenu customMenu = null;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
+                customMenu = customMenuService.getMergedTenantCustomMenu(getCurrentUser().getTenantId());
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
+                customMenu = customMenuService.getMergedCustomerCustomMenu(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+            }
+            if (customMenu == null) {
+                customMenu = new CustomMenu();
+            }
+            return customMenu;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        if (customMenu == null) {
-            customMenu = new CustomMenu();
-        }
-        return customMenu;
     }
 
     @ApiOperation(value = "Get Custom Menu configuration (getCustomMenu)",
@@ -98,17 +102,21 @@ public class CustomMenuController extends BaseController {
     @RequestMapping(value = "/customMenu/currentCustomMenu", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public CustomMenu getCurrentCustomMenu() throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        checkWhiteLabelingPermissions(Operation.READ);
-        CustomMenu customMenu = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getTenantCustomMenu(getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customMenu = customMenuService.getCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId());
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            checkWhiteLabelingPermissions(Operation.READ);
+            CustomMenu customMenu = null;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
+                customMenu = customMenuService.getTenantCustomMenu(getTenantId());
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
+                customMenu = customMenuService.getCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId());
+            }
+            return customMenu;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return customMenu;
     }
 
     @ApiOperation(value = "Create Or Update Custom Menu (saveCustomMenu)",
@@ -120,17 +128,21 @@ public class CustomMenuController extends BaseController {
     public CustomMenu saveCustomMenu(
             @ApiParam(value = "A JSON value representing the custom menu")
             @RequestBody(required = false) CustomMenu customMenu) throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        checkWhiteLabelingPermissions(Operation.WRITE);
-        CustomMenu savedCustomMenu = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            savedCustomMenu = customMenuService.saveSystemCustomMenu(customMenu);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedCustomMenu = customMenuService.saveTenantCustomMenu(getCurrentUser().getTenantId(), customMenu);
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            savedCustomMenu = customMenuService.saveCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId(), customMenu);
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            checkWhiteLabelingPermissions(Operation.WRITE);
+            CustomMenu savedCustomMenu = null;
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                savedCustomMenu = customMenuService.saveSystemCustomMenu(customMenu);
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
+                savedCustomMenu = customMenuService.saveTenantCustomMenu(getCurrentUser().getTenantId(), customMenu);
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
+                savedCustomMenu = customMenuService.saveCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId(), customMenu);
+            }
+            return savedCustomMenu;
+        } catch (Exception e) {
+            throw handleException(e);
         }
-        return savedCustomMenu;
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

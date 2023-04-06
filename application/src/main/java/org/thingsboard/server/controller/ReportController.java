@@ -80,33 +80,37 @@ public class ReportController extends BaseController {
                                                                   HttpServletRequest request) throws ThingsboardException {
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
         checkParameter(DASHBOARD_ID, strDashboardId);
-        DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-        DashboardInfo dashboardInfo = checkDashboardInfoId(dashboardId, Operation.READ);
-        String baseUrl = MiscUtils.constructBaseUrl(request);
+        try {
+            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
+            DashboardInfo dashboardInfo = checkDashboardInfoId(dashboardId, Operation.READ);
+            String baseUrl = MiscUtils.constructBaseUrl(request);
 
-        String name = dashboardInfo.getTitle();
-        name += "-" + defaultDateFormat.format(new Date());
+            String name = dashboardInfo.getTitle();
+            name += "-" + defaultDateFormat.format(new Date());
 
-        SecurityUser currentUser = getCurrentUser();
-        String publicId = "";
-        if (currentUser.getUserPrincipal().getType() == UserPrincipal.Type.PUBLIC_ID) {
-            publicId = currentUser.getUserPrincipal().getValue();
+            SecurityUser currentUser = getCurrentUser();
+            String publicId = "";
+            if (currentUser.getUserPrincipal().getType() == UserPrincipal.Type.PUBLIC_ID) {
+                publicId = currentUser.getUserPrincipal().getValue();
+            }
+            reportService.
+                    generateDashboardReport(baseUrl, dashboardId, getTenantId(), currentUser.getId(), publicId, name, reportParams,
+                            reportData -> {
+                                ByteArrayResource resource = new ByteArrayResource(reportData.getData());
+                                ResponseEntity<Resource> response = ResponseEntity.ok().
+                                        header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + reportData.getName())
+                                        .header("x-filename", reportData.getName())
+                                        .contentLength(resource.contentLength())
+                                        .contentType(parseMediaType(reportData.getContentType()))
+                                        .body(resource);
+                                result.setResult(response);
+                            },
+                            throwable -> {
+                                result.setErrorResult(throwable);
+                            });
+        } catch (Exception e) {
+            result.setErrorResult(handleException(e));
         }
-        reportService.
-                generateDashboardReport(baseUrl, dashboardId, getTenantId(), currentUser.getId(), publicId, name, reportParams,
-                        reportData -> {
-                            ByteArrayResource resource = new ByteArrayResource(reportData.getData());
-                            ResponseEntity<Resource> response = ResponseEntity.ok().
-                                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + reportData.getName())
-                                    .header("x-filename", reportData.getName())
-                                    .contentLength(resource.contentLength())
-                                    .contentType(parseMediaType(reportData.getContentType()))
-                                    .body(resource);
-                            result.setResult(response);
-                        },
-                        throwable -> {
-                            result.setErrorResult(throwable);
-                        });
         return result;
     }
 
@@ -142,7 +146,7 @@ public class ReportController extends BaseController {
                                 result.setErrorResult(throwable);
                             });
         } catch (Exception e) {
-            result.setErrorResult(e);
+            result.setErrorResult(handleException(e));
         }
         return result;
     }

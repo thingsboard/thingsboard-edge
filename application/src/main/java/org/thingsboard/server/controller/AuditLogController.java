@@ -118,14 +118,18 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false) Long endTime,
             @ApiParam(value = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
             @RequestParam(name = "actionTypes", required = false) String actionTypesStr) throws ThingsboardException {
-        checkParameter("CustomerId", strCustomerId);
-        accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
-        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-        checkCustomerId(customerId, Operation.READ);
-        TenantId tenantId = getCurrentUser().getTenantId();
-        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-        List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
-        return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, new CustomerId(UUID.fromString(strCustomerId)), actionTypes, pageLink));
+        try {
+            checkParameter("CustomerId", strCustomerId);
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
+            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, new CustomerId(UUID.fromString(strCustomerId)), actionTypes, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get audit logs by user id (getAuditLogsByUserId)",
@@ -155,14 +159,18 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false) Long endTime,
             @ApiParam(value = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
             @RequestParam(name = "actionTypes", required = false) String actionTypesStr) throws ThingsboardException {
-        checkParameter("UserId", strUserId);
-        accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
-        UserId userId = new UserId(toUUID(strUserId));
-        checkUserId(userId, Operation.READ);
-        TenantId tenantId = getCurrentUser().getTenantId();
-        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-        List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
-        return checkNotNull(auditLogService.findAuditLogsByTenantIdAndUserId(tenantId, new UserId(UUID.fromString(strUserId)), actionTypes, pageLink));
+        try {
+            checkParameter("UserId", strUserId);
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            UserId userId = new UserId(toUUID(strUserId));
+            checkUserId(userId, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
+            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndUserId(tenantId, new UserId(UUID.fromString(strUserId)), actionTypes, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get audit logs by entity id (getAuditLogsByEntityId)",
@@ -195,15 +203,19 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false) Long endTime,
             @ApiParam(value = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
             @RequestParam(name = "actionTypes", required = false) String actionTypesStr) throws ThingsboardException {
-        checkParameter("EntityId", strEntityId);
-        checkParameter("EntityType", strEntityType);
-        accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
-        EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-        checkEntityId(entityId, Operation.READ);
-        TenantId tenantId = getCurrentUser().getTenantId();
-        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-        List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
-        return checkNotNull(auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, EntityIdFactory.getByTypeAndId(strEntityType, strEntityId), actionTypes, pageLink));
+        try {
+            checkParameter("EntityId", strEntityId);
+            checkParameter("EntityType", strEntityType);
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
+            checkEntityId(entityId, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
+            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, EntityIdFactory.getByTypeAndId(strEntityType, strEntityId), actionTypes, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get all audit logs (getAuditLogs)",
@@ -230,15 +242,19 @@ public class AuditLogController extends BaseController {
             @RequestParam(required = false) Long endTime,
             @ApiParam(value = AUDIT_LOG_QUERY_ACTION_TYPES_DESCRIPTION)
             @RequestParam(name = "actionTypes", required = false) String actionTypesStr) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
-        TenantId tenantId = getCurrentUser().getTenantId();
-        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-        List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
-        Authority authority = getCurrentUser().getAuthority();
-        if (Authority.TENANT_ADMIN.equals(authority)) {
-            return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, actionTypes, pageLink));
-        } else {
-            return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), actionTypes, pageLink));
+        try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.AUDIT_LOG, Operation.READ);
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
+            Authority authority = getCurrentUser().getAuthority();
+            if (Authority.TENANT_ADMIN.equals(authority)) {
+                return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, actionTypes, pageLink));
+            } else {
+                return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), actionTypes, pageLink));
+            }
+        } catch (Exception e) {
+            throw handleException(e);
         }
     }
 
