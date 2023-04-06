@@ -265,7 +265,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         testNotificationUpdateGatewayNever();
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
@@ -277,7 +277,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         testNotificationUpdateGatewayNever();
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
@@ -289,7 +289,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         testNotificationUpdateGatewayNever();
     }
 
@@ -493,8 +493,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
-                new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         testNotificationUpdateGatewayNever();
     }
 

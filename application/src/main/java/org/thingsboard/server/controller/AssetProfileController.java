@@ -63,6 +63,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFILE_ID_PARAM_DESCRIPTION;
@@ -242,21 +243,17 @@ public class AssetProfileController extends BaseController {
     @ResponseBody
     public List<AssetProfileInfo> getAssetProfilesByIds(
             @ApiParam(value = "A list of asset profile ids, separated by comma ','", required = true)
-            @RequestParam("assetProfileIds") String[] strAssetProfileIds) throws ThingsboardException {
+            @RequestParam("assetProfileIds") String[] strAssetProfileIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("assetProfileIds", strAssetProfileIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<AssetProfileId> assetProfileIds = new ArrayList<>();
-            for (String strAssetProfileId : strAssetProfileIds) {
-                assetProfileIds.add(new AssetProfileId(toUUID(strAssetProfileId)));
-            }
-            return checkNotNull(assetProfileService.findAssetProfilesByIdsAsync(tenantId, assetProfileIds).get());
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ)) {
+            return Collections.emptyList();
         }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<AssetProfileId> assetProfileIds = new ArrayList<>();
+        for (String strAssetProfileId : strAssetProfileIds) {
+            assetProfileIds.add(new AssetProfileId(toUUID(strAssetProfileId)));
+        }
+        return checkNotNull(assetProfileService.findAssetProfilesByIdsAsync(tenantId, assetProfileIds).get());
     }
 }

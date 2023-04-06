@@ -279,13 +279,9 @@ public class OtaPackageController extends BaseController {
                                                         @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("groupId", strGroupId);
         checkParameter("type", strType);
-        try {
-            EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
-            checkEntityGroupId(groupId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(otaPackageService.findOtaPackageInfosByGroupIdAndHasData(groupId, OtaPackageType.valueOf(strType), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
+        checkEntityGroupId(groupId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(otaPackageService.findOtaPackageInfosByGroupIdAndHasData(groupId, OtaPackageType.valueOf(strType), pageLink));
     }
 }

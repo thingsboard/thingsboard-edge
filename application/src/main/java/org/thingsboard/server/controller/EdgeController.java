@@ -419,42 +419,38 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                if (includeCustomers != null && includeCustomers) {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(edgeService.findEdgeInfosByTenantIdAndType(tenantId, type, pageLink));
-                    } else {
-                        return checkNotNull(edgeService.findEdgeInfosByTenantId(tenantId, pageLink));
-                    }
+        accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (includeCustomers != null && includeCustomers) {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(edgeService.findEdgeInfosByTenantIdAndType(tenantId, type, pageLink));
                 } else {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(edgeService.findTenantEdgeInfosByTenantIdAndType(tenantId, type, pageLink));
-                    } else {
-                        return checkNotNull(edgeService.findTenantEdgeInfosByTenantId(tenantId, pageLink));
-                    }
+                    return checkNotNull(edgeService.findEdgeInfosByTenantId(tenantId, pageLink));
                 }
             } else {
-                CustomerId customerId = getCurrentUser().getCustomerId();
-                if (includeCustomers != null && includeCustomers) {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
-                    } else {
-                        return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                    }
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(edgeService.findTenantEdgeInfosByTenantIdAndType(tenantId, type, pageLink));
                 } else {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-                    } else {
-                        return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                    }
+                    return checkNotNull(edgeService.findTenantEdgeInfosByTenantId(tenantId, pageLink));
                 }
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            CustomerId customerId = getCurrentUser().getCustomerId();
+            if (includeCustomers != null && includeCustomers) {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
+                } else {
+                    return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                }
+            } else {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                } else {
+                    return checkNotNull(edgeService.findEdgeInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
         }
     }
 
@@ -674,7 +670,7 @@ public class EdgeController extends BaseController {
                             entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
                         }
                         savingFunction.apply(edge, entityGroup);
-                    } catch (ThingsboardException e) {
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 });

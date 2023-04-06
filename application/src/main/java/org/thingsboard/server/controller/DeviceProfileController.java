@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_DATA;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_ID;
@@ -299,7 +300,7 @@ public class DeviceProfileController extends BaseController {
     @ResponseBody
     public List<DeviceProfileInfo> getDeviceProfilesByIds(
             @ApiParam(value = "A list of device profile ids, separated by comma ','", required = true)
-            @RequestParam("deviceProfileIds") String[] strDeviceProfileIds) throws ThingsboardException {
+            @RequestParam("deviceProfileIds") String[] strDeviceProfileIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("deviceProfileIds", strDeviceProfileIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ)) {
             return Collections.emptyList();

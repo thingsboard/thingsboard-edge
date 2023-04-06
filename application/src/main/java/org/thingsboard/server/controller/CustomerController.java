@@ -137,16 +137,12 @@ public class CustomerController extends BaseController {
             @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
             @PathVariable(CUSTOMER_ID) String strCustomerId) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
-        try {
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            CustomerInfo customer = checkCustomerInfoId(customerId, Operation.READ);
-            if (!customer.getAdditionalInfo().isNull()) {
-                processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
-            }
-            return customer;
-        } catch (Exception e) {
-            throw handleException(e);
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        CustomerInfo customer = checkCustomerInfoId(customerId, Operation.READ);
+        if (!customer.getAdditionalInfo().isNull()) {
+            processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
         }
+        return customer;
     }
 
 

@@ -60,6 +60,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
@@ -174,20 +175,16 @@ public class TenantController extends BaseController {
     @RequestMapping(value = "/tenants", params = {"tenantIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Tenant> getTenantsByIds(
-            @RequestParam("tenantIds") String[] strTenantIds) throws ThingsboardException {
+            @RequestParam("tenantIds") String[] strTenantIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("tenantIds", strTenantIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<TenantId> tenantIds = new ArrayList<>();
-            for (String strTenantId : strTenantIds) {
-                tenantIds.add(new TenantId(toUUID(strTenantId)));
-            }
-            List<Tenant> tenants = checkNotNull(tenantService.findTenantsByIdsAsync(tenantId, tenantIds).get());
-            return filterTenantsByReadPermission(tenants);
-        } catch (Exception e) {
-            throw handleException(e);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<TenantId> tenantIds = new ArrayList<>();
+        for (String strTenantId : strTenantIds) {
+            tenantIds.add(new TenantId(toUUID(strTenantId)));
         }
+        List<Tenant> tenants = checkNotNull(tenantService.findTenantsByIdsAsync(tenantId, tenantIds).get());
+        return filterTenantsByReadPermission(tenants);
     }
 
     @ApiOperation(value = "Get Tenants Info (getTenants)", notes = "Returns a page of tenant info objects registered in the platform. "

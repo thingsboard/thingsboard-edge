@@ -311,31 +311,27 @@ public class DashboardController extends BaseController {
             @RequestParam(required = false) String operation,
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @RequestParam(name = "userId", required = false) String strUserId) throws ThingsboardException {
-        try {
-            SecurityUser securityUser;
-            if (!StringUtils.isEmpty(strUserId)) {
-                UserId userId = new UserId(toUUID(strUserId));
-                User user = checkUserId(userId, Operation.READ);
-                UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-                securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-            } else {
-                securityUser = getCurrentUser();
-            }
-            Operation operationType = Operation.READ;
-            if (!StringUtils.isEmpty(operation)) {
-                try {
-                    operationType = Operation.valueOf(operation);
-                } catch (IllegalArgumentException e) {
-                    throw new ThingsboardException("Unsupported operation type '" + operation + "'!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-                }
-            }
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            MergedUserPermissions mergedUserPermissions = securityUser.getUserPermissions();
-            return entityService.findUserEntities(securityUser.getTenantId(), securityUser.getCustomerId(), mergedUserPermissions, EntityType.DASHBOARD,
-                    operationType, null, pageLink, mobile != null ? mobile : false);
-        } catch (Exception e) {
-            throw handleException(e);
+        SecurityUser securityUser;
+        if (!StringUtils.isEmpty(strUserId)) {
+            UserId userId = new UserId(toUUID(strUserId));
+            User user = checkUserId(userId, Operation.READ);
+            UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+            securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
+        } else {
+            securityUser = getCurrentUser();
         }
+        Operation operationType = Operation.READ;
+        if (!StringUtils.isEmpty(operation)) {
+            try {
+                operationType = Operation.valueOf(operation);
+            } catch (IllegalArgumentException e) {
+                throw new ThingsboardException("Unsupported operation type '" + operation + "'!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        MergedUserPermissions mergedUserPermissions = securityUser.getUserPermissions();
+        return entityService.findUserEntities(securityUser.getTenantId(), securityUser.getCustomerId(), mergedUserPermissions, EntityType.DASHBOARD,
+                operationType, null, pageLink, mobile != null ? mobile : false);
     }
 
     @ApiOperation(value = "Get All Dashboards for current user (getAllDashboards)",
@@ -613,23 +609,19 @@ public class DashboardController extends BaseController {
     @RequestMapping(value = "/customer/dashboard/home/info", method = RequestMethod.GET)
     @ResponseBody
     public HomeDashboardInfo getCustomerHomeDashboardInfo() throws ThingsboardException {
-        try {
-            checkWhiteLabelingPermissions(Operation.READ);
-            Customer customer = customerService.findCustomerById(getTenantId(), getCurrentUser().getCustomerId());
-            JsonNode additionalInfo = customer.getAdditionalInfo();
-            DashboardId dashboardId = null;
-            boolean hideDashboardToolbar = true;
-            if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID) && !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {
-                String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
-                dashboardId = new DashboardId(toUUID(strDashboardId));
-                if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
-                    hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
-                }
+        checkWhiteLabelingPermissions(Operation.READ);
+        Customer customer = customerService.findCustomerById(getTenantId(), getCurrentUser().getCustomerId());
+        JsonNode additionalInfo = customer.getAdditionalInfo();
+        DashboardId dashboardId = null;
+        boolean hideDashboardToolbar = true;
+        if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID) && !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {
+            String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+            dashboardId = new DashboardId(toUUID(strDashboardId));
+            if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
             }
-            return new HomeDashboardInfo(dashboardId, hideDashboardToolbar);
-        } catch (Exception e) {
-            throw handleException(e);
         }
+        return new HomeDashboardInfo(dashboardId, hideDashboardToolbar);
     }
 
     @ApiOperation(value = "Update Tenant Home Dashboard Info (getTenantHomeDashboardInfo)",

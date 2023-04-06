@@ -197,22 +197,18 @@ public class UserController extends BaseController {
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
-        try {
-            UserId userId = new UserId(toUUID(strUserId));
-            UserInfo user = checkUserInfoId(userId, Operation.READ);
-            if (user.getAdditionalInfo().isObject()) {
-                ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
-                processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
-                processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-                if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
-                    additionalInfo.put("userCredentialsEnabled", true);
-                }
+        UserId userId = new UserId(toUUID(strUserId));
+        UserInfo user = checkUserInfoId(userId, Operation.READ);
+        if (user.getAdditionalInfo().isObject()) {
+            ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
+            processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
+            processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+            if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
+                additionalInfo.put("userCredentialsEnabled", true);
             }
-            return user;
-        } catch (Exception e) {
-            throw handleException(e);
         }
+        return user;
     }
 
     @ApiOperation(value = "Check Token Access Enabled (isUserTokenAccessEnabled)",
