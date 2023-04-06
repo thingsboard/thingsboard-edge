@@ -1236,6 +1236,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         alarm.setType("testAlarm");
         alarm.setStartTs(System.currentTimeMillis());
         return doPost("/api/alarm", alarm, Alarm.class);
+    }
 
     @Test
     public void testEmptyDashboardSettings() throws Exception {
