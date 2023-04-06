@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="gatewayConfigGroup" style="height: 100%">
+<form [formGroup]="gatewayConfigGroup" style="height: 100%" fxLayout="column">
   <mat-toolbar color="primary">
     <h2 translate>gateway.gateway-configuration</h2>
     <span fxFlex></span>
@@ -84,11 +84,11 @@
               <mat-panel-title translate class="expansion-panel-header">security.security</mat-panel-title>
             </mat-expansion-panel-header>
             <div fxLayout="row wrap" formGroupName="security">
-              <mat-radio-group class="security-radio-group" formControlName="type">
-                <mat-radio-button *ngFor="let securityType of securityTypes | keyvalue" [value]="securityType.key">
+              <mat-button-toggle-group class="security-toggle-group" formControlName="type" fxFlex="100">
+                <mat-button-toggle *ngFor="let securityType of securityTypes | keyvalue" [value]="securityType.key">
                   {{ securityType.value | translate }}
-                </mat-radio-button>
-              </mat-radio-group>
+                </mat-button-toggle>
+              </mat-button-toggle-group>
               <mat-form-field
                 *ngIf="gatewayConfigGroup.get('thingsboard.security.type').value.toLowerCase().includes('accesstoken')"
                 fxFlex="calc(50%-15px)" class="mat-block tb-value-type">
@@ -174,7 +174,7 @@
                 </mat-error>
               </mat-form-field>
               <label fxFlex="100" class="logs-label" translate>gateway.logs.log-type</label>
-              <mat-button-toggle-group #logging="matButtonToggleGroup" value="remote" style="margin-bottom: 15px">
+              <mat-button-toggle-group class="logs-toggle-group" #logging="matButtonToggleGroup" value="remote" style="margin-bottom: 15px">
                 <mat-button-toggle value="remote"
                                    aria-label="Remote logging"> {{'gateway.logs.remote' | translate}}</mat-button-toggle>
                 <mat-button-toggle value="local"
@@ -192,13 +192,13 @@
                 </mat-form-field>
               </div>
               <div fxFlex="100" fxLayout="row wrap" formGroupName="local" *ngIf="logging.value === 'local'">
-                <mat-radio-group [formControl]="logSelector" class="security-radio-group" fxFlex="100"
+                <mat-button-toggle-group class="security-toggle-group" [formControl]="logSelector" fxFlex="100"
                                  name="logSelector">
-                  <mat-radio-button *ngFor="let logConfig of localLogsConfigs" [value]="logConfig"
+                  <mat-button-toggle *ngFor="let logConfig of localLogsConfigs" [value]="logConfig"
                                     class="first-capital">
                     {{ logConfig }}
-                  </mat-radio-button>
-                </mat-radio-group>
+                  </mat-button-toggle>
+                </mat-button-toggle-group>
                 <div fxFlex="100" fxLayout="row wrap" [formGroup]="getLogFormGroup(logSelector.value)">
                   <mat-form-field class="mat-block tb-value-type" fxFlex="calc(50%-15px)">
                     <mat-label translate>gateway.logs.level</mat-label>
@@ -261,11 +261,11 @@
               <mat-panel-title translate class="expansion-panel-header">gateway.storage</mat-panel-title>
             </mat-expansion-panel-header>
             <div fxLayout="row wrap">
-              <mat-radio-group class="security-radio-group" formControlName="type" fxFlex="100">
-                <mat-radio-button *ngFor="let storageType of storageTypes | keyvalue" [value]="storageType.key">
+              <mat-button-toggle-group class="security-toggle-group" formControlName="type" fxFlex="100">
+                <mat-button-toggle *ngFor="let storageType of storageTypes | keyvalue" [value]="storageType.key">
                   {{ storageType.value | translate }}
-                </mat-radio-button>
-              </mat-radio-group>
+                </mat-button-toggle>
+              </mat-button-toggle-group>
               <mat-form-field *ngIf="gatewayConfigGroup.get('storage.type').value === 'memory'"
                               fxFlex="calc(50%-15px)" class="mat-block tb-value-type">
                 <mat-label translate>gateway.storage-read-record-count</mat-label>

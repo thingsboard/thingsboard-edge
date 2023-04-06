@@ -63,15 +63,13 @@
     }
   }
 
-  ::ng-deep .security-radio-group {
-    padding-bottom: 10px;
+  .security-toggle-group {
+    padding-bottom: 0;
+    background: transparent !important;
+    margin-bottom: 15px;
+    border: none;
 
-    .mat-radio-container {
-      display: none;
-    }
-
-    .mat-mdc-radio-label-content {
-      padding: 5px 15px;
+    .mat-button-toggle {
       border-radius: 15px;
       border: 1px solid rgba(0, 0, 0, 0);
       background: rgba(0, 0, 0, .05);
@@ -80,10 +78,26 @@
       font-weight: 500;
     }
 
-    .mat-mdc-radio-checked .mat-mdc-radio-label-content {
+    .mat-button-toggle-checked {
+      border-radius: 15px;
       border: 1px solid var(--tb-primary-500);
       background: var(--tb-primary-50);
       color: var(--tb-primary-500);
+    }
+
+    ::ng-deep span {
+      text-transform: capitalize;
+      line-height: 20px;
+      font-size: 13px;
+      padding: 5px 25px;
+    }
+
+    ::ng-deep .mat-button-toggle-ripple {
+      border-radius: 15px;
+    }
+
+    ::ng-deep .mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {
+      opacity: 0 !important;
     }
   }
 
@@ -92,7 +106,7 @@
     margin-bottom: 10px;
   }
 
-  .mat-button-toggle-group {
+  .logs-toggle-group {
     border: none;
     border-radius: 15px;
     background: rgba(0, 0, 0, .05);
@@ -117,6 +131,7 @@
       font-size: 13px;
       padding: 5px 25px;
     }
+
     ::ng-deep .mat-button-toggle-ripple {
       border-radius: 15px;
     }
@@ -130,15 +145,15 @@
     text-transform: capitalize;
   }
 
-  ::ng-deep.mat-tab-label-active{
+  ::ng-deep.mat-tab-label-active {
     color: var(--tb-primary-50);
     opacity: 1;
   }
 
-  ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active{
-    min-width: 50px!important;
-    padding: 3px!important;
-    margin: 3px!important;
+  ::ng-deep.mat-tab-label, ::ng-deep.mat-tab-label-active {
+    min-width: 50px !important;
+    padding: 3px !important;
+    margin: 3px !important;
     flex-grow: 1;
   }
 
