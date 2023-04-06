@@ -28,23 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.entity;
+package org.thingsboard.server.dao.usage;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.UsageInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Optional;
+public interface UsageInfoService {
 
-public interface EntityDaoService {
-
-    Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId);
-
-    default long countByTenantId(TenantId tenantId) {
-        throw new IllegalArgumentException("Not implemented for " + getEntityType());
-    }
-
-    EntityType getEntityType();
+    UsageInfo getUsageInfo(TenantId tenantId);
 
 }

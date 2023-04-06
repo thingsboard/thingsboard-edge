@@ -28,23 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.entity;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Data;
 
-import java.util.Optional;
+@Data
+public class UsageInfo {
+    private long devices;
+    private long maxDevices;
+    private long assets;
+    private long maxAssets;
+    private long customers;
+    private long maxCustomers;
+    private long users;
+    private long maxUsers;
+    private long dashboards;
+    private long maxDashboards;
 
-public interface EntityDaoService {
-
-    Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId);
-
-    default long countByTenantId(TenantId tenantId) {
-        throw new IllegalArgumentException("Not implemented for " + getEntityType());
-    }
-
-    EntityType getEntityType();
-
+    private long transportMessages;
+    private long maxTransportMessages;
+    private long jsExecutions;
+    private long maxJsExecutions;
+    private long emails;
+    private long maxEmails;
+    private long sms;
+    private long maxSms;
+    private long alarms;
+    private long maxAlarms;
 }

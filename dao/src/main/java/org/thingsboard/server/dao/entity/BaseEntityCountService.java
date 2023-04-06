@@ -30,21 +30,35 @@
  */
 package org.thingsboard.server.dao.entity;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Optional;
+@Service
+public class BaseEntityCountService extends AbstractCachedEntityService<EntityCountCacheKey, Long, EntityCountCacheEvictEvent> implements EntityCountService {
 
-public interface EntityDaoService {
+    @Lazy
+    @Autowired
+    private EntityServiceRegistry entityServiceRegistry;
 
-    Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId);
-
-    default long countByTenantId(TenantId tenantId) {
-        throw new IllegalArgumentException("Not implemented for " + getEntityType());
+    @Override
+    public long countByTenantIdAndEntityType(TenantId tenantId, EntityType entityType) {
+        return cache.getAndPutInTransaction(new EntityCountCacheKey(tenantId, entityType),
+                () -> entityServiceRegistry.getServiceByEntityType(entityType).countByTenantId(tenantId), false);
     }
 
-    EntityType getEntityType();
+    @Override
+    public void publishCountEntityEvictEvent(TenantId tenantId, EntityType entityType) {
+        publishEvictEvent(new EntityCountCacheEvictEvent(tenantId, entityType));
+    }
 
+    @TransactionalEventListener(classes = EntityCountCacheEvictEvent.class)
+    @Override
+    public void handleEvictEvent(EntityCountCacheEvictEvent event) {
+        cache.evict(new EntityCountCacheKey(event.getTenantId(), event.getEntityType()));
+    }
 }

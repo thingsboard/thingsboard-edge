@@ -112,8 +112,6 @@ public interface DeviceService extends EntityDaoService {
 
     Device assignDeviceToTenant(TenantId tenantId, Device device);
 
-    long countByTenantId(TenantId tenantId);
-
     PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId,
                                                                          DeviceProfileId deviceProfileId,
                                                                          OtaPackageType type,

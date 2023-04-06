@@ -28,23 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.entity;
+package org.thingsboard.server.controller;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.UsageInfo;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.usage.UsageInfoService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Optional;
+import static org.thingsboard.server.common.data.exception.ThingsboardErrorCode.PERMISSION_DENIED;
 
-public interface EntityDaoService {
+@RestController
+@TbCoreComponent
+@RequestMapping("/api")
+@Slf4j
+public class UsageInfoController extends BaseController {
 
-    Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId);
+    @Autowired
+    private UsageInfoService usageInfoService;
 
-    default long countByTenantId(TenantId tenantId) {
-        throw new IllegalArgumentException("Not implemented for " + getEntityType());
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/usage", method = RequestMethod.GET)
+    @ResponseBody
+    public UsageInfo getTenantUsageInfo() throws ThingsboardException {
+        if (!getMergedUserPermissions(getCurrentUser(), false).hasGenericPermission(Resource.ALL, Operation.READ)) {
+            throw new ThingsboardException("You don't have permission to read UsageInfo!", PERMISSION_DENIED);
+        }
+        return checkNotNull(usageInfoService.getUsageInfo(getCurrentUser().getTenantId()));
     }
-
-    EntityType getEntityType();
-
 }
