@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.data.notification.template.NotificationTemp
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -151,16 +153,25 @@ public class NotificationTemplateController extends BaseController {
     @GetMapping("/slack/conversations")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public List<SlackConversation> listSlackConversations(@RequestParam SlackConversationType type,
+                                                          @RequestParam(required = false) String token,
                                                           @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
-        NotificationSettings settings = notificationSettingsService.findNotificationSettings(user.getTenantId());
-        SlackNotificationDeliveryMethodConfig slackConfig = (SlackNotificationDeliveryMethodConfig)
-                settings.getDeliveryMethodsConfigs().get(NotificationDeliveryMethod.SLACK);
-        if (slackConfig == null) {
-            throw new IllegalArgumentException("Slack is not configured");
+        if (StringUtils.isEmpty(token)) {
+            if (user.isSystemAdmin()) {
+                accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+            } else {
+                accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.READ);
+            }
+            NotificationSettings settings = notificationSettingsService.findNotificationSettings(user.getTenantId());
+            SlackNotificationDeliveryMethodConfig slackConfig = (SlackNotificationDeliveryMethodConfig)
+                    settings.getDeliveryMethodsConfigs().get(NotificationDeliveryMethod.SLACK);
+            if (slackConfig == null) {
+                throw new IllegalArgumentException("Slack is not configured");
+            }
+            token = slackConfig.getBotToken();
         }
 
-        return slackService.listConversations(user.getTenantId(), slackConfig.getBotToken(), type);
+        return slackService.listConversations(user.getTenantId(), token, type);
     }
 
 }

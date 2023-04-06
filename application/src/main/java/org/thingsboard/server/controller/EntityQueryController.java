@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
@@ -108,6 +109,20 @@ public class EntityQueryController extends BaseController {
             checkUserId(assigneeId, Operation.READ);
         }
         return this.entityQueryService.findAlarmDataByQuery(getCurrentUser(), query);
+    }
+
+    @ApiOperation(value = "Count Alarms by Query (countAlarmsByQuery)", notes = "Returns the number of alarms that match the query definition.")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/alarmsQuery/count", method = RequestMethod.POST)
+    @ResponseBody
+    public long countAlarmsByQuery(@ApiParam(value = "A JSON value representing the alarm count query.")
+                                   @RequestBody AlarmCountQuery query) throws ThingsboardException {
+        checkNotNull(query);
+        UserId assigneeId = query.getAssigneeId();
+        if (assigneeId != null) {
+            checkUserId(assigneeId, Operation.READ);
+        }
+        return this.entityQueryService.countAlarmsByQuery(getCurrentUser(), query);
     }
 
     @ApiOperation(value = "Find Entity Keys by Query",

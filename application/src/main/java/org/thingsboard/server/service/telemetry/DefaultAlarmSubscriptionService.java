@@ -42,6 +42,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
@@ -63,15 +64,14 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
+import org.thingsboard.server.common.msg.notification.trigger.AlarmTrigger;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
 import org.thingsboard.server.dao.alarm.AlarmOperationResult;
 import org.thingsboard.server.dao.alarm.AlarmService;
-import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.entitiy.alarm.TbAlarmCommentService;
-import org.thingsboard.server.dao.notification.trigger.AlarmTrigger;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 
 import java.util.Collection;
@@ -90,7 +90,7 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     private final TbAlarmCommentService alarmCommentService;
     private final TbApiUsageReportClient apiUsageClient;
     private final TbApiUsageStateService apiUsageStateService;
-    private final NotificationRuleProcessingService notificationRuleProcessingService;
+    private final NotificationRuleProcessor notificationRuleProcessor;
 
     @Override
     protected String getExecutorPrefix() {
@@ -276,7 +276,8 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
                     return TbSubscriptionUtils.toAlarmUpdateProto(tenantId, entityId, alarm);
                 });
             }
-            notificationRuleProcessingService.process(tenantId, AlarmTrigger.builder()
+            notificationRuleProcessor.process(AlarmTrigger.builder()
+                    .tenantId(tenantId)
                     .alarmUpdate(result)
                     .build());
         });
@@ -293,7 +294,8 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
                     return TbSubscriptionUtils.toAlarmDeletedProto(tenantId, entityId, alarm);
                 });
             }
-            notificationRuleProcessingService.process(tenantId, AlarmTrigger.builder()
+            notificationRuleProcessor.process(AlarmTrigger.builder()
+                    .tenantId(tenantId)
                     .alarmUpdate(result)
                     .build());
         });

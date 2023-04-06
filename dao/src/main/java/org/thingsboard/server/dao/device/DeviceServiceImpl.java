@@ -82,6 +82,7 @@ import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.device.provision.ProvisionResponseStatus;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -131,6 +132,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
     @Autowired
     private DataValidator<Device> deviceValidator;
+
+    @Autowired
+    private EntityCountService countService;
 
     @Override
     public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
@@ -256,6 +260,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             publishEvictEvent(deviceCacheEvictEvent);
             if (device.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+                countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
             }
             return savedDevice;
         } catch (Exception t) {
@@ -334,6 +339,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         deviceDao.removeById(tenantId, deviceId.getId());
 
         publishEvictEvent(deviceCacheEvictEvent);
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.DEVICE);
     }
 
     @Override
@@ -567,6 +573,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         }
 
         publishEvictEvent(new DeviceCacheEvictEvent(savedDevice.getTenantId(), savedDevice.getId(), provisionRequest.getDeviceName(), null));
+        countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
         return savedDevice;
     }
 
