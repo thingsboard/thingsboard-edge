@@ -97,7 +97,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
     //For system administrator
     @Test
     public void testTenantsCountWsCmd() throws Exception {
-        loginSysAdmin();
+        Long initialCount = getInitialEntityCount(EntityType.TENANT);
 
         List<Tenant> tenants = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -112,7 +112,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(101, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (Tenant tenant : tenants) {
             doDelete("/api/tenant/" + tenant.getId().toString());
@@ -121,7 +121,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testTenantProfilesCountWsCmd() throws Exception {
-        loginSysAdmin();
+        Long initialCount = getInitialEntityCount(EntityType.TENANT_PROFILE);
 
         List<TenantProfile> tenantProfiles = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -136,7 +136,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(101, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (TenantProfile tenantProfile : tenantProfiles) {
             doDelete("/api/tenantProfile/" + tenantProfile.getId().toString());
@@ -145,7 +145,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testUsersCountWsCmd() throws Exception {
-        loginSysAdmin();
+        Long initialCount = getInitialEntityCount(EntityType.USER);
 
         List<User> users = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -162,7 +162,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(103, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (User user : users) {
             doDelete("/api/user/" + user.getId().toString());
@@ -171,6 +171,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testCustomersCountWsCmd() throws Exception {
+        Long initialCount = getInitialEntityCount(EntityType.CUSTOMER);
         loginTenantAdmin();
 
         List<Customer> customers = new ArrayList<>();
@@ -187,7 +188,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(101, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         loginTenantAdmin();
         for (Customer customer : customers) {
@@ -197,6 +198,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testDevicesCountWsCmd() throws Exception {
+        Long initialCount = getInitialEntityCount(EntityType.DEVICE);
         loginTenantAdmin();
 
         List<Device> devices = new ArrayList<>();
@@ -213,7 +215,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(100, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         loginTenantAdmin();
         for (Device device : devices) {
@@ -223,6 +225,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testAssetsCountWsCmd() throws Exception {
+        Long initialCount = getInitialEntityCount(EntityType.ASSET);
         loginTenantAdmin();
 
         List<Asset> assets = new ArrayList<>();
@@ -239,7 +242,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(100, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         loginTenantAdmin();
         for (Asset asset : assets) {
@@ -468,6 +471,15 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
         usageInfo = doGet("/api/usage", UsageInfo.class);
         Assert.assertEquals(dashboards.size(), usageInfo.getDashboards());
+    }
+
+    private Long getInitialEntityCount(EntityType entityType) throws Exception {
+        loginSysAdmin();
+
+        EntityTypeFilter allEntityFilter = new EntityTypeFilter();
+        allEntityFilter.setEntityType(entityType);
+        EntityCountQuery query = new EntityCountQuery(allEntityFilter);
+        return doPostWithResponse("/api/entitiesQuery/count", query, Long.class);
     }
 
     private OAuth2Info createDefaultOAuth2Info() {
