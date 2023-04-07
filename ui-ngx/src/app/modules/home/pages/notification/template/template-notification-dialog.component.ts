@@ -103,7 +103,7 @@ export class TemplateNotificationDialogComponent
 
     if (isDefinedAndNotNull(this.data?.predefinedType)) {
       this.hideSelectType = true;
-      this.templateNotificationForm.get('notificationType').setValue(this.data.predefinedType, {emitEvents: false});
+      this.templateNotificationForm.get('notificationType').setValue(this.data.predefinedType, {emitEvent: false});
     }
 
     if (data.isAdd || data.isCopy) {
@@ -114,6 +114,8 @@ export class TemplateNotificationDialogComponent
     if (this.templateNotification) {
       if (this.data.isCopy) {
         this.templateNotification.name += ` (${this.translate.instant('action.copy')})`;
+      } else {
+        this.templateNotificationForm.get('notificationType').disable({emitEvent: false});
       }
       this.templateNotificationForm.reset({}, {emitEvent: false});
       this.templateNotificationForm.patchValue(this.templateNotification, {emitEvent: false});
