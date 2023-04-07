@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.notification;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -47,9 +48,11 @@ import org.thingsboard.server.dao.entity.EntityDaoService;
 import org.thingsboard.server.dao.notification.cache.NotificationRuleCacheKey;
 import org.thingsboard.server.dao.notification.cache.NotificationRuleCacheValue;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -111,6 +114,7 @@ public class DefaultNotificationRuleService extends AbstractCachedEntityService<
                 .getNotificationRules();
     }
 
+    @Transactional
     @Override
     public void deleteNotificationRuleById(TenantId tenantId, NotificationRuleId id) {
         NotificationRule notificationRule = findNotificationRuleById(tenantId, id);
@@ -121,6 +125,14 @@ public class DefaultNotificationRuleService extends AbstractCachedEntityService<
     @Override
     public void deleteNotificationRulesByTenantId(TenantId tenantId) {
         notificationRuleDao.removeByTenantId(tenantId);
+
+        List<NotificationRuleCacheKey> cacheKeys = Arrays.stream(NotificationRuleTriggerType.values())
+                .map(triggerType -> NotificationRuleCacheKey.builder()
+                        .tenantId(tenantId)
+                        .triggerType(triggerType)
+                        .build())
+                .collect(Collectors.toList());
+        cache.evict(cacheKeys);
     }
 
     @Override
