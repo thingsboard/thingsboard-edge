@@ -47,7 +47,7 @@ import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import java.util.UUID;
 
 @Service
-@ConditionalOnMissingBean(NotificationRuleProcessor.class)
+@ConditionalOnMissingBean(value = NotificationRuleProcessor.class, ignored = RemoteNotificationRuleProcessor.class)
 @RequiredArgsConstructor
 public class RemoteNotificationRuleProcessor implements NotificationRuleProcessor {
 
