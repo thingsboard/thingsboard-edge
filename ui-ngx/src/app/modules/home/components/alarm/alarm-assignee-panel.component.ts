@@ -80,6 +80,8 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
 
   assigneeId?: string;
 
+  reassigned: boolean = false;
+
   selectUserFormGroup: FormGroup;
 
   @ViewChild('userInput', {static: true}) userInput: ElementRef;
@@ -145,12 +147,18 @@ export class AlarmAssigneePanelComponent implements  OnInit, AfterViewInit, OnDe
 
   assign(user: User): void {
     this.alarmService.assignAlarm(this.alarmId, user.id.id, {ignoreLoading: true}).subscribe(
-      () => this.overlayRef.dispose());
+      () => {
+        this.reassigned = true;
+        this.overlayRef.dispose()
+      });
   }
 
   unassign(): void {
     this.alarmService.unassignAlarm(this.alarmId, {ignoreLoading: true}).subscribe(
-      () => this.overlayRef.dispose());
+      () => {
+        this.reassigned = true;
+        this.overlayRef.dispose()
+      });
   }
 
   fetchUsers(searchText?: string): Observable<Array<UserEmailInfo>> {
