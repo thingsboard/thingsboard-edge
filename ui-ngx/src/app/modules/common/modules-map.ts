@@ -124,8 +124,9 @@ import * as HelpComponent from '@shared/components/help.component';
 import * as HelpMarkdownComponent from '@shared/components/help-markdown.component';
 import * as HelpPopupComponent from '@shared/components/help-popup.component';
 import * as DeviceGatewayCommandComponent from '@shared/components/device/device-gateway-command.component';
-import * as Gateway from '@shared/components/device/gateway-configuration.component';
 import * as GatewayRemoteConfigurationDialogComponent from '@shared/components/dialog/gateway-remote-configuration-dialog';
+import * as GatewayConfigurationComponent from '@shared/components/device/gateway-configuration.component';
+import * as GatewayConnectorComponent from '@shared/components/device/gateway-connectors.component';
 import * as TbCheckboxComponent from '@shared/components/tb-checkbox.component';
 import * as TbToast from '@shared/components/toast.directive';
 import * as TbErrorComponent from '@shared/components/tb-error.component';
@@ -359,8 +360,6 @@ import * as AssetProfileDialogComponent from '@home/components/profile/asset-pro
 import * as AssetProfileAutocompleteComponent from '@home/components/profile/asset-profile-autocomplete.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
-import { GatewayConfigurationComponent } from '@shared/components/device/gateway-configuration.component';
-import { GatewayConnectorComponent } from '@shared/components/device/gateway-connectors.component';
 
 declare const System;
 

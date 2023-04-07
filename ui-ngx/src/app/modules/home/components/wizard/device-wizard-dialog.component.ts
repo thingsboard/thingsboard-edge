@@ -46,7 +46,8 @@ import { Router } from '@angular/router';
 import {
   createDeviceProfileConfiguration,
   createDeviceProfileTransportConfiguration,
-  Device, DeviceCredentials,
+  Device,
+  DeviceCredentials,
   DeviceProfile,
   DeviceProfileInfo,
   DeviceProfileType,
