@@ -47,6 +47,7 @@ import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_CUSTOMER_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_CUSTOMER_MESSAGE;
+import static org.thingsboard.server.msa.ui.utils.Const.TITLE_IS_REQUIRED_MESSAGE;
 
 public class CreateCustomerTest extends AbstractDriverBaseTest {
 
@@ -140,8 +141,10 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomerWithoutName() {
         sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
+        customerPage.addBtnC().click();
 
-        Assert.assertFalse(customerPage.addBtnV().isEnabled());
+        Assert.assertTrue(customerPage.addEntityView().isDisplayed(), "Add entity view steel open");
+        Assert.assertEquals(customerPage.errorMessage().getText(), "Title is required.", "Error message");
     }
 
     @Epic("Customers smoke tests")
