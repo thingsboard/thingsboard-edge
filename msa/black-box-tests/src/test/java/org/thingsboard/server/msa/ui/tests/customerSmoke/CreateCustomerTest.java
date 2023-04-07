@@ -47,7 +47,6 @@ import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_CUSTOMER_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_CUSTOMER_MESSAGE;
-import static org.thingsboard.server.msa.ui.utils.Const.TITLE_IS_REQUIRED_MESSAGE;
 
 public class CreateCustomerTest extends AbstractDriverBaseTest {
 
