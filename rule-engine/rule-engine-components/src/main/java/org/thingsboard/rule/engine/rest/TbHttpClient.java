@@ -67,10 +67,6 @@ import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
-import org.thingsboard.server.common.data.blob.BlobEntity;
-import org.thingsboard.server.common.data.id.BlobEntityId;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
