@@ -124,7 +124,7 @@ import * as HelpComponent from '@shared/components/help.component';
 import * as HelpMarkdownComponent from '@shared/components/help-markdown.component';
 import * as HelpPopupComponent from '@shared/components/help-popup.component';
 import * as DeviceGatewayCommandComponent from '@shared/components/device/device-gateway-command.component';
-import * as GatewayConnectorComponent from '@shared/components/device/gateway-connector.component';
+import * as Gateway from '@shared/components/device/gateway-configuration.component';
 import * as GatewayRemoteConfigurationDialogComponent from '@shared/components/dialog/gateway-remote-configuration-dialog';
 import * as TbCheckboxComponent from '@shared/components/tb-checkbox.component';
 import * as TbToast from '@shared/components/toast.directive';
@@ -272,11 +272,15 @@ import * as TenantProfileDataComponent from '@home/components/profile/tenant-pro
 import * as DefaultDeviceProfileConfigurationComponent from '@home/components/profile/device/default-device-profile-configuration.component';
 import * as DeviceProfileConfigurationComponent from '@home/components/profile/device/device-profile-configuration.component';
 import * as DeviceProfileComponent from '@home/components/profile/device-profile.component';
+// eslint-disable-next-line max-len
 import * as DefaultDeviceProfileTransportConfigurationComponent from '@home/components/profile/device/default-device-profile-transport-configuration.component';
+// eslint-disable-next-line max-len
 import * as DeviceProfileTransportConfigurationComponent from '@home/components/profile/device/device-profile-transport-configuration.component';
 import * as DeviceProfileDialogComponent from '@home/components/profile/device-profile-dialog.component';
 import * as DeviceProfileAutocompleteComponent from '@home/components/profile/device-profile-autocomplete.component';
+// eslint-disable-next-line max-len
 import * as MqttDeviceProfileTransportConfigurationComponent from '@home/components/profile/device/mqtt-device-profile-transport-configuration.component';
+// eslint-disable-next-line max-len
 import * as CoapDeviceProfileTransportConfigurationComponent from '@home/components/profile/device/coap-device-profile-transport-configuration.component';
 import * as DeviceProfileAlarmsComponent from '@home/components/profile/alarm/device-profile-alarms.component';
 import * as DeviceProfileAlarmComponent from '@home/components/profile/alarm/device-profile-alarm.component';
@@ -355,6 +359,8 @@ import * as AssetProfileDialogComponent from '@home/components/profile/asset-pro
 import * as AssetProfileAutocompleteComponent from '@home/components/profile/asset-profile-autocomplete.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
+import { GatewayConfigurationComponent } from '@shared/components/device/gateway-configuration.component';
+import { GatewayConnectorComponent } from '@shared/components/device/gateway-connectors.component';
 
 declare const System;
 
@@ -457,7 +463,8 @@ class ModulesMap implements IModulesMap {
     '@shared/components/help-markdown.component': HelpMarkdownComponent,
     '@shared/components/help-popup.component': HelpPopupComponent,
     '@shared/components/device/device-gateway-command.component': DeviceGatewayCommandComponent,
-    '@shared/components/device/gateway-connector.component': GatewayConnectorComponent,
+    '@shared/components/device/gateway-configuration.component': GatewayConfigurationComponent,
+    '@shared/components/device/gateway-connectors.component': GatewayConnectorComponent,
     '@shared/components/device/gateway-remote-configuration-dialog': GatewayRemoteConfigurationDialogComponent,
     '@shared/components/tb-checkbox.component': TbCheckboxComponent,
     '@shared/components/toast.directive': TbToast,

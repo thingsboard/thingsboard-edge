@@ -110,11 +110,11 @@ export const securityTypesTranslationsMap = new Map<SecurityTypes, string>(
 );
 
 @Component({
-  selector: 'tb-gateway-connector',
-  templateUrl: './gateway-connector.component.html',
-  styleUrls: ['./gateway-connector.component.scss']
+  selector: 'tb-gateway-configuration',
+  templateUrl: './gateway-configuration.component.html',
+  styleUrls: ['./gateway-configuration.component.scss']
 })
-export class GatewayConnectorComponent implements OnInit {
+export class GatewayConfigurationComponent implements OnInit {
 
   gatewayConfigGroup: FormGroup;
 

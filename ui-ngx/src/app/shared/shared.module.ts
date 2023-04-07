@@ -207,12 +207,11 @@ import { TbScriptLangComponent } from '@shared/components/script-lang.component'
 import { NotificationComponent } from '@shared/components/notification/notification.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
 import { DeviceGatewayCommandComponent } from '@shared/components/device/device-gateway-command.component';
-import { GatewayConnectorComponent } from '@shared/components/device/gateway-connector.component';
+import { GatewayConfigurationComponent } from '@shared/components/device/gateway-configuration.component';
 import { GatewayRemoteConfigurationDialogComponent } from '@shared/components/dialog/gateway-remote-configuration-dialog';
+import { GatewayConnectorComponent } from '@shared/components/device/gateway-connectors.component';
 
-export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
-  return markedOptionsService;
-}
+export const MarkedOptionsFactory = (markedOptionsService: MarkedOptionsService) => markedOptionsService;
 
 @NgModule({
   providers: [
@@ -279,6 +278,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HelpMarkdownComponent,
     HelpPopupComponent,
     DeviceGatewayCommandComponent,
+    GatewayConfigurationComponent,
     GatewayConnectorComponent,
     GatewayRemoteConfigurationDialogComponent,
     TbCheckboxComponent,
@@ -464,6 +464,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     HelpMarkdownComponent,
     HelpPopupComponent,
     DeviceGatewayCommandComponent,
+    GatewayConfigurationComponent,
     GatewayConnectorComponent,
     GatewayRemoteConfigurationDialogComponent,
     TbCheckboxComponent,
