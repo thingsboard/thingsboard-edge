@@ -338,6 +338,7 @@ public class SmartRetailInstallTest extends AbstractSolutionTemplateTest {
     public void smartRetailOpenInstruction() {
         testRestClient.postSmartRetail();
         sideBarMenuView.solutionTemplates().click();
+        refreshPage();
         solutionTemplatesHomePage.smartRetailInstructionBtn().click();
 
         assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());

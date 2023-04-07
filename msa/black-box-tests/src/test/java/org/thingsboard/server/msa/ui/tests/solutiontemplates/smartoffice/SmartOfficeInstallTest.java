@@ -218,6 +218,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
     public void smartOfficeOpenInstruction() {
         testRestClient.postSmartOffice();
         sideBarMenuView.solutionTemplates().click();
+        refreshPage();
         solutionTemplatesHomePage.smartOfficeInstructionBtn().click();
 
         assertIsDisplayed(solutionTemplatesInstalledView.solutionTemplateInstalledPopUp());
@@ -228,6 +229,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
     public void smartOfficeCloseInstruction() {
         testRestClient.postSmartOffice();
         sideBarMenuView.solutionTemplates().click();
+        refreshPage();
         solutionTemplatesHomePage.smartOfficeInstructionBtn().click();
         WebElement element = solutionTemplatesInstalledView.solutionTemplateInstalledPopUp();
         solutionTemplatesInstalledView.closeBtn().click();
@@ -253,6 +255,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
     public void smartOfficeInstructionGoToMainDashboard() {
         testRestClient.postSmartOffice();
         sideBarMenuView.solutionTemplates().click();
+        refreshPage();
         solutionTemplatesHomePage.smartOfficeInstructionBtn().click();
         solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
