@@ -445,3 +445,11 @@ service:
   integrations:
     supported: "${TB_SERVICE_INTEGRATIONS_SUPPORTED:ALL}"
     excluded: "${TB_SERVICE_INTEGRATIONS_EXCLUDED:NONE}"
+
+# Usage statistics parameters
+usage:
+  stats:
+    report:
+      enabled: "${USAGE_STATS_REPORT_ENABLED:true}"
+      enabled_per_customer: "${USAGE_STATS_REPORT_PER_CUSTOMER_ENABLED:false}"
+      interval: "${USAGE_STATS_REPORT_INTERVAL:10}"

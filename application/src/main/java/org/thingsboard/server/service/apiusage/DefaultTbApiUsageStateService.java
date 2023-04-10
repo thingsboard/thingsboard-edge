@@ -150,6 +150,9 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     @Value("${usage.stats.check.cycle:60000}")
     private long nextCycleCheckInterval;
 
+    @Value("${usage.stats.gauge_report_interval:180000}")
+    private long gaugeReportInterval;
+
     private final Lock updateLock = new ReentrantLock();
 
     @PostConstruct
@@ -513,6 +516,7 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
                     }
                 }
             }
+            state.setGaugeReportInterval(gaugeReportInterval);
             log.debug("[{}] Initialized state: {}", ownerId, storedState);
             TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, ownerId);
             if (tpi.isMyPartition()) {
