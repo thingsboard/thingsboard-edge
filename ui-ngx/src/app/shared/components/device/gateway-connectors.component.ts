@@ -104,6 +104,9 @@ export class GatewayConnectorComponent implements OnInit {
     this.gatewayConnectorsGroup = this.fb.group({
       connectors: this.fb.array([], [Validators.required])
     });
+    this.gatewayConnectorsGroup.valueChanges.subscribe(_=>{
+      this.cd.detectChanges();
+    });
     this.getConnectorsData();
   }
 
@@ -148,6 +151,9 @@ export class GatewayConnectorComponent implements OnInit {
     ]).subscribe(_=> {
       if (this.dialogRef) {
         this.dialogRef.close();
+      } else {
+        this.gatewayConnectorsGroup.markAsPristine();
+        this.cd.detectChanges();
       }
     });
   }
