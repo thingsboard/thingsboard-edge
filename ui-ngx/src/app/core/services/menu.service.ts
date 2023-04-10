@@ -606,6 +606,14 @@ export class MenuService {
           /* @voba - merge comment - these sections should not be visible on edge
           {
             id: guid(),
+            name: 'admin.notifications',
+            type: 'link',
+            path: '/settings/notifications',
+            icon: 'mdi:message-badge',
+            isMdiIcon: true
+          },
+          {
+            id: guid(),
             name: 'admin.repository',
             type: 'link',
             path: '/settings/repository',

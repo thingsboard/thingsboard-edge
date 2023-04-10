@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.data.notification.info;
+package org.thingsboard.server.service.ws.telemetry.cmd.v2;
 
 import lombok.Data;
 
-import java.util.Collections;
-import java.util.Map;
-
 @Data
-public class UserOriginatedNotificationInfo implements NotificationInfo {
+public class AlarmCountUnsubscribeCmd implements UnsubscribeCmd {
 
-    private String description;
-
-    @Override
-    public Map<String, String> getTemplateData() {
-        return Collections.emptyMap();
-    }
+    private final int cmdId;
 
 }

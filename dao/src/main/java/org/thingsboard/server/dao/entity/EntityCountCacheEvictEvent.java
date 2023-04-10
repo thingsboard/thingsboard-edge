@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.dao.entity;
 
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public interface NotificationRuleTrigger {
-
-    NotificationRuleTriggerType getType();
-
-    EntityId getOriginatorEntityId();
-
+@Data
+@RequiredArgsConstructor
+class EntityCountCacheEvictEvent {
+    private final TenantId tenantId;
+    private final EntityType entityType;
 }

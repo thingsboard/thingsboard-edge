@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.usage;
 
-import lombok.Data;
+import org.thingsboard.server.common.data.UsageInfo;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
-public class ApiUsageStateMailMessage {
-    private final ApiUsageRecordKey key;
-    private final long threshold;
-    private final long value;
+public interface UsageInfoService {
+
+    UsageInfo getUsageInfo(TenantId tenantId);
+
 }

@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.service.ws.telemetry.cmd.v2;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
-import org.thingsboard.server.common.msg.TbMsg;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import org.thingsboard.server.common.data.query.AlarmCountQuery;
 
-public interface NotificationRuleProcessingService {
+public class AlarmCountCmd extends DataCmd {
 
-    void process(TenantId tenantId, NotificationRuleTrigger trigger);
+    @Getter
+    private final AlarmCountQuery query;
 
-    void process(TenantId tenantId, TbMsg ruleEngineMsg);
-
+    @JsonCreator
+    public AlarmCountCmd(@JsonProperty("cmdId") int cmdId,
+                         @JsonProperty("query") AlarmCountQuery query) {
+        super(cmdId);
+        this.query = query;
+    }
 }

@@ -13,28 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data;
 
-import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.UpdateMessage;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
-@Builder
-public class NewPlatformVersionTrigger implements NotificationRuleTrigger {
+public class UsageInfo {
+    private long devices;
+    private long maxDevices;
+    private long assets;
+    private long maxAssets;
+    private long customers;
+    private long maxCustomers;
+    private long users;
+    private long maxUsers;
+    private long dashboards;
+    private long maxDashboards;
 
-    private final UpdateMessage message;
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
-    }
-
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return TenantId.SYS_TENANT_ID;
-    }
-
+    private long transportMessages;
+    private long maxTransportMessages;
+    private long jsExecutions;
+    private long maxJsExecutions;
+    private long emails;
+    private long maxEmails;
+    private long sms;
+    private long maxSms;
+    private long alarms;
+    private long maxAlarms;
 }

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.notification.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 @Builder
 public class RuleEngineComponentLifecycleEventTrigger implements NotificationRuleTrigger {
 
+    private final TenantId tenantId;
     private final RuleChainId ruleChainId;
     private final String ruleChainName;
     private final EntityId componentId;

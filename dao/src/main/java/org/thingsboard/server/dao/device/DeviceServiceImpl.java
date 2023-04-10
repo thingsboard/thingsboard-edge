@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.device.provision.ProvisionFailedException;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.device.provision.ProvisionResponseStatus;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -112,6 +113,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
     @Autowired
     private DataValidator<Device> deviceValidator;
+
+    @Autowired
+    private EntityCountService countService;
 
     @Override
     public DeviceInfo findDeviceInfoById(TenantId tenantId, DeviceId deviceId) {
@@ -237,6 +241,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
             Device result = deviceDao.saveAndFlush(device.getTenantId(), device);
             publishEvictEvent(deviceCacheEvictEvent);
+            if (device.getId() == null) {
+                countService.publishCountEntityEvictEvent(result.getTenantId(), EntityType.DEVICE);
+            }
             return result;
         } catch (Exception t) {
             handleEvictEvent(deviceCacheEvictEvent);
@@ -330,8 +337,8 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         deviceDao.removeById(tenantId, deviceId.getId());
 
         publishEvictEvent(deviceCacheEvictEvent);
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.DEVICE);
     }
-
 
     @Override
     public PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink) {
@@ -613,6 +620,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         }
 
         publishEvictEvent(new DeviceCacheEvictEvent(savedDevice.getTenantId(), savedDevice.getId(), provisionRequest.getDeviceName(), null));
+        countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
         return savedDevice;
     }
 

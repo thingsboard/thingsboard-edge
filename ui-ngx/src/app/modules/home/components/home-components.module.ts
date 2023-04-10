@@ -177,7 +177,6 @@ import { AssetProfileDialogComponent } from '@home/components/profile/asset-prof
 import { AssetProfileAutocompleteComponent } from '@home/components/profile/asset-profile-autocomplete.component';
 import { MODULES_MAP } from '@shared/models/constants';
 import { modulesMap } from '@modules/common/modules-map';
-import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
 import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
@@ -329,7 +328,6 @@ import { SendNotificationButtonComponent } from '@home/components/notification/s
       RateLimitsComponent,
       RateLimitsTextComponent,
       RateLimitsDetailsDialogComponent,
-      SlackConversationAutocompleteComponent,
       SendNotificationButtonComponent
     ],
   imports: [
@@ -472,7 +470,6 @@ import { SendNotificationButtonComponent } from '@home/components/notification/s
     RateLimitsComponent,
     RateLimitsTextComponent,
     RateLimitsDetailsDialogComponent,
-    SlackConversationAutocompleteComponent,
     SendNotificationButtonComponent
   ],
   providers: [
