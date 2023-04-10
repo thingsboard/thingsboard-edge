@@ -50,7 +50,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -67,6 +66,7 @@ import org.thingsboard.rule.engine.credentials.CredentialsType;
 import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -263,7 +263,7 @@ public class TbHttpClient {
         return uri;
     }
 
-    String getData(TbContext ctx, TbMsg msg) {
+    private String getData(TbContext ctx, TbMsg msg) {
         String data = msg.getData();
 
         List<BlobEntityId> attachments = new ArrayList<>();
@@ -284,7 +284,7 @@ public class TbHttpClient {
             }
         }
 
-        if ("true".equals(msg.getMetaData().getValue("trimDoubleQuotes"))) {
+        if (config.isTrimDoubleQuotes()) {
             final String dataBefore = data;
             data = data.replaceAll("^\"|\"$", "");;
             log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
