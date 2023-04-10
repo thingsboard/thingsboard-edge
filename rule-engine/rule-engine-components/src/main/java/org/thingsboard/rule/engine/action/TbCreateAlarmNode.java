@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,13 +32,11 @@ package org.thingsboard.rule.engine.action;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -46,10 +44,12 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.alarm.AlarmUpdateRequest;
+import org.thingsboard.server.common.data.alarm.AlarmCreateOrUpdateActiveRequest;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,16 +72,16 @@ import java.util.List;
 )
 public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConfiguration> {
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
     private List<String> relationTypes;
     private AlarmSeverity notDynamicAlarmSeverity;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         super.init(ctx, configuration);
-        if(!this.config.isDynamicSeverity()) {
+        if (!this.config.isDynamicSeverity()) {
             this.notDynamicAlarmSeverity = EnumUtils.getEnum(AlarmSeverity.class, this.config.getSeverity());
-            if(this.notDynamicAlarmSeverity == null) {
+            if (this.notDynamicAlarmSeverity == null) {
                 throw new TbNodeException("Incorrect Alarm Severity value: " + this.config.getSeverity());
             }
         }
@@ -113,15 +113,12 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
             }
         }
 
-        ListenableFuture<Alarm> latest = ctx.getAlarmService().findLatestByOriginatorAndType(ctx.getTenantId(), msg.getOriginator(), alarmType);
-        return Futures.transformAsync(latest, existingAlarm -> {
-            if (existingAlarm == null || existingAlarm.getStatus().isCleared()) {
-                return createNewAlarm(ctx, msg, msgAlarm);
-            } else {
-                return updateAlarm(ctx, msg, existingAlarm, msgAlarm);
-            }
-        }, ctx.getDbCallbackExecutor());
-
+        Alarm existingAlarm = ctx.getAlarmService().findLatestActiveByOriginatorAndType(ctx.getTenantId(), msg.getOriginator(), alarmType);
+        if (existingAlarm == null || existingAlarm.getStatus().isCleared()) {
+            return createNewAlarm(ctx, msg, msgAlarm);
+        } else {
+            return updateAlarm(ctx, msg, existingAlarm, msgAlarm);
+        }
     }
 
     private Alarm getAlarmFromMessage(TbContext ctx, TbMsg msg) throws IOException {
@@ -130,9 +127,6 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         msgAlarm.setTenantId(ctx.getTenantId());
         if (msgAlarm.getOriginator() == null) {
             msgAlarm.setOriginator(msg.getOriginator());
-        }
-        if (msgAlarm.getStatus() == null) {
-            msgAlarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         }
         return msgAlarm;
     }
@@ -146,7 +140,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
-        ListenableFuture<Alarm> asyncAlarm =  Futures.transform(asyncDetails, details -> {
+        ListenableFuture<Alarm> asyncAlarm = Futures.transform(asyncDetails, details -> {
             if (buildDetails) {
                 ctx.logJsEvalResponse();
             }
@@ -161,9 +155,9 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
             }
             return newAlarm;
         }, MoreExecutors.directExecutor());
-        ListenableFuture<Alarm> asyncCreated = Futures.transform(asyncAlarm,
-                alarm -> ctx.getAlarmService().createOrUpdateAlarm(alarm), ctx.getDbCallbackExecutor());
-        return Futures.transform(asyncCreated, alarm -> new TbAlarmResult(true, false, false, alarm), MoreExecutors.directExecutor());
+        ListenableFuture<AlarmApiCallResult> asyncCreated = Futures.transform(asyncAlarm,
+                alarm -> ctx.getAlarmService().createAlarm(AlarmCreateOrUpdateActiveRequest.fromAlarm(alarm)), ctx.getDbCallbackExecutor());
+        return Futures.transform(asyncCreated, TbAlarmResult::fromAlarmResult, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<TbAlarmResult> updateAlarm(TbContext ctx, TbMsg msg, Alarm existingAlarm, Alarm msgAlarm) {
@@ -175,7 +169,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         } else {
             asyncDetails = Futures.immediateFuture(null);
         }
-        ListenableFuture<Alarm> asyncUpdated = Futures.transform(asyncDetails, (Function<JsonNode, Alarm>) details -> {
+        ListenableFuture<AlarmApiCallResult> asyncUpdated = Futures.transform(asyncDetails, details -> {
             if (buildDetails) {
                 ctx.logJsEvalResponse();
             }
@@ -201,10 +195,9 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 existingAlarm.setDetails(details);
             }
             existingAlarm.setEndTs(System.currentTimeMillis());
-            return ctx.getAlarmService().createOrUpdateAlarm(existingAlarm);
+            return ctx.getAlarmService().updateAlarm(AlarmUpdateRequest.fromAlarm(existingAlarm));
         }, ctx.getDbCallbackExecutor());
-
-        return Futures.transform(asyncUpdated, a -> new TbAlarmResult(false, true, false, a), MoreExecutors.directExecutor());
+        return Futures.transform(asyncUpdated, TbAlarmResult::fromAlarmResult, MoreExecutors.directExecutor());
     }
 
     private Alarm buildAlarm(TbMsg msg, JsonNode details, TenantId tenantId) {
@@ -212,7 +205,8 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         return Alarm.builder()
                 .tenantId(tenantId)
                 .originator(msg.getOriginator())
-                .status(AlarmStatus.ACTIVE_UNACK)
+                .cleared(false)
+                .acknowledged(false)
                 .severity(this.config.isDynamicSeverity() ? processAlarmSeverity(msg) : notDynamicAlarmSeverity)
                 .propagate(config.isPropagate())
                 .propagateToOwner(config.isPropagateToOwner())
@@ -228,7 +222,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
 
     private AlarmSeverity processAlarmSeverity(TbMsg msg) {
         AlarmSeverity severity = EnumUtils.getEnum(AlarmSeverity.class, TbNodeUtils.processPattern(this.config.getSeverity(), msg));
-        if(severity == null) {
+        if (severity == null) {
             throw new RuntimeException("Used incorrect pattern or Alarm Severity not included in message");
         }
         return severity;

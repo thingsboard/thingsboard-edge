@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,15 +56,13 @@ import java.util.concurrent.ExecutionException;
         type = ComponentType.ENRICHMENT,
         name = "fetch device credentials",
         configClazz = TbFetchDeviceCredentialsNodeConfiguration.class,
-        nodeDescription = "Fetch device credentials for message originator",
+        nodeDescription = "Enrich the message body or metadata with the device credentials",
         nodeDetails = "Adds <b>credentialsType</b> and <b>credentials</b> properties to the message metadata if the " +
                 "configuration parameter <b>fetchToMetadata</b> is set to <code>true</code>, otherwise, adds properties " +
                 "to the message data. If originator type is not <b>DEVICE</b> or rule node failed to get device credentials " +
                 "- send Message via <code>Failure</code> chain, otherwise <code>Success</code> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbEnrichmentNodeFetchDeviceCredentialsConfig",
-        icon = "functions"
-)
+        configDirective = "tbEnrichmentNodeFetchDeviceCredentialsConfig")
 public class TbFetchDeviceCredentialsNode implements TbNode {
 
     private static final String CREDENTIALS = "credentials";

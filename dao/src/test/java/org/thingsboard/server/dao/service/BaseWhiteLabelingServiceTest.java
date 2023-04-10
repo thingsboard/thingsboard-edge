@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,34 +30,33 @@
  */
 package org.thingsboard.server.dao.service;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 
-public abstract class BaseWhiteLabelingServiceTest extends AbstractBeforeTest {
+public abstract class BaseWhiteLabelingServiceTest extends AbstractServiceTest {
 
-    private TenantId tenantId;
+    @Autowired
+    CustomerService customerService;
+    @Autowired
+    WhiteLabelingService whiteLabelingService;
+
     private CustomerId customerId;
 
     @Before
     public void beforeRun() {
-        tenantId = before();
         Customer customer = new Customer();
         customer.setTenantId(tenantId);
         customer.setTitle("My customer");
         customerId = customerService.saveCustomer(customer).getId();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test

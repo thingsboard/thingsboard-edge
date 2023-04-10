@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,7 +71,7 @@ export class SolutionInstallDialogComponent extends
 
   gotoMainDashboard(): void {
     if (this.solutionInstallResponse.dashboardGroupId && this.solutionInstallResponse.dashboardId) {
-      const url = this.router.createUrlTree(['dashboardGroups', this.solutionInstallResponse.dashboardGroupId.id,
+      const url = this.router.createUrlTree(['dashboards', 'groups', this.solutionInstallResponse.dashboardGroupId.id,
         this.solutionInstallResponse.dashboardId.id]);
       this.dialogRef.close();
       this.router.navigateByUrl(url);

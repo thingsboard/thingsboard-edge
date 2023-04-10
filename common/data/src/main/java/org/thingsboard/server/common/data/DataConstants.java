@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -92,7 +92,11 @@ public class DataConstants {
     public static final String TIMESERIES_DELETED = "TIMESERIES_DELETED";
     public static final String ALARM_ACK = "ALARM_ACK";
     public static final String ALARM_CLEAR = "ALARM_CLEAR";
+    public static final String ALARM_ASSIGN = "ALARM_ASSIGN";
+    public static final String ALARM_UNASSIGN = "ALARM_UNASSIGN";
     public static final String ALARM_DELETE = "ALARM_DELETE";
+    public static final String COMMENT_CREATED = "COMMENT_CREATED";
+    public static final String COMMENT_UPDATED = "COMMENT_UPDATED";
     public static final String ENTITY_ASSIGNED_FROM_TENANT = "ENTITY_ASSIGNED_FROM_TENANT";
     public static final String ENTITY_ASSIGNED_TO_TENANT = "ENTITY_ASSIGNED_TO_TENANT";
     public static final String PROVISION_SUCCESS = "PROVISION_SUCCESS";
@@ -143,6 +147,15 @@ public class DataConstants {
     public static final String UPDATE_SOFTWARE = "updateSoftware";
 
     public static final String SELF_REGISTRATION_DOMAIN_NAME_PREFIX = "selfRegistrationDomainNamePrefix_";
+    public static final String RULE_NODE_STATE_PREFIX = "RuleNodeState_";
 
     public static final String LAST_CONNECTED_GATEWAY = "lastConnectedGateway";
+
+    public static final String MAIN_QUEUE_NAME = "Main";
+    public static final String MAIN_QUEUE_TOPIC = "tb_rule_engine.main";
+    public static final String HP_QUEUE_NAME = "HighPriority";
+    public static final String HP_QUEUE_TOPIC = "tb_rule_engine.hp";
+    public static final String SQ_QUEUE_NAME = "SequentialByOriginator";
+    public static final String SQ_QUEUE_TOPIC = "tb_rule_engine.sq";
+
 }

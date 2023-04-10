@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,34 +31,33 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.OWNER_NOT_SELECTED_ERROR;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 
 public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
-    private final String title = ENTITY_NAME;
-    private final String title1 = ENTITY_NAME + '1';
+    private final String title = ENTITY_NAME + random();
+    private final String title1 = ENTITY_NAME + random() + '1';
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -67,34 +66,37 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         testRestClient.deleteCustomer(getCustomerByName(title).getId());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner")
     public void changeOwner() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.checkBox(title1).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwner(title);
-        customerPage.waitUntilCustomerNotVisible(title1);
         customerPage.manageCustomerGroupsBtn(title).click();
-        customerPage.entity("All").click();
 
         Assert.assertNotNull(customerPage.entity(title1));
         Assert.assertTrue(customerPage.entity(title1).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner without select customer")
     public void changeOwnerWithoutName() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.checkBox(title).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().click();
         customerPage.changeOwnerViewField().sendKeys(Keys.ESCAPE);
+        jsClick(customerPage.changeOwnerViewChangeOwnerBtnVisible());
 
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
         Assert.assertNotNull(customerPage.errorMessage());
@@ -102,12 +104,14 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.errorMessage().getText(), OWNER_NOT_SELECTED_ERROR);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner with only space")
     public void changeOwnerWithOnlySpace() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.checkBox(title).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().sendKeys(" ");
@@ -115,22 +119,22 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         Assert.assertFalse(customerPage.changeOwnerViewChangeOwnerBtnVisible().isEnabled());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Change customer owner")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Change owner several customers")
     public void changeOwnerSeveralCustomers() {
         String title3 = title + '2';
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
         testRestClient.postCustomer(defaultCustomerPrototype(title3));
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.checkBox(title1).click();
         customerPage.checkBox(title3).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwner(title);
-        customerPage.waitUntilCustomerNotVisible(title1);
         customerPage.manageCustomerGroupsBtn(title).click();
-        customerPage.entity("All").click();
 
         Assert.assertNotNull(customerPage.entity(title1));
         Assert.assertNotNull(customerPage.entity(title3));

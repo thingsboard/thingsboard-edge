@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,11 +50,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,6 +64,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -72,6 +74,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_ID_PARAM_DESCRIPTION;
@@ -81,10 +84,13 @@ import static org.thingsboard.server.controller.ControllerConstants.ASSET_PROFIL
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ASSET_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -97,7 +103,6 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_D
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
-import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 @RestController
 @TbCoreComponent
@@ -122,12 +127,24 @@ public class AssetController extends BaseController {
     public Asset getAssetById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION, required = true)
                               @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
         checkParameter(ASSET_ID, strAssetId);
-        try {
-            AssetId assetId = new AssetId(toUUID(strAssetId));
-            return checkAssetId(assetId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        AssetId assetId = new AssetId(toUUID(strAssetId));
+        return checkAssetId(assetId, Operation.READ);
+    }
+
+    @ApiOperation(value = "Get Asset Info (getAssetInfoById)",
+            notes = "Fetch the Asset Info object based on the provided Asset Id. " +
+                    "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
+                    "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer."
+                    + ASSET_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK
+            , produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/asset/info/{assetId}", method = RequestMethod.GET)
+    @ResponseBody
+    public AssetInfo getAssetInfoById(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION, required = true)
+                                      @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+        checkParameter(ASSET_ID, strAssetId);
+        AssetId assetId = new AssetId(toUUID(strAssetId));
+        return checkAssetInfoId(assetId, Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update Asset (saveAsset)",
@@ -144,11 +161,13 @@ public class AssetController extends BaseController {
             @ApiParam(value = "A JSON value representing the asset.", required = true)
             @RequestBody Asset asset,
             @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @ApiParam(value = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+            @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
+        return saveGroupEntity(asset, strEntityGroupId, strEntityGroupIds, (asset1, entityGroups) -> {
             try {
-                return tbAssetService.save(asset, entityGroup, user);
+                return tbAssetService.save(asset, entityGroups, user);
             } catch (Exception e) {
                 throw handleException(e);
             }
@@ -187,17 +206,13 @@ public class AssetController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(assetService.findAssetsByTenantIdAndType(tenantId, type, pageLink));
-            } else {
-                return checkNotNull(assetService.findAssetsByTenantId(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(assetService.findAssetsByTenantIdAndType(tenantId, type, pageLink));
+        } else {
+            return checkNotNull(assetService.findAssetsByTenantId(tenantId, pageLink));
         }
     }
 
@@ -211,13 +226,9 @@ public class AssetController extends BaseController {
     public Asset getTenantAsset(
             @ApiParam(value = ASSET_NAME_DESCRIPTION)
             @RequestParam String assetName) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(assetService.findAssetByTenantIdAndName(tenantId, assetName));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        return checkNotNull(assetService.findAssetByTenantIdAndName(tenantId, assetName));
     }
 
     @ApiOperation(value = "Get Customer Assets (getCustomerAssets)",
@@ -242,19 +253,15 @@ public class AssetController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-            } else {
-                return checkNotNull(assetService.findAssetsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+        } else {
+            return checkNotNull(assetService.findAssetsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
         }
     }
 
@@ -279,14 +286,118 @@ public class AssetController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            SecurityUser currentUser = getCurrentUser();
-            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
-            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ASSET,
-                    Operation.READ, type, pageLink);
-        } catch (Exception e) {
-            throw handleException(e);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        SecurityUser currentUser = getCurrentUser();
+        MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+        return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ASSET,
+                Operation.READ, type, pageLink);
+    }
+
+    @ApiOperation(value = "Get All Asset Infos for current user (getAllAssetInfos)",
+            notes = "Returns a page of asset info objects owned by the tenant or the customer of a current user. "
+                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/assetInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<AssetInfo> getAllAssetInfos(
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
+            @RequestParam(required = false) String assetProfileId,
+            @ApiParam(value = ASSET_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ASSET_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (includeCustomers != null && includeCustomers) {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));
+                } else {
+                    return checkNotNull(assetService.findAssetInfosByTenantId(tenantId, pageLink));
+                }
+            } else {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findTenantAssetInfosByTenantIdAndAssetProfileId(tenantId, profileId, pageLink));
+                } else {
+                    return checkNotNull(assetService.findTenantAssetInfosByTenantId(tenantId, pageLink));
+                }
+            }
+        } else {
+            CustomerId customerId = getCurrentUser().getCustomerId();
+            if (includeCustomers != null && includeCustomers) {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
+                } else {
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                }
+            } else {
+                if (assetProfileId != null && assetProfileId.length() > 0) {
+                    AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));
+                } else {
+                    return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
+        }
+    }
+
+    @ApiOperation(value = "Get Customer Asset Infos (getCustomerAssetInfos)",
+            notes = "Returns a page of asset info objects owned by the specified customer. "
+                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customer/{customerId}/assetInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<AssetInfo> getCustomerAssetInfos(
+            @ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(CUSTOMER_ID) String strCustomerId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS)
+            @RequestParam(required = false) Boolean includeCustomers,
+            @ApiParam(value = ASSET_PROFILE_ID_PARAM_DESCRIPTION)
+            @RequestParam(required = false) String assetProfileId,
+            @ApiParam(value = ASSET_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = ASSET_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (includeCustomers != null && includeCustomers) {
+            if (assetProfileId != null && assetProfileId.length() > 0) {
+                AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
+            } else {
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+            }
+        } else {
+            if (assetProfileId != null && assetProfileId.length() > 0) {
+                AssetProfileId profileId = new AssetProfileId(toUUID(assetProfileId));
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerIdAndAssetProfileId(tenantId, customerId, profileId, pageLink));
+            } else {
+                return checkNotNull(assetService.findAssetInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
         }
     }
 
@@ -297,20 +408,16 @@ public class AssetController extends BaseController {
     @ResponseBody
     public List<Asset> getAssetsByIds(
             @ApiParam(value = "A list of asset ids, separated by comma ','", required = true)
-            @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException {
+            @RequestParam("assetIds") String[] strAssetIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("assetIds", strAssetIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<AssetId> assetIds = new ArrayList<>();
-            for (String strAssetId : strAssetIds) {
-                assetIds.add(new AssetId(toUUID(strAssetId)));
-            }
-            List<Asset> assets = checkNotNull(assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds).get());
-            return filterAssetsByReadPermission(assets);
-        } catch (Exception e) {
-            throw handleException(e);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<AssetId> assetIds = new ArrayList<>();
+        for (String strAssetId : strAssetIds) {
+            assetIds.add(new AssetId(toUUID(strAssetId)));
         }
+        List<Asset> assets = checkNotNull(assetService.findAssetsByTenantIdAndIdsAsync(tenantId, assetIds).get());
+        return filterAssetsByReadPermission(assets);
     }
 
     @ApiOperation(value = "Find related assets (findByQuery)",
@@ -320,17 +427,13 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assets", method = RequestMethod.POST)
     @ResponseBody
-    public List<Asset> findByQuery(@RequestBody AssetSearchQuery query) throws ThingsboardException {
+    public List<Asset> findByQuery(@RequestBody AssetSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
         checkNotNull(query);
         checkNotNull(query.getParameters());
         checkNotNull(query.getAssetTypes());
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
-        try {
-            List<Asset> assets = checkNotNull(assetService.findAssetsByQuery(getTenantId(), query).get());
-            return filterAssetsByReadPermission(assets);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        List<Asset> assets = checkNotNull(assetService.findAssetsByQuery(getTenantId(), query).get());
+        return filterAssetsByReadPermission(assets);
     }
 
     @ApiOperation(value = "Get assets by Entity Group Id (getAssetsByEntityGroupId)",
@@ -356,12 +459,8 @@ public class AssetController extends BaseController {
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
         checkEntityGroupType(EntityType.ASSET, entityGroup.getType());
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(assetService.findAssetsByEntityGroupId(entityGroupId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(assetService.findAssetsByEntityGroupId(entityGroupId, pageLink));
     }
 
     private List<Asset> filterAssetsByReadPermission(List<Asset> assets) {
@@ -379,15 +478,11 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/types", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntitySubtype> getAssetTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> assetTypes = assetService.findAssetTypesByTenantId(tenantId);
-            return checkNotNull(assetTypes.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+    public List<EntitySubtype> getAssetTypes() throws ThingsboardException, ExecutionException, InterruptedException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        ListenableFuture<List<EntitySubtype>> assetTypes = assetService.findAssetTypesByTenantId(tenantId);
+        return checkNotNull(assetTypes.get());
     }
 
     @ApiOperation(value = "Import the bulk of assets (processAssetsBulkImport)",

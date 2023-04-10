@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import {
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { mergeMap } from 'rxjs/operators';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
 
 export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
@@ -78,7 +79,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService,
               private params: ActivatedRouteSnapshot | RuleChainParams) {
-    super();
+    super((params as any)?.hierarchyView ? undefined : resolveGroupParams(params as any));
 
     this.entityType = EntityType.RULE_CHAIN;
     this.entityComponent = RuleChainComponent;
@@ -107,7 +108,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       if (this.isDetailsOpen()) {
         this.toggleEntityDetails($event, ruleChain);
       } else {
-        this.openRuleChain($event, ruleChain);
+        this.openRuleChain($event, ruleChain, this.componentsData);
       }
       return true;
     };
@@ -159,11 +160,11 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       );
     } else if (ruleChainScope === 'edges') {
       columns.push(
-        new EntityTableColumn<RuleChain>('root', 'rulechain.edge-template-root', '60px',
+        new EntityTableColumn<RuleChain>('root', 'rulechain.edge-template-root', '70px',
           entity => {
             return checkBoxCell(entity.root);
           }),
-        new EntityTableColumn<RuleChain>('assignToEdge', 'rulechain.assign-to-edge', '60px',
+        new EntityTableColumn<RuleChain>('assignToEdge', 'rulechain.assign-to-edge', '70px',
           entity => {
             return checkBoxCell(this.isAutoAssignToEdgeRuleChain(entity));
           })

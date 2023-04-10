@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantProfileType;
 
 @AllArgsConstructor
@@ -64,6 +65,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
 
     private String tenantEntityExportRateLimit;
     private String tenantEntityImportRateLimit;
+    private String tenantNotificationRequestsRateLimit;
 
     private long maxTransportMessages;
     private long maxTransportDataPoints;
@@ -123,6 +125,31 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     @Override
     public long getWarnThreshold(ApiUsageRecordKey key) {
         return (long) (getProfileThreshold(key) * (warnThreshold > 0.0 ? warnThreshold : 0.8));
+    }
+
+    public long getEntitiesLimit(EntityType entityType) {
+        switch (entityType) {
+            case DEVICE:
+                return maxDevices;
+            case ASSET:
+                return maxAssets;
+            case CUSTOMER:
+                return maxCustomers;
+            case USER:
+                return maxUsers;
+            case DASHBOARD:
+                return maxDashboards;
+            case RULE_CHAIN:
+                return maxRuleChains;
+            case INTEGRATION:
+                return maxIntegrations;
+            case CONVERTER:
+                return maxConverters;
+            case SCHEDULER_EVENT:
+                return maxSchedulerEvents;
+            default:
+                return 0;
+        }
     }
 
     @Override

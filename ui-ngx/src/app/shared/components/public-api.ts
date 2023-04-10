@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,3 +35,5 @@ export * from './page.component';
 export * from './dialog.component';
 export * from './js-func.component';
 export * from './script-lang.component';
+export * from './slack-conversation-autocomplete.component';
+export * from './notification/template-autocomplete.component';

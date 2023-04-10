@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,13 +55,13 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
     private final DashboardService dashboardService;
 
     @Override
-    public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, User user) throws Exception {
+    public Dashboard save(Dashboard dashboard, List<EntityGroup> entityGroups, User user) throws Exception {
         ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = dashboard.getTenantId();
         try {
             Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
             autoCommit(user, savedDashboard.getId());
-            createOrUpdateGroupEntity(tenantId, savedDashboard, entityGroup, actionType, user);
+            createOrUpdateGroupEntity(tenantId, savedDashboard, entityGroups, actionType, user);
             return savedDashboard;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), dashboard, actionType, user, e);

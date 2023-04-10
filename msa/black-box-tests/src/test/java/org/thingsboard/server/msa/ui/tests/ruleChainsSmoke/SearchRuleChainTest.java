@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,8 +31,10 @@
 package org.thingsboard.server.msa.ui.tests.ruleChainsSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
@@ -40,8 +42,6 @@ import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultRuleChainPrototype;
 
 public class SearchRuleChainTest extends AbstractDriverBaseTest {
@@ -49,17 +49,17 @@ public class SearchRuleChainTest extends AbstractDriverBaseTest {
     private SideBarMenuViewElements sideBarMenuView;
     private RuleChainsPageHelper ruleChainsPage;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
         ruleChainsPage = new RuleChainsPageHelper(driver);
     }
 
+    @Epic("Rule chains smoke tests")
+    @Feature("Search rule chain")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "ruleChainNameForSearchByFirstAndSecondWord")
-    @Description
+    @Description("Search rule chain by first word in the name/Search rule chain by second word in the name")
     public void searchFirstWord(String namePath) {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.searchEntity(namePath);
@@ -68,8 +68,10 @@ public class SearchRuleChainTest extends AbstractDriverBaseTest {
         Assert.assertTrue(ruleChainsPage.getRuleChainName().contains(namePath));
     }
 
+    @Epic("Rule chains smoke tests")
+    @Feature("Search rule chain")
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
-    @Description
+    @Description("Search rule chain by symbol in the name/Search rule chain by number in the name")
     public void searchNumber(String name, String namePath) {
         testRestClient.postRuleChain(defaultRuleChainPrototype(name));
 

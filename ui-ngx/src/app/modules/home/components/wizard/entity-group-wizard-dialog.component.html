@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,59 +30,59 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div>
-  <mat-toolbar color="primary">
-    <h2 translate>entity-group.add</h2>
-    <span fxFlex></span>
-    <div [tb-help]="'entityGroups'"></div>
-    <button mat-icon-button
-            (click)="cancel()"
-            type="button">
-      <mat-icon class="material-icons">close</mat-icon>
-    </button>
-  </mat-toolbar>
-  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
-  </mat-progress-bar>
-  <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
-  <div mat-dialog-content>
-    <mat-horizontal-stepper [linear]="true" [labelPosition]="labelPosition" #addEntityGroupWizardStepper (selectionChange)="changeStep($event)">
-      <ng-template matStepperIcon="edit">
-        <mat-icon>check</mat-icon>
-      </ng-template>
-      <mat-step [stepControl]="entityGroupWizardFormGroup">
-        <form [formGroup]="entityGroupWizardFormGroup" style="padding-bottom: 16px;">
-          <ng-template matStepLabel>{{ 'entity-group.entity-group-details' | translate}}</ng-template>
-          <fieldset [disabled]="isLoading$ | async">
-            <mat-form-field class="mat-block">
-              <mat-label translate>entity-group.name</mat-label>
-              <input matInput formControlName="name" required>
-              <mat-error *ngIf="entityGroupWizardFormGroup.get('name').hasError('required')">
-                {{ 'entity-group.name-required' | translate }}
-              </mat-error>
-              <mat-error *ngIf="entityGroupWizardFormGroup.get('name').hasError('maxlength')">
-              {{ 'entity-group.name-max-length' | translate }}
-              </mat-error>
-            </mat-form-field>
-            <mat-form-field class="mat-block">
-              <mat-label translate>entity-group.description</mat-label>
-              <textarea matInput formControlName="description" rows="2"></textarea>
-            </mat-form-field>
-          </fieldset>
-        </form>
-      </mat-step>
-      <mat-step [stepControl]="shareEntityGroupFormGroup" [optional]="true">
-        <form [formGroup]="shareEntityGroupFormGroup" style="padding-bottom: 16px;">
-          <ng-template matStepLabel>{{ 'entity-group.share' | translate }}</ng-template>
-          <mat-checkbox style="padding-bottom: 16px;" formControlName="shareEntityGroup">{{ 'entity-group.share' | translate }}</mat-checkbox>
-          <tb-share-entity-group
-            *ngIf="shareEntityGroupFormGroup.get('shareEntityGroup').value"
-            formControlName="shareGroupRequest">
-          </tb-share-entity-group>
-        </form>
-      </mat-step>
-    </mat-horizontal-stepper>
-  </div>
-  <div mat-dialog-actions fxLayout="row">
+<mat-toolbar color="primary">
+  <h2 translate>entity-group.add</h2>
+  <span fxFlex></span>
+  <div [tb-help]="'entityGroups'"></div>
+  <button mat-icon-button
+          (click)="cancel()"
+          type="button">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+</mat-toolbar>
+<mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+</mat-progress-bar>
+<div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+<div mat-dialog-content>
+  <mat-horizontal-stepper [linear]="true" [labelPosition]="labelPosition" #addEntityGroupWizardStepper (selectionChange)="changeStep($event)">
+    <ng-template matStepperIcon="edit">
+      <mat-icon>check</mat-icon>
+    </ng-template>
+    <mat-step [stepControl]="entityGroupWizardFormGroup">
+      <form [formGroup]="entityGroupWizardFormGroup" style="padding-bottom: 16px;">
+        <ng-template matStepLabel>{{ 'entity-group.entity-group-details' | translate}}</ng-template>
+        <fieldset [disabled]="isLoading$ | async">
+          <mat-form-field class="mat-block">
+            <mat-label translate>entity-group.name</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-error *ngIf="entityGroupWizardFormGroup.get('name').hasError('required')">
+              {{ 'entity-group.name-required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="entityGroupWizardFormGroup.get('name').hasError('maxlength')">
+            {{ 'entity-group.name-max-length' | translate }}
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>entity-group.description</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+        </fieldset>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="shareEntityGroupFormGroup" [optional]="true">
+      <form [formGroup]="shareEntityGroupFormGroup">
+        <ng-template matStepLabel>{{ 'entity-group.share' | translate }}</ng-template>
+        <mat-checkbox formControlName="shareEntityGroup">{{ 'entity-group.share' | translate }}</mat-checkbox>
+        <tb-share-entity-group
+          *ngIf="shareEntityGroupFormGroup.get('shareEntityGroup').value"
+          formControlName="shareGroupRequest">
+        </tb-share-entity-group>
+      </form>
+    </mat-step>
+  </mat-horizontal-stepper>
+</div>
+<div mat-dialog-actions style="padding: 0">
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutAlign="end center">
     <button mat-stroked-button *ngIf="selectedIndex > 0"
             [disabled]="(isLoading$ | async)"
             (click)="previousStep()">{{ 'action.back' | translate }}</button>
@@ -93,8 +93,8 @@
             [disabled]="(isLoading$ | async)"
             (click)="nextStep()">{{ 'action.next-with-label' | translate:{label: (getFormLabel(this.selectedIndex+1) | translate)} }}</button>
   </div>
-  <mat-divider></mat-divider>
-  <div mat-dialog-actions fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end">
+  <mat-divider style="width: 100%"></mat-divider>
+  <div class="dialog-actions-row" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="end center">
     <button mat-button
             [disabled]="(isLoading$ | async)"
             (click)="cancel()">{{ 'action.cancel' | translate }}</button>

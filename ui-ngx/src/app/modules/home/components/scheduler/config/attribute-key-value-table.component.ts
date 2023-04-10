@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,13 +29,13 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR,
   ValidatorFn,
   Validators
@@ -43,8 +43,9 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-attribute-key-value-table',
@@ -58,7 +59,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
     }
   ]
 })
-export class AttributeKeyValueTableComponent extends PageComponent implements ControlValueAccessor, OnInit {
+export class AttributeKeyValueTableComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
@@ -75,25 +76,34 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
     this.requiredValue = coerceBooleanProperty(value);
   }
 
-  kvListFormGroup: FormGroup;
+  kvListFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
   ngOnInit(): void {
-    this.kvListFormGroup = this.fb.group({});
-    this.kvListFormGroup.addControl('keyVals',
-      this.fb.array([]));
+    this.kvListFormGroup = this.fb.group({
+      keyVals: this.fb.array([])
+    });
+
+    this.kvListFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  keyValsFormArray(): FormArray {
-    return this.kvListFormGroup.get('keyVals') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  keyValsFormArray(): UntypedFormArray {
+    return this.kvListFormGroup.get('keyVals') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -113,9 +123,6 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
   }
 
   writeValue(keyValMap: {[key: string]: string}): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const keyValsControls: Array<AbstractControl> = [];
     if (keyValMap) {
       for (const property of Object.keys(keyValMap)) {
@@ -127,18 +134,15 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
         }
       }
     }
-    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls));
-    this.valueChangeSubscription = this.kvListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
+    this.kvListFormGroup.setControl('keyVals', this.fb.array(keyValsControls), {emitEvent: false});
   }
 
   public removeKeyVal(index: number) {
-    (this.kvListFormGroup.get('keyVals') as FormArray).removeAt(index);
+    (this.kvListFormGroup.get('keyVals') as UntypedFormArray).removeAt(index);
   }
 
   public addKeyVal() {
-    const keyValsFormArray = this.kvListFormGroup.get('keyVals') as FormArray;
+    const keyValsFormArray = this.kvListFormGroup.get('keyVals') as UntypedFormArray;
     keyValsFormArray.push(this.fb.group({
       key: ['', [Validators.required]],
       value: ['', [Validators.required]]

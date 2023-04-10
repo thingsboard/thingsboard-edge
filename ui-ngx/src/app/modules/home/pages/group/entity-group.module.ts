@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,13 +41,10 @@ import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
 import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 import { UserModule } from '@home/pages/user/user.module';
 import { CustomerModule } from '@home/pages/customer/customer.module';
-import { CustomersHierarchyComponent } from './customers-hierarchy.component';
 import { EdgeModule } from '@home/pages/edge/edge.module';
 
 @NgModule({
-  declarations: [
-    CustomersHierarchyComponent
-  ],
+  declarations: [],
   imports: [
     CommonModule,
     SharedModule,

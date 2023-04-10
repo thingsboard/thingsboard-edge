@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,8 @@ package org.thingsboard.server.dao.dashboard;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
@@ -53,6 +55,8 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
      */
     PageData<DashboardInfo> findDashboardsByTenantId(UUID tenantId, PageLink pageLink);
 
+    PageData<DashboardInfo> findTenantDashboardsByTenantId(UUID tenantId, PageLink pageLink);
+
     /**
      * Find dashboards not hidden for mobile by tenantId and page link.
      *
@@ -71,6 +75,8 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
      * @return the list of dashboard objects
      */
     PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
+
+    PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink);
 
     /**
      * Find dashboards not hidden for mobile by tenantId, customerId and page link.
@@ -99,4 +105,5 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
 
     DashboardInfo findFirstByTenantIdAndName(UUID tenantId, String name);
 
+    String findTitleById(UUID tenantId, UUID dashboardId);
 }

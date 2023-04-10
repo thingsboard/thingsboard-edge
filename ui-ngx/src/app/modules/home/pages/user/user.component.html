@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -40,14 +40,14 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'disableAccount')"
-          *ngIf="resource.USER | hasGenericPermission: operation.WRITE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
           [fxShow]="!isEdit && isUserCredentialPresent() && isUserCredentialsEnabled()">
     {{'user.disable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'enableAccount')"
-          *ngIf="resource.USER | hasGenericPermission: operation.WRITE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
           [fxShow]="!isEdit && isUserCredentialPresent() && !isUserCredentialsEnabled()">
     {{'user.enable-account' | translate }}
   </button>
@@ -72,8 +72,15 @@
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageOwnerAndGroups')"
+          *ngIf="(isSysAdmin$ | async) === false && canManageOwnerAndGroups()"
+          [fxShow]="!isEdit">
+    {{'entity-group.manage-owner-and-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          *ngIf="resource.USER | hasGenericPermission: operation.DELETE"
+          *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit">
     {{'user.delete' | translate }}
   </button>
@@ -110,6 +117,11 @@
         <mat-label translate>user.last-name</mat-label>
         <input matInput formControlName="lastName">
       </mat-form-field>
+      <tb-phone-input [required]="false"
+                      label="{{ 'contact.phone' | translate }}"
+                      [enableFlagsSelect]="true"
+                      formControlName="phone">
+      </tb-phone-input>
       <div formGroupName="additionalInfo" fxLayout="column">
         <mat-form-field class="mat-block">
           <mat-label translate>user.description</mat-label>
@@ -119,7 +131,7 @@
           <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
-              placeholder="{{ 'user.default-dashboard' | translate }}"
+              label="{{ 'user.default-dashboard' | translate }}"
               formControlName="defaultDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
@@ -131,7 +143,7 @@
           <section *ngIf="(isSysAdmin$ | async) || (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
-              placeholder="{{ 'dashboard.home-dashboard' | translate }}"
+              label="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
@@ -144,4 +156,5 @@
       </div>
     </fieldset>
   </form>
+  <tb-group-entity-info *ngIf="(isSysAdmin$ | async) === false && !isEdit" [groupEntity]="entity"></tb-group-entity-info>
 </div>

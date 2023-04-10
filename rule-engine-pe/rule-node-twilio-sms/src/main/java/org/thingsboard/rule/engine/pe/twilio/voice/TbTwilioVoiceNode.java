@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.rule.engine.pe.twilio.voice;
 
-import com.twilio.Twilio;
+import com.twilio.http.TwilioRestClient;
 import com.twilio.rest.api.v2010.account.Call;
 import com.twilio.twiml.VoiceResponse;
 import com.twilio.twiml.voice.Pause;
@@ -39,13 +39,13 @@ import com.twilio.twiml.voice.SsmlProsody;
 import com.twilio.type.PhoneNumber;
 import com.twilio.type.Twiml;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -69,11 +69,12 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 public class TbTwilioVoiceNode implements TbNode {
 
     private TbTwilioVoiceNodeConfiguration config;
+    private TwilioRestClient twilioRestClient;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbTwilioVoiceNodeConfiguration.class);
-        Twilio.init(this.config.getAccountSid(), this.config.getAccountToken());
+        this.twilioRestClient = new TwilioRestClient.Builder(this.config.getAccountSid(), this.config.getAccountToken()).build();
     }
 
     @Override
@@ -128,7 +129,7 @@ public class TbTwilioVoiceNode implements TbNode {
                     new PhoneNumber(numberTo.trim()),
                     new PhoneNumber(numberFrom.trim()),
                     new Twiml(response.toXml())
-            ).create();
+            ).create(this.twilioRestClient);
         }
     }
 

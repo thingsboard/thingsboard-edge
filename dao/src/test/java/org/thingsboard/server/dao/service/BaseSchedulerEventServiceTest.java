@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,17 +31,16 @@
 package org.thingsboard.server.dao.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,23 +51,12 @@ import java.util.List;
  */
 public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest {
 
+    @Autowired
+    EdgeService edgeService;
+    @Autowired
+    SchedulerEventService schedulerEventService;
+
     private IdComparator<SchedulerEvent> idComparator = new IdComparator<>();
-
-    private TenantId tenantId;
-
-    @Before
-    public void before() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        Assert.assertNotNull(savedTenant);
-        tenantId = savedTenant.getId();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
 
     @Test
     public void testFindEdgeSchedulerEventsByTenantIdAndName() {
@@ -139,7 +127,7 @@ public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest 
         }
 
         pageLink = new PageLink(4, 0, name1);
-        pageData = schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(tenantId, savedEdge.getId(), pageLink);;
+        pageData = schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(tenantId, savedEdge.getId(), pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 

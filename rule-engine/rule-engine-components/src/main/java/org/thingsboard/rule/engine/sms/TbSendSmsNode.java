@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,7 +52,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         nodeDescription = "Sends SMS message via SMS provider.",
         nodeDetails = "Will send SMS message by populating target phone numbers and sms message fields using values derived from message metadata.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbActionNodeSendSmsConfig",
+        configDirective = "tbExternalNodeSendSmsConfig",
         icon = "sms"
 )
 public class TbSendSmsNode implements TbNode {

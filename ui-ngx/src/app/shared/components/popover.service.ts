@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import { PopoverPlacement, PopoverWithTrigger } from '@shared/components/popover
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ComponentType } from '@angular/cdk/portal';
 import { HELP_MARKDOWN_COMPONENT_TOKEN } from '@shared/components/tokens';
+import { CdkOverlayOrigin } from '@angular/cdk/overlay';
 
 @Injectable()
 export class TbPopoverService {
@@ -99,7 +100,7 @@ export class TbPopoverService {
       componentRef.location.nativeElement
     );
     const originElementRef = new ElementRef(trigger);
-    component.setOverlayOrigin({ elementRef: originElementRef });
+    component.setOverlayOrigin(new CdkOverlayOrigin(originElementRef));
     component.tbPlacement = preferredPlacement;
     component.tbComponentFactory = this.resolver.resolveComponentFactory(componentType);
     component.tbComponentInjector = injector;
@@ -147,7 +148,7 @@ export class TbPopoverService {
       const originElementRef = new ElementRef(trigger);
       component.tbAnimationState = 'void';
       component.tbOverlayStyle = {...overlayStyle, opacity: '0' };
-      component.setOverlayOrigin({ elementRef: originElementRef });
+      component.setOverlayOrigin(new CdkOverlayOrigin(originElementRef));
       component.tbPlacement = preferredPlacement;
       component.tbComponentFactory = this.resolver.resolveComponentFactory(this.helpMarkdownComponent);
       component.tbComponentInjector = injector;

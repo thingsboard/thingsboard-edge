@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,36 +31,35 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
-
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
-        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Open customer group")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open customer group by click on its name")
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.setEntityGroupName();
         String entityGroupName = customerPage.getEntityGroupName();
         customerPage.entity(entityGroupName).click();
@@ -73,10 +72,12 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entityGroupHeader(entityGroupName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Open customer group")
     @Test(groups = "smoke")
-    @Description
+    @Description("Open customer group by click on 'Open entity group' btn in customer group view")
     public void openWindowByViewBtn() {
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.setEntityGroupName();
         String entityGroupName = customerPage.getEntityGroupName();
         customerPage.detailsBtn(entityGroupName).click();

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -209,8 +209,10 @@ public final class EdgeGrpcSession implements Closeable {
 
     private void doSync(EdgeSyncCursor cursor) {
         if (cursor.hasNext()) {
-            log.info("[{}][{}] starting sync process, cursor current idx = {}", edge.getTenantId(), edge.getId(), cursor.getCurrentIdx());
-            ListenableFuture<UUID> uuidListenableFuture = startProcessingEdgeEvents(cursor.getNext());
+            EdgeEventFetcher next = cursor.getNext();
+            log.info("[{}][{}] starting sync process, cursor current idx = {}, class = {}",
+                    edge.getTenantId(), edge.getId(), cursor.getCurrentIdx(), next.getClass().getSimpleName());
+            ListenableFuture<UUID> uuidListenableFuture = startProcessingEdgeEvents(next);
             Futures.addCallback(uuidListenableFuture, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable UUID result) {
@@ -437,6 +439,7 @@ public final class EdgeGrpcSession implements Closeable {
                     stopCurrentSendDownlinkMsgsTask(null);
                 }
             } catch (Exception e) {
+                log.warn("[{}] Failed to send downlink msgs. Error msg {}", this.sessionId, e.getMessage(), e);
                 stopCurrentSendDownlinkMsgsTask(e);
             }
         };
@@ -469,7 +472,6 @@ public final class EdgeGrpcSession implements Closeable {
                 case RELATION_ADD_OR_UPDATE:
                 case RELATION_DELETED:
                 case CREDENTIALS_REQUEST:
-                case ENTITY_MERGE_REQUEST:
                 case RPC_CALL:
                 case ADDED_TO_ENTITY_GROUP:
                 case REMOVED_FROM_ENTITY_GROUP:
@@ -589,27 +591,27 @@ public final class EdgeGrpcSession implements Closeable {
         try {
             if (uplinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : uplinkMsg.getEntityDataList()) {
-                    result.addAll(ctx.getTelemetryProcessor().processTelemetryFromEdge(edge.getTenantId(), entityData));
+                    result.addAll(ctx.getTelemetryProcessor().processTelemetryMsg(edge.getTenantId(), entityData));
                 }
             }
             if (uplinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : uplinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(ctx.getDeviceProcessor().processDeviceFromEdge(edge.getTenantId(), edge, deviceUpdateMsg));
+                    result.add(ctx.getDeviceProcessor().processDeviceMsgFromEdge(edge.getTenantId(), edge, deviceUpdateMsg));
                 }
             }
             if (uplinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : uplinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(ctx.getDeviceProcessor().processDeviceCredentialsFromEdge(edge.getTenantId(), deviceCredentialsUpdateMsg));
+                    result.add(ctx.getDeviceProcessor().processDeviceCredentialsMsg(edge.getTenantId(), deviceCredentialsUpdateMsg));
                 }
             }
             if (uplinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : uplinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(ctx.getAlarmProcessor().processAlarmFromEdge(edge.getTenantId(), alarmUpdateMsg));
+                    result.add(ctx.getAlarmProcessor().processAlarmMsg(edge.getTenantId(), alarmUpdateMsg));
                 }
             }
             if (uplinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : uplinkMsg.getRelationUpdateMsgList()) {
-                    result.add(ctx.getRelationProcessor().processRelationFromEdge(edge.getTenantId(), relationUpdateMsg));
+                    result.add(ctx.getRelationProcessor().processRelationMsg(edge.getTenantId(), relationUpdateMsg));
                 }
             }
             if (uplinkMsg.getRuleChainMetadataRequestMsgCount() > 0) {
@@ -725,7 +727,7 @@ public final class EdgeGrpcSession implements Closeable {
     public void stopCurrentSendDownlinkMsgsTask(Exception e) {
         if (sessionState.getSendDownlinkMsgsFuture() != null && !sessionState.getSendDownlinkMsgsFuture().isDone()) {
             if (e != null) {
-                log.warn(e.getMessage(), e);
+                log.debug(e.getMessage());
                 sessionState.getSendDownlinkMsgsFuture().setException(e);
             } else {
                 sessionState.getSendDownlinkMsgsFuture().set(null);

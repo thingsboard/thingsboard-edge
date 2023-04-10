@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Component, ElementRef, Inject, Input, NgZone, OnDestroy, OnInit, ViewCh
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, NgForm, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, NgForm, Validators } from '@angular/forms';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -88,7 +88,7 @@ export class GatewayFormComponent extends PageComponent implements OnInit, OnDes
     private elementRef: ElementRef,
     private utils: UtilsService,
     private ngZone: NgZone,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     @Inject(WINDOW) private window: Window,
     private dialog: MatDialog,
     private translate: TranslateService,
@@ -99,8 +99,8 @@ export class GatewayFormComponent extends PageComponent implements OnInit, OnDes
     super(store);
   }
 
-  get connectors(): FormArray {
-    return this.gatewayConfigurationGroup.get('connectors') as FormArray;
+  get connectors(): UntypedFormArray {
+    return this.gatewayConfigurationGroup.get('connectors') as UntypedFormArray;
   }
 
   @ViewChild('formContainer', {static: true}) formContainerRef: ElementRef<HTMLElement>;
@@ -116,7 +116,7 @@ export class GatewayFormComponent extends PageComponent implements OnInit, OnDes
   alignment = 'row';
   layoutGap = '5px';
   gatewayType: string;
-  gatewayConfigurationGroup: FormGroup;
+  gatewayConfigurationGroup: UntypedFormGroup;
   securityTypes = SecurityTypeTranslationMap;
   gatewayLogLevels = Object.keys(GatewayLogLevel).map(itm => GatewayLogLevel[itm]);
   connectorTypes = Object.keys(ConnectorType);

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -92,6 +92,7 @@ export const HelpLinks = {
     docs: helpBaseUrl + '/docs/pe',
     outgoingMailSettings: helpBaseUrl + '/docs/pe/user-guide/ui/mail-settings',
     smsProviderSettings: helpBaseUrl + '/docs/pe/user-guide/ui/sms-provider-settings',
+    slackSettings: helpBaseUrl + '/docs/pe/user-guide/ui/slack-settings',
     securitySettings: helpBaseUrl + '/docs/pe/user-guide/ui/security-settings',
     oauth2Settings: helpBaseUrl + '/docs/pe/user-guide/oauth-2-support/',
     twoFactorAuthSettings: helpBaseUrl + '/docs/',
@@ -101,6 +102,9 @@ export const HelpLinks = {
     ruleNodeGpsGeofencingFilter: helpBaseUrl + '/docs//pe/user-guide/rule-engine-2-0/filter-nodes/#gps-geofencing-filter-node',
     ruleNodeJsFilter: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#script-filter-node',
     ruleNodeJsSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#switch-node',
+    ruleNodeAssetProfileSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#asset-profile-switch',
+    ruleNodeDeviceProfileSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#device-profile-switch',
+    ruleNodeCheckAlarmStatus: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#check-alarm-status',
     ruleNodeMessageTypeFilter: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#message-type-filter-node',
     ruleNodeMessageTypeSwitch: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#message-type-switch-node',
     ruleNodeOriginatorTypeFilter: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#originator-type-filter-node',

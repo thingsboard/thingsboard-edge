@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import javax.validation.constraints.Min;
 @Data
 public abstract class OtpBasedTwoFaProviderConfig implements TwoFaProviderConfig {
 
-    @Min(value = 1, message = "verification code lifetime is required")
+    @Min(value = 1, message = "is required")
     private int verificationCodeLifetime;
 
 }

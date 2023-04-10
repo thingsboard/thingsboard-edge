@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -128,6 +128,16 @@ public class Validator {
         } else {
             for (UUIDBased id : ids) {
                 validateId(id, errorMessage);
+            }
+        }
+    }
+
+    public static void validateEntityIds(List<EntityId> ids, String errorMessage) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IncorrectParameterException(errorMessage);
+        } else {
+            for (EntityId id : ids) {
+                validateEntityId(id, errorMessage);
             }
         }
     }

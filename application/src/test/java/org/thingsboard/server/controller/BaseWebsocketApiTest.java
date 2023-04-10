@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -50,6 +52,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
@@ -63,12 +66,14 @@ import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
 import org.thingsboard.server.service.subscription.TbAttributeSubscriptionScope;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityCountCmd;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityCountUpdate;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUpdate;
-import org.thingsboard.server.service.telemetry.sub.SubscriptionErrorCode;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountUpdate;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUpdate;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -250,6 +255,74 @@ public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
         EntityCountUpdate update4 = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(4, update4.getCmdId());
         Assert.assertEquals(0, update4.getCount());
+    }
+
+    @Test
+    public void testAlarmCountWsCmd() throws Exception {
+        loginTenantAdmin();
+
+        AlarmCountCmd cmd1 = new AlarmCountCmd(1, new AlarmCountQuery());
+
+        getWsClient().send(cmd1);
+
+        AlarmCountUpdate update = getWsClient().parseAlarmCountReply(getWsClient().waitForReply());
+        Assert.assertEquals(1, update.getCmdId());
+        Assert.assertEquals(0, update.getCount());
+
+        Alarm alarm = new Alarm();
+        alarm.setOriginator(tenantId);
+        alarm.setType("TEST ALARM");
+        alarm.setSeverity(AlarmSeverity.WARNING);
+
+        alarm = doPost("/api/alarm", alarm, Alarm.class);
+
+        AlarmCountCmd cmd2 = new AlarmCountCmd(2, new AlarmCountQuery());
+
+        getWsClient().send(cmd2);
+
+        update = getWsClient().parseAlarmCountReply(getWsClient().waitForReply());
+        Assert.assertEquals(2, update.getCmdId());
+        Assert.assertEquals(1, update.getCount());
+
+        AlarmCountCmd cmd3 = new AlarmCountCmd(3, AlarmCountQuery.builder().assigneeId(tenantAdminUserId).build());
+
+        getWsClient().send(cmd3);
+
+        update = getWsClient().parseAlarmCountReply(getWsClient().waitForReply());
+        Assert.assertEquals(3, update.getCmdId());
+        Assert.assertEquals(0, update.getCount());
+
+        alarm.setAssigneeId(tenantAdminUserId);
+        alarm = doPost("/api/alarm", alarm, Alarm.class);
+
+        AlarmCountCmd cmd4 = new AlarmCountCmd(4, AlarmCountQuery.builder().assigneeId(tenantAdminUserId).build());
+
+        getWsClient().send(cmd4);
+
+        update = getWsClient().parseAlarmCountReply(getWsClient().waitForReply());
+        Assert.assertEquals(4, update.getCmdId());
+        Assert.assertEquals(1, update.getCount());
+
+        AlarmCountCmd cmd5 = new AlarmCountCmd(5,
+                AlarmCountQuery.builder().severityList(Collections.singletonList(AlarmSeverity.CRITICAL)).build());
+
+        getWsClient().send(cmd5);
+
+        update = getWsClient().parseAlarmCountReply(getWsClient().waitForReply());
+        Assert.assertEquals(5, update.getCmdId());
+        Assert.assertEquals(0, update.getCount());
+
+        alarm.setSeverity(AlarmSeverity.CRITICAL);
+        doPost("/api/alarm", alarm, Alarm.class);
+
+        AlarmCountCmd cmd6 = new AlarmCountCmd(6,
+                AlarmCountQuery.builder().severityList(Collections.singletonList(AlarmSeverity.CRITICAL)).build());
+
+        getWsClient().send(cmd6);
+
+        update = getWsClient().parseAlarmCountReply(getWsClient().waitForReply());
+        Assert.assertEquals(6, update.getCmdId());
+        Assert.assertEquals(1, update.getCount());
     }
 
     @Test
@@ -563,7 +636,7 @@ public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
         SingleEntityFilter entityFilter = new SingleEntityFilter();
         entityFilter.setSingleEntity(tenantId);
 
-        assertThatNoException().isThrownBy(() -> {
+        assertThatNoException().as("subscribeForAttributes").isThrownBy(() -> {
             JsonNode update = getWsClient().subscribeForAttributes(tenantId, TbAttributeSubscriptionScope.SERVER_SCOPE.name(), List.of("attr"));
             assertThat(update.get("errorMsg").isNull()).isTrue();
             assertThat(update.get("errorCode").asInt()).isEqualTo(SubscriptionErrorCode.NO_ERROR.getCode());
@@ -575,7 +648,7 @@ public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
                 new BaseAttributeKvEntry(System.currentTimeMillis(), new StringDataEntry("attr", expectedAttrValue))
         ));
         JsonNode update = JacksonUtil.toJsonNode(getWsClient().waitForUpdate());
-        assertThat(update).isNotNull();
+        assertThat(update).as("waitForUpdate").isNotNull();
         assertThat(update.get("data").get("attr").get(0).get(1).asText()).isEqualTo(expectedAttrValue);
     }
 
@@ -584,15 +657,17 @@ public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
         tsService.saveAndNotify(device.getTenantId(), null, device.getId(), tsData, 0, new FutureCallback<Void>() {
             @Override
             public void onSuccess(@Nullable Void result) {
+                log.debug("sendTelemetry callback onSuccess");
                 latch.countDown();
             }
 
             @Override
             public void onFailure(Throwable t) {
+                log.error("Failed to send telemetry", t);
                 latch.countDown();
             }
         });
-        latch.await(3, TimeUnit.SECONDS);
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).as("await sendTelemetry callback");
     }
 
     private void sendAttributes(Device device, TbAttributeSubscriptionScope scope, List<AttributeKvEntry> attrData) throws InterruptedException {
@@ -604,14 +679,16 @@ public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
         tsService.saveAndNotify(tenantId, entityId, scope.name(), attrData, new FutureCallback<Void>() {
             @Override
             public void onSuccess(@Nullable Void result) {
+                log.debug("sendAttributes callback onSuccess");
                 latch.countDown();
             }
 
             @Override
             public void onFailure(Throwable t) {
+                log.error("Failed to sendAttributes", t);
                 latch.countDown();
             }
         });
-        latch.await(3, TimeUnit.SECONDS);
+        assertThat(latch.await(TIMEOUT, TimeUnit.SECONDS)).as("await sendAttributes callback").isTrue();
     }
 }

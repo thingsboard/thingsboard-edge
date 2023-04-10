@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,18 +34,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketService;
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketSessionRef;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityCountUpdate;
+import org.thingsboard.server.service.ws.WebSocketService;
+import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUpdate;
 
 @Slf4j
 public class TbEntityCountSubCtx extends TbAbstractSubCtx<EntityCountQuery> {
 
     private volatile int result;
 
-    public TbEntityCountSubCtx(String serviceId, TelemetryWebSocketService wsService, EntityService entityService,
+    public TbEntityCountSubCtx(String serviceId, WebSocketService wsService, EntityService entityService,
                                TbLocalSubscriptionService localSubscriptionService, AttributesService attributesService,
-                               SubscriptionServiceStatistics stats, TelemetryWebSocketSessionRef sessionRef, int cmdId) {
+                               SubscriptionServiceStatistics stats, WebSocketSessionRef sessionRef, int cmdId) {
         super(serviceId, wsService, entityService, localSubscriptionService, attributesService, stats, sessionRef, cmdId);
     }
 

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -294,7 +294,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               changeOwnerObservables.push(groupIdsObservable);
               entities.forEach((entity) => {
                 changeOwnerObservables.push(
-                  this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, {ignoreErrors}).pipe(
+                  this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, null, {ignoreErrors}).pipe(
                     catchError((err) => {
                       if (ignoreErrors) {
                         return of(null);

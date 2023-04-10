@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EntityComponent } from '@home/components/entity/entity.component';
 import {
   ChecksumAlgorithm,
@@ -54,7 +54,7 @@ import { isNotEmptyStr } from '@core/utils';
 })
 export class OtaUpdateComponent extends EntityComponent<OtaPackage> implements OnInit, OnDestroy {
 
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   checksumAlgorithms = Object.values(ChecksumAlgorithm);
   checksumAlgorithmTranslationMap = ChecksumAlgorithmTranslationMap;
@@ -65,7 +65,7 @@ export class OtaUpdateComponent extends EntityComponent<OtaPackage> implements O
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: OtaPackage,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<OtaPackage>,
-              public fb: FormBuilder,
+              public fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -115,7 +115,7 @@ export class OtaUpdateComponent extends EntityComponent<OtaPackage> implements O
     }
   }
 
-  buildForm(entity: OtaPackage): FormGroup {
+  buildForm(entity: OtaPackage): UntypedFormGroup {
     const form = this.fb.group({
       title: [entity ? entity.title : '', [Validators.required, Validators.maxLength(255)]],
       version: [entity ? entity.version : '', [Validators.required, Validators.maxLength(255)]],

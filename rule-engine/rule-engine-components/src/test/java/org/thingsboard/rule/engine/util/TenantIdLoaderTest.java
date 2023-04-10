@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,10 +67,15 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.notification.NotificationRequest;
+import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rpc.Rpc;
@@ -79,6 +84,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -90,6 +96,11 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -123,6 +134,8 @@ public class TenantIdLoaderTest {
     @Mock
     private RuleEngineAlarmService alarmService;
     @Mock
+    private AlarmCommentService alarmCommentService;
+    @Mock
     private RuleChainService ruleChainService;
     @Mock
     private EntityViewService entityViewService;
@@ -149,6 +162,16 @@ public class TenantIdLoaderTest {
     @Mock
     private RuleEngineApiUsageStateService ruleEngineApiUsageStateService;
     @Mock
+    private NotificationTargetService notificationTargetService;
+    @Mock
+    private NotificationTemplateService notificationTemplateService;
+    @Mock
+    private NotificationRequestService notificationRequestService;
+    @Mock
+    private NotificationService notificationService;
+    @Mock
+    private NotificationRuleService notificationRuleService;
+    @Mock
     private EntityGroupService entityGroupService;
     @Mock
     private ConverterService converterService;
@@ -167,6 +190,7 @@ public class TenantIdLoaderTest {
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
+    private NotificationId notificationId;
     private AbstractListeningExecutor dbExecutor;
 
     @Before
@@ -180,6 +204,7 @@ public class TenantIdLoaderTest {
         dbExecutor.init();
         this.tenantId = new TenantId(UUID.randomUUID());
         this.tenantProfileId = new TenantProfileId(UUID.randomUUID());
+        this.notificationId = new NotificationId(UUID.randomUUID());
 
         when(ctx.getTenantId()).thenReturn(tenantId);
         when(ctx.getPeContext()).thenReturn(tbPeContext);
@@ -197,6 +222,7 @@ public class TenantIdLoaderTest {
     private void initMocks(EntityType entityType, TenantId tenantId) {
         switch (entityType) {
             case TENANT:
+            case NOTIFICATION:
                 break;
             case CUSTOMER:
                 Customer customer = new Customer();
@@ -354,6 +380,30 @@ public class TenantIdLoaderTest {
 
                 when(ctx.getTenantProfile()).thenReturn(tenantProfile);
 
+                break;
+            case NOTIFICATION_TARGET:
+                NotificationTarget notificationTarget = new NotificationTarget();
+                notificationTarget.setTenantId(tenantId);
+                when(ctx.getNotificationTargetService()).thenReturn(notificationTargetService);
+                doReturn(notificationTarget).when(notificationTargetService).findNotificationTargetById(eq(tenantId), any());
+                break;
+            case NOTIFICATION_TEMPLATE:
+                NotificationTemplate notificationTemplate = new NotificationTemplate();
+                notificationTemplate.setTenantId(tenantId);
+                when(ctx.getNotificationTemplateService()).thenReturn(notificationTemplateService);
+                doReturn(notificationTemplate).when(notificationTemplateService).findNotificationTemplateById(eq(tenantId), any());
+                break;
+            case NOTIFICATION_REQUEST:
+                NotificationRequest notificationRequest = new NotificationRequest();
+                notificationRequest.setTenantId(tenantId);
+                when(ctx.getNotificationRequestService()).thenReturn(notificationRequestService);
+                doReturn(notificationRequest).when(notificationRequestService).findNotificationRequestById(eq(tenantId), any());
+                break;
+            case NOTIFICATION_RULE:
+                NotificationRule notificationRule = new NotificationRule();
+                notificationRule.setTenantId(tenantId);
+                when(ctx.getNotificationRuleService()).thenReturn(notificationRuleService);
+                doReturn(notificationRule).when(notificationRuleService).findNotificationRuleById(eq(tenantId), any());
                 break;
             //PE Entities
             case ENTITY_GROUP:
