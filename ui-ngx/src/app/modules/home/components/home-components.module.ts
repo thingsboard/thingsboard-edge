@@ -225,7 +225,6 @@ import { modulesMap } from '@modules/common/modules-map';
 import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
-import { SlackConversationAutocompleteComponent } from '@home/components/notification/slack-conversation-autocomplete.component';
 import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
 import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
@@ -408,7 +407,6 @@ import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups
       IntegrationWizardDialogComponent,
       ConverterComponent,
       ConverterTestDialogComponent,
-      SlackConversationAutocompleteComponent,
       SendNotificationButtonComponent
     ],
   imports: [
@@ -580,7 +578,6 @@ import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups
     RateLimitsListComponent,
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
-    SlackConversationAutocompleteComponent,
     SendNotificationButtonComponent
   ],
   providers: [

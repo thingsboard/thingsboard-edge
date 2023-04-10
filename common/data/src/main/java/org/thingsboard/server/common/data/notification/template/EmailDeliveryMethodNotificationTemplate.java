@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 
 import javax.validation.constraints.NotEmpty;
@@ -60,6 +61,11 @@ public class EmailDeliveryMethodNotificationTemplate extends DeliveryMethodNotif
     @Override
     public EmailDeliveryMethodNotificationTemplate copy() {
         return new EmailDeliveryMethodNotificationTemplate(this);
+    }
+
+    @Override
+    public boolean containsAny(String... params) {
+        return super.containsAny(params) || StringUtils.containsAny(subject, params);
     }
 
 }

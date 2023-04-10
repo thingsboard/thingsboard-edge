@@ -41,11 +41,13 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.UsageInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -64,8 +66,10 @@ import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityCountUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
@@ -87,11 +91,13 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Autowired
     private AdminSettingsService adminSettingsService;
+    @Autowired
+    private TbTenantProfileCache tenantProfileCache;
 
     //For system administrator
     @Test
     public void testTenantsCountWsCmd() throws Exception {
-        loginSysAdmin();
+        Long initialCount = getInitialEntityCount(EntityType.TENANT);
 
         List<Tenant> tenants = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -106,7 +112,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(101, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (Tenant tenant : tenants) {
             doDelete("/api/tenant/" + tenant.getId().toString());
@@ -115,7 +121,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testTenantProfilesCountWsCmd() throws Exception {
-        loginSysAdmin();
+        Long initialCount = getInitialEntityCount(EntityType.TENANT_PROFILE);
 
         List<TenantProfile> tenantProfiles = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -130,7 +136,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(101, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (TenantProfile tenantProfile : tenantProfiles) {
             doDelete("/api/tenantProfile/" + tenantProfile.getId().toString());
@@ -139,7 +145,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testUsersCountWsCmd() throws Exception {
-        loginSysAdmin();
+        Long initialCount = getInitialEntityCount(EntityType.USER);
 
         List<User> users = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
@@ -156,7 +162,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(103, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (User user : users) {
             doDelete("/api/user/" + user.getId().toString());
@@ -165,6 +171,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testCustomersCountWsCmd() throws Exception {
+        Long initialCount = getInitialEntityCount(EntityType.CUSTOMER);
         loginTenantAdmin();
 
         List<Customer> customers = new ArrayList<>();
@@ -181,7 +188,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(101, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         loginTenantAdmin();
         for (Customer customer : customers) {
@@ -191,6 +198,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testDevicesCountWsCmd() throws Exception {
+        Long initialCount = getInitialEntityCount(EntityType.DEVICE);
         loginTenantAdmin();
 
         List<Device> devices = new ArrayList<>();
@@ -207,7 +215,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(100, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         loginTenantAdmin();
         for (Device device : devices) {
@@ -217,6 +225,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
 
     @Test
     public void testAssetsCountWsCmd() throws Exception {
+        Long initialCount = getInitialEntityCount(EntityType.ASSET);
         loginTenantAdmin();
 
         List<Asset> assets = new ArrayList<>();
@@ -233,7 +242,7 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         getWsClient().send(cmd);
         EntityCountUpdate update = getWsClient().parseCountReply(getWsClient().waitForReply());
         Assert.assertEquals(1, update.getCmdId());
-        Assert.assertEquals(100, update.getCount());
+        Assert.assertEquals(initialCount + 100, update.getCount());
 
         loginTenantAdmin();
         for (Asset asset : assets) {
@@ -368,6 +377,109 @@ public abstract class BaseHomePageApiTest extends AbstractControllerTest {
         Assert.assertTrue(featuresInfo.isNotificationEnabled());
         Assert.assertTrue(featuresInfo.isWhiteLabelingEnabled());
         Assert.assertTrue(featuresInfo.isOauthEnabled());
+    }
+
+    @Test
+    public void testUsageInfo() throws Exception {
+        loginTenantAdmin();
+
+        TenantProfile tenantProfile = tenantProfileCache.get(tenantId);
+
+        Assert.assertNotNull(tenantProfile);
+
+        DefaultTenantProfileConfiguration configuration = (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
+
+        UsageInfo usageInfo = doGet("/api/usage", UsageInfo.class);
+        Assert.assertNotNull(usageInfo);
+        Assert.assertEquals(0, usageInfo.getDevices());
+        Assert.assertEquals(configuration.getMaxDevices(), usageInfo.getMaxDevices());
+
+        Assert.assertEquals(0, usageInfo.getAssets());
+        Assert.assertEquals(configuration.getMaxAssets(), usageInfo.getMaxAssets());
+
+        Assert.assertEquals(1, usageInfo.getCustomers());
+        Assert.assertEquals(configuration.getMaxCustomers(), usageInfo.getMaxCustomers());
+
+        Assert.assertEquals(2, usageInfo.getUsers());
+        Assert.assertEquals(configuration.getMaxUsers(), usageInfo.getMaxUsers());
+
+        Assert.assertEquals(0, usageInfo.getDashboards());
+        Assert.assertEquals(configuration.getMaxDashboards(), usageInfo.getMaxDashboards());
+
+        Assert.assertEquals(0, usageInfo.getTransportMessages());
+        Assert.assertEquals(configuration.getMaxTransportMessages(), usageInfo.getMaxTransportMessages());
+
+        Assert.assertEquals(0, usageInfo.getJsExecutions());
+        Assert.assertEquals(configuration.getMaxJSExecutions(), usageInfo.getMaxJsExecutions());
+
+        Assert.assertEquals(0, usageInfo.getEmails());
+        Assert.assertEquals(configuration.getMaxEmails(), usageInfo.getMaxEmails());
+
+        Assert.assertEquals(0, usageInfo.getSms());
+        Assert.assertEquals(configuration.getMaxSms(), usageInfo.getMaxSms());
+
+        Assert.assertEquals(0, usageInfo.getAlarms());
+        Assert.assertEquals(configuration.getMaxCreatedAlarms(), usageInfo.getMaxAlarms());
+
+        List<Device> devices = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Device device = new Device();
+            device.setName("device" + i);
+            devices.add(doPost("/api/device", device, Device.class));
+        }
+
+        usageInfo = doGet("/api/usage", UsageInfo.class);
+        Assert.assertEquals(devices.size(), usageInfo.getDevices());
+
+        List<Asset> assets = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Asset asset = new Asset();
+            asset.setName("asset" + i);
+            assets.add(doPost("/api/asset", asset, Asset.class));
+        }
+
+        usageInfo = doGet("/api/usage", UsageInfo.class);
+        Assert.assertEquals(assets.size(), usageInfo.getAssets());
+
+        List<Customer> customers = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Customer customer = new Customer();
+            customer.setTitle("customer" + i);
+            customers.add(doPost("/api/customer", customer, Customer.class));
+        }
+
+        usageInfo = doGet("/api/usage", UsageInfo.class);
+        Assert.assertEquals(customers.size() + 1, usageInfo.getCustomers());
+
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            User user = new User();
+            user.setAuthority(Authority.TENANT_ADMIN);
+            user.setEmail(i + "user@thingsboard.org");
+            users.add(doPost("/api/user", user, User.class));
+        }
+
+        usageInfo = doGet("/api/usage", UsageInfo.class);
+        Assert.assertEquals(users.size() + 2, usageInfo.getUsers());
+
+        List<Dashboard> dashboards = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Dashboard dashboard = new Dashboard();
+            dashboard.setTitle("dashboard" + i);
+            dashboards.add(doPost("/api/dashboard", dashboard, Dashboard.class));
+        }
+
+        usageInfo = doGet("/api/usage", UsageInfo.class);
+        Assert.assertEquals(dashboards.size(), usageInfo.getDashboards());
+    }
+
+    private Long getInitialEntityCount(EntityType entityType) throws Exception {
+        loginSysAdmin();
+
+        EntityTypeFilter allEntityFilter = new EntityTypeFilter();
+        allEntityFilter.setEntityType(entityType);
+        EntityCountQuery query = new EntityCountQuery(allEntityFilter);
+        return doPostWithResponse("/api/entitiesQuery/count", query, Long.class);
     }
 
     private OAuth2Info createDefaultOAuth2Info() {

@@ -1072,6 +1072,7 @@ message ToCoreMsg {
   CloudNotificationMsgProto cloudNotificationMsg = 8;
   DeviceActivityProto deviceActivityMsg = 9;
   NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 10;
+  NotificationRuleProcessorMsg notificationRuleProcessorMsg = 11;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -1159,4 +1160,8 @@ message NotificationSchedulerServiceMsg {
   int64 requestIdMSB = 3;
   int64 requestIdLSB = 4;
   int64 ts = 5;
+}
+
+message NotificationRuleProcessorMsg {
+  bytes trigger = 1;
 }

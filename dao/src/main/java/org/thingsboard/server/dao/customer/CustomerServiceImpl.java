@@ -55,6 +55,7 @@ import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -130,6 +131,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Autowired
     private EntityViewService entityViewService;
 
+    @Autowired
+    private EntityCountService countService;
+
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findCustomerById [{}]", customerId);
@@ -201,6 +205,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                         entityGroupService.findOrCreatePublicUsersGroup(savedCustomer.getTenantId(), savedCustomer.getId());
                     }
                 }
+                countService.publishCountEntityEvictEvent(savedCustomer.getTenantId(), EntityType.CUSTOMER);
             }
             return savedCustomer;
         } catch (Exception e) {
@@ -247,6 +252,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         roleService.deleteRolesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         apiUsageStateService.deleteApiUsageStateByEntityId(customerId);
         customerDao.removeById(tenantId, customerId.getId());
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.CUSTOMER);
     }
 
     private List<CustomerId> fetchSubcustomers(TenantId tenantId, CustomerId customerId) throws Exception {
@@ -295,6 +301,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     //     throw new IncorrectParameterException("Unable to create public customer.", e);
                     // }
                     // publicCustomer = saveCustomerInternal(publicCustomer, true);
+                    // countService.publishCountEntityEvictEvent(publicCustomer.getTenantId(), EntityType.CUSTOMER);
                 }
                 return publicCustomer;
             } else {
@@ -406,6 +413,11 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return customerDao.countByTenantId(tenantId);
     }
 
     @Override

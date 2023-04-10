@@ -137,124 +137,120 @@ public class SignUpController extends BaseController {
     @ResponseBody
     public SignUpResult signUp(
             @ApiParam(value = "A JSON value representing the signup request.", required = true)
-            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException {
-        try {
-            SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName(), null);
-            if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
-                if (!signUpRequest.getPkgName().equals(selfRegistrationParams.getPkgName())) {
-                    throw new DataValidationException("Invalid Application Id!");
-                }
-                if (StringUtils.isEmpty(signUpRequest.getAppSecret())) {
-                    throw new DataValidationException("Invalid Application Secret!");
-                }
-                if (!signUpRequest.getAppSecret().equals(selfRegistrationParams.getAppSecret())) {
-                    throw new DataValidationException("Invalid Application Secret!");
-                }
+            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException, IOException {
+        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
+                request.getServerName(), null);
+        if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
+            if (!signUpRequest.getPkgName().equals(selfRegistrationParams.getPkgName())) {
+                throw new DataValidationException("Invalid Application Id!");
             }
-            TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
-
-            checkNotNull(signUpRequest);
-            checkParameter("First name", signUpRequest.getFirstName());
-            checkParameter("Last name", signUpRequest.getLastName());
-            checkParameter("Email", signUpRequest.getEmail());
-            checkParameter("Password", signUpRequest.getPassword());
-            checkParameter("Recaptcha response", signUpRequest.getRecaptchaResponse());
-
-            //Verify recaptcha response
-            RecaptchaValidationResult result = validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
-                    selfRegistrationParams.getCaptchaSecretKey());
-            if (result.isFailure()) {
-                log.error("reCAPTCHA validation failed: {}", result);
-                throw new DataValidationException("Invalid reCaptcha response!");
+            if (StringUtils.isEmpty(signUpRequest.getAppSecret())) {
+                throw new DataValidationException("Invalid Application Secret!");
             }
-
-            //Verify email
-            DataValidator.validateEmail(signUpRequest.getEmail());
-            User existingUser = userService.findUserByEmail(tenantId, signUpRequest.getEmail());
-            if (existingUser != null) {
-                UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, existingUser.getId());
-                if (credentials.isEnabled()) {
-                    throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
-                            + " is already registered!");
-                } else {
-                    return SignUpResult.INACTIVE_USER_EXISTS;
-                }
+            if (!signUpRequest.getAppSecret().equals(selfRegistrationParams.getAppSecret())) {
+                throw new DataValidationException("Invalid Application Secret!");
             }
+        }
+        TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
-            systemSecurityService.validatePassword(tenantId, signUpRequest.getPassword(), null);
+        checkNotNull(signUpRequest);
+        checkParameter("First name", signUpRequest.getFirstName());
+        checkParameter("Last name", signUpRequest.getLastName());
+        checkParameter("Email", signUpRequest.getEmail());
+        checkParameter("Password", signUpRequest.getPassword());
+        checkParameter("Recaptcha response", signUpRequest.getRecaptchaResponse());
 
-            Customer customer = new Customer();
+        //Verify recaptcha response
+        RecaptchaValidationResult result = validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
+                selfRegistrationParams.getCaptchaSecretKey());
+        if (result.isFailure()) {
+            log.error("reCAPTCHA validation failed: {}", result);
+            throw new DataValidationException("Invalid reCaptcha response!");
+        }
 
-            customer.setTenantId(tenantId);
-            customer.setTitle(signUpRequest.getEmail());
-            customer.setOwnerId(tenantId);
-            customer.setEmail(signUpRequest.getEmail());
-
-            Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
-
-            User user = new User();
-            user.setFirstName(signUpRequest.getFirstName());
-            user.setLastName(signUpRequest.getLastName());
-            user.setEmail(signUpRequest.getEmail());
-            user.setAuthority(Authority.CUSTOMER_USER);
-            user.setTenantId(tenantId);
-            user.setCustomerId(savedCustomer.getId());
-            ObjectNode objectNode = objectMapper.createObjectNode();
-            objectNode.put("lang", "en_US");
-            if (!StringUtils.isEmpty(selfRegistrationParams.getDefaultDashboardId())) {
-                objectNode.put("defaultDashboardId", selfRegistrationParams.getDefaultDashboardId());
+        //Verify email
+        DataValidator.validateEmail(signUpRequest.getEmail());
+        User existingUser = userService.findUserByEmail(tenantId, signUpRequest.getEmail());
+        if (existingUser != null) {
+            UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, existingUser.getId());
+            if (credentials.isEnabled()) {
+                throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
+                        + " is already registered!");
+            } else {
+                return SignUpResult.INACTIVE_USER_EXISTS;
             }
-            objectNode.put("defaultDashboardFullscreen", selfRegistrationParams.isDefaultDashboardFullscreen());
-            user.setAdditionalInfo(objectNode);
+        }
 
-            User savedUser = checkNotNull(userService.saveUser(user));
+        systemSecurityService.validatePassword(tenantId, signUpRequest.getPassword(), null);
 
-            List<GroupPermission> permissions = selfRegistrationParams.getPermissions();
+        Customer customer = new Customer();
 
-            EntityGroup usersEntityGroup = entityGroupService.findOrCreateUserGroup(tenantId, savedCustomer.getId(), "Self Registration Users",
-                    "Autogenerated Self Registration group");
-            entityGroupService.addEntityToEntityGroup(tenantId, usersEntityGroup.getId(), savedUser.getId());
+        customer.setTenantId(tenantId);
+        customer.setTitle(signUpRequest.getEmail());
+        customer.setOwnerId(tenantId);
+        customer.setEmail(signUpRequest.getEmail());
 
-            for (GroupPermission permission : permissions) {
-                permission.setTenantId(tenantId);
-                permission.setUserGroupId(usersEntityGroup.getId());
-                if (permission.getEntityGroupId() != null) {
-                    EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
-                    if (entityGroup != null) {
-                        permission.setEntityGroupType(entityGroup.getType());
-                        groupPermissionService.saveGroupPermission(tenantId, permission);
-                    }
-                } else {
+        Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+
+        User user = new User();
+        user.setFirstName(signUpRequest.getFirstName());
+        user.setLastName(signUpRequest.getLastName());
+        user.setEmail(signUpRequest.getEmail());
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setTenantId(tenantId);
+        user.setCustomerId(savedCustomer.getId());
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("lang", "en_US");
+        if (!StringUtils.isEmpty(selfRegistrationParams.getDefaultDashboardId())) {
+            objectNode.put("defaultDashboardId", selfRegistrationParams.getDefaultDashboardId());
+        }
+        objectNode.put("defaultDashboardFullscreen", selfRegistrationParams.isDefaultDashboardFullscreen());
+        user.setAdditionalInfo(objectNode);
+
+        User savedUser = checkNotNull(userService.saveUser(user));
+
+        List<GroupPermission> permissions = selfRegistrationParams.getPermissions();
+
+        EntityGroup usersEntityGroup = entityGroupService.findOrCreateUserGroup(tenantId, savedCustomer.getId(), "Self Registration Users",
+                "Autogenerated Self Registration group");
+        entityGroupService.addEntityToEntityGroup(tenantId, usersEntityGroup.getId(), savedUser.getId());
+
+        for (GroupPermission permission : permissions) {
+            permission.setTenantId(tenantId);
+            permission.setUserGroupId(usersEntityGroup.getId());
+            if (permission.getEntityGroupId() != null) {
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
+                if (entityGroup != null) {
+                    permission.setEntityGroupType(entityGroup.getType());
                     groupPermissionService.saveGroupPermission(tenantId, permission);
                 }
+            } else {
+                groupPermissionService.saveGroupPermission(tenantId, permission);
             }
-
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
-            userCredentials.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-
-            userService.saveUserCredentials(tenantId, userCredentials);
-
-            try {
-                sendEmailVerification(tenantId, request, userCredentials, signUpRequest.getEmail(), null, signUpRequest.getPkgName());
-            } catch (ThingsboardException e) {
-                customerService.deleteCustomer(tenantId, savedCustomer.getId());
-                throw e;
-            }
-            sendUserActivityNotification(tenantId, signUpRequest.getFirstName() + " " + signUpRequest.getLastName(),
-                    signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
-
-            notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedCustomer.getId(), savedCustomer,
-                    savedCustomer.getId(), ActionType.ADDED, null);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, savedUser.getCustomerId(), savedUser.getId(),
-                    savedUser, null, ActionType.ADDED, true, false, null);
-            notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
-                    usersEntityGroup.getId(), null, usersEntityGroup.toString(), usersEntityGroup.getName());
-
-            return SignUpResult.SUCCESS;
-        } catch (Exception e) {
-            throw handleException(e);
         }
+
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
+        userCredentials.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
+
+        userService.saveUserCredentials(tenantId, userCredentials);
+
+        try {
+            sendEmailVerification(tenantId, request, userCredentials, signUpRequest.getEmail(), null, signUpRequest.getPkgName());
+        } catch (ThingsboardException e) {
+            customerService.deleteCustomer(tenantId, savedCustomer.getId());
+            throw e;
+        }
+        sendUserActivityNotification(tenantId, signUpRequest.getFirstName() + " " + signUpRequest.getLastName(),
+                signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
+
+        notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedCustomer.getId(), savedCustomer,
+                savedCustomer.getId(), ActionType.ADDED, null);
+        notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, savedUser.getCustomerId(), savedUser.getId(),
+                savedUser, null, ActionType.ADDED, true, false, null);
+        notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
+                usersEntityGroup.getId(), null, usersEntityGroup.toString(), usersEntityGroup.getName());
+
+        return SignUpResult.SUCCESS;
     }
 
     private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail, String baseUrl, String pkgName) throws ThingsboardException, IOException {
@@ -290,32 +286,28 @@ public class SignUpController extends BaseController {
             @ApiParam(value = "Email of the user.", required = true, example = "john.doe@company.com")
             @RequestParam(value = "email") String email,
             @ApiParam(value = "Optional package name of the mobile application.")
-            @RequestParam(required = false) String pkgName, HttpServletRequest request) throws ThingsboardException {
-        try {
-            SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName(), pkgName);
-            if (!StringUtils.isEmpty(pkgName)) {
-                if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
-                    throw new DataValidationException("Invalid Application Id!");
-                }
+            @RequestParam(required = false) String pkgName, HttpServletRequest request) throws ThingsboardException, IOException {
+        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
+                request.getServerName(), pkgName);
+        if (!StringUtils.isEmpty(pkgName)) {
+            if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
+                throw new DataValidationException("Invalid Application Id!");
             }
-            TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
+        }
+        TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
-            User existingUser = userService.findUserByEmail(TenantId.SYS_TENANT_ID, email);
-            if (existingUser != null) {
-                UserCredentials credentials = userService.findUserCredentialsByUserId(existingUser.getTenantId(), existingUser.getId());
-                if (credentials.isEnabled()) {
-                    throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
-                            + " is already active!");
-                } else {
-                    sendEmailVerification(tenantId, request, credentials, email, null, pkgName);
-                }
+        User existingUser = userService.findUserByEmail(TenantId.SYS_TENANT_ID, email);
+        if (existingUser != null) {
+            UserCredentials credentials = userService.findUserCredentialsByUserId(existingUser.getTenantId(), existingUser.getId());
+            if (credentials.isEnabled()) {
+                throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
+                        + " is already active!");
             } else {
-                throw new DataValidationException("User with email '" + email + "' "
-                        + " is not registered!");
+                sendEmailVerification(tenantId, request, credentials, email, null, pkgName);
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            throw new DataValidationException("User with email '" + email + "' "
+                    + " is not registered!");
         }
     }
 
@@ -398,52 +390,44 @@ public class SignUpController extends BaseController {
             @ApiParam(value = "Optional package name of the mobile application.")
             @RequestParam(required = false) String pkgName,
             HttpServletRequest request) throws ThingsboardException {
-        try {
-            SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                    request.getServerName(), pkgName);
-            if (!StringUtils.isEmpty(pkgName)) {
-                if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
-                    throw new DataValidationException("Invalid Application Id!");
-                }
+        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
+                request.getServerName(), pkgName);
+        if (!StringUtils.isEmpty(pkgName)) {
+            if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
+                throw new DataValidationException("Invalid Application Id!");
             }
-            TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
-
-            UserCredentials userCredentials = userService.findUserCredentialsByActivateToken(TenantId.SYS_TENANT_ID, emailCode);
-            if (userCredentials == null) {
-                throw new ThingsboardException("Invalid email code!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-            if (userCredentials.getPassword() == null) {
-                throw new ThingsboardException("Unable to activate user!", ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-            String encodedPassword = userCredentials.getPassword();
-            UserCredentials credentials = userService.activateUserCredentials(TenantId.SYS_TENANT_ID, emailCode, encodedPassword);
-            User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
-            setPrivacyPolicyAccepted(user);
-            setTermsOfUseAccepted(user);
-            user = userService.saveUser(user);
-            UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-            SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
-            String baseUrl = MiscUtils.constructBaseUrl(request);
-            String loginUrl;
-            if (!StringUtils.isEmpty(pkgName)) {
-                loginUrl = String.format("%s/api/noauth/login?pkgName=%s", baseUrl, pkgName);
-            } else {
-                loginUrl = String.format("%s/login", baseUrl);
-            }
-            String email = user.getEmail();
-
-            try {
-                mailService.sendAccountActivatedEmail(tenantId, loginUrl, email);
-            } catch (ThingsboardException e) {
-                throw handleException(e);
-            }
-
-            sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
-
-            return tokenFactory.createTokenPair(securityUser);
-        } catch (Exception e) {
-            throw handleException(e);
         }
+        TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
+
+        UserCredentials userCredentials = userService.findUserCredentialsByActivateToken(TenantId.SYS_TENANT_ID, emailCode);
+        if (userCredentials == null) {
+            throw new ThingsboardException("Invalid email code!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+        if (userCredentials.getPassword() == null) {
+            throw new ThingsboardException("Unable to activate user!", ThingsboardErrorCode.PERMISSION_DENIED);
+        }
+        String encodedPassword = userCredentials.getPassword();
+        UserCredentials credentials = userService.activateUserCredentials(TenantId.SYS_TENANT_ID, emailCode, encodedPassword);
+        User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
+        setPrivacyPolicyAccepted(user);
+        setTermsOfUseAccepted(user);
+        user = userService.saveUser(user);
+        UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+        SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
+        String baseUrl = MiscUtils.constructBaseUrl(request);
+        String loginUrl;
+        if (!StringUtils.isEmpty(pkgName)) {
+            loginUrl = String.format("%s/api/noauth/login?pkgName=%s", baseUrl, pkgName);
+        } else {
+            loginUrl = String.format("%s/login", baseUrl);
+        }
+        String email = user.getEmail();
+
+        mailService.sendAccountActivatedEmail(tenantId, loginUrl, email);
+
+        sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
+
+        return tokenFactory.createTokenPair(securityUser);
     }
 
     private void setPrivacyPolicyAccepted(User user) {
@@ -468,13 +452,9 @@ public class SignUpController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/privacyPolicyAccepted", method = RequestMethod.GET)
     public @ResponseBody Boolean privacyPolicyAccepted() throws ThingsboardException {
-        try {
-            SecurityUser securityUser = getCurrentUser();
-            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
-            return isPrivacyPolicyAccepted(user);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        SecurityUser securityUser = getCurrentUser();
+        User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        return isPrivacyPolicyAccepted(user);
     }
 
     @ApiOperation(value = "Accept privacy policy (acceptPrivacyPolicy)",
@@ -484,23 +464,19 @@ public class SignUpController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
     public JsonNode acceptPrivacyPolicy() throws ThingsboardException {
-        try {
-            SecurityUser securityUser = getCurrentUser();
-            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
-            setPrivacyPolicyAccepted(user);
-            user = userService.saveUser(user);
-            UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-            securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-            JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
+        SecurityUser securityUser = getCurrentUser();
+        User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        setPrivacyPolicyAccepted(user);
+        user = userService.saveUser(user);
+        UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+        securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
+        JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            ObjectNode tokenObject = objectMapper.createObjectNode();
-            tokenObject.put("token", tokenPair.getToken());
-            tokenObject.put("refreshToken", tokenPair.getRefreshToken());
-            return tokenObject;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode tokenObject = objectMapper.createObjectNode();
+        tokenObject.put("token", tokenPair.getToken());
+        tokenObject.put("refreshToken", tokenPair.getRefreshToken());
+        return tokenObject;
     }
 
     private void setTermsOfUseAccepted(User user) {
@@ -526,13 +502,9 @@ public class SignUpController extends BaseController {
     @RequestMapping(value = "/signup/termsOfUseAccepted", method = RequestMethod.GET)
     public @ResponseBody
     Boolean termsOfUseAccepted() throws ThingsboardException {
-        try {
-            SecurityUser securityUser = getCurrentUser();
-            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
-            return isTermsOfUseAccepted(user);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        SecurityUser securityUser = getCurrentUser();
+        User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        return isTermsOfUseAccepted(user);
     }
 
     @ApiOperation(value = "Accept Terms of Use (acceptTermsOfUse)",
@@ -542,23 +514,19 @@ public class SignUpController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
     public JsonNode acceptTermsOfUse() throws ThingsboardException {
-        try {
-            SecurityUser securityUser = getCurrentUser();
-            User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
-            setTermsOfUseAccepted(user);
-            user = userService.saveUser(user);
-            UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
-            securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
-            JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
+        SecurityUser securityUser = getCurrentUser();
+        User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        setTermsOfUseAccepted(user);
+        user = userService.saveUser(user);
+        UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
+        securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user, false));
+        JwtPair tokenPair = tokenFactory.createTokenPair(securityUser);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            ObjectNode tokenObject = objectMapper.createObjectNode();
-            tokenObject.put("token", tokenPair.getToken());
-            tokenObject.put("refreshToken", tokenPair.getRefreshToken());
-            return tokenObject;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode tokenObject = objectMapper.createObjectNode();
+        tokenObject.put("token", tokenPair.getToken());
+        tokenObject.put("refreshToken", tokenPair.getRefreshToken());
+        return tokenObject;
     }
 
     private RecaptchaValidationResult validateReCaptcha(String userResponse, String ipAddress, String recaptchaSecretKey) throws ThingsboardException {

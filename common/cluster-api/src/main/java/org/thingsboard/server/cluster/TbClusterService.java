@@ -123,7 +123,7 @@ public interface TbClusterService extends TbQueueClusterService {
     void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action);
 
     void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action,
-                                   EntityType entityGroupType, EntityGroupId entityGroupId);
+                                           EntityType entityGroupType, EntityGroupId entityGroupId);
 
     void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
                                     EntityGroupId entityGroupId);
