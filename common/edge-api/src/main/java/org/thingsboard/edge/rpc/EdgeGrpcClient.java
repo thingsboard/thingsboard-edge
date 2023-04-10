@@ -35,6 +35,7 @@ import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
 import io.grpc.stub.StreamObserver;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     private boolean sslEnabled;
     @Value("${cloud.rpc.ssl.cert:}")
     private String certResource;
+    @Value("${cloud.rpc.max_inbound_message_size:4194304}")
+    private int maxInboundMessageSize;
+    @Getter
+    private int serverMaxInboundMessageSize;
 
     private ManagedChannel channel;
 
@@ -92,6 +97,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         Consumer<DownlinkMsg> onDownlink,
                         Consumer<Exception> onError) {
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)
+                .maxInboundMessageSize(maxInboundMessageSize)
                 .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS);
         if (sslEnabled) {
             try {
@@ -117,6 +123,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         .setEdgeRoutingKey(edgeKey)
                         .setEdgeSecret(edgeSecret)
                         .setEdgeVersion(EdgeVersion.V_3_4_0)
+                        .setMaxInboundMessageSize(maxInboundMessageSize)
                         .build())
                 .build());
     }
@@ -132,6 +139,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                 if (responseMsg.hasConnectResponseMsg()) {
                     ConnectResponseMsg connectResponseMsg = responseMsg.getConnectResponseMsg();
                     if (connectResponseMsg.getResponseCode().equals(ConnectResponseCode.ACCEPTED)) {
+                        log.debug("[{}] Server max inbound message size: {}", edgeKey, connectResponseMsg.getMaxInboundMessageSize());
+                        serverMaxInboundMessageSize = connectResponseMsg.getMaxInboundMessageSize();
                         log.info("[{}] Configuration received: {}", edgeKey, connectResponseMsg.getConfiguration());
                         onEdgeUpdate.accept(connectResponseMsg.getConfiguration());
                     } else {
