@@ -91,7 +91,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -182,7 +183,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -273,7 +275,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -364,7 +367,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -455,7 +459,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -546,7 +551,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -614,7 +620,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -755,7 +762,8 @@
             "showAvg": true,
             "showTotal": false,
             "showLatest": false
-          }
+          },
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -849,7 +857,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -970,7 +979,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": ".tb-widget-container {\n    display: block;\n    height: 100%;\n}\n\n@media screen and (min-width: 960px) {\n    .tb-widget-container {\n        margin-right: 6px;\n    }\n}\n\n@media screen and (max-width: 959px) {\n    .tb-widget-container {\n        height: calc(100% - 12px);\n        margin-bottom: 12px;\n    }\n}",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1196,7 +1206,8 @@
             "showTotal": false,
             "showLatest": false
           },
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1329,7 +1340,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": ".tb-widget-container {\n    display: block;\n    height: 100%;\n}\n\n@media screen and (min-width: 960px) {\n    .tb-widget-container {\n        margin-right: 6px;\n        margin-left: 6px;\n    }\n}\n\n@media screen and (max-width: 959px) {\n    .tb-widget-container {\n        height: calc(100% - 12px);\n        margin-bottom: 12px;\n    }\n}",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1462,7 +1474,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": ".tb-widget-container {\n    display: block;\n    height: 100%;\n}\n\n@media screen and (min-width: 960px) {\n    .tb-widget-container {\n        margin-left: 6px;\n    }\n}\n\n@media screen and (max-width: 959px) {\n    .tb-widget-container {\n        height: calc(100% - 12px);\n        margin-bottom: 12px;\n    }\n}",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1530,7 +1543,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1597,7 +1611,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1664,7 +1679,8 @@
           "useDashboardTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1962,7 +1978,7 @@
         "filter": {
           "type": "entityType",
           "resolveMultiple": true,
-          "entityType": "TENANT_PROFILE"
+          "entityType": "TENANT"
         }
       },
       "a1ddb8fa-90ff-5598-e7f2-e254194d055d": {
