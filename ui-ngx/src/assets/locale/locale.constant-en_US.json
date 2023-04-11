@@ -6590,6 +6590,7 @@
         "configured-features": {
             "title": "Configured features",
             "info": "Status of features that require configuration",
+            "white-labeling-feature": "White labeling",
             "email-feature": "Email",
             "sms-feature": "SMS",
             "slack-feature": "Slack",

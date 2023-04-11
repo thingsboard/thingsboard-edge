@@ -500,6 +500,7 @@ export interface AutoVersionCreateConfig extends VersionCreateConfig {
 export type AutoCommitSettings = {[entityType: string]: AutoVersionCreateConfig};
 
 export interface FeaturesInfo {
+  whiteLabelingEnabled: boolean;
   emailEnabled: boolean;
   smsEnabled: boolean;
   notificationEnabled: boolean;

@@ -66,7 +66,7 @@
   }
 
   .tb-feature-button {
-    height: 48.5px;
+    height: 50px;
     display: flex;
     overflow: hidden;
     flex-direction: column;
@@ -77,7 +77,7 @@
     box-shadow: 0 5px 16px rgba(0, 0, 0, 0.04);
     border-radius: 10px;
     @media screen and (min-width: 960px) and (max-width: 1819px) {
-      height: 21.5px;
+      height: 22px;
       padding: 0 8px;
     }
     &:hover {
@@ -96,37 +96,44 @@
         font-size: 11px;
         line-height: 16px;
       }
-      &:before {
-        content: "close";
-        display: inline-block;
-        font-family: 'Material Icons Round';
-        font-size: 20px;
-        line-height: 20px;
-        color: rgba(0, 0, 0, 0.12);
-        font-weight: 600;
-        position: relative;
-        background: #F4F4F4;
-        border-radius: 4px;
-        width: 20px;
-        height: 20px;
-        padding: 2px;
-        margin-right: 8px;
-        vertical-align: middle;
-        @media screen and (min-width: 960px) and (max-width: 1819px) {
-          font-size: 14px;
-          line-height: 14px;
-          width: 14px;
-          height: 14px;
-          margin-right: 4px;
-        }
+    }
+    .tb-feature-status {
+      display: inline-block;
+      font-family: 'Material Icons Round';
+      font-size: 20px;
+      line-height: 20px;
+      color: rgba(0, 0, 0, 0.12);
+      font-weight: 600;
+      position: relative;
+      background: #F4F4F4;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      padding: 2px;
+      margin-right: 8px;
+      vertical-align: middle;
+      @media screen and (min-width: 960px) and (max-width: 1819px) {
+        font-size: 14px;
+        line-height: 14px;
+        width: 18px;
+        height: 18px;
+        margin-right: 4px;
       }
     }
     &.configured {
-      .tb-feature-text {
+      .tb-feature-status {
+        color: #198038;
+        background: transparent;
         &:before {
-          content: "check";
-          color: #198038;
-          background: #F3F6FA;
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          border-radius: 4px;
+          background: var(--tb-primary-500);
+          opacity: 0.04;
         }
       }
     }

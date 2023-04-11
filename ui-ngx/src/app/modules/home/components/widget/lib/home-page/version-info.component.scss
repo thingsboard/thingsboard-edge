@@ -77,10 +77,21 @@
       padding: 4px;
     }
     &.up-to-date {
+      position: relative;
       box-shadow: none;
       border: none;
       align-items: center;
-      background: #F3F6FA;
+      &:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 10px;
+        background: var(--tb-primary-500);
+        opacity: 0.04;
+      }
     }
   }
 

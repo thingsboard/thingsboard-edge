@@ -1978,7 +1978,7 @@
         "filter": {
           "type": "entityType",
           "resolveMultiple": true,
-          "entityType": "TENANT"
+          "entityType": "TENANT_PROFILE"
         }
       },
       "a1ddb8fa-90ff-5598-e7f2-e254194d055d": {

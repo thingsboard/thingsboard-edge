@@ -113,11 +113,22 @@
       flex-direction: row;
       align-items: center;
       .tb-doc-icon-container {
+        position: relative;
         height: 40px;
         padding: 8px;
-        background: #F3F6FA;
         border-radius: 6px;
         margin-right: 8px;
+        &:before {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          border-radius: 6px;
+          background: var(--tb-primary-500);
+          opacity: 0.04;
+        }
         @media screen and (min-width: 960px) and (max-width: 1819px) {
           display: none;
         }
