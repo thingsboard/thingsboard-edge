@@ -29,10 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { mergeDeep } from '@core/utils';
-
-const tinycolor = tinycolor_;
 
 export interface MaterialColorItem {
   value: string;
