@@ -28,6 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+@import "../../../../../../../scss/constants";
+
 :host {
   display: flex;
   flex-direction: column;
@@ -40,7 +43,7 @@
     letter-spacing: 0.1px;
     color: rgba(0, 0, 0, 0.76);
     padding-bottom: 24px;
-    @media screen and (min-width: 960px) and (max-width: 1819px) {
+    @media #{$mat-md-lg} {
       font-weight: 500;
       font-size: 14px;
       line-height: 20px;
@@ -104,7 +107,7 @@
     color: rgba(0, 0, 0, 0.54);
   }
 
-  @media screen and (min-width: 960px) and (max-width: 1819px) {
+  @media #{$mat-md-lg} {
     .tb-get-started .mat-step-label {
       font-size: 12px;
       line-height: 16px;

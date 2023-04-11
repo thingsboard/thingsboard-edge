@@ -28,6 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+@import "../../../../../../../scss/constants";
+
 :host {
   .tb-card-content {
     width: 100%;
@@ -50,7 +53,7 @@
     color: rgba(0, 0, 0, 0.54);
     position: relative;
     border-bottom: none;
-    @media screen and (min-width: 960px) and (max-width: 1819px) {
+    @media #{$mat-md-lg} {
       font-size: 12px;
       line-height: 16px;
     }
@@ -100,7 +103,7 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
     box-shadow: 0 5px 16px rgba(0, 0, 0, 0.04);
     border-radius: 10px;
-    @media screen and (min-width: 960px) and (max-width: 1819px) {
+    @media #{$mat-md-lg} {
       height: 18px;
       padding: 0 8px;
     }
@@ -129,7 +132,7 @@
           background: var(--tb-primary-500);
           opacity: 0.04;
         }
-        @media screen and (min-width: 960px) and (max-width: 1819px) {
+        @media #{$mat-md-lg} {
           display: none;
         }
       }
@@ -142,7 +145,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        @media screen and (min-width: 960px) and (max-width: 1819px) {
+        @media #{$mat-md-lg} {
           font-size: 11px;
           line-height: 16px;
         }
@@ -161,7 +164,7 @@
     padding: 8px;
     border: 2px dashed rgba(0, 0, 0, 0.08);
     border-radius: 10px;
-    @media screen and (min-width: 960px) and (max-width: 1819px) {
+    @media #{$mat-md-lg} {
       height: 18px;
       padding: 0 8px;
       .tb-add-icon {
