@@ -649,7 +649,7 @@
                   "name": "transportMsgCountHourly",
                   "type": "timeseries",
                   "label": "{i18n:widgets.transport-messages.title}",
-                  "color": "#305680",
+                  "color": "var(--tb-primary-500)",
                   "settings": {},
                   "_hash": 0.2880464219129071,
                   "aggregationType": null,
@@ -1008,7 +1008,7 @@
                   "name": "cpuUsage",
                   "type": "timeseries",
                   "label": "{i18n:widgets.system-info.cpu}",
-                  "color": "#305680",
+                  "color": "var(--tb-primary-500)",
                   "settings": {
                     "hideDataByDefault": false,
                     "disableDataHiding": false,

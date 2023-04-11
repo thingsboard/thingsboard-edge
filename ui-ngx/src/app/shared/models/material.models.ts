@@ -474,6 +474,40 @@ export const materialColorPalette: {[palette: string]: ColorPalette} = {
   }
 };
 
+export const primaryPalette: ColorPalette = {
+  50: 'var(--tb-primary-50)',
+  100: 'var(--tb-primary-100)',
+  200: 'var(--tb-primary-200)',
+  300: 'var(--tb-primary-300)',
+  400: 'var(--tb-primary-400)',
+  500: 'var(--tb-primary-500)',
+  600: 'var(--tb-primary-600)',
+  700: 'var(--tb-primary-700)',
+  800: 'var(--tb-primary-800)',
+  900: 'var(--tb-primary-900)',
+  A100: 'var(--tb-primary-A100)',
+  A200: 'var(--tb-primary-A200)',
+  A400: 'var(--tb-primary-A400)',
+  A700: 'var(--tb-primary-A700)'
+};
+
+export const accentPalette: ColorPalette = {
+  50: 'var(--tb-accent-50)',
+  100: 'var(--tb-accent-100)',
+  200: 'var(--tb-accent-200)',
+  300: 'var(--tb-accent-300)',
+  400: 'var(--tb-accent-400)',
+  500: 'var(--tb-accent-500)',
+  600: 'var(--tb-accent-600)',
+  700: 'var(--tb-accent-700)',
+  800: 'var(--tb-accent-800)',
+  900: 'var(--tb-accent-900)',
+  A100: 'var(--tb-accent-A100)',
+  A200: 'var(--tb-accent-A200)',
+  A400: 'var(--tb-accent-A400)',
+  A700: 'var(--tb-accent-A700)'
+};
+
 export function extendDefaultPalette(existingPaletteName: string, palette: ColorPalette) {
   return extendPalette(materialColorPalette, existingPaletteName, palette);
 }

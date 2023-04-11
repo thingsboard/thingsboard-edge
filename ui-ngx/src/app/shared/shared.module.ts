@@ -208,6 +208,7 @@ import { NotificationComponent } from '@shared/components/notification/notificat
 import { TemplateAutocompleteComponent } from '@shared/components/notification/template-autocomplete.component';
 import { SlackConversationAutocompleteComponent } from '@shared/components/slack-conversation-autocomplete.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
+import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -380,7 +381,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    DateAgoPipe
+    DateAgoPipe,
+    ThemeColorSelectComponent
   ],
   imports: [
     CommonModule,
@@ -613,7 +615,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    DateAgoPipe
+    DateAgoPipe,
+    ThemeColorSelectComponent
   ]
 })
 export class SharedModule { }

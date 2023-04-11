@@ -952,6 +952,12 @@
         "text": "Text",
         "binary": "Binary (Base64)"
     },
+    "color": {
+        "color-picker": "Color picker",
+        "primary-colors": "Primary colors",
+        "accent-colors": "Accent colors",
+        "no-color-selected": "No color selected"
+    },
     "customer": {
         "all": "All",
         "groups": "Groups",
