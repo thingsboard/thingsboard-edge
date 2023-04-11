@@ -46,6 +46,7 @@ import { isUndefined } from '@core/utils';
 import { MatStepper } from '@angular/material/stepper';
 import { first } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-getting-started-widget',
@@ -68,10 +69,12 @@ export class GettingStartedWidgetComponent extends PageComponent implements OnIn
     maxSelectedIndex: 0
   };
   allCompleted = false;
+  helpBaseUrl = this.wl.getHelpLinkBaseUrl();
 
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
               private userSettingsService: UserSettingsService,
+              private wl: WhiteLabelingService,
               private dialog: MatDialog) {
     super(store);
   }

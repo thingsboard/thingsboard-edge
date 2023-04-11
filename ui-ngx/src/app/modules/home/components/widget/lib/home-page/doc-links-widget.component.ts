@@ -51,6 +51,8 @@ import {
 } from '@home/components/widget/lib/home-page/edit-doc-links-dialog.component';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { deepClone } from '@core/utils';
 
 const defaultDocLinksMap = new Map<Authority, DocumentationLinks>(
   [
@@ -59,22 +61,22 @@ const defaultDocLinksMap = new Map<Authority, DocumentationLinks>(
         {
           icon: 'rocket',
           name: 'Getting started',
-          link: 'https://thingsboard.io/docs/getting-started-guides/helloworld/'
+          link: '${baseUrl}getting-started-guides/helloworld/'
         },
         {
           icon: 'title',
           name: 'Tenant profiles',
-          link: 'https://thingsboard.io/docs/user-guide/tenant-profiles/'
+          link: '${baseUrl}user-guide/tenant-profiles/'
         },
         {
           icon: 'insert_chart',
           name: 'API',
-          link: 'https://thingsboard.io/docs/api/'
+          link: '${baseUrl}api/'
         },
         {
           icon: 'now_widgets',
           name: 'Widgets Library',
-          link: 'https://thingsboard.io/docs/user-guide/ui/widget-library/'
+          link: '${baseUrl}user-guide/ui/widget-library/'
         }
       ]
     }],
@@ -83,22 +85,22 @@ const defaultDocLinksMap = new Map<Authority, DocumentationLinks>(
         {
           icon: 'rocket',
           name: 'Getting started',
-          link: 'https://thingsboard.io/docs/getting-started-guides/helloworld/'
+          link: '${baseUrl}getting-started-guides/helloworld/'
         },
         {
           icon: 'settings_ethernet',
           name: 'Rule engine',
-          link: 'https://thingsboard.io/docs/user-guide/rule-engine-2-0/re-getting-started/'
+          link: '${baseUrl}user-guide/rule-engine-2-0/re-getting-started/'
         },
         {
           icon: 'insert_chart',
           name: 'API',
-          link: 'https://thingsboard.io/docs/api/'
+          link: '${baseUrl}api/'
         },
         {
           icon: 'devices',
           name: 'Device profiles',
-          link: 'https://thingsboard.io/docs/user-guide/device-profiles/'
+          link: '${baseUrl}user-guide/device-profiles/'
         }
       ]
     }],
@@ -130,17 +132,21 @@ export class DocLinksWidgetComponent extends PageComponent implements OnInit, On
   documentationLinks: DocumentationLinks;
   authUser = getCurrentAuthUser(this.store);
 
+  docsLink: string;
+
   private observeBreakpointSubscription: Subscription;
 
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
               private userSettingsService: UserSettingsService,
               private dialog: MatDialog,
+              private wl: WhiteLabelingService,
               private breakpointObserver: BreakpointObserver) {
     super(store);
   }
 
   ngOnInit() {
+    this.docsLink = this.wl.getHelpLinkBaseUrl() + '/docs/pe/';
     this.settings = this.ctx.settings;
     this.columns = this.settings.columns || 3;
     const isMdLg = this.breakpointObserver.isMatched(MediaBreakpoints['md-lg']);
@@ -173,7 +179,7 @@ export class DocLinksWidgetComponent extends PageComponent implements OnInit, On
     this.userSettingsService.getDocumentationLinks().pipe(
       map((documentationLinks) => {
         if (!documentationLinks || !documentationLinks.links) {
-          return defaultDocLinksMap.get(this.authUser.authority);
+          return this.updateBaseUrls(defaultDocLinksMap.get(this.authUser.authority));
         } else {
           return documentationLinks;
         }
@@ -184,6 +190,14 @@ export class DocLinksWidgetComponent extends PageComponent implements OnInit, On
         this.cd.markForCheck();
       }
     );
+  }
+
+  private updateBaseUrls(documentationLinks: DocumentationLinks): DocumentationLinks {
+    const result = deepClone(documentationLinks);
+    for (const link of result.links) {
+      link.link = link.link.replace('${baseUrl}', this.docsLink);
+    }
+    return result;
   }
 
   edit() {

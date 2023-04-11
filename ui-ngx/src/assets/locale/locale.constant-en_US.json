@@ -6649,16 +6649,21 @@
                     "how-to-configure-sms-provider": "How to configure SMS provider"
                 },
                 "step4": {
+                    "title": "Configure feature: White-labeling",
+                    "content": "<p>Easily customize your company's or product's logo and color scheme without coding and without restarting the service.</p><p>Follow the documentation on how to do it:</p>",
+                    "how-to-configure-white-labeling": "How to configure White-labeling"
+                },
+                "step5": {
                     "title": "Configure feature: 2FA",
                     "content": "<p>Adding two-factor authentication to your account increases security and prevents malicious access.</p><p>Follow the documentation on how to do it:</p>",
                     "how-to-configure-2fa": "How to configure 2FA"
                 },
-                "step5": {
+                "step6": {
                     "title": "Configure feature: OAuth 2",
                     "content": "<p>You can provide your customers with Single Sign-On functionality and automatically create tenants, customers, or sub-customers by using external user management platforms that support OAuth 2.0.</p><p>Follow the documentation on how to do it:</p>",
                     "how-to-configure-oauth2": "How to configure OAuth 2"
                 },
-                "step6": {
+                "step7": {
                     "title": "Configure feature: Notifications",
                     "content": "<p>Some text</p><p>Follow the documentation on how to do it:</p>",
                     "how-to-configure-notifications": "How to configure Notifications"
