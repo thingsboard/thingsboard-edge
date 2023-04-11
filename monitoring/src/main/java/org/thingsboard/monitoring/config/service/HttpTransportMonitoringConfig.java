@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.monitoring.config.service;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import org.thingsboard.monitoring.config.TransportType;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service
-public class NotificationRuleCaffeineCache extends CaffeineTbTransactionalCache<NotificationRuleCacheKey, NotificationRuleCacheValue> {
+@Component
+@ConditionalOnProperty(name = "monitoring.transports.http.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.transports.http")
+public class HttpTransportMonitoringConfig extends TransportMonitoringConfig {
 
-    public NotificationRuleCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.NOTIFICATION_RULES_CACHE);
+    @Override
+    public TransportType getTransportType() {
+        return TransportType.HTTP;
     }
 
 }

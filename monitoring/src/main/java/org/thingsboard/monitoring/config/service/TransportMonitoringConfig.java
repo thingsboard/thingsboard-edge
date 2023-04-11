@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.monitoring.config.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.monitoring.config.MonitoringTargetConfig;
+import org.thingsboard.monitoring.config.TransportType;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class NotificationRuleCacheValue implements Serializable {
+public abstract class TransportMonitoringConfig {
 
-    private static final long serialVersionUID = 9503216785105415L;
+    private int requestTimeoutMs;
 
-    private List<NotificationRule> notificationRules;
+    private List<MonitoringTargetConfig> targets;
+
+    public abstract TransportType getTransportType();
 
 }

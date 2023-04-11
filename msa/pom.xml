@@ -47,7 +47,8 @@
         <module>vc-executor-docker</module>
         <module>tb-node</module>
         <module>transport</module>
-        <module>js-executor</module> -->
+        <module>js-executor</module>
+        <module>monitoring</module> -->
         <module>tb-edge</module>
         <module>edge-black-box-tests</module>
     </modules>

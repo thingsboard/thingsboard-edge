@@ -78,9 +78,9 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             EdgeEventActionType actionType = getAlarmActionType(msg);
             return buildEvent(ctx.getTenantId(), actionType, getUUIDFromMsgData(msg), getAlarmEventType(), null);
         } else {
-            EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msgType);
-            Map<String, Object> entityBody = new HashMap<>();
             Map<String, String> metadata = msg.getMetaData().getData();
+            EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msgType, metadata);
+            Map<String, Object> entityBody = new HashMap<>();
             JsonNode dataJson = JacksonUtil.toJsonNode(msg.getData());
             switch (actionType) {
                 case ATTRIBUTES_UPDATED:
@@ -161,7 +161,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         return scope;
     }
 
-    protected EdgeEventActionType getEdgeEventActionTypeByMsgType(String msgType) {
+    protected EdgeEventActionType getEdgeEventActionTypeByMsgType(String msgType, Map<String, String> metadata) {
         EdgeEventActionType actionType;
         if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)
                 || DataConstants.TIMESERIES_UPDATED.equals(msgType)) {
@@ -174,6 +174,16 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
         } else if (SessionMsgType.TO_SERVER_RPC_REQUEST.name().equals(msgType)) {
             actionType = EdgeEventActionType.RPC_CALL;
+        } else if (DataConstants.CONNECT_EVENT.equals(msgType)
+                || DataConstants.DISCONNECT_EVENT.equals(msgType)
+                || DataConstants.ACTIVITY_EVENT.equals(msgType)
+                || DataConstants.INACTIVITY_EVENT.equals(msgType)) {
+            String scope = metadata.get(SCOPE);
+            if ( StringUtils.isEmpty(scope)) {
+                actionType = EdgeEventActionType.TIMESERIES_UPDATED;
+            } else {
+                actionType = EdgeEventActionType.ATTRIBUTES_UPDATED;
+            }
         } else {
             log.warn("Unsupported msg type [{}]", msgType);
             throw new IllegalArgumentException("Unsupported msg type: " + msgType);
@@ -188,7 +198,11 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
                 || DataConstants.ATTRIBUTES_DELETED.equals(msgType)
                 || DataConstants.TIMESERIES_UPDATED.equals(msgType)
                 || DataConstants.ALARM.equals(msgType)
-                || SessionMsgType.TO_SERVER_RPC_REQUEST.name().equals(msgType);
+                || SessionMsgType.TO_SERVER_RPC_REQUEST.name().equals(msgType)
+                || DataConstants.CONNECT_EVENT.equals(msgType)
+                || DataConstants.DISCONNECT_EVENT.equals(msgType)
+                || DataConstants.ACTIVITY_EVENT.equals(msgType)
+                || DataConstants.INACTIVITY_EVENT.equals(msgType);
     }
 
     protected boolean isSupportedOriginator(EntityType entityType) {
