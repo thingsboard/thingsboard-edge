@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
         type = ComponentType.FILTER,
         name = "entity type switch",
         configClazz = EmptyNodeConfiguration.class,
-        relationTypes = {"Device", "Asset", "Alarm", "Entity View", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
+        relationTypes = {"Device", "Asset", "Alarm", "Entity View", "Edge", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
                 "Rule node", "Entity Group", "Data converter", "Integration", "Scheduler event", "Blob entity"},
         nodeDescription = "Route incoming messages by Message Originator Type",
         nodeDetails = "Routes messages to chain according to the entity type ('Device', 'Asset', etc.).",
