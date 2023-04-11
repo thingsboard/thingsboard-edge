@@ -975,7 +975,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
 
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
-                ctx.addStringParameter("textSearch", pageLink.getTextSearch().toLowerCase() + "%");
+                ctx.addStringParameter("textSearch", "%" + pageLink.getTextSearch().toLowerCase() + "%");
                 fromClause.append(" AND LOWER(e.").append(ModelConstants.SEARCH_TEXT_PROPERTY).append(") LIKE :textSearch");
             }
 
