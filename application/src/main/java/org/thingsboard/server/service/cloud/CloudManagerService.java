@@ -339,7 +339,16 @@ public class CloudManagerService {
                 latch = new CountDownLatch(pendingMsgsMap.values().size());
                 List<UplinkMsg> copy = new ArrayList<>(pendingMsgsMap.values());
                 for (UplinkMsg uplinkMsg : copy) {
-                    edgeRpcClient.sendUplinkMsg(uplinkMsg);
+                    if (edgeRpcClient.getServerMaxInboundMessageSize() != 0 && uplinkMsg.getSerializedSize() > edgeRpcClient.getServerMaxInboundMessageSize()) {
+                        log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
+                                        "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it." +
+                                        "Message {}",
+                                uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
+                        pendingMsgsMap.remove(uplinkMsg.getUplinkMsgId());
+                        latch.countDown();
+                    } else {
+                        edgeRpcClient.sendUplinkMsg(uplinkMsg);
+                    }
                 }
                 success = latch.await(10, TimeUnit.SECONDS);
                 success = success && pendingMsgsMap.isEmpty();

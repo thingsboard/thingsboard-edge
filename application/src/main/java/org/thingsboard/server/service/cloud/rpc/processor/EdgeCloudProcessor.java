@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,7 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
                 edge = new Edge();
                 edge.setId(edgeId);
                 edge.setTenantId(tenantId);
+                edge.setCreatedTime(Uuids.unixTimestamp(edgeId.getId()));
             } else {
                 changeOwnerIfRequired(tenantId, customerId, edgeId);
             }
