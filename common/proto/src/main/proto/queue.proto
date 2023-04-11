@@ -1072,7 +1072,6 @@ message ToCoreMsg {
   CloudNotificationMsgProto cloudNotificationMsg = 8;
   DeviceActivityProto deviceActivityMsg = 9;
   NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 10;
-  NotificationRuleProcessorMsg notificationRuleProcessorMsg = 11;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -1090,6 +1089,7 @@ message ToCoreNotificationMsg {
   bytes toEdgeSyncRequestMsg = 11;
   bytes fromEdgeSyncResponseMsg = 12;
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 13;
+  NotificationRuleProcessorMsg notificationRuleProcessorMsg = 14;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
@@ -1141,6 +1141,7 @@ message ToUsageStatsServiceMsg {
   repeated UsageStatsKVProto values = 5;
   int64 customerIdMSB = 6;
   int64 customerIdLSB = 7;
+  string serviceId = 8;
 }
 
 message ToOtaPackageStateServiceMsg {

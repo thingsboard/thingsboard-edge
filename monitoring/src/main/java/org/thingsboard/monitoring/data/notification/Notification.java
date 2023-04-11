@@ -28,31 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.monitoring.data.notification;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+public interface Notification {
 
-import java.io.Serializable;
-
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class NotificationRuleCacheKey implements Serializable {
-
-    private static final long serialVersionUID = 5987113265482170L;
-
-    private TenantId tenantId;
-    private NotificationRuleTriggerType triggerType;
-
-    @Override
-    public String toString() {
-        return tenantId + "_" + triggerType;
-    }
+    String getText();
 
 }

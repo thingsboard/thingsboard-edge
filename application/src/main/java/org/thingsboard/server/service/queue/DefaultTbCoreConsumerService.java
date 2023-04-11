@@ -327,9 +327,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                     TransportProtos.NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = toCoreMsg.getNotificationSchedulerServiceMsg();
                                     log.trace("[{}] Forwarding message to notification scheduler service {}", id, toCoreMsg.getNotificationSchedulerServiceMsg());
                                     forwardToNotificationSchedulerService(notificationSchedulerServiceMsg, callback);
-                                } else if (toCoreMsg.hasNotificationRuleProcessorMsg()) {
-                                    Optional<NotificationRuleTrigger> notificationRuleTrigger = encodingService.decode(toCoreMsg.getNotificationRuleProcessorMsg().getTrigger().toByteArray());
-                                    notificationRuleTrigger.ifPresent(notificationRuleProcessor::process);
                                 } else {
                                     log.warn("[{}] No rule how to forward message from main consumer for message: {}", id, toCoreMsg);
                                 }
@@ -425,6 +422,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         } else if (toCoreNotification.hasToSubscriptionMgrMsg()) {
             forwardToSubMgrService(toCoreNotification.getToSubscriptionMgrMsg(), callback);
+        } else if (toCoreNotification.hasNotificationRuleProcessorMsg()) {
+            Optional<NotificationRuleTrigger> notificationRuleTrigger = encodingService.decode(toCoreNotification
+                    .getNotificationRuleProcessorMsg().getTrigger().toByteArray());
+            notificationRuleTrigger.ifPresent(notificationRuleProcessor::process);
+            callback.onSuccess();
         }
         if (statsEnabled) {
             stats.logToCoreNotification();

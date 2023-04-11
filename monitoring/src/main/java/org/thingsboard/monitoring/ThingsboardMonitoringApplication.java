@@ -28,25 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.monitoring;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class NotificationRuleCacheValue implements Serializable {
+@SpringBootApplication
+@EnableScheduling
+@Slf4j
+public class ThingsboardMonitoringApplication {
 
-    private static final long serialVersionUID = 9503216785105415L;
-
-    private List<NotificationRule> notificationRules;
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(ThingsboardMonitoringApplication.class)
+                .properties(Map.of("spring.config.name", "tb-monitoring"))
+                .run(args);
+    }
 
 }

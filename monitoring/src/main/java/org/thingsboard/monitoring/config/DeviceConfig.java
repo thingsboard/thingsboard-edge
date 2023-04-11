@@ -28,20 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.monitoring.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service
-public class NotificationRuleCaffeineCache extends CaffeineTbTransactionalCache<NotificationRuleCacheKey, NotificationRuleCacheValue> {
+import java.util.UUID;
 
-    public NotificationRuleCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.NOTIFICATION_RULES_CACHE);
+@Data
+public class DeviceConfig {
+
+    private UUID id;
+    private DeviceCredentials credentials;
+
+    public void setId(String id) {
+        this.id = StringUtils.isNotEmpty(id) ? UUID.fromString(id) : null;
     }
 
 }

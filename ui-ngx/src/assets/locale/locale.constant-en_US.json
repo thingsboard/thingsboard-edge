@@ -3780,6 +3780,7 @@
         "all": "All",
         "api-feature-hint": "If the field is empty, the trigger will be applied to all api features",
         "api-usage-trigger-settings": "API usage trigger settings",
+        "new-platform-version-trigger-settings": "New platform version trigger settings",
         "at-least-one-should-be-selected": "At least one should be selected",
         "basic-settings": "Basic settings",
         "button-text": "Button text",
@@ -3969,7 +3970,8 @@
             "general": "General",
             "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
-            "rule-engine": "Rule engine"
+            "rule-engine": "Rule engine",
+            "new-platform-version": "New platform version"
         },
         "templates": "Templates",
         "tenant-profiles-list-rule-hint": "If the field is empty, the trigger will be applied to all tenant profiles",
@@ -3987,6 +3989,7 @@
             "entity-action": "Entity action",
             "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
+            "new-platform-version": "New platform version",
             "trigger": "Trigger",
             "trigger-required": "Trigger is required"
         },

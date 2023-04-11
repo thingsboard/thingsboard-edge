@@ -483,7 +483,8 @@ public class DefaultTbClusterService implements TbClusterService {
                 entityType.equals(EntityType.API_USAGE_STATE) ||
                 (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
                 entityType.equals(EntityType.ENTITY_VIEW) ||
-                msg.getEntityId().getEntityType().equals(EntityType.EDGE);
+                msg.getEntityId().getEntityType().equals(EntityType.EDGE) ||
+                entityType.equals(EntityType.NOTIFICATION_RULE);
 
         boolean toRuleEngine = !toIntegrationExecutor;
 
