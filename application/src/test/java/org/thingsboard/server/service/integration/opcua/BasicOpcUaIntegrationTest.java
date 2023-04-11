@@ -311,7 +311,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         return !eventsList.isEmpty();
     }
 
-    private Device createDevice(String deviceName, String deviceType) {
+    protected Device createDevice(String deviceName, String deviceType) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(deviceType);
