@@ -351,6 +351,12 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     }
 
     @Override
+    public Long countDevices() {
+        log.trace("Executing countDevices");
+        return deviceDao.countDevices();
+    }
+
+    @Override
     public PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

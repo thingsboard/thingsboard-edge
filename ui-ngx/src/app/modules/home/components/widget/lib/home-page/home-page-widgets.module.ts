@@ -43,6 +43,7 @@ import { GettingStartedWidgetComponent } from '@home/components/widget/lib/home-
 import {
   GettingStartedCompletedDialogComponent
 } from '@home/components/widget/lib/home-page/getting-started-completed-dialog.component';
+import { LicenseUsageInfoComponent } from '@home/components/widget/lib/home-page/license-usage-info.component';
 
 @NgModule({
   declarations:
@@ -55,7 +56,8 @@ import {
       AddDocLinkDialogComponent,
       EditDocLinksDialogComponent,
       GettingStartedWidgetComponent,
-      GettingStartedCompletedDialogComponent
+      GettingStartedCompletedDialogComponent,
+      LicenseUsageInfoComponent
     ],
   imports: [
     CommonModule,
@@ -70,7 +72,8 @@ import {
     AddDocLinkDialogComponent,
     EditDocLinksDialogComponent,
     GettingStartedWidgetComponent,
-    GettingStartedCompletedDialogComponent
+    GettingStartedCompletedDialogComponent,
+    LicenseUsageInfoComponent
   ]
 })
 export class HomePageWidgetsModule { }

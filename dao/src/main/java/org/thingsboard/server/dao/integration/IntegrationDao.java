@@ -112,4 +112,6 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, Expor
      * @return the list of integration objects
      */
     PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
+
+    Long countCoreIntegrations();
 }

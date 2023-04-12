@@ -37,7 +37,7 @@ import {
   AdminSettings,
   AutoCommitSettings,
   FeaturesInfo,
-  JwtSettings,
+  JwtSettings, LicenseUsageInfo,
   MailServerSettings,
   RepositorySettings,
   RepositorySettingsInfo,
@@ -151,5 +151,9 @@ export class AdminService {
 
   public getFeaturesInfo(config?: RequestConfig): Observable<FeaturesInfo> {
     return this.http.get<FeaturesInfo>('/api/admin/featuresInfo', defaultHttpOptionsFromConfig(config));
+  }
+
+  public getLicenseUsageInfo(config?: RequestConfig): Observable<LicenseUsageInfo> {
+    return this.http.get<LicenseUsageInfo>('/api/admin/licenseUsageInfo', defaultHttpOptionsFromConfig(config));
   }
 }

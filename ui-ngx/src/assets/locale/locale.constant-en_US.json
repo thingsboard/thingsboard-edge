@@ -6613,6 +6613,19 @@
             "upgrade": "Upgrade",
             "version-is-up-to-date": "Version is up to date"
         },
+        "license-info": {
+            "title": "License info",
+            "view-all": "View all",
+            "license-portal": "License portal",
+            "devices-info": "{count} / { max, plural, =0 {∞} other {#} } Devices",
+            "assets-info": "{count} / { max, plural, =0 {∞} other {#} } Assets",
+            "dashboards-info": "{count} / { max, plural, =0 {∞} other {#} } Dashboards",
+            "integrations-info": "{count} / { max, plural, =0 {∞} other {#} } Integrations",
+            "community-support": "Community support",
+            "white-labeling": "White labeling",
+            "unlimited-datapoints-and-messages": "Unlimited datapoints and messages",
+            "unlimited-api-calls": "Unlimited API calls"
+        },
         "functions": {
             "title": "Functions",
             "pe-feature-tooltip": "Only on ThingsBoard\nProfessional Edition",

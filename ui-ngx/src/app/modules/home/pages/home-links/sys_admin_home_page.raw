@@ -1481,75 +1481,6 @@
         "col": 0,
         "id": "6ab892b7-0cb8-cb1e-f5d3-679ef8f25bd7"
       },
-      "8acbf5df-f9fc-114d-216f-86f081aa4779": {
-        "isSystemType": true,
-        "bundleAlias": "cards",
-        "typeAlias": "markdown_card",
-        "type": "latest",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 5,
-        "sizeY": 3.5,
-        "config": {
-          "datasources": [],
-          "timewindow": {
-            "displayValue": "",
-            "selectedTab": 0,
-            "realtime": {
-              "realtimeType": 1,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "quickInterval": "CURRENT_DAY"
-            },
-            "history": {
-              "historyType": 0,
-              "interval": 1000,
-              "timewindowMs": 60000,
-              "fixedTimewindow": {
-                "startTimeMs": 1680168340431,
-                "endTimeMs": 1680254740431
-              },
-              "quickInterval": "CURRENT_DAY"
-            },
-            "aggregation": {
-              "type": "AVG",
-              "limit": 25000
-            }
-          },
-          "showTitle": false,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "16px",
-          "settings": {
-            "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div style=\"height: 100%;\" fxLayout=\"column\">\n    <div class=\"tb-card-header\">\n        <div class=\"tb-card-title\">\n            <div class=\"tb-home-widget-title\" translate>widgets.functions.title</div>\n        </div>\n        <a mat-stroked-button color=\"primary\" class=\"tb-switch-to-pe\"\n        href=\"https://thingsboard.io/pricing/?product=thingsboard-pe&solution=pe-pay-as-you-go\" target=\"_blank\">{{ 'widgets.functions.switch-to-pe' | translate }}</a>\n    </div>\n    <div fxFlex class=\"tb-card-content\">\n        <div fxFlex fxLayout=\"column\">\n            <div class=\"feature\" translate>widgets.functions.alarms</div>\n            <div class=\"feature\" translate>widgets.functions.dashboards</div>\n            <div class=\"feature\" translate>widgets.functions.entities-and-relations</div>\n            <div class=\"feature\" translate>widgets.functions.profiles</div>\n            <div class=\"feature\" translate>widgets.functions.advanced-features</div>\n        </div>\n        <div fxFlex fxLayout=\"column\">\n            <div class=\"feature\" translate>widgets.functions.notification-center</div>\n            <div class=\"feature\" translate>widgets.functions.api-usage</div>\n            <div class=\"feature\" translate>widgets.functions.customers</div>\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.customers-hierarchy</div>\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.roles-and-permissions</div>\n        </div>\n        <div fxFlex fxLayout=\"column\">\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.groups</div>\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.integrations</div>\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.solution-templates</div>\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.scheduler</div>\n            <div matTooltip=\"{{ 'widgets.functions.pe-feature-tooltip' | translate }}\" matTooltipPosition=\"above\" class=\"feature pe\" translate>widgets.functions.white-labeling</div>\n        </div>\n    </div>\n</div>",
-            "applyDefaultMarkdownStyle": false,
-            "markdownCss": ".tb-card-header {\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n    align-items: center;\n}\n\n.tb-card-content {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    flex-direction: row;\n    margin-top: 4px;\n    overflow: auto;\n}\n\n.feature {\n    position: relative;\n    cursor: default;\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 28px;\n    letter-spacing: 0.2px;\n    color: rgba(0, 0, 0, 0.76);\n    margin-left: 32px;\n}\n\n.feature:before {\n    content: \"check\";\n    font-family: 'Material Icons Round';\n    display: inline-block;\n    font-size: 20px;\n    line-height: 20px;\n    color: #198038;\n    font-weight: 600;\n    position: absolute;\n    left: -32px;\n    top: 2px;\n    background: #F3F6FA;\n    border-radius: 4px;\n    width: 20px;\n    height: 20px;\n    padding: 2px;\n    vertical-align: middle;\n}\n\n.feature.pe:before {\n    content: \"close\";\n    background: #F4F4F4;\n    color: rgba(0, 0, 0, 0.12);\n}\n\n.feature.pe:after {\n    position: relative;\n    display: inline-block;\n    margin-left: 4px;\n    vertical-align: baseline;\n    top: -0.5em;\n    content: \"PE\";\n    color: #305680;\n    font-weight: 700;\n    font-size: 12px;\n    line-height: 12px;\n    letter-spacing: 0.0015em;\n}\n\n.feature+.feature {\n    margin-top: 4px;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1819px) {\n    .tb-switch-to-pe {\n        height: 24px;\n        font-size: 12px;\n        padding: 0 4px;\n    }\n    \n    .feature+.feature {\n        margin-top: 2px;\n    }\n    \n    .feature {\n        font-size: 11px;\n        line-height: 18px;\n        margin-left: 22px;\n    }\n\n    .feature:before {\n      font-size: 14px;\n      line-height: 14px;\n      width: 14px;\n      height: 14px;\n      left: -22px;\n      top: 0;\n    }\n    .feature.pe:after {\n        margin-left: 2px;\n        top: -0.5em;\n        content: \"PE\";\n        font-size: 8px;\n        line-height: 8px;\n    }\n    \n}\n\n"
-          },
-          "title": "Functions",
-          "showTitleIcon": false,
-          "iconColor": "rgba(0, 0, 0, 0.87)",
-          "iconSize": "24px",
-          "titleTooltip": "",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "showLegend": false,
-          "useDashboardTimewindow": true,
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": "",
-          "enableDataExport": false
-        },
-        "row": 0,
-        "col": 0,
-        "id": "8acbf5df-f9fc-114d-216f-86f081aa4779"
-      },
       "d2784f6c-0518-fd95-1d28-b21f70bdcb10": {
         "isSystemType": true,
         "bundleAlias": "cards",
@@ -1759,6 +1690,74 @@
         "row": 0,
         "col": 0,
         "id": "a23185ad-dc46-806c-0e50-5b21fb080ace"
+      },
+      "a17ef013-1fcf-53e1-a9ac-770668dcaed0": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1680168340431,
+                "endTimeMs": 1680254740431
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "16px",
+          "settings": {
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div style=\"height: 100%;\">\n    <tb-license-usage-info></tb-license-usage-info>\n</div>",
+            "applyDefaultMarkdownStyle": false
+          },
+          "title": "License info",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "a17ef013-1fcf-53e1-a9ac-770668dcaed0"
       }
     },
     "states": {
@@ -1832,13 +1831,6 @@
                 "mobileOrder": 6,
                 "mobileHeight": 20
               },
-              "8acbf5df-f9fc-114d-216f-86f081aa4779": {
-                "sizeX": 61,
-                "sizeY": 16,
-                "row": 42,
-                "col": 24,
-                "mobileHide": true
-              },
               "d2784f6c-0518-fd95-1d28-b21f70bdcb10": {
                 "sizeX": 44,
                 "sizeY": 13,
@@ -1867,6 +1859,13 @@
                 "sizeY": 58,
                 "row": 0,
                 "col": 85,
+                "mobileHide": true
+              },
+              "a17ef013-1fcf-53e1-a9ac-770668dcaed0": {
+                "sizeX": 61,
+                "sizeY": 16,
+                "row": 42,
+                "col": 24,
                 "mobileHide": true
               }
             },

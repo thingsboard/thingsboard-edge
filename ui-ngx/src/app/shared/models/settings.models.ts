@@ -507,3 +507,18 @@ export interface FeaturesInfo {
   oauthEnabled: boolean;
   twoFaEnabled: boolean;
 }
+
+export interface LicenseInfo {
+  maxDevices: number;
+  maxAssets: number;
+  whiteLabelingEnabled: boolean;
+  development: boolean;
+  plan: string;
+}
+
+export interface LicenseUsageInfo extends LicenseInfo {
+  devicesCount: number;
+  assetsCount: number;
+  dashboardsCount: number;
+  integrationsCount: number;
+}

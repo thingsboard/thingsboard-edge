@@ -219,6 +219,12 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
+    public Long countAssets() {
+        log.trace("Executing countAssets");
+        return assetDao.countAssets();
+    }
+
+    @Override
     public PageData<Asset> findAssetsByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findAssetsByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);

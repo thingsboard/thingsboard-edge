@@ -28,34 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.dashboard;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableCustomerEntityDao;
-import org.thingsboard.server.dao.ExportableEntityDao;
-import org.thingsboard.server.dao.TenantEntityDao;
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
 
-import java.util.List;
-import java.util.UUID;
+@ApiModel
+@Data
+public class LicenseUsageInfo extends LicenseInfo {
 
-/**
- * The Interface DashboardDao.
- */
-public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, ExportableCustomerEntityDao<Dashboard, DashboardId> {
+    private long devicesCount;
+    private long assetsCount;
+    private long dashboardsCount;
+    private long integrationsCount;
 
-    /**
-     * Save or update dashboard object
-     *
-     * @param dashboard the dashboard object
-     * @return saved dashboard object
-     */
-    Dashboard save(TenantId tenantId, Dashboard dashboard);
+    public LicenseUsageInfo() {}
 
-    List<Dashboard> findByTenantIdAndTitle(UUID tenantId, String title);
-
-    Long countDashboards();
-
+    public LicenseUsageInfo(LicenseInfo licenseInfo) {
+        super(licenseInfo);
+    }
 }
