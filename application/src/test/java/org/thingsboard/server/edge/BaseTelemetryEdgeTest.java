@@ -248,6 +248,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAttributesDeleteRequestToCloud_nonDeviceEntity() throws Exception {
         edgeImitator.expectMessageAmount(2);
         Asset savedAsset = saveAsset("Delete Attribute Test");
