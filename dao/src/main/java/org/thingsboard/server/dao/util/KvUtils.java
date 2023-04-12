@@ -28,64 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.dao.util;
 
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.service.ConstraintValidator;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.List;
 
-public class StringDataEntry extends BasicKvEntry {
-
-    private static final long serialVersionUID = 1L;
-
-    @NoXss
-    private final String value;
-
-    public StringDataEntry(String key, String value) {
-        super(key);
-        this.value = value;
+public class KvUtils {
+    public static void validate(List<? extends KvEntry> tsKvEntries, boolean validateNoxss) {
+        tsKvEntries.forEach(kvEntry -> validate(kvEntry, validateNoxss));
     }
 
-    @Override
-    public DataType getDataType() {
-        return DataType.STRING;
-    }
-
-    @Override
-    public Optional<String> getStrValue() {
-        return Optional.ofNullable(value);
-    }
-
-    @Override
-    public Object getValue() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof StringDataEntry))
-            return false;
-        if (!super.equals(o))
-            return false;
-        StringDataEntry that = (StringDataEntry) o;
-        return Objects.equals(value, that.value);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), value);
-    }
-
-    @Override
-    public String toString() {
-        return "StringDataEntry{" + "value='" + value + '\'' + "} " + super.toString();
-    }
-    
-    @Override
-    public String getValueAsString() {
-        return value;
+    public static void validate(KvEntry tsKvEntry, boolean validateNoxss) {
+        if (tsKvEntry == null) {
+            throw new IncorrectParameterException("Key value entry can't be null");
+        }
+        if (validateNoxss) {
+            ConstraintValidator.validateFields(tsKvEntry);
+        }
     }
 }
