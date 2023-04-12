@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -51,6 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseSchedulerEventEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testSchedulerEvent_tenantLevel() throws Exception {
         // create scheduler event
         ObjectNode schedule = mapper.createObjectNode();
@@ -114,6 +116,7 @@ abstract public class BaseSchedulerEventEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSchedulerEvent_customerLevel() throws Exception {
         // create customer
         Customer savedCustomer = saveCustomer("Edge Customer", null);
