@@ -43,8 +43,6 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
-import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -66,6 +64,8 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.common.msg.notification.trigger.IntegrationLifecycleEventTrigger;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -85,7 +85,9 @@ import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
@@ -109,6 +111,8 @@ import java.util.concurrent.TimeUnit;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.FAILED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STARTED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STOPPED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.UPDATED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -127,6 +131,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final DataDecodingEncodingService encodingService;
     private final EventStorageService eventStorageService;
     private final TbQueueProducerProvider producerProvider;
+    private final NotificationRuleProcessor notificationRuleProcessor;
     private final Optional<CoapServerService> coapServerService;
     private final Optional<RemoteIntegrationRpcService> remoteRpcService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
@@ -563,9 +568,11 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 integration.init(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                 state.setCurrentState(ComponentLifecycleEvent.STARTED);
+                processNotificationRule(configuration, STARTED, null);
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
+                processNotificationRule(configuration, STARTED, e);
                 throw handleException(e);
             }
         } else {
@@ -576,6 +583,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                     state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                     state.setCurrentState(ComponentLifecycleEvent.STARTED);
+                    processNotificationRule(configuration, UPDATED, null);
                 } else {
                     persistCurrentStatistics(state);
                     processStop(state, ComponentLifecycleEvent.STOPPED);
@@ -583,6 +591,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
+                processNotificationRule(configuration, UPDATED, e);
                 throw handleException(e);
             }
         }
@@ -608,6 +617,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 try {
                     integration.destroy();
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, null);
+                    processNotificationRule(configuration, STOPPED, null);
                 } catch (Exception e) {
                     if (log.isDebugEnabled()) {
                         log.debug("[{}][{}] Failed to destroy the integration: {}", state.getTenantId(), state.getId(), state.getIntegration().getConfiguration(), e);
@@ -615,6 +625,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                         log.warn("[{}][{}] Failed to destroy the integration: ", state.getTenantId(), state.getId());
                     }
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, e);
+                    processNotificationRule(configuration, STOPPED, e);
                     throw handleException(e);
                 }
             }
@@ -690,16 +701,32 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void doPersistStatistics(IntegrationState integrationState, long ts, boolean skipEmptyStatistics) {
-            IntegrationStatistics statistics = integrationState.getIntegration().popStatistics();
-            if (skipEmptyStatistics && statistics.isEmpty()) {
+        IntegrationStatistics statistics = integrationState.getIntegration().popStatistics();
+        if (skipEmptyStatistics && statistics.isEmpty()) {
+            return;
+        }
+        Integration integrationInfo = integrationState.getIntegration().getConfiguration();
+        try {
+            eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integrationState.getCurrentState());
+        } catch (Exception e) {
+            log.warn("[{}] Failed to persist statistics: {}", integrationInfo.getId(), statistics, e);
+        }
+    }
+
+    private void processNotificationRule(Integration integration, ComponentLifecycleEvent event, Exception error) {
+        if (!integration.getType().isSingleton()) {
+            if (!partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), integration.getTenantId(), integration.getId()).isMyPartition()) {
                 return;
             }
-            Integration integrationInfo = integrationState.getIntegration().getConfiguration();
-            try {
-                eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integrationState.getCurrentState());
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist statistics: {}", integrationInfo.getId(), statistics, e);
-            }
+        }
+        notificationRuleProcessor.process(IntegrationLifecycleEventTrigger.builder()
+                .tenantId(integration.getTenantId())
+                .integrationId(integration.getId())
+                .integrationType(integration.getType())
+                .integrationName(integration.getName())
+                .event(event)
+                .error(error)
+                .build());
     }
 
     private RuntimeException handleException(Exception e) {

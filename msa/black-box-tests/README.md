@@ -67,6 +67,15 @@ As result, in REPOSITORY column, next images should be present:
 
   -DblackBoxTests.azureEventHubConnectionString=YOUR_CONNECTION_STRING
 
+  Note: for Azure Service Bus integration add next VM options:
+
+  -DblackBoxTests.azureServiceBusConnectionString=YOUR_CONNECTION_STRING
+  -DblackBoxTests.azureServiceBusTopicName=YOUR_TOPIC_NAME
+  -DblackBoxTests.azureServiceBusSubName=YOUR_SUB_NAME
+  -DblackBoxTests.azureServiceBusDownlinkConnectionString=YOUR_CONNECTION_STRING
+  -DblackBoxTests.azureServiceBusDownlinkTopicName=YOUR_TOPIC_NAME 
+  -DblackBoxTests.azureServiceBusDownlinkSubName=YOUR_SUB_NAME
+
 - To run the black box tests with using local env run tests in the [msa/black-box-tests](../black-box-tests) directory with runLocal property:
 
         mvn clean install -DblackBoxTests.skip=false -DrunLocal=true

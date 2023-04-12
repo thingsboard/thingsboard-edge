@@ -43,9 +43,9 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.common.msg.notification.trigger.EntitiesLimitTrigger;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.notification.NotificationRuleProcessingService;
-import org.thingsboard.server.dao.notification.trigger.EntitiesLimitTrigger;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 
 import java.util.Collections;
@@ -59,7 +59,7 @@ public class DefaultApiLimitService implements ApiLimitService {
     private final EntityService entityService;
     private final TbTenantProfileCache tenantProfileCache;
     @Autowired(required = false)
-    private NotificationRuleProcessingService notificationRuleProcessingService;
+    private NotificationRuleProcessor notificationRuleProcessor;
 
     @Override
     public boolean checkEntitiesLimit(TenantId tenantId, EntityType entityType) {
@@ -71,8 +71,8 @@ public class DefaultApiLimitService implements ApiLimitService {
             long currentCount = entityService.countEntitiesByQuery(tenantId, new CustomerId(EntityId.NULL_UUID),
                     new MergedUserPermissions(Map.of(Resource.ALL, Set.of(Operation.ALL)), Collections.emptyMap()),
                     new EntityCountQuery(filter));
-            if (notificationRuleProcessingService != null) {
-                notificationRuleProcessingService.process(tenantId, EntitiesLimitTrigger.builder()
+            if (notificationRuleProcessor != null) {
+                notificationRuleProcessor.process(EntitiesLimitTrigger.builder()
                         .tenantId(tenantId)
                         .entityType(entityType)
                         .currentCount(currentCount)

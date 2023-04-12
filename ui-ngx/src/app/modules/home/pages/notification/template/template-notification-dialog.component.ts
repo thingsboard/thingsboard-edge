@@ -103,7 +103,7 @@ export class TemplateNotificationDialogComponent
 
     if (isDefinedAndNotNull(this.data?.predefinedType)) {
       this.hideSelectType = true;
-      this.templateNotificationForm.get('notificationType').setValue(this.data.predefinedType, {emitEvents: false});
+      this.templateNotificationForm.get('notificationType').setValue(this.data.predefinedType, {emitEvent: false});
     }
 
     if (data.isAdd || data.isCopy) {
@@ -114,6 +114,8 @@ export class TemplateNotificationDialogComponent
     if (this.templateNotification) {
       if (this.data.isCopy) {
         this.templateNotification.name += ` (${this.translate.instant('action.copy')})`;
+      } else {
+        this.templateNotificationForm.get('notificationType').disable({emitEvent: false});
       }
       this.templateNotificationForm.reset({}, {emitEvent: false});
       this.templateNotificationForm.patchValue(this.templateNotification, {emitEvent: false});
@@ -197,9 +199,15 @@ export class TemplateNotificationDialogComponent
   }
 
   private allowNotificationType(): NotificationType[] {
+    const sysAdminAllowNotificationTypes = new Set([
+      NotificationType.ENTITIES_LIMIT,
+      NotificationType.API_USAGE_LIMIT,
+      NotificationType.NEW_PLATFORM_VERSION,
+    ]);
+
     if (this.isSysAdmin()) {
-      return [NotificationType.GENERAL, NotificationType.ENTITIES_LIMIT];
+      return [NotificationType.GENERAL, ...sysAdminAllowNotificationTypes];
     }
-    return Object.values(NotificationType).filter(type => type !== NotificationType.ENTITIES_LIMIT);
+    return Object.values(NotificationType).filter(type => !sysAdminAllowNotificationTypes.has(type));
   }
 }

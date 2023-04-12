@@ -45,7 +45,7 @@ import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EntitiesLimitNotificationInfo implements NotificationInfo {
+public class EntitiesLimitNotificationInfo implements RuleOriginatedNotificationInfo {
 
     private EntityType entityType;
     private long currentCount;
@@ -64,6 +64,11 @@ public class EntitiesLimitNotificationInfo implements NotificationInfo {
                 "tenantId", tenantId.toString(),
                 "tenantName", tenantName
         );
+    }
+
+    @Override
+    public TenantId getAffectedTenantId() {
+        return tenantId;
     }
 
 }

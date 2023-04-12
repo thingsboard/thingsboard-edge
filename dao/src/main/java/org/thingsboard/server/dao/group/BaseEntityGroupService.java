@@ -832,7 +832,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             String key;
             switch (type) {
                 case ENTITY_FIELD:
-                    key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
+                    EntityType entityType = entityData.getEntityId().getEntityType();
+                    if (k.equals("type") && (entityType.equals(EntityType.DEVICE) || entityType.equals(EntityType.ASSET))) {
+                        key = getProfileColumnKeyByType(entityType);
+                    } else {
+                        key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
+                    }
                     break;
                 case CLIENT_ATTRIBUTE:
                     key = "client_" + k;
@@ -874,12 +879,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         columnToEntityKeyMap.put("first_name", "firstName");
         columnToEntityKeyMap.put("last_name", "lastName");
         columnToEntityKeyMap.put("device_profile", "type");
+        columnToEntityKeyMap.put("asset_profile", "type");
 
         entityDataKeyToShortEntityViewKeyMap.put("createdTime", "created_time");
         entityDataKeyToShortEntityViewKeyMap.put("assignedCustomer", "assigned_customer");
         entityDataKeyToShortEntityViewKeyMap.put("firstName", "first_name");
         entityDataKeyToShortEntityViewKeyMap.put("lastName", "last_name");
-        entityDataKeyToShortEntityViewKeyMap.put("type", "device_profile");
     }
 
     @Override
@@ -1087,5 +1092,16 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                     deleteEntityGroup(tenantId, new EntityGroupId(entity.getId().getId()));
                 }
             };
+
+    private String getProfileColumnKeyByType(EntityType entityType) {
+        switch (entityType) {
+            case ASSET:
+                return "asset_profile";
+            case DEVICE:
+                return "device_profile";
+            default:
+                throw new IllegalArgumentException("Wrong entity type: " + entityType);
+        }
+    }
 
 }

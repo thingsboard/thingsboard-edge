@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
@@ -67,6 +68,7 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -95,6 +97,8 @@ public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
     @Autowired
     DeviceService deviceService;
     @Autowired
+    AssetService assetService;
+    @Autowired
     EntityGroupService entityGroupService;
     @Autowired
     EdgeService edgeService;
@@ -108,6 +112,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
         mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
@@ -240,6 +245,45 @@ public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
         assertThat(allGroupEntities.stream().map(ShortEntityView::getId).collect(Collectors.toList()))
                 .containsExactlyInAnyOrderElementsOf(
                         testGroupDevices.stream().map(IdBased::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void testFindGroupEntityProfileType() throws ExecutionException, InterruptedException {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName("testDevice");
+        device.setType("default");
+        device = deviceService.saveDevice(device);
+
+        Optional<EntityGroup> devicesGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+        Assert.assertTrue(devicesGroupOptional.isPresent());
+        EntityGroup devicesGroup = devicesGroupOptional.get();
+
+        ShortEntityView shortDevice = entityGroupService.findGroupEntity(tenantId, new CustomerId(CustomerId.NULL_UUID),
+                mergedUserPermissions, devicesGroup.getId(), device.getId());
+
+        Assert.assertNotNull(shortDevice);
+        Assert.assertEquals("testDevice", shortDevice.getName());
+        Assert.assertEquals("default", shortDevice.properties().get("device_profile"));
+
+        Asset asset = new Asset();
+        asset.setTenantId(tenantId);
+        asset.setName("testAsset");
+        asset.setType("default");
+        asset = assetService.saveAsset(asset);
+
+        Optional<EntityGroup> assetsGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.ASSET, EntityGroup.GROUP_ALL_NAME);
+        Assert.assertTrue(assetsGroupOptional.isPresent());
+        EntityGroup assetGroup = assetsGroupOptional.get();
+
+        ShortEntityView shortAsset = entityGroupService.findGroupEntity(tenantId, new CustomerId(CustomerId.NULL_UUID),
+                mergedUserPermissions, assetGroup.getId(), asset.getId());
+
+        Assert.assertNotNull(shortAsset);
+        Assert.assertEquals("testAsset", shortAsset.getName());
+        Assert.assertEquals("default", shortAsset.properties().get("asset_profile"));
     }
 
     @Test

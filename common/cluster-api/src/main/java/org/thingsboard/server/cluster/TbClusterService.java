@@ -121,4 +121,5 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action,
                                           EntityType entityGroupType, EntityGroupId entityGroupId);
+
 }

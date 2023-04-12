@@ -51,16 +51,17 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestInfo;
 import org.thingsboard.server.common.data.notification.NotificationRequestPreview;
-import org.thingsboard.server.common.data.notification.info.UserOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
+import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.page.PageData;
@@ -77,7 +78,6 @@ import org.thingsboard.server.service.notification.NotificationProcessingContext
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.validation.Valid;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -202,14 +202,12 @@ public class NotificationController extends BaseController {
         checkEntity(notificationRequest.getId(), notificationRequest, NOTIFICATION);
 
         notificationRequest.setOriginatorEntityId(user.getId());
-        if (notificationRequest.getInfo() != null && !(notificationRequest.getInfo() instanceof UserOriginatedNotificationInfo)) {
-            throw new IllegalArgumentException("Unsupported notification info type");
-        }
+        notificationRequest.setInfo(null);
         notificationRequest.setRuleId(null);
         notificationRequest.setStatus(null);
         notificationRequest.setStats(null);
 
-        return doSaveAndLog(EntityType.NOTIFICATION_REQUEST, notificationRequest, notificationCenter::processNotificationRequest);
+        return doSaveAndLog(EntityType.NOTIFICATION_REQUEST, notificationRequest, (tenantId, request) -> notificationCenter.processNotificationRequest(tenantId, request, null));
     }
 
     @PostMapping("/notification/request/preview")
@@ -232,45 +230,49 @@ public class NotificationController extends BaseController {
         NotificationProcessingContext tmpProcessingCtx = NotificationProcessingContext.builder()
                 .tenantId(user.getTenantId())
                 .request(request)
-                .settings(null)
                 .template(template)
+                .settings(null)
                 .build();
 
         Map<NotificationDeliveryMethod, DeliveryMethodNotificationTemplate> processedTemplates = tmpProcessingCtx.getDeliveryMethods().stream()
                 .collect(Collectors.toMap(m -> m, deliveryMethod -> {
-                    Map<String, String> templateContext;
+                    NotificationRecipient recipient = null;
                     if (NotificationTargetType.PLATFORM_USERS.getSupportedDeliveryMethods().contains(deliveryMethod)) {
-                        templateContext = tmpProcessingCtx.createTemplateContext(user);
-                    } else {
-                        templateContext = Collections.emptyMap();
+                        recipient = userService.findUserById(user.getTenantId(), user.getId());
                     }
-                    return tmpProcessingCtx.getProcessedTemplate(deliveryMethod, templateContext);
+                    return tmpProcessingCtx.getProcessedTemplate(deliveryMethod, recipient);
                 }));
         preview.setProcessedTemplates(processedTemplates);
 
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
-        Set<User> recipientsPreview = new LinkedHashSet<>();
+        Set<String> recipientsPreview = new LinkedHashSet<>();
         Map<String, Integer> recipientsCountByTarget = new HashMap<>();
+
         List<NotificationTarget> targets = notificationTargetService.findNotificationTargetsByTenantIdAndIds(user.getTenantId(),
                 request.getTargets().stream().map(NotificationTargetId::new).collect(Collectors.toList()));
         for (NotificationTarget target : targets) {
             int recipientsCount;
+            List<NotificationRecipient> recipientsPart;
             if (target.getConfiguration().getType() == NotificationTargetType.PLATFORM_USERS) {
-                PageData<User> recipients = notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(), null,
-                        target.getConfiguration(), new PageLink(recipientsPreviewSize));
+                PageData<User> recipients = notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(),
+                        (PlatformUsersNotificationTargetConfig) target.getConfiguration(), new PageLink(recipientsPreviewSize));
                 recipientsCount = (int) recipients.getTotalElements();
-                for (User recipient : recipients.getData()) {
-                    if (recipientsPreview.size() < recipientsPreviewSize) {
-                        recipientsPreview.add(recipient);
-                    } else {
-                        break;
-                    }
-                }
+                recipientsPart = recipients.getData().stream().map(r -> (NotificationRecipient) r).collect(Collectors.toList());
             } else {
                 recipientsCount = 1;
+                recipientsPart = List.of(((SlackNotificationTargetConfig) target.getConfiguration()).getConversation());
+            }
+
+            for (NotificationRecipient recipient : recipientsPart) {
+                if (recipientsPreview.size() < recipientsPreviewSize) {
+                    recipientsPreview.add(recipient.getTitle());
+                } else {
+                    break;
+                }
             }
             recipientsCountByTarget.put(target.getName(), recipientsCount);
         }
+
         preview.setRecipientsPreview(recipientsPreview);
         preview.setRecipientsCountByTarget(recipientsCountByTarget);
         preview.setTotalRecipientsCount(recipientsCountByTarget.values().stream().mapToInt(Integer::intValue).sum());
@@ -311,18 +313,24 @@ public class NotificationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings saveNotificationSettings(@RequestBody @Valid NotificationSettings notificationSettings,
                                                          @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
-        TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
-        notificationSettingsService.saveNotificationSettings(tenantId, notificationSettings);
+        if (user.isSystemAdmin()) {
+            accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
+        } else {
+            accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.WRITE);
+        }
+        notificationSettingsService.saveNotificationSettings(user.getTenantId(), notificationSettings);
         return notificationSettings;
     }
 
     @GetMapping("/notification/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings getNotificationSettings(@AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
-        TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
-        return notificationSettingsService.findNotificationSettings(tenantId);
+        if (user.isSystemAdmin()) {
+            accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+        } else {
+            accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.READ);
+        }
+        return notificationSettingsService.findNotificationSettings(user.getTenantId());
     }
 
     @GetMapping("/notification/deliveryMethods")

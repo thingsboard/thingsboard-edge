@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -798,22 +799,7 @@ public class DefaultSolutionService implements SolutionService {
         });
         schedulerEvents.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "scheduler_events", SchedulerEventDefinition.class));
         schedulerEvents.forEach(entityDef -> {
-            SchedulerEvent schedulerEvent = new SchedulerEvent();
-            schedulerEvent.setTenantId(ctx.getTenantId());
-            schedulerEvent.setName(entityDef.getName());
-            schedulerEvent.setType(entityDef.getType());
-            schedulerEvent.setConfiguration(entityDef.getConfiguration());
-            schedulerEvent.setSchedule(entityDef.getSchedule());
-            schedulerEvent.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
-            if (entityDef.getOriginatorId() != null) {
-                String newId = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
-                if (newId != null) {
-                    schedulerEvent.setOriginatorId(EntityIdFactory.getByTypeAndUuid(entityDef.getOriginatorId().getEntityType(), newId));
-                } else {
-                    log.error("[{}][{}] Scheduler event: {} references non existing originator.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
-                    throw new ThingsboardRuntimeException();
-                }
-            }
+            SchedulerEvent schedulerEvent = getSchedulerEvent(ctx, entityDef);
             //TODO: use tbSchedulerService here when it becomes available.
             SchedulerEvent savedSchedulerEvent = schedulerEventService.saveSchedulerEvent(schedulerEvent);
 
@@ -825,6 +811,31 @@ public class DefaultSolutionService implements SolutionService {
             log.info("[{}] Saved scheduler event: {}", schedulerEvent.getId(), schedulerEvent);
             ctx.register(entityDef, savedSchedulerEvent);
         });
+    }
+
+    @NotNull
+    private SchedulerEvent getSchedulerEvent(SolutionInstallContext ctx, SchedulerEventDefinition entityDef) {
+        SchedulerEvent schedulerEvent = new SchedulerEvent();
+        schedulerEvent.setTenantId(ctx.getTenantId());
+        schedulerEvent.setName(entityDef.getName());
+        schedulerEvent.setType(entityDef.getType());
+        schedulerEvent.setConfiguration(entityDef.getConfiguration());
+        schedulerEvent.setSchedule(entityDef.getSchedule());
+        schedulerEvent.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+        if (entityDef.getOriginatorId() != null) {
+            String newIdStr = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
+            if (newIdStr != null) {
+                EntityId newId = EntityIdFactory.getByTypeAndUuid(entityDef.getOriginatorId().getEntityType(), UUID.fromString(newIdStr));
+                schedulerEvent.setOriginatorId(newId);
+            } else {
+                log.error("[{}][{}] Scheduler event: {} references non existing entity.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
+                throw new ThingsboardRuntimeException(
+                        String.format("[{}][{}] Scheduler event: {} references non existing entity.",
+                                ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName()),
+                        ThingsboardErrorCode.GENERAL);
+            }
+        }
+        return schedulerEvent;
     }
 
     private void provisionDashboards(SolutionInstallContext ctx) throws ThingsboardException {
@@ -921,7 +932,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void ensureDeviceProfileExists(SolutionInstallContext ctx, Set<String> deviceTypeSet, DeviceDefinition entityDef) {
-        if (!deviceTypeSet.contains(entityDef.getType())){
+        if (!deviceTypeSet.contains(entityDef.getType())) {
             DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileByName(ctx.getTenantId(), entityDef.getType());
             if (deviceProfile == null) {
                 DeviceProfile created = deviceProfileService.findOrCreateDeviceProfile(ctx.getTenantId(), entityDef.getType());
@@ -1041,7 +1052,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void ensureAssetProfileExists(SolutionInstallContext ctx, Set<String> assetTypeSet, AssetDefinition entityDef) {
-        if (!assetTypeSet.contains(entityDef.getType())){
+        if (!assetTypeSet.contains(entityDef.getType())) {
             AssetProfile assetProfile = assetProfileService.findAssetProfileByName(ctx.getTenantId(), entityDef.getType());
             if (assetProfile == null) {
                 AssetProfile created = assetProfileService.findOrCreateAssetProfile(ctx.getTenantId(), entityDef.getType());

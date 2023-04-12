@@ -59,6 +59,7 @@ import org.thingsboard.server.service.entitiy.widgets.bundle.TbWidgetsBundleServ
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
@@ -94,12 +95,8 @@ public class WidgetsBundleController extends BaseController {
             @ApiParam(value = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("widgetsBundleId") String strWidgetsBundleId) throws ThingsboardException {
         checkParameter("widgetsBundleId", strWidgetsBundleId);
-        try {
-            WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
-            return checkWidgetsBundleId(widgetsBundleId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
+        return checkWidgetsBundleId(widgetsBundleId, Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update Widget Bundle (saveWidgetsBundle)",
@@ -160,17 +157,13 @@ public class WidgetsBundleController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
-                return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByPageLink(getTenantId(), pageLink));
-            } else {
-                TenantId tenantId = getCurrentUser().getTenantId();
-                return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
+            return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByPageLink(getTenantId(), pageLink));
+        } else {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantIdAndPageLink(tenantId, pageLink));
         }
     }
 
@@ -180,16 +173,12 @@ public class WidgetsBundleController extends BaseController {
     @RequestMapping(value = "/widgetsBundles", method = RequestMethod.GET)
     @ResponseBody
     public List<WidgetsBundle> getWidgetsBundles() throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
-            if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
-                return checkNotNull(widgetsBundleService.findSystemWidgetsBundles(getTenantId()));
-            } else {
-                TenantId tenantId = getCurrentUser().getTenantId();
-                return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        accessControlService.checkPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ);
+        if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
+            return checkNotNull(widgetsBundleService.findSystemWidgetsBundles(getTenantId()));
+        } else {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(tenantId));
         }
     }
 
@@ -201,23 +190,19 @@ public class WidgetsBundleController extends BaseController {
     @ResponseBody
     public List<WidgetsBundle> getWidgetsBundlesByIds(
             @ApiParam(value = "A list of widgets bundle ids, separated by comma ','", required = true)
-            @RequestParam("widgetsBundleIds") String[] strWidgetsBundleIds) throws ThingsboardException {
+            @RequestParam("widgetsBundleIds") String[] strWidgetsBundleIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("widgetsBundleIds", strWidgetsBundleIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            List<WidgetsBundleId> widgetsBundleIds = new ArrayList<>();
-            for (String strWidgetsBundleId : strWidgetsBundleIds) {
-                widgetsBundleIds.add(new WidgetsBundleId(toUUID(strWidgetsBundleId)));
-            }
-            if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
-                return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByIdsAsync(getTenantId(), widgetsBundleIds).get());
-            } else {
-                return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByIdsAsync(getTenantId(), widgetsBundleIds).get());
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ)) {
+            return Collections.emptyList();
+        }
+        List<WidgetsBundleId> widgetsBundleIds = new ArrayList<>();
+        for (String strWidgetsBundleId : strWidgetsBundleIds) {
+            widgetsBundleIds.add(new WidgetsBundleId(toUUID(strWidgetsBundleId)));
+        }
+        if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
+            return checkNotNull(widgetsBundleService.findSystemWidgetsBundlesByIdsAsync(getTenantId(), widgetsBundleIds).get());
+        } else {
+            return checkNotNull(widgetsBundleService.findAllTenantWidgetsBundlesByIdsAsync(getTenantId(), widgetsBundleIds).get());
         }
     }
 
