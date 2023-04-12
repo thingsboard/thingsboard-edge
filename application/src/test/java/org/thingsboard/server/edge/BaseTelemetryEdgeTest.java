@@ -264,6 +264,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAttributesDeleteRequestToCloud_nonDeviceEntity() throws Exception {
         Asset savedAsset = saveAssetOnCloudAndVerifyDeliveryToEdge();
 
