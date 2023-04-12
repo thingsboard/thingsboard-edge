@@ -28,23 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification.cache;
+package org.thingsboard.monitoring.notification;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CacheSpecsMap;
-import org.thingsboard.server.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.cache.TBRedisCacheConfiguration;
-import org.thingsboard.server.cache.TbFSTRedisSerializer;
-import org.thingsboard.server.common.data.CacheConstants;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.monitoring.data.notification.Notification;
+import org.thingsboard.monitoring.notification.channels.NotificationChannel;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
-@Service
-public class NotificationRuleRedisCache extends RedisTbTransactionalCache<NotificationRuleCacheKey, NotificationRuleCacheValue> {
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
-    public NotificationRuleRedisCache(CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory, TBRedisCacheConfiguration configuration) {
-        super(CacheConstants.NOTIFICATION_RULES_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class NotificationService {
+
+    private final List<NotificationChannel> notificationChannels;
+    private final ExecutorService notificationExecutor = Executors.newSingleThreadExecutor();
+
+    public void sendNotification(Notification notification) {
+        forEachNotificationChannel(notificationChannel -> notificationChannel.sendNotification(notification));
+    }
+
+    private void forEachNotificationChannel(Consumer<NotificationChannel> function) {
+        notificationChannels.forEach(notificationChannel -> {
+            notificationExecutor.submit(() -> {
+                try {
+                    function.accept(notificationChannel);
+                } catch (Exception e) {
+                    log.error("Failed to send notification to {}", notificationChannel.getClass().getSimpleName(), e);
+                }
+            });
+        });
     }
 
 }

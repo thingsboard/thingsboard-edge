@@ -63,6 +63,7 @@
         <module>tb-node</module>
         <module>transport</module>
         <module>js-executor</module>
+        <module>monitoring</module>
         <!-- PE -->
         <module>integration</module>
         <module>web-report</module>

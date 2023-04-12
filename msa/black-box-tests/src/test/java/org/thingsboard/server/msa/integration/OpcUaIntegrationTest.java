@@ -47,7 +47,7 @@ public class OpcUaIntegrationTest extends AbstractIntegrationTest {
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"applicationName\":\"\"," +
             "\"applicationUri\":\"\"," +
-            "\"host\":\"qa-integrations.thingsboard.io\"," +
+            "\"host\":\"opcplc\"," +
             "\"port\":50000," +
             "\"scanPeriodInSeconds\":10," +
             "\"timeoutInMillis\":5000," +
