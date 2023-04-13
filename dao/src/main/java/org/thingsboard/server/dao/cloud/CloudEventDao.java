@@ -76,4 +76,5 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      */
     void cleanupEvents(long eventsTtl);
 
+    void migrateCloudEvents();
 }

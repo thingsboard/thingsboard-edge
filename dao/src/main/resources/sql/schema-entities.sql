@@ -940,7 +940,7 @@ CREATE TABLE IF NOT EXISTS rpc (
 );
 
 CREATE TABLE IF NOT EXISTS cloud_event (
-    id uuid NOT NULL CONSTRAINT cloud_event_pkey PRIMARY KEY,
+    id uuid NOT NULL,
     created_time bigint NOT NULL,
     cloud_event_type varchar(255),
     entity_id uuid,
@@ -949,7 +949,7 @@ CREATE TABLE IF NOT EXISTS cloud_event (
     tenant_id uuid,
     entity_group_id uuid,
     ts bigint NOT NULL
-);
+) PARTITION BY RANGE(created_time);
 
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
 $$

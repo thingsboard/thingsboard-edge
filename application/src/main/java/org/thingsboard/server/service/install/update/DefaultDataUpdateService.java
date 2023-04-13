@@ -120,8 +120,9 @@ import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogDao;
-import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
+import org.thingsboard.server.dao.cloud.CloudEventDao;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -271,6 +272,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EdgeEventDao edgeEventDao;
 
+    @Autowired
+    private CloudEventDao cloudEventDao;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -340,6 +344,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping blob entities migration");
                 }
                 break;
+            case "3.4.4":
+                log.info("Updating data from version 3.4.4 to 3.5.0 ...");
+
+                boolean skipCloudEventsMigration = getEnv("TB_SKIP_CLOUD_EVENTS_MIGRATION", false);
+                if (!skipCloudEventsMigration) {
+                    log.info("Starting cloud events migration. Can be skipped with TB_SKIP_CLOUD_EVENTS_MIGRATION env variable set to true");
+                    cloudEventDao.migrateCloudEvents();
+                } else {
+                    log.info("Skipping cloud events migration");
+                }
             case "3.5.0":
                 log.info("Updating data from version 3.5.0 to 3.5.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
