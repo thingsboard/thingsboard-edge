@@ -257,6 +257,7 @@ export class DashboardUtilsService {
       backgroundColor: '#eeeeee',
       columns: 24,
       margin: 10,
+      outerMargin: true,
       backgroundSizeMode: '100%'
     };
   }
@@ -314,6 +315,7 @@ export class DashboardUtilsService {
       layout.gridSettings.margin = layout.gridSettings.margins[0];
       delete layout.gridSettings.margins;
     }
+    layout.gridSettings.outerMargin = isDefined(layout.gridSettings.outerMargin) ? layout.gridSettings.outerMargin : true;
     layout.gridSettings.margin = isDefined(layout.gridSettings.margin) ? layout.gridSettings.margin : 10;
   }
 

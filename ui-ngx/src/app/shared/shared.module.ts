@@ -208,6 +208,17 @@ import { NotificationComponent } from '@shared/components/notification/notificat
 import { TemplateAutocompleteComponent } from '@shared/components/notification/template-autocomplete.component';
 import { SlackConversationAutocompleteComponent } from '@shared/components/slack-conversation-autocomplete.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
+import {
+  TbBreakPointsProvider,
+  MdLgLayoutDirective,
+  MdLgLayoutAlignDirective,
+  MdLgLayoutGapDirective,
+  MdLgShowHideDirective,
+  GtMdLgLayoutDirective,
+  GtMdLgLayoutAlignDirective,
+  GtMdLgLayoutGapDirective,
+  GtMdLgShowHideDirective
+} from '@shared/layout/layout.directives';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
@@ -259,7 +270,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
       useValue: {
         hideSingleSelectionIndicator: true
       }
-    }
+    },
+    TbBreakPointsProvider
   ],
   declarations: [
     FooterComponent,
@@ -382,6 +394,14 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
     DateAgoPipe,
+    MdLgLayoutDirective,
+    MdLgLayoutAlignDirective,
+    MdLgLayoutGapDirective,
+    MdLgShowHideDirective,
+    GtMdLgLayoutDirective,
+    GtMdLgLayoutAlignDirective,
+    GtMdLgLayoutGapDirective,
+    GtMdLgShowHideDirective,
     ThemeColorSelectComponent
   ],
   imports: [
@@ -616,6 +636,14 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
     DateAgoPipe,
+    MdLgLayoutDirective,
+    MdLgLayoutAlignDirective,
+    MdLgLayoutGapDirective,
+    MdLgShowHideDirective,
+    GtMdLgLayoutDirective,
+    GtMdLgLayoutAlignDirective,
+    GtMdLgLayoutGapDirective,
+    GtMdLgShowHideDirective,
     ThemeColorSelectComponent
   ]
 })

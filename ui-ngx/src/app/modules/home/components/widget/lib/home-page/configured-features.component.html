@@ -38,7 +38,7 @@
       class="tb-info-icon">info</mat-icon>
   </div>
   <mat-grid-list class="tb-features-list" fxFlex cols="6" [rowHeight]="rowHeight" [gutterSize]="gutterSize">
-    <mat-grid-tile class="tb-feature-tile" colspan="2">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
       <a class="tb-feature-button" fxFlex
          [matTooltip]="featureTooltip(featuresInfo?.whiteLabelingEnabled)"
          matTooltipPosition="above"
@@ -47,7 +47,7 @@
         <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.whiteLabelingEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.white-labeling-feature' | translate}}</div>
       </a>
     </mat-grid-tile>
-    <mat-grid-tile class="tb-feature-tile" colspan="2">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
       <a class="tb-feature-button" fxFlex
          [matTooltip]="featureTooltip(featuresInfo?.emailEnabled)"
          matTooltipPosition="above"
@@ -56,7 +56,7 @@
         <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.emailEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.email-feature' | translate}}</div>
       </a>
     </mat-grid-tile>
-    <mat-grid-tile class="tb-feature-tile" colspan="2">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
       <a class="tb-feature-button" fxFlex
          [matTooltip]="featureTooltip(featuresInfo?.smsEnabled)"
          matTooltipPosition="above"
@@ -65,7 +65,7 @@
         <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.smsEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.sms-feature' | translate}}</div>
       </a>
     </mat-grid-tile>
-    <mat-grid-tile class="tb-feature-tile" colspan="2">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
       <a class="tb-feature-button" fxFlex
          [matTooltip]="featureTooltip(featuresInfo?.notificationEnabled)"
          matTooltipPosition="above"
@@ -74,7 +74,7 @@
         <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.notificationEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.slack-feature' | translate}}</div>
       </a>
     </mat-grid-tile>
-    <mat-grid-tile class="tb-feature-tile" colspan="2">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
       <a class="tb-feature-button" fxFlex
          [matTooltip]="featureTooltip(featuresInfo?.oauthEnabled)"
          matTooltipPosition="above"
@@ -83,7 +83,7 @@
         <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.oauthEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.oauth2-feature' | translate}}</div>
       </a>
     </mat-grid-tile>
-    <mat-grid-tile class="tb-feature-tile" colspan="2">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
       <a class="tb-feature-button" fxFlex
          [matTooltip]="featureTooltip(featuresInfo?.twoFaEnabled)"
          matTooltipPosition="above"

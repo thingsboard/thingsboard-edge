@@ -53,6 +53,7 @@ export class ConfiguredFeaturesComponent extends PageComponent implements OnInit
   featuresInfo: FeaturesInfo;
   rowHeight = '50px';
   gutterSize = '12px';
+  colspan = 2;
 
   private observeBreakpointSubscription: Subscription;
 
@@ -66,17 +67,24 @@ export class ConfiguredFeaturesComponent extends PageComponent implements OnInit
 
   ngOnInit() {
     const isMdLg = this.breakpointObserver.isMatched(MediaBreakpoints['md-lg']);
+    const isLtMd = this.breakpointObserver.isMatched(MediaBreakpoints['lt-md']);
     this.rowHeight = isMdLg ? '22px' : '50px';
     this.gutterSize = isMdLg ? '8px' : '12px';
+    this.colspan = isLtMd ? 3 : 2;
     this.observeBreakpointSubscription = this.breakpointObserver
-      .observe(MediaBreakpoints['md-lg'])
+      .observe([MediaBreakpoints['md-lg'], MediaBreakpoints['lt-md']])
       .subscribe((state: BreakpointState) => {
-          if (state.matches) {
+          if (state.breakpoints[MediaBreakpoints['md-lg']]) {
             this.rowHeight = '22px';
             this.gutterSize = '8px';
           } else {
             this.rowHeight = '50px';
             this.gutterSize = '12px';
+          }
+          if (state.breakpoints[MediaBreakpoints['lt-md']]) {
+            this.colspan = 3;
+          } else {
+            this.colspan = 2;
           }
           this.cd.markForCheck();
         }
