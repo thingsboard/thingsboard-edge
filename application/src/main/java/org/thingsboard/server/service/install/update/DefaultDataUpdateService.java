@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfi
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
+import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.edge.EdgeEventDao;
@@ -158,6 +159,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EdgeEventDao edgeEventDao;
 
+    @Autowired
+    private CloudEventDao cloudEventDao;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
         switch (fromVersion) {
@@ -217,6 +221,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
 
             case "3.4.4":
+                log.info("Updating data from version 3.4.4 to 3.5.0 ...");
+
+                boolean skipCloudEventsMigration = getEnv("TB_SKIP_CLOUD_EVENTS_MIGRATION", false);
+                if (!skipCloudEventsMigration) {
+                    log.info("Starting cloud events migration. Can be skipped with TB_SKIP_CLOUD_EVENTS_MIGRATION env variable set to true");
+                    cloudEventDao.migrateCloudEvents();
+                } else {
+                    log.info("Skipping cloud events migration");
+                }
+
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 
