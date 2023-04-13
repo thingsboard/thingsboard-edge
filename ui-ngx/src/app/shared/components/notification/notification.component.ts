@@ -110,7 +110,8 @@ export class NotificationComponent implements OnInit {
       let link: string;
       if (this.notification.additionalConfig.actionButtonConfig.linkType === ActionButtonLinkType.DASHBOARD) {
         let state = null;
-        if (this.notification.additionalConfig.actionButtonConfig.dashboardState) {
+        if (this.notification.additionalConfig.actionButtonConfig.dashboardState ||
+          this.notification.additionalConfig.actionButtonConfig.setEntityIdInState) {
           const stateObject: StateObject = {};
           if (this.notification.additionalConfig.actionButtonConfig.setEntityIdInState) {
             stateObject.params = {
@@ -119,7 +120,9 @@ export class NotificationComponent implements OnInit {
           } else {
             stateObject.params = {};
           }
-          stateObject.id = this.notification.additionalConfig.actionButtonConfig.dashboardState;
+          if (this.notification.additionalConfig.actionButtonConfig.dashboardState) {
+            stateObject.id = this.notification.additionalConfig.actionButtonConfig.dashboardState;
+          }
           state = objToBase64URI([ stateObject ]);
         }
         link = `/dashboards/${this.notification.additionalConfig.actionButtonConfig.dashboardId}`;
