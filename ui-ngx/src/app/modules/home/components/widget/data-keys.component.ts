@@ -439,7 +439,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
   }
 
   showColorPicker(key: DataKey) {
-    this.dialogs.colorPicker(key.color).subscribe(
+    this.dialogs.colorPicker(key.color, true).subscribe(
       (color) => {
         if (color && key.color !== color) {
           key.color = color;

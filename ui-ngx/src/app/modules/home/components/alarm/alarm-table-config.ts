@@ -71,7 +71,8 @@ import { Authority } from '@shared/models/authority.enum';
 import { ChangeDetectorRef, Injector, StaticProvider, ViewContainerRef } from '@angular/core';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import {
-  ALARM_ASSIGNEE_PANEL_DATA, AlarmAssigneePanelComponent,
+  ALARM_ASSIGNEE_PANEL_DATA,
+  AlarmAssigneePanelComponent,
   AlarmAssigneePanelData
 } from '@home/components/alarm/alarm-assignee-panel.component';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -202,7 +203,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
           alarm: entity,
           allowAcknowledgment: !this.readonly,
           allowClear: !this.readonly,
-          displayDetails: true
+          displayDetails: true,
+          allowAssign: true
         }
       }).afterClosed().subscribe(
       (res) => {
@@ -304,8 +306,13 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       }
     ];
     const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
-    overlayRef.attach(new ComponentPortal(AlarmAssigneePanelComponent,
-      this.viewContainerRef, injector)).onDestroy(() => this.updateData());
+    const componentRef = overlayRef.attach(new ComponentPortal(AlarmAssigneePanelComponent,
+      this.viewContainerRef, injector));
+    componentRef.onDestroy(() => {
+      if (componentRef.instance.reassigned) {
+        this.updateData()
+      }
+    });
   }
 
 }

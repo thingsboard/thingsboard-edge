@@ -591,4 +591,14 @@ export class UtilsService {
     return base64toObj(b64Encoded);
   }
 
+  public plainColorFromVariable(variable: string): string {
+    if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
+      return variable;
+    }
+    if (variable.startsWith('var(')) {
+      variable = variable.substring(4, variable.length - 1);
+    }
+    return getComputedStyle(this.window.document.documentElement).getPropertyValue(variable);
+  }
+
 }

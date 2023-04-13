@@ -34,19 +34,24 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -61,6 +66,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -83,6 +89,7 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service("DashboardDaoService")
 @Slf4j
+@RequiredArgsConstructor
 public class DashboardServiceImpl extends AbstractEntityService implements DashboardService {
 
     public static final String INCORRECT_DASHBOARD_ID = "Incorrect dashboardId ";
@@ -101,6 +108,28 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private DataValidator<Dashboard> dashboardValidator;
+
+    @Autowired
+    protected TbTransactionalCache<DashboardId, String> cache;
+
+    @Autowired
+    private EntityCountService countService;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    protected void publishEvictEvent(DashboardTitleEvictEvent event) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            eventPublisher.publishEvent(event);
+        } else {
+            handleEvictEvent(event);
+        }
+    }
+
+    @TransactionalEventListener(classes = DashboardTitleEvictEvent.class)
+    public void handleEvictEvent(DashboardTitleEvictEvent event) {
+        cache.evict(event.getKey());
+    }
 
     @Override
     public Dashboard findDashboardById(TenantId tenantId, DashboardId dashboardId) {
@@ -121,6 +150,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         log.trace("Executing findDashboardInfoById [{}]", dashboardId);
         Validator.validateId(dashboardId, INCORRECT_DASHBOARD_ID + dashboardId);
         return dashboardInfoDao.findById(tenantId, dashboardId.getId());
+    }
+
+    @Override
+    public String findDashboardTitleById(TenantId tenantId, DashboardId dashboardId) {
+        return cache.getAndPutInTransaction(dashboardId,
+                () -> dashboardInfoDao.findTitleById(tenantId.getId(), dashboardId.getId()), true);
     }
 
     @Override
@@ -145,9 +180,14 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
             if (dashboard.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+                countService.publishCountEntityEvictEvent(savedDashboard.getTenantId(), EntityType.DASHBOARD);
             }
+            publishEvictEvent(new DashboardTitleEvictEvent(savedDashboard.getId()));
             return savedDashboard;
         } catch (Exception e) {
+            if (dashboard.getId() != null) {
+                publishEvictEvent(new DashboardTitleEvictEvent(dashboard.getId()));
+            }
             checkConstraintViolation(e, "dashboard_external_id_unq_key", "Dashboard with such external id already exists!");
             throw e;
         }
@@ -204,6 +244,8 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         deleteEntityRelations(tenantId, dashboardId);
         try {
             dashboardDao.removeById(tenantId, dashboardId.getId());
+            publishEvictEvent(new DashboardTitleEvictEvent(dashboardId));
+            countService.publishCountEntityEvictEvent(tenantId, EntityType.DASHBOARD);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_default_dashboard_device_profile")) {
@@ -220,6 +262,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validatePageLink(pageLink);
         return dashboardInfoDao.findDashboardsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public Long countDashboards() {
+        log.trace("Executing countDashboards");
+        return dashboardDao.countDashboards();
     }
 
     @Override
@@ -347,6 +395,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         return Optional.ofNullable(findDashboardById(tenantId, new DashboardId(entityId.getId())));
     }
 
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return dashboardDao.countByTenantId(tenantId);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.DASHBOARD;
     }

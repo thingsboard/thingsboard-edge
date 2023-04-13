@@ -65,6 +65,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.alarm.TbAlarmService;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.ALARM_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ALARM_INFO_DESCRIPTION;
@@ -273,7 +274,7 @@ public class AlarmController extends BaseController {
             @RequestParam(required = false) Long endTime,
             @ApiParam(value = ALARM_QUERY_FETCH_ORIGINATOR_DESCRIPTION)
             @RequestParam(required = false) Boolean fetchOriginator
-    ) throws ThingsboardException {
+    ) throws ThingsboardException, ExecutionException, InterruptedException {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
         EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
@@ -288,11 +289,7 @@ public class AlarmController extends BaseController {
         UserId assigneeUserId = checkAssigneeId(assigneeId);
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
-        try {
-            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
     }
 
     @ApiOperation(value = "Get All Alarms (getAllAlarms)",
@@ -327,7 +324,7 @@ public class AlarmController extends BaseController {
             @RequestParam(required = false) Long endTime,
             @ApiParam(value = ALARM_QUERY_FETCH_ORIGINATOR_DESCRIPTION)
             @RequestParam(required = false) Boolean fetchOriginator
-    ) throws ThingsboardException {
+    ) throws ThingsboardException, ExecutionException, InterruptedException {
         AlarmSearchStatus alarmSearchStatus = StringUtils.isEmpty(searchStatus) ? null : AlarmSearchStatus.valueOf(searchStatus);
         AlarmStatus alarmStatus = StringUtils.isEmpty(status) ? null : AlarmStatus.valueOf(status);
         if (alarmSearchStatus != null && alarmStatus != null) {
@@ -338,14 +335,10 @@ public class AlarmController extends BaseController {
         TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
 
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
-        try {
-            if (getCurrentUser().isCustomerUser()) {
-                return checkNotNull(alarmService.findCustomerAlarms(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
-            } else {
-                return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        if (getCurrentUser().isCustomerUser()) {
+            return checkNotNull(alarmService.findCustomerAlarms(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
+        } else {
+            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(null, pageLink, alarmSearchStatus, alarmStatus, assigneeUserId, fetchOriginator)).get());
         }
     }
 
@@ -379,11 +372,8 @@ public class AlarmController extends BaseController {
         }
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         checkEntityId(entityId, Operation.READ);
-        try {
-            return alarmService.findHighestAlarmSeverity(getCurrentUser().getTenantId(), entityId, alarmSearchStatus, alarmStatus, assigneeId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return alarmService.findHighestAlarmSeverity(getCurrentUser().getTenantId(), entityId, alarmSearchStatus,
+                alarmStatus, assigneeId);
     }
 
 }

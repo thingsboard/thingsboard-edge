@@ -97,6 +97,11 @@ public class JpaDashboardDao extends JpaAbstractSearchTextDao<DashboardEntity, D
     }
 
     @Override
+    public Long countDashboards() {
+        return dashboardRepository.count();
+    }
+
+    @Override
     public PageData<DashboardId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
         Page<UUID> page;
         if(customerId == null){

@@ -122,6 +122,11 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
+    public Long countCoreIntegrations() {
+        return integrationRepository.countByEdgeTemplateFalse();
+    }
+
+    @Override
     protected Class<IntegrationEntity> getEntityClass() {
         return IntegrationEntity.class;
     }

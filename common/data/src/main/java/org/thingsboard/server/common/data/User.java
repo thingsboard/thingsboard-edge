@@ -45,6 +45,8 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
 public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
@@ -193,6 +195,24 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
     @Override
     public String getSearchText() {
         return getEmail();
+    }
+
+    @JsonIgnore
+    public String getTitle() {
+        String title = "";
+        if (isNotEmpty(firstName)) {
+            title += firstName;
+        }
+        if (isNotEmpty(lastName)) {
+            if (!title.isEmpty()) {
+                title += " ";
+            }
+            title += lastName;
+        }
+        if (title.isEmpty()) {
+            title = email;
+        }
+        return title;
     }
 
     @Override

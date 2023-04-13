@@ -1,0 +1,144 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+
+@import "../../../../../../../scss/constants";
+
+:host {
+  .tb-card-content {
+    width: 100%;
+    height: 100%;
+  }
+
+  .tb-title {
+    margin-top: 8px;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.25px;
+    color: rgba(0, 0, 0, 0.54);
+    @media #{$mat-md-lg} {
+      font-size: 12px;
+      line-height: 16px;
+    }
+  }
+
+  .tb-info-icon {
+    color: rgba(0, 0, 0, 0.12);
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 15px;
+    vertical-align: middle;
+  }
+
+  .tb-features-list {
+    overflow: auto;
+  }
+
+  .mat-grid-tile.tb-feature-tile {
+    overflow: visible;
+  }
+
+  .tb-feature-button {
+    height: 50px;
+    display: flex;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.04);
+    border-radius: 10px;
+    @media #{$mat-md-lg} {
+      height: 22px;
+      padding: 0 8px;
+    }
+    &:hover {
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      box-shadow: 0 4px 10px rgba(23, 33, 90, 0.08);
+    }
+    .tb-feature-text {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 20px;
+      color: rgba(0, 0, 0, 0.87);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      @media #{$mat-md-lg} {
+        font-size: 11px;
+        line-height: 16px;
+      }
+    }
+    .tb-feature-status {
+      display: inline-block;
+      font-family: 'Material Icons Round';
+      font-size: 20px;
+      line-height: 20px;
+      color: rgba(0, 0, 0, 0.12);
+      font-weight: 600;
+      position: relative;
+      background: #F4F4F4;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      padding: 2px;
+      margin-right: 8px;
+      vertical-align: middle;
+      @media #{$mat-md-lg} {
+        font-size: 14px;
+        line-height: 14px;
+        width: 18px;
+        height: 18px;
+        margin-right: 4px;
+      }
+    }
+    &.configured {
+      .tb-feature-status {
+        color: #198038;
+        background: transparent;
+        &:before {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          border-radius: 4px;
+          background: var(--tb-primary-500);
+          opacity: 0.04;
+        }
+      }
+    }
+  }
+}

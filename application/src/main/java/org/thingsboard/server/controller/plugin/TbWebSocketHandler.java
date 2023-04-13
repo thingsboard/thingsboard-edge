@@ -99,6 +99,8 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
     private long sendTimeout;
     @Value("${server.ws.ping_timeout:30000}")
     private long pingTimeout;
+    @Value("${server.ws.max_queue_messages_per_session:1000}")
+    private int wsMaxQueueMessagesPerSession;
 
     private final ConcurrentMap<String, WebSocketSessionRef> blacklistedSessions = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TbRateLimits> perSessionUpdateLimits = new ConcurrentHashMap<>();
@@ -158,9 +160,11 @@ public class TbWebSocketHandler extends TextWebSocketHandler implements WebSocke
                 return;
             }
             var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
+            int wsTenantProfileQueueLimit = tenantProfileConfiguration != null ?
+                    tenantProfileConfiguration.getWsMsgQueueLimitPerSession() : wsMaxQueueMessagesPerSession;
             internalSessionMap.put(internalSessionId, new SessionMetaData(session, sessionRef,
-                    tenantProfileConfiguration != null && tenantProfileConfiguration.getWsMsgQueueLimitPerSession() > 0 ?
-                    tenantProfileConfiguration.getWsMsgQueueLimitPerSession() : 500));
+                    (wsTenantProfileQueueLimit > 0 && wsTenantProfileQueueLimit < wsMaxQueueMessagesPerSession) ?
+                            wsTenantProfileQueueLimit : wsMaxQueueMessagesPerSession));
 
             externalSessionMap.put(externalSessionId, internalSessionId);
             processInWebSocketService(sessionRef, SessionEvent.onEstablished());

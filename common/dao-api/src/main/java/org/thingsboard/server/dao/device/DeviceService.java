@@ -78,6 +78,8 @@ public interface DeviceService extends EntityDaoService {
 
     PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink);
 
+    Long countDevices();
+
     PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
     PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
@@ -111,8 +113,6 @@ public interface DeviceService extends EntityDaoService {
     PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
 
     Device assignDeviceToTenant(TenantId tenantId, Device device);
-
-    long countByTenantId(TenantId tenantId);
 
     PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId,
                                                                          DeviceProfileId deviceProfileId,

@@ -83,6 +83,7 @@ message ConnectRequestMsg {
   string edgeRoutingKey = 1;
   string edgeSecret = 2;
   EdgeVersion edgeVersion = 3;
+  optional int32 maxInboundMessageSize = 4;
 }
 
 enum ConnectResponseCode {
@@ -95,6 +96,7 @@ message ConnectResponseMsg {
   ConnectResponseCode responseCode = 1;
   string errorMsg = 2;
   EdgeConfiguration configuration = 3;
+  optional int32 maxInboundMessageSize = 4;
 }
 
 message SyncRequestMsg {
@@ -501,6 +503,10 @@ message SchedulerEventUpdateMsg {
   string type = 7;
   string schedule = 8;
   string configuration = 9;
+  optional string originatorType = 10;
+  optional int64 originatorIdMSB = 11;
+  optional int64 originatorIdLSB = 12;
+  optional string additionalInfo = 13;
 }
 
 message EntityGroupUpdateMsg {

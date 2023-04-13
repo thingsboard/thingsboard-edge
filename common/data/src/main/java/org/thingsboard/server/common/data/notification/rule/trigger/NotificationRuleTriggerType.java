@@ -37,12 +37,14 @@ public enum NotificationRuleTriggerType {
 
     ALARM,
     ALARM_COMMENT,
-    DEVICE_INACTIVITY,
+    DEVICE_ACTIVITY,
     ENTITY_ACTION,
     RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
     ALARM_ASSIGNMENT,
     NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false);
+    ENTITIES_LIMIT(false),
+    API_USAGE_LIMIT(false),
+    INTEGRATION_LIFECYCLE_EVENT;
 
     private final boolean tenantLevel;
 

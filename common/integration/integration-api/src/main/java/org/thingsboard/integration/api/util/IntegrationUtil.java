@@ -103,6 +103,8 @@ public class IntegrationUtil {
                 } else {
                     throw new RuntimeException("Custom Integrations should be executed remotely!");
                 }
+            case AZURE_SERVICE_BUS:
+                return newInstance("org.thingsboard.integration.azure.AzureServiceBusIntegration");
             default:
                 throw new RuntimeException("Not Implemented!");
         }
