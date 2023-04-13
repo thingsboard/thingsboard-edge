@@ -114,7 +114,6 @@ import * as LogoComponent from '@shared/components/logo.component';
 import * as FooterFabButtonsComponent from '@shared/components/footer-fab-buttons.component';
 import * as FullscreenDirective from '@shared/components/fullscreen.directive';
 import * as CircularProgressDirective from '@shared/components/circular-progress.directive';
-import * as MatChipDraggableDirective from '@shared/components/mat-chip-draggable.directive';
 import * as TbHotkeysDirective from '@shared/components/hotkeys.directive';
 import * as TbAnchorComponent from '@shared/components/tb-anchor.component';
 import * as TbPopoverComponent from '@shared/components/popover.component';
@@ -170,6 +169,8 @@ import * as ColorInputComponent from '@shared/components/color-input.component';
 import * as MaterialIconSelectComponent from '@shared/components/material-icon-select.component';
 import * as NodeScriptTestDialogComponent from '@shared/components/dialog/node-script-test-dialog.component';
 import * as JsonFormComponent from '@shared/components/json-form/json-form.component';
+import * as NotificationComponent from '@shared/components/notification/notification.component';
+import * as TemplateAutocompleteComponent from '@shared/components/notification/template-autocomplete.component';
 import * as ImageInputComponent from '@shared/components/image-input.component';
 import * as FileInputComponent from '@shared/components/file-input.component';
 import * as MessageTypeAutocompleteComponent from '@shared/components/message-type-autocomplete.component';
@@ -187,6 +188,7 @@ import * as WidgetsBundleSearchComponent from '@shared/components/widgets-bundle
 import * as CopyButtonComponent from '@shared/components/button/copy-button.component';
 import * as TogglePasswordComponent from '@shared/components/button/toggle-password.component';
 import * as ProtobufContentComponent from '@shared/components/protobuf-content.component';
+import * as SlackConversationAutocompleteComponent from '@shared/components/slack-conversation-autocomplete.component';
 import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
 import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
 import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
@@ -445,7 +447,6 @@ class ModulesMap implements IModulesMap {
     '@shared/components/footer-fab-buttons.component': FooterFabButtonsComponent,
     '@shared/components/fullscreen.directive': FullscreenDirective,
     '@shared/components/circular-progress.directive': CircularProgressDirective,
-    '@shared/components/mat-chip-draggable.directive': MatChipDraggableDirective,
     '@shared/components/hotkeys.directive': TbHotkeysDirective,
     '@shared/components/tb-anchor.component': TbAnchorComponent,
     '@shared/components/popover.component': TbPopoverComponent,
@@ -501,6 +502,8 @@ class ModulesMap implements IModulesMap {
     '@shared/components/material-icon-select.component': MaterialIconSelectComponent,
     '@shared/components/dialog/node-script-test-dialog.component': NodeScriptTestDialogComponent,
     '@shared/components/json-form/json-form.component': JsonFormComponent,
+    '@shared/components/notification/notification.component': NotificationComponent,
+    '@shared/components/notification/template-autocomplete.component': TemplateAutocompleteComponent,
     '@shared/components/image-input.component': ImageInputComponent,
     '@shared/components/file-input.component': FileInputComponent,
     '@shared/components/message-type-autocomplete.component': MessageTypeAutocompleteComponent,
@@ -518,6 +521,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/button/copy-button.component': CopyButtonComponent,
     '@shared/components/button/toggle-password.component': TogglePasswordComponent,
     '@shared/components/protobuf-content.component': ProtobufContentComponent,
+    '@shared/components/slack-conversation-autocomplete.component': SlackConversationAutocompleteComponent,
     '@shared/components/group/entity-group-autocomplete.component': EntityGroupAutocompleteComponent,
     '@shared/components/group/owner-autocomplete.component': OwnerAutocompleteComponent,
     '@shared/components/group/entity-group-select.component': EntityGroupSelectComponent,

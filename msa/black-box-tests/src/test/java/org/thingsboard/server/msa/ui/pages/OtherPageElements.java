@@ -43,7 +43,7 @@ public class OtherPageElements extends AbstractBasePage {
     }
 
     protected static final String ENTITY = "//mat-row//span[text() = '%s']";
-    protected static final String DELETE_BTN = ENTITY + "/../..//mat-icon[contains(text(),' delete')]/../..";
+    protected static final String DELETE_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'delete')]/ancestor::button";
     protected static final String DETAILS_BTN = ENTITY + "/../..//mat-icon[contains(text(),'edit')]/../..";
     private static final String ENTITY_COUNT = "//div[@class='mat-paginator-range-label']";
     private static final String CONFIRM_DIALOG = "//tb-confirm-dialog";
@@ -51,40 +51,39 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String WARNING_DELETE_POPUP_NO = CONFIRM_DIALOG + "//button[1]";
     private static final String WARNING_DELETE_POPUP_TITLE = "//tb-confirm-dialog/h2";
     private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/..";
-    private static final String HELP_BTN = "(//mat-icon[contains(text(),'help')]/../..)[2]";
+    private static final String HELP_BTN = "//span[text()='Customer details']/ancestor::div/following-sibling::div[@class='details-buttons']";
     private static final String HELP_BTN_ENTITY_GROUP = "//mat-icon[contains(text(),'help')]/../..";
     private static final String CHECKBOX = "//mat-row//span[contains(text(),'%s')]/../..//mat-checkbox";
     private static final String CHECKBOXES = "//tbody//mat-checkbox";
-    private static final String DELETE_SELECTED_BTN = "//span[contains(text(),'selected')]//..//mat-icon[contains(text(),'delete')]/../..";
+    private static final String DELETE_SELECTED_BTN = "//div[@class='mat-toolbar-tools']//mat-icon[contains(text(),'delete')]/parent::button";
     private static final String DELETE_BTNS = "//mat-icon[contains(text(),' delete')]/../..";
     private static final String MARKS_CHECKBOX = "//mat-row[contains (@class,'mat-selected')]//mat-checkbox[contains(@class, 'checked')]";
     private static final String SELECT_ALL_CHECKBOX = "//thead//mat-checkbox";
-    private static final String ALL_ENTITY = "//mat-row[@class='mat-row cdk-row mat-row-select ng-star-inserted']";
-    private static final String EDIT_PENCIL_BTN = "//mat-drawer-content//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
+    private static final String ALL_ENTITY = "//tbody/mat-row";
+    private static final String EDIT_PENCIL_BTN = "//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
     private static final String ENTITY_GROUP_EDIT_PENCIL_BTN = "//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
     private static final String NAME_FIELD_EDIT_VIEW = "//input[@formcontrolname='name']";
     private static final String HEADER_NAME_VIEW = "//header//div[@class='tb-details-title']/span";
-    private static final String DONE_BTN_EDIT_VIEW = "//mat-drawer-content//mat-icon[contains(text(),'done')]/ancestor::button";
+    private static final String DONE_BTN_EDIT_VIEW = "//mat-icon[contains(text(),'done')]/ancestor::button";
     private static final String ENTITY_GROUP_DONE_BTN_EDIT_VIEW = "//mat-icon[contains(text(),'done')]/ancestor::button";
     private static final String DESCRIPTION_ENTITY_VIEW = "//mat-drawer-container[contains(@class,'has-open')]//textarea";
     private static final String DESCRIPTION_ADD_ENTITY_VIEW = "//mat-dialog-container//textarea";
     private static final String DEBUG_CHECKBOX_EDIT = "//mat-checkbox[@formcontrolname='debugMode']";
     private static final String DEBUG_CHECKBOX_VIEW = "//mat-checkbox[@formcontrolname='debugMode']//input";
-    private static final String CLOSE_ENTITY_VIEW_BTN = "//header//mat-icon[contains(text(),'close')]/../..";
-    private static final String SEARCH_BTN = "//mat-toolbar//mat-icon[contains(text(),'search')]/.." +
-            "/parent::button[@class='mat-focus-indicator mat-tooltip-trigger mat-icon-button mat-button-base ng-star-inserted']";
+    private static final String CLOSE_ENTITY_VIEW_BTN = "//header//mat-icon[contains(text(),'close')]/parent::button";
+    private static final String SEARCH_BTN = "//mat-toolbar//mat-icon[contains(text(),'search')]/ancestor::button[contains(@class,'ng-star')]";
     private static final String SORT_BY_NAME_BTN = "//div[contains(text(),'Name')]";
     private static final String SORT_BY_TITLE_BTN = "//div[contains(text(),'Title')]";
     private static final String SORT_BY_TIME_BTN = "//div[contains(text(),'Created time')]/..";
     private static final String CREATED_TIME = "//tbody[@role='rowgroup']//mat-cell[2]/span";
-    private static final String PLUS_BTN = "//mat-icon[contains(text(),'add')]/../parent::button";
+    private static final String PLUS_BTN = "//mat-icon[contains(text(),'add')]/ancestor::button";
     private static final String CREATE_VIEW_ADD_BTN = "//span[contains(text(),'Add')]/..";
     private static final String WARNING_MESSAGE = "//tb-snack-bar-component/div/div";
     private static final String ERROR_MESSAGE = "//mat-error";
     private static final String ENTITY_VIEW_TITLE = "//mat-drawer-container[contains(@class,'has-open')]//div[@class='tb-details-title']//span";
     private static final String LIST_OF_ENTITY = "//div[@role='listbox']/mat-option";
     protected static final String ADD_ENTITY_VIEW = "//mat-dialog-container";
-    private static final String SEARCH_FIELD = "//input[contains (@data-placeholder,'Search')]";
+    private static final String SEARCH_FIELD = "//input[contains (@placeholder,'Search')]";
     private static final String ADD_ENTITY_GROUP_VIEW = "//tb-entity-group-wizard";
     private static final String ADD_TO_GROUP_VIEW = "//tb-select-entity-group-dialog";
     private static final String NAME_FIELD_ADD_ENTITY_GROUP = ADD_ENTITY_GROUP_VIEW + "//input[@formcontrolname='name']";
@@ -223,7 +222,7 @@ public class OtherPageElements extends AbstractBasePage {
     }
 
     public WebElement debugCheckboxView() {
-        return waitUntilVisibilityOfElementLocated(DEBUG_CHECKBOX_VIEW);
+        return waitUntilPresenceOfElementLocated(DEBUG_CHECKBOX_VIEW);
     }
 
     public WebElement closeEntityViewBtn() {

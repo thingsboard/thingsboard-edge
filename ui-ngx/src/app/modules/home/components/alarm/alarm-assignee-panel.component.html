@@ -1,0 +1,68 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-form-field appearance="outline" [formGroup]="selectUserFormGroup" class="mat-block search-users">
+  <input matInput type="text" placeholder="{{ 'user.search' | translate }}"
+         #userInput
+         formControlName="user"
+         (focusin)="onFocus()"
+         [matAutocomplete]="userAutocomplete">
+  <mat-icon matSuffix>search</mat-icon>
+  <mat-autocomplete class="tb-assignee-autocomplete tb-autocomplete"
+                    #userAutocomplete="matAutocomplete"
+                    [displayWith]="displayUserFn"
+                    (optionSelected)="selected($event)">
+    <mat-option [fxHide]="!assigneeId" [value]="null">
+      <mat-icon class="unassigned-icon">account_circle</mat-icon>
+      <span translate>alarm.unassigned</span>
+    </mat-option>
+    <mat-option *ngFor="let user of filteredUsers | async" [value]="user"
+                [fxHide]="assigneeId === user.id.id">
+      <span class="user-avatar" [innerHTML]="getUserInitials(user)"
+            [style.background-color]="getAvatarBgColor(user)">
+      </span>
+      <div class="user-display-name" fxLayout="column" fxLayoutGap="2px">
+        <span *ngIf="user.firstName || user.lastName"
+              [innerHTML]="getFullName(user) | highlight:searchText"></span>
+        <span [innerHTML]="user.email | highlight:searchText"></span>
+      </div>
+    </mat-option>
+    <mat-option *ngIf="!(filteredUsers | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <span style="white-space: normal">
+            {{ translate.get('user.no-users-matching', {entity: searchText}) | async }}
+        </span>
+      </div>
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
+

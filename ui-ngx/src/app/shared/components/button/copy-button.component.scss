@@ -29,10 +29,12 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .mat-icon-button{
+  .mat-mdc-icon-button{
     height: 32px;
     width: 32px;
     line-height: 32px;
+    padding: 4px;
+    vertical-align: middle;
     .mat-icon.copied{
       color: #00C851 !important;
     }

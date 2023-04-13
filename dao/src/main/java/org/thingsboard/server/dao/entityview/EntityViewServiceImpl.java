@@ -42,6 +42,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -87,6 +88,9 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
 
     @Autowired
     private EntityViewDao entityViewDao;
+
+    @Autowired
+    private EntityViewInfoDao entityViewInfoDao;
 
     @Autowired
     private DataValidator<EntityView> entityViewValidator;
@@ -135,6 +139,13 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         return cache.getAndPutInTransaction(EntityViewCacheKey.byId(entityViewId),
                 () -> entityViewDao.findById(tenantId, entityViewId.getId())
                 , EntityViewCacheValue::getEntityView, v -> new EntityViewCacheValue(v, null), true);
+    }
+
+    @Override
+    public EntityViewInfo findEntityViewInfoById(TenantId tenantId, EntityViewId entityViewId) {
+        log.trace("Executing findEntityViewInfoById [{}]", entityViewId);
+        validateId(entityViewId, INCORRECT_ENTITY_VIEW_ID + entityViewId);
+        return entityViewInfoDao.findById(tenantId, entityViewId.getId());
     }
 
     @Override
@@ -312,6 +323,79 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink);
         return entityViewDao.findEntityViewsByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findEntityViewInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findEntityViewInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findEntityViewsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
+        log.trace("Executing findEntityViewInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findTenantEntityViewInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantEntityViewInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findTenantEntityViewsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findTenantEntityViewInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
+        log.trace("Executing findTenantEntityViewInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findTenantEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findEntityViewInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
+        log.trace("Executing findEntityViewInfosByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findEntityViewsByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
+        log.trace("Executing findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers, tenantId [{}], customerId [{}], type [{}], pageLink [{}]",
+                tenantId, customerId, type, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return entityViewInfoDao.findEntityViewsByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId.getId(), customerId.getId(), type, pageLink);
     }
 
     private PaginatedRemover<TenantId, EntityView> tenantEntityViewRemover = new PaginatedRemover<TenantId, EntityView>() {

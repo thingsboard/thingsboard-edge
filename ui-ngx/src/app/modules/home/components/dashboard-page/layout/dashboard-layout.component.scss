@@ -29,17 +29,17 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
+  display: block;
+  height: 100%;
   button.tb-add-new-widget {
+    height: auto;
     padding-right: 12px;
     font-size: 20px;
     border-style: dashed;
     border-width: 2px;
-
-    ::ng-deep .mat-button-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: center;
-    }
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
   }
 }

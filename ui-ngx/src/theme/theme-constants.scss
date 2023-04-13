@@ -30,8 +30,6 @@
  */
 @use '@angular/material' as mat;
 
-@include mat.core();
-
 :root {
   --tb-primary-50: #{map_get(mat.$teal-palette, 50)};
   --tb-primary-100: #{map_get(mat.$teal-palette, 100)};
@@ -215,14 +213,14 @@ $mat-tb-accent: (
     mat-toolbar {
       &.mat-primary {
         @include _mat-toolbar-inverse-color($primary);
-        button.mat-icon-button {
+        button.mat-mdc-icon-button {
           mat-icon {
             color: mat.get-color-from-palette($primary);
           }
         }
       }
     }
-    .mat-fab {
+    .mat-mdc-fab {
       &.mat-primary {
         background: #fff;
         color: mat.get-color-from-palette($primary);
@@ -248,9 +246,19 @@ $mat-tb-accent: (
     @include mat-fab-toolbar-inverse-theme($theme);
   }
 
-  .same-color.mat-form-field-invalid {
-    .mat-form-field-suffix {
-      color: mat.get-color-from-palette($warn, text);
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(203, 203, 203, 0.8);
+    &:hover {
+      background: rgba(165, 165, 165, 0.65);
     }
   }
 }

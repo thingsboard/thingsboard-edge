@@ -39,6 +39,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
@@ -65,6 +66,11 @@ import java.util.concurrent.TimeoutException;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "js.evaluator=local",
+        "service.integrations.supported=ALL",
+        "transport.coap.enabled=true",
+})
 @Slf4j
 @DaoSqlTest
 public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
@@ -305,7 +311,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         return !eventsList.isEmpty();
     }
 
-    private Device createDevice(String deviceName, String deviceType) {
+    protected Device createDevice(String deviceName, String deviceType) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(deviceType);

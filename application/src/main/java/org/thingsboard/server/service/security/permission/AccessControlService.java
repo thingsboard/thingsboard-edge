@@ -33,6 +33,7 @@ package org.thingsboard.server.service.security.permission;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -53,6 +54,10 @@ public interface AccessControlService {
 
     void checkEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
 
+    void checkEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) throws ThingsboardException;
+
     boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
+
+    boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) throws ThingsboardException;
 
 }

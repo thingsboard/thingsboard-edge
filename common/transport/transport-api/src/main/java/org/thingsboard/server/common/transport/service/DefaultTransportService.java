@@ -322,8 +322,8 @@ public class DefaultTransportService implements TransportService {
 
     @Override
     public TransportProtos.GetEntityProfileResponseMsg getEntityProfile(TransportProtos.GetEntityProfileRequestMsg msg) {
-        TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg> protoMsg =
-                new TbProtoQueueMsg<>(UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder().setEntityProfileRequestMsg(msg).build());
+        TbProtoQueueMsg<TransportApiRequestMsg> protoMsg =
+                new TbProtoQueueMsg<>(UUID.randomUUID(), TransportApiRequestMsg.newBuilder().setEntityProfileRequestMsg(msg).build());
         try {
             TbProtoQueueMsg<TransportApiResponseMsg> response = transportApiRequestTemplate.send(protoMsg).get();
             return response.getValue().getEntityProfileResponseMsg();
@@ -334,8 +334,8 @@ public class DefaultTransportService implements TransportService {
 
     @Override
     public List<TransportProtos.GetQueueRoutingInfoResponseMsg> getQueueRoutingInfo(TransportProtos.GetAllQueueRoutingInfoRequestMsg msg) {
-        TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg> protoMsg =
-                new TbProtoQueueMsg<>(UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder().setGetAllQueueRoutingInfoRequestMsg(msg).build());
+        TbProtoQueueMsg<TransportApiRequestMsg> protoMsg =
+                new TbProtoQueueMsg<>(UUID.randomUUID(), TransportApiRequestMsg.newBuilder().setGetAllQueueRoutingInfoRequestMsg(msg).build());
         try {
             TbProtoQueueMsg<TransportApiResponseMsg> response = transportApiRequestTemplate.send(protoMsg).get();
             return response.getValue().getGetQueueRoutingInfoResponseMsgsList();
@@ -346,8 +346,8 @@ public class DefaultTransportService implements TransportService {
 
     @Override
     public TransportProtos.GetResourceResponseMsg getResource(TransportProtos.GetResourceRequestMsg msg) {
-        TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg> protoMsg =
-                new TbProtoQueueMsg<>(UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder().setResourceRequestMsg(msg).build());
+        TbProtoQueueMsg<TransportApiRequestMsg> protoMsg =
+                new TbProtoQueueMsg<>(UUID.randomUUID(), TransportApiRequestMsg.newBuilder().setResourceRequestMsg(msg).build());
         try {
             TbProtoQueueMsg<TransportApiResponseMsg> response = transportApiRequestTemplate.send(protoMsg).get();
             return response.getValue().getResourceResponseMsg();
@@ -358,8 +358,8 @@ public class DefaultTransportService implements TransportService {
 
     @Override
     public GetSnmpDevicesResponseMsg getSnmpDevicesIds(GetSnmpDevicesRequestMsg requestMsg) {
-        TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg> protoMsg = new TbProtoQueueMsg<>(
-                UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder()
+        TbProtoQueueMsg<TransportApiRequestMsg> protoMsg = new TbProtoQueueMsg<>(
+                UUID.randomUUID(), TransportApiRequestMsg.newBuilder()
                 .setSnmpDevicesRequestMsg(requestMsg)
                 .build()
         );
@@ -375,7 +375,7 @@ public class DefaultTransportService implements TransportService {
     @Override
     public GetDeviceResponseMsg getDevice(GetDeviceRequestMsg requestMsg) {
         TbProtoQueueMsg<TransportApiRequestMsg> protoMsg = new TbProtoQueueMsg<>(
-                UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder()
+                UUID.randomUUID(), TransportApiRequestMsg.newBuilder()
                 .setDeviceRequestMsg(requestMsg)
                 .build()
         );
@@ -395,7 +395,7 @@ public class DefaultTransportService implements TransportService {
     @Override
     public GetDeviceCredentialsResponseMsg getDeviceCredentials(GetDeviceCredentialsRequestMsg requestMsg) {
         TbProtoQueueMsg<TransportApiRequestMsg> protoMsg = new TbProtoQueueMsg<>(
-                UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder()
+                UUID.randomUUID(), TransportApiRequestMsg.newBuilder()
                 .setDeviceCredentialsRequestMsg(requestMsg)
                 .build()
         );
@@ -668,6 +668,11 @@ public class DefaultTransportService implements TransportService {
 
     @Override
     public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ToDeviceRpcRequestMsg msg, RpcStatus rpcStatus, TransportServiceCallback<Void> callback) {
+        process(sessionInfo, msg, rpcStatus, false, callback);
+    }
+
+    @Override
+    public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.ToDeviceRpcRequestMsg msg, RpcStatus rpcStatus, boolean reportActivity, TransportServiceCallback<Void> callback) {
         TransportProtos.ToDeviceRpcResponseStatusMsg responseMsg = TransportProtos.ToDeviceRpcResponseStatusMsg.newBuilder()
                 .setRequestId(msg.getRequestId())
                 .setRequestIdLSB(msg.getRequestIdLSB())
@@ -676,7 +681,9 @@ public class DefaultTransportService implements TransportService {
                 .build();
 
         if (checkLimits(sessionInfo, responseMsg, callback)) {
-            reportActivityInternal(sessionInfo);
+            if (reportActivity) {
+                reportActivityInternal(sessionInfo);
+            }
             sendToDeviceActor(sessionInfo, TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo).setRpcResponseStatusMsg(responseMsg).build(),
                     new ApiStatsProxyCallback<>(getTenantId(sessionInfo), getCustomerId(sessionInfo), 1, TransportServiceCallback.EMPTY));
         }
@@ -741,8 +748,8 @@ public class DefaultTransportService implements TransportService {
     @Override
     public void process(TransportProtos.SessionInfoProto sessionInfo, TransportProtos.GetOtaPackageRequestMsg msg, TransportServiceCallback<TransportProtos.GetOtaPackageResponseMsg> callback) {
         if (checkLimits(sessionInfo, msg, callback)) {
-            TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg> protoMsg =
-                    new TbProtoQueueMsg<>(UUID.randomUUID(), TransportProtos.TransportApiRequestMsg.newBuilder().setOtaPackageRequestMsg(msg).build());
+            TbProtoQueueMsg<TransportApiRequestMsg> protoMsg =
+                    new TbProtoQueueMsg<>(UUID.randomUUID(), TransportApiRequestMsg.newBuilder().setOtaPackageRequestMsg(msg).build());
 
             AsyncCallbackTemplate.withCallback(transportApiRequestTemplate.send(protoMsg), response -> {
                 callback.onSuccess(response.getValue().getOtaPackageResponseMsg());
@@ -885,7 +892,7 @@ public class DefaultTransportService implements TransportService {
         }
     }
 
-    protected void processToTransportMsg(TransportProtos.ToTransportMsg toSessionMsg) {
+    protected void processToTransportMsg(ToTransportMsg toSessionMsg) {
         UUID sessionId = new UUID(toSessionMsg.getSessionIdMSB(), toSessionMsg.getSessionIdLSB());
         SessionMetaData md = sessions.get(sessionId);
         if (md != null) {

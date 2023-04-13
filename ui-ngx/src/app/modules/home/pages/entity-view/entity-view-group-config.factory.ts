@@ -38,7 +38,7 @@ import {
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
 import { Inject, Injectable } from '@angular/core';
-import { tap } from 'rxjs/operators';
+import { mergeMap, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -46,7 +46,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { EntityView } from '@shared/models/entity-view.models';
+import { EntityViewInfo } from '@shared/models/entity-view.models';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
 import { Router, UrlTree } from '@angular/router';
@@ -54,9 +54,9 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { WINDOW } from '@core/services/window.service';
 
 @Injectable()
-export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityView> {
+export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityViewInfo> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<EntityView>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<EntityViewInfo>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
@@ -68,10 +68,12 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
               @Inject(WINDOW) private window: Window) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EntityView>): Observable<GroupEntityTableConfig<EntityView>> {
-    const config = new GroupEntityTableConfig<EntityView>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EntityViewInfo>):
+      Observable<GroupEntityTableConfig<EntityViewInfo>> {
+    const config = new GroupEntityTableConfig<EntityViewInfo>(entityGroup, params);
 
     config.entityComponent = EntityViewComponent;
+    config.addDialogStyle = {maxWidth: '800px', height: '1060px'};
 
     config.entityTitle = (entityView) => entityView ?
       this.utils.customTranslation(entityView.name, entityView.name) : '';
@@ -82,13 +84,13 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     config.deleteEntitiesTitle = count => this.translate.instant('entity-view.delete-entity-views-title', {count});
     config.deleteEntitiesContent = () => this.translate.instant('entity-view.delete-entity-views-text');
 
-    config.loadEntity = id => this.entityViewService.getEntityView(id.id);
-    config.saveEntity = entityView => {
-      return this.entityViewService.saveEntityView(entityView).pipe(
+    config.loadEntity = id => this.entityViewService.getEntityViewInfo(id.id);
+    config.saveEntity = entityView => this.entityViewService.saveEntityView(entityView).pipe(
         tap(() => {
           this.broadcast.broadcast('entityViewSaved');
-        }));
-    };
+        }),
+      mergeMap((savedEntityView) => this.entityViewService.getEntityViewInfo(savedEntityView.id.id)
+      ));
     config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
 
     config.onEntityAction = action => this.onEntityViewAction(action, config, params);
@@ -96,7 +98,8 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  private openEntityView($event: Event, entityView: EntityView, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams) {
+  private openEntityView($event: Event, entityView: EntityViewInfo,
+                         config: GroupEntityTableConfig<EntityViewInfo>, params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -106,8 +109,8 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
           'edgeGroups', params.childEntityGroupId, params.edgeId, 'entityViewGroups', params.edgeEntitiesGroupId, entityView.id.id]);
       } else {
-        url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
-          params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+        url = this.router.createUrlTree(['customers', 'groups', params.entityGroupId,
+          params.customerId, 'entities', 'entityViews', 'groups', params.childEntityGroupId, entityView.id.id]);
       }
       this.window.open(window.location.origin + url, '_blank');
     } else {
@@ -117,10 +120,24 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     }
   }
 
-  onEntityViewAction(action: EntityAction<EntityView>, config: GroupEntityTableConfig<EntityView>, params: EntityGroupParams): boolean {
+  manageOwnerAndGroups($event: Event, entityView: EntityViewInfo, config: GroupEntityTableConfig<EntityViewInfo>) {
+    this.homeDialogs.manageOwnerAndGroups($event, entityView).subscribe(
+      (res) => {
+        if (res) {
+          config.updateData();
+        }
+      }
+    );
+  }
+
+  onEntityViewAction(action: EntityAction<EntityViewInfo>,
+                     config: GroupEntityTableConfig<EntityViewInfo>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
         this.openEntityView(action.event, action.entity, config, params);
+        return true;
+      case 'manageOwnerAndGroups':
+        this.manageOwnerAndGroups(action.event, action.entity, config);
         return true;
     }
     return false;

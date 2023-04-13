@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<button *ngIf="wl.isEnableHelpLinks$() | async" mat-button mat-icon-button
+<button *ngIf="wl.isEnableHelpLinks$() | async" mat-icon-button
         type="button"
         (click)="gotoHelpPage()"
         matTooltip="{{'help.goto-help-page' | translate}}"

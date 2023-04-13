@@ -477,7 +477,8 @@ public class DefaultTbClusterService implements TbClusterService {
                 entityType.equals(EntityType.API_USAGE_STATE) ||
                 (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
                 entityType.equals(EntityType.ENTITY_VIEW) ||
-                msg.getEntityId().getEntityType().equals(EntityType.EDGE);
+                msg.getEntityId().getEntityType().equals(EntityType.EDGE) ||
+                entityType.equals(EntityType.NOTIFICATION_RULE);
 
         boolean toRuleEngine = !toIntegrationExecutor;
 
@@ -644,7 +645,7 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     private void pushDeviceUpdateMessageByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId) {
-        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new PageLink(Integer.MAX_VALUE));
+        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroupId, new PageLink(Integer.MAX_VALUE));
         Futures.addCallback(entityIdsFuture, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<EntityId> entityIds) {

@@ -35,7 +35,7 @@ import { SafeHtml } from '@angular/platform-browser';
 import { PageLink } from '@shared/models/page/page-link';
 import { Timewindow } from '@shared/models/time/time.models';
 import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
-import { ElementRef, EventEmitter } from '@angular/core';
+import { ElementRef, EventEmitter, Renderer2, ViewContainerRef } from '@angular/core';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -48,6 +48,8 @@ import {
 } from '@home/models/entity/entities-table-config.models';
 import { ActivatedRoute } from '@angular/router';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
+
+export type EntitiesTableAction = 'add';
 
 export interface IEntitiesTableComponent {
   entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
@@ -79,6 +81,8 @@ export interface IEntitiesTableComponent {
   sort: MatSort;
   route: ActivatedRoute;
   entityDetailsPanel: EntityDetailsPanelComponent;
+  viewContainerRef: ViewContainerRef;
+  renderer: Renderer2;
 
   addEnabled(): boolean;
   clearSelection(): void;

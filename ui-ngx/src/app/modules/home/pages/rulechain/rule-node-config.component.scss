@@ -29,6 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
+  display: block;
+  margin-bottom: 16px;
   tb-json-object-edit.tb-rule-node-configuration-json {
     display: block;
     height: 300px;

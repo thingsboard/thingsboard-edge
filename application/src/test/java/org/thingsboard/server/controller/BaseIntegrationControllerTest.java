@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
@@ -64,6 +65,10 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "js.evaluator=local",
+        "service.integrations.supported=ALL",
+})
 public abstract class BaseIntegrationControllerTest extends AbstractControllerTest {
 
     @Autowired
@@ -81,6 +86,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
     private static final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
             .createObjectNode();
+
     static {
         INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
     }
@@ -506,7 +512,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             integration.setEdgeTemplate(true);
             Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
             doPost("/api/edge/" + savedEdge.getId().getId().toString()
-            + "/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
+                    + "/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
             edgeIntegrations.add(savedIntegration);
         }
 
