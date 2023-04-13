@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -813,7 +812,6 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    @NotNull
     private SchedulerEvent getSchedulerEvent(SolutionInstallContext ctx, SchedulerEventDefinition entityDef) {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setTenantId(ctx.getTenantId());
