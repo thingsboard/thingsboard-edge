@@ -68,6 +68,15 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
     @Value("${import.sql.delay_between_queries}")
     private int delayBetweenQueries;
 
+    @Value("${import.sql.enable_partition_creation}")
+    private boolean enablePartitionCreation;
+    @Value("${import.sql.update_tenant_profile}")
+    private boolean updateTenantProfile;
+    @Value("${import.sql.update_ts_kv_dictionary}")
+    private boolean updateTsKvDictionary;
+    @Value("${import.sql.resolve_unknown_roles}")
+    private boolean resolveUnknownRoles;
+
     private final Map<Table, Map<String, String>> columns = new HashMap<>();
 
     @Override
@@ -91,7 +100,7 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
 
     private void saveRow(Table table, Map<String, Object> row) {
         row = prepareRow(table, row);
-        if (table.isPartitioned()) {
+        if (table.isPartitioned() && enablePartitionCreation) {
             partitionService.createPartition(table, row);
         }
 
@@ -129,24 +138,31 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
 
     private Map<String, Object> prepareRow(Table table, Map<String, Object> row) {
         if (table == Table.TENANT) {
-            UUID defaultTenantProfile = jdbcTemplate.queryForList("SELECT id FROM tenant_profile WHERE is_default = TRUE", UUID.class).get(0);
-            row = new LinkedHashMap<>(row);
-            row.put("tenant_profile_id", defaultTenantProfile);
+            if (updateTenantProfile) {
+                UUID defaultTenantProfile = jdbcTemplate.queryForList("SELECT id FROM tenant_profile WHERE is_default = TRUE", UUID.class).get(0);
+                row = new LinkedHashMap<>(row);
+                row.put("tenant_profile_id", defaultTenantProfile);
+            }
         } else if (table == Table.LATEST_KV) {
             String keyName = (String) row.remove("key_name");
-            Integer keyId = jdbcTemplate.queryForList("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName).stream().findFirst().orElse(null);
-            if (keyId == null) {
-                jdbcTemplate.update("INSERT INTO ts_kv_dictionary (key) VALUES (?)", keyName);
-                keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
+            if (updateTsKvDictionary) {
+                Integer keyId = jdbcTemplate.queryForList("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName).stream().findFirst().orElse(null);
+                if (keyId == null) {
+                    jdbcTemplate.update("INSERT INTO ts_kv_dictionary (key) VALUES (?)", keyName);
+                    keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
+                }
+                Object oldKey = row.put("key", keyId);
+                System.out.println("Replaced old keyId " + oldKey + " with newly created " + keyId);
             }
-            Object oldKey = row.put("key", keyId);
-            System.out.println("Replaced old keyId " + oldKey + " with newly created " + keyId);
         } else if (table == Table.GROUP_PERMISSION) {
             UUID roleId = (UUID) row.get("role_id");
+            String roleName = (String) row.remove("role_name");
             Boolean roleExists = jdbcTemplate.queryForObject("SELECT EXISTS (SELECT * FROM role WHERE id = ?)", Boolean.class, roleId);
             if (!roleExists) {
+                if (!resolveUnknownRoles) {
+                    throw new IllegalArgumentException("Role with id " + roleId + " not found");
+                }
                 // happens when system role is used (e.g. 'Tenant Administrators')
-                String roleName = (String) row.remove("role_name");
                 System.out.println("Role for id " + roleId + " does not exist. Finding by name " + roleName);
                 Map<String, Object> role = jdbcTemplate.queryForList("SELECT * FROM role WHERE name = ?", roleName).stream()
                         .findFirst().orElse(null);
@@ -156,6 +172,7 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
                 row.put("role_id", role.get("id"));
             }
         }
+
         Map<String, String> existingColumns = columns.computeIfAbsent(table, t -> {
             return jdbcTemplate.queryForList("SELECT column_name, udt_name FROM information_schema.columns " +
                             "WHERE table_schema = 'public' AND table_name = '" + table.getName() + "'").stream()

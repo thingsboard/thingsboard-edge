@@ -132,6 +132,9 @@ public class SqlTenantDataExporter extends BaseTenantMigrationService {
                 try {
                     storage.addToFile(writer, row);
                     for (Table relatedTable : relatedTables) {
+                        if (skippedTables.contains(relatedTable)) {
+                            continue;
+                        }
                         if (!relatedTable.getReference().getValue().contains(table)) {
                             continue;
                         }

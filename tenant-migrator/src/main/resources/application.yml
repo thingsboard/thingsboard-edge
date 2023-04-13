@@ -41,6 +41,10 @@ export:
 import:
   sql:
     delay_between_queries: ${IMPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
+    enable_partition_creation: ${IMPORT_SQL_ENABLE_PARTITION_CREATION:true}
+    update_tenant_profile: ${IMPORT_SQL_UPDATE_TENANT_PROFILE:true}
+    update_ts_kv_dictionary: ${IMPORT_SQL_UPDATE_TS_KV_DICTIONARY:true}
+    resolve_unknown_roles: ${IMPORT_SQL_RESOLVE_UNKNOWN_ROLES:true}
   cassandra:
     ttl: ${CASSANDRA_TS_KV_TTL:730}  # days
     stats_print_interval: ${CASSANDRA_STATS_PRINT_INTERVAL:10000}
