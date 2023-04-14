@@ -413,7 +413,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
         ruleNode2.setDebugMode(true);
         TbGetAttributesNodeConfiguration configuration2 = new TbGetAttributesNodeConfiguration();
         configuration2.setServerAttributeNames(Collections.singletonList("serverAttributeKey2"));
-        ruleNode2.setConfiguration(mapper.valueToTree(configuration2));
+        ruleNode2.setConfiguration(JacksonUtil.valueToTree(configuration2));
 
         metaData.setNodes(Arrays.asList(ruleNode1, ruleNode2));
         metaData.setFirstNodeIndex(0);
@@ -441,7 +441,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
         ruleNode1.setDebugMode(true);
         TbGetAttributesNodeConfiguration configuration1 = new TbGetAttributesNodeConfiguration();
         configuration1.setServerAttributeNames(Collections.singletonList("serverAttributeKey1"));
-        ruleNode1.setConfiguration(mapper.valueToTree(configuration1));
+        ruleNode1.setConfiguration(JacksonUtil.valueToTree(configuration1));
 
         RuleNode ruleNode2 = new RuleNode();
         ruleNode2.setName("Simple Rule Node 2");
@@ -449,7 +449,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
         ruleNode2.setDebugMode(true);
         TbGetAttributesNodeConfiguration configuration2 = new TbGetAttributesNodeConfiguration();
         configuration2.setServerAttributeNames(Collections.singletonList("serverAttributeKey2"));
-        ruleNode2.setConfiguration(mapper.valueToTree(configuration2));
+        ruleNode2.setConfiguration(JacksonUtil.valueToTree(configuration2));
 
         metaData.setNodes(Arrays.asList(ruleNode1, ruleNode2));
         metaData.setFirstNodeIndex(0);

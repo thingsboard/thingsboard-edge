@@ -69,7 +69,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(numberOfTimeseriesToSend);
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
-            JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
+            JsonNode timeseriesEntityData = JacksonUtil.toJsonNode(timeseriesData);
             EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED,
                     device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
             edgeEventService.saveAsync(edgeEvent).get();
@@ -99,7 +99,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
     private void testPostAttributesMsg(Device device) throws Exception {
         String postAttributesData = "{\"scope\":\"SERVER_SCOPE\",\"kv\":{\"key2\":\"value2\"}}";
-        JsonNode postAttributesEntityData = mapper.readTree(postAttributesData);
+        JsonNode postAttributesEntityData = JacksonUtil.toJsonNode(postAttributesData);
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.POST_ATTRIBUTES, device.getId().getId(), EdgeEventType.DEVICE, postAttributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
@@ -124,7 +124,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
     private void testAttributesDeleteMsg(Device device) throws Exception {
         String deleteAttributesData = "{\"scope\":\"SERVER_SCOPE\",\"keys\":[\"key1\",\"key2\"]}";
-        JsonNode deleteAttributesEntityData = mapper.readTree(deleteAttributesData);
+        JsonNode deleteAttributesEntityData = JacksonUtil.toJsonNode(deleteAttributesData);
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_DELETED, device.getId().getId(), EdgeEventType.DEVICE, deleteAttributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
@@ -152,7 +152,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     public void testTimeseries() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         String timeseriesData = "{\"data\":{\"temperature\":25},\"ts\":" + System.currentTimeMillis() + "}";
-        JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
+        JsonNode timeseriesEntityData = JacksonUtil.toJsonNode(timeseriesData);
         edgeImitator.expectMessageAmount(1);
         EdgeEvent edgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED, device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
         edgeEventService.saveAsync(edgeEvent).get();
@@ -234,7 +234,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
     private void testAttributesUpdatedMsg(EntityId entityId) throws Exception {
         String attributesData = "{\"scope\":\"SERVER_SCOPE\",\"kv\":{\"key1\":\"value1\"}}";
-        JsonNode attributesEntityData = mapper.readTree(attributesData);
+        JsonNode attributesEntityData = JacksonUtil.toJsonNode(attributesData);
         EdgeEvent edgeEvent1 = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, entityId.getId(), EdgeEventType.valueOf(entityId.getEntityType().name()), attributesEntityData);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent1).get();
