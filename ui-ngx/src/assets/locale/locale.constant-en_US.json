@@ -4453,7 +4453,8 @@
                 "OTA_PACKAGE": "Ota package",
                 "QUEUE": "Queue",
                 "VERSION_CONTROL": "Version control",
-                "ASSET_PROFILE": "Asset Profile"
+                "ASSET_PROFILE": "Asset Profile",
+                "NOTIFICATION": "Notification"
             }
         },
         "operation": {
@@ -4886,6 +4887,7 @@
         "tenant-entity-export-rate-limit": "Entity version creation",
         "tenant-entity-import-rate-limit": "Entity version load",
         "tenant-notification-request-rate-limit": "Notification requests",
+        "tenant-notification-requests-per-rule-rate-limit": "Notification requests per notification rule",
         "max-transport-messages": "Transport messages maximum number",
         "max-transport-messages-required": "Transport messages maximum number is required.",
         "max-transport-messages-range": "Transport messages maximum number can't be negative",
@@ -4960,6 +4962,7 @@
             "edit-tenant-entity-export-rate-limit-title": "Edit entity version creation rate limits",
             "edit-tenant-entity-import-rate-limit-title": "Edit entity version load rate limits",
             "edit-tenant-notification-request-rate-limit-title": "Edit notification requests rate limits",
+            "edit-tenant-notification-requests-per-rule-rate-limit-title": "Edit notification requests per notification rule rate limits",
             "messages-per": "messages per",
             "not-set": "Not set",
             "number-of-messages": "Number of messages",
