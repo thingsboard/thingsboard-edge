@@ -30,27 +30,52 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="colorPickerFormGroup" (ngSubmit)="select()">
-  <div mat-dialog-content fxLayout="row" fxLayoutAlign="center">
-    <span [style.background]="colorPickerFormGroup.get('color').value"
+<div mat-dialog-content fxLayout="row" fxLayoutAlign="center">
+  <mat-tab-group *ngIf="useThemePalette; else colorPicker" style="width: 100%;" dynamicHeight
+                 [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
+    <mat-tab label="{{ 'color.color-picker' | translate }}">
+      <div fxLayout="row" fxLayoutAlign="center" style="padding: 36px;">
+        <ng-container *ngTemplateOutlet="colorPicker"></ng-container>
+      </div>
+    </mat-tab>
+    <mat-tab label="{{ 'color.primary-colors' | translate }}">
+      <tb-theme-color-select
+        palette="primary"
+        [ngModel]="primaryColor"
+        (ngModelChange)="onPrimaryColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+    <mat-tab label="{{ 'color.accent-colors' | translate }}">
+      <tb-theme-color-select
+        palette="accent"
+        [ngModel]="accentColor"
+        (ngModelChange)="onAccentColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+  </mat-tab-group>
+  <ng-template #colorPicker>
+    <span [style.background]="plainColor"
           [cpToggle]="true"
           [cpDialogDisplay]="'inline'"
-          [colorPicker]="colorPickerFormGroup.get('color').value"
-          (colorPickerChange)="onColorChange($event)">
+          [colorPicker]="plainColor"
+          (colorPickerChange)="onPlainColorChange($event)">
     </span>
-  </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
-    <button mat-button
-            type="button"
-            [disabled]="(isLoading$ | async)"
-            (click)="cancel()">
-      {{ 'action.cancel' | translate }}
-    </button>
-    <button mat-button
-            type="submit"
-            [disabled]="(isLoading$ | async) || colorPickerFormGroup.invalid || !colorPickerFormGroup.dirty">
-      {{ 'action.select' | translate }}
-    </button>
-  </div>
-</form>
+  </ng-template>
+</div>
+<div mat-dialog-actions fxLayout="row">
+  <span fxFlex></span>
+  <button mat-button
+          type="button"
+          [disabled]="(isLoading$ | async)"
+          (click)="cancel()">
+    {{ 'action.cancel' | translate }}
+  </button>
+  <button mat-button
+          type="button"
+          (click)="select()"
+          [disabled]="(isLoading$ | async) || !valid || !dirty">
+    {{ 'action.select' | translate }}
+  </button>
+</div>

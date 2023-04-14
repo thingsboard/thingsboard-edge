@@ -77,6 +77,8 @@ public interface IntegrationService extends EntityDaoService {
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
+    Long countCoreIntegrations();
+
     List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 
     Integration assignIntegrationToEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId);

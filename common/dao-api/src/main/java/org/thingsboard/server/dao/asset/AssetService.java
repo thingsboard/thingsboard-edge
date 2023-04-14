@@ -64,6 +64,8 @@ public interface AssetService extends EntityDaoService {
 
     PageData<Asset> findAssetsByTenantId(TenantId tenantId, PageLink pageLink);
 
+    Long countAssets();
+
     PageData<Asset> findAssetsByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
     ListenableFuture<List<Asset>> findAssetsByTenantIdAndIdsAsync(TenantId tenantId, List<AssetId> assetIds);

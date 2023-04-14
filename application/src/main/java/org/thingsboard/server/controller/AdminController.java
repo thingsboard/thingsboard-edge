@@ -59,6 +59,8 @@ import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.FeaturesInfo;
+import org.thingsboard.server.common.data.LicenseInfo;
+import org.thingsboard.server.common.data.LicenseUsageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.UpdateMessage;
@@ -406,6 +408,29 @@ public class AdminController extends BaseController {
     @ResponseBody
     public UpdateMessage checkUpdates() throws ThingsboardException {
         return updateService.checkUpdates();
+    }
+
+    @ApiOperation(value = "Get license usage info (getLicenseUsageInfo)",
+            notes = "Get license usage info. " + SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/licenseUsageInfo", method = RequestMethod.GET)
+    @ResponseBody
+    public LicenseUsageInfo getLicenseUsageInfo() throws ThingsboardException {
+        // LicenseInfo licenseInfo = subscriptionService.getLicenseInfo();
+
+        LicenseInfo licenseInfo = new LicenseInfo();
+        licenseInfo.setMaxDevices(0L);
+        licenseInfo.setMaxAssets(0L);
+        licenseInfo.setWhiteLabelingEnabled(true);
+        licenseInfo.setDevelopment(true);
+        licenseInfo.setPlan("Development env");
+        //
+        LicenseUsageInfo licenseUsageInfo = new LicenseUsageInfo(licenseInfo);
+        licenseUsageInfo.setDevicesCount(deviceService.countDevices());
+        licenseUsageInfo.setAssetsCount(assetService.countAssets());
+        licenseUsageInfo.setDashboardsCount(dashboardService.countDashboards());
+        licenseUsageInfo.setIntegrationsCount(integrationService.countCoreIntegrations());
+        return licenseUsageInfo;
     }
 
     @ApiOperation(value = "Get system info (getSystemInfo)",

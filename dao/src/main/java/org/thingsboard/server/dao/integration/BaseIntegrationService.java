@@ -207,6 +207,12 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
+    @Override
+    public Long countCoreIntegrations() {
+        log.trace("Executing countCoreIntegrations");
+        return integrationDao.countCoreIntegrations();
+    }
+
     public List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
         log.trace("Executing findAllCoreIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
         return integrationInfoDao.findAllCoreIntegrationInfos(integrationType, remote, enabled);

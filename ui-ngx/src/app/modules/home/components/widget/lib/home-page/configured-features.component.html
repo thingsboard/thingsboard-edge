@@ -1,0 +1,96 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-card-content" fxLayout="column" fxLayoutGap="8px">
+  <div class="tb-title">{{ 'widgets.configured-features.title' | translate }}
+    <mat-icon
+      matTooltip="{{ 'widgets.configured-features.info' | translate }}"
+      matTooltipPosition="above"
+      class="tb-info-icon">info</mat-icon>
+  </div>
+  <mat-grid-list class="tb-features-list" fxFlex cols="6" [rowHeight]="rowHeight" [gutterSize]="gutterSize">
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
+      <a class="tb-feature-button" fxFlex
+         [matTooltip]="featureTooltip(featuresInfo?.whiteLabelingEnabled)"
+         matTooltipPosition="above"
+         [ngClass]="{'configured': featuresInfo?.whiteLabelingEnabled}"
+         routerLink="/white-labeling/whiteLabel">
+        <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.whiteLabelingEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.white-labeling-feature' | translate}}</div>
+      </a>
+    </mat-grid-tile>
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
+      <a class="tb-feature-button" fxFlex
+         [matTooltip]="featureTooltip(featuresInfo?.emailEnabled)"
+         matTooltipPosition="above"
+         [ngClass]="{'configured': featuresInfo?.emailEnabled}"
+         routerLink="/settings/outgoing-mail">
+        <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.emailEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.email-feature' | translate}}</div>
+      </a>
+    </mat-grid-tile>
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
+      <a class="tb-feature-button" fxFlex
+         [matTooltip]="featureTooltip(featuresInfo?.smsEnabled)"
+         matTooltipPosition="above"
+         [ngClass]="{'configured': featuresInfo?.smsEnabled}"
+         routerLink="/settings/notifications">
+        <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.smsEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.sms-feature' | translate}}</div>
+      </a>
+    </mat-grid-tile>
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
+      <a class="tb-feature-button" fxFlex
+         [matTooltip]="featureTooltip(featuresInfo?.notificationEnabled)"
+         matTooltipPosition="above"
+         [ngClass]="{'configured': featuresInfo?.notificationEnabled}"
+         routerLink="/settings/notifications">
+        <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.notificationEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.slack-feature' | translate}}</div>
+      </a>
+    </mat-grid-tile>
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
+      <a class="tb-feature-button" fxFlex
+         [matTooltip]="featureTooltip(featuresInfo?.oauthEnabled)"
+         matTooltipPosition="above"
+         [ngClass]="{'configured': featuresInfo?.oauthEnabled}"
+         routerLink="/security-settings/oauth2">
+        <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.oauthEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.oauth2-feature' | translate}}</div>
+      </a>
+    </mat-grid-tile>
+    <mat-grid-tile class="tb-feature-tile" [colspan]="colspan">
+      <a class="tb-feature-button" fxFlex
+         [matTooltip]="featureTooltip(featuresInfo?.twoFaEnabled)"
+         matTooltipPosition="above"
+         [ngClass]="{'configured': featuresInfo?.twoFaEnabled}"
+         routerLink="/security-settings/2fa">
+        <div class="tb-feature-text"><span class="tb-feature-status">{{ featuresInfo?.twoFaEnabled ? 'check' : 'close' }}</span>{{ 'widgets.configured-features.2fa-feature' | translate}}</div>
+      </a>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

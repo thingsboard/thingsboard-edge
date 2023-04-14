@@ -337,6 +337,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private static final String SELECT_API_USAGE_STATE = "(select aus.id, aus.created_time, aus.tenant_id, aus.entity_id, " +
             "coalesce((select title from tenant where id = aus.entity_id), (select title from customer where id = aus.entity_id)) as name " +
             "from api_usage_state as aus)";
+    public static final MergedUserPermissions SYS_ADMIN_PERMISSIONS = new MergedUserPermissions(Collections.singletonMap(Resource.ALL, Set.of(Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY)), Collections.emptyMap());
 
     static {
         entityTableMap.put(EntityType.ENTITY_GROUP, "entity_group");
@@ -596,7 +597,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     @Override
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query) {
-        return findEntityDataByQuery(tenantId, customerId, userPermissions, query, TenantId.SYS_TENANT_ID.equals(tenantId));
+        return findEntityDataByQuery(tenantId, customerId, userPermissions, query, false);
     }
 
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck) {
@@ -786,27 +787,32 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter, boolean ignorePermissionCheck) {
         QuerySecurityContext securityContext;
-        switch (filter.getType()) {
-            case STATE_ENTITY_OWNER:
-                EntityId ownerId = getOwnerId(tenantId, filter);
-                securityContext = new QuerySecurityContext(tenantId, customerId, ownerId.getEntityType(), userPermissions, filter, ownerId, ignorePermissionCheck);
-                break;
-            case SINGLE_ENTITY:
-                SingleEntityFilter seFilter = (SingleEntityFilter) filter;
-                EntityId entityId = seFilter.getSingleEntity();
-                if (entityId != null && entityId.getEntityType().equals(EntityType.ENTITY_GROUP)) {
-                    EntityGroupEntity entityGroupEntity = getEntityGroup(tenantId, entityId);
-                    if (entityGroupEntity != null) {
-                        securityContext = new QuerySecurityContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupEntity.getType(), ignorePermissionCheck);
+        if (TenantId.SYS_TENANT_ID.equals(tenantId)){
+            MergedUserPermissions permission = SYS_ADMIN_PERMISSIONS;
+            securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), permission, filter, ignorePermissionCheck);
+        } else {
+            switch (filter.getType()) {
+                case STATE_ENTITY_OWNER:
+                    EntityId ownerId = getOwnerId(tenantId, filter);
+                    securityContext = new QuerySecurityContext(tenantId, customerId, ownerId.getEntityType(), userPermissions, filter, ownerId, ignorePermissionCheck);
+                    break;
+                case SINGLE_ENTITY:
+                    SingleEntityFilter seFilter = (SingleEntityFilter) filter;
+                    EntityId entityId = seFilter.getSingleEntity();
+                    if (entityId != null && entityId.getEntityType().equals(EntityType.ENTITY_GROUP)) {
+                        EntityGroupEntity entityGroupEntity = getEntityGroup(tenantId, entityId);
+                        if (entityGroupEntity != null) {
+                            securityContext = new QuerySecurityContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupEntity.getType(), ignorePermissionCheck);
+                        } else {
+                            securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
+                        }
                     } else {
                         securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
                     }
-                } else {
+                    break;
+                default:
                     securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
-                }
-                break;
-            default:
-                securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
+            }
         }
         return new QueryContext(securityContext);
     }

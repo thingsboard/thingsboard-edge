@@ -160,14 +160,10 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       );
     } else if (ruleChainScope === 'edges') {
       columns.push(
-        new EntityTableColumn<RuleChain>('root', 'rulechain.edge-template-root', '70px',
-          entity => {
-            return checkBoxCell(entity.root);
-          }),
-        new EntityTableColumn<RuleChain>('assignToEdge', 'rulechain.assign-to-edge', '70px',
-          entity => {
-            return checkBoxCell(this.isAutoAssignToEdgeRuleChain(entity));
-          })
+        new EntityTableColumn<RuleChain>('root', 'rulechain.edge-template-root', '100px',
+          entity => checkBoxCell(entity.root)),
+        new EntityTableColumn<RuleChain>('assignToEdge', 'rulechain.assign-to-edge', '100px',
+          entity => checkBoxCell(this.isAutoAssignToEdgeRuleChain(entity)), () => ({}), false)
       );
     }
     return columns;
