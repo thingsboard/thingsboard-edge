@@ -43,7 +43,7 @@ import java.util.function.Consumer;
  */
 public interface RuleEngineCallService {
 
-    void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useCustomQueue, Consumer<TbMsg> response);
+    void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useQueueFromTbMsg, Consumer<TbMsg> response);
 
     void onQueueMsg(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback);
 }

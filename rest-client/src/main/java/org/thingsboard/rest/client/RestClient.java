@@ -207,7 +207,6 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -3961,17 +3960,17 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 timeout).getBody();
     }
 
-    public JsonNode handleRuleEngineRequest(EntityId entityId, int timeout, String queueName, JsonNode requestBody) {
+    public JsonNode handleRuleEngineRequest(EntityId entityId, String queueName, int timeout, JsonNode requestBody) {
         return restTemplate.exchange(
-                baseURL + "/api/rule-engine/{entityType}/{entityId}/{timeout}/{queueName}",
+                baseURL + "/api/rule-engine/{entityType}/{entityId}/{queueName}/{timeout}",
                 HttpMethod.POST,
                 new HttpEntity<>(requestBody),
                 new ParameterizedTypeReference<JsonNode>() {
                 },
                 entityId.getEntityType(),
                 entityId.getId(),
-                timeout,
-                queueName).getBody();
+                queueName,
+                timeout).getBody();
     }
 
     public Optional<SchedulerEventInfo> getSchedulerEventInfoById(SchedulerEventId schedulerEventId) {

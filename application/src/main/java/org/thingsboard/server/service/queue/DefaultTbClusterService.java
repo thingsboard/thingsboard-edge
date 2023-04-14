@@ -52,10 +52,10 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasRuleEngineProfile;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -228,7 +228,7 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, boolean useCustomQueue, TbQueueCallback callback) {
+    public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, boolean useQueueFromTbMsg, TbQueueCallback callback) {
         if (tenantId == null || tenantId.isNullUid()) {
             if (entityId.getEntityType().equals(EntityType.TENANT)) {
                 tenantId = TenantId.fromUUID(entityId.getId());
@@ -237,14 +237,9 @@ public class DefaultTbClusterService implements TbClusterService {
                 return;
             }
         } else {
-            if (entityId.getEntityType().equals(EntityType.DEVICE)) {
-                tbMsg = transformMsg(tbMsg, deviceProfileCache.get(tenantId, new DeviceId(entityId.getId())), useCustomQueue);
-            } else if (entityId.getEntityType().equals(EntityType.DEVICE_PROFILE)) {
-                tbMsg = transformMsg(tbMsg, deviceProfileCache.get(tenantId, new DeviceProfileId(entityId.getId())), useCustomQueue);
-            } else if (entityId.getEntityType().equals(EntityType.ASSET)) {
-                tbMsg = transformMsg(tbMsg, assetProfileCache.get(tenantId, new AssetId(entityId.getId())), useCustomQueue);
-            } else if (entityId.getEntityType().equals(EntityType.ASSET_PROFILE)) {
-                tbMsg = transformMsg(tbMsg, assetProfileCache.get(tenantId, new AssetProfileId(entityId.getId())), useCustomQueue);
+            HasRuleEngineProfile ruleEngineProfile = getRuleEngineProfileForEntityOrElseNull(tenantId, entityId);
+            if (ruleEngineProfile != null) {
+                tbMsg = transformMsg(tbMsg, ruleEngineProfile, useQueueFromTbMsg);
             }
         }
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, entityId);
@@ -257,34 +252,34 @@ public class DefaultTbClusterService implements TbClusterService {
         toRuleEngineMsgs.incrementAndGet();
     }
 
-    private TbMsg transformMsg(TbMsg tbMsg, DeviceProfile deviceProfile, boolean useCustomQueue) {
-        if (deviceProfile != null) {
-            RuleChainId targetRuleChainId = deviceProfile.getDefaultRuleChainId();
-            String targetQueueName = useCustomQueue ? tbMsg.getQueueName() : deviceProfile.getDefaultQueueName();
-            tbMsg = transformMsg(tbMsg, targetRuleChainId, targetQueueName);
+    private HasRuleEngineProfile getRuleEngineProfileForEntityOrElseNull(TenantId tenantId, EntityId entityId) {
+        if (entityId.getEntityType().equals(EntityType.DEVICE)) {
+            return deviceProfileCache.get(tenantId, new DeviceId(entityId.getId()));
+        } else if (entityId.getEntityType().equals(EntityType.DEVICE_PROFILE)) {
+            return deviceProfileCache.get(tenantId, new DeviceProfileId(entityId.getId()));
+        } else if (entityId.getEntityType().equals(EntityType.ASSET)) {
+            return assetProfileCache.get(tenantId, new AssetId(entityId.getId()));
+        } else if (entityId.getEntityType().equals(EntityType.ASSET_PROFILE)) {
+            return assetProfileCache.get(tenantId, new AssetProfileId(entityId.getId()));
         }
-        return tbMsg;
+        return null;
     }
 
-    private TbMsg transformMsg(TbMsg tbMsg, AssetProfile assetProfile, boolean useCustomQueue) {
-        if (assetProfile != null) {
-            RuleChainId targetRuleChainId = assetProfile.getDefaultRuleChainId();
-            String targetQueueName = useCustomQueue ? tbMsg.getQueueName() : assetProfile.getDefaultQueueName();
-            tbMsg = transformMsg(tbMsg, targetRuleChainId, targetQueueName);
-        }
-        return tbMsg;
-    }
+    private TbMsg transformMsg(TbMsg tbMsg, HasRuleEngineProfile ruleEngineProfile, boolean useQueueFromTbMsg) {
+        if (ruleEngineProfile != null) {
+            RuleChainId targetRuleChainId = ruleEngineProfile.getDefaultRuleChainId();
+            String targetQueueName = useQueueFromTbMsg ? tbMsg.getQueueName() : ruleEngineProfile.getDefaultQueueName();
 
-    private TbMsg transformMsg(TbMsg tbMsg, RuleChainId targetRuleChainId, String targetQueueName) {
-        boolean isRuleChainTransform = targetRuleChainId != null && !targetRuleChainId.equals(tbMsg.getRuleChainId());
-        boolean isQueueTransform = targetQueueName != null && !targetQueueName.equals(tbMsg.getQueueName());
+            boolean isRuleChainTransform = targetRuleChainId != null && !targetRuleChainId.equals(tbMsg.getRuleChainId());
+            boolean isQueueTransform = targetQueueName != null && !targetQueueName.equals(tbMsg.getQueueName());
 
-        if (isRuleChainTransform && isQueueTransform) {
-            tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId, targetQueueName);
-        } else if (isRuleChainTransform) {
-            tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId);
-        } else if (isQueueTransform) {
-            tbMsg = TbMsg.transformMsg(tbMsg, targetQueueName);
+            if (isRuleChainTransform && isQueueTransform) {
+                tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId, targetQueueName);
+            } else if (isRuleChainTransform) {
+                tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId);
+            } else if (isQueueTransform) {
+                tbMsg = TbMsg.transformMsg(tbMsg, targetQueueName);
+            }
         }
         return tbMsg;
     }
