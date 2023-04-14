@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data.kv;
 
+import org.thingsboard.server.common.data.validation.NoXss;
+
 import java.util.Objects;
 import java.util.Optional;
 
@@ -37,6 +39,7 @@ public class StringDataEntry extends BasicKvEntry {
 
     private static final long serialVersionUID = 1L;
 
+    @NoXss
     private final String value;
 
     public StringDataEntry(String key, String value) {

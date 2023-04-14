@@ -28,18 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.template;
+package org.thingsboard.server.controller.sql;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.controller.BaseTelemetryControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class NotificationText {
-
-    private String body;
-    private String subject;
-
+@DaoSqlTest
+public class TelemetryControllerSqlTest extends BaseTelemetryControllerTest {
 }

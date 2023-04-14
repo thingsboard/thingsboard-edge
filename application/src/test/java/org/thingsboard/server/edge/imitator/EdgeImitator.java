@@ -129,6 +129,7 @@ public class EdgeImitator {
         updateEdgeClientFields("rpcPort", port);
         updateEdgeClientFields("timeoutSecs", 3);
         updateEdgeClientFields("keepAliveTimeSec", 300);
+        updateEdgeClientFields("keepAliveTimeoutSec", 5);
         updateEdgeClientFields("maxInboundMessageSize", 4194304);
     }
 
