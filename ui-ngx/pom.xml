@@ -27,7 +27,7 @@
     <artifactId>ui-ngx</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard Edge Server UI</name>
+    <name>ThingsBoard Edge UI</name>
     <url>https://thingsboard.io</url>
 
     <properties>

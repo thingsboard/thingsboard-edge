@@ -33,6 +33,7 @@
           </mat-form-field>
         </div>
         <span fxFlex></span>
+        <!-- @voba - merge comment -->
         <button mat-icon-button
                 *ngIf="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
                 [disabled]="isLoading$ | async"
@@ -85,6 +86,7 @@
                 'attribute.selected-telemetry' : 'attribute.selected-attributes') | translate:{count: dataSource.selection.selected.length} }}
         </span>
         <span fxFlex></span>
+        <!-- @voba - merge comment -->
         <button [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
                 class="button-widget-action"
                 mat-icon-button [disabled]="isLoading$ | async"
@@ -93,8 +95,9 @@
                 (click)="deleteAttributes($event)">
           <mat-icon>delete</mat-icon>
         </button>
-        <button [fxShow]="false"
-                mat-raised-button color="accent"
+        <!-- @voba - merge comment -->
+        <button mat-raised-button color="accent"
+                [fxShow]="false"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
                 matTooltip="{{ 'attribute.show-on-widget' | translate }}"
@@ -117,6 +120,7 @@
                                     (ngModelChange)="onWidgetsBundleChanged($event)">
           </tb-widgets-bundle-select>
         </div>
+        <!-- @voba - merge comment -->
         <button mat-raised-button [fxShow]="widgetsList.length > 0 && false"
                 color="accent"
                 class="button-widget-action"
@@ -172,6 +176,7 @@
                     (click)="editAttribute($event, attribute)">
             <div fxLayout="row" style="align-items: center">
               <span style="overflow: hidden;text-overflow: ellipsis;" fxFlex>{{attribute.value | tbJson}}</span>
+              <!-- @voba - merge comment -->
               <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope)  && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
