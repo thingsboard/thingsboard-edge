@@ -4432,7 +4432,8 @@
                 "OTA_PACKAGE": "Ota package",
                 "QUEUE": "Queue",
                 "VERSION_CONTROL": "Version control",
-                "ASSET_PROFILE": "Asset Profile"
+                "ASSET_PROFILE": "Asset Profile",
+                "NOTIFICATION": "Notification"
             }
         },
         "operation": {
