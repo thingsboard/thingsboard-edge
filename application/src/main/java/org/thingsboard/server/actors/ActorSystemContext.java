@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,10 +49,12 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.SmsService;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -73,6 +75,8 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -83,6 +87,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -93,6 +98,10 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -110,6 +119,7 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
@@ -118,6 +128,7 @@ import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
+import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
@@ -209,6 +220,14 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DeviceService deviceService;
+
+    @Autowired
+    @Getter
+    private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    @Getter
+    private AssetProfileService assetProfileService;
 
     @Autowired
     @Getter
@@ -308,11 +327,15 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private AlarmCommentService alarmCommentService;
+
+    @Autowired
+    @Getter
     private JsInvokeService jsInvokeService;
 
     @Autowired(required = false)
     @Getter
-    private MvelInvokeService mvelInvokeService;
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     @Getter
@@ -353,6 +376,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private NotificationExecutorService notificationExecutor;
+
+    @Autowired
+    @Getter
     private SharedEventLoopGroupService sharedEventLoopGroupService;
 
     @Autowired
@@ -366,6 +393,34 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private SmsSenderFactory smsSenderFactory;
+
+    @Autowired
+    @Getter
+    private NotificationCenter notificationCenter;
+
+    @Autowired
+    @Getter
+    private NotificationRuleProcessor notificationRuleProcessor;
+
+    @Autowired
+    @Getter
+    private NotificationTargetService notificationTargetService;
+
+    @Autowired
+    @Getter
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    @Getter
+    private NotificationRequestService notificationRequestService;
+
+    @Autowired
+    @Getter
+    private NotificationRuleService notificationRuleService;
+
+    @Autowired
+    @Getter
+    private SlackService slackService;
 
     @Lazy
     @Autowired(required = false)
@@ -617,18 +672,23 @@ public class ActorSystemContext {
 
         if (entityId.getEntityType().equals(EntityType.INTEGRATION)) {
             String key = "integration_status_" + getServiceId().toLowerCase();
-            ObjectNode value = JacksonUtil.newObjectNode();
 
-            if (e == null) {
-                value.put("success", true);
-            } else {
-                value.put("success", false);
-                value.put("serviceId", getServiceId());
-                value.put("error", event.getError());
+            if (event.getLcEventType().equals("STARTED") || event.getLcEventType().equals("UPDATED")) {
+                ObjectNode value = JacksonUtil.newObjectNode();
+
+                if (e == null) {
+                    value.put("success", true);
+                } else {
+                    value.put("success", false);
+                    value.put("serviceId", getServiceId());
+                    value.put("error", event.getError());
+                }
+
+                AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+                attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+            } else if (event.getLcEventType().equals("STOPPED")) {
+                attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
             }
-
-            AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
-            attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
         }
     }
 

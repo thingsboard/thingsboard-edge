@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.integration.service.context;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -47,12 +48,14 @@ public class TbIntegrationExecutorContextProvider implements IntegrationContextP
 
     private final TbServiceInfoProvider serviceInfoProvider;
     private final IntegrationApiService apiService;
+    private final IntegrationStatisticsService statisticsService;
     private final TbIntegrationExecutorContextComponent contextComponent;
     private final LogSettingsComponent logSettingsComponent;
 
     @Override
     public IntegrationContext buildIntegrationContext(Integration configuration) {
-        return new TbIntegrationExecutorIntegrationContext(serviceInfoProvider.getServiceId(), apiService,
+        return new TbIntegrationExecutorIntegrationContext(
+                serviceInfoProvider.getServiceId(), apiService, statisticsService,
                 contextComponent, logSettingsComponent, configuration);
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.oauth2.MapperType;
 import org.thingsboard.server.common.data.oauth2.OAuth2BasicMapperConfig;
@@ -66,12 +67,14 @@ public abstract class BaseOAuth2ConfigTemplateServiceTest extends AbstractServic
     }
 
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDuplicateProviderId() {
         OAuth2ClientRegistrationTemplate first = validClientRegistrationTemplate("providerId");
         OAuth2ClientRegistrationTemplate second = validClientRegistrationTemplate("providerId");
         oAuth2ConfigTemplateService.saveClientRegistrationTemplate(first);
-        oAuth2ConfigTemplateService.saveClientRegistrationTemplate(second);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            oAuth2ConfigTemplateService.saveClientRegistrationTemplate(second);
+        });
     }
 
     @Test

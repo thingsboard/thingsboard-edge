@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,6 +94,11 @@ public class JpaDashboardDao extends JpaAbstractSearchTextDao<DashboardEntity, D
     @Override
     public List<Dashboard> findByTenantIdAndTitle(UUID tenantId, String title) {
         return DaoUtil.convertDataList(dashboardRepository.findByTenantIdAndTitle(tenantId, title));
+    }
+
+    @Override
+    public Long countDashboards() {
+        return dashboardRepository.count();
     }
 
     @Override

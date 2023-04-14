@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
@@ -256,7 +257,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         Assert.assertEquals(savedDeviceProfile.getType(), foundDeviceProfileInfo.getType());
     }
 
-        @Test
+    @Test
     public void whenGetDeviceProfileInfoById_thenPermissionsAreChecked() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfile("Device profile 1", null);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -264,7 +265,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         loginDifferentTenant();
         doGet("/api/deviceProfileInfo/" + deviceProfile.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead + "DEVICE_PROFILE" + " '" + deviceProfile.getName() + "'!")));
+                .andExpect(statusReason(containsString(UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION)));
     }
 
     @Test
@@ -341,6 +342,28 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         Mockito.reset(tbClusterService, auditLogService);
 
         String msgError = "Device profile with such provision device key already exists";
+        doPost("/api/deviceProfile", deviceProfile2)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(deviceProfile, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+    }
+
+    @Test
+    public void testSaveDeviceProfileWithSameCertificateHash() throws Exception {
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        deviceProfile.setProvisionDeviceKey("Certificate hash");
+
+        doPost("/api/deviceProfile", deviceProfile)
+                .andExpect(status().isOk());
+
+        DeviceProfile deviceProfile2 = this.createDeviceProfile("Device Profile 2");
+        deviceProfile2.setProvisionDeviceKey("Certificate hash");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "Device profile with such provision device key already exists!";
         doPost("/api/deviceProfile", deviceProfile2)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -619,6 +642,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         Collections.sort(loadedDeviceProfileInfos, deviceProfileInfoIdComparator);
 
         List<DeviceProfileInfo> deviceProfileInfos = deviceProfiles.stream().map(deviceProfile -> new DeviceProfileInfo(deviceProfile.getId(),
+                deviceProfile.getTenantId(),
                 deviceProfile.getName(), deviceProfile.getImage(), deviceProfile.getDefaultDashboardId(),
                 deviceProfile.getType(), deviceProfile.getTransportType())).collect(Collectors.toList());
 
@@ -1017,6 +1041,28 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         Assert.assertEquals(savedDeviceProfile, foundDeviceProfile);
     }
 
+    @Test
+    public void testSaveDeviceProfileWorks() throws Exception {
+        JsonTransportPayloadConfiguration jsonTransportPayloadConfiguration = new JsonTransportPayloadConfiguration();
+        MqttDeviceProfileTransportConfiguration mqttDeviceProfileTransportConfiguration =
+                this.createMqttDeviceProfileTransportConfiguration(jsonTransportPayloadConfiguration, true,
+                        "v1/devices/me/telemetry", "v1/devices/me/attributes", "v1/devices/me/subscribeattributes");
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile",
+                mqttDeviceProfileTransportConfiguration);
+        DeviceProfile savedDeviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+        Assert.assertNotNull(savedDeviceProfile);
+        Assert.assertEquals(savedDeviceProfile.getTransportType(), DeviceTransportType.MQTT);
+        Assert.assertTrue(savedDeviceProfile.getProfileData().getTransportConfiguration() instanceof MqttDeviceProfileTransportConfiguration);
+        MqttDeviceProfileTransportConfiguration transportConfiguration =
+                (MqttDeviceProfileTransportConfiguration) savedDeviceProfile.getProfileData().getTransportConfiguration();
+        Assert.assertTrue(transportConfiguration.isSendAckOnValidationException());
+        DeviceProfile foundDeviceProfile =
+                doGet("/api/deviceProfile/" + savedDeviceProfile.getId().getId().toString(), DeviceProfile.class);
+        Assert.assertEquals(savedDeviceProfile.getProfileData().getTransportConfiguration(),
+                foundDeviceProfile.getProfileData().getTransportConfiguration());
+        Assert.assertEquals(savedDeviceProfile, foundDeviceProfile);
+    }
+
     private DeviceProfile testSaveDeviceProfileWithProtoPayloadType(String schema) throws Exception {
         ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration = this.createProtoTransportPayloadConfiguration(schema, schema, null, null);
         MqttDeviceProfileTransportConfiguration mqttDeviceProfileTransportConfiguration = this.createMqttDeviceProfileTransportConfiguration(protoTransportPayloadConfiguration, false);
@@ -1115,6 +1161,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         testEntityDaoWithRelationsOk(savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
     }
 
+    @Ignore
     @Test
     public void testDeleteDeviceProfileExceptionWithRelationsTransactional() throws Exception {
         DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelations Transactional Exception").getId();

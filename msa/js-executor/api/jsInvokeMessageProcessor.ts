@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,6 +54,7 @@ const TIMEOUT_ERROR = 2;
 const NOT_FOUND_ERROR = 3;
 
 const statFrequency = Number(config.get('script.stat_print_frequency'));
+const memoryUsageTraceFrequency = Number(config.get('script.memory_usage_trace_frequency'));
 const scriptBodyTraceFrequency = Number(config.get('script.script_body_trace_frequency'));
 const useSandbox = config.get('script.use_sandbox') === 'true';
 const maxActiveScripts = Number(config.get('script.max_active_scripts'));
@@ -182,11 +183,15 @@ export class JsInvokeMessageProcessor {
         if (this.executedScriptsCounter % scriptBodyTraceFrequency == 0) {
             this.logger.info('[%s] Executing script body: [%s]', scriptId, invokeRequest.scriptBody);
         }
+        if (this.executedScriptsCounter % memoryUsageTraceFrequency == 0) {
+            this.logger.info('Current memory usage: [%s]', process.memoryUsage());
+        }
+
         this.getOrCompileScript(scriptId, invokeRequest.scriptBody).then(
             (script) => {
                 this.executor.executeScript(script, invokeRequest.args, invokeRequest.timeout).then(
-                    (result) => {
-                        if (result.length <= maxResultSize) {
+                    (result: string | undefined) => {
+                        if (!result || result.length <= maxResultSize) {
                             const invokeResponse = JsInvokeMessageProcessor.createInvokeResponse(result, true);
                             this.logger.debug('[%s] Sending success invoke response, scriptId: [%s]', requestId, scriptId);
                             this.sendResponse(requestId, responseTopic, headers, scriptId, undefined, invokeResponse);
@@ -338,7 +343,7 @@ export class JsInvokeMessageProcessor {
         }
     }
 
-    private static createInvokeResponse(result: string, success: boolean, errorCode?: number, err?: any): JsInvokeResponse {
+    private static createInvokeResponse(result: string | undefined, success: boolean, errorCode?: number, err?: any): JsInvokeResponse {
         return {
             errorCode: errorCode,
             success: success,

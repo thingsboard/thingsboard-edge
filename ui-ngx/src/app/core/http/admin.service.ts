@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,16 +35,19 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import {
   AdminSettings,
-  RepositorySettings,
+  AutoCommitSettings,
+  FeaturesInfo,
+  JwtSettings, LicenseUsageInfo,
   MailServerSettings,
+  RepositorySettings,
+  RepositorySettingsInfo,
   SecuritySettings,
   TestSmsRequest,
-  UpdateMessage,
-  AutoCommitSettings,
-  RepositorySettingsInfo
+  UpdateMessage
 } from '@shared/models/settings.models';
 import { EntitiesVersionControlService } from '@core/http/entities-version-control.service';
 import { tap } from 'rxjs/operators';
+import { LoginResponse } from '@shared/models/login.models';
 
 @Injectable({
   providedIn: 'root'
@@ -84,6 +87,14 @@ export class AdminService {
                               config?: RequestConfig): Observable<SecuritySettings> {
     return this.http.post<SecuritySettings>('/api/admin/securitySettings', securitySettings,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getJwtSettings(config?: RequestConfig): Observable<JwtSettings> {
+    return this.http.get<JwtSettings>(`/api/admin/jwtSettings`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveJwtSettings(jwtSettings: JwtSettings, config?: RequestConfig): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>('/api/admin/jwtSettings', jwtSettings, defaultHttpOptionsFromConfig(config));
   }
 
   public getRepositorySettings(config?: RequestConfig): Observable<RepositorySettings> {
@@ -136,5 +147,13 @@ export class AdminService {
 
   public checkUpdates(config?: RequestConfig): Observable<UpdateMessage> {
     return this.http.get<UpdateMessage>(`/api/admin/updates`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getFeaturesInfo(config?: RequestConfig): Observable<FeaturesInfo> {
+    return this.http.get<FeaturesInfo>('/api/admin/featuresInfo', defaultHttpOptionsFromConfig(config));
+  }
+
+  public getLicenseUsageInfo(config?: RequestConfig): Observable<LicenseUsageInfo> {
+    return this.http.get<LicenseUsageInfo>('/api/admin/licenseUsageInfo', defaultHttpOptionsFromConfig(config));
   }
 }

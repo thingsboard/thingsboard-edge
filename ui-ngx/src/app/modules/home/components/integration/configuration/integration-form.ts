@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ import { Directive, Input, OnDestroy, TemplateRef } from '@angular/core';
 import { Subject } from 'rxjs';
 
 @Directive()
-// tslint:disable-next-line:directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export abstract class IntegrationForm implements OnDestroy {
 
   @Input() executeRemotelyTemplate: TemplateRef<any>;
@@ -42,7 +42,23 @@ export abstract class IntegrationForm implements OnDestroy {
   @Input()
   disabled: boolean;
 
-  protected destroy$ = new Subject();
+  private allowLocalNetworkValue = true;
+
+  get allowLocalNetwork(): boolean {
+    return this.allowLocalNetworkValue;
+  }
+
+  @Input()
+  set allowLocalNetwork(value: boolean) {
+    if (this.allowLocalNetworkValue !== value) {
+      this.allowLocalNetworkValue = value;
+      this.updatedValidationPrivateNetwork();
+    }
+  }
+
+  protected destroy$ = new Subject<void>();
+
+  protected updatedValidationPrivateNetwork() {}
 
   ngOnDestroy() {
     this.destroy$.next();

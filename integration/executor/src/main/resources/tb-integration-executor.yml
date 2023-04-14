@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -73,6 +73,13 @@ queue:
   type: "${TB_QUEUE_TYPE:kafka}" # kafka (Apache Kafka) or aws-sqs (AWS SQS) or pubsub (PubSub) or service-bus (Azure Service Bus) or rabbitmq (RabbitMQ)
   kafka:
     bootstrap.servers: "${TB_KAFKA_SERVERS:localhost:9092}"
+    ssl:
+      enabled: "${TB_KAFKA_SSL_ENABLED:false}"
+      truststore.location: "${TB_KAFKA_SSL_TRUSTSTORE_LOCATION:}"
+      truststore.password: "${TB_KAFKA_SSL_TRUSTSTORE_PASSWORD:}"
+      keystore.location: "${TB_KAFKA_SSL_KEYSTORE_LOCATION:}"
+      keystore.password: "${TB_KAFKA_SSL_KEYSTORE_PASSWORD:}"
+      key.password: "${TB_KAFKA_SSL_KEY_PASSWORD:}"
     acks: "${TB_KAFKA_ACKS:all}"
     retries: "${TB_KAFKA_RETRIES:1}"
     compression.type: "${TB_KAFKA_COMPRESSION_TYPE:none}" # none or gzip
@@ -271,6 +278,7 @@ queue:
     partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
     notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    uplink_topic: "${TB_QUEUE_INTEGRATION_UPLINK_TOPIC:tb_ie.uplink}"
     poll_interval: "${TB_QUEUE_INTEGRATION_POLL_INTERVAL_MS:25}"
     pack-processing-timeout: "${TB_QUEUE_INTEGRATION_PACK_PROCESSING_TIMEOUT_MS:10000}"
   integration_api:
@@ -282,24 +290,24 @@ queue:
     request_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_REQUEST_POLL_INTERVAL_MS:25}"
     response_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_RESPONSE_POLL_INTERVAL_MS:25}"
 
-mvel:
-  enabled: "${MVEL_ENABLED:true}"
-  max_total_args_size: "${MVEL_MAX_TOTAL_ARGS_SIZE:100000}"
-  max_result_size: "${MVEL_MAX_RESULT_SIZE:300000}"
-  max_script_body_size: "${MVEL_MAX_SCRIPT_BODY_SIZE:50000}"
-  # Maximum allowed MVEL script execution memory
-  max_memory_limit_mb: "${MVEL_MAX_MEMORY_LIMIT_MB: 8}"
-  # Maximum allowed MVEL script execution errors before it will be blacklisted
-  max_errors: "${MVEL_MAX_ERRORS:3}"
-  # MVEL Eval max request timeout in milliseconds. 0 - no timeout
-  max_requests_timeout: "${MVEL_MAX_REQUEST_TIMEOUT:500}"
+tbel:
+  enabled: "${TBEL_ENABLED:true}"
+  max_total_args_size: "${TBEL_MAX_TOTAL_ARGS_SIZE:100000}"
+  max_result_size: "${TBEL_MAX_RESULT_SIZE:300000}"
+  max_script_body_size: "${TBEL_MAX_SCRIPT_BODY_SIZE:50000}"
+  # Maximum allowed TBEL script execution memory
+  max_memory_limit_mb: "${TBEL_MAX_MEMORY_LIMIT_MB: 8}"
+  # Maximum allowed TBEL script execution errors before it will be blacklisted
+  max_errors: "${TBEL_MAX_ERRORS:3}"
+  # TBEL Eval max request timeout in milliseconds. 0 - no timeout
+  max_requests_timeout: "${TBEL_MAX_REQUEST_TIMEOUT:500}"
   # Maximum time in seconds for black listed function to stay in the list.
-  max_black_list_duration_sec: "${MVEL_MAX_BLACKLIST_DURATION_SEC:60}"
+  max_black_list_duration_sec: "${TBEL_MAX_BLACKLIST_DURATION_SEC:60}"
   # Specify thread pool size for javascript executor service
-  thread_pool_size: "${MVEL_THREAD_POOL_SIZE:50}"
+  thread_pool_size: "${TBEL_THREAD_POOL_SIZE:50}"
   stats:
-    enabled: "${TB_MVEL_STATS_ENABLED:false}"
-    print_interval_ms: "${TB_MVEL_STATS_PRINT_INTERVAL_MS:10000}"
+    enabled: "${TB_TBEL_STATS_ENABLED:false}"
+    print_interval_ms: "${TB_TBEL_STATS_PRINT_INTERVAL_MS:10000}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}" # local/remote
@@ -444,3 +452,11 @@ service:
   integrations:
     supported: "${TB_SERVICE_INTEGRATIONS_SUPPORTED:ALL}"
     excluded: "${TB_SERVICE_INTEGRATIONS_EXCLUDED:NONE}"
+
+# Usage statistics parameters
+usage:
+  stats:
+    report:
+      enabled: "${USAGE_STATS_REPORT_ENABLED:true}"
+      enabled_per_customer: "${USAGE_STATS_REPORT_PER_CUSTOMER_ENABLED:false}"
+      interval: "${USAGE_STATS_REPORT_INTERVAL:10}"

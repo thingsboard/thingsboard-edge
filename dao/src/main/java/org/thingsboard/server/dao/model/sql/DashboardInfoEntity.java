@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,37 +30,33 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.sql.types.GroupsType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME)
-public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
+@TypeDef(name = "Groups", typeClass = GroupsType.class)
+@Immutable
+@Table(name = ModelConstants.DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME)
+public class DashboardInfoEntity extends AbstractDashboardEntity<DashboardInfo> {
 
     public static final Map<String, String> dashboardColumnMap = new HashMap<>();
 
@@ -68,98 +64,19 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         dashboardColumnMap.put("name", "title");
     }
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final JavaType assignedCustomersType =
-            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
+    @Column(name = ModelConstants.OWNER_NAME_COLUMN)
+    private String ownerName;
 
-    @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
-    private UUID tenantId;
-
-    @Column(name = ModelConstants.DASHBOARD_CUSTOMER_ID_PROPERTY)
-    private UUID customerId;
-
-    @Column(name = ModelConstants.DASHBOARD_TITLE_PROPERTY)
-    private String title;
-
-    @Column(name = ModelConstants.DASHBOARD_IMAGE_PROPERTY)
-    private String image;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
-    @Column(name = ModelConstants.DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY)
-    private String assignedCustomers;
-
-    @Column(name = ModelConstants.DASHBOARD_MOBILE_HIDE_PROPERTY)
-    private boolean mobileHide;
-
-    @Column(name = ModelConstants.DASHBOARD_MOBILE_ORDER_PROPERTY)
-    private Integer mobileOrder;
+    @Type(type = "Groups")
+    @Column(name = ModelConstants.GROUPS_COLUMN)
+    private List<EntityInfo> groups;
 
     public DashboardInfoEntity() {
         super();
     }
 
-    public DashboardInfoEntity(DashboardInfo dashboardInfo) {
-        if (dashboardInfo.getId() != null) {
-            this.setUuid(dashboardInfo.getId().getId());
-        }
-        this.setCreatedTime(dashboardInfo.getCreatedTime());
-        if (dashboardInfo.getTenantId() != null) {
-            this.tenantId = dashboardInfo.getTenantId().getId();
-        }
-        if (dashboardInfo.getCustomerId() != null) {
-            this.customerId = dashboardInfo.getCustomerId().getId();
-        }
-        this.title = dashboardInfo.getTitle();
-        this.image = dashboardInfo.getImage();
-        if (dashboardInfo.getAssignedCustomers() != null) {
-            try {
-                this.assignedCustomers = objectMapper.writeValueAsString(dashboardInfo.getAssignedCustomers());
-            } catch (JsonProcessingException e) {
-                log.error("Unable to serialize assigned customers to string!", e);
-            }
-        }
-        this.mobileHide = dashboardInfo.isMobileHide();
-        this.mobileOrder = dashboardInfo.getMobileOrder();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return title;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
     @Override
     public DashboardInfo toData() {
-        DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
-        dashboardInfo.setCreatedTime(createdTime);
-        if (tenantId != null) {
-            dashboardInfo.setTenantId(TenantId.fromUUID(tenantId));
-        }
-        if (customerId != null) {
-            dashboardInfo.setCustomerId(new CustomerId(customerId));
-        }
-        dashboardInfo.setTitle(title);
-        dashboardInfo.setImage(image);
-        if (!StringUtils.isEmpty(assignedCustomers)) {
-            try {
-                dashboardInfo.setAssignedCustomers(objectMapper.readValue(assignedCustomers, assignedCustomersType));
-            } catch (IOException e) {
-                log.warn("Unable to parse assigned customers!", e);
-            }
-        }
-        dashboardInfo.setMobileHide(mobileHide);
-        dashboardInfo.setMobileOrder(mobileOrder);
-        return dashboardInfo;
+        return new DashboardInfo(super.toDashboard(), this.ownerName, this.groups);
     }
-
 }

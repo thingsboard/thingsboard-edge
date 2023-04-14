@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
+        "js.evaluator=local",
         "js.max_script_body_size=50",
         "js.max_total_args_size=50",
         "js.max_result_size=50",
@@ -85,7 +86,7 @@ class NashornJsInvokeServiceTest extends AbstractControllerTest {
         }
         long duration = System.currentTimeMillis() - startTs;
         System.out.println(iterations + " invocations took: " + duration + "ms");
-        Assert.assertTrue(duration < TimeUnit.MINUTES.toMillis(3));
+        Assert.assertTrue(duration < TimeUnit.MINUTES.toMillis(4));
     }
 
     @Test

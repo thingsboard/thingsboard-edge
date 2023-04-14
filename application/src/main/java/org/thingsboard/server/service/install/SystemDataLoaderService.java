@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,10 @@ public interface SystemDataLoaderService {
 
     void createAdminSettings() throws Exception;
 
+    void createRandomJwtSettings() throws Exception;
+
+    void saveLegacyYmlSettings() throws Exception;
+
     void loadMailTemplates() throws Exception;
 
     void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;
@@ -56,4 +60,7 @@ public interface SystemDataLoaderService {
     void deleteSystemWidgetBundle(String bundleAlias) throws Exception;
 
     void createQueues();
+
+    void createDefaultNotificationConfigs();
+
 }

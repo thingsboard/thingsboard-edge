@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,33 +45,34 @@ public class UplinkConverterScriptFactory {
 
     private static final String LOCAL_JS_WRAPPER_SUFFIX = "}" +
             "    function convertBytesBase64(bytesBase64) {" +
-            "       var binary_string = decodeURIComponent(atob(bytesBase64).split('').map(function(c) {" +
-            "            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);" +
-            "        }).join(''));" +
-            "       var len = binary_string.length;"+
-            "       var payload = [];" +
-            "       for (var i = 0; i < len; i++) {" +
-            "           payload.push(binary_string.charCodeAt(i));" +
-            "       }" +
-            "       return payload;" +
+            "        var binary_string = atob(bytesBase64);" +
+            "        try {" +
+            "            binary_string = decodeURIComponent(binary_string.split('').map(function (c) {" +
+            "                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);" +
+            "            }).join(''));" +
+            "        } catch (ignored) {}" + // catching URIError: failed to decode input as UTF-8 string, returning raw binary payload
+            "        var payload = [];" +
+            "        for (var i = 0; i < binary_string.length; i++) {" +
+            "            payload.push(binary_string.charCodeAt(i));" +
+            "        }" +
+            "        return payload;" +
             "    }" +
             "}";
 
     private static final String REMOTE_JS_WRAPPER_SUFFIX = "}" +
             "    function convertBytesBase64(bytesBase64) {" +
-            "       var ascii_binary_string = atob(bytesBase64);" +
-            "       var len = ascii_binary_string.length;" +
-            "       var ascii_bytes = new Uint8Array(len);" +
-            "       for (var i = 0; i < len; i++) {" +
-            "           ascii_bytes[i] = ascii_binary_string.charCodeAt(i);" +
-            "       }" +
-            "       var decoder = new TextDecoder();" +
-            "       var utf_8_text = decoder.decode(ascii_bytes);" +
-            "       var utf_8_bytes = [];" +
-            "       for (var i = 0; i < utf_8_text.length; i++) {" +
-            "           utf_8_bytes.push(utf_8_text.charCodeAt(i));" +
-            "       }" +
-            "       return utf_8_bytes;" +
+            "        var binary_string = atob(bytesBase64);" +
+            "        var raw_payload = Uint8Array.from(binary_string, c => c.charCodeAt(0));" +
+            "        binary_string = new TextDecoder().decode(raw_payload);" +
+            "        var payload = [];" +
+            "        for (var i = 0; i < binary_string.length; i++) {" +
+            "            var c = binary_string.charCodeAt(i);" +
+            "            if (c === 65533) {" + // 65533 is a replacement char for an unknown char in UTF-8
+            "                return Array.from(raw_payload);" + // we failed to properly decode input as text, returning raw payload
+            "            }" +
+            "            payload.push(c)" +
+            "        }" +
+            "        return payload;" +
             "    }" +
             "}";
 
@@ -85,4 +86,5 @@ public class UplinkConverterScriptFactory {
         }
         return result;
     }
+
 }

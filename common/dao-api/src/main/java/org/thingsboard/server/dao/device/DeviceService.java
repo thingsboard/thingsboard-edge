@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,10 +32,11 @@ package org.thingsboard.server.dao.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceIdInfo;
+import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -48,13 +49,16 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface DeviceService {
+public interface DeviceService extends EntityDaoService {
 
     Device findDeviceById(TenantId tenantId, DeviceId deviceId);
+
+    DeviceInfo findDeviceInfoById(TenantId tenantId, DeviceId deviceId);
 
     ListenableFuture<Device> findDeviceByIdAsync(TenantId tenantId, DeviceId deviceId);
 
@@ -73,6 +77,8 @@ public interface DeviceService {
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
     PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink);
+
+    Long countDevices();
 
     PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
@@ -108,8 +114,6 @@ public interface DeviceService {
 
     Device assignDeviceToTenant(TenantId tenantId, Device device);
 
-    long countByTenantId(TenantId tenantId);
-
     PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId,
                                                                          DeviceProfileId deviceProfileId,
                                                                          OtaPackageType type,
@@ -123,4 +127,20 @@ public interface DeviceService {
     Long countByEntityGroupAndEmptyOtaPackage(EntityGroupId groupId, OtaPackageId otaPackageId, OtaPackageType type);
 
     Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type);
+
+    PageData<DeviceInfo> findDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<DeviceInfo> findDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink);
+
+    PageData<DeviceInfo> findTenantDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<DeviceInfo> findTenantDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink);
+
+    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink);
+
+    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink);
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
+
+import java.util.List;
 
 public interface TbAssetService {
 
@@ -41,6 +44,9 @@ public interface TbAssetService {
 
     Asset save(Asset asset, EntityGroup entityGroup, User user) throws Exception;
 
+    Asset save(Asset asset, List<EntityGroup> entityGroups, User user) throws Exception;
+
     ListenableFuture<Void> delete(Asset asset, User user);
 
+    ListenableFuture<Void> delete(AssetId assetId, User user);
 }

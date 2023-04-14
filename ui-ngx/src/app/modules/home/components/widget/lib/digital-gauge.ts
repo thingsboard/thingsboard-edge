@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import {
   DigitalGaugeSettings,
   FixedLevelColors
 } from '@home/components/widget/lib/digital-gauge.models';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { prepareFontSettings } from '@home/components/widget/lib/settings.models';
 import { CanvasDigitalGauge, CanvasDigitalGaugeOptions } from '@home/components/widget/lib/canvas-digital-gauge';
@@ -55,8 +55,6 @@ import { IWidgetSubscription, WidgetSubscriptionOptions } from '@core/api/widget
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EMPTY, Observable } from 'rxjs';
 import GenericOptions = CanvasGauges.GenericOptions;
-
-const tinycolor = tinycolor_;
 
 // @dynamic
 export class TbCanvasDigitalGauge {
@@ -420,7 +418,7 @@ export class TbCanvasDigitalGauge {
           (this.gauge.options as CanvasDigitalGaugeOptions).labelTimestamp =
             filter.transform(timestamp, this.localSettings.timestampFormat);
         }
-        const value = tvPair[1];
+        const value = parseFloat(tvPair[1]);
         if (value !== this.gauge.value) {
           if (!this.gauge.options.animation) {
             this.gauge._value = value;

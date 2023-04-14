@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.stats;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Timer;
 
 public interface StatsFactory {
@@ -42,4 +44,6 @@ public interface StatsFactory {
     MessagesStats createMessagesStats(String key);
 
     Timer createTimer(String key, String... tags);
+
+    Meter remove (Counter counter);
 }

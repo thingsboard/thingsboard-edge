@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectDeviceProfileFormGroup" class="mat-block">
-  <input matInput type="text" placeholder="{{ 'device-profile.device-profile' | translate }}"
+<mat-form-field [formGroup]="selectDeviceProfileFormGroup" class="mat-block" subscriptSizing="{{ subscriptSizing }}">
+  <mat-label>{{ 'device-profile.device-profile' | translate }}</mat-label>
+  <input matInput type="text"
          #deviceProfileInput
          formControlName="deviceProfile"
          (focusin)="onFocus()"
@@ -45,14 +46,14 @@
   </a>
   <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
   <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled && editProfileEnabled &&
                (resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE)"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Edit"
+          matSuffix mat-icon-button aria-label="Edit"
           matTooltip="{{ 'device-profile.edit' | translate }}"
           matTooltipPosition="above"
           (click)="editDeviceProfile($event)">

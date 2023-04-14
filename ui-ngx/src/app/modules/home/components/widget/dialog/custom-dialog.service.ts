@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { Inject, Injectable, Type } from '@angular/core';
 import { Observable } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '@core/auth/auth.service';
 import { DynamicComponentFactoryService } from '@core/services/dynamic-component-factory.service';
@@ -59,7 +59,8 @@ export class CustomDialogService {
   ) {
   }
 
-  customDialog(template: string, controller: (instance: CustomDialogComponent) => void, data?: any): Observable<any> {
+  customDialog(template: string, controller: (instance: CustomDialogComponent) => void, data?: any,
+               config?: MatDialogConfig): Observable<any> {
     return this.dynamicComponentFactoryService.createDynamicComponentFactory(
       class CustomDialogComponentInstance extends CustomDialogComponent {},
       template,
@@ -70,13 +71,17 @@ export class CustomDialogService {
             customComponentFactory: factory,
             data
           };
+          let dialogConfig: MatDialogConfig = {
+            disableClose: true,
+            panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+            data: dialogData
+          };
+          if (config) {
+            dialogConfig = {...dialogConfig, ...config};
+          }
           return this.dialog.open<CustomDialogContainerComponent, CustomDialogContainerData, any>(
             CustomDialogContainerComponent,
-            {
-              disableClose: true,
-              panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-              data: dialogData
-            }).afterClosed().pipe(
+            dialogConfig).afterClosed().pipe(
             tap(() => {
               this.dynamicComponentFactoryService.destroyDynamicComponentFactory(factory);
             })

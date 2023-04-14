@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.subscription;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AbstractDataQuery;
@@ -44,9 +45,9 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketService;
-import org.thingsboard.server.service.telemetry.TelemetryWebSocketSessionRef;
-import org.thingsboard.server.service.telemetry.sub.TelemetrySubscriptionUpdate;
+import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.WebSocketService;
+import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,10 +66,10 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
     @Getter
     protected PageData<EntityData> data;
 
-    public TbAbstractDataSubCtx(String serviceId, TelemetryWebSocketService wsService,
+    public TbAbstractDataSubCtx(String serviceId, WebSocketService wsService,
                                 EntityService entityService, TbLocalSubscriptionService localSubscriptionService,
                                 AttributesService attributesService, SubscriptionServiceStatistics stats,
-                                TelemetryWebSocketSessionRef sessionRef, int cmdId) {
+                                WebSocketSessionRef sessionRef, int cmdId) {
         super(serviceId, wsService, entityService, localSubscriptionService, attributesService, stats, sessionRef, cmdId);
         this.subToEntityIdMap = new ConcurrentHashMap<>();
     }
@@ -210,7 +211,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
                 .subscriptionId(subIdx)
                 .tenantId(sessionRef.getSecurityCtx().getTenantId())
                 .entityId(entityData.getEntityId())
-                .updateConsumer((s, subscriptionUpdate) -> sendWsMsg(s, subscriptionUpdate, keysType))
+                .updateProcessor((sub, subscriptionUpdate) -> sendWsMsg(sub.getSessionId(), subscriptionUpdate, keysType))
                 .allKeys(false)
                 .keyStates(keyStates)
                 .scope(scope)
@@ -223,6 +224,9 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
             entityData.getTimeseries().forEach((k, v) -> {
                 long ts = Arrays.stream(v).map(TsValue::getTs).max(Long::compareTo).orElse(0L);
                 log.trace("[{}][{}] Updating key: {} with ts: {}", serviceId, cmdId, k, ts);
+                if (!Aggregation.NONE.equals(getCurrentAggregation()) && ts < endTs) {
+                    ts = endTs;
+                }
                 keyStates.put(k, ts);
             });
         }
@@ -241,7 +245,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
                 .subscriptionId(subIdx)
                 .tenantId(sessionRef.getSecurityCtx().getTenantId())
                 .entityId(entityData.getEntityId())
-                .updateConsumer((sessionId, subscriptionUpdate) -> sendWsMsg(sessionId, subscriptionUpdate, EntityKeyType.TIME_SERIES, resultToLatestValues))
+                .updateProcessor((sub, subscriptionUpdate) -> sendWsMsg(sub.getSessionId(), subscriptionUpdate, EntityKeyType.TIME_SERIES, resultToLatestValues))
                 .allKeys(false)
                 .keyStates(keyStates)
                 .latestValues(latestValues)
@@ -273,4 +277,5 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
 
     abstract void sendWsMsg(String sessionId, TelemetrySubscriptionUpdate subscriptionUpdate, EntityKeyType keyType, boolean resultToLatestValues);
 
+    protected abstract Aggregation getCurrentAggregation();
 }

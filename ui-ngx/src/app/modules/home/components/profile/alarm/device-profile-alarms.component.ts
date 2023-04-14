@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,14 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
@@ -47,9 +47,9 @@ import { AppState } from '@app/core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/device.models';
 import { guid } from '@core/utils';
-import { Subscription } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
 import { EntityId } from '@shared/models/id/entity-id';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-device-profile-alarms',
@@ -68,9 +68,9 @@ import { EntityId } from '@shared/models/id/entity-id';
     }
   ]
 })
-export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnInit, Validator {
+export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnInit, Validator, OnDestroy {
 
-  deviceProfileAlarmsFormGroup: FormGroup;
+  deviceProfileAlarmsFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -87,13 +87,11 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
   @Input()
   deviceProfileId: EntityId;
 
-  private valueChangeSubscription: Subscription = null;
-
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
-              private fb: FormBuilder,
-              private dialog: MatDialog) {
+              private fb: UntypedFormBuilder) {
   }
 
   registerOnChange(fn: any): void {
@@ -107,10 +105,18 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
     this.deviceProfileAlarmsFormGroup = this.fb.group({
       alarms: this.fb.array([])
     });
+    this.deviceProfileAlarmsFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  alarmsFormArray(): FormArray {
-    return this.deviceProfileAlarmsFormGroup.get('alarms') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get alarmsFormArray(): UntypedFormArray {
+    return this.deviceProfileAlarmsFormGroup.get('alarms') as UntypedFormArray;
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -123,24 +129,22 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
   }
 
   writeValue(alarms: Array<DeviceProfileAlarm> | null): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
-    const alarmsControls: Array<AbstractControl> = [];
-    if (alarms) {
-      alarms.forEach((alarm) => {
-        alarmsControls.push(this.fb.control(alarm, [Validators.required]));
-      });
-    }
-    this.deviceProfileAlarmsFormGroup.setControl('alarms', this.fb.array(alarmsControls));
-    if (this.disabled) {
-      this.deviceProfileAlarmsFormGroup.disable({emitEvent: false});
+    if (alarms?.length === this.alarmsFormArray.length) {
+      this.alarmsFormArray.patchValue(alarms, {emitEvent: false});
     } else {
-      this.deviceProfileAlarmsFormGroup.enable({emitEvent: false});
+      const alarmsControls: Array<AbstractControl> = [];
+      if (alarms) {
+        alarms.forEach((alarm) => {
+          alarmsControls.push(this.fb.control(alarm, [Validators.required]));
+        });
+      }
+      this.deviceProfileAlarmsFormGroup.setControl('alarms', this.fb.array(alarmsControls), {emitEvent: false});
+      if (this.disabled) {
+        this.deviceProfileAlarmsFormGroup.disable({emitEvent: false});
+      } else {
+        this.deviceProfileAlarmsFormGroup.enable({emitEvent: false});
+      }
     }
-    this.valueChangeSubscription = this.deviceProfileAlarmsFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
   }
 
   public trackByAlarm(index: number, alarmControl: AbstractControl): string {
@@ -152,7 +156,7 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
   }
 
   public removeAlarm(index: number) {
-    (this.deviceProfileAlarmsFormGroup.get('alarms') as FormArray).removeAt(index);
+    (this.deviceProfileAlarmsFormGroup.get('alarms') as UntypedFormArray).removeAt(index);
   }
 
   public addAlarm() {
@@ -167,7 +171,7 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
         }
       }
     };
-    const alarmsArray = this.deviceProfileAlarmsFormGroup.get('alarms') as FormArray;
+    const alarmsArray = this.deviceProfileAlarmsFormGroup.get('alarms') as UntypedFormArray;
     alarmsArray.push(this.fb.control(alarm, [deviceProfileAlarmValidator]));
     this.deviceProfileAlarmsFormGroup.updateValueAndValidity();
     if (!this.deviceProfileAlarmsFormGroup.valid) {
@@ -175,7 +179,7 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
     }
   }
 
-  public validate(c: FormControl) {
+  public validate(c: UntypedFormControl) {
     return (this.deviceProfileAlarmsFormGroup.valid) ? null : {
       alarms: {
         valid: false,

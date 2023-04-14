@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData, ExportableEntity } from '@shared/models/base-data';
+import { BaseData, ExportableEntity, GroupEntityInfo } from '@shared/models/base-data';
 import { DeviceId } from './id/device-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -77,7 +77,8 @@ export enum CoapTransportDeviceType {
 export enum DeviceProvisionType {
   DISABLED = 'DISABLED',
   ALLOW_CREATE_NEW_DEVICES = 'ALLOW_CREATE_NEW_DEVICES',
-  CHECK_PRE_PROVISIONED_DEVICES = 'CHECK_PRE_PROVISIONED_DEVICES'
+  CHECK_PRE_PROVISIONED_DEVICES = 'CHECK_PRE_PROVISIONED_DEVICES',
+  X509_CERTIFICATE_CHAIN = 'X509_CERTIFICATE_CHAIN'
 }
 
 export interface DeviceConfigurationFormInfo {
@@ -125,7 +126,8 @@ export const deviceProvisionTypeTranslationMap = new Map<DeviceProvisionType, st
   [
     [DeviceProvisionType.DISABLED, 'device-profile.provision-strategy-disabled'],
     [DeviceProvisionType.ALLOW_CREATE_NEW_DEVICES, 'device-profile.provision-strategy-created-new'],
-    [DeviceProvisionType.CHECK_PRE_PROVISIONED_DEVICES, 'device-profile.provision-strategy-check-pre-provisioned']
+    [DeviceProvisionType.CHECK_PRE_PROVISIONED_DEVICES, 'device-profile.provision-strategy-check-pre-provisioned'],
+    [DeviceProvisionType.X509_CERTIFICATE_CHAIN, 'device-profile.provision-strategy-x509.certificate-chain']
   ]
 );
 
@@ -257,6 +259,7 @@ export interface DefaultDeviceProfileTransportConfiguration {
 export interface MqttDeviceProfileTransportConfiguration {
   deviceTelemetryTopic?: string;
   deviceAttributesTopic?: string;
+  sparkplug?: boolean;
   sendAckOnValidationException?: boolean;
   transportPayloadTypeConfiguration?: {
     transportPayloadType?: TransportPayloadType;
@@ -334,6 +337,9 @@ export interface DeviceProvisionConfiguration {
   type: DeviceProvisionType;
   provisionDeviceSecret?: string;
   provisionDeviceKey?: string;
+  certificateValue?: string;
+  certificateRegExPattern?: string;
+  allowCreateNewDevicesByX509Certificate?: boolean;
 }
 
 export function createDeviceProfileConfiguration(type: DeviceProfileType): DeviceProfileConfiguration {
@@ -374,6 +380,7 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
         const mqttTransportConfiguration: MqttDeviceProfileTransportConfiguration = {
           deviceTelemetryTopic: 'v1/devices/me/telemetry',
           deviceAttributesTopic: 'v1/devices/me/attributes',
+          sparkplug: false,
           sendAckOnValidationException: false,
           transportPayloadTypeConfiguration: {
             transportPayloadType: TransportPayloadType.JSON,
@@ -513,12 +520,14 @@ export interface CustomTimeSchedulerItem{
   endsOn: number;
 }
 
-export interface AlarmRule {
+interface AlarmRule {
   condition: AlarmCondition;
   alarmDetails?: string;
   dashboardId?: DashboardId;
   schedule?: AlarmSchedule;
 }
+
+export { AlarmRule as DeviceProfileAlarmRule };
 
 export function alarmRuleValidator(control: AbstractControl): ValidationErrors | null {
   const alarmRule: AlarmRule = control.value;
@@ -595,9 +604,11 @@ export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEnti
   firmwareId?: OtaPackageId;
   softwareId?: OtaPackageId;
   profileData: DeviceProfileData;
+  defaultEdgeRuleChainId?: RuleChainId;
 }
 
 export interface DeviceProfileInfo extends EntityInfoData {
+  tenantId?: TenantId;
   type: DeviceProfileType;
   transportType: DeviceTransportType;
   image?: string;
@@ -717,11 +728,7 @@ export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   additionalInfo?: any;
 }
 
-/*export interface DeviceInfo extends Device {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  deviceProfileName: string;
-}*/
+export type DeviceInfo = Device & GroupEntityInfo<DeviceId>;
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',

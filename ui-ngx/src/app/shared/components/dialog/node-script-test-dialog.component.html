@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@
 <form class="tb-node-script-test-dialog"
       [formGroup]="nodeScriptTestFormGroup" (ngSubmit)="save()">
   <mat-toolbar fxLayout="row" color="primary">
-    <h2>{{ 'rulenode.test-script-function' | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-mvel') | translate }})</h2>
+    <h2>{{ 'rulenode.test-script-function' | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
     <span fxFlex></span>
-    <button mat-button mat-icon-button
+    <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
@@ -75,6 +75,7 @@
               <label translate>rulenode.metadata</label>
             </div>
             <tb-key-val-map
+              subscriptSizing="dynamic"
               formControlName="metadata"
               titleText="rulenode.metadata">
             </tb-key-val-map>
@@ -92,7 +93,7 @@
               functionName="{{ data.functionName }}"
               [functionArgs]="data.argNames"
               [validationArgs]="[data.msg, data.metadata, data.msgType]"
-              [disableUndefinedCheck]="scriptLang === scriptLanguage.MVEL"
+              [disableUndefinedCheck]="scriptLang === scriptLanguage.TBEL"
               resultType="object"
               [helpId]="data.helpId"
               [fillHeight]="true">

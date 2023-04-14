@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,12 +50,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsAsyncClientHttpRequestFactory;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
@@ -66,6 +66,7 @@ import org.thingsboard.rule.engine.credentials.CredentialsType;
 import org.thingsboard.rule.engine.mail.TbMsgToEmailNode;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -79,9 +80,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 
 @Data
 @Slf4j
@@ -260,7 +263,7 @@ public class TbHttpClient {
         return uri;
     }
 
-    String getData(TbContext ctx, TbMsg msg) {
+    private String getData(TbContext ctx, TbMsg msg) {
         String data = msg.getData();
 
         List<BlobEntityId> attachments = new ArrayList<>();
@@ -281,7 +284,7 @@ public class TbHttpClient {
             }
         }
 
-        if ("true".equals(msg.getMetaData().getValue("trimDoubleQuotes"))) {
+        if (config.isTrimDoubleQuotes()) {
             final String dataBefore = data;
             data = data.replaceAll("^\"|\"$", "");;
             log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
@@ -295,9 +298,24 @@ public class TbHttpClient {
         metaData.putValue(STATUS, response.getStatusCode().name());
         metaData.putValue(STATUS_CODE, response.getStatusCode().value() + "");
         metaData.putValue(STATUS_REASON, response.getStatusCode().getReasonPhrase());
-        response.getHeaders().toSingleValueMap().forEach(metaData::putValue);
+        headersToMetaData(response.getHeaders(), metaData::putValue);
         String body = response.getBody() == null ? "{}" : response.getBody();
         return ctx.transformMsg(origMsg, origMsg.getType(), origMsg.getOriginator(), metaData, body);
+    }
+
+    void headersToMetaData(Map<String, List<String>> headers, BiConsumer<String, String> consumer) {
+        if (headers == null) {
+            return;
+        }
+        headers.forEach((key, values) -> {
+            if (values != null && !values.isEmpty()) {
+                if (values.size() == 1) {
+                    consumer.accept(key, values.get(0));
+                } else {
+                    consumer.accept(key, JacksonUtil.toString(values));
+                }
+            }
+        });
     }
 
     private TbMsg processFailureResponse(TbContext ctx, TbMsg origMsg, ResponseEntity<String> response) {
@@ -306,6 +324,7 @@ public class TbHttpClient {
         metaData.putValue(STATUS_CODE, response.getStatusCode().value() + "");
         metaData.putValue(STATUS_REASON, response.getStatusCode().getReasonPhrase());
         metaData.putValue(ERROR_BODY, response.getBody());
+        headersToMetaData(response.getHeaders(), metaData::putValue);
         return ctx.transformMsg(origMsg, origMsg.getType(), origMsg.getOriginator(), metaData, origMsg.getData());
     }
 

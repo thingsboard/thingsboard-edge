@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,6 @@
 package org.thingsboard.server.queue.discovery;
 
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -50,6 +49,8 @@ public interface PartitionService {
     TopicPartitionInfo resolve(ServiceType serviceType, String queueName, TenantId tenantId, EntityId entityId);
 
     TopicPartitionInfo resolve(ServiceType serviceType, TenantId tenantId, EntityId entityId);
+
+    boolean isMyPartition(ServiceType serviceType, TenantId tenantId, EntityId entityId);
 
     /**
      * Received from the Discovery service when network topology is changed.

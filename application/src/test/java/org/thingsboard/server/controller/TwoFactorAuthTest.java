@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,7 +66,7 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
 import org.thingsboard.server.service.security.auth.mfa.config.TwoFaConfigManager;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
-import org.thingsboard.server.service.security.model.JwtTokenPair;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -412,7 +412,7 @@ public abstract class TwoFactorAuthTest extends AbstractControllerTest {
     private void logInWithPreVerificationToken(String username, String password) throws Exception {
         LoginRequest loginRequest = new LoginRequest(username, password);
 
-        JwtTokenPair response = readResponse(doPost("/api/auth/login", loginRequest).andExpect(status().isOk()), JwtTokenPair.class);
+        JwtPair response = readResponse(doPost("/api/auth/login", loginRequest).andExpect(status().isOk()), JwtPair.class);
         assertThat(response.getToken()).isNotNull();
         assertThat(response.getRefreshToken()).isNull();
         assertThat(response.getScope()).isEqualTo(Authority.PRE_VERIFICATION_TOKEN);

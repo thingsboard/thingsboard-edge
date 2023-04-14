@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,22 +37,21 @@
     <mat-error translate *ngIf="thingParkConfigForm.get('baseUrl').hasError('required')">
       integration.base-url-required
     </mat-error>
+    <mat-error translate *ngIf="thingParkConfigForm.get('baseUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
   </mat-form-field>
   <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
     <mat-form-field class="mat-block" fxFlex>
       <mat-label translate>integration.http-endpoint</mat-label>
       <input matInput formControlName="httpEndpoint">
     </mat-form-field>
-    <fieldset [disabled]="false" style="width: auto">
-      <div ngxClipboard
-           (cbOnSuccess)="onHttpEndpointCopied()"
-           [cbContent]="thingParkConfigForm.get('httpEndpoint').value"
-           matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button" color="primary">
-          <mat-icon class="tb-mat-20">content_copy</mat-icon>
-        </button>
-      </div>
-    </fieldset>
+    <button mat-icon-button ngxClipboard type="button" color="primary"
+            (cbOnSuccess)="onHttpEndpointCopied()"
+            [cbContent]="thingParkConfigForm.get('httpEndpoint').value"
+            matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
+      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+    </button>
   </div>
 
   <mat-expansion-panel class="security-setting"
@@ -135,6 +134,9 @@
       <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-url</mat-label>
         <input matInput formControlName="downlinkUrl">
+        <mat-error translate *ngIf="thingParkConfigForm.get('downlinkUrl').hasError('privateNetwork')">
+          integration.url-private
+        </mat-error>
       </mat-form-field>
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
       </ng-container>

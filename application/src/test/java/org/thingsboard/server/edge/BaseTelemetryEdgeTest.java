@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,27 +30,36 @@
  */
 package org.thingsboard.server.edge;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
+import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testTimeseriesWithFailures() throws Exception {
-        int numberOfTimeseriesToSend = 1000;
+        int numberOfTimeseriesToSend = 333;
 
         Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
 
@@ -83,34 +92,9 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     public void testAttributes() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
-        testAttributesUpdatedMsg(device);
+        testAttributesUpdatedMsg(device.getId());
         testPostAttributesMsg(device);
         testAttributesDeleteMsg(device);
-    }
-
-    private void testAttributesUpdatedMsg(Device device) throws Exception {
-        String attributesData = "{\"scope\":\"SERVER_SCOPE\",\"kv\":{\"key1\":\"value1\"}}";
-        JsonNode attributesEntityData = mapper.readTree(attributesData);
-        EdgeEvent edgeEvent1 = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, device.getId().getId(), EdgeEventType.DEVICE, attributesEntityData);
-        edgeImitator.expectMessageAmount(1);
-        edgeEventService.saveAsync(edgeEvent1).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());
-
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof EntityDataProto);
-        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
-        Assert.assertEquals(device.getUuidId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
-        Assert.assertEquals(device.getUuidId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
-        Assert.assertEquals(device.getId().getEntityType().name(), latestEntityDataMsg.getEntityType());
-        Assert.assertEquals("SERVER_SCOPE", latestEntityDataMsg.getPostAttributeScope());
-        Assert.assertTrue(latestEntityDataMsg.hasAttributesUpdatedMsg());
-
-        TransportProtos.PostAttributeMsg attributesUpdatedMsg = latestEntityDataMsg.getAttributesUpdatedMsg();
-        Assert.assertEquals(1, attributesUpdatedMsg.getKvCount());
-        TransportProtos.KeyValueProto keyValueProto = attributesUpdatedMsg.getKv(0);
-        Assert.assertEquals("key1", keyValueProto.getKey());
-        Assert.assertEquals("value1", keyValueProto.getStringV());
     }
 
     private void testPostAttributesMsg(Device device) throws Exception {
@@ -242,4 +226,78 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
         edgeImitator.setRandomFailuresOnTimeseriesDownlink(false);
     }
+
+    @Test
+    public void testAttributesUpdatedMsg_userEntity() throws Exception {
+        testAttributesUpdatedMsg(tenantAdmin.getId());
+    }
+
+    private void testAttributesUpdatedMsg(EntityId entityId) throws Exception {
+        String attributesData = "{\"scope\":\"SERVER_SCOPE\",\"kv\":{\"key1\":\"value1\"}}";
+        JsonNode attributesEntityData = mapper.readTree(attributesData);
+        EdgeEvent edgeEvent1 = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, entityId.getId(), EdgeEventType.valueOf(entityId.getEntityType().name()), attributesEntityData);
+        edgeImitator.expectMessageAmount(1);
+        edgeEventService.saveAsync(edgeEvent1).get();
+        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityDataProto);
+        EntityDataProto latestEntityDataMsg = (EntityDataProto) latestMessage;
+        Assert.assertEquals(entityId.getId().getMostSignificantBits(), latestEntityDataMsg.getEntityIdMSB());
+        Assert.assertEquals(entityId.getId().getLeastSignificantBits(), latestEntityDataMsg.getEntityIdLSB());
+        Assert.assertEquals(entityId.getEntityType().name(), latestEntityDataMsg.getEntityType());
+        Assert.assertEquals("SERVER_SCOPE", latestEntityDataMsg.getPostAttributeScope());
+        Assert.assertTrue(latestEntityDataMsg.hasAttributesUpdatedMsg());
+
+        TransportProtos.PostAttributeMsg attributesUpdatedMsg = latestEntityDataMsg.getAttributesUpdatedMsg();
+        Assert.assertEquals(1, attributesUpdatedMsg.getKvCount());
+        TransportProtos.KeyValueProto keyValueProto = attributesUpdatedMsg.getKv(0);
+        Assert.assertEquals("key1", keyValueProto.getKey());
+        Assert.assertEquals("value1", keyValueProto.getStringV());
+    }
+
+    @Test
+    public void testSendAttributesDeleteRequestToCloud_nonDeviceEntity() throws Exception {
+        Asset savedAsset = saveAssetOnCloudAndVerifyDeliveryToEdge();
+
+        final String attributeKey = "key1";
+        ObjectNode attributesData = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        attributesData.put(attributeKey, "value1");
+        doPost("/api/plugins/telemetry/ASSET/" + savedAsset.getId() + "/attributes/" + DataConstants.SERVER_SCOPE, attributesData);
+
+        // Wait before device attributes saved to database before deleting them
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    String urlTemplate = "/api/plugins/telemetry/ASSET/" + savedAsset.getId() + "/keys/attributes/" + DataConstants.SERVER_SCOPE;
+                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
+                    return actualKeys != null && !actualKeys.isEmpty() && actualKeys.contains(attributeKey);
+                });
+
+        EntityDataProto.Builder builder = EntityDataProto.newBuilder()
+                .setEntityIdMSB(savedAsset.getUuidId().getMostSignificantBits())
+                .setEntityIdLSB(savedAsset.getUuidId().getLeastSignificantBits())
+                .setEntityType(savedAsset.getId().getEntityType().name());
+        AttributeDeleteMsg.Builder attributeDeleteMsg = AttributeDeleteMsg.newBuilder();
+        attributeDeleteMsg.setScope(DataConstants.SERVER_SCOPE);
+        attributeDeleteMsg.addAllAttributeNames(List.of(attributeKey));
+        attributeDeleteMsg.build();
+        builder.setAttributeDeleteMsg(attributeDeleteMsg);
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        uplinkMsgBuilder.addEntityData(builder.build());
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    String urlTemplate = "/api/plugins/telemetry/ASSET/" + savedAsset.getId() + "/keys/attributes/" + DataConstants.SERVER_SCOPE;
+                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
+                    return actualKeys != null && actualKeys.isEmpty();
+                });
+    }
+
 }

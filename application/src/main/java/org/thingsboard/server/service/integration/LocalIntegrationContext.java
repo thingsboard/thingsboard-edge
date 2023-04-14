@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -180,5 +181,19 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public boolean isExceptionStackTraceEnabled() {
         return ctx.isExceptionStackTraceEnabled();
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            ctx.getIntegrationStatisticsService().onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            ctx.getIntegrationStatisticsService().onUplinkMsg(configuration.getType(), success);
+        }
     }
 }

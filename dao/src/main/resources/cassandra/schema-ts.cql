@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
 --
 
 CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_cf (
-    entity_type text, // (DEVICE, CUSTOMER, TENANT)
+    entity_type text, -- (DEVICE, CUSTOMER, TENANT)
     entity_id timeuuid,
     key text,
     partition bigint,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_cf (
 );
 
 CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_partitions_cf (
-    entity_type text, // (DEVICE, CUSTOMER, TENANT)
+    entity_type text, -- (DEVICE, CUSTOMER, TENANT)
     entity_id timeuuid,
     key text,
     partition bigint,

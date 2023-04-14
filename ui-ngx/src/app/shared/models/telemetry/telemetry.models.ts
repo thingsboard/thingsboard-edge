@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,7 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { AggregationType } from '../time/time.models';
-import { Observable, ReplaySubject, Subject } from 'rxjs';
+import { Observable, ReplaySubject } from 'rxjs';
 import { EntityId } from '@shared/models/id/entity-id';
 import { map } from 'rxjs/operators';
 import { NgZone } from '@angular/core';
@@ -40,7 +40,7 @@ import {
   AlarmData,
   AlarmDataQuery, EntityCountQuery,
   EntityData,
-  EntityDataQuery,
+  EntityDataQuery, EntityFilter,
   EntityKey,
   TsValue
 } from '@shared/models/query/query.models';
@@ -48,6 +48,8 @@ import { PageData } from '@shared/models/page/page-data';
 import { alarmFields } from '@shared/models/alarm.models';
 import { entityFields } from '@shared/models/entity.models';
 import { isUndefined } from '@core/utils';
+import { CmdWrapper, WsSubscriber } from '@shared/models/websocket/websocket.models';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 
 export enum DataKeyType {
   timeseries = 'timeseries',
@@ -75,13 +77,13 @@ export enum TelemetryFeature {
 
 export type TelemetryType = LatestTelemetry | AttributeScope;
 
-export function toTelemetryType(val: string): TelemetryType {
+export const toTelemetryType = (val: string): TelemetryType => {
   if (LatestTelemetry[val]) {
     return LatestTelemetry[val];
   } else {
     return AttributeScope[val];
   }
-}
+};
 
 export const telemetryTypeTranslations = new Map<TelemetryType, string>(
   [
@@ -249,7 +251,7 @@ export class AlarmDataUnsubscribeCmd implements WebsocketCmd {
   cmdId: number;
 }
 
-export class TelemetryPluginCmdsWrapper {
+export class TelemetryPluginCmdsWrapper implements CmdWrapper {
 
   constructor() {
     this.attrSubCmds = [];
@@ -350,7 +352,9 @@ export interface SubscriptionUpdateMsg extends SubscriptionDataHolder {
 export enum CmdUpdateType {
   ENTITY_DATA = 'ENTITY_DATA',
   ALARM_DATA = 'ALARM_DATA',
-  COUNT_DATA = 'COUNT_DATA'
+  COUNT_DATA = 'COUNT_DATA',
+  NOTIFICATIONS_COUNT = 'NOTIFICATIONS_COUNT',
+  NOTIFICATIONS = 'NOTIFICATIONS'
 }
 
 export interface CmdUpdateMsg {
@@ -382,20 +386,20 @@ export interface EntityCountUpdateMsg extends CmdUpdateMsg {
 
 export type WebsocketDataMsg = AlarmDataUpdateMsg | EntityDataUpdateMsg | EntityCountUpdateMsg | SubscriptionUpdateMsg;
 
-export function isEntityDataUpdateMsg(message: WebsocketDataMsg): message is EntityDataUpdateMsg {
+export const isEntityDataUpdateMsg = (message: WebsocketDataMsg): message is EntityDataUpdateMsg => {
   const updateMsg = (message as CmdUpdateMsg);
   return updateMsg.cmdId !== undefined && updateMsg.cmdUpdateType === CmdUpdateType.ENTITY_DATA;
-}
+};
 
-export function isAlarmDataUpdateMsg(message: WebsocketDataMsg): message is AlarmDataUpdateMsg {
+export const isAlarmDataUpdateMsg = (message: WebsocketDataMsg): message is AlarmDataUpdateMsg => {
   const updateMsg = (message as CmdUpdateMsg);
   return updateMsg.cmdId !== undefined && updateMsg.cmdUpdateType === CmdUpdateType.ALARM_DATA;
-}
+};
 
-export function isEntityCountUpdateMsg(message: WebsocketDataMsg): message is EntityCountUpdateMsg {
+export const isEntityCountUpdateMsg = (message: WebsocketDataMsg): message is EntityCountUpdateMsg => {
   const updateMsg = (message as CmdUpdateMsg);
   return updateMsg.cmdId !== undefined && updateMsg.cmdUpdateType === CmdUpdateType.COUNT_DATA;
-}
+};
 
 export class SubscriptionUpdate implements SubscriptionUpdateMsg {
   subscriptionId: number;
@@ -577,31 +581,20 @@ export class EntityCountUpdate extends CmdUpdate {
   }
 }
 
-export interface TelemetryService {
-  subscribe(subscriber: TelemetrySubscriber);
-  update(subscriber: TelemetrySubscriber);
-  unsubscribe(subscriber: TelemetrySubscriber);
-}
-
-export class TelemetrySubscriber {
+export class TelemetrySubscriber extends WsSubscriber {
 
   private dataSubject = new ReplaySubject<SubscriptionUpdate>(1);
   private entityDataSubject = new ReplaySubject<EntityDataUpdate>(1);
   private alarmDataSubject = new ReplaySubject<AlarmDataUpdate>(1);
   private entityCountSubject = new ReplaySubject<EntityCountUpdate>(1);
-  private reconnectSubject = new Subject();
-
   private tsOffset = undefined;
-
-  public subscriptionCommands: Array<WebsocketCmd>;
 
   public data$ = this.dataSubject.asObservable();
   public entityData$ = this.entityDataSubject.asObservable();
   public alarmData$ = this.alarmDataSubject.asObservable();
   public entityCount$ = this.entityCountSubject.asObservable();
-  public reconnect$ = this.reconnectSubject.asObservable();
 
-  public static createEntityAttributesSubscription(telemetryService: TelemetryService,
+  public static createEntityAttributesSubscription(telemetryService: TelemetryWebsocketService,
                                                    entityId: EntityId, attributeScope: TelemetryType,
                                                    zone: NgZone, keys: string[] = null): TelemetrySubscriber {
     let subscriptionCommand: SubscriptionCmd;
@@ -621,21 +614,29 @@ export class TelemetrySubscriber {
     return subscriber;
   }
 
-  constructor(private telemetryService: TelemetryService, private zone?: NgZone) {
-    this.subscriptionCommands = [];
+  public static createEntityFilterLatestSubscription(telemetryService: TelemetryWebsocketService,
+                                                     entityFilter: EntityFilter, zone: NgZone,
+                                                     latestKeys: EntityKey[] = null): TelemetrySubscriber {
+    const entityDataQuery: EntityDataQuery = {
+      entityFilter,
+      pageLink: {
+        pageSize: 1,
+        page: 0
+      },
+      latestValues: latestKeys || []
+    };
+    const cmd = new EntityDataCmd();
+    cmd.query = entityDataQuery;
+    cmd.latestCmd = {
+      keys: latestKeys || []
+    };
+    const subscriber = new TelemetrySubscriber(telemetryService, zone);
+    subscriber.subscriptionCommands.push(cmd);
+    return subscriber;
   }
 
-  public subscribe() {
-    this.telemetryService.subscribe(this);
-  }
-
-  public update() {
-    this.telemetryService.update(this);
-  }
-
-  public unsubscribe() {
-    this.telemetryService.unsubscribe(this);
-    this.complete();
+  constructor(private telemetryService: TelemetryWebsocketService, protected zone?: NgZone) {
+    super(telemetryService, zone);
   }
 
   public complete() {
@@ -643,7 +644,7 @@ export class TelemetrySubscriber {
     this.entityDataSubject.complete();
     this.alarmDataSubject.complete();
     this.entityCountSubject.complete();
-    this.reconnectSubject.complete();
+    super.complete();
   }
 
   public setTsOffset(tsOffset: number): boolean {
@@ -718,10 +719,6 @@ export class TelemetrySubscriber {
     } else {
       this.entityCountSubject.next(message);
     }
-  }
-
-  public onReconnected() {
-    this.reconnectSubject.next();
   }
 
   public attributeData$(): Observable<Array<AttributeData>> {

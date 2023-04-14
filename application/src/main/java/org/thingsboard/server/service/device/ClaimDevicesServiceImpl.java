@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -176,7 +176,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                     return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.FAILURE));
                 } else {
                     if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                        ListenableFuture<Void> future = Futures.transform(entityGroupService.findEntityGroupsForEntity(device.getTenantId(), device.getId()), entityGroupList -> {
+                        ListenableFuture<Void> future = Futures.transform(entityGroupService.findEntityGroupsForEntityAsync(device.getTenantId(), device.getId()), entityGroupList -> {
                             for (EntityGroupId entityGroupId : entityGroupList) {
                                 entityGroupService.removeEntityFromEntityGroup(device.getTenantId(), entityGroupId, device.getId());
                             }
@@ -216,7 +216,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     @Override
     public ListenableFuture<ReclaimResult> reClaimDevice(TenantId tenantId, Device device) {
         if (!device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            return Futures.transformAsync(entityGroupService.findEntityGroupsForEntity(tenantId, device.getId()), entityGroupList -> {
+            return Futures.transformAsync(entityGroupService.findEntityGroupsForEntityAsync(tenantId, device.getId()), entityGroupList -> {
                 for (EntityGroupId entityGroupId : entityGroupList) {
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, device.getId());
                 }

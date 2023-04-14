@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,7 +58,7 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
@@ -76,7 +76,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.converter.TbConverterService;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -115,7 +115,7 @@ public class ConverterController extends AutoCommitController {
 
     private final EventService eventService;
     private final JsInvokeService jsInvokeService;
-    private final Optional<MvelInvokeService> mvelInvokeService;
+    private final Optional<TbelInvokeService> tbelInvokeService;
     private final TbConverterService tbConverterService;
 
     public static final String CONVERTER_ID = "converterId";
@@ -264,7 +264,7 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testUpLinkConverter(
-            @ApiParam(value = "Script language: JS or MVEL")
+            @ApiParam(value = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
             @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
             @RequestBody JsonNode inputParams) throws ThingsboardException {
@@ -305,7 +305,7 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testDownLinkConverter(
-            @ApiParam(value = "Script language: JS or MVEL")
+            @ApiParam(value = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
             @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
             @RequestBody JsonNode inputParams) throws Exception {
@@ -352,10 +352,10 @@ public class ConverterController extends AutoCommitController {
         if (ScriptLanguage.JS.equals(scriptLang)) {
             scriptInvokeService = jsInvokeService;
         } else {
-            if (mvelInvokeService.isEmpty()) {
-                throw new IllegalArgumentException("MVEL script engine is disabled!");
+            if (tbelInvokeService.isEmpty()) {
+                throw new IllegalArgumentException("TBEL script engine is disabled!");
             }
-            scriptInvokeService = mvelInvokeService.get();
+            scriptInvokeService = tbelInvokeService.get();
         }
         return scriptInvokeService;
     }

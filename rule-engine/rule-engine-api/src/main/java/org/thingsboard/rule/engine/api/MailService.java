@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@ package org.thingsboard.rule.engine.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.thingsboard.server.common.data.ApiFeature;
-import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -62,11 +62,12 @@ public interface MailService {
     void sendTwoFaVerificationEmail(TenantId tenantId, String email, String verificationCode, int expirationTimeSeconds) throws ThingsboardException;
 
     void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail) throws ThingsboardException;
+
     void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, long timeout, JavaMailSender javaMailSender) throws ThingsboardException;
 
     void sendAccountLockoutEmail(TenantId tenantId, String lockoutEmail, String email, Integer maxFailedLoginAttempts) throws ThingsboardException;
 
-    void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException;
+    void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageRecordState msg) throws ThingsboardException;
 
     void testConnection(TenantId tenantId) throws Exception;
 

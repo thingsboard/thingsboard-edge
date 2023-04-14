@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { DeviceService } from '@core/http/device.service';
 import { PersistentRpc, RpcStatus, rpcStatusColors, rpcStatusTranslation } from '@shared/models/rpc.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
@@ -59,7 +59,7 @@ export class PersistentDetailsDialogComponent extends DialogComponent<Persistent
   @ViewChild('responseDataEditor', {static: true})
   responseDataEditorElmRef: ElementRef;
 
-  public persistentFormGroup: FormGroup;
+  public persistentFormGroup: UntypedFormGroup;
   public rpcStatusColorsMap = rpcStatusColors;
   public rpcStatus = RpcStatus;
   public allowDelete: boolean;
@@ -75,7 +75,7 @@ export class PersistentDetailsDialogComponent extends DialogComponent<Persistent
               public dialogRef: MatDialogRef<PersistentDetailsDialogComponent, boolean>,
               private dialogService: DialogService,
               private deviceService: DeviceService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.allowDelete = data.allowDelete;

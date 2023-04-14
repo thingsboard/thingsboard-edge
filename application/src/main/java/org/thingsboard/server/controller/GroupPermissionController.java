@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,6 +61,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
@@ -95,11 +96,7 @@ public class GroupPermissionController extends BaseController {
             @ApiParam(value = GROUP_PERMISSION_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId) throws ThingsboardException {
         checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
-        try {
-            return checkGroupPermissionId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkGroupPermissionId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ);
     }
 
     @ApiOperation(value = "Get Group Permission Info (getGroupPermissionInfoById)",
@@ -115,11 +112,7 @@ public class GroupPermissionController extends BaseController {
             @ApiParam(value = "Load additional information about User('true') or Entity Group('false).", required = true)
             @RequestParam boolean isUserGroup) throws ThingsboardException {
         checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
-        try {
-            return checkGroupPermissionInfoId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ, isUserGroup);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkGroupPermissionInfoId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ, isUserGroup);
     }
 
     @ApiOperation(value = "Create Or Update Group Permission (saveGroupPermission)",
@@ -167,7 +160,7 @@ public class GroupPermissionController extends BaseController {
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION), groupPermission,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -205,7 +198,7 @@ public class GroupPermissionController extends BaseController {
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
                     ActionType.DELETED, getCurrentUser(), e, strGroupPermissionId);
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -217,17 +210,13 @@ public class GroupPermissionController extends BaseController {
     @ResponseBody
     public List<GroupPermissionInfo> getUserGroupPermissions(
             @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
-            @PathVariable("userGroupId") String strUserGroupId) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
-            checkEntityGroupId(userGroupId, Operation.READ);
-            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
-            List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(tenantId, userGroupId).get();
-            return applyPermissionInfo(groupPermissions);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            @PathVariable("userGroupId") String strUserGroupId) throws ThingsboardException, ExecutionException, InterruptedException {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        EntityGroupId userGroupId = new EntityGroupId(UUID.fromString(strUserGroupId));
+        checkEntityGroupId(userGroupId, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
+        List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(tenantId, userGroupId).get();
+        return applyPermissionInfo(groupPermissions);
     }
 
     @ApiOperation(value = "Load User Group Permissions (loadUserGroupPermissionInfos)",
@@ -238,15 +227,11 @@ public class GroupPermissionController extends BaseController {
     @ResponseBody
     public List<GroupPermissionInfo> loadUserGroupPermissionInfos(
             @ApiParam(value = "JSON array of group permission objects", required = true)
-            @RequestBody List<GroupPermission> permissions) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
-            List<GroupPermissionInfo> permissionInfoList = groupPermissionService.loadUserGroupPermissionInfoListAsync(tenantId, permissions).get();
-            return applyPermissionInfo(permissionInfoList);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            @RequestBody List<GroupPermission> permissions) throws ThingsboardException, ExecutionException, InterruptedException {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
+        List<GroupPermissionInfo> permissionInfoList = groupPermissionService.loadUserGroupPermissionInfoListAsync(tenantId, permissions).get();
+        return applyPermissionInfo(permissionInfoList);
     }
 
     @ApiOperation(value = "Get group permissions by Entity Group Id (getEntityGroupPermissions)",
@@ -257,17 +242,13 @@ public class GroupPermissionController extends BaseController {
     @ResponseBody
     public List<GroupPermissionInfo> getEntityGroupPermissions(
             @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
-            @PathVariable("entityGroupId") String strEntityGroupId) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(strEntityGroupId));
-            checkEntityGroupId(entityGroupId, Operation.READ);
-            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
-            List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
-            return applyPermissionInfo(groupPermissions);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            @PathVariable("entityGroupId") String strEntityGroupId) throws ThingsboardException, ExecutionException, InterruptedException {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(strEntityGroupId));
+        checkEntityGroupId(entityGroupId, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
+        List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
+        return applyPermissionInfo(groupPermissions);
     }
 
     private List<GroupPermissionInfo> applyPermissionInfo(List<GroupPermissionInfo> groupPermissions) throws ThingsboardException {

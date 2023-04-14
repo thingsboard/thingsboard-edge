@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,9 @@
       <input matInput required formControlName="host">
       <mat-error translate *ngIf="opcIntegrationConfigForm.get('host').hasError('required')">
         integration.host-required
+      </mat-error>
+      <mat-error translate *ngIf="opcIntegrationConfigForm.get('host').hasError('privateNetwork')">
+        integration.host-private
       </mat-error>
     </mat-form-field>
     <mat-form-field fxFlex class="mat-block">
@@ -75,13 +78,15 @@
           integration.opc-ua-keystore-type-required
         </mat-error>
       </mat-form-field>
-      <tb-file-input [existingFileName]="opcIntegrationConfigForm.get('keystore.location').value"
-                     formControlName="fileContent"
-                     dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                     label="{{ 'integration.opc-ua-keystore-location' | translate }}"
-                     (fileNameChanged)="opcIntegrationConfigForm.get('keystore.location').setValue($event)"
-                     inputId="location">
-      </tb-file-input>
+      <fieldset [disabled]="disabled">
+        <tb-file-input [existingFileName]="opcIntegrationConfigForm.get('keystore.location').value"
+                       formControlName="fileContent"
+                       dropLabel="{{ 'integration.drop-file-or' | translate }}"
+                       label="{{ 'integration.opc-ua-keystore-location' | translate }}"
+                       (fileNameChanged)="opcIntegrationConfigForm.get('keystore.location').setValue($event)"
+                       inputId="location">
+        </tb-file-input>
+      </fieldset>
       <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.opc-ua-keystore-alias</mat-label>

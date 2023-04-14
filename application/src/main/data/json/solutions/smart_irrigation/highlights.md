@@ -1,22 +1,24 @@
-Smart Retail template represent generic smart supermarket solution. 
-As a solution provider, you may provision multiple Customers 
-and assign pool of IoT devices to each customer.
+The Smart Irrigation template represents a generic field irrigation solution. 
+You may provision fields by selecting the crop type and moisture thresholds.
+You may also define the field location using a rectangle or a complex polygon on the map.
 
-Each Customer may provision their supermarket assets including custom floor plans.
-Either you our your customer may physically install the devices and logically place them on the floor plan.
+Each Field may contain multiple moisture sensors. 
+The soil moisture thresholds are applied to each sensor reading. 
+Use receives an alarm when the threshold is violated or the sensor battery is low.
+The sensor alarms are propagated to the field level.
 
-Customer users may configure specific thresholds per each device. 
-All the logic to raise the alarms is already pre-configured in the correspondign device profiles.  
+The sensor readings are also aggregated to the average soil moisture of the field. 
+Users may observe the history of the aggregated value or each particular sensor reading separately.
 
-With this template you get interactive dashboards that allow you and your customers to 
-browse current and historical state of their supermarkets.  
+Users may configure the irrigation schedule and define desired water consumption or irrigation duration for each scheduled task.
+The history of the irrigation tasks is available in the field details. 
 
 Press the "install" button, and you will have a ready-to-use generic application that covers all common requirements.
 
 #### Solution structure
 
-* "Smart Supermarket Administration" dashboard for tenant administrators to provision the customers, supermarkets and devices;
-  Same dashboard is used by supermarket managers or your field engineers to place the devices on the floor plan;
-* "Smart Supermarket" dashboard for supermarket managers to browse state of the supermarkets they are responsible for;
-* Multiple device profiles with pre-configured alarm rules: "Smart Shelf", "Chiller", "Freezer", "Smart Bin" and other devices;
-* Each device type generates specific alarm based on configurable thresholds.
+* "Irrigation Management" dashboard for tenant administrators to provision the fields, sensors, and irrigation scheduling;
+* Multiple device and asset profiles with pre-configured alarm rules: "SI Water Meter", "SI Smart Valve", "SI Soil Moisture Sensor", "SI Field";
+* Rule Chains to control the irrigation logic and process data from devices and assets;
+* Each device type generates a specific alarm based on configurable thresholds;
+* Edge instance - optionally, add edge computing to your solution.

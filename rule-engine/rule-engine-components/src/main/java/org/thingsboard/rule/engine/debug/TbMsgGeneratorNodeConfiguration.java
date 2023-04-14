@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,18 +51,19 @@ public class TbMsgGeneratorNodeConfiguration implements NodeConfiguration<TbMsgG
     private EntityType originatorType;
     private ScriptLanguage scriptLang;
     private String jsScript;
-    private String mvelScript;
+    private String tbelScript;
     private EntityId groupOwnerId;
     private EntityType groupType;
+    private String queueName;
 
     @Override
     public TbMsgGeneratorNodeConfiguration defaultConfiguration() {
         TbMsgGeneratorNodeConfiguration configuration = new TbMsgGeneratorNodeConfiguration();
         configuration.setMsgCount(UNLIMITED_MSG_COUNT);
         configuration.setPeriodInSeconds(1);
-        configuration.setScriptLang(ScriptLanguage.MVEL);
+        configuration.setScriptLang(ScriptLanguage.TBEL);
         configuration.setJsScript(DEFAULT_SCRIPT);
-        configuration.setMvelScript(DEFAULT_SCRIPT);
+        configuration.setTbelScript(DEFAULT_SCRIPT);
         return configuration;
     }
 }

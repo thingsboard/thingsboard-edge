@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -32,10 +32,10 @@
 -->
 <div class="tb-login-content mat-app-background tb-dark" [ngClass]="{'dark-foreground': wl.loginDarkForeground$ | async}" fxFlex fxLayoutAlign="center center"
   [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
-  <mat-card style="max-height: 100%; overflow-y: auto;">
+  <mat-card appearance="raised" style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
       <form class="tb-login-form" [formGroup]="loginFormGroup" (ngSubmit)="login()">
-        <fieldset [disabled]="isLoading$ | async" fxLayout="column">
+        <fieldset fxLayout="column">
           <div fxLayout="column">
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
               <img [src]="wl.loginLogoSafeUrl$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
@@ -60,7 +60,7 @@
                   <div class="line"><mat-divider></mat-divider></div>
                 </div>
               </div>
-              <mat-form-field>
+              <mat-form-field class="tb-appearance-transparent">
                 <mat-label translate>login.username</mat-label>
                 <input id="username-input" matInput type="email" autofocus formControlName="username" email required/>
                 <mat-icon class="material-icons" matPrefix>email</mat-icon>
@@ -68,7 +68,7 @@
                   {{ 'user.invalid-email-format' | translate }}
                 </mat-error>
               </mat-form-field>
-              <mat-form-field>
+              <mat-form-field class="tb-appearance-transparent">
                 <mat-label translate>common.password</mat-label>
                 <input id="password-input" matInput type="password" formControlName="password"/>
                 <tb-toggle-password matSuffix></tb-toggle-password>

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -50,6 +50,7 @@ import {
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
@@ -68,7 +69,7 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class OpcUaIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  opcIntegrationConfigForm: FormGroup;
+  opcIntegrationConfigForm: UntypedFormGroup;
 
   identityTypes = Object.values(IdentityType) as IdentityType[];
   IdentityType = IdentityType;
@@ -78,7 +79,7 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
 
     this.opcIntegrationConfigForm = this.fb.group({
@@ -177,5 +178,14 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
     return this.opcIntegrationConfigForm.valid ? null : {
       opcUaIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.opcIntegrationConfigForm.get('host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.opcIntegrationConfigForm.get('host').addValidators(privateNetworkAddressValidator);
+    }
+    this.opcIntegrationConfigForm.get('host').updateValueAndValidity({emitEvent: false});
   }
 }

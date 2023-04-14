@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -275,6 +275,9 @@ import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
 import {
+  DocLinksWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/home-page/doc-links-widget-settings.component';
+import {
   BlobEntitiesWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/files/blob-entities-widget-settings.component';
 import {
@@ -382,6 +385,7 @@ import {
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
+    DocLinksWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -488,6 +492,7 @@ import {
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
+    DocLinksWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -558,6 +563,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
   'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
+  'tb-doc-links-widget-settings': DocLinksWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -83,6 +83,7 @@ message ConnectRequestMsg {
   string edgeRoutingKey = 1;
   string edgeSecret = 2;
   EdgeVersion edgeVersion = 3;
+  optional int32 maxInboundMessageSize = 4;
 }
 
 enum ConnectResponseCode {
@@ -95,6 +96,7 @@ message ConnectResponseMsg {
   ConnectResponseCode responseCode = 1;
   string errorMsg = 2;
   EdgeConfiguration configuration = 3;
+  optional int32 maxInboundMessageSize = 4;
 }
 
 message SyncRequestMsg {
@@ -128,7 +130,7 @@ enum UpdateMsgType {
   ENTITY_DELETED_RPC_MESSAGE = 2;
   ALARM_ACK_RPC_MESSAGE = 3;
   ALARM_CLEAR_RPC_MESSAGE = 4;
-  ENTITY_MERGE_RPC_MESSAGE = 5;
+  ENTITY_MERGE_RPC_MESSAGE = 5; // deprecated
 }
 
 message EntityDataProto {
@@ -217,12 +219,14 @@ message DeviceUpdateMsg {
   string type = 9;
   optional string label = 10;
   optional string additionalInfo = 11;
-  optional string conflictName = 12;
+  optional string conflictName = 12; // deprecated
   optional int64 entityGroupIdMSB = 13;
   optional int64 entityGroupIdLSB = 14;
   optional int64 firmwareIdMSB = 15;
   optional int64 firmwareIdLSB = 16;
   optional bytes deviceDataBytes = 17;
+  optional int64 softwareIdMSB = 18;
+  optional int64 softwareIdLSB = 19;
 }
 
 message DeviceProfileUpdateMsg {
@@ -243,6 +247,10 @@ message DeviceProfileUpdateMsg {
   optional bytes image = 15;
   optional int64 firmwareIdMSB = 16;
   optional int64 firmwareIdLSB = 17;
+  optional int64 softwareIdMSB = 18;
+  optional int64 softwareIdLSB = 19;
+  optional int64 defaultDashboardIdMSB = 20;
+  optional int64 defaultDashboardIdLSB = 21;
 }
 
 message AssetProfileUpdateMsg {
@@ -462,6 +470,11 @@ message DeviceRpcCallMsg {
   bool oneway = 7;
   RpcRequestMsg requestMsg = 8;
   RpcResponseMsg responseMsg = 9;
+  optional bool persisted = 10;
+  optional int32 retries = 11;
+  optional string additionalInfo = 12;
+  optional string serviceId = 13;
+  optional string sessionId = 14;
 }
 
 message RpcRequestMsg {
@@ -490,6 +503,10 @@ message SchedulerEventUpdateMsg {
   string type = 7;
   string schedule = 8;
   string configuration = 9;
+  optional string originatorType = 10;
+  optional int64 originatorIdMSB = 11;
+  optional int64 originatorIdLSB = 12;
+  optional string additionalInfo = 13;
 }
 
 message EntityGroupUpdateMsg {

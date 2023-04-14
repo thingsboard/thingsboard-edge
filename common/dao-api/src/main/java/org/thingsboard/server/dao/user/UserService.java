@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,45 +31,51 @@
 package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface UserService {
-	
+public interface UserService extends EntityDaoService {
+
 	User findUserById(TenantId tenantId, UserId userId);
+
+    UserInfo findUserInfoById(TenantId tenantId, UserId userId);
 
 	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
 
     ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds);
 
-	User findUserByEmail(TenantId tenantId, String email);
+    User findUserByEmail(TenantId tenantId, String email);
 
     User findUserByTenantIdAndEmail(TenantId tenantId, String email);
+
+    User changeOwner(User user, EntityId targetOwnerId);
 
 	User saveUser(User user);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
-	
+
 	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
 	UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
-	
+
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
-	
+
 	UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
     UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId);
@@ -82,17 +88,31 @@ public interface UserService {
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
+    PageData<User> findSysAdmins(PageLink pageLink);
+
+    PageData<User> findAllTenantAdmins(PageLink pageLink);
+
+    PageData<User> findTenantAdminsByTenantsIds(List<TenantId> tenantsIds, PageLink pageLink);
+
+    PageData<User> findTenantAdminsByTenantProfilesIds(List<TenantProfileId> tenantProfilesIds, PageLink pageLink);
+
+    PageData<User> findAllUsers(PageLink pageLink);
+
 	void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 
     PageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
+    PageData<User> findUsersByCustomerIds(TenantId tenantId, List<CustomerId> customerIds, PageLink pageLink);
+
     void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
     PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
 
     PageData<User> findUsersByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
+
+    PageData<User> findUsersByTenantIdAndRoles(TenantId tenantId, List<RoleId> roles, PageLink pageLink);
 
 	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
@@ -101,5 +121,13 @@ public interface UserService {
     int increaseFailedLoginAttempts(TenantId tenantId, UserId userId);
 
     void setLastLoginTs(TenantId tenantId, UserId userId);
+
+    PageData<UserInfo> findUserInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<UserInfo> findTenantUserInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    PageData<UserInfo> findUserInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<UserInfo> findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
 }

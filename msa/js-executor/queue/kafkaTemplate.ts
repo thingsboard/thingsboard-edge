@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -57,6 +57,7 @@ export class KafkaTemplate implements IQueue {
     private maxBatchSize = Number(config.get('kafka.batch_size'));
     private linger = Number(config.get('kafka.linger_ms'));
     private requestTimeout = Number(config.get('kafka.requestTimeout'));
+    private connectionTimeout = Number(config.get('kafka.connectionTimeout'));
     private compressionType = (config.get('kafka.compression') === "gzip") ? CompressionTypes.GZIP : CompressionTypes.None;
     private partitionsConsumedConcurrently = Number(config.get('kafka.partitions_consumed_concurrently'));
 
@@ -94,6 +95,8 @@ export class KafkaTemplate implements IQueue {
         }
 
         kafkaConfig['requestTimeout'] = this.requestTimeout;
+
+        kafkaConfig['connectionTimeout'] = this.connectionTimeout;
 
         if (useConfluent) {
             kafkaConfig['sasl'] = {

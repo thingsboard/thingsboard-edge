@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -42,7 +42,8 @@ import {
 } from '@angular/forms';
 import {
   mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator
+  mqttClientIdPatternValidator,
+  privateNetworkAddressValidator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -66,13 +67,13 @@ import { AwsIotIntegration, IntegrationCredentialType, MqttQos } from '@shared/m
 })
 export class AwsIotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  awsIotIntegrationConfigForm: FormGroup;
+  awsIotIntegrationConfigForm: UntypedFormGroup;
 
   IntegrationCredentialType = IntegrationCredentialType;
 
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: UntypedFormBuilder) {
     super();
     this.awsIotIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
@@ -122,7 +123,16 @@ export class AwsIotIntegrationFormComponent extends IntegrationForm implements C
 
   validate(): ValidationErrors | null {
     return this.awsIotIntegrationConfigForm.valid ? null : {
-      mqttIntegrationConfigForm: {valid: false}
+      aswIotIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.awsIotIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.awsIotIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+    }
+    this.awsIotIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
   }
 }

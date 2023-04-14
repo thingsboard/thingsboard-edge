@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,8 +51,10 @@ public class RoleProtoConstructor {
                 .setTenantIdLSB(role.getTenantId().getId().getLeastSignificantBits())
                 .setName(role.getName())
                 .setType(role.getType().name())
-                .setAdditionalInfo(JacksonUtil.toString(role.getAdditionalInfo()))
                 .setPermissions(JacksonUtil.toString(role.getPermissions()));
+        if (role.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(role.getAdditionalInfo()));
+        }
         if (role.getCustomerId() != null) {
             builder.setCustomerIdMSB(role.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(role.getCustomerId().getId().getLeastSignificantBits());

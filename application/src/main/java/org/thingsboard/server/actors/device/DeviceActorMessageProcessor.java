@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -129,7 +129,7 @@ import java.util.stream.Collectors;
  * @author Andrew Shvayka
  */
 @Slf4j
-class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
+public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
 
     static final String SESSION_TIMEOUT_MESSAGE = "session timeout!";
     final TenantId tenantId;
@@ -836,6 +836,9 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         body.put("expirationTime", msg.getExpirationTime());
         body.put("method", msg.getBody().getMethod());
         body.put("params", msg.getBody().getParams());
+        body.put("persisted", msg.isPersisted());
+        body.put("retries", msg.getRetries());
+        body.put("additionalInfo", msg.getAdditionalInfo());
 
         EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.DEVICE, EdgeEventActionType.RPC_CALL, deviceId, body);
 

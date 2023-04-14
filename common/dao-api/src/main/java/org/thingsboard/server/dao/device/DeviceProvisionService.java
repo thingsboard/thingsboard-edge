@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.device;
 
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.dao.device.provision.ProvisionFailedException;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.device.provision.ProvisionResponse;
@@ -37,4 +38,6 @@ import org.thingsboard.server.dao.device.provision.ProvisionResponse;
 public interface DeviceProvisionService {
 
     ProvisionResponse provisionDevice(ProvisionRequest provisionRequest) throws ProvisionFailedException;
+
+    ProvisionResponse provisionDeviceViaX509Chain(DeviceProfile deviceProfile, ProvisionRequest provisionRequest) throws ProvisionFailedException;
 }

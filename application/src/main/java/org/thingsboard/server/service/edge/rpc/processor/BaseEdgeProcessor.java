@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,19 +31,26 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -77,6 +84,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -98,9 +106,9 @@ import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ConverterProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
@@ -125,6 +133,7 @@ import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -132,9 +141,13 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class BaseEdgeProcessor {
+
+    protected static final Lock deviceCreationLock = new ReentrantLock();
 
     protected static final int DEFAULT_PAGE_SIZE = 100;
 
@@ -338,6 +351,9 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
 
+    @Autowired
+    protected OwnersCacheService ownersCacheService;
+
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
                                EdgeId edgeId,
                                EdgeEventType type,
@@ -404,6 +420,12 @@ public abstract class BaseEdgeProcessor {
             }
         } while (pageData != null && pageData.hasNext());
         return futures;
+    }
+
+    protected ListenableFuture<Void> handleUnsupportedMsgType(UpdateMsgType msgType) {
+        String errMsg = String.format("Unsupported msg type %s", msgType);
+        log.error(errMsg);
+        return Futures.immediateFailedFuture(new RuntimeException(errMsg));
     }
 
     protected UpdateMsgType getUpdateMsgType(EdgeEventActionType actionType) {
@@ -583,6 +605,123 @@ public abstract class BaseEdgeProcessor {
                 log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
                         entityTypeStr, entityIdMSB, entityIdLSB);
                 return null;
+        }
+    }
+
+    protected UUID safeGetUUID(long mSB, long lSB) {
+        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
+    }
+
+    protected CustomerId safeGetCustomerId(long mSB, long lSB) {
+        CustomerId customerId = null;
+        UUID customerUUID = safeGetUUID(mSB, lSB);
+        if (customerUUID != null) {
+            customerId = new CustomerId(customerUUID);
+        }
+        return customerId;
+    }
+
+    protected boolean isEntityExists(TenantId tenantId, EntityId entityId) {
+        switch (entityId.getEntityType()) {
+            case TENANT:
+                return tenantService.findTenantById(tenantId) != null;
+            case DEVICE:
+                return deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
+            case ASSET:
+                return assetService.findAssetById(tenantId, new AssetId(entityId.getId())) != null;
+            case ENTITY_VIEW:
+                return entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
+            case CUSTOMER:
+                return customerService.findCustomerById(tenantId, new CustomerId(entityId.getId())) != null;
+            case USER:
+                return userService.findUserById(tenantId, new UserId(entityId.getId())) != null;
+            case DASHBOARD:
+                return dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
+            case EDGE:
+                return edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId())) != null;
+            case ENTITY_GROUP:
+                return entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())) != null;
+            default:
+                return false;
+        }
+    }
+
+    protected void changeOwnerIfRequired(TenantId tenantId, CustomerId customerId, EntityId entityId) throws ThingsboardException {
+        EntityId newOwnerId = getOwnerId(tenantId, customerId);
+        EntityId currentOwnerId;
+        switch (entityId.getEntityType()) {
+            case DEVICE:
+                Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                currentOwnerId = device.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeDeviceOwner(tenantId, newOwnerId, device);
+                }
+                break;
+            case ASSET:
+                Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+                currentOwnerId = asset.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeAssetOwner(tenantId, newOwnerId, asset);
+                }
+                break;
+            case ENTITY_VIEW:
+                EntityView entityView = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                currentOwnerId = entityView.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeEntityViewOwner(tenantId, newOwnerId, entityView);
+                }
+                break;
+            case USER:
+                User user = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                currentOwnerId = user.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeUserOwner(tenantId, newOwnerId, user);
+                }
+                break;
+            case DASHBOARD:
+                Dashboard dashboard = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+                currentOwnerId = dashboard.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeDashboardOwner(tenantId, newOwnerId, dashboard);
+                }
+                break;
+            case CUSTOMER:
+                Customer customer = customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
+                currentOwnerId = customer.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeCustomerOwner(tenantId, newOwnerId, customer);
+                }
+                break;
+            case EDGE:
+                Edge edge = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                currentOwnerId = edge.getOwnerId();
+                if (!newOwnerId.equals(currentOwnerId)) {
+                    ownersCacheService.changeEdgeOwner(tenantId, newOwnerId, edge);
+                }
+                break;
+        }
+    }
+
+    private EntityId getOwnerId(TenantId tenantId, CustomerId customerId) {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+    }
+
+    protected void safeAddEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        if (entityGroupId != null && !ModelConstants.NULL_UUID.equals(entityGroupId.getId())) {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+            Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
+                @Override
+                public void onSuccess(EntityGroup entityGroup) {
+                    if (entityGroup != null) {
+                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
+                }
+            }, dbCallbackExecutorService);
         }
     }
 }

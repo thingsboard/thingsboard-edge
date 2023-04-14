@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -121,16 +121,20 @@ public final class EdgeGrpcSession implements Closeable {
 
     private EdgeVersion edgeVersion;
 
+    private int maxInboundMessageSize;
+    private int clientMaxInboundMessageSize;
+
     private ScheduledExecutorService sendDownlinkExecutorService;
 
     EdgeGrpcSession(EdgeContextComponent ctx, StreamObserver<ResponseMsg> outputStream, BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener,
-                    Consumer<EdgeId> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService) {
+                    Consumer<EdgeId> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService, int maxInboundMessageSize) {
         this.sessionId = UUID.randomUUID();
         this.ctx = ctx;
         this.outputStream = outputStream;
         this.sessionOpenListener = sessionOpenListener;
         this.sessionCloseListener = sessionCloseListener;
         this.sendDownlinkExecutorService = sendDownlinkExecutorService;
+        this.maxInboundMessageSize = maxInboundMessageSize;
         initInputStream();
     }
 
@@ -146,6 +150,10 @@ public final class EdgeGrpcSession implements Closeable {
                     if (ConnectResponseCode.ACCEPTED != responseMsg.getResponseCode()) {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     } else {
+                        if (requestMsg.getConnectRequestMsg().hasMaxInboundMessageSize()) {
+                            log.debug("[{}] Client max inbound message size: {}", sessionId, requestMsg.getConnectRequestMsg().getMaxInboundMessageSize());
+                            clientMaxInboundMessageSize = requestMsg.getConnectRequestMsg().getMaxInboundMessageSize();
+                        }
                         connected = true;
                     }
                 }
@@ -203,17 +211,16 @@ public final class EdgeGrpcSession implements Closeable {
     public void startSyncProcess(TenantId tenantId, EdgeId edgeId, boolean fullSync) {
         log.trace("[{}][{}] Staring edge sync process", tenantId, edgeId);
         syncCompleted = false;
-        if (sessionState.getSendDownlinkMsgsFuture() != null && sessionState.getSendDownlinkMsgsFuture().isDone()) {
-            String errorMsg = String.format("[%s][%s] Sync process started. General processing interrupted!", tenantId, edgeId);
-            sessionState.getSendDownlinkMsgsFuture().setException(new RuntimeException(errorMsg));
-        }
+        interruptGeneralProcessingOnSync(tenantId, edgeId);
         doSync(new EdgeSyncCursor(ctx, edge, fullSync));
     }
 
     private void doSync(EdgeSyncCursor cursor) {
         if (cursor.hasNext()) {
-            log.info("[{}][{}] starting sync process, cursor current idx = {}", edge.getTenantId(), edge.getId(), cursor.getCurrentIdx());
-            ListenableFuture<UUID> uuidListenableFuture = startProcessingEdgeEvents(cursor.getNext());
+            EdgeEventFetcher next = cursor.getNext();
+            log.info("[{}][{}] starting sync process, cursor current idx = {}, class = {}",
+                    edge.getTenantId(), edge.getId(), cursor.getCurrentIdx(), next.getClass().getSimpleName());
+            ListenableFuture<UUID> uuidListenableFuture = startProcessingEdgeEvents(next);
             Futures.addCallback(uuidListenableFuture, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable UUID result) {
@@ -245,18 +252,6 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
-//    private void syncEdgeOwner(TenantId tenantId, Edge edge) {
-//        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-//            EdgeEvent customerEdgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-//                    EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null);
-//            DownlinkMsg customerDownlinkMsg = convertToDownlinkMsg(customerEdgeEvent);
-//            sendDownlinkMsgsPack(Collections.singletonList(customerDownlinkMsg));
-//
-//            startProcessingEdgeEvents(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
-//        }
-//    }
-
-
     private void onUplinkMsg(UplinkMsg uplinkMsg) {
         ListenableFuture<List<Void>> future = processUplinkMsg(uplinkMsg);
         Futures.addCallback(future, new FutureCallback<>() {
@@ -272,7 +267,7 @@ public final class EdgeGrpcSession implements Closeable {
 
             @Override
             public void onFailure(Throwable t) {
-                String errorMsg = t.getMessage() != null ? t.getMessage() : "";
+                String errorMsg = EdgeUtils.createErrorMsgFromRootCauseAndStackTrace(t);
                 UplinkResponseMsg uplinkResponseMsg = UplinkResponseMsg.newBuilder()
                         .setUplinkMsgId(uplinkMsg.getUplinkMsgId())
                         .setSuccess(false).setErrorMsg(errorMsg).build();
@@ -293,10 +288,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (sessionState.getPendingMsgsMap().isEmpty()) {
                 log.debug("[{}] Pending msgs map is empty. Stopping current iteration", edge.getRoutingKey());
-                if (sessionState.getScheduledSendDownlinkTask() != null) {
-                    sessionState.getScheduledSendDownlinkTask().cancel(false);
-                }
-                sessionState.getSendDownlinkMsgsFuture().set(null);
+                stopCurrentSendDownlinkMsgsTask(null);
             }
         } catch (Exception e) {
             log.error("[{}] Can't process downlink response message [{}] {}", this.sessionId, msg, e);
@@ -419,15 +411,14 @@ public final class EdgeGrpcSession implements Closeable {
     }
 
     private ListenableFuture<Void> sendDownlinkMsgsPack(List<DownlinkMsg> downlinkMsgsPack) {
-        if (sessionState.getSendDownlinkMsgsFuture() != null && !sessionState.getSendDownlinkMsgsFuture().isDone()) {
-            String errorMsg = "[" + this.sessionId + "] Previous send downlink future was not properly completed, stopping it now";
-            log.error(errorMsg);
-            sessionState.getSendDownlinkMsgsFuture().setException(new RuntimeException(errorMsg));
-        }
+        interruptPreviousSendDownlinkMsgsTask();
+
         sessionState.setSendDownlinkMsgsFuture(SettableFuture.create());
         sessionState.getPendingMsgsMap().clear();
+
         downlinkMsgsPack.forEach(msg -> sessionState.getPendingMsgsMap().put(msg.getDownlinkMsgId(), msg));
         scheduleDownlinkMsgsPackSend(1);
+
         return sessionState.getSendDownlinkMsgsFuture();
     }
 
@@ -441,22 +432,31 @@ public final class EdgeGrpcSession implements Closeable {
                     }
                     log.trace("[{}] [{}] downlink msg(s) are going to be send.", this.sessionId, copy.size());
                     for (DownlinkMsg downlinkMsg : copy) {
-                        sendDownlinkMsg(ResponseMsg.newBuilder()
-                                .setDownlinkMsg(downlinkMsg)
-                                .build());
+                        if (this.clientMaxInboundMessageSize != 0 && downlinkMsg.getSerializedSize() > this.clientMaxInboundMessageSize) {
+                            log.error("[{}][{}][{}] Downlink msg size [{}] exceeds client max inbound message size [{}]. Skipping this message. " +
+                                            "Please increase value of CLOUD_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the edge and restart it." +
+                                            "Message {}", edge.getTenantId(), edge.getId(), this.sessionId, downlinkMsg.getSerializedSize(),
+                                    this.clientMaxInboundMessageSize, downlinkMsg);
+                            sessionState.getPendingMsgsMap().remove(downlinkMsg.getDownlinkMsgId());
+                        } else {
+                            sendDownlinkMsg(ResponseMsg.newBuilder()
+                                    .setDownlinkMsg(downlinkMsg)
+                                    .build());
+                        }
                     }
                     if (attempt < MAX_DOWNLINK_ATTEMPTS) {
                         scheduleDownlinkMsgsPackSend(attempt + 1);
                     } else {
                         log.warn("[{}] Failed to deliver the batch after {} attempts. Next messages are going to be discarded {}",
                                 this.sessionId, MAX_DOWNLINK_ATTEMPTS, copy);
-                        sessionState.getSendDownlinkMsgsFuture().set(null);
+                        stopCurrentSendDownlinkMsgsTask(null);
                     }
                 } else {
-                    sessionState.getSendDownlinkMsgsFuture().set(null);
+                    stopCurrentSendDownlinkMsgsTask(null);
                 }
             } catch (Exception e) {
-                sessionState.getSendDownlinkMsgsFuture().setException(e);
+                log.warn("[{}] Failed to send downlink msgs. Error msg {}", this.sessionId, e.getMessage(), e);
+                stopCurrentSendDownlinkMsgsTask(e);
             }
         };
 
@@ -488,7 +488,6 @@ public final class EdgeGrpcSession implements Closeable {
                 case RELATION_ADD_OR_UPDATE:
                 case RELATION_DELETED:
                 case CREDENTIALS_REQUEST:
-                case ENTITY_MERGE_REQUEST:
                 case RPC_CALL:
                 case ADDED_TO_ENTITY_GROUP:
                 case REMOVED_FROM_ENTITY_GROUP:
@@ -560,7 +559,7 @@ public final class EdgeGrpcSession implements Closeable {
             case CUSTOMER:
                 return ctx.getCustomerProcessor().convertCustomerEventToDownlink(edgeEvent);
             case RULE_CHAIN:
-                return ctx.getRuleChainProcessor().convertRuleChainEventToDownlink(edge, edgeEvent);
+                return ctx.getRuleChainProcessor().convertRuleChainEventToDownlink(edgeEvent);
             case RULE_CHAIN_METADATA:
                 return ctx.getRuleChainProcessor().convertRuleChainMetadataEventToDownlink(edgeEvent, this.edgeVersion);
             case ALARM:
@@ -608,27 +607,27 @@ public final class EdgeGrpcSession implements Closeable {
         try {
             if (uplinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : uplinkMsg.getEntityDataList()) {
-                    result.addAll(ctx.getTelemetryProcessor().processTelemetryFromEdge(edge.getTenantId(), entityData));
+                    result.addAll(ctx.getTelemetryProcessor().processTelemetryMsg(edge.getTenantId(), entityData));
                 }
             }
             if (uplinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : uplinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(ctx.getDeviceProcessor().processDeviceFromEdge(edge.getTenantId(), edge, deviceUpdateMsg));
+                    result.add(ctx.getDeviceProcessor().processDeviceMsgFromEdge(edge.getTenantId(), edge, deviceUpdateMsg));
                 }
             }
             if (uplinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : uplinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(ctx.getDeviceProcessor().processDeviceCredentialsFromEdge(edge.getTenantId(), deviceCredentialsUpdateMsg));
+                    result.add(ctx.getDeviceProcessor().processDeviceCredentialsMsg(edge.getTenantId(), deviceCredentialsUpdateMsg));
                 }
             }
             if (uplinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : uplinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(ctx.getAlarmProcessor().processAlarmFromEdge(edge.getTenantId(), alarmUpdateMsg));
+                    result.add(ctx.getAlarmProcessor().processAlarmMsg(edge.getTenantId(), alarmUpdateMsg));
                 }
             }
             if (uplinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : uplinkMsg.getRelationUpdateMsgList()) {
-                    result.add(ctx.getRelationProcessor().processRelationFromEdge(edge.getTenantId(), relationUpdateMsg));
+                    result.add(ctx.getRelationProcessor().processRelationMsg(edge.getTenantId(), relationUpdateMsg));
                 }
             }
             if (uplinkMsg.getRuleChainMetadataRequestMsgCount() > 0) {
@@ -658,7 +657,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (uplinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcCallMsg : uplinkMsg.getDeviceRpcCallMsgList()) {
-                    result.add(ctx.getDeviceProcessor().processDeviceRpcCallResponseFromEdge(edge.getTenantId(), deviceRpcCallMsg));
+                    result.add(ctx.getDeviceProcessor().processDeviceRpcCallFromEdge(edge.getTenantId(), edge, deviceRpcCallMsg));
                 }
             }
             if (uplinkMsg.getWidgetBundleTypesRequestMsgCount() > 0) {
@@ -700,7 +699,9 @@ public final class EdgeGrpcSession implements Closeable {
                     return ConnectResponseMsg.newBuilder()
                             .setResponseCode(ConnectResponseCode.ACCEPTED)
                             .setErrorMsg("")
-                            .setConfiguration(ctx.getEdgeMsgConstructor().constructEdgeConfiguration(edge)).build();
+                            .setConfiguration(ctx.getEdgeMsgConstructor().constructEdgeConfiguration(edge))
+                            .setMaxInboundMessageSize(maxInboundMessageSize)
+                            .build();
                 }
                 return ConnectResponseMsg.newBuilder()
                         .setResponseCode(ConnectResponseCode.BAD_CREDENTIALS)
@@ -730,4 +731,29 @@ public final class EdgeGrpcSession implements Closeable {
             log.debug("[{}] Failed to close output stream: {}", sessionId, e.getMessage());
         }
     }
+
+    private void interruptPreviousSendDownlinkMsgsTask() {
+        String msg = String.format("[%s] Previous send downlink future was not properly completed, stopping it now!", this.sessionId);
+        stopCurrentSendDownlinkMsgsTask(new RuntimeException(msg));
+    }
+
+    private void interruptGeneralProcessingOnSync(TenantId tenantId, EdgeId edgeId) {
+        String msg = String.format("[%s][%s] Sync process started. General processing interrupted!", tenantId, edgeId);
+        stopCurrentSendDownlinkMsgsTask(new RuntimeException(msg));
+    }
+
+    public void stopCurrentSendDownlinkMsgsTask(Exception e) {
+        if (sessionState.getSendDownlinkMsgsFuture() != null && !sessionState.getSendDownlinkMsgsFuture().isDone()) {
+            if (e != null) {
+                log.debug(e.getMessage());
+                sessionState.getSendDownlinkMsgsFuture().setException(e);
+            } else {
+                sessionState.getSendDownlinkMsgsFuture().set(null);
+            }
+        }
+        if (sessionState.getScheduledSendDownlinkTask() != null) {
+            sessionState.getScheduledSendDownlinkTask().cancel(true);
+        }
+    }
+
 }

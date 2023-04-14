@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,8 +36,18 @@ import { IAliasController, IStateController } from '@core/api/widget-api.models'
 import { ILayoutController } from './layout/layout.models';
 import { DashboardContextMenuItem, WidgetContextMenuItem } from '@home/models/dashboard-component.models';
 import { Observable } from 'rxjs';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
 export declare type DashboardPageScope = 'tenant' | 'customer';
+
+export interface DashboardPageInitData {
+  dashboard: Dashboard;
+  currentDashboardId?: string;
+  widgetEditMode?: boolean;
+  singlePageMode?: boolean;
+  entityGroup?: EntityGroupInfo;
+  customerId?: string;
+}
 
 export interface DashboardContext {
   instanceId: string;

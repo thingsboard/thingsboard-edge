@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,6 @@ import {
   EntityDataCmd,
   IndexedSubscriptionData,
   SubscriptionData,
-  TelemetryService,
   TelemetrySubscriber
 } from '@shared/models/telemetry/telemetry.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -68,6 +67,7 @@ import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { EntityId } from '@shared/models/id/entity-id';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 import Timeout = NodeJS.Timeout;
 
 declare type DataKeyFunction = (time: number, prevValue: any) => any;
@@ -111,7 +111,7 @@ export interface EntityDataSubscriptionOptions {
 export class EntityDataSubscription {
 
   constructor(private listener: EntityDataListener,
-              private telemetryService: TelemetryService,
+              private telemetryService: TelemetryWebsocketService,
               private utils: UtilsService) {
     this.initializeSubscription();
   }
@@ -135,6 +135,7 @@ export class EntityDataSubscription {
 
   private entityDataResolveSubject: Subject<EntityDataLoadResult>;
   private pageData: PageData<EntityData>;
+  private prematureUpdates: Array<Array<EntityData>>;
   private data: Array<Array<DataSetHolder>>;
   private subsTw: SubscriptionTimewindow;
   private latestTsOffset: number;
@@ -363,8 +364,21 @@ export class EntityDataSubscription {
         (entityDataUpdate) => {
           if (entityDataUpdate.data) {
             this.onPageData(entityDataUpdate.data);
+            if (this.prematureUpdates) {
+              for (const update of this.prematureUpdates) {
+                this.onDataUpdate(update);
+              }
+              this.prematureUpdates = null;
+            }
           } else if (entityDataUpdate.update) {
-            this.onDataUpdate(entityDataUpdate.update);
+            if (!this.pageData) {
+              if (!this.prematureUpdates) {
+                this.prematureUpdates = [];
+              }
+              this.prematureUpdates.push(entityDataUpdate.update);
+            } else {
+              this.onDataUpdate(entityDataUpdate.update);
+            }
           }
         }
       );

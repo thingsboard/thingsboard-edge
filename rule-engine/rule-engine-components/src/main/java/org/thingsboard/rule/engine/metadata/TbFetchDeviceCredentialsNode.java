@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -55,15 +56,13 @@ import java.util.concurrent.ExecutionException;
         type = ComponentType.ENRICHMENT,
         name = "fetch device credentials",
         configClazz = TbFetchDeviceCredentialsNodeConfiguration.class,
-        nodeDescription = "Fetch device credentials for message originator",
+        nodeDescription = "Enrich the message body or metadata with the device credentials",
         nodeDetails = "Adds <b>credentialsType</b> and <b>credentials</b> properties to the message metadata if the " +
                 "configuration parameter <b>fetchToMetadata</b> is set to <code>true</code>, otherwise, adds properties " +
                 "to the message data. If originator type is not <b>DEVICE</b> or rule node failed to get device credentials " +
                 "- send Message via <code>Failure</code> chain, otherwise <code>Success</code> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbEnrichmentNodeFetchDeviceCredentialsConfig",
-        icon = "functions"
-)
+        configDirective = "tbEnrichmentNodeFetchDeviceCredentialsConfig")
 public class TbFetchDeviceCredentialsNode implements TbNode {
 
     private static final String CREDENTIALS = "credentials";
@@ -93,16 +92,20 @@ public class TbFetchDeviceCredentialsNode implements TbNode {
         }
 
         TbMsg transformedMsg;
-        String credentialsType = deviceCredentials.getCredentialsType().name();
+        DeviceCredentialsType credentialsType = deviceCredentials.getCredentialsType();
         JsonNode credentialsInfo = ctx.getDeviceCredentialsService().toCredentialsInfo(deviceCredentials);
         if (fetchToMetadata) {
             TbMsgMetaData metaData = msg.getMetaData();
-            metaData.putValue(CREDENTIALS_TYPE, credentialsType);
-            metaData.putValue(CREDENTIALS, JacksonUtil.toString(credentialsInfo));
+            metaData.putValue(CREDENTIALS_TYPE, credentialsType.name());
+            if (credentialsType.equals(DeviceCredentialsType.ACCESS_TOKEN) || credentialsType.equals(DeviceCredentialsType.X509_CERTIFICATE)) {
+                metaData.putValue(CREDENTIALS, credentialsInfo.asText());
+            } else {
+                metaData.putValue(CREDENTIALS, JacksonUtil.toString(credentialsInfo));
+            }
             transformedMsg = TbMsg.transformMsg(msg, msg.getType(), originator, metaData, msg.getData());
         } else {
             ObjectNode data = (ObjectNode) JacksonUtil.toJsonNode(msg.getData());
-            data.put(CREDENTIALS_TYPE, credentialsType);
+            data.put(CREDENTIALS_TYPE, credentialsType.name());
             data.set(CREDENTIALS, credentialsInfo);
             transformedMsg = TbMsg.transformMsg(msg, msg.getType(), originator, msg.getMetaData(), JacksonUtil.toString(data));
         }

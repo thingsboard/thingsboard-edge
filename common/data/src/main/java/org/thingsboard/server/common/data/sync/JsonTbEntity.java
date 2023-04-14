@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -73,6 +73,6 @@ import java.lang.annotation.Target;
         @Type(name = "INTEGRATION", value = Integration.class),
         @Type(name = "ROLE", value = Role.class)
 })
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(value = {"tenantId", "createdTime"}, ignoreUnknown = true)
 public @interface JsonTbEntity {
 }

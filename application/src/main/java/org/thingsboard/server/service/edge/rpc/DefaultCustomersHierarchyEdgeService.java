@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Customer;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
@@ -54,8 +56,9 @@ import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -77,12 +80,16 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
     @Autowired
     private TenantService tenantService;
 
-    private ExecutorService executorService;
+    private ScheduledExecutorService scheduledExecutor;
 
     @PostConstruct
     private void init() {
-        executorService = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("edge-customers-hierarchy"));
-        executorService.execute(this::fetchCustomersHierarchy);
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("edge-customers-hierarchy"));
+    }
+
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
+    public void onApplicationEvent(ApplicationReadyEvent ignored) {
+        scheduledExecutor.schedule(this::fetchCustomersHierarchy, 1, TimeUnit.SECONDS);
     }
 
     private void fetchCustomersHierarchy() {
@@ -108,8 +115,8 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
 
     @PreDestroy
     public void shutdownExecutor() {
-        if (executorService != null) {
-            executorService.shutdownNow();
+        if (scheduledExecutor != null) {
+            scheduledExecutor.shutdownNow();
         }
     }
 

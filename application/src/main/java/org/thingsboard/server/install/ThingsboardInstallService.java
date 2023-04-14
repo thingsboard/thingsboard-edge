@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.DatabaseEntitiesUpgradeService;
 import org.thingsboard.server.service.install.DatabaseTsUpgradeService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.NoSqlKeyspaceService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
@@ -49,6 +50,9 @@ import org.thingsboard.server.service.install.migrate.EntitiesMigrateService;
 import org.thingsboard.server.service.install.migrate.TsLatestMigrateService;
 import org.thingsboard.server.service.install.update.CacheCleanupService;
 import org.thingsboard.server.service.install.update.DataUpdateService;
+import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
+
+import static org.thingsboard.server.service.install.update.DefaultDataUpdateService.getEnv;
 
 @Service
 @Profile("install")
@@ -102,6 +106,9 @@ public class ThingsboardInstallService {
 
     @Autowired(required = false)
     private TsLatestMigrateService latestMigrateService;
+
+    @Autowired
+    private InstallScripts installScripts;
 
     public void performInstall() {
         try {
@@ -252,16 +259,27 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.4.1 to 3.4.2 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.1");
                             dataUpdateService.updateData("3.4.1");
-                        case "3.4.2": // to 3.4.2PE
-                            log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.2PE ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.2");
-                            dataUpdateService.updateData("3.4.2");
+                        case "3.4.2":
+                            log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.3 ...");
+                        case "3.4.3":
+                            log.info("Upgrading ThingsBoard from version 3.4.3 to 3.4.4 ...");
+                        case "3.4.4":
+                            log.info("Upgrading ThingsBoard from version 3.4.4 to 3.5.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
+                        case "3.5.0": // to 3.5.0PE
+                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
+                            dataUpdateService.updateData("3.5.0");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
+                            if (!getEnv("SKIP_DEFAULT_NOTIFICATION_CONFIGS_CREATION", false)) {
+                                systemDataLoaderService.createDefaultNotificationConfigs();
+                            } else {
+                                log.info("Skipping default notification configs creation");
+                            }
+                            installScripts.loadSystemLwm2mResources();
                             break;
-
                         //TODO update CacheCleanupService on the next version upgrade
-
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 
@@ -296,11 +314,15 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
+                systemDataLoaderService.createRandomJwtSettings();
                 systemDataLoaderService.loadSystemWidgets();
                 systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
+                systemDataLoaderService.createDefaultNotificationConfigs();
+
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
+                installScripts.loadSystemLwm2mResources();
 
                 if (loadDemo) {
                     log.info("Loading demo data...");
@@ -319,3 +341,4 @@ public class ThingsboardInstallService {
     }
 
 }
+

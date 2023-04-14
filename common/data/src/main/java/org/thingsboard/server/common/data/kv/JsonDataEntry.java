@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,10 +30,14 @@
  */
 package org.thingsboard.server.common.data.kv;
 
+import org.thingsboard.server.common.data.validation.NoXss;
+
 import java.util.Objects;
 import java.util.Optional;
 
 public class JsonDataEntry extends BasicKvEntry {
+
+    @NoXss
     private final String value;
 
     public JsonDataEntry(String key, String value) {

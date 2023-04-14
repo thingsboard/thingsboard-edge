@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,11 +40,12 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface IntegrationService {
+public interface IntegrationService extends EntityDaoService {
 
     Integration saveIntegration(Integration integration);
 
@@ -68,11 +69,13 @@ public interface IntegrationService {
 
     PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
-    PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, PageLink pageLink);
+    PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, boolean isEdgeTemplate, PageLink pageLink);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
+
+    Long countCoreIntegrations();
 
     List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 

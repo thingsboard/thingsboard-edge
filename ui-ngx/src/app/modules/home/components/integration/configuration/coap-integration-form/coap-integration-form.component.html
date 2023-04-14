@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -64,32 +64,24 @@
       <mat-label translate>integration.coap-endpoint</mat-label>
       <input matInput formControlName="coapEndpoint">
     </mat-form-field>
-    <fieldset style="width: auto">
-      <div ngxClipboard
-           (cbOnSuccess)="onCoapEndpointCopied()"
-           [cbContent]="coapIntegrationConfigForm.get('coapEndpoint').value"
-           matTooltip="{{'integration.copy-coap-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button" color="primary">
-          <mat-icon class="tb-mat-20">content_copy</mat-icon>
-        </button>
-      </div>
-    </fieldset>
+    <button mat-icon-button ngxClipboard type="button" color="primary"
+            (cbOnSuccess)="onCoapEndpointCopied()"
+            [cbContent]="coapIntegrationConfigForm.get('coapEndpoint').value"
+            matTooltip="{{'integration.copy-coap-endpoint-url' | translate }}">
+      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+    </button>
   </div>
   <div *ngIf="dtlsMode || mixedMode" fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
     <mat-form-field class="mat-block" fxFlex>
       <mat-label translate>integration.coap-dtls-endpoint</mat-label>
       <input matInput formControlName="dtlsCoapEndpoint">
     </mat-form-field>
-    <fieldset style="width: auto">
-      <div ngxClipboard
-           (cbOnSuccess)="onDtlsCoapEndpointCopied()"
-           [cbContent]="coapIntegrationConfigForm.get('dtlsCoapEndpoint').value"
-           matTooltip="{{'integration.copy-coap-dtls-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button" color="primary">
-          <mat-icon class="tb-mat-20">content_copy</mat-icon>
-        </button>
-      </div>
-    </fieldset>
+    <button mat-icon-button ngxClipboard type="button" color="primary"
+            (cbOnSuccess)="onDtlsCoapEndpointCopied()"
+            [cbContent]="coapIntegrationConfigForm.get('dtlsCoapEndpoint').value"
+            matTooltip="{{'integration.copy-coap-dtls-endpoint-url' | translate }}">
+      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+    </button>
   </div>
 
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -74,27 +74,6 @@ public class TbChangeOriginatorNodeTest {
     private TbContext ctx;
     @Mock
     private AssetService assetService;
-
-    private ListeningExecutor dbExecutor;
-
-    @Before
-    public void before() {
-        dbExecutor = new ListeningExecutor() {
-            @Override
-            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
-                try {
-                    return Futures.immediateFuture(task.call());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public void execute(Runnable command) {
-                command.run();
-            }
-        };
-    }
 
     @Test
     public void originatorCanBeChangedToCustomerId() throws TbNodeException {
@@ -176,8 +155,6 @@ public class TbChangeOriginatorNodeTest {
         config.setOriginatorSource(TbChangeOriginatorNode.CUSTOMER_SOURCE);
         ObjectMapper mapper = new ObjectMapper();
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
-
-        when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
 
         node = new TbChangeOriginatorNode();
         node.init(null, nodeConfiguration);

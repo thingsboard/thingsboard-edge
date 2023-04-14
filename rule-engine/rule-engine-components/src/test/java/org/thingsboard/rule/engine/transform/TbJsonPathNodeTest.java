@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -100,12 +100,23 @@ public class TbJsonPathNodeTest {
     }
 
     @Test
-    void givenPrimitiveMsg_whenOnMsg_thenVerifyOutput() throws Exception {
+    void givenJsonMsg_whenOnMsg_thenVerifyOutputJsonPrimitiveNode() throws Exception {
         String data = "{\"Attribute_1\":22.5,\"Attribute_2\":100}";
         VerifyOutputMsg(data, 1, 100);
 
         data = "{\"Attribute_1\":22.5,\"Attribute_2\":\"StringValue\"}";
         VerifyOutputMsg(data, 2, "StringValue");
+    }
+
+    @Test
+    void givenJsonMsg_whenOnMsg_thenVerifyJavaPrimitiveOutput() throws Exception {
+        config.setJsonPath("$.attributes.length()");
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        node.init(ctx, nodeConfiguration);
+
+        String data = "{\"attributes\":[{\"attribute_1\":10},{\"attribute_2\":20},{\"attribute_3\":30},{\"attribute_4\":40}]}";
+        VerifyOutputMsg(data, 1, 4);
+
     }
 
     @Test

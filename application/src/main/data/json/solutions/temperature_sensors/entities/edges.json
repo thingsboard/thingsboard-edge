@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Remote Facility R1",
+    "type": "facility",
+    "customer": "Customer D",
+    "rootRuleChainId": "93df11df-2fef-4177-8cda-1571e94f5d18",
+    "attributes": {},
+    "relations": [],
+    "userGroups": [
+      {
+        "name": "Customer Administrators",
+        "customer": "Customer D"
+      }
+    ],
+    "assetGroups": [],
+    "deviceGroups": [
+      {
+        "name": "Temperature & Humidity sensors",
+        "customer": "Customer D"
+      }
+    ],
+    "dashboardGroups": [
+      {
+        "name": "Customer dashboards",
+        "customer": null
+      }
+    ]
+  }
+]

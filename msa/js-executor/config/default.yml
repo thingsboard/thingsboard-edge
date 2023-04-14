@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ kafka:
   linger_ms: "5" # for producer
   partitions_consumed_concurrently: "1" # (EXPERIMENTAL) increase this value if you are planning to handle more than one partition (scale up, scale down) - this will decrease the latency
   requestTimeout: "30000" # The default value in kafkajs is: 30000
+  connectionTimeout: "1000" # The default value in kafkajs is: 1000
   compression: "gzip" # gzip or uncompressed
   topic_properties: "retention.ms:604800000;segment.bytes:26214400;retention.bytes:104857600;partitions:100;min.insync.replicas:1"
   use_confluent_cloud: false
@@ -79,6 +80,7 @@ logger:
 
 script:
   use_sandbox: "true"
+  memory_usage_trace_frequency: "1000"
   script_body_trace_frequency: "10000"
   stat_print_frequency: "10000"
   max_active_scripts: "1000"

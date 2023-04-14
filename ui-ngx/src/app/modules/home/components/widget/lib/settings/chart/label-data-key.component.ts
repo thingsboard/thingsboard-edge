@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,8 @@ import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@ang
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALUE_ACCESSOR, ValidationErrors,
   Validators
 } from '@angular/forms';
@@ -86,11 +86,11 @@ export class LabelDataKeyComponent extends PageComponent implements OnInit, Cont
 
   private propagateChange = null;
 
-  public labelDataKeyFormGroup: FormGroup;
+  public labelDataKeyFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
