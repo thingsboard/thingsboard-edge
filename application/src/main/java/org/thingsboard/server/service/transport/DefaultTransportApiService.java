@@ -149,8 +149,6 @@ public class DefaultTransportApiService implements TransportApiService {
     private final OtaPackageDataCache otaPackageDataCache;
     private final QueueService queueService;
 
-    private final DeviceProfileService deviceProfileService;
-
     private final ConcurrentMap<String, ReentrantLock> deviceCreationLocks = new ConcurrentHashMap<>();
 
     private static boolean checkIsMqttCredentials(DeviceCredentials credentials) {
