@@ -77,12 +77,10 @@ const routes: Routes = [
     children: [
       {
         path: '',
+        children: [],
         data: {
           auth: [Authority.TENANT_ADMIN],
-          redirectTo: {
-            TENANT_ADMIN: '/edge/status',
-            CUSTOMER_USER: '/edge/status'
-          }
+          redirectTo: '/edge/status'
         }
       },
       {
