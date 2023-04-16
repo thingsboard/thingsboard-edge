@@ -32,7 +32,6 @@ package org.thingsboard.rest.client;
 
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.ParameterizedTypeReference;
@@ -4086,7 +4085,7 @@ public class RestClient implements Closeable {
         Role role = new Role();
         role.setName(roleName);
         role.setType(RoleType.GROUP);
-        ArrayNode permissions = objectMapper.createArrayNode();
+        ArrayNode permissions = JacksonUtil.newArrayNode();
         operations.stream().map(Operation::name).forEach(permissions::add);
         role.setPermissions(permissions);
         return saveRole(role);

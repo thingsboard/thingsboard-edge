@@ -847,11 +847,11 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
         schedulerEvent.setOriginatorId(originator);
         schedulerEvent.setName(name);
         schedulerEvent.setType(type);
-        ObjectNode schedule = mapper.createObjectNode();
+        ObjectNode schedule = JacksonUtil.newObjectNode();
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
         SchedulerRepeat schedulerRepeat = new MonthlyRepeat();
-        schedule.set("repeat", mapper.valueToTree(schedulerRepeat));
+        schedule.set("repeat", JacksonUtil.valueToTree(schedulerRepeat));
         schedulerEvent.setSchedule(schedule);
         return schedulerEvent;
     }

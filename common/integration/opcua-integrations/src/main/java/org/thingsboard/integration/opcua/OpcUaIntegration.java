@@ -68,6 +68,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.WriteValue;
 import org.eclipse.milo.opcua.stack.core.util.ConversionUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -176,7 +177,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
             }
@@ -753,7 +754,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         for (DownlinkData data : dataList) {
             if (!data.isEmpty() && data.getContentType().equals("JSON")) {
                 try {
-                    JsonNode payload = mapper.readTree(data.getData());
+                    JsonNode payload = JacksonUtil.fromBytes(data.getData());
                     if (payload.has("writeValues")) {
                         JsonNode writeValues = payload.get("writeValues");
                         if (writeValues.isArray()) {
@@ -792,7 +793,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         for (DownlinkData data : dataList) {
             if (!data.isEmpty() && data.getContentType().equals("JSON")) {
                 try {
-                    JsonNode payload = mapper.readTree(data.getData());
+                    JsonNode payload = JacksonUtil.fromBytes(data.getData());
                     if (payload.has("callMethods")) {
                         JsonNode callMethods = payload.get("callMethods");
                         if (callMethods.isArray()) {
@@ -865,14 +866,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private void logOpcUaDownlink(IntegrationContext context, List<WriteValue> writeValues, List<CallMethodRequest> callMethods) {
         if (configuration.isDebugMode() && (!writeValues.isEmpty() || !callMethods.isEmpty())) {
             try {
-                ObjectNode json = mapper.createObjectNode();
+                ObjectNode json = JacksonUtil.newObjectNode();
                 if (!writeValues.isEmpty()) {
                     json.set("writeValues", toJsonStringList(writeValues));
                 }
                 if (!callMethods.isEmpty()) {
                     json.set("callMethods", toJsonStringList(callMethods));
                 }
-                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
             }
@@ -880,7 +881,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private JsonNode toJsonStringList(List<?> list) {
-        ArrayNode arrayNode = mapper.createArrayNode();
+        ArrayNode arrayNode = JacksonUtil.newArrayNode();
         for (Object item : list) {
             arrayNode.add(item.toString());
         }

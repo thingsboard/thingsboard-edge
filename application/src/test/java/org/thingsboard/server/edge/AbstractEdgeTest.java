@@ -381,7 +381,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateGeneralAdminSettings(AdminSettingsUpdateMsg adminSettingsUpdateMsg) throws JsonProcessingException {
-        JsonNode jsonNode = mapper.readTree(adminSettingsUpdateMsg.getJsonValue());
+        JsonNode jsonNode = JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue());
         Assert.assertNotNull(jsonNode.get("baseUrl"));
     }
 

@@ -185,8 +185,8 @@ public class InstallScripts {
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId, String newRuleChainName) {
         try {
-            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
-            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
 
             ruleChain.setTenantId(tenantId);
             if (!StringUtils.isEmpty(newRuleChainName)) {
@@ -208,7 +208,7 @@ public class InstallScripts {
     }
 
     public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) throws IOException {
-        JsonNode ruleChainJson = objectMapper.readTree(templateFilePath.toFile());
+        JsonNode ruleChainJson = JacksonUtil.toJsonNode(templateFilePath.toFile());
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }
 
@@ -291,7 +291,7 @@ public class InstallScripts {
     public ObjectNode updateMailTemplates(JsonNode oldTemplates) throws IOException {
         JsonNode newTemplates = readMailTemplates();
 
-        ObjectNode result = objectMapper.createObjectNode();
+        ObjectNode result = JacksonUtil.newObjectNode();
         Iterator<String> fieldsIterator = newTemplates.fieldNames();
         while (fieldsIterator.hasNext()) {
             String field = fieldsIterator.next();
@@ -301,9 +301,9 @@ public class InstallScripts {
                 result.set(field, newTemplates.get(field));
             }
         }
-        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
+        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(JacksonUtil.toString(result));
         if (updated.isPresent()) {
-            result = (ObjectNode) objectMapper.readTree(updated.get());
+            result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
         }
         return result;
     }
@@ -320,7 +320,7 @@ public class InstallScripts {
 
     private JsonNode readMailTemplates() throws IOException {
         Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
-        return objectMapper.readTree(mailTemplatesFile.toFile());
+        return JacksonUtil.toJsonNode(mailTemplatesFile.toFile());
     }
 
     public void loadDemoRuleChains(TenantId tenantId) {
@@ -340,7 +340,7 @@ public class InstallScripts {
             String key = "${" + entry.getKey() + "}";
             rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
         }
-        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
+        JsonNode rootRuleChainJson = JacksonUtil.toJsonNode(rootRuleChainContent);
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
     }
 
@@ -350,7 +350,7 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
+                            JsonNode ruleChainJson = JacksonUtil.toJsonNode(path.toFile());
 
                             RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId, null);
                             ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());

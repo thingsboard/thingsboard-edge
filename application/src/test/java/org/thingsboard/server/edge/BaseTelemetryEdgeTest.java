@@ -204,7 +204,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(numberOfMsgsToSend);
         for (int idx = 1; idx <= numberOfMsgsToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx2\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
-            JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
+            JsonNode timeseriesEntityData = JacksonUtil.toJsonNode(timeseriesData);
             EdgeEvent failedEdgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED,
                     device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
             edgeEventService.saveAsync(failedEdgeEvent).get();

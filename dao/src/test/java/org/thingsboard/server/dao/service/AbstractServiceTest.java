@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,6 +45,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+import org.testcontainers.shaded.org.apache.commons.lang3.NotImplementedException;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -252,8 +254,7 @@ public abstract class AbstractServiceTest {
                 new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
         ));
 
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
+        ObjectNode jsonConfiguration = JacksonUtil.OBJECT_MAPPER.valueToTree(entityGroupConfiguration);
         jsonConfiguration.putObject("settings");
         jsonConfiguration.putObject("actions");
         testDevicesGroup.setConfiguration(jsonConfiguration);

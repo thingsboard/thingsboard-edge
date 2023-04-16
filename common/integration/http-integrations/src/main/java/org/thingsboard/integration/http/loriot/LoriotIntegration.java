@@ -42,6 +42,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -81,7 +82,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loriotConfiguration = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration()), LoriotConfiguration.class);
+        loriotConfiguration = JacksonUtil.fromString(JacksonUtil.toString(configuration.getConfiguration()), LoriotConfiguration.class);
 
         if (loriotConfiguration.isCreateLoriotOutput() || loriotConfiguration.isSendDownlink()) {
             String domain = loriotConfiguration.getDomain();
@@ -116,9 +117,9 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
     private void createApplicationOutputIfNotExist() {
         if (!isOutputCreated()) {
-            ObjectNode newOutput = mapper.createObjectNode();
+            ObjectNode newOutput = JacksonUtil.newObjectNode();
             newOutput.put("output", "httppush");
-            ObjectNode outputSetup = mapper.createObjectNode();
+            ObjectNode outputSetup = JacksonUtil.newObjectNode();
             outputSetup.put("url", loriotConfiguration.getHttpEndpoint());
             if (loriotConfiguration.isEnableSecurity() && loriotConfiguration.getHeadersFilter() != null && loriotConfiguration.getHeadersFilter().size() > 0) {
                 outputSetup.put("auth", loriotConfiguration.getHeadersFilter().get("Authorization"));
@@ -209,7 +210,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
                     String data = new String(downlink.getData(), StandardCharsets.UTF_8);
 
-                    ObjectNode payload = mapper.createObjectNode();
+                    ObjectNode payload = JacksonUtil.newObjectNode();
                     // must always have the value 'tx'
                     payload.put("cmd", "tx");
                     payload.put(EUI, eui);

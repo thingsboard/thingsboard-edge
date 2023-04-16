@@ -32,7 +32,6 @@ package org.thingsboard.server.service.scheduler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -119,7 +118,6 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     private final OtaPackageService otaPackageService;
     private final TbServiceInfoProvider serviceInfoProvider;
 
-    private final ObjectMapper mapper = new ObjectMapper();
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData = new ConcurrentHashMap<>();
 
@@ -257,8 +255,8 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
         SchedulerRepeat repeat = null;
         if (repeatNode != null) {
             try {
-                repeat = mapper.treeToValue(repeatNode, SchedulerRepeat.class);
-            } catch (JsonProcessingException e) {
+                repeat = JacksonUtil.treeToValue(repeatNode, SchedulerRepeat.class);
+            } catch (IllegalArgumentException e) {
                 log.error("Failed to read scheduler config", e);
             }
         }
@@ -352,7 +350,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     }
 
     private String getMsgBody(JsonNode configuration) throws JsonProcessingException {
-        return mapper.writeValueAsString(configuration.get("msgBody"));
+        return JacksonUtil.toString(configuration.get("msgBody"));
     }
 
     private String getMsgType(SchedulerEvent event, JsonNode configuration) {
@@ -370,7 +368,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
             metaData.put("customerId", event.getCustomerId().getId().toString());
             metaData.put("eventName", event.getName());
             if (event.getAdditionalInfo() != null) {
-                metaData.put("additionalInfo", mapper.writeValueAsString(event.getAdditionalInfo()));
+                metaData.put("additionalInfo", JacksonUtil.toString(event.getAdditionalInfo()));
             }
         }
 

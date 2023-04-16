@@ -146,7 +146,7 @@ public class DefaultUpdateService implements UpdateService {
             log.trace("Executing check update method for instanceId [{}], platform [{}] and version [{}]", instanceId, platform, version);
             var headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            ObjectNode request = new ObjectMapper().createObjectNode();
+            ObjectNode request = JacksonUtil.newObjectNode();
             request.put(PLATFORM_PARAM, platform);
             request.put(VERSION_PARAM, version);
             request.put(INSTANCE_ID_PARAM, instanceId.toString());

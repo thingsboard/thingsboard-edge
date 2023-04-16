@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
@@ -41,6 +40,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -80,11 +80,11 @@ public abstract class BaseIntegrationServiceTest extends AbstractServiceTest {
 
     private final String INTEGRATION_BASE_NAME = "INTEGRATION_";
 
-    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
-            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+            .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
 
-    private final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
-            .createObjectNode().putObject("metadata").put("key1", "val1");
+    private final ObjectNode INTEGRATION_CONFIGURATION = JacksonUtil.newObjectNode()
+            .putObject("metadata").put("key1", "val1");
     ;
 
     private final List<Integration> savedIntegrations = new LinkedList<>();

@@ -31,18 +31,16 @@
 package org.thingsboard.integration.azure;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.azure.messaging.eventhubs.EventData;
 import lombok.Data;
+import org.thingsboard.common.util.JacksonUtil;
 
 import java.io.IOException;
 import java.util.Map;
 
 @Data
 public class AzureEventHubIntegrationMsg {
-
-    private static ObjectMapper mapper = new ObjectMapper();
 
     private final EventData eventData;
 
@@ -59,9 +57,9 @@ public class AzureEventHubIntegrationMsg {
     }
 
     public JsonNode toJson() {
-        ObjectNode json = mapper.createObjectNode();
+        ObjectNode json = JacksonUtil.newObjectNode();
         Map<String, Object> properties = this.eventData.getSystemProperties();
-        ObjectNode sysPropsJson = mapper.createObjectNode();
+        ObjectNode sysPropsJson = JacksonUtil.newObjectNode();
         properties.forEach(
                 (key, val) -> {
                     if (val != null) {
@@ -72,8 +70,8 @@ public class AzureEventHubIntegrationMsg {
         json.set("systemProperties", sysPropsJson);
         JsonNode payloadJson = null;
         try {
-            payloadJson = mapper.readTree(this.eventData.getBody());
-        } catch (IOException e) {
+            payloadJson = JacksonUtil.fromBytes(this.eventData.getBody());
+        } catch (IllegalArgumentException e) {
         }
         if (payloadJson != null) {
             json.set("payload", payloadJson);

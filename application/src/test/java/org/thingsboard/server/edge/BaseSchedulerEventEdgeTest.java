@@ -53,13 +53,13 @@ abstract public class BaseSchedulerEventEdgeTest extends AbstractEdgeTest {
     @Test
     public void testSchedulerEvent_tenantLevel() throws Exception {
         // create scheduler event
-        ObjectNode schedule = mapper.createObjectNode();
+        ObjectNode schedule = JacksonUtil.newObjectNode();
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
         SchedulerRepeat schedulerRepeat = new MonthlyRepeat();
-        schedule.set("repeat", mapper.valueToTree(schedulerRepeat));
+        schedule.set("repeat", JacksonUtil.valueToTree(schedulerRepeat));
 
-        ObjectNode configuration = mapper.createObjectNode();
+        ObjectNode configuration = JacksonUtil.newObjectNode();
         configuration.put("msgType", SessionMsgType.POST_ATTRIBUTES_REQUEST.name());
 
         SchedulerEvent schedulerEvent = createSchedulerEvent("Edge Scheduler Event", tenantId, schedule, configuration);
@@ -124,12 +124,12 @@ abstract public class BaseSchedulerEventEdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerToCustomer(savedCustomer);
 
         // create scheduler event
-        ObjectNode schedule = mapper.createObjectNode();
+        ObjectNode schedule = JacksonUtil.newObjectNode();
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
 
         SchedulerEvent schedulerEvent =
-                createSchedulerEvent("Edge Customer Scheduler Event", savedCustomer.getId(), schedule, mapper.createObjectNode());
+                createSchedulerEvent("Edge Customer Scheduler Event", savedCustomer.getId(), schedule, JacksonUtil.newObjectNode());
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
         edgeImitator.expectMessageAmount(1);
         doPost("/api/edge/" + edge.getUuidId()

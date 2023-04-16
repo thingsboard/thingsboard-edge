@@ -32,7 +32,6 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
@@ -81,11 +80,10 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     private Converter savedConverter;
     private User tenantAdmin;
 
-    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
-            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+    private static final JsonNode CUSTOM_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+            .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
 
-    private static final ObjectNode INTEGRATION_CONFIGURATION = new ObjectMapper()
-            .createObjectNode();
+    private static final ObjectNode INTEGRATION_CONFIGURATION = JacksonUtil.newObjectNode();
 
     static {
         INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
@@ -571,13 +569,13 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Edge edge1 = constructEdge("Edge #1 with integration", "default");
         Edge savedEdge1 = doPost("/api/edge", edge1, Edge.class);
 
-        JsonNode attributesData1 = mapper.readTree("{\"HTTP_URL\":\"localhost:18080\"}");
+        JsonNode attributesData1 = JacksonUtil.toJsonNode("{\"HTTP_URL\":\"localhost:18080\"}");
         doPost("/api/plugins/telemetry/EDGE/" + savedEdge1.getUuidId() + "/attributes/SERVER_SCOPE", attributesData1);
 
         Edge edge2 = constructEdge("Edge #2 with integration", "default");
         Edge savedEdge2 = doPost("/api/edge", edge2, Edge.class);
 
-        JsonNode attributesData2 = mapper.readTree("{\"DEVICE_TYPE\":\"thermostat\"}");
+        JsonNode attributesData2 = JacksonUtil.toJsonNode("{\"DEVICE_TYPE\":\"thermostat\"}");
         doPost("/api/plugins/telemetry/EDGE/" + savedEdge2.getUuidId() + "/attributes/SERVER_SCOPE", attributesData2);
 
         doPost("/api/edge/" + savedEdge1.getUuidId()

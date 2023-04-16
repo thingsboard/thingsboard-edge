@@ -31,13 +31,9 @@
 package org.thingsboard.integration.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -74,7 +70,6 @@ import java.util.Map;
 @Slf4j
 public abstract class AbstractIntegration<T> implements ThingsboardPlatformIntegration<T> {
 
-    protected final ObjectMapper mapper = new ObjectMapper();
     protected Integration configuration;
     protected IntegrationContext context;
     protected TBUplinkDataConverter uplinkConverter;
@@ -288,12 +283,12 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
-                ObjectNode json = mapper.createObjectNode();
+                ObjectNode json = JacksonUtil.newObjectNode();
                 if (data.getMetadata() != null && !data.getMetadata().isEmpty()) {
-                    json.set("metadata", mapper.valueToTree(data.getMetadata()));
+                    json.set("metadata", JacksonUtil.valueToTree(data.getMetadata()));
                 }
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -309,7 +304,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             }
             if (configuration.isDebugMode()) {
                 try {
-                    persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(msg), status, exception);
+                    persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(msg), status, exception);
                 } catch (Exception e) {
                     log.warn("Failed to persist debug message", e);
                 }
@@ -320,7 +315,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected JsonNode getDownlinkPayloadJson(DownlinkData data) throws IOException {
         String contentType = data.getContentType();
         if ("JSON".equals(contentType)) {
-            return mapper.readTree(data.getData());
+            return JacksonUtil.fromBytes(data.getData());
         } else if ("TEXT".equals(contentType)) {
             return new TextNode(new String(data.getData(), StandardCharsets.UTF_8));
         } else { //BINARY
@@ -331,7 +326,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, updateType, "JSON", mapper.writeValueAsString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, updateType, "JSON", JacksonUtil.toString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

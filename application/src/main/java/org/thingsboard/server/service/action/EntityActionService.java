@@ -69,8 +69,6 @@ public class EntityActionService {
     private final TbClusterService tbClusterService;
     private final AuditLogService auditLogService;
 
-    private static final ObjectMapper json = new ObjectMapper();
-
     public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, TenantId tenantId, CustomerId customerId,
                                                                                      ActionType actionType, Object... additionalInfo) {
         pushEntityActionToRuleEngine(entityId, entity, null, tenantId, customerId, actionType, additionalInfo);

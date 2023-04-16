@@ -34,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -179,10 +180,10 @@ public abstract class BaseWhiteLabelingServiceTest extends AbstractServiceTest {
     private void updateTenantAllowWhiteLabelingSetting(Boolean allowWhiteLabeling, Boolean allowCustomerWhiteLabeling) throws IOException {
         Tenant tenant = tenantService.findTenantById(tenantId);
         if (allowWhiteLabeling == null) {
-            tenant.setAdditionalInfo(mapper.readTree("{}"));
+            tenant.setAdditionalInfo(JacksonUtil.toJsonNode("{}"));
         } else {
             String additionalInfo = "{\"allowWhiteLabeling\":" + allowWhiteLabeling + ", \"allowCustomerWhiteLabeling\":" + allowCustomerWhiteLabeling + "}";
-            tenant.setAdditionalInfo(mapper.readTree(additionalInfo));
+            tenant.setAdditionalInfo(JacksonUtil.toJsonNode(additionalInfo));
             tenantService.saveTenant(tenant);
         }
     }
@@ -190,10 +191,10 @@ public abstract class BaseWhiteLabelingServiceTest extends AbstractServiceTest {
     private void updateCustomerAllowWhiteLabelingSetting(Boolean allowWhiteLabeling) throws IOException {
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (allowWhiteLabeling == null) {
-            customer.setAdditionalInfo(mapper.readTree("{}"));
+            customer.setAdditionalInfo(JacksonUtil.toJsonNode("{}"));
         } else {
             String additionalInfo = "{\"allowWhiteLabeling\":" + allowWhiteLabeling + "}";
-            customer.setAdditionalInfo(mapper.readTree(additionalInfo));
+            customer.setAdditionalInfo(JacksonUtil.toJsonNode(additionalInfo));
             customerService.saveCustomer(customer);
         }
     }

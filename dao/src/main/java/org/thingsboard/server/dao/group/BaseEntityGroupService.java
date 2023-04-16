@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.group;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -123,7 +122,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String UNABLE_TO_FIND_ENTITY_GROUP_BY_ID = "Unable to find entity group by id ";
     public static final String EDGE_ENTITY_GROUP_RELATION_PREFIX = "EDGE_ENTITY_GROUP_";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final ReentrantLock roleCreationLock = new ReentrantLock();
 
     @Autowired
@@ -252,7 +250,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityGroup.setType(groupType);
                 JsonNode additionalInfo = entityGroup.getAdditionalInfo();
                 if (additionalInfo == null) {
-                    additionalInfo = mapper.createObjectNode();
+                    additionalInfo = JacksonUtil.newObjectNode();
                 }
                 ((ObjectNode) additionalInfo).put("description", description);
                 if (publicCustomerId != null && !publicCustomerId.isNullUid()) {

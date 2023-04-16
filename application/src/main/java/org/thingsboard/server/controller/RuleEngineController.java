@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -89,8 +89,6 @@ public class RuleEngineController extends BaseController {
             " * **'serviceId'** to identify the platform server that received the request;\n" +
             " * **'requestUUID'** to identify the request and route possible response from the Rule Engine;\n\n" +
             "Use **'rest call reply'** rule node to push the reply from rule engine back as a REST API call response. ";
-    protected final ObjectMapper jsonMapper = new ObjectMapper();
-
     @Autowired
     private RuleEngineCallService ruleEngineCallService;
 
@@ -158,7 +156,7 @@ public class RuleEngineController extends BaseController {
                 entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
             }
             //Check that this is a valid JSON
-            jsonMapper.readTree(requestBody);
+            JacksonUtil.toJsonNode(requestBody);
             final DeferredResult<ResponseEntity> response = new DeferredResult<>();
             accessValidator.validate(currentUser, Operation.WRITE, entityId, new HttpValidationCallback(response, new FutureCallback<DeferredResult<ResponseEntity>>() {
                 @Override
@@ -187,8 +185,8 @@ public class RuleEngineController extends BaseController {
                 }
             }));
             return response;
-        } catch (IOException ioe) {
-            throw new ThingsboardException("Invalid request body", ioe, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        } catch (IllegalArgumentException iae) {
+            throw new ThingsboardException("Invalid request body", iae, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
 
@@ -202,8 +200,8 @@ public class RuleEngineController extends BaseController {
             if (!StringUtils.isEmpty(responseData)) {
                 try {
                     logRuleEngineCall(rpcRequest, response, null);
-                    responseWriter.setResult(new ResponseEntity<>(jsonMapper.readTree(responseData), HttpStatus.OK));
-                } catch (IOException e) {
+                    responseWriter.setResult(new ResponseEntity<>(JacksonUtil.toJsonNode(responseData), HttpStatus.OK));
+                } catch (IllegalArgumentException e) {
                     log.debug("Failed to decode device response: {}", responseData, e);
                     logRuleEngineCall(rpcRequest, response, e);
                     responseWriter.setResult(new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE));

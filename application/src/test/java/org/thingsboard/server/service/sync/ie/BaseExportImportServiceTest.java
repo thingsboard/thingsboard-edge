@@ -405,7 +405,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
                 "return { msg: msg, metadata: metadata, msgType: msgType };");
         configuration1.setMsgCount(1);
         configuration1.setPeriodInSeconds(1);
-        ruleNode1.setConfiguration(mapper.valueToTree(configuration1));
+        ruleNode1.setConfiguration(JacksonUtil.valueToTree(configuration1));
 
         RuleNode ruleNode2 = new RuleNode();
         ruleNode2.setName("Simple Rule Node 2");

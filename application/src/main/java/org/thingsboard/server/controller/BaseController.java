@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -1220,7 +1221,7 @@ public abstract class BaseController {
                 String body = null;
                 if (EntityType.EDGE.equals(entityId.getEntityType())) {
                     try {
-                        body = json.writeValueAsString(previousOwnerId);
+                        body = JacksonUtil.toString(previousOwnerId);
                     } catch (Exception e) {
                         log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
                     }

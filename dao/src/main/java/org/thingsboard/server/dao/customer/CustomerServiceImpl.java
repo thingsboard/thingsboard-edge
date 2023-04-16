@@ -285,8 +285,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                         publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
                     }
                     try {
-                        publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
-                    } catch (IOException e) {
+                        publicCustomer.setAdditionalInfo(JacksonUtil.fromString("{ \"isPublic\": true }", JsonNode.class));
+                    } catch (IllegalArgumentException e) {
                         throw new IncorrectParameterException("Unable to create public customer.", e);
                     }
                     publicCustomer = saveCustomerInternal(publicCustomer);

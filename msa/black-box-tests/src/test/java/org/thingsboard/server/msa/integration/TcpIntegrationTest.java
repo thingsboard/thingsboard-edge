@@ -31,13 +31,10 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -48,7 +45,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.codec.string.StringEncoder;
-import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -185,7 +181,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithJsonConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
@@ -230,7 +226,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithTextConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
         integration = Integration.builder()
@@ -273,7 +269,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithBinaryConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
         integration = Integration.builder()
@@ -320,7 +316,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        JsonNode uplinkConverterConfig = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode uplinkConverterConfig = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConverterConfig));
         Converter downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
