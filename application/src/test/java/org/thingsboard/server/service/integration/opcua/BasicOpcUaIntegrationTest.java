@@ -70,6 +70,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "js.evaluator=local",
         "service.integrations.supported=ALL",
         "transport.coap.enabled=true",
+        "sql.ts.noxss_validation_enabled=false"
 })
 @Slf4j
 @DaoSqlTest

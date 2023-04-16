@@ -4011,11 +4011,19 @@ public class RestClient implements Closeable {
     }
 
     public void changeOwnerToTenant(EntityId ownerId, EntityId entityId) {
-        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
+        changeOwnerToTenant(ownerId, entityId, new String[]{});
+    }
+
+    public void changeOwnerToTenant(EntityId ownerId, EntityId entityId, String[] strEntityGroupIds) {
+        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", strEntityGroupIds, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }
 
     public void changeOwnerToCustomer(EntityId ownerId, EntityId entityId) {
-        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
+        changeOwnerToCustomer(ownerId, entityId, new String[]{});
+    }
+
+    public void changeOwnerToCustomer(EntityId ownerId, EntityId entityId, String[] strEntityGroupIds) {
+        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", strEntityGroupIds, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }
 
     public JsonNode downloadDashboardReport(DashboardId dashboardId, JsonNode reportParams) {

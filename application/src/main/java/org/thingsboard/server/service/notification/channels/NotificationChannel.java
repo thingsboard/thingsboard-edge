@@ -41,7 +41,7 @@ public interface NotificationChannel<R extends NotificationRecipient, T extends 
 
     ListenableFuture<Void> sendNotification(R recipient, T processedTemplate, NotificationProcessingContext ctx);
 
-    boolean check(TenantId tenantId);
+    void check(TenantId tenantId) throws Exception;
 
     NotificationDeliveryMethod getDeliveryMethod();
 
