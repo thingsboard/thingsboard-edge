@@ -125,7 +125,12 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
         verifyDeviceIsActive(targetRestClient, device.getId());
 
-        return targetRestClient.getLatestTimeseries(device.getId(), keys);
+        List<TsKvEntry> latestTimeseries = targetRestClient.getLatestTimeseries(device.getId(), keys);
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+
+        return latestTimeseries;
     }
 
     @Test
@@ -215,6 +220,9 @@ public class TelemetryClientTest extends AbstractContainerTest {
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == 0);
 
         verifyDeviceIsActive(targetRestClient, device.getId());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
 
         return attributeKvEntries;
     }

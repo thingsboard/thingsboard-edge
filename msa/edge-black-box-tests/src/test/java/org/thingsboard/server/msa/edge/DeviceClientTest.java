@@ -238,6 +238,8 @@ public class DeviceClientTest extends AbstractContainerTest {
                     long count = edgeDevices.getData().stream().filter(d -> savedDeviceOnEdge.getId().equals(d.getId())).count();
                     return count == 0;
                 });
+
+        cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
     }
 
     private void validateDeviceTransportConfiguration(Device device,
@@ -485,6 +487,9 @@ public class DeviceClientTest extends AbstractContainerTest {
                     return initialRequestBody.get("method").equals(requestBody.get("method"))
                             && initialRequestBody.get("params").equals(requestBody.get("params"));
                 });
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     @Test
@@ -556,6 +561,9 @@ public class DeviceClientTest extends AbstractContainerTest {
                     JsonNode responseBody = rpcTwoWayRequest[0];
                     return "ok".equals(responseBody.get("result").textValue());
                 });
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     @Test
@@ -587,6 +595,9 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         Assert.assertNotNull(responseEntity.getBody());
         Assert.assertTrue(responseEntity.getBody().contains("currentTime"));
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     @Test

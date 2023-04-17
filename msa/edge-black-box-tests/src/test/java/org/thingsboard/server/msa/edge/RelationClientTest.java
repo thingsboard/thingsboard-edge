@@ -52,6 +52,10 @@ public class RelationClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+        cloudRestClient.deleteAsset(asset.getId());
     }
 
     @Test
@@ -80,7 +84,8 @@ public class RelationClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
 
-        edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
         cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
     }
 
