@@ -73,7 +73,7 @@ public class WsClient extends WebSocketClient {
                     this.message = response;
                     latch.countDown();
                 }
-            } catch (IllegalAccessException e) {
+            } catch (IllegalArgumentException e) {
                 log.error("ws message can't be read");
             }
         }
