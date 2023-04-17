@@ -91,6 +91,9 @@ public class AlarmClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromEdge(EntityId entityId) {
@@ -147,6 +150,9 @@ public class AlarmClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromCloud(EntityId entityId) {

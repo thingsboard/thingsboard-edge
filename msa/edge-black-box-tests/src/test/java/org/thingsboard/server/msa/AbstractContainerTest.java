@@ -759,6 +759,9 @@ public abstract class AbstractContainerTest {
 
         verifyDeviceIsActive(targetRestClient, device.getId());
 
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+
         return attributeKvEntries;
     }
 

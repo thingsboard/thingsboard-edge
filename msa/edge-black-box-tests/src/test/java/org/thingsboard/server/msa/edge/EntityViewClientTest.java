@@ -132,6 +132,8 @@ public class EntityViewClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup2.getId()).isEmpty());
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     private EntityView saveEntityViewOnCloud(String entityViewName, String type, DeviceId deviceId, EntityGroupId entityGroupId) {
