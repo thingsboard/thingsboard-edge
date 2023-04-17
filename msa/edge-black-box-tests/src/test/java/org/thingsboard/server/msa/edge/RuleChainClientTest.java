@@ -51,6 +51,7 @@ public class RuleChainClientTest extends AbstractContainerTest {
     @Test
     public void testRuleChains() throws Exception {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRuleChains(new PageLink(100)).getTotalElements() == 1);
 
@@ -67,6 +68,7 @@ public class RuleChainClientTest extends AbstractContainerTest {
         savedRuleChain.setName("Edge Test Rule Chain Updated");
         cloudRestClient.saveRuleChain(savedRuleChain);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Edge Test Rule Chain Updated"
                         .equals(edgeRestClient.getRuleChainById(savedRuleChainId).get().getName()));

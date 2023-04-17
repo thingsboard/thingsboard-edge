@@ -114,6 +114,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
 
@@ -128,6 +129,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<TsKvEntry> latestTimeseries;
@@ -212,6 +214,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
         DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
@@ -224,6 +227,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == keys.size());
 
@@ -232,6 +236,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         sourceRestClient.deleteEntityAttributes(device.getId(), DataConstants.CLIENT_SCOPE, keys);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == 0);
 

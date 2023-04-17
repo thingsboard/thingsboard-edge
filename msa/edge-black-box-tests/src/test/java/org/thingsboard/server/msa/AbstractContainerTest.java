@@ -419,6 +419,7 @@ public abstract class AbstractContainerTest {
         assignEntityGroupToEdge(savedAssetEntityGroup);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(asset.getId()).isPresent());
         return asset;
@@ -556,6 +557,7 @@ public abstract class AbstractContainerTest {
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
 
             Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
                     .atMost(30, TimeUnit.SECONDS).
                     until(() -> {
                         Optional<RuleChainMetaData> edgeRuleChainMetaData = edgeRestClient.getRuleChainMetaData(ruleChainId);
@@ -735,6 +737,7 @@ public abstract class AbstractContainerTest {
         cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDeviceById(device.getId()).isPresent());
 
@@ -749,6 +752,7 @@ public abstract class AbstractContainerTest {
         sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()));
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), scope, keys).size() == keys.size());
 
@@ -767,6 +771,7 @@ public abstract class AbstractContainerTest {
 
     protected void verifyDeviceIsActive(RestClient restClient, DeviceId deviceId) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<AttributeKvEntry> attributeKvEntries =
@@ -863,6 +868,7 @@ public abstract class AbstractContainerTest {
 
     protected void verifyThatCustomerAdminGroupIsCreatedOnEdge(Customer savedCustomer) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<EntityGroupInfo> customerAdminGroupOpt =
@@ -887,6 +893,7 @@ public abstract class AbstractContainerTest {
         cloudRestClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
 
@@ -933,6 +940,7 @@ public abstract class AbstractContainerTest {
         cloudRestClient.unassignRuleChainFromEdge(edge.getId(), ruleChainId);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRuleChainById(ruleChainId).isEmpty());
 
@@ -946,6 +954,7 @@ public abstract class AbstractContainerTest {
         assignEntityGroupToEdge(dashboardGroup);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard.getId()).isPresent());
         return savedDashboard.getId();
@@ -975,6 +984,7 @@ public abstract class AbstractContainerTest {
                 null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));

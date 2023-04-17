@@ -411,6 +411,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer B was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerB.getId()).isPresent());
 
@@ -498,6 +499,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     private void validateEntityGroupsAreUnassignedFromEdge(List<EntityGroupId> entityGroupIds) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> edgeEntityGroupsId = new ArrayList<>();

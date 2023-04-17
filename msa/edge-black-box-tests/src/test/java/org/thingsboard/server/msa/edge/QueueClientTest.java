@@ -74,6 +74,7 @@ public class QueueClientTest extends AbstractContainerTest {
         queue.setProcessingStrategy(processingStrategy);
         Queue savedQueue = cloudRestClient.saveQueue(queue, "TB_RULE_ENGINE");
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 4);
         PageData<Queue> pageData = edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100));
@@ -83,12 +84,14 @@ public class QueueClientTest extends AbstractContainerTest {
         savedQueue.setPollInterval(50);
         cloudRestClient.saveQueue(savedQueue, "TB_RULE_ENGINE");
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getQueueById(savedQueue.getId()).getPollInterval() == 50);
 
         // delete queue
         cloudRestClient.deleteQueue(savedQueue.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 3);
 

@@ -79,6 +79,7 @@ public class UserClientTest extends AbstractContainerTest {
         savedUser.setFirstName("John");
         cloudRestClient.saveUser(savedUser, false);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "John".equals(edgeRestClient.getUserById(savedUser.getId()).get().getFirstName()));
 
@@ -101,6 +102,7 @@ public class UserClientTest extends AbstractContainerTest {
         cloudRestClient.deleteUser(savedUser.getId());
         loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
 
@@ -152,6 +154,7 @@ public class UserClientTest extends AbstractContainerTest {
         savedUser.setFirstName("Phillip");
         cloudRestClient.saveUser(savedUser, false);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Phillip".equals(edgeRestClient.getUserById(savedUser.getId()).get().getFirstName()));
 
@@ -181,6 +184,7 @@ public class UserClientTest extends AbstractContainerTest {
         cloudRestClient.deleteUser(savedUser.getId());
         cloudRestClient.deleteCustomer(savedCustomer.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
     }

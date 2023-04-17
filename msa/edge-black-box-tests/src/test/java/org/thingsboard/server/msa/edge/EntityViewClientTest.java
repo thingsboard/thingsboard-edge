@@ -62,6 +62,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         assignEntityGroupToEdge(savedEntityViewEntityGroup1);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isPresent());
 
@@ -70,6 +71,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         savedEntityView1.setName(updatedEntityViewName);
         cloudRestClient.saveEntityView(savedEntityView1);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> updatedEntityViewName.equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
 
@@ -84,6 +86,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         // create entity view #2 inside group #1
         EntityView savedEntityView2 = saveEntityViewOnCloud("Edge Entity View 2", "Default", device.getId(), savedEntityViewEntityGroup1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView2.getId()).isPresent());
 
@@ -94,6 +97,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         // add entity view #2 to group #2
         cloudRestClient.addEntitiesToEntityGroup(savedEntityViewEntityGroup2.getId(), Collections.singletonList(savedEntityView2.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> entityView2Groups = edgeRestClient.getEntityGroupsForEntity(savedEntityView2.getId());
@@ -103,6 +107,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         // remove entity view #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedEntityViewEntityGroup2.getId(), Collections.singletonList(savedEntityView2.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> entityView2Groups = edgeRestClient.getEntityGroupsForEntity(savedEntityView2.getId());
@@ -112,6 +117,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         // delete entity view #2
         cloudRestClient.deleteEntityView(savedEntityView2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView2.getId()).isEmpty());
 

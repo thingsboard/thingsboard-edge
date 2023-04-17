@@ -65,12 +65,14 @@ public class AlarmClientTest extends AbstractContainerTest {
         Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
         // ack alarm
         cloudRestClient.ackAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
@@ -80,6 +82,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // clear alarm
         cloudRestClient.clearAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
@@ -89,6 +92,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // delete alarm
         cloudRestClient.deleteAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
 
@@ -121,6 +125,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         alarm.setSeverity(AlarmSeverity.MAJOR);
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
 
@@ -130,6 +135,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // ack alarm
         edgeRestClient.ackAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
@@ -139,6 +145,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // clear alarm
         edgeRestClient.clearAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
@@ -148,6 +155,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // delete alarm
         edgeRestClient.deleteAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isEmpty());
 

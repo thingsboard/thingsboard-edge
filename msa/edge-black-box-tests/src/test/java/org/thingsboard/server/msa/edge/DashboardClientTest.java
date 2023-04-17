@@ -59,6 +59,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         assignEntityGroupToEdge(savedDashboardEntityGroup1);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isPresent());
 
@@ -67,6 +68,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         savedDashboard1.setTitle(updatedDashboardTitle);
         cloudRestClient.saveDashboard(savedDashboard1);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> updatedDashboardTitle.equals(edgeRestClient.getDashboardById(savedDashboard1.getId()).get().getTitle()));
 
@@ -75,6 +77,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         cloudRestClient.saveEntityAttributesV1(savedDashboard1.getId(), DataConstants.SERVER_SCOPE, dashboardAttributes);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> verifyAttributeOnEdge(savedDashboard1.getId(),
                         DataConstants.SERVER_SCOPE, "dashboardKey", "dashboardValue"));
@@ -82,6 +85,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         // create dashboard #2 inside group #1
         Dashboard savedDashboard2 = saveDashboardOnCloud(StringUtils.randomAlphanumeric(15), savedDashboardEntityGroup1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isPresent());
 
@@ -92,6 +96,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         // add dashboard #2 to group #2
         cloudRestClient.addEntitiesToEntityGroup(savedDashboardEntityGroup2.getId(), Collections.singletonList(savedDashboard2.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> dashboard2Groups = edgeRestClient.getEntityGroupsForEntity(savedDashboard2.getId());
@@ -101,6 +106,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         // remove dashboard #2 from group #2
         cloudRestClient.removeEntitiesFromEntityGroup(savedDashboardEntityGroup2.getId(), Collections.singletonList(savedDashboard2.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> dashboard2Groups = edgeRestClient.getEntityGroupsForEntity(savedDashboard2.getId());
@@ -110,6 +116,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         // delete dashboard #2
         cloudRestClient.deleteDashboard(savedDashboard2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isEmpty());
 

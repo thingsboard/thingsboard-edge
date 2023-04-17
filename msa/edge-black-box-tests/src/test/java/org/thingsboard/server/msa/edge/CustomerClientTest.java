@@ -61,6 +61,7 @@ public class CustomerClientTest extends AbstractContainerTest {
         // change owner to sub customer A
         cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
         Awaitility.await()
@@ -74,6 +75,7 @@ public class CustomerClientTest extends AbstractContainerTest {
         savedCustomerA.setTitle("Edge Customer A Updated");
         cloudRestClient.saveCustomer(savedCustomerA);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Edge Customer A Updated".equals(edgeRestClient.getCustomerById(savedCustomerA.getId()).get().getTitle()));
 
@@ -81,6 +83,7 @@ public class CustomerClientTest extends AbstractContainerTest {
         savedSubCustomerA.setTitle("Edge Sub Customer A Updated");
         cloudRestClient.saveCustomer(savedSubCustomerA);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Edge Sub Customer A Updated".equals(edgeRestClient.getCustomerById(savedSubCustomerA.getId()).get().getTitle()));
 
@@ -101,6 +104,7 @@ public class CustomerClientTest extends AbstractContainerTest {
     private void testPublicCustomerCreatedOnEdge(EntityId ownerId) {
         Customer publicCustomer = findPublicCustomer(ownerId);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
 
