@@ -30,9 +30,12 @@
  */
 package org.thingsboard.server.msa.ui.base;
 
+import io.qameta.allure.Allure;
 import lombok.SneakyThrows;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -40,6 +43,7 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +86,15 @@ abstract public class AbstractBasePage {
             return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
             return fail("No presence element: " + locator);
+        }
+    }
+
+    protected List<WebElement> waitUntilPresenceOfElementsLocated(String locator) {
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+            return driver.findElements(By.xpath(locator));
+        } catch (WebDriverException e) {
+            return fail("No presence elements: " + locator);
         }
     }
 
@@ -131,7 +144,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator))));
         } catch (WebDriverException e) {
-            return fail("Element is present");
+            return fail("Element " + locator + " is present");
         }
     }
 
@@ -143,7 +156,7 @@ abstract public class AbstractBasePage {
         }
     }
 
-    public void waitUntilElementNotVisibility(WebElement element){
+    public void waitUntilElementNotVisibility(WebElement element) {
         try {
             wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOf(element)));
         } catch (WebDriverException e) {
@@ -199,6 +212,14 @@ abstract public class AbstractBasePage {
         }
     }
 
+    protected WebElement waitUntilVisibilityOfElementLocated(WebElement element) {
+        try {
+            return wait.until(ExpectedConditions.visibilityOf(element));
+        } catch (WebDriverException e) {
+            return fail("No visibility element: " + element.getTagName());
+        }
+    }
+
     public void goToNextTab(int tabNumber) {
         waitUntilNumberOfTabToBe(tabNumber);
         ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
@@ -225,5 +246,12 @@ abstract public class AbstractBasePage {
     public static char getRandomSymbol() {
         String s = "~`!@#$^&*()_+=-";
         return s.charAt(new Random().nextInt(s.length()));
+    }
+
+    public void captureScreen(WebDriver driver, String screenshotName) {
+        if (driver instanceof TakesScreenshot) {
+            Allure.addAttachment(screenshotName,
+                    new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
+        }
     }
 }

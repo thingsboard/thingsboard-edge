@@ -70,7 +70,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         String deletedRuleChain = ruleChainsPage.deleteRuleChainTrash(ruleChainName);
         ruleChainsPage.refreshBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
+        Assert.assertTrue(ruleChainsPage.assertEntityIsNotPresent(deletedRuleChain));
     }
 
     @Epic("Rule chains smoke tests")
@@ -85,7 +85,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         String deletedRuleChain = ruleChainsPage.deleteSelected(ruleChainName);
         ruleChainsPage.refreshBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
+        Assert.assertTrue(ruleChainsPage.assertEntityIsNotPresent(deletedRuleChain));
     }
 
     @Epic("Rule chains smoke tests")
@@ -101,7 +101,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         String deletedRuleChain = ruleChainsPage.deleteRuleChainFromView(ruleChainName);
         jsClick(ruleChainsPage.refreshBtn());
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
+        Assert.assertTrue(ruleChainsPage.assertEntityIsNotPresent(deletedRuleChain));
     }
 
     @Epic("Rule chains smoke tests")
@@ -199,6 +199,6 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         sideBarMenuView.ruleChainsBtn().click();
         String deletedRuleChain = ruleChainsPage.deleteRuleChainTrash(ruleChainName);
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedRuleChain));
+        Assert.assertTrue(ruleChainsPage.assertEntityIsNotPresent(deletedRuleChain));
     }
 }

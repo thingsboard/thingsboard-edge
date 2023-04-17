@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class OtherPageElementsHelper extends OtherPageElements {
     public OtherPageElementsHelper(WebDriver driver) {
@@ -61,7 +61,7 @@ public class OtherPageElementsHelper extends OtherPageElements {
         return entityGroupName;
     }
 
-    public boolean entityIsNotPresent(String entityName) {
+    public boolean assertEntityIsNotPresent(String entityName) {
         return elementIsNotPresent(getEntity(entityName));
     }
 
@@ -126,10 +126,17 @@ public class OtherPageElementsHelper extends OtherPageElements {
         doubleClick(sortByNameBtn());
     }
 
-    public void changeOwner(String customerName){
+    public void changeOwner(String customerName) {
         changeOwnerViewField().click();
         entityFromDropDown(customerName).click();
         changeOwnerViewChangeOwnerBtn().click();
         warningPopUpYesBtn().click();
+    }
+
+    public void changeItemsCountPerPage(int itemCount) {
+        itemsPerPage().click();
+        WebElement element = itemsCount(itemCount);
+        element.click();
+        waitUntilInvisibilityOfElementLocated(element);
     }
 }

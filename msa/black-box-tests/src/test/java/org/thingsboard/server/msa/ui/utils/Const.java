@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.ui.utils;
 
 import static org.thingsboard.server.msa.TestProperties.getBaseUrl;
-import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomNumber;
 
 public class Const {
 
@@ -47,6 +46,8 @@ public class Const {
     public static final String IMPORT_DEVICE_PROFILE_FILE_NAME = "deviceProfileForImport.json";
     public static final String IMPORT_ASSET_PROFILE_FILE_NAME = "assetProfileForImport.json";
     public static final String IMPORT_TXT_FILE_NAME = "forImport.txt";
+
+    //Massages
     public static final String EMPTY_IMPORT_MESSAGE = "No file selected";
     public static final String EMPTY_RULE_CHAIN_MESSAGE = "Rule chain name should be specified!";
     public static final String EMPTY_CUSTOMER_MESSAGE = "Customer title should be specified!";
@@ -62,4 +63,13 @@ public class Const {
     public static final String NAME_IS_REQUIRED_MESSAGE = "Name is required.";
     public static final String COPY_ENTITY_GROUP_ID_MESSAGE = "Entity group Id has been copied to clipboard";
     public static final String OWNER_NOT_SELECTED_ERROR = "Target owner is required.";
+
+    //Docs URLs
+    public static final String DASHBOARD_GIDE_DOCS_URL = "https://thingsboard.io/docs/user-guide/dashboards/";
+    public static final String HTTP_API_DOCS_URL = "https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api";
+    public static final String CONNECTIVITY_DOCS_URL = "https://thingsboard.io/docs/getting-started-guides/connectivity/";
+    public static final String ALARM_RULES_DOCS_URL = "https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules";
+    public static final String THINGSBOARD_IOT_GATEWAY_DOCS_URL = "https://thingsboard.io/docs/iot-gateway/what-is-iot-gateway/";
+    public static final String THINGSBOARD_MQTT_GATEWAY_DOCS_URL = "https://thingsboard.io/docs/paas/reference/gateway-mqtt-api/";
+    public static final String THINGSBOARD_INTEGRATION_DOCS_URL = "https://thingsboard.io/docs/user-guide/integrations/";
 }
