@@ -154,8 +154,8 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
             "\n" +
             "return result;";
 
-    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = mapper
-            .createObjectNode().put("encoder", "var result = {\n" +
+    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil
+            .newObjectNode().put("encoder", "var result = {\n" +
                     "    contentType: \"JSON\",\n" +
                     "    data: JSON.stringify(msg),\n" +
                     "    metadata: {\n" +
@@ -348,7 +348,7 @@ public class UdpIntegrationTest extends AbstractIntegrationTest {
             //check downlink uploaded after attribute updated
             RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
 
-            JsonNode attributes = mapper.readTree(createPayload().toString());
+            JsonNode attributes = JacksonUtil.toJsonNode(createPayload().toString());
             testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
             RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);
