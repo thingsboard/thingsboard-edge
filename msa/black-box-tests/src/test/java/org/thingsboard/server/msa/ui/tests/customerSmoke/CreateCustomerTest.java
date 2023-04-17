@@ -140,8 +140,10 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomerWithoutName() {
         sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
+        customerPage.addBtnC().click();
 
-        Assert.assertFalse(customerPage.addBtnV().isEnabled());
+        Assert.assertTrue(customerPage.addEntityView().isDisplayed(), "Add entity view steel open");
+        Assert.assertEquals(customerPage.errorMessage().getText(), "Title is required.", "Error message");
     }
 
     @Epic("Customers smoke tests")
