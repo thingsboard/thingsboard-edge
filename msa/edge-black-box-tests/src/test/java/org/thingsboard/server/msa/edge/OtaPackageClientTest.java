@@ -44,6 +44,7 @@ public class OtaPackageClientTest extends AbstractContainerTest {
         OtaPackageId otaPackageId = createOtaPackageInfo(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()), FIRMWARE);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() ->  {
                     PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));
@@ -60,6 +61,7 @@ public class OtaPackageClientTest extends AbstractContainerTest {
         // delete ota package
         cloudRestClient.deleteOtaPackage(otaPackageId);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));

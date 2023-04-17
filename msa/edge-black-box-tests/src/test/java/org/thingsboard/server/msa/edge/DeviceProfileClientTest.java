@@ -177,15 +177,19 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         oneMoreDeviceProfile.setDefaultEdgeRuleChainId(savedRuleChainId);
         cloudRestClient.saveDeviceProfile(oneMoreDeviceProfile);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "ONE_MORE_DEVICE_PROFILE_UPDATED".equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getName()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> dashboardId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getDefaultDashboardId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> firmwarePackageId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getFirmwareId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> softwarePackageId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getSoftwareId()));
 
@@ -262,6 +266,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
     private void verifyDeviceProfilesOnEdge(int expectedDeviceProfilesCnt) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
 

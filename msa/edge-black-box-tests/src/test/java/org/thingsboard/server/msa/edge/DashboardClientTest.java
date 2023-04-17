@@ -34,6 +34,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1");
         cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboard1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isPresent());
 
@@ -41,12 +42,14 @@ public class DashboardClientTest extends AbstractContainerTest {
         savedDashboard1.setTitle("Updated Dashboard Title");
         cloudRestClient.saveDashboard(savedDashboard1);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Dashboard Title".equals(edgeRestClient.getDashboardById(savedDashboard1.getId()).get().getTitle()));
 
         // unassign dashboard #1 from edge
         cloudRestClient.unassignDashboardFromEdge(edge.getId(), savedDashboard1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isEmpty());
         cloudRestClient.deleteDashboard(savedDashboard1.getId());
@@ -55,6 +58,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         Dashboard savedDashboard2 = saveDashboardOnCloud("Edge Dashboard 2");
         cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboard2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isPresent());
 
@@ -65,6 +69,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignDashboardToCustomer(savedCustomer.getId(), savedDashboard2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboard2.getId()).get();
@@ -82,6 +87,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         // unassign dashboard #2 from customer
         cloudRestClient.unassignDashboardFromCustomer(savedCustomer.getId(), savedDashboard2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboard2.getId()).get();
@@ -92,6 +98,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         // delete dashboard #2
         cloudRestClient.deleteDashboard(savedDashboard2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isEmpty());
     }

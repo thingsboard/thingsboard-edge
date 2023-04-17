@@ -48,6 +48,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         savedAssetProfile.setName("Buildings Updated");
         cloudRestClient.saveAssetProfile(savedAssetProfile);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Buildings Updated".equals(edgeRestClient.getAssetProfileById(savedAssetProfile.getId()).get().getName()));
         // delete asset profile
@@ -72,6 +73,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
     private void verifyAssetProfilesOnEdge(int expectedAssetProfilesCnt) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() ->  edgeRestClient.getAssetProfiles(new PageLink(100)).getTotalElements() == expectedAssetProfilesCnt);
 

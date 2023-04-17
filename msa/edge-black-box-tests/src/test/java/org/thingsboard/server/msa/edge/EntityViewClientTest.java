@@ -37,6 +37,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         EntityView savedEntityView1 = saveEntityViewOnCloud("Edge Entity View 1", "Default", device.getId());
         cloudRestClient.assignEntityViewToEdge(edge.getId(), savedEntityView1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isPresent());
 
@@ -44,12 +45,14 @@ public class EntityViewClientTest extends AbstractContainerTest {
         savedEntityView1.setName("Updated Edge Entity View 1");
         cloudRestClient.saveEntityView(savedEntityView1);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Edge Entity View 1".equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
 
         // unassign entity #1 view from edge
         cloudRestClient.unassignEntityViewFromEdge(edge.getId(), savedEntityView1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isEmpty());
         cloudRestClient.deleteEntityView(savedEntityView1.getId());
@@ -58,6 +61,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         EntityView savedEntityView2 = saveEntityViewOnCloud("Edge Entity View 2", "Default", device.getId());
         cloudRestClient.assignEntityViewToEdge(edge.getId(), savedEntityView2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView2.getId()).isPresent());
 
@@ -68,12 +72,14 @@ public class EntityViewClientTest extends AbstractContainerTest {
         assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignEntityViewToCustomer(savedCustomer.getId(), savedEntityView2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEntityViewById(savedEntityView2.getId()).get().getCustomerId()));
 
         // unassign entity view #2 from customer
         cloudRestClient.unassignEntityViewFromCustomer(savedEntityView2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEntityViewById(savedEntityView2.getId()).get().getCustomerId().getId()));
         cloudRestClient.deleteCustomer(savedCustomer.getId());
@@ -81,6 +87,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         // delete entity view #2
         cloudRestClient.deleteEntityView(savedEntityView2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView2.getId()).isEmpty());
 

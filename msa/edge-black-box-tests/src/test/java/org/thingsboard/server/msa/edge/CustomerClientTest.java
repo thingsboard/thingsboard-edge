@@ -34,6 +34,7 @@ public class CustomerClientTest extends AbstractContainerTest {
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
         assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
@@ -41,12 +42,14 @@ public class CustomerClientTest extends AbstractContainerTest {
         savedCustomer.setTitle("Updated Customer Name");
         cloudRestClient.saveCustomer(savedCustomer);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Customer Name".equals(edgeRestClient.getCustomerById(savedCustomer.getId()).get().getTitle()));
 
         // delete customer
         cloudRestClient.deleteCustomer(savedCustomer.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
     }
@@ -55,6 +58,7 @@ public class CustomerClientTest extends AbstractContainerTest {
     public void testPublicCustomerCreatedOnEdge() {
         Customer publicCustomer = findPublicCustomer();
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
     }

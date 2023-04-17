@@ -35,6 +35,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
         cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
 
@@ -44,6 +45,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         // unassign edge from customer
         cloudRestClient.unassignEdgeFromCustomer(edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }
