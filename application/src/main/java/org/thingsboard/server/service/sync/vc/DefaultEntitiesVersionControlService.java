@@ -690,7 +690,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             EntityId savedEntityId = importResult.getSavedEntity().getId();
             ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>()).add(savedEntityId);
         }
-        log.debug("Imported {} pack for tenant {}", entityType, ctx.getTenantId());
+        log.debug("Imported {} pack ({}) for tenant {}", entityType, entityDataList.size(), ctx.getTenantId());
         return importResults;
     }
 
