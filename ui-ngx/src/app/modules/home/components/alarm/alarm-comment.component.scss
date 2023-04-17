@@ -44,6 +44,7 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
     top: 0;
     background-color: $primary-color;
     opacity: 0.04;
+    border-radius: 8px;
   }
 }
 
@@ -167,7 +168,6 @@ $border: 1px solid mat.get-color-from-palette($tb-primary);
 
     .user-comment {
       padding: 4px;
-      border-radius: 8px;
       position: relative;
       background-color: transparent;
 
