@@ -79,6 +79,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         JsonNode entityViewAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"entityViewKey\":\"entityViewValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedEntityView1.getId(), DataConstants.SERVER_SCOPE, entityViewAttributes);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> verifyAttributeOnEdge(savedEntityView1.getId(),
                         DataConstants.SERVER_SCOPE, "entityViewKey", "entityViewValue"));
@@ -124,10 +125,12 @@ public class EntityViewClientTest extends AbstractContainerTest {
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedEntityViewEntityGroup1.getId(), EntityType.ENTITY_VIEW);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup1.getId()).isEmpty());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isEmpty());
 
@@ -136,6 +139,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         cloudRestClient.deleteEntityGroup(savedEntityViewEntityGroup1.getId());
         cloudRestClient.deleteEntityGroup(savedEntityViewEntityGroup2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedEntityViewEntityGroup2.getId()).isEmpty());
         // cleanup

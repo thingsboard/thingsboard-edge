@@ -61,6 +61,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
         // validate that customer was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
@@ -82,6 +83,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 
@@ -113,9 +115,11 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer and sub customer were created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
 
@@ -170,6 +174,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
 
@@ -185,6 +190,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that sub customer was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
 
@@ -215,6 +221,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that sub customer was removed from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
 
@@ -223,6 +230,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
 
@@ -263,11 +271,13 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
 
         // validate that sub customer was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
 
@@ -287,6 +297,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that sub customer was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubSubCustomerA.getId()).isPresent());
 
@@ -323,6 +334,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that sub sub customer was removed from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubSubCustomerA.getId()).isEmpty());
 
@@ -331,11 +343,13 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
 
         // validate that sub customer was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
 
@@ -382,6 +396,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer A was created on edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
 
@@ -406,6 +421,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer A was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
 
@@ -427,6 +443,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // validate that customer B was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerB.getId()).isEmpty());
 
@@ -475,6 +492,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     private void validateEntityGroupsAreStillOnEdge(List<EntityGroupId> entityGroupIds) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     boolean result = true;
@@ -487,6 +505,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     private void validateEntityGroupsAreRemovedFromEdge(List<EntityGroupId> entityGroupIds) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     boolean result = true;

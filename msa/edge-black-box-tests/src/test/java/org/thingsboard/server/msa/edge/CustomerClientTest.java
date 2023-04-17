@@ -65,6 +65,7 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
 
@@ -90,9 +91,11 @@ public class CustomerClientTest extends AbstractContainerTest {
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
 
@@ -109,6 +112,7 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupInfo> cloudPublicCustomerUserGroups = cloudRestClient.getEntityGroupsByOwnerAndType(ownerId, EntityType.USER);

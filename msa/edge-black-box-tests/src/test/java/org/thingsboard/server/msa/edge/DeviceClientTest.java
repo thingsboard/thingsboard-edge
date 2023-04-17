@@ -187,10 +187,12 @@ public class DeviceClientTest extends AbstractContainerTest {
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup1.getId(), EntityType.DEVICE);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedDeviceEntityGroup1.getId()).isEmpty());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDeviceById(savedDevice1.getId()).isEmpty());
 
@@ -199,6 +201,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         cloudRestClient.deleteEntityGroup(savedDeviceEntityGroup1.getId());
         cloudRestClient.deleteEntityGroup(savedDeviceEntityGroup2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedDeviceEntityGroup2.getId()).isEmpty());
 
@@ -649,11 +652,13 @@ public class DeviceClientTest extends AbstractContainerTest {
         Device savedDeviceOnEdge = saveDeviceOnEdge(deviceName, "default");
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         // device on edge must be renamed
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> !edgeRestClient.getDeviceById(savedDeviceOnEdge.getId()).get().getName().equals(deviceName));
 
@@ -683,6 +688,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
@@ -726,6 +732,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 

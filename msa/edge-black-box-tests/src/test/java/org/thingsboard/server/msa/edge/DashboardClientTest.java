@@ -123,10 +123,12 @@ public class DashboardClientTest extends AbstractContainerTest {
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDashboardEntityGroup1.getId(), EntityType.DASHBOARD);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedDashboardEntityGroup1.getId()).isEmpty());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isEmpty());
 
@@ -135,6 +137,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         cloudRestClient.deleteEntityGroup(savedDashboardEntityGroup1.getId());
         cloudRestClient.deleteEntityGroup(savedDashboardEntityGroup2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedDashboardEntityGroup2.getId()).isEmpty());
     }

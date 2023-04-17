@@ -55,6 +55,7 @@ public class RoleClientTest extends AbstractContainerTest {
     @Test
     public void testRoles() {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100)).getTotalElements() == 2);
 
@@ -63,6 +64,7 @@ public class RoleClientTest extends AbstractContainerTest {
         List<EntityId> genericIds = genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100)).getTotalElements() == 1);
         PageData<Role> groupPageData = edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100));
@@ -81,6 +83,7 @@ public class RoleClientTest extends AbstractContainerTest {
         Role savedRole = cloudRestClient.saveRole(role);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isPresent());
         assertEntitiesByIdsAndType(Collections.singletonList(savedRole.getId()), EntityType.ROLE);
@@ -89,12 +92,14 @@ public class RoleClientTest extends AbstractContainerTest {
         savedRole.setName("Generic Edge Role Updated");
         cloudRestClient.saveRole(savedRole);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Generic Edge Role Updated".equals(edgeRestClient.getRoleById(savedRole.getId()).get().getName()));
 
         // delete role
         cloudRestClient.deleteRole(savedRole.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isEmpty());
     }
@@ -115,9 +120,11 @@ public class RoleClientTest extends AbstractContainerTest {
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isPresent());
         assertEntitiesByIdsAndType(Collections.singletonList(savedRole.getId()), EntityType.ROLE);
@@ -126,18 +133,21 @@ public class RoleClientTest extends AbstractContainerTest {
         savedRole.setName("Customer Generic Edge Role Updated");
         cloudRestClient.saveRole(savedRole);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Customer Generic Edge Role Updated".equals(edgeRestClient.getRoleById(savedRole.getId()).get().getName()));
 
         // delete role
         cloudRestClient.deleteRole(savedRole.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isEmpty());
 
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 

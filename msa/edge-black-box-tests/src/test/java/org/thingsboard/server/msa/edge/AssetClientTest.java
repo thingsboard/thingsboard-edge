@@ -115,10 +115,12 @@ public class AssetClientTest extends AbstractContainerTest {
         // unassign group #1 from edge
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedAssetEntityGroup1.getId(), EntityType.ASSET);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedAssetEntityGroup1.getId()).isEmpty());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset1.getId()).isEmpty());
 
@@ -127,6 +129,7 @@ public class AssetClientTest extends AbstractContainerTest {
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup1.getId());
         cloudRestClient.deleteEntityGroup(savedAssetEntityGroup2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(savedAssetEntityGroup2.getId()).isEmpty());
 

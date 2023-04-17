@@ -70,6 +70,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getWhiteLabelParams(null, null);
@@ -100,6 +101,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getCurrentWhiteLabelParams();
@@ -128,6 +130,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getLoginWhiteLabelParams(null, null);
@@ -150,6 +153,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
@@ -188,6 +192,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         cloudRestClient.saveCustomTranslation(currentCustomTranslation);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCustomTranslation();
@@ -217,6 +222,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         cloudRestClient.saveCustomTranslation(customTranslation);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCurrentCustomTranslation();
@@ -242,6 +248,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
@@ -274,11 +281,13 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
 
         // validate that customer was deleted from edge
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 
         // validate that edge customer id was updated
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }

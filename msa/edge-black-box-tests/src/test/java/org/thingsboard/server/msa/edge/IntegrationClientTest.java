@@ -140,6 +140,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.assignIntegrationToEdge(edge.getId(), savedIntegration.getId());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getIntegrations(new PageLink(100)).getTotalElements() == 1);
 
@@ -157,6 +158,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
@@ -174,6 +176,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
@@ -187,6 +190,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
@@ -220,6 +224,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 });
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
 
@@ -240,6 +245,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
@@ -248,6 +254,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 });
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 2);
 
@@ -262,6 +269,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
 
@@ -305,6 +313,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         addIntegrationDownlinkRuleNode(rootRuleChain, savedIntegration);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     Optional<RuleChainMetaData> ruleChainMetaDataOpt = edgeRestClient.getRuleChainMetaData(rootRuleChain.getId());
@@ -378,10 +387,12 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.unassignIntegrationFromEdge(edge.getId(), savedIntegration.getId());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getIntegrations(new PageLink(100)).getTotalElements() == 0);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 0);
     }
@@ -390,6 +401,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         cloudRestClient.deleteIntegration(savedIntegration.getId());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getIntegrations(new PageLink(100), true).getTotalElements() == 0);
     }

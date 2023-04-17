@@ -69,6 +69,7 @@ public class UserClientTest extends AbstractContainerTest {
         // add user to custom user group
         cloudRestClient.addEntitiesToEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
@@ -91,6 +92,7 @@ public class UserClientTest extends AbstractContainerTest {
         // remove user from custom user group
         cloudRestClient.removeEntitiesFromEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
@@ -118,6 +120,7 @@ public class UserClientTest extends AbstractContainerTest {
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
@@ -144,6 +147,7 @@ public class UserClientTest extends AbstractContainerTest {
         // add user to custom user group
         cloudRestClient.addEntitiesToEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
@@ -166,6 +170,7 @@ public class UserClientTest extends AbstractContainerTest {
         // remove user from custom user group
         cloudRestClient.removeEntitiesFromEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
@@ -177,6 +182,7 @@ public class UserClientTest extends AbstractContainerTest {
         loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 

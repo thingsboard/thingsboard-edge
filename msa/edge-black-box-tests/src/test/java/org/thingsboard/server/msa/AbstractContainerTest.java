@@ -429,6 +429,7 @@ public abstract class AbstractContainerTest {
         cloudRestClient.assignEntityGroupToEdge(edge.getId(), entityGroup.getId(), entityGroup.getType());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(entityGroup.getId()).isPresent());
     }
@@ -796,44 +797,6 @@ public abstract class AbstractContainerTest {
         return cloudRestClient.saveEntityGroup(entityGroup);
     }
 
-    protected void verifyEntityGroups(EntityType entityType, int expectedGroupsCount) {
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<EntityGroupInfo> entityGroupsByType = edgeRestClient.getEntityGroupsByType(entityType);
-                    return entityGroupsByType.size() == expectedGroupsCount;
-                });
-        List<EntityGroupInfo> entityGroupsByType = edgeRestClient.getEntityGroupsByType(entityType);
-        for (EntityGroupInfo entityGroupInfo : entityGroupsByType) {
-            List<EntityId> entityIds;
-            switch (entityType) {
-                case DEVICE:
-                    PageData<Device> devicesByEntityGroupId = edgeRestClient.getDevicesByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
-                    entityIds = devicesByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
-                    break;
-                case ASSET:
-                    PageData<Asset> assetsByEntityGroupId = edgeRestClient.getAssetsByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
-                    entityIds = assetsByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
-                    break;
-                case ENTITY_VIEW:
-                    PageData<EntityView> entityViewsByEntityGroupId = edgeRestClient.getEntityViewsByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
-                    entityIds = entityViewsByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
-                    break;
-                case DASHBOARD:
-                    PageData<DashboardInfo> dashboardsByEntityGroupId = edgeRestClient.getGroupDashboards(entityGroupInfo.getId(), new PageLink(1000));
-                    entityIds = dashboardsByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
-                    break;
-                case USER:
-                    PageData<User> usersByEntityGroupId = edgeRestClient.getUsersByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
-                    entityIds = usersByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
-                    break;
-                default:
-                    throw new IllegalArgumentException("Incorrect entity type provided " + entityType);
-            }
-            assertEntitiesByIdsAndType(entityIds, entityType);
-        }
-    }
-
     protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
         return verifyAttribute(entityId, scope, key, expectedValue, edgeRestClient);
     }
@@ -963,6 +926,7 @@ public abstract class AbstractContainerTest {
     protected void unAssignFromEdgeAndDeleteDashboard(DashboardId dashboardId, EntityGroupId dashboardGroupId) {
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), dashboardGroupId, EntityType.DASHBOARD);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getEntityGroupById(dashboardGroupId).isEmpty());
 
