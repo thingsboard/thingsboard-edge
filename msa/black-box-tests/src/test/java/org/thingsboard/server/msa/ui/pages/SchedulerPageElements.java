@@ -31,17 +31,22 @@
 package org.thingsboard.server.msa.ui.pages;
 
 import org.openqa.selenium.WebDriver;
-import org.thingsboard.server.msa.ui.utils.Const;
+import org.openqa.selenium.WebElement;
 
-public class LoginPageHelper extends LoginPageElements {
-    public LoginPageHelper(WebDriver driver) {
+import java.util.List;
+
+public class SchedulerPageElements extends OtherPageElements {
+    public SchedulerPageElements(WebDriver driver) {
         super(driver);
     }
 
-    public void authorizationTenant() {
-        emailField().sendKeys(Const.TENANT_EMAIL);
-        passwordField().sendKeys(Const.TENANT_PASSWORD);
-        submitBtn().click();
-        waitUntilUrlContainsText("/home");
+    protected static final String SCHEDULER = "//mat-row//mat-cell[contains(text(),'%s')]";
+
+    public List<WebElement> schedulers(String schedulerName) {
+        return waitUntilElementsToBeClickable(String.format(SCHEDULER, schedulerName));
+    }
+
+    public WebElement scheduler(String schedulerName) {
+        return waitUntilElementToBeClickable(String.format(SCHEDULER, schedulerName));
     }
 }

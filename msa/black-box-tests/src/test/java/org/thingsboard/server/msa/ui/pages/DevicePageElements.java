@@ -35,46 +35,21 @@ import org.openqa.selenium.WebElement;
 
 import java.util.List;
 
-public class DashboardPageElements extends OtherPageElementsHelper {
-    public DashboardPageElements(WebDriver driver) {
+public class DevicePageElements extends OtherPageElementsHelper {
+    public DevicePageElements(WebDriver driver) {
         super(driver);
     }
 
-    private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
-    private static final String ASSIGNED_BTN = ENTITY + "/../..//mat-icon[contains(text(),' assignment_ind')]/../..";
-    private static final String MANAGE_ASSIGNED_ENTITY_LIST_FIELD = "//input[@formcontrolname='entity']";
-    private static final String MANAGE_ASSIGNED_ENTITY = "//mat-option//span[contains(text(),'%s')]";
-    private static final String MANAGE_ASSIGNED_UPDATE_BTN = "//button[@type='submit']";
-    private static final String OPEN_DASHBOARD_GROUP_BTN = "//mat-icon[contains(text(),'view_list')]";
     private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
-    private static final String GROUPS_BTN = "//a[@href='/dashboards/groups']/span[@class='mdc-tab__content']";
+    private static final String ALL_NAMES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
+    private static final String GROUPS_BTN = "//a[contains(@href,'/entities/devices/groups')]/span[@class='mdc-tab__content']";
 
-    public List<WebElement> entityTitles() {
-        return waitUntilVisibilityOfElementsLocated(TITLES);
-    }
-
-    public WebElement assignedBtn(String title) {
-        return waitUntilElementToBeClickable(String.format(ASSIGNED_BTN, title));
-    }
-
-    public WebElement manageAssignedEntityListField() {
-        return waitUntilElementToBeClickable(MANAGE_ASSIGNED_ENTITY_LIST_FIELD);
-    }
-
-    public WebElement manageAssignedEntity(String title) {
-        return waitUntilElementToBeClickable(String.format(MANAGE_ASSIGNED_ENTITY, title));
-    }
-
-    public WebElement manageAssignedUpdateBtn() {
-        return waitUntilElementToBeClickable(MANAGE_ASSIGNED_UPDATE_BTN);
-    }
-
-    public List<WebElement> openDashboardCroupBtn() {
-        return waitUntilElementsToBeClickable(OPEN_DASHBOARD_GROUP_BTN);
-    }
-
-    public List<WebElement> allGroupName() {
+    public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
+    }
+
+    public List<WebElement> allNames() {
+        return waitUntilElementsToBeClickable(ALL_NAMES);
     }
 
     public WebElement groupsBtn() {

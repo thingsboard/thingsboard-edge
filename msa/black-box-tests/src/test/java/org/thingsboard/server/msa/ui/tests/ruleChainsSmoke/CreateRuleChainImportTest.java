@@ -101,7 +101,7 @@ public class CreateRuleChainImportTest extends AbstractDriverBaseTest {
 
         Assert.assertNotNull(ruleChainsPage.importingFile(EMPTY_IMPORT_MESSAGE));
         Assert.assertTrue(ruleChainsPage.importingFile(EMPTY_IMPORT_MESSAGE).isDisplayed());
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(IMPORT_RULE_CHAIN_FILE_NAME));
+        Assert.assertTrue(ruleChainsPage.assertEntityIsNotPresent(IMPORT_RULE_CHAIN_FILE_NAME));
     }
 
     @Epic("Rule chains smoke tests")

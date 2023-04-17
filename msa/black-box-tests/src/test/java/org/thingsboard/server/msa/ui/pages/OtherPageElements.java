@@ -110,6 +110,8 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String IMPORT_BROWSE_FILE = "//mat-dialog-container//span[contains(text(),'Import')]/..";
     private static final String IMPORTING_FILE = "//div[contains(text(),'%s')]";
     private static final String CLEAR_IMPORT_FILE_BTN = "//div[@class='tb-file-clear-container']//button";
+    private static final String ITEMS_PER_PAGE = "//div[contains(@id,'mat-select')]";
+    private static final String ITEMS_COUNT = ITEMS_PER_PAGE + "//mat-option/span[contains(text(),'%d')]";
 
     public String getEntity(String entityName) {
         return String.format(ENTITY, entityName);
@@ -432,5 +434,13 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement selectGroupViewSubmitBtnVisible() {
         return waitUntilVisibilityOfElementLocated(SELECT_GROUP_VIEW_SUBMIT_BTN);
+    }
+
+    public WebElement itemsPerPage() {
+        return waitUntilElementToBeClickable(ITEMS_PER_PAGE);
+    }
+
+    public WebElement itemsCount(int itemCount) {
+        return waitUntilElementToBeClickable(String.format(ITEMS_COUNT, itemCount));
     }
 }
