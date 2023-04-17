@@ -28,13 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import "../../../../scss/constants";
+
 :host {
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  .singleTab {
+    width: 320px;
+  }
+
+  @media #{$mat-lt-sm} {
+    min-width: 100%;
+  }
 }
 
 :host ::ng-deep {
+  .mat-mdc-tab-body-wrapper {
+    height: 100%;
+  }
   .mat-mdc-tab-group-dynamic-height .mat-mdc-tab-body-content {
     overflow: auto;
   }
