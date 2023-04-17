@@ -61,7 +61,8 @@ public enum IntegrationType {
     RABBITMQ(false),
     LORIOT(false),
     COAP(false),
-    TUYA(false);
+    TUYA(false),
+    AZURE_SERVICE_BUS(true);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;

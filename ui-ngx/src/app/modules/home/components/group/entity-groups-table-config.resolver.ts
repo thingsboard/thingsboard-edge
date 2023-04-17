@@ -40,7 +40,6 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { BroadcastService } from '@core/services/broadcast.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerService } from '@core/http/customer.service';
 import { EntityGroupsTableConfig } from './entity-groups-table-config';
@@ -54,7 +53,6 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
               private customerService: CustomerService,
               private edgeService: EdgeService,
               private userPermissionsService: UserPermissionsService,
-              private broadcast: BroadcastService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService,
@@ -75,7 +73,6 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       this.entityGroupService,
       this.customerService,
       this.userPermissionsService,
-      this.broadcast,
       this.translate,
       this.datePipe,
       this.utils,
@@ -92,13 +89,13 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       } else {
         return this.customerService.getShortCustomerInfo(config.customerId).pipe(
           map((info) => {
-            config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
+            config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(config.groupType, params.shared));
             return config;
           })
         );
       }
     } else if (config.customerId && customerTitle){
-      config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
+      config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType, params.shared));
       return config;
     } else if (config.edgeId && resolveCustomer) {
       return this.resolveEdgeInfo(config);

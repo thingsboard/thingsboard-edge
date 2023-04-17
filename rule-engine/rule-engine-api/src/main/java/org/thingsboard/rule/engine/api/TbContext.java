@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.api;
 
 import io.netty.channel.EventLoopGroup;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -73,6 +74,10 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -293,11 +298,25 @@ public interface TbContext {
 
     ListeningExecutor getExternalCallExecutor();
 
+    ListeningExecutor getNotificationExecutor();
+
     MailService getMailService();
 
     SmsService getSmsService();
 
     SmsSenderFactory getSmsSenderFactory();
+
+    NotificationCenter getNotificationCenter();
+
+    NotificationTargetService getNotificationTargetService();
+
+    NotificationTemplateService getNotificationTemplateService();
+
+    NotificationRequestService getNotificationRequestService();
+
+    NotificationRuleService getNotificationRuleService();
+
+    SlackService getSlackService();
 
     /**
      * Creates JS Script Engine

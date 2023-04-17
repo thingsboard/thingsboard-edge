@@ -36,11 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
+import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.SqlDao;
@@ -48,6 +50,7 @@ import org.thingsboard.server.dao.util.SqlDao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -73,9 +76,24 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
     }
 
     @Override
+    public DashboardInfo findById(TenantId tenantId, UUID dashboardId) {
+        log.debug("Get entity by key {}", dashboardId);
+        return DaoUtil.getData(dashboardInfoRepository.findFullInfoById(dashboardId));
+    }
+
+    @Override
     public PageData<DashboardInfo> findDashboardsByTenantId(UUID tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(dashboardInfoRepository
                 .findByTenantId(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
+    }
+
+    @Override
+    public PageData<DashboardInfo> findTenantDashboardsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(dashboardInfoRepository
+                .findTenantDashboardsByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
@@ -92,7 +110,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                 .findMobileByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink, sortOrders)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
     @Override
@@ -102,7 +120,17 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                         tenantId,
                         customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
+    }
+
+    @Override
+    public PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(dashboardInfoRepository
+                .findByTenantIdAndCustomerIdIncludingSubCustomers(
+                        tenantId,
+                        customerId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
     }
 
     @Override
@@ -117,7 +145,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                         tenantId,
                         customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink, sortOrders)));
+                        DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap, sortOrders)));
     }
 
     @Override
@@ -160,5 +188,10 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
     @Override
     public DashboardInfo findFirstByTenantIdAndName(UUID tenantId, String name) {
         return DaoUtil.getData(dashboardInfoRepository.findFirstByTenantIdAndTitle(tenantId, name));
+    }
+
+    @Override
+    public String findTitleById(UUID tenantId, UUID dashboardId) {
+        return dashboardInfoRepository.findTitleByTenantIdAndId(tenantId, dashboardId);
     }
 }

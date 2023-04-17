@@ -52,7 +52,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -121,6 +124,15 @@ public class JacksonUtil {
     public static <T> T fromBytes(byte[] bytes, Class<T> clazz) {
         try {
             return bytes != null ? OBJECT_MAPPER.readValue(bytes, clazz) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value: "
+                    + Arrays.toString(bytes) + " cannot be transformed to Json object", e);
+        }
+    }
+
+    public static <T> T fromBytes(byte[] bytes, TypeReference<T> valueTypeRef) {
+        try {
+            return bytes != null ? OBJECT_MAPPER.readValue(bytes, valueTypeRef) : null;
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value: "
                     + Arrays.toString(bytes) + " cannot be transformed to Json object", e);
@@ -217,6 +229,14 @@ public class JacksonUtil {
         return mapper.createObjectNode();
     }
 
+    public static ArrayNode newArrayNode() {
+        return newArrayNode(OBJECT_MAPPER);
+    }
+
+    public static ArrayNode newArrayNode(ObjectMapper mapper) {
+        return mapper.createArrayNode();
+    }
+
     public static <T> T clone(T value) {
         @SuppressWarnings("unchecked")
         Class<T> valueClass = (Class<T>) value.getClass();
@@ -287,6 +307,25 @@ public class JacksonUtil {
                     }
                 }
             }
+        }
+    }
+
+    public static Map<String, String> toFlatMap(JsonNode node) {
+        HashMap<String, String> map = new HashMap<>();
+        toFlatMap(node, "", map);
+        return map;
+    }
+
+    private static void toFlatMap(JsonNode node, String currentPath, Map<String, String> map) {
+        if (node.isObject()) {
+            Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+            currentPath = currentPath.isEmpty() ? "" : currentPath + ".";
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                toFlatMap(entry.getValue(), currentPath + entry.getKey(), map);
+            }
+        } else if (node.isValueNode()) {
+            map.put(currentPath, node.asText());
         }
     }
 

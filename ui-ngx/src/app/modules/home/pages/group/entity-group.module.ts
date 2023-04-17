@@ -41,13 +41,10 @@ import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
 import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 import { UserModule } from '@home/pages/user/user.module';
 import { CustomerModule } from '@home/pages/customer/customer.module';
-import { CustomersHierarchyComponent } from './customers-hierarchy.component';
 import { EdgeModule } from '@home/pages/edge/edge.module';
 
 @NgModule({
-  declarations: [
-    CustomersHierarchyComponent
-  ],
+  declarations: [],
   imports: [
     CommonModule,
     SharedModule,

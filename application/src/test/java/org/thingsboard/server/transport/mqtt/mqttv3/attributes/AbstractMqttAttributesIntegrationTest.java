@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.transport.mqtt.mqttv3.attributes;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.os72.protobuf.dynamic.DynamicSchema;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
@@ -37,6 +38,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.squareup.wire.schema.internal.parser.ProtoFileElement;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DynamicProtoUtils;
@@ -45,21 +47,24 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportC
 import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
+import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUpdate;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
 import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestCallback;
 import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -133,21 +138,26 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     // subscribe to attributes updates from server methods
 
     protected void processJsonTestSubscribeToAttributesUpdates(String attrSubTopic) throws Exception {
+        DeviceId deviceId = savedDevice.getId();
+
         MqttTestClient client = new MqttTestClient();
         client.connectAndWait(accessToken);
         MqttTestCallback onUpdateCallback = new MqttTestCallback();
         client.setCallback(onUpdateCallback);
-        client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
 
-        doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
-        onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        subscribeAndWait(client, attrSubTopic, deviceId, FeatureType.ATTRIBUTES);
+
+        doPostAsync("/api/plugins/telemetry/DEVICE/" + deviceId.getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
+        assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await onUpdateCallback").isTrue();
 
         validateUpdateAttributesJsonResponse(onUpdateCallback, SHARED_ATTRIBUTES_PAYLOAD);
 
         MqttTestCallback onDeleteCallback = new MqttTestCallback();
         client.setCallback(onDeleteCallback);
-        doDelete("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
-        onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        doDelete("/api/plugins/telemetry/DEVICE/" + deviceId.getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
+        assertThat(onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await onDeleteCallback").isTrue();
         validateUpdateAttributesJsonResponse(onDeleteCallback, SHARED_ATTRIBUTES_DELETED_RESPONSE);
         client.disconnect();
     }
@@ -157,16 +167,18 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         client.connectAndWait(accessToken);
         MqttTestCallback onUpdateCallback = new MqttTestCallback();
         client.setCallback(onUpdateCallback);
-        client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
+        subscribeAndWait(client, attrSubTopic, savedDevice.getId(), FeatureType.ATTRIBUTES);
 
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
-        onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await onUpdateCallback").isTrue();
         validateUpdateAttributesProtoResponse(onUpdateCallback);
 
         MqttTestCallback onDeleteCallback = new MqttTestCallback();
         client.setCallback(onDeleteCallback);
         doDelete("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
-        onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await onDeleteCallback").isTrue();
         validateDeleteAttributesProtoResponse(onDeleteCallback);
         client.disconnect();
     }
@@ -177,7 +189,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateUpdateAttributesProtoResponse(MqttTestCallback callback) throws InvalidProtocolBufferException {
-        assertNotNull(callback.getPayloadBytes());
+        assertThat(callback.getPayloadBytes()).as("callback payload non-null").isNotNull();
         TransportProtos.AttributeUpdateNotificationMsg.Builder attributeUpdateNotificationMsgBuilder = TransportProtos.AttributeUpdateNotificationMsg.newBuilder();
         List<TransportProtos.TsKvProto> tsKvProtoList = getTsKvProtoList("shared");
         attributeUpdateNotificationMsgBuilder.addAllSharedUpdated(tsKvProtoList);
@@ -193,7 +205,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateDeleteAttributesProtoResponse(MqttTestCallback callback) throws InvalidProtocolBufferException {
-        assertNotNull(callback.getPayloadBytes());
+        assertThat(callback.getPayloadBytes()).as("callback payload non-null").isNotNull();
         TransportProtos.AttributeUpdateNotificationMsg.Builder attributeUpdateNotificationMsgBuilder = TransportProtos.AttributeUpdateNotificationMsg.newBuilder();
         attributeUpdateNotificationMsgBuilder.addSharedDeleted("sharedJson");
 
@@ -221,10 +233,11 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
 
         assertNotNull(savedDevice);
 
-        client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
+        subscribeAndCheckSubscription(client, GATEWAY_ATTRIBUTES_TOPIC, savedDevice.getId(), FeatureType.ATTRIBUTES);
 
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
-        onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(onUpdateCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await onUpdateCallback").isTrue();
 
         validateJsonGatewayUpdateAttributesResponse(onUpdateCallback, deviceName, SHARED_ATTRIBUTES_PAYLOAD);
 
@@ -232,7 +245,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         client.setCallback(onDeleteCallback);
 
         doDelete("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/SHARED_SCOPE?keys=sharedJson", String.class);
-        onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(onDeleteCallback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await onDeleteCallback").isTrue();
 
         validateJsonGatewayUpdateAttributesResponse(onDeleteCallback, deviceName, SHARED_ATTRIBUTES_DELETED_RESPONSE);
         client.disconnect();
@@ -250,7 +264,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 20,
                 100);
         assertNotNull(device);
-        client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
+
+        subscribeAndCheckSubscription(client, GATEWAY_ATTRIBUTES_TOPIC, device.getId(), FeatureType.ATTRIBUTES);
         doPostAsync("/api/plugins/telemetry/DEVICE/" + device.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         validateProtoGatewayUpdateAttributesResponse(onUpdateCallback, deviceName);
         MqttTestCallback onDeleteCallback = new MqttTestCallback();
@@ -261,7 +276,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateJsonGatewayUpdateAttributesResponse(MqttTestCallback callback, String deviceName, String expectResultData) {
-        assertNotNull(callback.getPayloadBytes());
+        assertThat(callback.getPayloadBytes()).as("callback payload non-null").isNotNull();
         assertEquals(JacksonUtil.toJsonNode(getGatewayAttributesResponseJson(deviceName, expectResultData)), JacksonUtil.fromBytes(callback.getPayloadBytes()));
     }
 
@@ -275,8 +290,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateProtoGatewayUpdateAttributesResponse(MqttTestCallback callback, String deviceName) throws InvalidProtocolBufferException, InterruptedException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull(callback.getPayloadBytes());
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
+        assertThat(callback.getPayloadBytes()).as("callback payload non-null").isNotNull();
 
         TransportProtos.AttributeUpdateNotificationMsg.Builder attributeUpdateNotificationMsgBuilder = TransportProtos.AttributeUpdateNotificationMsg.newBuilder();
         List<TransportProtos.TsKvProto> tsKvProtoList = getTsKvProtoList("shared");
@@ -300,8 +316,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateProtoGatewayDeleteAttributesResponse(MqttTestCallback callback, String deviceName) throws InvalidProtocolBufferException, InterruptedException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull(callback.getPayloadBytes());
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
+        assertThat(callback.getPayloadBytes()).as("callback payload non-null").isNotNull();
         TransportProtos.AttributeUpdateNotificationMsg.Builder attributeUpdateNotificationMsgBuilder = TransportProtos.AttributeUpdateNotificationMsg.newBuilder();
         attributeUpdateNotificationMsgBuilder.addSharedDeleted("sharedJson");
         TransportProtos.AttributeUpdateNotificationMsg attributeUpdateNotificationMsg = attributeUpdateNotificationMsgBuilder.build();
@@ -352,6 +369,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         client.publishAndWait(attrPubTopic, CLIENT_ATTRIBUTES_PAYLOAD.getBytes());
         client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
+        //RequestAttributes does not make any subscriptions in device actor
+
         String update = getWsClient().waitForUpdate();
         assertThat(update).as("ws update received").isNotBlank();
         MqttTestCallback callback = new MqttTestCallback(attrSubTopic.replace("+", "1"));
@@ -366,7 +385,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     protected void processProtoTestRequestAttributesValuesFromTheServer(String attrPubTopic, String attrSubTopic, String attrReqTopicPrefix) throws Exception {
         MqttTestClient client = new MqttTestClient();
         client.connectAndWait(accessToken);
-        DeviceTypeFilter dtf = new DeviceTypeFilter(savedDevice.getType(), savedDevice.getName());
+        DeviceTypeFilter dtf = new DeviceTypeFilter(List.of(savedDevice.getType()), savedDevice.getName());
         String clientKeysStr = "clientStr,clientBool,clientDbl,clientLong,clientJson";
         String sharedKeysStr = "sharedStr,sharedBool,sharedDbl,sharedLong,sharedJson";
         List<String> clientKeysList = List.of(clientKeysStr.split(","));
@@ -381,6 +400,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         client.publishAndWait(attrPubTopic, getAttributesProtoPayloadBytes());
         client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
+        //RequestAttributes does not make any subscriptions in device actor
+
         String update = getWsClient().waitForUpdate();
         assertThat(update).as("ws update received").isNotBlank();
         MqttTestCallback callback = new MqttTestCallback(attrSubTopic.replace("+", "1"));
@@ -406,9 +427,20 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 100);
         assertNotNull(device);
 
+        String clientKeysStr = "clientStr,clientBool,clientDbl,clientLong,clientJson";
+
+        String attributeValuesUrl = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/values/attributes/CLIENT_SCOPE?keys=" + clientKeysStr;
+
+        Awaitility.await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<Map<String, Object>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {
+                    });
+                    return attributes.size() == 5;
+                });
+
         SingleEntityFilter dtf = new SingleEntityFilter();
         dtf.setSingleEntity(device.getId());
-        String clientKeysStr = "clientStr,clientBool,clientDbl,clientLong,clientJson";
         String sharedKeysStr = "sharedStr,sharedBool,sharedDbl,sharedLong,sharedJson";
         List<String> clientKeysList = List.of(clientKeysStr.split(","));
         List<String> sharedKeysList = List.of(sharedKeysStr.split(","));
@@ -429,6 +461,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         assertThat(update).as("ws update received").isNotBlank();
 
         client.subscribeAndWait(GATEWAY_ATTRIBUTES_RESPONSE_TOPIC, MqttQoS.AT_LEAST_ONCE);
+        //RequestAttributes does not make any subscriptions in device actor
 
         MqttTestCallback clientAttributesCallback = new MqttTestCallback(GATEWAY_ATTRIBUTES_RESPONSE_TOPIC);
         client.setCallback(clientAttributesCallback);
@@ -482,6 +515,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         assertThat(update).as("ws update received").isNotBlank();
 
         client.subscribeAndWait(GATEWAY_ATTRIBUTES_RESPONSE_TOPIC, MqttQoS.AT_LEAST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(device.getId(), FeatureType.ATTRIBUTES, 1);
 
         MqttTestCallback clientAttributesCallback = new MqttTestCallback(GATEWAY_ATTRIBUTES_RESPONSE_TOPIC);
         client.setCallback(clientAttributesCallback);
@@ -553,13 +587,15 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateJsonResponse(MqttTestCallback callback, String expectedResponse) throws InterruptedException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
         assertEquals(MqttQoS.AT_MOST_ONCE.value(), callback.getQoS());
         assertEquals(JacksonUtil.toJsonNode(expectedResponse), JacksonUtil.fromBytes(callback.getPayloadBytes()));
     }
 
     protected void validateProtoResponse(MqttTestCallback callback, TransportProtos.GetAttributeResponseMsg expectedResponse) throws InterruptedException, InvalidProtocolBufferException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
         assertEquals(MqttQoS.AT_MOST_ONCE.value(), callback.getQoS());
         TransportProtos.GetAttributeResponseMsg actualAttributesResponse = TransportProtos.GetAttributeResponseMsg.parseFrom(callback.getPayloadBytes());
         assertEquals(expectedResponse.getRequestId(), actualAttributesResponse.getRequestId());
@@ -582,14 +618,16 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateJsonResponseGateway(MqttTestCallback callback, String deviceName, String expectedValues) throws InterruptedException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
         assertEquals(MqttQoS.AT_LEAST_ONCE.value(), callback.getQoS());
         String expectedRequestPayload = "{\"id\":1,\"device\":\"" + deviceName + "\",\"values\":" + expectedValues + "}";
         assertEquals(JacksonUtil.toJsonNode(expectedRequestPayload), JacksonUtil.fromBytes(callback.getPayloadBytes()));
     }
 
     protected void validateProtoClientResponseGateway(MqttTestCallback callback, String deviceName) throws InterruptedException, InvalidProtocolBufferException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
         assertEquals(MqttQoS.AT_LEAST_ONCE.value(), callback.getQoS());
         TransportApiProtos.GatewayAttributeResponseMsg expectedGatewayAttributeResponseMsg = getExpectedGatewayAttributeResponseMsg(deviceName, true);
         TransportApiProtos.GatewayAttributeResponseMsg actualGatewayAttributeResponseMsg = TransportApiProtos.GatewayAttributeResponseMsg.parseFrom(callback.getPayloadBytes());
@@ -605,7 +643,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     }
 
     protected void validateProtoSharedResponseGateway(MqttTestCallback callback, String deviceName) throws InterruptedException, InvalidProtocolBufferException {
-        callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(callback.getSubscribeLatch().await(DEFAULT_WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS))
+                .as("await callback").isTrue();
         assertEquals(MqttQoS.AT_LEAST_ONCE.value(), callback.getQoS());
         TransportApiProtos.GatewayAttributeResponseMsg expectedGatewayAttributeResponseMsg = getExpectedGatewayAttributeResponseMsg(deviceName, false);
         TransportApiProtos.GatewayAttributeResponseMsg actualGatewayAttributeResponseMsg = TransportApiProtos.GatewayAttributeResponseMsg.parseFrom(callback.getPayloadBytes());

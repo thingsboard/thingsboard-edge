@@ -63,6 +63,7 @@ import {
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { mergeMap } from 'rxjs/operators';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
 
 export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
@@ -78,7 +79,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService,
               private params: ActivatedRouteSnapshot | RuleChainParams) {
-    super();
+    super((params as any)?.hierarchyView ? undefined : resolveGroupParams(params as any));
 
     this.entityType = EntityType.RULE_CHAIN;
     this.entityComponent = RuleChainComponent;
@@ -159,14 +160,10 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       );
     } else if (ruleChainScope === 'edges') {
       columns.push(
-        new EntityTableColumn<RuleChain>('root', 'rulechain.edge-template-root', '60px',
-          entity => {
-            return checkBoxCell(entity.root);
-          }),
-        new EntityTableColumn<RuleChain>('assignToEdge', 'rulechain.assign-to-edge', '60px',
-          entity => {
-            return checkBoxCell(this.isAutoAssignToEdgeRuleChain(entity));
-          })
+        new EntityTableColumn<RuleChain>('root', 'rulechain.edge-template-root', '100px',
+          entity => checkBoxCell(entity.root)),
+        new EntityTableColumn<RuleChain>('assignToEdge', 'rulechain.assign-to-edge', '100px',
+          entity => checkBoxCell(this.isAutoAssignToEdgeRuleChain(entity)), () => ({}), false)
       );
     }
     return columns;

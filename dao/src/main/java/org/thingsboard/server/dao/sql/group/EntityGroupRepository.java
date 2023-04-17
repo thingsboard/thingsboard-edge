@@ -46,33 +46,23 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     String TENANT_ID_FILTER = "((e.ownerId = :tenantId AND e.ownerType = 'TENANT') OR " +
             "(e.ownerId in (SELECT c.id FROM CustomerEntity c where c.tenantId = :tenantId) and e.ownerType = 'CUSTOMER'))";
 
-    List<EntityGroupEntity> findEntityGroupsByIdIn(List<UUID> entityGroupIds);
-
-    @Query("SELECT e FROM EntityGroupEntity e " +
-            "WHERE e.ownerId = :parentEntityId " +
-            "AND e.ownerType = :parentEntityType " +
-            "AND e.type = :groupType ")
-    List<EntityGroupEntity> findEntityGroupsByType(@Param("parentEntityId") UUID parentEntityId,
-                                                   @Param("parentEntityType") EntityType parentEntityType,
-                                                   @Param("groupType") EntityType groupType);
-
     @Query("SELECT e FROM EntityGroupEntity e " +
             "WHERE e.ownerId = :parentEntityId " +
             "AND e.ownerType = :parentEntityType " +
             "AND e.type = :groupType " +
             "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(@Param("parentEntityId") UUID parentEntityId,
-                                                              @Param("parentEntityType") EntityType parentEntityType,
-                                                              @Param("groupType") EntityType groupType,
-                                                              @Param("textSearch") String textSearch,
-                                                              Pageable pageable);
+    Page<EntityGroupEntity> findEntityGroupsByType(@Param("parentEntityId") UUID parentEntityId,
+                                                   @Param("parentEntityType") EntityType parentEntityType,
+                                                   @Param("groupType") EntityType groupType,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
 
     @Query("SELECT e FROM EntityGroupEntity e " +
             "WHERE " +
             TENANT_ID_FILTER +
             "AND e.type = :groupType " +
             "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
-    Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(
+    Page<EntityGroupEntity> findEntityGroupsByType(
             @Param("tenantId") UUID tenantId,
             @Param("groupType") EntityType groupType,
             @Param("textSearch") String textSearch,
@@ -88,9 +78,24 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
                                                    @Param("groupType") EntityType groupType,
                                                    @Param("name") String name);
 
-    @Query("SELECT e FROM EntityGroupEntity e WHERE e.ownerId = :parentEntityId AND e.ownerType = :parentEntityType")
-    List<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") UUID parentEntityId,
-                                                @Param("parentEntityType") EntityType parentEntityType);
+    @Query("SELECT e FROM EntityGroupEntity e, RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
+            "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType " +
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<EntityGroupEntity> findAllEntityGroupsByParentRelation(@Param("parentEntityId") UUID parentEntityId,
+                                                                @Param("parentEntityType") String parentEntityType,
+                                                                @Param("textSearch") String textSearch,
+                                                                Pageable pageable);
+
+    @Query("SELECT e FROM EntityGroupEntity e " +
+            "WHERE e.ownerId = :parentEntityId " +
+            "AND e.ownerType = :parentEntityType " +
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") UUID parentEntityId,
+                                                @Param("parentEntityType") EntityType parentEntityType,
+                                                @Param("textSearch") String textSearch,
+                                                Pageable pageable);
 
     @Query("SELECT re.toId " +
             "FROM RelationEntity re " +

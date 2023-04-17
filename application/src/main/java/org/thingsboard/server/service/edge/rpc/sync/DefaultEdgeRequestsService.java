@@ -46,6 +46,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
@@ -280,6 +281,9 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 if (DefaultDeviceStateService.PERSISTENT_ATTRIBUTES.contains(tsKvEntry.getKey())) {
                     continue;
                 }
+                if (tsKvEntry.getKey().startsWith(DataConstants.RULE_NODE_STATE_PREFIX)) {
+                    continue;
+                }
                 tsData.computeIfAbsent(tsKvEntry.getTs(), k -> new HashMap<>()).put(tsKvEntry.getKey(), tsKvEntry.getValue());
             }
             List<ListenableFuture<Void>> futures = new ArrayList<>();
@@ -470,7 +474,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             ListenableFuture<List<EntityId>> entityIdsFuture;
             try {
                 // TODO: voba - refactor this to pagination
-                entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
+                entityIdsFuture = entityGroupService.findAllEntityIdsAsync(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
             } catch (IncorrectParameterException e) {
                 log.warn("[{}] Entity group not found to process entityGroupEntitiesRequestMsg {}", tenantId, entityGroupEntitiesRequestMsg, e);
                 return Futures.immediateFuture(null);
@@ -538,7 +542,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                                     groupPermission.getId(), null, null);
                         } else {
                             ListenableFuture<Boolean> checkFuture =
-                                    entityGroupService.checkEdgeEntityGroupById(edge.getTenantId(), edge.getId(), groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                    entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
                             return Futures.transformAsync(checkFuture, exists -> {
                                 if (Boolean.TRUE.equals(exists)) {
                                     saveEdgeEvent(edge.getTenantId(), edge.getId(),
@@ -565,7 +569,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
                 ListenableFuture<Boolean> checkFuture =
-                        entityGroupService.checkEdgeEntityGroupById(edge.getTenantId(), edge.getId(), groupPermission.getUserGroupId(), EntityType.USER);
+                        entityGroupService.checkEdgeEntityGroupByIdAsync(edge.getTenantId(), edge.getId(), groupPermission.getUserGroupId(), EntityType.USER);
                 result.add(Futures.transformAsync(checkFuture, exists -> {
                     if (Boolean.TRUE.equals(exists)) {
                         saveEdgeEvent(edge.getTenantId(), edge.getId(),

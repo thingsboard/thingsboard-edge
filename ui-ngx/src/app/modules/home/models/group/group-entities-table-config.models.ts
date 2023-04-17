@@ -52,6 +52,7 @@ import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
 import { Customer } from '@shared/models/customer.model';
 import { Edge } from '@shared/models/edge.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export const ASSET_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Asset>>(EntityType.ASSET);
 export const DEVICE_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Device>>(EntityType.DEVICE);
@@ -80,6 +81,7 @@ export interface EntityGroupStateConfigFactory<T extends BaseData<HasId>> {
 export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityGroupInfo {
   // origEntityGroup?: EntityGroupInfo;
   customerGroupsTitle?: string;
+  customerTitle?: string;
   parentEntityGroup?: EntityGroupInfo;
   entityGroupConfig?: GroupEntityTableConfig<T>;
   edgeEntitiesTitle?: string;
@@ -87,8 +89,6 @@ export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityG
 }
 
 export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTableConfig<T, PageLink, ShortEntityView> {
-
-  customerId: string;
 
   settings = groupSettingsDefaults(this.entityGroup.type, this.entityGroup.configuration.settings);
   actionDescriptorsBySourceId: {[actionSourceId: string]: Array<WidgetActionDescriptor>} = {};
@@ -110,12 +110,11 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
 
   constructor(public entityGroup: EntityGroupStateInfo<T>,
               public groupParams: EntityGroupParams) {
-    super();
-    this.customerId = groupParams.customerId;
+    super(groupParams);
     this.entityType = entityGroup.type;
     this.entityTranslations = entityTypeTranslations.get(this.entityType);
     this.entityResources = entityTypeResources.get(this.entityType);
-    this.entityTabsComponent = GroupEntityTabsComponent;
+    this.entityTabsComponent = GroupEntityTabsComponent<T>;
     this.headerComponent = GroupEntityTableHeaderComponent;
     this.entitiesDeleteEnabled = this.settings.enableDelete;
     this.searchEnabled = this.settings.enableSearch;
@@ -125,4 +124,5 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
     this.detailsPanelEnabled = this.settings.detailsMode !== EntityGroupDetailsMode.disabled;
     this.deleteEnabled = () => this.settings.enableDelete;
   }
+
 }

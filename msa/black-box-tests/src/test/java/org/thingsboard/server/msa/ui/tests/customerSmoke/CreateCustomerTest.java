@@ -31,15 +31,17 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.openqa.selenium.Keys;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.EMPTY_CUSTOMER_MESSAGE;
@@ -48,14 +50,14 @@ import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_CUSTOM
 
 public class CreateCustomerTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -67,12 +69,14 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         }
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 10, groups = "smoke")
-    @Description
+    @Description("Add customer specifying the name (text/numbers /special characters)")
     public void createCustomer() {
         String customerName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
         customerPage.addCustomerViewEnterName(customerName);
         customerPage.addBtnC().click();
@@ -83,15 +87,17 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customer(customerName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add customer after specifying the name (text/numbers /special characters) with full information")
     public void createCustomerWithFullInformation() {
         String customerName = ENTITY_NAME + random();
         String text = "Text";
         String email = "email@mail.com";
         String number = "12015550123";
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
         customerPage.addCustomerViewEnterName(customerName);
         customerPage.selectCountryAddEntityView();
@@ -127,19 +133,25 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertEquals(customerPage.getCustomerCity(), text);
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add customer without the name")
     public void createCustomerWithoutName() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
+        customerPage.addBtnC().click();
 
-        Assert.assertFalse(customerPage.addBtnV().isEnabled());
+        Assert.assertTrue(customerPage.addEntityView().isDisplayed(), "Add entity view steel open");
+        Assert.assertEquals(customerPage.errorMessage().getText(), "Title is required.", "Error message");
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Create customer only with spase in name")
     public void createCustomerWithOnlySpace() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
         customerPage.addCustomerViewEnterName(Keys.SPACE);
         customerPage.addBtnC().click();
@@ -151,10 +163,12 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.addEntityView().isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Create a customer with the same name")
     public void createCustomerSameName() {
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         String customerName = customerPage.getCustomerName();
         customerPage.plusBtn().click();
@@ -168,12 +182,14 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.addEntityView().isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 20, groups = "smoke")
-    @Description
+    @Description("Add customer specifying the name (text/numbers /special characters) without refresh")
     public void createCustomerWithoutRefresh() {
         String customerName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
         customerPage.addCustomerViewEnterName(customerName);
         customerPage.addBtnC().click();
@@ -183,16 +199,18 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.customer(customerName).isDisplayed());
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
     @Test(priority = 40, groups = "smoke")
-    @Description
+    @Description("Go to customer documentation page")
     public void documentation() {
         String urlPath = "/docs/pe/user-guide/ui/customers/";
 
-        sideBarMenuView.goToAllCustomerGroupBtn();
+        sideBarMenuView.goToAllCustomers();
         customerPage.setCustomerName();
         customerPage.customer(customerPage.getCustomerName()).click();
         customerPage.goToHelpPage();
 
-        Assert.assertTrue(urlContains(urlPath));
+        Assert.assertTrue(urlContains(urlPath), "URL contains " + urlPath);
     }
 }

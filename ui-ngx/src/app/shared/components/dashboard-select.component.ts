@@ -31,6 +31,7 @@
 
 import {
   Component,
+  ElementRef,
   forwardRef,
   Inject,
   Injector,
@@ -58,8 +59,7 @@ import { WINDOW } from '@core/services/window.service';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {
   DASHBOARD_SELECT_PANEL_DATA,
-  DashboardSelectPanelComponent,
-  DashboardSelectPanelData
+  DashboardSelectPanelComponent
 } from './dashboard-select-panel.component';
 import { Operation } from '@shared/models/security.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -79,6 +79,9 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
 
   @Input()
   groupId: string;
+
+  @Input()
+  customerId: string;
 
   @Input()
   operation: Operation;
@@ -112,6 +115,7 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
               private overlay: Overlay,
               private breakpointObserver: BreakpointObserver,
               private viewContainerRef: ViewContainerRef,
+              private nativeElement: ElementRef,
               @Inject(DOCUMENT) private document: Document,
               @Inject(WINDOW) private window: Window) {
   }
@@ -146,81 +150,52 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
   }
 
   openDashboardSelectPanel() {
-    if (this.disabled) {
-      return;
-    }
-    const panelHeight = this.breakpointObserver.isMatched('min-height: 350px') ? 250 : 150;
-    const panelWidth = 300;
-    const position = this.overlay.position();
-    const config = new OverlayConfig({
-      panelClass: 'tb-dashboard-select-panel',
-      backdropClass: 'cdk-overlay-transparent-backdrop',
-      hasBackdrop: true,
-    });
-    const el = this.dashboardSelectPanelOrigin.elementRef.nativeElement;
-    const offset = el.getBoundingClientRect();
-    const scrollTop = this.window.pageYOffset || this.document.documentElement.scrollTop || this.document.body.scrollTop || 0;
-    const scrollLeft = this.window.pageXOffset || this.document.documentElement.scrollLeft || this.document.body.scrollLeft || 0;
-    const bottomY = offset.bottom - scrollTop;
-    const leftX = offset.left - scrollLeft;
-    let originX;
-    let originY;
-    let overlayX;
-    let overlayY;
-    const wHeight = this.document.documentElement.clientHeight;
-    const wWidth = this.document.documentElement.clientWidth;
-    if (bottomY + panelHeight > wHeight) {
-      originY = 'top';
-      overlayY = 'bottom';
-    } else {
-      originY = 'bottom';
-      overlayY = 'top';
-    }
-    if (leftX + panelWidth > wWidth) {
-      originX = 'end';
-      overlayX = 'end';
-    } else {
-      originX = 'start';
-      overlayX = 'start';
-    }
-    const connectedPosition: ConnectedPosition = {
-      originX,
-      originY,
-      overlayX,
-      overlayY
-    };
-    config.positionStrategy = position.flexibleConnectedTo(this.dashboardSelectPanelOrigin.elementRef)
-      .withPositions([connectedPosition]);
-    const overlayRef = this.overlay.create(config);
-    overlayRef.backdropClick().subscribe(() => {
-      overlayRef.dispose();
-    });
+    if (!this.disabled) {
+      const config = new OverlayConfig({
+        panelClass: 'tb-dashboard-select-panel',
+        backdropClass: 'cdk-overlay-transparent-backdrop',
+        hasBackdrop: true
+      });
 
-    const injector = this._createDashboardSelectPanelInjector(
-      overlayRef,
-      {
-        dashboards$: this.dashboards$,
-        dashboardId: this.dashboardId,
-        onDashboardSelected: (dashboardId) => {
-          overlayRef.dispose();
-          this.dashboardId = dashboardId;
-          this.updateView();
+      const connectedPosition: ConnectedPosition = {
+        originX: 'start',
+        originY: 'bottom',
+        overlayX: 'start',
+        overlayY: 'top'
+      };
+
+      config.positionStrategy = this.overlay.position().flexibleConnectedTo(this.nativeElement)
+        .withPositions([connectedPosition]);
+      const overlayRef = this.overlay.create(config);
+      overlayRef.backdropClick().subscribe(() => {
+        overlayRef.dispose();
+      });
+
+      const providers: StaticProvider[] = [
+        {
+          provide: DASHBOARD_SELECT_PANEL_DATA,
+          useValue: {
+            dashboards$: this.dashboards$,
+            dashboardId: this.dashboardId,
+            onDashboardSelected: (dashboardId) => {
+              overlayRef.dispose();
+              this.dashboardId = dashboardId;
+              this.updateView();
+            }
+          }
+        },
+        {
+          provide: OverlayRef,
+          useValue: overlayRef
         }
-      }
-    );
-    overlayRef.attach(new ComponentPortal(DashboardSelectPanelComponent, this.viewContainerRef, injector));
+      ];
+      const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
+      overlayRef.attach(new ComponentPortal(DashboardSelectPanelComponent, this.viewContainerRef, injector));
+    }
   }
 
   public getDashboardTitle(title: string): string {
     return this.utils.customTranslation(title, title);
-  }
-
-  private _createDashboardSelectPanelInjector(overlayRef: OverlayRef, data: DashboardSelectPanelData): Injector {
-    const providers: StaticProvider[] = [
-      {provide: DASHBOARD_SELECT_PANEL_DATA, useValue: data},
-      {provide: OverlayRef, useValue: overlayRef}
-    ];
-    return Injector.create({parent: this.viewContainerRef.injector, providers});
   }
 
   private updateView() {
@@ -232,7 +207,11 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
     if (this.groupId) {
       dashboardsObservable = this.dashboardService.getGroupDashboards(this.groupId, pageLink, {ignoreLoading: true});
     } else {
-      dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
+      if (this.customerId) {
+        dashboardsObservable = this.dashboardService.getCustomerDashboards(true, this.customerId, pageLink, {ignoreLoading: true});
+      } else {
+        dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
+      }
     }
     return dashboardsObservable;
   }

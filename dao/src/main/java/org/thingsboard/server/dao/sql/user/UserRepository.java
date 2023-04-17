@@ -35,11 +35,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -59,6 +59,14 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
                                           @Param("searchText") String searchText,
                                           @Param("authority") Authority authority,
                                           Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
+            "AND u.customerId IN (:customerIds) " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<UserEntity> findTenantAndCustomerUsers(@Param("tenantId") UUID tenantId,
+                                                @Param("customerIds") Collection<UUID> customerIds,
+                                                @Param("searchText") String searchText,
+                                                Pageable pageable);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.authority = :authority " +
@@ -98,6 +106,25 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
                                     @Param("searchText") String searchText,
                                     Pageable pageable);
 
+    Page<UserEntity> findAllByAuthority(Authority authority, Pageable pageable);
+
+    Page<UserEntity> findByAuthorityAndTenantIdIn(Authority authority, Collection<UUID> tenantsIds, Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u INNER JOIN TenantEntity t ON u.tenantId = t.id AND u.authority = :authority " +
+            "INNER JOIN TenantProfileEntity p ON t.tenantProfileId = p.id " +
+            "WHERE p.id IN :profiles")
+    Page<UserEntity> findByAuthorityAndTenantProfilesIds(@Param("authority") Authority authority,
+                                                         @Param("profiles") Collection<UUID> tenantProfilesIds,
+                                                         Pageable pageable);
+
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.id IN " +
+            "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE (p.tenantId = :tenantId OR :tenantId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "AND p.roleId IN :rolesIds))")
+    Page<UserEntity> findByTenantIdAndRolesIds(@Param("tenantId") UUID tenantId,
+                                               @Param("rolesIds") List<UUID> rolesIds,
+                                               Pageable pageable);
 
 }

@@ -37,6 +37,7 @@ import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_AC
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DialogService } from '@core/services/dialog.service';
+import { coerceBoolean } from '@shared/decorators/coerce-boolean';
 
 @Component({
   selector: 'tb-color-input',
@@ -60,6 +61,10 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   @Input()
   requiredText: string;
+
+  @Input()
+  @coerceBoolean()
+  useThemePalette = false;
 
   private colorClearButtonValue: boolean;
   get colorClearButton(): boolean {
@@ -163,7 +168,7 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   }
 
   showColorPicker() {
-    this.dialogs.colorPicker(this.colorFormGroup.get('color').value).subscribe(
+    this.dialogs.colorPicker(this.colorFormGroup.get('color').value, this.useThemePalette).subscribe(
       (color) => {
         if (color) {
           this.colorFormGroup.patchValue(

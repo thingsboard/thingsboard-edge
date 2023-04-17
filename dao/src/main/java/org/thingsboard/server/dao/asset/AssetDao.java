@@ -69,6 +69,8 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao, ExportableCustome
      */
     PageData<Asset> findAssetsByTenantId(UUID tenantId, PageLink pageLink);
 
+    Long countAssets();
+
     /**
      * Find assets by tenantId, type and page link.
      *

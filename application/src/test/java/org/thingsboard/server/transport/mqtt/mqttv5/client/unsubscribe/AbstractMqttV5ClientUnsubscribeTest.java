@@ -37,6 +37,7 @@ import org.eclipse.paho.mqttv5.common.packet.MqttUnsubAck;
 import org.eclipse.paho.mqttv5.common.packet.MqttWireMessage;
 import org.junit.Assert;
 import org.thingsboard.server.common.data.device.profile.MqttTopics;
+import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
 import org.thingsboard.server.transport.mqtt.mqttv5.MqttV5TestClient;
 
@@ -49,6 +50,7 @@ public abstract class AbstractMqttV5ClientUnsubscribeTest extends AbstractMqttIn
         client.connectAndWait(accessToken);
 
         client.subscribeAndWait(MqttTopics.DEVICE_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(savedDevice.getId(), FeatureType.ATTRIBUTES, 1);
         IMqttToken unsubscribeResult = client.unsubscribeAndWait(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
         MqttWireMessage response = unsubscribeResult.getResponse();
         Assert.assertEquals(MESSAGE_TYPE_UNSUBACK, response.getType());

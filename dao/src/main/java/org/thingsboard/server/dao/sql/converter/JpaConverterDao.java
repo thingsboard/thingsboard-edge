@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -90,6 +91,12 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     @Override
     public Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name) {
         Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(tenantId, name));
+        return Optional.ofNullable(converter);
+    }
+
+    @Override
+    public Optional<Converter> findConverterByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type) {
+        Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndNameAndType(tenantId, name, type));
         return Optional.ofNullable(converter);
     }
 

@@ -31,28 +31,30 @@
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
+import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
+    private SideBarMenuViewHelper sideBarMenuView;
     private CustomerPageHelper customerPage;
     private String customerGroupName;
 
-    @BeforeMethod
+    @BeforeClass
     public void login() {
         new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
+        sideBarMenuView = new SideBarMenuViewHelper(driver);
         customerPage = new CustomerPageHelper(driver);
     }
 
@@ -64,25 +66,30 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         }
     }
 
-    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
-    @Description
+    @Epic("Customers smoke tests")
+    @Feature("Search customer group")
+    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class,
+            dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
+    @Description("Search customer group by first/second word in the name")
     public void searchFirstSecondWord(String namePath) {
         customerGroupName = "Entity Group";
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.searchEntity(namePath);
 
         customerPage.entityGroups().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 
+    @Epic("Customers smoke tests")
+    @Feature("Search customer group")
     @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
-    @Description
+    @Description("Search customer by symbol/number in the name")
     public void searchNumberAndSymbol(String name, String namePath) {
         customerGroupName = name;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
-        sideBarMenuView.customerGroupsBtn().click();
+        sideBarMenuView.goToCustomerGroups();
         customerPage.searchEntity(namePath);
         customerPage.setEntityGroupName();
 

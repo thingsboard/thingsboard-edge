@@ -121,13 +121,13 @@ export class WhiteLabelingService {
   private isUserWlMode = false;
   private isPreviewWlMode = false;
 
-  private primaryPalette: Palette = {
+  public primaryPalette: Palette = {
     type: 'tb-primary',
     colors: tbPrimaryPalette,
     extends: 'teal'
   };
 
-  private accentPalette: Palette = {
+  public accentPalette: Palette = {
     type: 'tb-accent',
     colors: tbAccentPalette,
     extends: 'deep-orange'

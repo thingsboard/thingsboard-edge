@@ -40,6 +40,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.security.Authority;
@@ -153,6 +154,7 @@ public class SwaggerConfiguration {
                 )
                 .securitySchemes(newArrayList(httpLogin()))
                 .securityContexts(newArrayList(securityContext()))
+                .ignoredParameterTypes(AuthenticationPrincipal.class)
                 .enableUrlTemplating(true);
     }
 

@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.attributes;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -104,7 +105,7 @@ public class BaseAttributesService implements AttributesService {
     @Override
     public ListenableFuture<List<String>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes) {
         validate(entityId, scope);
-        attributes.forEach(AttributeUtils::validate);
+        AttributeUtils.validate(attributes);
         List<ListenableFuture<String>> saveFutures = attributes.stream().map(attribute -> attributesDao.save(tenantId, entityId, scope, attribute)).collect(Collectors.toList());
         return Futures.allAsList(saveFutures);
     }

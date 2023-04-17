@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,7 +82,7 @@ public class CachedAttributesService implements AttributesService {
     private final TbTransactionalCache<AttributeCacheKey, AttributeKvEntry> cache;
     private ListeningExecutorService cacheExecutor;
 
-    @Value("${cache.type}")
+    @Value("${cache.type:caffeine}")
     private String cacheType;
 
     public CachedAttributesService(AttributesDao attributesDao,
@@ -138,6 +139,7 @@ public class CachedAttributesService implements AttributesService {
                     return result;
                 } catch (Throwable e) {
                     cacheTransaction.rollback();
+                    log.debug("Could not find attribute from cache: [{}] [{}] [{}]", entityId, scope, attributeKey, e);
                     throw e;
                 }
             });
@@ -147,6 +149,7 @@ public class CachedAttributesService implements AttributesService {
     @Override
     public ListenableFuture<List<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String scope, Collection<String> attributeKeys) {
         validate(entityId, scope);
+        attributeKeys = new LinkedHashSet<>(attributeKeys); // deduplicate the attributes
         attributeKeys.forEach(attributeKey -> Validator.validateString(attributeKey, "Incorrect attribute key " + attributeKey));
 
         Map<String, TbCacheValueWrapper<AttributeKvEntry>> wrappedCachedAttributes = findCachedAttributes(entityId, scope, attributeKeys);
@@ -185,6 +188,7 @@ public class CachedAttributesService implements AttributesService {
                 return mergedAttributes;
             } catch (Throwable e) {
                 cacheTransaction.rollback();
+                log.debug("Could not find attributes from cache: [{}] [{}] [{}]", entityId, scope, notFoundAttributeKeys, e);
                 throw e;
             }
         });
@@ -231,7 +235,7 @@ public class CachedAttributesService implements AttributesService {
     @Override
     public ListenableFuture<List<String>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes) {
         validate(entityId, scope);
-        attributes.forEach(AttributeUtils::validate);
+        AttributeUtils.validate(attributes);
 
         List<ListenableFuture<String>> futures = new ArrayList<>(attributes.size());
         for (var attribute : attributes) {

@@ -80,6 +80,8 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
      */
     PageData<Device> findDevicesByTenantId(UUID tenantId, PageLink pageLink);
 
+    Long countDevices();
+
     /**
      * Find devices by tenantId, type and page link.
      *

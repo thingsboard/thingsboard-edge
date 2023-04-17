@@ -45,6 +45,7 @@ export enum IntegrationType {
   TTI = 'TTI',
   CHIRPSTACK = 'CHIRPSTACK',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
+  AZURE_SERVICE_BUS = 'AZURE_SERVICE_BUS',
   COAP = 'COAP',
   OPC_UA = 'OPC_UA',
   APACHE_PULSAR = 'APACHE_PULSAR',
@@ -223,6 +224,15 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
         name: 'integration.type-azure-event-hub',
         description: 'integration.type-azure-event-hub-description',
         icon: 'assets/integration-icon/azure-event-hub.svg',
+        checkConnection: true
+      }
+    ],
+    [
+      IntegrationType.AZURE_SERVICE_BUS,
+      {
+        name: 'integration.type-azure-service-bus',
+        description: 'integration.type-azure-service-bus-description',
+        icon: 'assets/integration-icon/azure-service-bus.svg',
         checkConnection: true
       }
     ],
@@ -416,6 +426,10 @@ export enum IntegrationSubType {
 export function resolveIntegrationParams(route: ActivatedRouteSnapshot): IntegrationParams {
   const routeParams = {...route.params};
   const routeData = {...route.data};
+  let backNavigationCommands: any[];
+  if (routeData.backNavigationCommands) {
+    backNavigationCommands = routeData.backNavigationCommands;
+  }
   let edgeId: string;
   let integrationScope: string;
   if (routeParams?.hierarchyView) {
@@ -431,7 +445,8 @@ export function resolveIntegrationParams(route: ActivatedRouteSnapshot): Integra
     hierarchyView: routeParams?.hierarchyView,
     entityGroupId: routeParams?.entityGroupId,
     childEntityGroupId: routeParams?.childEntityGroupId,
-    customerId: routeParams?.customerId
+    customerId: routeParams?.customerId,
+    backNavigationCommands
   };
 }
 
@@ -641,6 +656,16 @@ export interface AzureEventHubIntegration {
     consumerGroup?: string;
     iotHubName?: string;
   };
+}
+
+export interface AzureServicesBusIntegration {
+  clientConfiguration: {
+    connectionString: string;
+    topicName: string;
+    subName: string;
+    downlinkConnectionString: string;
+    downlinkTopicName: string;
+  }
 }
 
 export interface AzureIotHubIntegration{

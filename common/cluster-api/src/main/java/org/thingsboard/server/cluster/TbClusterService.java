@@ -81,6 +81,8 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg msg, TbQueueCallback callback);
 
+    void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg msg, boolean useQueueFromTbMsg, TbQueueCallback callback);
+
     void pushNotificationToRuleEngine(String targetServiceId, FromDeviceRpcResponse response, TbQueueCallback callback);
 
     void pushNotificationToTransport(String targetServiceId, ToTransportMsg response, TbQueueCallback callback);
@@ -121,4 +123,5 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action,
                                           EntityType entityGroupType, EntityGroupId entityGroupId);
+
 }

@@ -45,6 +45,7 @@ import org.thingsboard.server.cache.device.DeviceCacheEvictEvent;
 import org.thingsboard.server.cache.device.DeviceCacheKey;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
+import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
@@ -81,6 +82,7 @@ import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.device.provision.ProvisionResponseStatus;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -106,11 +108,15 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKey, Device, DeviceCacheEvictEvent> implements DeviceService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
+    public static final String INCORRECT_DEVICE_PROFILE_ID = "Incorrect deviceProfileId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_DEVICE_ID = "Incorrect deviceId ";
 
     @Autowired
     private DeviceDao deviceDao;
+
+    @Autowired
+    private DeviceInfoDao deviceInfoDao;
 
     @Autowired
     private DeviceCredentialsService deviceCredentialsService;
@@ -127,6 +133,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Autowired
     private DataValidator<Device> deviceValidator;
 
+    @Autowired
+    private EntityCountService countService;
+
     @Override
     public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
@@ -140,6 +149,13 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                         return deviceDao.findDeviceByTenantIdAndId(tenantId, deviceId.getId());
                     }
                 }, true);
+    }
+
+    @Override
+    public DeviceInfo findDeviceInfoById(TenantId tenantId, DeviceId deviceId) {
+        log.trace("Executing findDeviceInfoById [{}]", deviceId);
+        validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
+        return deviceInfoDao.findById(tenantId, deviceId.getId());
     }
 
     @Override
@@ -244,6 +260,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             publishEvictEvent(deviceCacheEvictEvent);
             if (device.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
+                countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
             }
             return savedDevice;
         } catch (Exception t) {
@@ -322,6 +339,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         deviceDao.removeById(tenantId, deviceId.getId());
 
         publishEvictEvent(deviceCacheEvictEvent);
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.DEVICE);
     }
 
     @Override
@@ -330,6 +348,12 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public Long countDevices() {
+        log.trace("Executing countDevices");
+        return deviceDao.countDevices();
     }
 
     @Override
@@ -555,6 +579,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         }
 
         publishEvictEvent(new DeviceCacheEvictEvent(savedDevice.getTenantId(), savedDevice.getId(), provisionRequest.getDeviceName(), null));
+        countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
         return savedDevice;
     }
 
@@ -634,6 +659,79 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
 
         return deviceDao.countByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDevicesByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByTenantIdAndDeviceProfileId, tenantId [{}], deviceProfileId [{}], pageLink [{}]", tenantId, deviceProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDevicesByTenantIdAndDeviceProfileId(tenantId.getId(), deviceProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findTenantDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantDeviceInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findTenantDevicesByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findTenantDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink) {
+        log.trace("Executing findTenantDeviceInfosByTenantIdAndDeviceProfileId, tenantId [{}], deviceProfileId [{}], pageLink [{}]", tenantId, deviceProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findTenantDevicesByTenantIdAndDeviceProfileId(tenantId.getId(), deviceProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId, tenantId [{}], customerId [{}], deviceProfileId [{}], pageLink [{}]", tenantId, customerId, deviceProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDevicesByTenantIdAndCustomerIdAndDeviceProfileId(tenantId.getId(), customerId.getId(), deviceProfileId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByTenantIdAndCustomerIdIncludingSubsCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubsCustomers, tenantId [{}], customerId [{}], deviceProfileId [{}], pageLink [{}]",
+                tenantId, customerId, deviceProfileId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDevicesByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), deviceProfileId.getId(), pageLink);
     }
 
     @Override

@@ -56,4 +56,6 @@ public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, Exportabl
 
     List<Dashboard> findByTenantIdAndTitle(UUID tenantId, String title);
 
+    Long countDashboards();
+
 }

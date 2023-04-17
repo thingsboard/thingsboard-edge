@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
@@ -712,7 +713,9 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         client.connectAndWait(deviceCredentials.getCredentialsId());
         MqttTestCallback onUpdateCallback = new MqttTestCallback();
         client.setCallback(onUpdateCallback);
+
         client.subscribeAndWait("v1/devices/me/attributes", MqttQoS.AT_MOST_ONCE);
+        awaitForDeviceActorToReceiveSubscription(device.getId(), FeatureType.ATTRIBUTES, 1);
 
         edgeImitator.expectResponsesAmount(1);
 
@@ -732,7 +735,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
         Assert.assertTrue(edgeImitator.waitForResponses());
 
-        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(5, TimeUnit.SECONDS));
+        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(30, TimeUnit.SECONDS));
 
         Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.createObjectNode().put(attrKey, attrValue),
                 JacksonUtil.fromBytes(onUpdateCallback.getPayloadBytes()));

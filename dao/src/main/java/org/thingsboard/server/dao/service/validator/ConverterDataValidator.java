@@ -31,26 +31,19 @@
 package org.thingsboard.server.dao.service.validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 public class ConverterDataValidator extends DataValidator<Converter> {
-
-    @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
     private TenantService tenantService;
@@ -60,12 +53,8 @@ public class ConverterDataValidator extends DataValidator<Converter> {
 
     @Override
     protected void validateCreate(TenantId tenantId, Converter converter) {
-        DefaultTenantProfileConfiguration profileConfiguration =
-                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-        long maxConverters = profileConfiguration.getMaxConverters();
-        validateNumberOfEntitiesPerTenant(tenantId, converterDao, maxConverters, EntityType.CONVERTER);
-
-        converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
+        validateNumberOfEntitiesPerTenant(tenantId, EntityType.CONVERTER);
+        converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType()).ifPresent(
                 d -> {
                     throw new DataValidationException("Converter with such name already exists!");
                 }
@@ -74,7 +63,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
 
     @Override
     protected Converter validateUpdate(TenantId tenantId, Converter converter) {
-        var oldConverter = converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName());
+        var oldConverter = converterDao.findConverterByTenantIdAndNameAndType(converter.getTenantId().getId(), converter.getName(), converter.getType());
         oldConverter.ifPresent(
                 d -> {
                     if (!d.getId().equals(converter.getId())) {

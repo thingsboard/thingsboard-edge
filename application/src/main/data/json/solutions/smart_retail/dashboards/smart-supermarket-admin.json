@@ -18,9 +18,23 @@
         "sizeY": 6.5,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -218,8 +232,27 @@
         "config": {
           "datasources": [],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -273,8 +306,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -282,10 +334,10 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "8px",
           "settings": {
-            "markdownTextFunction": "return '# Some title\\n - Entity name: ' + data[0]['entityName'];",
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex style=\"height: 70px;\" stateId='edit_supermarket_title'></tb-dashboard-state>\n    </div>\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex style=\"height: 150px;\" stateId='edit_supermarket_floorplan'></tb-dashboard-state>\n    </div>\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex style=\"height: 70px;\" stateId='edit_supermarket_address'></tb-dashboard-state>\n    </div>\n    <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex stateId='edit_supermarket_location'></tb-dashboard-state>\n</div>",
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n"
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%; height: 100%;\" fxLayout=\"column\">\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex style=\"height: 80px;\" stateId='edit_supermarket_title'></tb-dashboard-state>\n    </div>\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex style=\"height: 200px;\" stateId='edit_supermarket_floorplan'></tb-dashboard-state>\n    </div>\n    <div fxLayout=\"row\">\n        <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex style=\"height: 80px;\" stateId='edit_supermarket_address'></tb-dashboard-state>\n    </div>\n    <tb-dashboard-state [ctx]=\"ctx\" [syncParentStateParams]=\"true\" fxFlex stateId='edit_supermarket_location'></tb-dashboard-state>\n</div>",
+            "applyDefaultMarkdownStyle": false,
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n.tb-markdown-view div, .tb-markdown-view p {\n    line-height: normal;\n}\n\n.tb-markdown-view .mat-toolbar.mat-primary div {\n    color: var(--tb-primary-contrast-500);\n}\n"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -335,9 +387,23 @@
         "sizeY": 6.5,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -500,8 +566,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -606,8 +691,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -663,8 +767,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -751,8 +874,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -760,56 +902,102 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "0px",
           "settings": {
-            "fitMapBounds": true,
-            "latKeyName": "latitude",
-            "lngKeyName": "longitude",
-            "showLabel": true,
-            "label": "${entityName}",
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-devices'>Supermarket devices</link-act>",
-            "markerImageSize": 34,
-            "useColorFunction": false,
-            "markerImages": [],
-            "useMarkerImageFunction": true,
-            "color": "#fe7569",
-            "mapProvider": "CartoDB.Positron",
-            "showTooltip": false,
-            "autocloseTooltip": true,
-            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
-            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
             "provider": "openstreet-map",
-            "defaultCenterPosition": "0,0",
-            "showTooltipAction": "click",
-            "mapPageSize": 16384,
-            "useTooltipFunction": false,
-            "useCustomProvider": false,
-            "useDefaultCenterPosition": false,
-            "draggableMarker": true,
-            "disableScrollZooming": false,
-            "useLabelFunction": false,
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
-            "markerOffsetX": 0.5,
-            "markerOffsetY": 1,
-            "showPolygon": false,
-            "useClusterMarkers": false,
-            "disableZoomControl": false,
-            "markerImageFunction": "var width = 30;\nvar svgStr = getSupermarketSvg(width);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = '#1F8B4D';\n    var background = getBackground(color);\n    var svgWidth = width;\n    var svgHeight = 30;\n    \n    var opacity = 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background + shape;\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n",
             "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
             "gmDefaultMapType": "roadmap",
+            "mapProvider": "CartoDB.Positron",
+            "useCustomProvider": false,
+            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             "mapProviderHere": "HERE.normalDay",
             "credentials": {
               "app_id": "AhM6TzD9ThyK78CT3ptx",
               "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
             },
+            "mapImageUrl": "data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
             "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
             "tmDefaultMapType": "roadmap",
+            "latKeyName": "latitude",
+            "lngKeyName": "longitude",
+            "xPosKeyName": "xPos",
+            "yPosKeyName": "yPos",
             "defaultZoomLevel": 14,
+            "defaultCenterPosition": "0,0",
+            "disableScrollZooming": false,
+            "disableDoubleClickZooming": false,
+            "disableZoomControl": false,
+            "fitMapBounds": true,
+            "useDefaultCenterPosition": false,
+            "mapPageSize": 16384,
+            "markerOffsetX": 0.5,
+            "markerOffsetY": 1,
+            "posFunction": "return {x: origXPos, y: origYPos};",
+            "draggableMarker": true,
+            "showLabel": true,
+            "useLabelFunction": false,
+            "label": "${entityName}",
+            "labelFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<span style=\"color:orange;\">${entityName}, ${energy:2} kWt</span>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<span style=\"color:blue;\">${entityName}, ${temperature:2} °C</span>';\r\n    }\r\n}",
+            "showTooltip": false,
+            "showTooltipAction": "click",
+            "autocloseTooltip": true,
+            "useTooltipFunction": false,
+            "tooltipPattern": "<b>${entityName}</b><br/><br/><link-act name='supermarket-devices'>Supermarket devices</link-act>",
+            "tooltipFunction": "var deviceType = dsData[dsIndex]['Type'];\r\nif (typeof deviceType !== undefined) {\r\n    if (deviceType == \"energy meter\") {\r\n        return '<b>${entityName}</b><br/><b>Energy:</b> ${energy:2} kWt<br/>';\r\n    } else if (deviceType == \"thermometer\") {\r\n        return '<b>${entityName}</b><br/><b>Temperature:</b> ${temperature:2} °C<br/>';\r\n    }\r\n}",
+            "tooltipOffsetX": 0,
+            "tooltipOffsetY": -1,
+            "color": "#fe7569",
+            "useColorFunction": false,
+            "useMarkerImageFunction": true,
+            "markerImageSize": 34,
+            "markerImageFunction": "var width = 30;\nvar svgStr = getSupermarketSvg(width);\nvar encodedSvg = encodeURIComponent(svgStr);\nvar svgUrl = 'data:image/svg+xml,' + encodedSvg;\n\nreturn {\n    url: svgUrl,\n    size: width,\n    markerOffset: [width / 2, width / 2],\n    tooltipOffset: [width * 0.5 - width / 2, - (width / 2)]\n};\n\nfunction getSupermarketSvg(width, isSelected) {\n    var shape = '<path d=\"m18.636 15.8c0.59978 0 1.1276-0.32788 1.3995-0.82369l2.8629-5.1901c0.29589-0.5278-0.08796-1.1836-0.69574-1.1836h-11.836l-0.75172-1.5994h-2.615v1.5994h1.5994l2.8789 6.0697-1.0796 1.9513c-0.58378 1.0716 0.18393 2.3751 1.3995 2.3751h9.5964v-1.5994h-9.5964l0.87967-1.5994zm-7.5092-5.5979h9.7164l-2.2072 3.9985h-5.6139zm0.67175 9.5964c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994 1.5994-0.71973 1.5994-1.5994-0.71973-1.5994-1.5994-1.5994zm7.997 0c-0.87967 0-1.5914 0.71973-1.5914 1.5994s0.71174 1.5994 1.5914 1.5994c0.87967 0 1.5994-0.71973 1.5994-1.5994s-0.71973-1.5994-1.5994-1.5994z\" fill=\"white\" stroke-width=\".7997\"/>';\n    var color = '#1F8B4D';\n    var background = getBackground(color);\n    var svgWidth = width;\n    var svgHeight = 30;\n    \n    var opacity = 1;\n    \n    var supermarketSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background + shape;\n    supermarketSvg += '</svg>';\n    return supermarketSvg;    \n}\n\nfunction getBackground(color) {\n     return '<circle cx=\"15\" cy=\"15\" r=\"15\" fill=\"'+ color +'\"/>';\n}\n",
+            "markerImages": [],
+            "showPolygon": false,
+            "polygonKeyName": "perimeter",
+            "editablePolygon": false,
+            "showPolygonLabel": false,
+            "usePolygonLabelFunction": false,
+            "polygonLabel": "${entityName}",
+            "showPolygonTooltip": false,
+            "showPolygonTooltipAction": "click",
+            "autoClosePolygonTooltip": true,
+            "usePolygonTooltipFunction": false,
+            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
+            "polygonColor": "#3388ff",
+            "polygonOpacity": 0.2,
+            "usePolygonColorFunction": false,
+            "polygonStrokeColor": "#3388ff",
+            "polygonStrokeOpacity": 1,
+            "polygonStrokeWeight": 3,
+            "usePolygonStrokeColorFunction": false,
+            "showCircle": false,
+            "circleKeyName": "perimeter",
+            "editableCircle": false,
+            "showCircleLabel": false,
+            "useCircleLabelFunction": false,
+            "circleLabel": "${entityName}",
+            "showCircleTooltip": false,
+            "showCircleTooltipAction": "click",
+            "autoCloseCircleTooltip": true,
+            "useCircleTooltipFunction": false,
+            "circleTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
+            "circleFillColor": "#3388ff",
+            "circleFillColorOpacity": 0.2,
+            "useCircleFillColorFunction": false,
+            "circleStrokeColor": "#3388ff",
+            "circleStrokeOpacity": 1,
+            "circleStrokeWeight": 3,
+            "useCircleStrokeColorFunction": false,
             "snappable": false,
             "initDragMode": true,
             "hideAllControlButton": true,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": false
+            "useClusterMarkers": false,
+            "zoomOnClick": true,
+            "maxClusterRadius": 80,
+            "animate": true,
+            "spiderfyOnMaxZoom": false,
+            "showCoverageOnHover": true,
+            "chunkedLoading": false,
+            "removeOutsideVisibleBounds": true,
+            "useIconCreateFunction": false
           },
           "title": "Edit supermarket location",
           "dropShadow": false,
@@ -867,8 +1055,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -963,8 +1170,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1097,8 +1323,27 @@
         "config": {
           "datasources": [],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1162,9 +1407,23 @@
         "sizeY": 6.5,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 86400000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -1454,8 +1713,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -1578,8 +1856,27 @@
         "config": {
           "datasources": [],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678197897861,
+                "endTimeMs": 1678284297861
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2109,5 +2406,6 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },
+  "externalId": null,
   "name": "Smart Supermarket Administration"
 }

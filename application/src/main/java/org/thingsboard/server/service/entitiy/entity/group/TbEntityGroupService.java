@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.entity.group;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -41,7 +42,7 @@ import java.util.List;
 
 public interface TbEntityGroupService {
 
-    EntityGroup save(TenantId tenantId, EntityId parentEntityId, EntityGroup entity, User currentUser) throws Exception;
+    EntityGroupInfo save(TenantId tenantId, EntityId parentEntityId, EntityGroup entity, User currentUser) throws Exception;
 
     void delete(TenantId tenantId, List<EdgeId> relatedEdgeIds, EntityGroup entityGroup, User user) throws ThingsboardException;
 
