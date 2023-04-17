@@ -96,7 +96,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
         validateIntegrationAssignToEdge(savedIntegration);
 
-        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val1");
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val1", true);
 
         validateIntegrationConfigurationUpdate(savedIntegration);
 
@@ -111,7 +111,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         validateRemoveOfIntegration(savedIntegration);
     }
 
-    private void verifyHttpIntegrationUpAndRunning(Integration integration, String expectedDeviceName) {
+    private void verifyHttpIntegrationUpAndRunning(Integration integration, String expectedDeviceName, boolean cleanup) {
         try {
             SECONDS.sleep(1); // wait for integration to be recompiled and restarted with updated config
         } catch (Throwable ignored) {}
@@ -126,9 +126,14 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
-                    Optional<Device> tenantDevice = edgeRestClient.getTenantDevice(expectedDeviceName);
+                    Optional<Device> tenantDevice = cloudRestClient.getTenantDevice(expectedDeviceName);
                     return tenantDevice.isPresent();
                 });
+
+        if (cleanup) {
+            Optional<Device> device = cloudRestClient.getTenantDevice(expectedDeviceName);
+            cloudRestClient.deleteDevice(device.get().getId());
+        }
     }
 
     private void validateIntegrationAssignToEdge(Integration savedIntegration) {
@@ -159,7 +164,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
                     return updatedIntegrationConfig.equals(integration.getConfiguration());
                 });
 
-        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val2");
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val2", true);
     }
 
     private void validateEdgeAttributesUpdate(Integration savedIntegration) throws JsonProcessingException {
@@ -176,7 +181,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
                     return integration.getConfiguration().toString().contains("val3");
                 });
 
-        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val3");
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val3", true);
 
         JsonNode edgeAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"valAttr\":\"val4\", \"baseUrl\":\"" + edgeUrl + "\"}");
         cloudRestClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
@@ -189,7 +194,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
                     return integration.getConfiguration().toString().contains("val4");
                 });
 
-        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val4");
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val4", true);
     }
 
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) {
@@ -218,7 +223,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
 
-        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val5");
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val5", false);
     }
 
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {
@@ -248,7 +253,8 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
         addIntegrationDownlinkRuleNodeToEdgeRootRuleChain(savedIntegration);
 
-        sendRpcRequestToDevice();
+        String deviceName = "Device Converter val5";
+        sendRpcRequestToDevice(deviceName);
 
         sendHttpUplinkAndVerifyDownlink(savedIntegration);
 
@@ -258,6 +264,9 @@ public class IntegrationClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
+
+        Optional<Device> device = cloudRestClient.getTenantDevice(deviceName);
+        cloudRestClient.deleteDevice(device.get().getId());
     }
 
     private void sendHttpUplinkAndVerifyDownlink(Integration savedIntegration) {
@@ -272,8 +281,8 @@ public class IntegrationClientTest extends AbstractContainerTest {
         Assert.assertEquals(3, responseEntityResponseEntity.getBody().get("pin").asInt());
     }
 
-    private void sendRpcRequestToDevice() {
-        Optional<Device> tenantDeviceOpt = edgeRestClient.getTenantDevice("Device Converter val5");
+    private void sendRpcRequestToDevice(String deviceName) {
+        Optional<Device> tenantDeviceOpt = edgeRestClient.getTenantDevice(deviceName);
         Assert.assertTrue(tenantDeviceOpt.isPresent());
         Device device = tenantDeviceOpt.get();
 

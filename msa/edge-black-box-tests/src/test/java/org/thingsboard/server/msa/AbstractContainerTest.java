@@ -385,8 +385,8 @@ public abstract class AbstractContainerTest {
         edge.setType("DEFAULT");
         edge.setRoutingKey(routingKey);
         edge.setSecret(secret);
-        edge.setEdgeLicenseKey("123");
-        edge.setCloudEndpoint("tb-monolith");
+        edge.setEdgeLicenseKey("6qcGys6gz4M2ZuIqZ6hRDjWT");
+        edge.setCloudEndpoint("http://tb-monolith:8080");
         return cloudRestClient.saveEdge(edge);
     }
 

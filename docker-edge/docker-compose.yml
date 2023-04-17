@@ -40,6 +40,7 @@ services:
       - "8082"
       - "1883"
     environment:
+      EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
       CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
