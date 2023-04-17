@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,20 +29,20 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Inject, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
   Validator,
   Validators
 } from '@angular/forms';
-import { Observable, of, Subscription } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import {
   ComplexFilterPredicateInfo,
   ComplexOperation,
@@ -52,7 +52,7 @@ import {
   KeyFilterPredicateInfo
 } from '@shared/models/query/query.models';
 import { MatDialog } from '@angular/material/dialog';
-import { map } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
 import { ComponentType } from '@angular/cdk/portal';
 import { COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN } from '@home/components/tokens';
 import { ComplexFilterPredicateDialogData } from '@home/components/filter/filter-component.models';
@@ -74,7 +74,7 @@ import { ComplexFilterPredicateDialogData } from '@home/components/filter/filter
     }
   ]
 })
-export class FilterPredicateListComponent implements ControlValueAccessor, Validator, OnInit {
+export class FilterPredicateListComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
@@ -90,29 +90,36 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
 
   @Input() onlyUserDynamicSource = false;
 
-  filterListFormGroup: FormGroup;
+  filterListFormGroup: UntypedFormGroup;
 
   valueTypeEnum = EntityKeyValueType;
 
   complexOperationTranslations = complexOperationTranslationMap;
 
+  private destroy$ = new Subject<void>();
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
-
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               @Inject(COMPLEX_FILTER_PREDICATE_DIALOG_COMPONENT_TOKEN) private complexFilterPredicateDialogComponent: ComponentType<any>,
               private dialog: MatDialog) {
   }
 
   ngOnInit(): void {
-    this.filterListFormGroup = this.fb.group({});
-    this.filterListFormGroup.addControl('predicates',
-      this.fb.array([]));
+    this.filterListFormGroup = this.fb.group({
+      predicates: this.fb.array([])
+    });
+    this.filterListFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
-  predicatesFormArray(): FormArray {
-    return this.filterListFormGroup.get('predicates') as FormArray;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  get predicatesFormArray(): UntypedFormArray {
+    return this.filterListFormGroup.get('predicates') as UntypedFormArray;
   }
 
   registerOnChange(fn: any): void {
@@ -138,32 +145,30 @@ export class FilterPredicateListComponent implements ControlValueAccessor, Valid
   }
 
   writeValue(predicates: Array<KeyFilterPredicateInfo>): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
-    const predicateControls: Array<AbstractControl> = [];
-    if (predicates) {
-      for (const predicate of predicates) {
-        predicateControls.push(this.fb.control(predicate, [Validators.required]));
-      }
-    }
-    this.filterListFormGroup.setControl('predicates', this.fb.array(predicateControls));
-    this.valueChangeSubscription = this.filterListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
-    if (this.disabled) {
-      this.filterListFormGroup.disable({emitEvent: false});
+    if (predicates.length === this.predicatesFormArray.length) {
+      this.predicatesFormArray.patchValue(predicates, {emitEvent: false});
     } else {
-      this.filterListFormGroup.enable({emitEvent: false});
+      const predicateControls: Array<AbstractControl> = [];
+      if (predicates) {
+        for (const predicate of predicates) {
+          predicateControls.push(this.fb.control(predicate, [Validators.required]));
+        }
+      }
+      this.filterListFormGroup.setControl('predicates', this.fb.array(predicateControls), {emitEvent: false});
+      if (this.disabled) {
+        this.filterListFormGroup.disable({emitEvent: false});
+      } else {
+        this.filterListFormGroup.enable({emitEvent: false});
+      }
     }
   }
 
   public removePredicate(index: number) {
-    (this.filterListFormGroup.get('predicates') as FormArray).removeAt(index);
+    this.predicatesFormArray.removeAt(index);
   }
 
   public addPredicate(complex: boolean) {
-    const predicatesFormArray = this.filterListFormGroup.get('predicates') as FormArray;
+    const predicatesFormArray = this.filterListFormGroup.get('predicates') as UntypedFormArray;
     const predicate = createDefaultFilterPredicateInfo(this.valueType, complex);
     let observable: Observable<KeyFilterPredicateInfo>;
     if (complex) {

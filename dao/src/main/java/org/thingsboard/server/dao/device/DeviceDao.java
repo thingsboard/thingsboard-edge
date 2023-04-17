@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -79,6 +80,8 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
      */
     PageData<Device> findDevicesByTenantId(UUID tenantId, PageLink pageLink);
 
+    Long countDevices();
+
     /**
      * Find devices by tenantId, type and page link.
      *
@@ -97,6 +100,22 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
      * @return the list of device objects
      */
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> deviceIds);
+
+    /**
+     * Find devices by devices Ids.
+     *
+     * @param deviceIds the device Ids
+     * @return the list of device objects
+     */
+    List<Device> findDevicesByIds(List<UUID> deviceIds);
+
+    /**
+     * Find devices by devices Ids.
+     *
+     * @param deviceIds the device Ids
+     * @return the list of device objects
+     */
+    ListenableFuture<List<Device>> findDevicesByIdsAsync(List<UUID> deviceIds);
 
     PageData<Device> findDevicesByEntityGroupId(UUID groupId, PageLink pageLink);
 
@@ -194,4 +213,8 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
     Long countByEntityGroupAndEmptyOtaPackage(UUID groupId, UUID otaPackageId, OtaPackageType type);
 
     Long countByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId, OtaPackageType type);
+
+    PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
+
+
 }

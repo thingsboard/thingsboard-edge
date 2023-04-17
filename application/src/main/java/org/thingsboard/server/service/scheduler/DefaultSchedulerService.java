@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.service.scheduler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -80,9 +81,11 @@ import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
@@ -185,7 +188,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
     }
 
     @Override
-    protected void onAddedPartitions(Set<TopicPartitionInfo> addedPartitions) {
+    protected Map<TopicPartitionInfo, List<ListenableFuture<?>>> onAddedPartitions(Set<TopicPartitionInfo> addedPartitions) {
         log.info("Scheduler service {}", firstRun ? "Initializing" : "Updating");
         long ts = System.currentTimeMillis();
         PageDataIterable<Tenant> tenantIterator = new PageDataIterable<>(tenantService::findTenants, 1024);
@@ -198,6 +201,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
         }
         log.info("Scheduler service {}.", firstRun ? "initialized" : "updated");
         firstRun = false;
+        return Collections.emptyMap();
     }
 
     @Override
@@ -270,7 +274,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                 try {
                     JsonNode configuration = event.getConfiguration();
                     String msgType = getMsgType(event, configuration);
-                    EntityId originatorId = getOriginatorId(eventId, configuration);
+                    EntityId originatorId = getOriginatorId(event);
 
                     boolean isFirmwareUpdate = UPDATE_FIRMWARE.equals(event.getType());
                     boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(event.getType());

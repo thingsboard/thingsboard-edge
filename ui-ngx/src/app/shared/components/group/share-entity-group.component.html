@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@
     notFoundText="customer.no-customers-matching"
     requiredText="customer.customer-required">
   </tb-owner-autocomplete>
-  <mat-checkbox formControlName="allUserGroup" style="padding-bottom: 16px;">{{ 'entity-group.all-users' | translate }}</mat-checkbox>
+  <mat-checkbox formControlName="allUserGroup">{{ 'entity-group.all-users' | translate }}</mat-checkbox>
   <tb-entity-group-select
     *ngIf="!shareEntityGroupFormGroup.get('allUserGroup').value"
     [ownerId]="shareEntityGroupFormGroup.get('ownerId').value"
@@ -51,8 +51,7 @@
   </tb-entity-group-select>
   <small translate>entity-group.permissions</small>
   <mat-radio-group color="primary" formControlName="permissionType" fxLayout="row" fxLayout.xs="column"
-                   fxLayoutGap="16px"
-                   style="padding: 16px 0;">
+                   fxLayoutGap.gt-xs="16px">
     <mat-radio-button [value]="0" color="primary">
       <span translate>permission.operation.display-type.READ</span>
     </mat-radio-button>
@@ -67,9 +66,9 @@
     *ngIf="shareEntityGroupFormGroup.get('permissionType').value === 2"
     [entityType]="entityType.ROLE"
     [entitySubType]="roleType.GROUP"
-    entityListText="role.roles"
+    placeholderText="{{ 'role.roles' | translate }}"
     noEntitiesText="role.no-roles-matching"
-    entitiesRequiredText="role.roles-required"
+    requiredText="{{ 'role.roles-required' | translate }}"
     required
     formControlName="roleIds">
   </tb-entity-list>

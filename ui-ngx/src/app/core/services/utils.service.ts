@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-// tslint:disable-next-line:no-reference
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../src/typings/rawloader.typings.d.ts" />
 
 import { Inject, Injectable, NgZone } from '@angular/core';
@@ -40,11 +40,15 @@ import {
   createLabelFromDatasource,
   deepClone,
   deleteNullProperties,
-  guid,
+  guid, hashCode,
   isDefined,
   isDefinedAndNotNull,
   isString,
-  isUndefined
+  isUndefined,
+  objToBase64,
+  objToBase64URI,
+  base64toString,
+  base64toObj
 } from '@core/utils';
 import { WindowMessage } from '@shared/models/window-message.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -59,6 +63,15 @@ import jsonSchemaDefaults from 'json-schema-defaults';
 import materialIconsCodepoints from '!raw-loader!./material-icons-codepoints.raw';
 import { Observable, of, ReplaySubject } from 'rxjs';
 import { DatePipe } from '@angular/common';
+import { publishReplay, refCount } from 'rxjs/operators';
+import { WidgetContext } from '@app/modules/home/models/widget-component.models';
+import {
+  AttributeData,
+  LatestTelemetry,
+  TelemetrySubscriber,
+  TelemetryType
+} from '@shared/models/telemetry/telemetry.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 const i18nRegExp = new RegExp(`{${i18nPrefix}:[^{}]+}`, 'g');
 
@@ -94,7 +107,7 @@ const commonMaterialIcons: Array<string> = ['more_horiz', 'more_vert', 'open_in_
   'arrow_forward', 'arrow_upwards', 'close', 'refresh', 'menu', 'show_chart', 'multiline_chart', 'pie_chart', 'insert_chart', 'people',
   'person', 'domain', 'devices_other', 'now_widgets', 'dashboards', 'map', 'pin_drop', 'my_location', 'extension', 'search',
   'settings', 'notifications', 'notifications_active', 'info', 'info_outline', 'warning', 'list', 'file_download', 'import_export',
-  'share', 'add', 'edit', 'done'];
+  'share', 'add', 'edit', 'done', 'delete'];
 
 // @dynamic
 @Injectable({
@@ -202,6 +215,8 @@ export class UtilsService {
           return alarmStatusTranslations.get(value) ? this.translate.instant(alarmStatusTranslations.get(value)) : value;
         } else if (alarmField === alarmFields.originatorType) {
           return this.translate.instant(entityTypeTranslations.get(value).type);
+        } else if (alarmField.value === alarmFields.assignee.value) {
+          return '';
         }
       }
       return value;
@@ -438,6 +453,13 @@ export class UtilsService {
     });
   }
 
+  public stringToHslColor(str: string, saturationPercentage: number, lightnessPercentage: number): string {
+    if (str && str.length) {
+      let hue = hashCode(str) % 360;
+      return `hsl(${hue}, ${saturationPercentage}%, ${lightnessPercentage}%)`;
+    }
+  }
+
   public currentPerfTime(): number {
     return this.window.performance && this.window.performance.now ?
       this.window.performance.now() : Date.now();
@@ -529,4 +551,54 @@ export class UtilsService {
       return text;
     }
   }
+
+  private getEntityIdFromDatasource(dataSource: Datasource): EntityId {
+    return {id: dataSource.entityId, entityType: dataSource.entityType};
+  }
+
+  public subscribeToEntityTelemetry(ctx: WidgetContext,
+                                    entityId?: EntityId,
+                                    type: TelemetryType = LatestTelemetry.LATEST_TELEMETRY,
+                                    keys: string[] = null): Observable<Array<AttributeData>> {
+    if (!entityId && ctx.datasources.length > 0) {
+      entityId = this.getEntityIdFromDatasource(ctx.datasources[0]);
+    }
+    const subscription = TelemetrySubscriber.createEntityAttributesSubscription(ctx.telemetryWsService, entityId, type, ctx.ngZone, keys);
+    if (!ctx.telemetrySubscribers) {
+      ctx.telemetrySubscribers = [];
+    }
+    ctx.telemetrySubscribers.push(subscription);
+    subscription.subscribe();
+    return subscription.attributeData$().pipe(
+      publishReplay(1),
+      refCount()
+    );
+  }
+
+  public objToBase64(obj: any): string {
+    return objToBase64(obj);
+  }
+
+  public base64toString(b64Encoded: string): string {
+    return base64toString(b64Encoded);
+  }
+
+  public objToBase64URI(obj: any): string {
+    return objToBase64URI(obj);
+  }
+
+  public base64toObj(b64Encoded: string): any {
+    return base64toObj(b64Encoded);
+  }
+
+  public plainColorFromVariable(variable: string): string {
+    if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
+      return variable;
+    }
+    if (variable.startsWith('var(')) {
+      variable = variable.substring(4, variable.length - 1);
+    }
+    return getComputedStyle(this.window.document.documentElement).getPropertyValue(variable);
+  }
+
 }

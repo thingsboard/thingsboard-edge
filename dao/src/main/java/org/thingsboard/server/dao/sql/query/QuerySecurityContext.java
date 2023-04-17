@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.query.EntityGroupFilter;
 import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class QuerySecurityContext {
@@ -57,6 +58,9 @@ public class QuerySecurityContext {
     private final CustomerId customerId;
 
     private final EntityType entityType;
+
+    @Getter
+    private final boolean ignorePermissionCheck;
 
     private final MergedUserPermissions userPermissions;
 
@@ -71,25 +75,30 @@ public class QuerySecurityContext {
     private final EntityType entityGroupType;
 
     public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter) {
-        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, null);
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, null, false);
     }
 
-    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId) {
-        this(tenantId, customerId, entityType, userPermissions, entityFilter, ownerId, null);
+    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, boolean ignorePermissionCheck) {
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, null, ignorePermissionCheck);
     }
 
-    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityType entityGroupType) {
-        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, entityGroupType);
+    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, boolean ignorePermissionCheck) {
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, ownerId, null, ignorePermissionCheck);
     }
 
-    private QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, EntityType entityGroupType) {
+    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityType entityGroupType, boolean ignorePermissionCheck) {
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, entityGroupType, ignorePermissionCheck);
+    }
+
+    private QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, EntityType entityGroupType, boolean ignorePermissionCheck) {
         this.tenantId = tenantId;
         this.customerId = customerId;
         this.entityType = entityType;
-        this.userPermissions = userPermissions;
+        this.userPermissions = ignorePermissionCheck ? new MergedUserPermissions(Collections.singletonMap(Resource.ALL, Collections.singleton(Operation.ALL)), Collections.emptyMap()) : userPermissions;
         this.entityFilter = entityFilter;
         this.ownerId = ownerId;
         this.entityGroupType = entityGroupType;
+        this.ignorePermissionCheck = ignorePermissionCheck;
     }
 
     public boolean isTenantUser() {
@@ -168,7 +177,8 @@ public class QuerySecurityContext {
 
     public boolean isEntityGroup() {
         return EntityType.ENTITY_GROUP.equals(entityType)
-                ||  EntityFilterType.ENTITY_GROUP_NAME.equals(entityFilter.getType())
-                ||  EntityFilterType.ENTITY_GROUP_LIST.equals(entityFilter.getType());
+                || EntityFilterType.ENTITY_GROUP_NAME.equals(entityFilter.getType())
+                || EntityFilterType.ENTITY_GROUP_LIST.equals(entityFilter.getType());
     }
+
 }

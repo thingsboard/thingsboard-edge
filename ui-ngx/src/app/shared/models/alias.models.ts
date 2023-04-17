@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,7 @@ export enum AliasFilterType {
   deviceSearchQuery = 'deviceSearchQuery',
   entityViewSearchQuery = 'entityViewSearchQuery',
   edgeSearchQuery = 'edgeSearchQuery',
+  schedulerEvent = 'schedulerEvent'
 }
 
 export const edgeAliasFilterTypes = new Array<string>(
@@ -84,6 +85,7 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.deviceSearchQuery, 'alias.filter-type-device-search-query' ],
     [ AliasFilterType.entityViewSearchQuery, 'alias.filter-type-entity-view-search-query' ],
     [ AliasFilterType.edgeSearchQuery, 'alias.filter-type-edge-search-query' ],
+    [ AliasFilterType.schedulerEvent, 'alias.filter-type-scheduler-event' ]
   ]
 );
 
@@ -143,23 +145,39 @@ export interface StateEntityOwnerFilter {
 }
 
 export interface AssetTypeFilter {
+  /**
+   * @deprecated
+   */
   assetType?: string;
+  assetTypes?: string[];
   assetNameFilter?: string;
 }
 
 export interface DeviceTypeFilter {
+  /**
+   * @deprecated
+   */
   deviceType?: string;
+  deviceTypes?: string[];
   deviceNameFilter?: string;
 }
 
-export interface EntityViewFilter {
-  entityViewType?: string;
-  entityViewNameFilter?: string;
+export interface EdgeTypeFilter {
+  /**
+   * @deprecated
+   */
+  edgeType?: string;
+  edgeTypes?: string[];
+  edgeNameFilter?: string;
 }
 
-export interface EdgeTypeFilter {
-  edgeType?: string;
-  edgeNameFilter?: string;
+export interface EntityViewFilter {
+  /**
+   * @deprecated
+   */
+  entityViewType?: string;
+  entityViewTypes?: string[];
+  entityViewNameFilter?: string;
 }
 
 export interface RelationsQueryFilter {
@@ -184,7 +202,7 @@ export interface EntitySearchQueryFilter {
   fetchLastLevelOnly?: boolean;
 }
 
-// tslint:disable-next-line:no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface ApiUsageStateFilter {
 
 }
@@ -203,6 +221,14 @@ export interface EntityViewSearchQueryFilter extends EntitySearchQueryFilter {
 
 export interface EdgeSearchQueryFilter extends EntitySearchQueryFilter {
   edgeTypes?: string[];
+}
+
+export interface SchedulerEventFilter {
+  originatorStateEntity?: boolean;
+  stateEntityParamName?: string;
+  defaultStateEntity?: EntityId;
+  originator?: EntityId;
+  eventType?: string;
 }
 
 export type EntityFilters =
@@ -225,7 +251,8 @@ export type EntityFilters =
   DeviceSearchQueryFilter &
   EntityViewSearchQueryFilter &
   EntitySearchQueryFilter &
-  EdgeSearchQueryFilter;
+  EdgeSearchQueryFilter &
+  SchedulerEventFilter;
 
 export interface EntityAliasFilter extends EntityFilters {
   type?: AliasFilterType;

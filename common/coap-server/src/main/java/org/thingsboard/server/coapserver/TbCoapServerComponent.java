@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,8 +37,7 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
 @ConditionalOnExpression("('${service.type:null}'=='tb-transport' || '${service.type:null}'=='tb-core' " +
-        "|| '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-integration' " +
-        "|| '${service.type:null}'=='tb-integration-executor') " +
-        "&& '${coap.enabled:false}'=='true'")
+        "|| '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-integration-executor') " +
+        "&& '${coap.enabled:false}'=='true' || '${service.type:null}'=='tb-integration'")
 public @interface TbCoapServerComponent {
 }

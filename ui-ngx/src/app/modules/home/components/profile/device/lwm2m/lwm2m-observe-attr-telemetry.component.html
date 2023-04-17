@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@
           </tb-profile-lwm2m-attributes>
           <button type="button"
                   *ngIf="!disabled && objectLwM2M.get('multiple').value"
-                  mat-button mat-icon-button (click)="addInstances($event, objectLwM2M)"
+                  mat-icon-button (click)="addInstances($event, objectLwM2M)"
                   matTooltip="{{'device-profile.lwm2m.add-new-instances' | translate}}"
                   matTooltipPosition="above">
             <mat-icon class="material-icons">note_add</mat-icon>

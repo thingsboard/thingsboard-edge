@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,21 +30,24 @@
  */
 package org.thingsboard.server.service.sync.ie.importing.csv;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasAdditionalInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -88,9 +91,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,7 +106,7 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
     @Autowired
     private EntityActionService entityActionService;
 
-    private static ThreadPoolExecutor executor;
+    private ThreadPoolExecutor executor;
 
     @PostConstruct
     private void initExecutor() {
@@ -188,6 +188,10 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
 
     protected abstract EntityType getEntityType();
 
+    protected ObjectNode getOrCreateAdditionalInfoObj(HasAdditionalInfo entity) {
+        return entity.getAdditionalInfo() == null || entity.getAdditionalInfo().isNull() ?
+                JacksonUtil.newObjectNode() : (ObjectNode) entity.getAdditionalInfo();
+    }
 
     private void saveKvs(SecurityUser user, E entity, Map<BulkImportRequest.ColumnMapping, ParsedValue> data) {
         Arrays.stream(BulkImportColumnType.values())

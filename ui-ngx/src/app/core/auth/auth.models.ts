@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
 ///
 
 import { AuthUser, User } from '@shared/models/user.model';
+import { UserSettings } from '@shared/models/user-settings.models';
 
 export interface SysParamsState {
   userTokenAccessEnabled: boolean;
@@ -38,6 +39,8 @@ export interface SysParamsState {
   whiteLabelingAllowed: boolean;
   customerWhiteLabelingAllowed: boolean;
   hasRepository: boolean;
+  tbelEnabled: boolean;
+  userSettings: UserSettings;
 }
 
 export interface AuthPayload extends SysParamsState {

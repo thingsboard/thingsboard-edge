@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.Palette;
@@ -47,7 +48,8 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 @Slf4j
 public class WhiteLabelingParamsProtoConstructor {
 
-    public LoginWhiteLabelingParamsProto constructLoginWhiteLabelingParamsProto(LoginWhiteLabelingParams loginWhiteLabelingParams) {
+    public LoginWhiteLabelingParamsProto constructLoginWhiteLabelingParamsProto(LoginWhiteLabelingParams loginWhiteLabelingParams,
+                                                                                EntityId entityId) {
         LoginWhiteLabelingParamsProto.Builder builder = LoginWhiteLabelingParamsProto.newBuilder();
         if (loginWhiteLabelingParams.getPageBackgroundColor() != null) {
             builder.setPageBackgroundColor(loginWhiteLabelingParams.getPageBackgroundColor());
@@ -62,12 +64,15 @@ public class WhiteLabelingParamsProtoConstructor {
         if (loginWhiteLabelingParams.getAdminSettingsId() != null) {
             builder.setAdminSettingsId(loginWhiteLabelingParams.getAdminSettingsId());
         }
-        builder.setWhiteLabelingParams(constructWhiteLabelingParamsProto(loginWhiteLabelingParams));
+        builder.setWhiteLabelingParams(constructWhiteLabelingParamsProto(loginWhiteLabelingParams, entityId));
         return builder.build();
     }
 
-    public WhiteLabelingParamsProto constructWhiteLabelingParamsProto(WhiteLabelingParams whiteLabelingParams) {
+    public WhiteLabelingParamsProto constructWhiteLabelingParamsProto(WhiteLabelingParams whiteLabelingParams, EntityId entityId) {
         WhiteLabelingParamsProto.Builder builder = WhiteLabelingParamsProto.newBuilder();
+        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name());
         if (whiteLabelingParams.getLogoImageUrl() != null) {
             builder.setLogoImageUrl(whiteLabelingParams.getLogoImageUrl());
         }

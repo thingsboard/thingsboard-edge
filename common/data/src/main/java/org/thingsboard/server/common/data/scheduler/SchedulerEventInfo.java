@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,6 +62,8 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
     private TenantId tenantId;
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private CustomerId customerId;
+    @ApiModelProperty(position = 5, value = "JSON object with Originator Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private EntityId originatorId;
     @NoXss
     @Length(fieldName = "name")
     @ApiModelProperty(position = 6, value = "scheduler event name", example = "Weekly Dashboard Report")
@@ -87,6 +89,7 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
         super(schedulerEventInfo);
         this.tenantId = schedulerEventInfo.getTenantId();
         this.customerId = schedulerEventInfo.getCustomerId();
+        this.originatorId = schedulerEventInfo.getOriginatorId();
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
         this.setSchedule(schedulerEventInfo.getSchedule());

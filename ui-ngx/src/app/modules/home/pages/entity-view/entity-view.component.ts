@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,23 +32,25 @@
 import { ChangeDetectorRef, Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
-import { EntityView } from '@shared/models/entity-view.models';
+import { EntityViewInfo } from '@shared/models/entity-view.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-entity-view',
   templateUrl: './entity-view.component.html',
   styleUrls: ['./entity-view.component.scss']
 })
-export class EntityViewComponent extends GroupEntityComponent<EntityView> {
+export class EntityViewComponent extends GroupEntityComponent<EntityViewInfo> {
 
   entityType = EntityType;
 
@@ -65,11 +67,13 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: EntityView,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<EntityView>,
-              protected fb: FormBuilder,
-              protected cd: ChangeDetectorRef) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd);
+              @Inject('entity') protected entityValue: EntityViewInfo,
+              @Inject('entitiesTableConfig')
+              protected entitiesTableConfigValue: EntityTableConfig<EntityViewInfo> | GroupEntityTableConfig<EntityViewInfo>,
+              protected fb: UntypedFormBuilder,
+              protected cd: ChangeDetectorRef,
+              protected userPermissionsService: UserPermissionsService) {
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
   }
 
   ngOnInit() {
@@ -92,7 +96,7 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
 
-  buildForm(entity: EntityView): FormGroup {
+  buildForm(entity: EntityViewInfo): UntypedFormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -121,7 +125,7 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
     );
   }
 
-  updateForm(entity: EntityView) {
+  updateForm(entity: EntityViewInfo) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type});
     this.entityForm.patchValue({entityId: entity.entityId});

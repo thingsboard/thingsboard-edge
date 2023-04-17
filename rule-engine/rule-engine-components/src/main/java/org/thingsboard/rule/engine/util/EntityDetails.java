@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,6 @@ package org.thingsboard.rule.engine.util;
 
 public enum EntityDetails {
 
-    TITLE, COUNTRY, CITY, STATE, ZIP, ADDRESS, ADDRESS2, PHONE, EMAIL, ADDITIONAL_INFO
+    ID, TITLE, COUNTRY, CITY, STATE, ZIP, ADDRESS, ADDRESS2, PHONE, EMAIL, ADDITIONAL_INFO
 
 }

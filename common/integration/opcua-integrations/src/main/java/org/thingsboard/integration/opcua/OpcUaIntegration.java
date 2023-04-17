@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,8 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.util.Arrays;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
@@ -78,6 +76,8 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.util.ExceptionUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -87,19 +87,27 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.integration.opcua.OpcUaIntegrationTask.CONNECT;
+import static org.thingsboard.integration.opcua.OpcUaIntegrationTask.DISCONNECT;
 
 /**
  * Created by Valerii Sosliuk on 3/17/2018.
@@ -107,35 +115,34 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
+    private static final int MIN_DELAY_BETWEEN_RECONNECTS_IN_SEC = 10;
+    private static final int MAX_DELAY_BETWEEN_RECONNECTS_IN_SEC = 600;
     private final AtomicLong clientHandles = new AtomicLong(1L);
     private OpcUaServerConfiguration opcUaServerConfiguration;
     private volatile OpcUaClient client;
     private UaSubscription subscription;
-    private Map<NodeId, OpcUaDevice> devices;
-    private Map<NodeId, List<OpcUaDevice>> devicesByTags;
-    private Map<Pattern, DeviceMapping> mappings;
+    private final Map<NodeId, OpcUaDevice> devices = new ConcurrentHashMap<>();
+    private final Map<NodeId, List<OpcUaDevice>> devicesByTags = new ConcurrentHashMap<>();
+    private volatile Map<Pattern, DeviceMapping> mappings;
     // This variable describes the state of integration, whether it has to run or shut down, not the state of the opc-ua client
     private volatile boolean connected = false;
-    private volatile boolean scheduleRescan = false;
-    private ScheduledFuture taskFuture;
-    private ScheduledFuture reconnectFuture;
-    private volatile boolean stopped;
-    private volatile AtomicInteger delayBetweenReconnects = new AtomicInteger(10);
+    private volatile ScheduledFuture<?> nextPollFuture;
+
+    private final AtomicInteger delayBetweenReconnects = new AtomicInteger(10);
+    private final BlockingQueue<OpcUaIntegrationTask> taskQueue = new LinkedBlockingQueue<>();
+    private final Lock taskLock = new ReentrantLock();
+
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        stopped = false;
         opcUaServerConfiguration = getClientConfiguration(configuration, OpcUaServerConfiguration.class);
         if (opcUaServerConfiguration.getMapping().isEmpty()) {
             throw new IllegalArgumentException("No mapping elements configured!");
         }
-        this.devices = new ConcurrentHashMap<>();
-        this.devicesByTags = new ConcurrentHashMap<>();
         opcUaServerConfiguration.getMapping().forEach(DeviceMapping::initMappingPatterns);
         this.mappings = opcUaServerConfiguration.getMapping().stream().collect(Collectors.toConcurrentMap(m -> Pattern.compile(m.getDeviceNodePattern()), Function.identity()));
-        scheduleRescan = true;
-        context.getScheduledExecutorService().execute(this::connect);
+        submit(CONNECT);
     }
 
     @Override
@@ -153,12 +160,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     @Override
-    public void update(TbIntegrationInitParams params) throws Exception {
-        destroy();
-        init(params);
-    }
-
-    @Override
     public void process(OpcUaIntegrationMsg msg) {
         String status = "OK";
         Exception exception = null;
@@ -166,7 +167,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             doProcess(context, msg);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
-            log.warn("[{}] Failed to apply data converter function", this.configuration.getName(), e);
+            log.warn("[{}] Failed to apply data converter function", getConfigurationId(), e);
             exception = e;
             status = "ERROR";
         }
@@ -177,7 +178,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
             } catch (Exception e) {
-                log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
+                log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
             }
         }
     }
@@ -188,7 +189,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), mdMap));
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
-                log.trace("[{}] Processing uplink data: {}", this.configuration.getName(), data);
+                log.trace("[{}] Processing uplink data: {}", getConfigurationId(), data);
                 processUplinkData(context, data);
             }
         }
@@ -211,7 +212,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 integrationStatistics.incMessagesProcessed();
             }
         } catch (Exception e) {
-            log.warn("[{}] Failed to process downLink message", this.configuration.getName(), e);
+            log.warn("[{}] Failed to process downLink message", getConfigurationId(), e);
             exception = e;
             status = "ERROR";
         }
@@ -221,7 +222,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
-        if (!connected || scheduleRescan) {
+        if (!connected) {
             persistDebug(context, "Downlink", "ERROR", "Cannot process downlink message because of connection was lost.", "FAILURE", new OpcUaIntegrationException("Not connected", new RuntimeException()));
             return false;
         }
@@ -240,10 +241,80 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         return !writeValues.isEmpty() || !callMethods.isEmpty();
     }
 
-    private boolean initClient(OpcUaServerConfiguration configuration) throws OpcUaIntegrationException {
-        try {
+    private void submit(OpcUaIntegrationTask task) {
+        submit(task, 0);
+    }
 
-            log.info("[{}] Initializing OPC-UA server connection to [{}:{}]!", this.configuration.getName(), configuration.getHost(), configuration.getPort());
+    private void submit(OpcUaIntegrationTask task, int delayInSec) {
+        if (delayInSec > 0) {
+            log.debug("[{}] Adding task to queue: {} with delay {}", configuration.getId(), task, delayInSec);
+        } else {
+            log.debug("[{}] Adding task to queue: {}", configuration.getId(), task);
+        }
+        if (nextPollFuture != null) {
+            nextPollFuture.cancel(true);
+        }
+        if (DISCONNECT.equals(task)) {
+            taskQueue.removeIf(Objects::nonNull);
+        }
+        taskQueue.add(task);
+        log.debug("[{}] queue size: {}", configuration.getId(), taskQueue.size());
+        if (delayInSec > 0) {
+            nextPollFuture = context.getScheduledExecutorService().schedule(this::submitPoll, delayInSec, TimeUnit.SECONDS);
+        } else {
+            submitPoll();
+        }
+    }
+
+    private void submitPoll() {
+        context.getExecutorService().execute(this::pollTask);
+    }
+
+    private void pollTask() {
+        taskLock.lock();
+        try {
+            OpcUaIntegrationTask task = taskQueue.poll();
+            if (task != null) {
+                deduplicate(task);
+                log.debug("[{}] Going to process task: {}", configuration.getId(), task);
+                processTask(task);
+            }
+        } catch (Exception e) {
+            log.warn("[{}] Unhandled error during task processing: ", configuration.getId(), e);
+        } finally {
+            taskLock.unlock();
+        }
+    }
+
+    private void deduplicate(OpcUaIntegrationTask task) {
+        while (true) {
+            OpcUaIntegrationTask next = taskQueue.peek();
+            if (task.equals(next)) {
+                log.debug("[{}] Remove duplicated task from queue: {}", getConfigurationId(), next);
+                taskQueue.poll();
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void processTask(OpcUaIntegrationTask task) {
+        switch (task) {
+            case CONNECT:
+                doConnect();
+                break;
+            case DISCONNECT:
+                doDisconnect();
+                break;
+            case SCAN:
+                scanForDevices();
+                break;
+        }
+    }
+
+    private void initClient(OpcUaServerConfiguration configuration) throws OpcUaIntegrationException {
+        try {
+            log.info("[{}] Initializing OPC-UA server connection to [{}:{}]!", getConfigurationId(), configuration.getHost(), configuration.getPort());
 
             SecurityPolicy securityPolicy = SecurityPolicy.valueOf(configuration.getSecurity());
             IdentityProvider identityProvider = configuration.getIdentity().toProvider();
@@ -253,7 +324,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             try {
                 endpoints = DiscoveryClient.getEndpoints(endpointUrl).get(10, TimeUnit.SECONDS);
             } catch (Exception e) {
-                log.error("[{}] Failed to connect to provided endpoint! With error: [{}]", this.configuration.getName(), e.getMessage());
+                log.error("[{}] Failed to connect to provided endpoint! With error: [{}]", getConfigurationId(), e.getMessage());
                 throw new OpcUaIntegrationException("Failed to connect to provided endpoint: " + endpointUrl, e);
             }
             log.info("Endpoints processing finished. Processed endpoints count: {}", endpoints.size());
@@ -293,29 +364,28 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
             client = OpcUaClient.create(config);
             client.connect().get(30, TimeUnit.SECONDS);
-            log.info("[{}] OPC-UA Client connected successfully!", this.configuration.getName());
+            log.info("[{}] OPC-UA Client connected successfully!", getConfigurationId());
             sendConnectionSucceededMessageToRuleEngine();
             subscription = client.getSubscriptionManager().createSubscription(1000.0).get();
+            connected = true;
         } catch (TimeoutException e) {
             throw new OpcUaIntegrationException("Failed to connect to OPC-UA server - timeout.");
-        }
-        catch (Exception e) {
-            log.error("[{}] Failed to connect to OPC-UA server. Reason: {}", this.configuration.getName(), e.getMessage(), e);
+        } catch (Exception e) {
+            log.debug("[{}] Failed to connect to OPC-UA server. Reason: {}", getConfigurationId(), e.getMessage(), e);
             throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + e.getMessage(), e);
         }
-        return true;
     }
 
     private void sendConnectionSucceededMessageToRuleEngine() {
         String messageType = "OPC_UA_INT_SUCCESS";
-        log.info("[{}] Sending OPC-UA integration succeeded message to Rule Engine", this.configuration.getName());
+        log.info("[{}] Sending OPC-UA integration succeeded message to Rule Engine", getConfigurationId());
         TbMsg tbMsg = sendAlertToRuleEngine(messageType);
         persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "SUCCESS", null);
     }
 
     private void sendConnectionFailedMessageToRuleEngine(Exception e) {
         String messageType = "OPC_UA_INT_FAILURE";
-        log.warn("[{}] Sending OPC-UA integration failed message to Rule Engine", this.configuration.getName());
+        log.warn("[{}] Sending OPC-UA integration failed message to Rule Engine", getConfigurationId());
         TbMsg tbMsg = sendAlertToRuleEngine(messageType);
         persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "FAILURE", e);
     }
@@ -336,103 +406,85 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     @Override
     public void destroy() {
-        stopped = true;
+        submit(OpcUaIntegrationTask.DISCONNECT);
+    }
+
+    private void doDisconnect() {
         if (connected) {
             try {
-                disconnect();
+                connected = false;
+                if (client != null) {
+                    try {
+                        if (subscription != null) {
+                            client.deleteSubscriptions(Collections.singletonList(subscription.getSubscriptionId()));
+                        }
+                        client.disconnect().get(10, TimeUnit.SECONDS);
+                    } finally {
+                        client = null;
+                        subscription = null;
+                    }
+                    log.info("[{}] OPC-UA client disconnected", this.configuration.getId());
+                }
             } catch (Exception e) {
-                log.warn("[{}] Failed to disconnect", this.configuration.getName(), e);
+                log.warn("[{}] Failed to disconnect", this.configuration.getId(), e);
             }
-        }
-        if (taskFuture != null) {
-            taskFuture.cancel(true);
-        }
-        if (reconnectFuture != null) {
-            reconnectFuture.cancel(true);
         }
     }
 
-    private boolean connect() {
-        boolean clientCreated = false;
+    private void doConnect() {
+        if (connected) {
+            log.info("[{}] Ignore connect task because client is already connected", configuration.getId());
+            return;
+        }
         devices.clear();
         devicesByTags.clear();
         try {
-            if (connected) {
-                disconnect();
-            }
-            clientCreated = initClient(opcUaServerConfiguration);
+            initClient(opcUaServerConfiguration);
+            delayBetweenReconnects.set(MIN_DELAY_BETWEEN_RECONNECTS_IN_SEC);
+            submit(OpcUaIntegrationTask.SCAN);
+            log.info("[{}] OPC-UA client was connected successfully to server {}", configuration.getId(), opcUaServerConfiguration.getHost());
         } catch (OpcUaIntegrationException e) {
             sendConnectionFailedMessageToRuleEngine(e);
-        }
-        if (clientCreated) {
-            connected = true;
-            scheduleRescan = false;
-            delayBetweenReconnects.set(10);
-            context.getScheduledExecutorService().execute(this::scanForDevices);
-            log.info("OPC-UA client was connected successfully to server {}", opcUaServerConfiguration.getHost());
-        } else {
             int currentDelayBetweenReconnectAttempt = delayBetweenReconnects.get();
-            if (currentDelayBetweenReconnectAttempt < 600)
+            if (currentDelayBetweenReconnectAttempt < MAX_DELAY_BETWEEN_RECONNECTS_IN_SEC) {
                 delayBetweenReconnects.set(currentDelayBetweenReconnectAttempt + 10);
-            scheduleConnect();
-        }
-        return clientCreated;
-    }
-
-    private void disconnect() {
-        connected = false;
-        if (client != null) {
-            try {
-                client.disconnect().get(10, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                log.warn("Error: ", e);
             }
-            client = null;
-            log.info("[{}] OPC-UA client disconnected", this.configuration.getName());
+            submit(CONNECT, currentDelayBetweenReconnectAttempt);
         }
-    }
-
-    private void scheduleScan() {
-        taskFuture = context.getScheduledExecutorService().schedule((Runnable) this::scanForDevices, opcUaServerConfiguration.getScanPeriodInSeconds(), TimeUnit.SECONDS);
-    }
-
-    private void scheduleConnect() {
-        reconnectFuture = context.getScheduledExecutorService().schedule(this::connect, delayBetweenReconnects.get(), TimeUnit.SECONDS);
     }
 
     private void scanForDevices() {
-        if (stopped) {
-            log.info("[{}] Integration is already stopped!", this.configuration.getId());
+        if (!connected) {
             return;
         }
+        boolean requiresReconnect = false;
         try {
-            if (!connected && !connect()) {
-                log.debug("[{}] Scheduling next connect in {} seconds!", this.configuration.getId(), delayBetweenReconnects.get());
-                scheduleConnect();
-                scheduleRescan = false;
-                return;
-            }
-
             long startTs = System.currentTimeMillis();
-            scanForDevices(new OpcUaNode(Identifiers.RootFolder, ""));
+            ScanExceptions exceptions = scanForDevices(new OpcUaNode(Identifiers.RootFolder, ""));
             log.debug("[{}] Device scan cycle completed in {} ms", this.configuration.getId(), (System.currentTimeMillis() - startTs));
-            List<OpcUaDevice> deleted = devices.entrySet().stream().filter(kv -> kv.getValue().getScanTs() < startTs).map(Map.Entry::getValue).collect(Collectors.toList());
+            List<OpcUaDevice> deleted = devices.values().stream().filter(opcUaDevice -> opcUaDevice.getScanTs() < startTs).collect(Collectors.toList());
             if (deleted.size() > 0) {
                 log.info("[{}] Devices {} are no longer available", this.configuration.getId(), deleted);
             }
-            deleted.forEach(devices::remove);
+            deleted.stream().map(OpcUaDevice::getNodeId).forEach(devices::remove);
 
-            if (connected) {
-                log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
-                scheduleRescan = true;
+            if (exceptions.getCritical() != null) {
+                var e = exceptions.getCritical();
+                UaException uaException = ExceptionUtil.lookupException(e.getCause(), UaException.class);
+                if (uaException != null) {
+                    e.getNode().ifPresent(node -> log.error(String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), uaException.getMessage()), uaException));
+                    sendConnectionFailedMessageToRuleEngine(e);
+                    submit(OpcUaIntegrationTask.DISCONNECT);
+                    submit(CONNECT, MIN_DELAY_BETWEEN_RECONNECTS_IN_SEC);
+                    requiresReconnect = true;
+                }
             }
         } catch (Throwable e) {
             log.warn("[{}] Periodic device scan failed!", this.configuration.getId(), e);
-            scheduleRescan = true;
         }
-        if (connected && scheduleRescan) {
-            scheduleScan();
-            scheduleRescan = false;
+        if (!requiresReconnect) {
+            log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
+            submit(OpcUaIntegrationTask.SCAN, opcUaServerConfiguration.getScanPeriodInSeconds());
         }
     }
 
@@ -478,9 +530,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
     }
 
+    private ScanExceptions scanForDevices(OpcUaNode node) {
+        var errors = new ScanExceptions();
+        scanForDevices(node, errors);
+        return errors;
+    }
 
-    private void scanForDevices(OpcUaNode node) {
-        log.debug("[{}] Scanning node: {}", this.configuration.getName(), node);
+    private void scanForDevices(OpcUaNode node, ScanExceptions errors) {
+        log.debug("[{}] Scanning node: {}", getConfigurationId(), node);
         List<DeviceMapping> matchedMappings = new ArrayList<>();
         boolean scanChildren = false;
         for (Map.Entry<Pattern, DeviceMapping> mappingEntry : mappings.entrySet()) {
@@ -492,59 +549,47 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         }
 
         matchedMappings.forEach(m -> {
+            if (errors.getCritical() != null) {
+                return;
+            }
             try {
-                log.debug("[{}] Matched mapping: [{}]", this.configuration.getName(), m);
-                scanDevice(node, m);
+                log.debug("[{}] Matched mapping: [{}]", getConfigurationId(), m);
+                scanDevice(node, m, errors);
             } catch (Exception e) {
-                log.error("[{}] Failed to scan device: {}", this.configuration.getName(), node, e);
-                scheduleRescan = true;
+                log.error("[{}] Failed to scan device: {}", getConfigurationId(), node, e);
+                errors.add(new OpcUaIntegrationException(node, "Failed to scan device", e));
             }
         });
         if (scanChildren) {
             try {
-                if (client == null) {
-                    connect();
-                    scheduleRescan = false;
-                }
                 BrowseResult browseResult = client.browse(getBrowseDescription(node.getNodeId())).get();
                 List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
                 for (ReferenceDescription rd : references) {
                     if (rd.getNodeId().isLocal()) {
-                        NodeId childNodeId = rd.getNodeId().toNodeId(client.getNamespaceTable()).orElse(null);
-                        if (childNodeId != null) {
-                            OpcUaNode childNode = new OpcUaNode(node, childNodeId, rd.getBrowseName().getName());
-                            scanForDevices(childNode);
-                        }
+                        rd.getNodeId().toNodeId(client.getNamespaceTable()).ifPresent(childNodeId ->
+                                scanForDevices(new OpcUaNode(node, childNodeId, rd.getBrowseName().getName()), errors));
                     } else {
-                        log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
+                        log.trace("[{}] Ignoring remote node: {}", getConfigurationId(), rd.getNodeId());
                     }
                 }
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof UaException) {
-                    connected = false;
-                    String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
-                    log.error(message, e);
-                    sendConnectionFailedMessageToRuleEngine(e);
-                    scheduleConnect();
-                }
             } catch (Exception e) {
-                if (connected) {
-                    String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
-                    log.error(message, e);
-                    scheduleScan();
-                }
+                errors.add(new OpcUaIntegrationException(node, "Failed to browse node", e));
             }
         } else {
-            log.debug("[{}] Skip scanning children for node: {}", this.configuration.getName(), node);
+            log.debug("[{}] Skip scanning children for node: {}", getConfigurationId(), node);
         }
     }
 
-    private void scanDevice(OpcUaNode node, DeviceMapping m) throws Exception {
-        log.debug("[{}] Scanning device node: {}", this.configuration.getName(), node);
+    private String getConfigurationId() {
+        return this.configuration.getName();
+    }
+
+    private void scanDevice(OpcUaNode node, DeviceMapping m, ScanExceptions errors) throws Exception {
+        log.debug("[{}] Scanning device node: {}", getConfigurationId(), node);
         Set<String> tags = m.getAllTags();
-        log.debug("[{}] Scanning node hierarchy for tags: {}", this.configuration.getName(), tags);
-        Map<String, NodeId> tagMap = lookupTags(node.getNodeId(), node.getName(), tags);
-        log.debug("[{}] Scanned {} tags out of {}", this.configuration.getName(), tagMap.size(), tags.size());
+        log.debug("[{}] Scanning node hierarchy for tags: {}", getConfigurationId(), tags);
+        Map<String, NodeId> tagMap = lookupTags(node.getNodeId(), node.getName(), tags, errors);
+        log.debug("[{}] Scanned {} tags out of {}", getConfigurationId(), tagMap.size(), tags.size());
 
         OpcUaDevice device;
         if (devices.containsKey(node.getNodeId())) {
@@ -567,7 +612,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                         log.error(msg);
                     }
                 }
-                log.debug("[{}] Going to subscribe to tags: {}", this.configuration.getName(), newTags);
+                log.debug("[{}] Going to subscribe to tags: {}", getConfigurationId(), newTags);
                 subscribeToTags(newTags);
             }
             onDeviceDataUpdate(device, null);
@@ -580,7 +625,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             for (NodeId tagId : newTags.values()) {
                 devicesByTags.computeIfAbsent(tagId, key -> new ArrayList<>()).add(device);
             }
-            log.debug("[{}] Going to subscribe to tags: {}", this.configuration.getName(), newTags);
+            log.debug("[{}] Going to subscribe to tags: {}", getConfigurationId(), newTags);
             subscribeToTags(newTags);
         }
     }
@@ -622,9 +667,9 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
         for (UaMonitoredItem item : items) {
             if (item.getStatusCode().isGood()) {
-                log.trace("[{}] Monitoring Item created for nodeId={}", this.configuration.getName(), item.getReadValueId().getNodeId());
+                log.trace("[{}] Monitoring Item created for nodeId={}", getConfigurationId(), item.getReadValueId().getNodeId());
             } else {
-                log.warn("[{}] Failed to create item for nodeId={} (status={})", this.configuration.getName(),
+                log.warn("[{}] Failed to create item for nodeId={} (status={})", getConfigurationId(),
                         item.getReadValueId().getNodeId(), item.getStatusCode());
             }
         }
@@ -633,7 +678,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private void onSubscriptionValue(UaMonitoredItem item, DataValue dataValue) {
         try {
             if (context != null && !context.isClosed()) {
-                log.debug("[{}] Subscription value received: item={}, value={}", this.configuration.getName(),
+                log.debug("[{}] Subscription value received: item={}, value={}", getConfigurationId(),
                         item.getReadValueId().getNodeId(), dataValue.getValue());
                 NodeId tagId = item.getReadValueId().getNodeId();
                 devicesByTags.getOrDefault(tagId, Collections.emptyList()).forEach(
@@ -644,12 +689,15 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 );
             }
         } catch (Exception e) {
-            log.warn("[{}] Failed to process subscription value [{}][{}]", this.configuration.getName(), item.getReadValueId().getNodeId(), item.getStatusCode());
+            log.warn("[{}] Failed to process subscription value [{}][{}]", getConfigurationId(), item.getReadValueId().getNodeId(), item.getStatusCode());
         }
     }
 
-    private Map<String, NodeId> lookupTags(NodeId nodeId, String deviceNodeName, Set<String> tags) {
+    private Map<String, NodeId> lookupTags(NodeId nodeId, String deviceNodeName, Set<String> tags, ScanExceptions errors) {
         Map<String, NodeId> values = new HashMap<>();
+        if (errors.getCritical() != null) {
+            return values;
+        }
         try {
             BrowseResult browseResult = client.browse(getBrowseDescription(nodeId)).get(5, TimeUnit.SECONDS);
             List<ReferenceDescription> references = ConversionUtil.toList(browseResult.getReferences());
@@ -659,7 +707,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 if (rd.getNodeId().isLocal()) {
                     childId = rd.getNodeId().toNodeId(client.getNamespaceTable()).get();
                 } else {
-                    log.trace("[{}] Ignoring remote node: {}", this.configuration.getName(), rd.getNodeId());
+                    log.trace("[{}] Ignoring remote node: {}", getConfigurationId(), rd.getNodeId());
                     continue;
                 }
 
@@ -672,25 +720,19 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 }
 
                 if (StringUtils.isEmpty(name) || name.endsWith("//")) {
-                    log.trace("[{}] Ignoring self-referenced node: {}", this.configuration.getName(), rd.getNodeId());
+                    log.trace("[{}] Ignoring self-referenced node: {}", getConfigurationId(), rd.getNodeId());
                     continue;
                 }
 
-                log.trace("[{}] Found tag: [{}].[{}]", this.configuration.getName(), nodeId, name);
+                log.trace("[{}] Found tag: [{}].[{}]", getConfigurationId(), nodeId, name);
                 if (tags.contains(name)) {
                     values.put(name, childId);
                 }
                 // recursively browse children
-                values.putAll(lookupTags(childId, deviceNodeName, tags));
+                values.putAll(lookupTags(childId, deviceNodeName, tags, errors));
             }
-        } catch (ExecutionException | TimeoutException e) {
-            String message = String.format("[%s] ExecutionException while Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
-            log.error(message, e);
-            log.error("Scheduling reconnect");
-            scheduleConnect();
-        } catch (Exception e) {
-            String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
-            log.error(message, e);
+        } catch (ExecutionException | TimeoutException | InterruptedException e) {
+            errors.add(new OpcUaIntegrationException(String.format("[%s] Browsing nodeId=%s failed: %s", getConfigurationId(), nodeId, e.getMessage()), e));
         }
         return values;
     }
@@ -722,8 +764,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                     try {
                                         nodeId = NodeId.parseSafe(writeValueJson.get("nodeId").asText());
                                     } catch (Exception e) {
-                                        String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
-                                        log.error(message, e);
+                                        log.error(String.format("[%s] Browsing nodeId=%s failed: %s", getConfigurationId(), nodeId, e.getMessage()), e);
                                     }
                                 }
                                 if (writeValueJson.has("value")) {
@@ -739,7 +780,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("[{}] Preparing write values failed: {}", this.configuration.getName(), e.getMessage(), e);
+                    log.error("[{}] Preparing write values failed: {}", getConfigurationId(), e.getMessage(), e);
                 }
             }
         }
@@ -763,14 +804,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                     try {
                                         objectId = NodeId.parseSafe(callMethodJson.get("objectId").asText());
                                     } catch (Exception e) {
-                                        log.error("[{}] Parsing safe {}", this.configuration.getName(), e.getMessage(), e);
+                                        log.error("[{}] Parsing safe {}", getConfigurationId(), e.getMessage(), e);
                                     }
                                 }
                                 if (callMethodJson.has("methodId")) {
                                     try {
                                         methodId = NodeId.parseSafe(callMethodJson.get("methodId").asText());
                                     } catch (Exception e) {
-                                        log.error("[{}]Parsing safe {}", this.configuration.getName(), e.getMessage(), e);
+                                        log.error("[{}] Parsing safe {}", getConfigurationId(), e.getMessage(), e);
                                     }
                                 }
                                 if (callMethodJson.has("args")) {
@@ -793,7 +834,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("[{}] PrepareCallMethods {}", this.configuration.getName(), e.getMessage(), e);
+                    log.error("[{}] PrepareCallMethods {}", getConfigurationId(), e.getMessage(), e);
                 }
             }
         }
@@ -833,7 +874,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 }
                 persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
-                log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
+                log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
             }
         }
     }

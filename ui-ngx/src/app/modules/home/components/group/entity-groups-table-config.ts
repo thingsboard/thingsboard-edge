@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,6 @@ import { EntityGroup, EntityGroupInfo, EntityGroupParams, entityGroupsTitle } fr
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { BroadcastService } from '@core/services/broadcast.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { UtilsService } from '@core/services/utils.service';
@@ -50,27 +49,24 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
-import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
+import { EntityAction } from '@home/models/entity/entity-component.models';
 import { EntityGroupComponent } from '@home/components/group/entity-group.component';
 import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  EntityGroupWizardDialogComponent,
-  EntityGroupWizardDialogResult
-} from '@home/components/wizard/entity-group-wizard-dialog.component';
+import { EntityGroupWizardDialogResult } from '@home/components/wizard/entity-group-wizard-dialog.component';
 import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
-  customerId: string;
   edgeId: string;
   groupType: EntityType;
+  shared: boolean;
 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
               private userPermissionsService: UserPermissionsService,
-              private broadcast: BroadcastService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService,
@@ -79,12 +75,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private params: EntityGroupParams) {
-    super();
+    super(params);
 
     if (params.hierarchyView) {
       this.pageMode = false;
     }
-    this.customerId = params.customerId;
     this.edgeId = params.edgeId;
     if ((this.customerId || this.edgeId) && params.edgeEntitiesType) {
       this.groupType = params.edgeEntitiesType;
@@ -93,12 +88,15 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     } else {
       this.groupType = params.groupType;
     }
+    this.shared = params.shared;
 
     this.entityType = EntityType.ENTITY_GROUP;
     this.entityComponent = EntityGroupComponent;
     this.entityTabsComponent = EntityGroupTabsComponent;
     this.entityTranslations = entityTypeTranslations.get(EntityType.ENTITY_GROUP);
     this.entityResources = entityTypeResources.get(EntityType.ENTITY_GROUP);
+
+    this.rowPointer = true;
 
     this.hideDetailsTabsOnEdit = false;
 
@@ -111,14 +109,14 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       new EntityTableColumn<EntityGroupInfo>('description', 'entity-group.description', '40%',
         (entityGroup) =>
           entityGroup && entityGroup.additionalInfo && isDefinedAndNotNull(entityGroup.additionalInfo.description)
-            ? entityGroup.additionalInfo.description : '', entity => ({}), false)
+            ? entityGroup.additionalInfo.description : '', () => ({}), false)
     );
     if (publicGroupTypes.has(this.groupType)) {
       this.columns.push(
         new EntityTableColumn<EntityGroupInfo>('isPublic', 'entity-group.public', '60px',
-          entityGroup => {
-            return checkBoxCell(entityGroup && entityGroup.additionalInfo ? entityGroup.additionalInfo.isPublic : false);
-          }, () => ({}), false)
+          entityGroup =>
+            checkBoxCell(entityGroup && entityGroup.additionalInfo ?
+              entityGroup.additionalInfo.isPublic : false), () => ({}), false)
       );
     }
 
@@ -129,21 +127,19 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.deleteEntitiesContent = () => this.translate.instant('entity-group.delete-entity-groups-text');
 
     this.entitiesFetchFunction = pageLink => {
-      let fetchObservable: Observable<Array<EntityGroupInfo>>;
       if (this.customerId && !this.isEdgeGroup()) {
-        fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
+        return this.entityGroupService.getEntityGroupsByOwnerId(pageLink, EntityType.CUSTOMER, this.customerId, this.groupType);
       } else if (this.isEdgeGroup()) {
-        fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
+        return this.entityGroupService.getEdgeEntityGroups(pageLink, this.edgeId, this.groupType);
+      } else if (this.shared) {
+        return this.entityGroupService.getSharedEntityGroups(pageLink, this.groupType);
       } else {
-        fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
+        return this.entityGroupService.getEntityGroups(pageLink, this.groupType, false);
       }
-      return fetchObservable.pipe(
-        map((entityGroups) => pageLink.filterData(entityGroups)
-        )
-      );
     };
 
-    this.loadEntity = id => this.entityGroupService.getEntityGroup(id.id);
+    this.loadEntity = id => this.groupType === EntityType.DEVICE ? this.entityGroupService.getDeviceEntityGroup(id.id) :
+      this.entityGroupService.getEntityGroup(id.id);
 
     this.saveEntity = (entityGroup, originalEntityGroup) => {
       entityGroup.type = this.groupType;
@@ -160,40 +156,48 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         saveEntity$ = this.entityGroupService.saveEntityGroup(entityGroup);
       }
       return saveEntity$.pipe(
-        tap((savedEntityGroup) => {
-            this.notifyEntityGroupUpdated();
-          }
-        ));
-    };
-
-    this.deleteEntity = id => {
-      return this.entityGroupService.deleteEntityGroup(id.id).pipe(
         tap(() => {
             this.notifyEntityGroupUpdated();
           }
         ));
     };
 
+    this.deleteEntity = id => this.entityGroupService.deleteEntityGroup(id.id).pipe(
+        tap(() => {
+            this.notifyEntityGroupUpdated();
+          }
+        ));
+
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
-    this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
+    this.handleRowClick = ($event, entityGroup) => {
+      if (this.isDetailsOpen()) {
+        this.toggleEntityDetails($event, entityGroup);
+      } else {
+        this.open($event, entityGroup);
+      }
+      return true;
+    };
+
+    this.deleteEnabled = (entityGroup) => entityGroup && !this.shared && !entityGroup.groupAll &&
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
     this.detailsReadonly = (entityGroup) =>
-      !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
+      this.shared || !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
     this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
 
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType) || this.shared) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.shared) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
-      isGroupEntitiesView: false
+      isGroupEntitiesView: false,
+      shared: this.shared
     };
     this.updateActionCellDescriptors();
-    this.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType));
+    this.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType, this.shared));
     if (sharableGroupTypes.has(this.groupType) &&
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.addEntity = () => this.entityGroupWizard();
@@ -233,16 +237,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
   private updateActionCellDescriptors() {
     this.cellActionDescriptors.splice(0);
-    this.cellActionDescriptors.push(
-      {
-        name: this.translate.instant('action.open'),
-        icon: 'view_list',
-        isEnabled: () => true,
-        onAction: ($event, entity) => this.open($event, entity)
-      }
-    );
     if (sharableGroupTypes.has(this.groupType) &&
-      this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
+      this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE) && !this.shared) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('action.share'),
@@ -252,7 +248,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         }
       );
     }
-    if (publicGroupTypes.has(this.groupType)) {
+    if (publicGroupTypes.has(this.groupType) && !this.shared) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('action.make-public'),
@@ -279,22 +275,30 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
           icon: 'assignment_return',
-          isEnabled: (entity) => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
+          isEnabled: () => this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE),
           onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }
       );
     }
+    this.cellActionDescriptors.push(
+      {
+        name: this.translate.instant('entity-group.entity-group-details'),
+        icon: 'edit',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.toggleEntityDetails($event, entity)
+      }
+    );
   }
 
   private entityGroupWizard(): Observable<EntityGroupInfo> {
-    return this.dialog.open<EntityGroupWizardDialogComponent, AddEntityDialogData<EntityGroupInfo>,
-      EntityGroupWizardDialogResult>(EntityGroupWizardDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        entitiesTableConfig: this
-      }
-    }).afterClosed().pipe(
+    let ownerId: EntityId = null;
+    if (this.customerId) {
+      ownerId = {
+        entityType: EntityType.CUSTOMER,
+        id: this.customerId
+      };
+    }
+    return this.homeDialogs.createEntityGroup(this.groupType, '', ownerId).pipe(
       map((result) => {
         if (result && result.shared) {
           this.notifyEntityGroupUpdated();
@@ -324,7 +328,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         ownerId,
         groupType: this.groupType,
         edgeId: this.params.edgeId,
-        customerId: this.params.customerId,
         addEntityGroupsToEdgeTitle: 'edge.assign-to-edge-title',
         confirmSelectTitle: 'action.assign',
         notFoundText: 'entity-group.no-entity-groups-matching',
@@ -385,9 +388,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private notifyEntityGroupUpdated() {
-    if (!this.customerId) {
-      this.broadcast.broadcast(this.groupType + 'changed');
-    }
     if (!this.componentsData.isGroupEntitiesView && this.params.hierarchyView) {
       this.params.hierarchyCallbacks.refreshEntityGroups(this.params.internalId);
     }
@@ -456,5 +456,4 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     return isDefinedAndNotNull(this.params.edgeId) && (this.params.groupType === EntityType.EDGE ||
       (this.params.groupType === EntityType.CUSTOMER && this.params.childGroupType === EntityType.EDGE));
   }
-
 }

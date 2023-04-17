@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@
 import {
   AlarmDataCmd,
   DataKeyType,
-  TelemetryService,
   TelemetrySubscriber
 } from '@shared/models/telemetry/telemetry.models';
 import { DatasourceType } from '@shared/models/widget.models';
@@ -49,6 +48,7 @@ import { AlarmDataListener } from '@core/api/alarm-data.service';
 import { PageData } from '@shared/models/page/page-data';
 import { deepClone, isDefined, isDefinedAndNotNull, isObject } from '@core/utils';
 import { simulatedAlarm } from '@shared/models/alarm.models';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 
 export interface AlarmSubscriptionDataKey {
   name: string;
@@ -77,12 +77,13 @@ export class AlarmDataSubscription {
   private alarmDataCommand: AlarmDataCmd;
 
   private pageData: PageData<AlarmData>;
+  private prematureUpdates: Array<Array<AlarmData>>;
   private alarmIdToDataIndex: {[id: string]: number};
 
   private subsTw: SubscriptionTimewindow;
 
   constructor(private listener: AlarmDataListener,
-              private telemetryService: TelemetryService) {
+              private telemetryService: TelemetryWebsocketService) {
   }
 
   public unsubscribe() {
@@ -151,8 +152,21 @@ export class AlarmDataSubscription {
       this.subscriber.alarmData$.subscribe((alarmDataUpdate) => {
         if (alarmDataUpdate.data) {
           this.onPageData(alarmDataUpdate.data, alarmDataUpdate.allowedEntities, alarmDataUpdate.totalEntities);
+          if (this.prematureUpdates) {
+            for (const update of this.prematureUpdates) {
+              this.onDataUpdate(update);
+            }
+            this.prematureUpdates = null;
+          }
         } else if (alarmDataUpdate.update) {
-          this.onDataUpdate(alarmDataUpdate.update);
+          if (!this.pageData) {
+            if (!this.prematureUpdates) {
+              this.prematureUpdates = [];
+            }
+            this.prematureUpdates.push(alarmDataUpdate.update);
+          } else {
+            this.onDataUpdate(alarmDataUpdate.update);
+          }
         }
       });
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.annotations.ApiModel;
 import org.thingsboard.server.common.data.DeviceProfileType;
 
+import java.io.Serializable;
+
 @ApiModel
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
@@ -45,7 +47,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = DefaultDeviceConfiguration.class, name = "DEFAULT")})
-public interface DeviceConfiguration {
+public interface DeviceConfiguration extends Serializable {
 
     @JsonIgnore
     DeviceProfileType getType();

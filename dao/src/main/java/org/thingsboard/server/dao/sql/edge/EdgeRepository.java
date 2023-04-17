@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -85,7 +85,7 @@ public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
                                                @Param("searchText") String searchText,
                                                Pageable pageable);
 
-    @Query("SELECT ee.id FROM EdgeEntity ee, RelationEntity re WHERE ee.tenantId = :tenantId " +
+    @Query("SELECT DISTINCT ee.id FROM EdgeEntity ee, RelationEntity re WHERE ee.tenantId = :tenantId " +
             "AND ee.id = re.fromId AND re.fromType = 'EDGE' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = :relationType AND re.toId IN (:entityIds) AND re.toType = :entityType")
     Page<UUID> findEdgeIdsByTenantIdAndEntityIds(@Param("tenantId") UUID tenantId,

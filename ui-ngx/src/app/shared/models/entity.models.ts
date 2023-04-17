@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -177,5 +177,25 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'label',
     name: 'entity-field.label',
     value: 'label'
+  },
+  configuration: {
+    keyName: 'configuration',
+    name: 'entity-field.configuration',
+    value: 'configuration'
+  },
+  schedule: {
+    keyName: 'schedule',
+    name: 'entity-field.schedule',
+    value: 'schedule'
+  },
+  originatorId: {
+    keyName: 'originatorId',
+    name: 'entity-field.originatorId',
+    value: 'originatorId'
+  },
+  originatorType: {
+    keyName: 'originatorType',
+    name: 'entity-field.originatorType',
+    value: 'originatorType'
   }
 };

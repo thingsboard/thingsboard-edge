@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,7 @@ import org.thingsboard.edge.rpc.EdgeGrpcClient;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
@@ -124,12 +125,15 @@ public class EdgeImitator {
         ignoredTypes = new ArrayList<>();
         this.routingKey = routingKey;
         this.routingSecret = routingSecret;
-        setEdgeCredentials("rpcHost", host);
-        setEdgeCredentials("rpcPort", port);
-        setEdgeCredentials("keepAliveTimeSec", 300);
+        updateEdgeClientFields("rpcHost", host);
+        updateEdgeClientFields("rpcPort", port);
+        updateEdgeClientFields("timeoutSecs", 3);
+        updateEdgeClientFields("keepAliveTimeSec", 300);
+        updateEdgeClientFields("keepAliveTimeoutSec", 5);
+        updateEdgeClientFields("maxInboundMessageSize", 4194304);
     }
 
-    private void setEdgeCredentials(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
+    private void updateEdgeClientFields(String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException {
         Field fieldToSet = edgeRpcClient.getClass().getDeclaredField(fieldName);
         fieldToSet.setAccessible(true);
         fieldToSet.set(edgeRpcClient, value);
@@ -171,22 +175,18 @@ public class EdgeImitator {
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
-                if (connected) {
-                    DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
-                            .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
-                            .setSuccess(true).build();
-                    edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
-                }
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
+                        .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
+                        .setSuccess(true).build();
+                edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                if (connected) {
-                    DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
-                            .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
-                            .setSuccess(false).setErrorMsg(t.getMessage()).build();
-                    edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
-                }
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
+                        .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
+                        .setSuccess(false).setErrorMsg(t.getMessage()).build();
+                edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
         }, MoreExecutors.directExecutor());
     }
@@ -215,6 +215,11 @@ public class EdgeImitator {
         if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
             for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
                 result.add(saveDownlinkMsg(deviceCredentialsUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
+            for (AssetProfileUpdateMsg assetProfileUpdateMsg : downlinkMsg.getAssetProfileUpdateMsgList()) {
+                result.add(saveDownlinkMsg(assetProfileUpdateMsg));
             }
         }
         if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
@@ -367,6 +372,10 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(queueUpdateMsg));
             }
         }
+        if (downlinkMsg.hasEdgeConfiguration()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getEdgeConfiguration()));
+        }
+
         return Futures.allAsList(result);
     }
 
@@ -436,11 +445,7 @@ public class EdgeImitator {
     }
 
     public AbstractMessage getLatestMessage() {
-        return getMessageFromTail(1);
-    }
-
-    public AbstractMessage getMessageFromTail(int offset) {
-        return downlinkMsgs.get(downlinkMsgs.size() - offset);
+        return downlinkMsgs.get(downlinkMsgs.size() - 1);
     }
 
     public void ignoreType(Class<? extends AbstractMessage> type) {

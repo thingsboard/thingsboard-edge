@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.transform;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
 public class TbDuplicateMsgToGroupNodeConfiguration extends TbDuplicateMsgNodeConfiguration implements NodeConfiguration {
@@ -40,6 +41,7 @@ public class TbDuplicateMsgToGroupNodeConfiguration extends TbDuplicateMsgNodeCo
     private EntityGroupId entityGroupId;
 
     private boolean entityGroupIsMessageOriginator;
+    private EntityId groupOwnerId;
 
     @Override
     public TbDuplicateMsgToGroupNodeConfiguration defaultConfiguration() {

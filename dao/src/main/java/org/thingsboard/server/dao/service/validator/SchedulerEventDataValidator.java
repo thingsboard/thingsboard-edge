@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,15 +33,14 @@ package org.thingsboard.server.dao.service.validator;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -52,14 +51,12 @@ import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.data.scheduler.TimerRepeat;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -90,23 +87,16 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
     private CustomerDao customerDao;
 
     @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
-    @Autowired
     private SchedulerEventDao schedulerEventDao;
 
     @Override
     protected void validateCreate(TenantId tenantId, SchedulerEvent data) {
-        DefaultTenantProfileConfiguration profileConfiguration =
-                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-        long maxSchedulerEvents = profileConfiguration.getMaxSchedulerEvents();
-        validateNumberOfEntitiesPerTenant(tenantId, schedulerEventDao, maxSchedulerEvents, EntityType.SCHEDULER_EVENT);
+        validateNumberOfEntitiesPerTenant(tenantId, EntityType.SCHEDULER_EVENT);
     }
 
     @Override
     protected void validateDataImpl(TenantId tenantId, SchedulerEvent schedulerEvent) {
-        if (org.springframework.util.StringUtils.isEmpty(schedulerEvent.getType())) {
+        if (StringUtils.isEmpty(schedulerEvent.getType())) {
             throw new DataValidationException("SchedulerEvent type should be specified!");
         }
         if (StringUtils.isEmpty(schedulerEvent.getName())) {
@@ -156,7 +146,7 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
                 throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
             }
 
-            EntityId originatorId = getOriginatorId(schedulerEvent.getId(), schedulerEvent.getConfiguration());
+            EntityId originatorId = getOriginatorId(schedulerEvent);
 
             if (originatorId == null) {
                 throw new DataValidationException("SchedulerEvent originatorId should be specified!");

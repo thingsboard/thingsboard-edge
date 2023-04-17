@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -67,7 +70,8 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
     @LocalServerPort
     protected int wsPort;
 
-    private TbTestWebSocketClient wsClient; // lazy
+    private volatile TbTestWebSocketClient wsClient; // lazy
+    private volatile TbTestWebSocketClient anotherWsClient; // lazy
 
     public TbTestWebSocketClient getWsClient() {
         if (wsClient == null) {
@@ -84,6 +88,21 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         return wsClient;
     }
 
+    public TbTestWebSocketClient getAnotherWsClient() {
+        if (anotherWsClient == null) {
+            synchronized (this) {
+                try {
+                    if (anotherWsClient == null) {
+                        anotherWsClient = buildAndConnectWebSocketClient();
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return anotherWsClient;
+    }
+
     @Before
     public void beforeWsTest() throws Exception {
         // placeholder
@@ -94,12 +113,25 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         if (wsClient != null) {
             wsClient.close();
         }
+        if (anotherWsClient != null) {
+            anotherWsClient.close();
+        }
     }
 
-    private TbTestWebSocketClient buildAndConnectWebSocketClient() throws URISyntaxException, InterruptedException {
+    protected TbTestWebSocketClient buildAndConnectWebSocketClient() throws URISyntaxException, InterruptedException {
         TbTestWebSocketClient wsClient = new TbTestWebSocketClient(new URI(WS_URL + wsPort + "/api/ws/plugins/telemetry?token=" + token));
         assertThat(wsClient.connectBlocking(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         return wsClient;
+    }
+
+    protected void resetSysAdminWhiteLabelingSettings(String tenantEmail, String tenantPassword) throws Exception {
+        loginSysAdmin();
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
+        doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
+        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
+
+        loginUser(tenantEmail, tenantPassword);
     }
 
 }

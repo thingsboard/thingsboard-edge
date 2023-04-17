@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -63,6 +64,24 @@ public class TbKafkaSettings {
 
     @Value("${queue.kafka.bootstrap.servers}")
     private String servers;
+
+    @Value("${queue.kafka.ssl.enabled:false}")
+    private boolean sslEnabled;
+
+    @Value("${queue.kafka.ssl.truststore.location}")
+    private String sslTruststoreLocation;
+
+    @Value("${queue.kafka.ssl.truststore.password}")
+    private String sslTruststorePassword;
+
+    @Value("${queue.kafka.ssl.keystore.location}")
+    private String sslKeystoreLocation;
+
+    @Value("${queue.kafka.ssl.keystore.password}")
+    private String sslKeystorePassword;
+
+    @Value("${queue.kafka.ssl.key.password}")
+    private String sslKeyPassword;
 
     @Value("${queue.kafka.acks}")
     private String acks;
@@ -130,6 +149,8 @@ public class TbKafkaSettings {
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, servers);
         props.put(AdminClientConfig.RETRIES_CONFIG, retries);
 
+        configureSSL(props);
+
         return props;
     }
 
@@ -140,6 +161,8 @@ public class TbKafkaSettings {
         props.put(ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, maxPartitionFetchBytes);
         props.put(ConsumerConfig.FETCH_MAX_BYTES_CONFIG, fetchMaxBytes);
         props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, maxPollIntervalMs);
+
+        configureSSL(props);
 
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
@@ -179,7 +202,21 @@ public class TbKafkaSettings {
         if (other != null) {
             other.forEach(kv -> props.put(kv.getKey(), kv.getValue()));
         }
+
+        configureSSL(props);
+
         return props;
+    }
+
+    private void configureSSL(Properties props) {
+        if (sslEnabled) {
+            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+            props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
+            props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
+            props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+            props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeystorePassword);
+            props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, sslKeyPassword);
+        }
     }
 
 }

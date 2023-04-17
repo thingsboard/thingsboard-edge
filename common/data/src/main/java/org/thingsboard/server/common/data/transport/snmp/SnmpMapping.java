@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,15 +34,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.kv.DataType;
 
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SnmpMapping {
+public class SnmpMapping implements Serializable {
+
+    private static final long serialVersionUID = 2042438869374145944L;
+
     private String oid;
     private String key;
     private DataType dataType;

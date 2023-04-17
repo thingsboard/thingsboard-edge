@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,7 +102,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
         SchedulerEvent schedulerEvent = createSchedulerEvent(savedDevice.getId());
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
 
-        verify(tbClusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent.getId(), savedSchedulerEvent.getConfiguration())), argThat(tbMsg -> {
+        verify(tbClusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent)), argThat(tbMsg -> {
                     if (tbMsg.getType().equals(RPC_CALL_FROM_SERVER_TO_DEVICE)) {
                         assertEquals(tbMsg.getOriginator(), savedDevice.getId());
                         assertEquals(testRpc, tbMsg.getData());
@@ -122,9 +122,9 @@ public class SchedulerEventTest extends AbstractControllerTest {
         schedule.put("startTime", Long.MAX_VALUE);
         schedule.put("timezone", "UTC");
         schedulerEvent.setSchedule(schedule);
+        schedulerEvent.setOriginatorId(originatorId);
 
         ObjectNode configuration = JacksonUtil.newObjectNode();
-        configuration.set("originatorId", JacksonUtil.valueToTree(originatorId));
         configuration.put("msgType", RPC_CALL_FROM_SERVER_TO_DEVICE);
         configuration.set("msgBody", JacksonUtil.toJsonNode(testRpc));
         schedulerEvent.setConfiguration(configuration);

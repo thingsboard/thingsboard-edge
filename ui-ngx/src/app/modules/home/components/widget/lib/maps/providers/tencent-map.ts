@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -46,7 +46,6 @@ export class TencentMap extends LeafletMap {
     const map = L.map($container, {
       doubleClickZoom: !this.options.disableDoubleClickZooming,
       zoomControl: !this.options.disableZoomControl,
-      tap: L.Browser.safari && L.Browser.mobile,
       fadeAnimation: !ctx.reportService.reportView
     }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
     const txLayer = L.tileLayer(txUrl, {

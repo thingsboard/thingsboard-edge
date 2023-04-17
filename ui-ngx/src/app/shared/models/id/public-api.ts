@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,11 @@ export * from './entity-id';
 export * from './entity-view-id';
 export * from './event-id';
 export * from './has-uuid';
+export * from './notification-id';
+export * from './notification-request-id';
+export * from './notification-rule-id';
+export * from './notification-target-id';
+export * from './notification-template-id';
 export * from './ota-package-id';
 export * from './rpc-id';
 export * from './rule-chain-id';
@@ -51,3 +56,4 @@ export * from './user-id';
 export * from './widget-type-id';
 export * from './widgets-bundle-id';
 export * from './edge-id';
+export * from './asset-id';

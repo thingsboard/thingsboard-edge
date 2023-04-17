@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,7 @@
 <section class="tb-widget-settings" [formGroup]="flotPieWidgetSettingsForm" fxLayout="column">
   <fieldset class="fields-group">
     <legend class="group-title" translate>widgets.chart.common-pie-settings</legend>
-    <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+    <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px">
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>widgets.chart.radius</mat-label>
         <input matInput type="number" min="0" formControlName="radius">
@@ -56,7 +56,7 @@
   </fieldset>
   <fieldset class="fields-group" formGroupName="stroke">
     <legend class="group-title" translate>widgets.chart.stroke-settings</legend>
-    <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+    <section fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>widgets.chart.width-pixels</mat-label>
         <input matInput type="number" min="0" formControlName="width">

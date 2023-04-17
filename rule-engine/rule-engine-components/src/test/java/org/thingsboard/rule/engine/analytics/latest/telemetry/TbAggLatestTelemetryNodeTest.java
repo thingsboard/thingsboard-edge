@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -71,6 +72,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -189,15 +191,15 @@ public class TbAggLatestTelemetryNodeTest {
 
         String attributesFilterScript = "return Number(attributes['temperature']) > 21;";
 
-        when(peCtx.createAttributesJsScriptEngine(attributesFilterScript)).thenReturn(scriptEngine);
+        when(peCtx.createAttributesScriptEngine(ScriptLanguage.JS, attributesFilterScript)).thenReturn(scriptEngine);
 
         when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
                 (Answer<ListenableFuture<Boolean>>) invocation -> {
-                    Map<String, String> attributes = (Map<String, String>) (invocation.getArguments())[0];
+                    Map<String, KvEntry> attributes = (Map<String, KvEntry>) (invocation.getArguments())[0];
                     if (attributes.containsKey("temperature")) {
+                        String temperature = attributes.get("temperature").getValueAsString();
                         try {
-                            double temperature = Double.parseDouble(attributes.get("temperature"));
-                            return Futures.immediateFuture(temperature > 21);
+                            return Futures.immediateFuture(Double.parseDouble(temperature) > 21);
                         } catch (NumberFormatException e) {
                             return Futures.immediateFuture(false);
                         }
@@ -238,6 +240,7 @@ public class TbAggLatestTelemetryNodeTest {
 
         AggLatestMappingFilter filter = new AggLatestMappingFilter();
         filter.setLatestTsKeyNames(Collections.singletonList("temperature"));
+        filter.setScriptLang(ScriptLanguage.JS);
         filter.setFilterFunction("return Number(attributes['temperature']) > 21;");
 
         countMapping.setFilter(filter);
@@ -248,6 +251,7 @@ public class TbAggLatestTelemetryNodeTest {
 
         config.setPeriodTimeUnit(TimeUnit.MILLISECONDS);
         config.setPeriodValue(0);
+        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         ObjectMapper mapper = new ObjectMapper();
         nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));

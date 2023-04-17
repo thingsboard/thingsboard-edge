@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,28 +33,36 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.dashboard.DashboardDao;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -64,12 +72,24 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration(classes = {BaseDashboardControllerTest.Config.class})
 public abstract class BaseDashboardControllerTest extends AbstractControllerTest {
 
     private IdComparator<DashboardInfo> idComparator = new IdComparator<>();
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    @Autowired
+    private DashboardDao dashboardDao;
+
+    static class Config {
+        @Bean
+        @Primary
+        public DashboardDao dashboardDao(DashboardDao dashboardDao) {
+            return Mockito.mock(DashboardDao.class, AdditionalAnswers.delegatesTo(dashboardDao));
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -132,7 +152,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     @Test
     public void testSaveDashboardInfoWithViolationOfValidation() throws Exception {
         Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(RandomStringUtils.randomAlphabetic(300));
+        dashboard.setTitle(StringUtils.randomAlphabetic(300));
         String msgError = msgErrorFieldLength("title");
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -257,7 +277,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         int cntEntity = 134;
         for (int i = 0; i < cntEntity; i++) {
             Dashboard dashboard = new Dashboard();
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String title = title1 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             dashboard.setTitle(title);
@@ -267,7 +287,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         List<DashboardInfo> dashboardsTitle2 = new ArrayList<>();
         for (int i = 0; i < 112; i++) {
             Dashboard dashboard = new Dashboard();
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String title = title2 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             dashboard.setTitle(title);
@@ -456,4 +476,24 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         // Customer user must have access only to a shared dashboard
         Assert.assertEquals(1, customerUserDashboards.size());
     }
+
+    @Test
+    public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
+        DashboardId dashboardId = createDashboard("Dashboard for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    @Ignore
+    @Test
+    public void testDeleteDashboardExceptionWithRelationsTransactional() throws Exception {
+        DashboardId dashboardId = createDashboard("Dashboard for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(dashboardDao, savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    private Dashboard createDashboard(String title) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(title);
+        return doPost("/api/dashboard", dashboard, Dashboard.class);
+    }
+
 }

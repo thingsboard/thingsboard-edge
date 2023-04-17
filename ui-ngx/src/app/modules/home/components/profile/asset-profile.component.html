@@ -1,0 +1,113 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-details-buttons" fxLayout.xs="column" *ngIf="!standalone">
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'open')"
+          [fxShow]="!isEdit && !isDetailsPage">
+    {{'common.open-details-page' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'export')"
+          [fxShow]="!isEdit">
+    {{'asset-profile.export' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'setDefault')"
+          *ngIf="resource.ASSET_PROFILE | hasGenericPermission: operation.WRITE"
+          [fxShow]="!isEdit && !entity?.default && entity?.name !== TB_SERVICE_QUEUE">
+    {{'asset-profile.set-default' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'delete')"
+          [fxShow]="!hideDelete() && !isEdit">
+    {{'asset-profile.delete' | translate }}
+  </button>
+  <div fxLayout="row" fxLayout.xs="column">
+    <button mat-raised-button
+            ngxClipboard
+            (cbOnSuccess)="onAssetProfileIdCopied($event)"
+            [cbContent]="entity?.id?.id"
+            [fxShow]="!isEdit">
+      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      <span translate>asset-profile.copyId</span>
+    </button>
+  </div>
+</div>
+<div [ngClass]="{'mat-padding': !standalone}" fxLayout="column">
+  <form [formGroup]="entityForm">
+    <fieldset [disabled]="(isLoading$ | async) || !isEdit" style="min-width: 0;">
+      <mat-form-field class="mat-block">
+        <mat-label translate>asset-profile.name</mat-label>
+        <input matInput formControlName="name" required/>
+        <mat-error *ngIf="entityForm.get('name').hasError('required')">
+          {{ 'asset-profile.name-required' | translate }}
+        </mat-error>
+        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+          {{ 'asset-profile.name-max-length' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <tb-rule-chain-autocomplete
+        labelText="asset-profile.default-rule-chain"
+        formControlName="defaultRuleChainId">
+      </tb-rule-chain-autocomplete>
+      <tb-dashboard-autocomplete
+        label="{{'asset-profile.mobile-dashboard' | translate}}"
+        formControlName="defaultDashboardId">
+        <span tb-hint>{{'asset-profile.mobile-dashboard-hint' | translate}}</span>
+      </tb-dashboard-autocomplete>
+      <tb-queue-autocomplete
+        [queueType]="serviceType"
+        formControlName="defaultQueueName">
+      </tb-queue-autocomplete>
+      <tb-rule-chain-autocomplete
+        labelText="asset-profile.default-edge-rule-chain"
+        formControlName="defaultEdgeRuleChainId"
+        [ruleChainType]="edgeRuleChainType">
+        <span tb-hint>{{'asset-profile.default-edge-rule-chain-hint' | translate}}</span>
+      </tb-rule-chain-autocomplete>
+      <tb-image-input fxFlex
+                      label="{{'asset-profile.image' | translate}}"
+                      maxSizeByte="524288"
+                      formControlName="image">
+      </tb-image-input>
+      <mat-form-field class="mat-block">
+        <mat-label translate>asset-profile.description</mat-label>
+        <textarea matInput formControlName="description" rows="2"></textarea>
+      </mat-form-field>
+    </fieldset>
+  </form>
+</div>

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,14 +37,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -72,6 +73,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -85,17 +87,10 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
 
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private CustomerService customerService;
+    private final AdminSettingsService adminSettingsService;
+    private final AttributesService attributesService;
+    private final TenantService tenantService;
+    private final CustomerService customerService;
 
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams(TenantId tenantId) {
@@ -146,9 +141,10 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) throws Exception {
-        AdminSettings loginWhiteLabelSettings = adminSettingsService.findAdminSettingsByKey(tenantId, constructLoginWhileLabelKey(domainName));
+        AdminSettings loginWhiteLabelSettings;
         LoginWhiteLabelingParams result;
-        if (loginWhiteLabelSettings != null) {
+        if (validateDomain(domainName) &&
+                (loginWhiteLabelSettings = adminSettingsService.findAdminSettingsByKey(tenantId, constructLoginWhileLabelKey(domainName))) != null) {
             String strEntityType = loginWhiteLabelSettings.getJsonValue().get("entityType").asText();
             String strEntityId = loginWhiteLabelSettings.getJsonValue().get("entityId").asText();
             EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
@@ -266,7 +262,45 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return getCustomerLoginWhiteLabelingParams(tenantId, customerId);
     }
 
+    private boolean validateDomain(String domainName) {
+        try {
+            LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+            if (systemParams != null) {
+                if (isBaseUrlMatchesDomain(systemParams.getBaseUrl(), domainName)) {
+                    return false;
+                }
+            }
+            AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
+            String baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+            return !isBaseUrlMatchesDomain(baseUrl, domainName);
+        } catch (Exception e) {
+            log.warn("Failed to validate domain.", e);
+            return false;
+        }
+    }
+
+    private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
+        String baseUrlDomainName = this.domainNameFromBaseUrl(baseUrl);
+        return baseUrlDomainName != null && baseUrlDomainName.equalsIgnoreCase(domainName);
+    }
+
+    private String domainNameFromBaseUrl(String baseUrl) {
+        if (StringUtils.isNotBlank(baseUrl)) {
+            try {
+                return URI.create(baseUrl).getHost();
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {
+        if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
+            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
+        }
+
         loginWhiteLabelParams = prepareChecksums(loginWhiteLabelParams);
         String loginWhiteLabelKey = constructLoginWhileLabelKey(loginWhiteLabelParams.getDomainName());
         AdminSettings existentAdminSettingsByKey = adminSettingsService.findAdminSettingsByKey(tenantId, loginWhiteLabelKey);

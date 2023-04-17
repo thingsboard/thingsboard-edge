@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,10 @@
  */
 package org.thingsboard.server.dao.device;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-
-import java.util.List;
 
 public interface DeviceCredentialsService {
 
@@ -47,6 +46,8 @@ public interface DeviceCredentialsService {
     DeviceCredentials createDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials);
 
     void formatCredentials(DeviceCredentials deviceCredentials);
+
+    JsonNode toCredentialsInfo(DeviceCredentials deviceCredentials);
 
     void deleteDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials);
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -42,6 +44,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.rule.RuleChainService;
+
+import static org.thingsboard.server.service.edge.DefaultEdgeNotificationService.EDGE_IS_ROOT_BODY_KEY;
 
 @Slf4j
 @AllArgsConstructor
@@ -56,7 +60,13 @@ public class RuleChainsEdgeEventFetcher extends BasePageableEdgeEventFetcher<Rul
 
     @Override
     EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, RuleChain ruleChain) {
+        ObjectNode isRootBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        boolean isRoot = false;
+        try {
+            isRoot = ruleChain.getId().equals(edge.getRootRuleChainId());
+        } catch (Exception ignored) {}
+        isRootBody.put(EDGE_IS_ROOT_BODY_KEY, isRoot);
         return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.RULE_CHAIN,
-                EdgeEventActionType.ADDED, ruleChain.getId(), null);
+                EdgeEventActionType.ADDED, ruleChain.getId(), isRootBody);
     }
 }

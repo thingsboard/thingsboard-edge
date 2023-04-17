@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,38 +34,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
-import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.msg.TbMsg;
 
 @Slf4j
 @RuleNode(
         type = ComponentType.FILTER,
-        name = "originator type switch",
+        name = "entity type switch",
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Device", "Asset", "Alarm", "Entity View", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
-                "Rule node", "Entity Group", "Data converter", "Integration", "Scheduler event", "Blob entity"},
+                "Rule node", "Entity Group", "Data converter", "Integration", "Scheduler event", "Blob entity", "Edge"},
         nodeDescription = "Route incoming messages by Message Originator Type",
-        nodeDetails = "Routes messages to chain according to the originator type ('Device', 'Asset', etc.).",
+        nodeDetails = "Routes messages to chain according to the entity type ('Device', 'Asset', etc.).",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbNodeEmptyConfig")
-public class TbOriginatorTypeSwitchNode implements TbNode {
-
-    EmptyNodeConfiguration config;
+public class TbOriginatorTypeSwitchNode extends TbAbstractTypeSwitchNode {
 
     @Override
-    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
-    }
-
-    @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
+    protected String getRelationType(TbContext ctx, EntityId originator) throws TbNodeException {
         String relationType;
-        EntityType originatorType = msg.getOriginator().getEntityType();
+        EntityType originatorType = originator.getEntityType();
         switch (originatorType) {
             case TENANT:
                 relationType = "Tenant";
@@ -118,11 +108,7 @@ public class TbOriginatorTypeSwitchNode implements TbNode {
             default:
                 throw new TbNodeException("Unsupported originator type: " + originatorType);
         }
-        ctx.tellNext(msg, relationType);
+        return relationType;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

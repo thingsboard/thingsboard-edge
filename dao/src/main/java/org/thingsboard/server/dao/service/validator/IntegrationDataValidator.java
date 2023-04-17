@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,18 +31,15 @@
 package org.thingsboard.server.dao.service.validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -58,16 +55,9 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
     @Autowired
     private ConverterDao converterDao;
 
-    @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
     @Override
     protected void validateCreate(TenantId tenantId, Integration integration) {
-        DefaultTenantProfileConfiguration profileConfiguration =
-                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-        long maxIntegrations = profileConfiguration.getMaxIntegrations();
-        validateNumberOfEntitiesPerTenant(tenantId, integrationDao, maxIntegrations, EntityType.INTEGRATION);
+        validateNumberOfEntitiesPerTenant(tenantId, EntityType.INTEGRATION);
         integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
                 d -> {
                     throw new DataValidationException("Integration with such routing key already exists!");
@@ -83,6 +73,9 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
                     if (!d.getId().equals(integration.getId())) {
                         throw new DataValidationException("Integration with such routing key already exists!");
                     }
+                    if (!d.getType().equals(integration.getType())) {
+                        throw new DataValidationException("Integration type can not be changed!");
+                    }
                 }
         );
         return old.orElse(null);
@@ -90,7 +83,7 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, Integration integration) {
-        if (org.springframework.util.StringUtils.isEmpty(integration.getName())) {
+        if (StringUtils.isEmpty(integration.getName())) {
             throw new DataValidationException("Integration name should be specified!");
         }
         if (integration.getType() == null) {

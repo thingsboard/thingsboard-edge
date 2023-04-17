@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,6 +48,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_DATA;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_PROFILE_ID;
@@ -108,12 +109,8 @@ public class DeviceProfileController extends BaseController {
             @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable(DEVICE_PROFILE_ID) String strDeviceProfileId) throws ThingsboardException {
         checkParameter(DEVICE_PROFILE_ID, strDeviceProfileId);
-        try {
-            DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
-            return checkDeviceProfileId(deviceProfileId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
+        return checkDeviceProfileId(deviceProfileId, Operation.READ);
     }
 
     @ApiOperation(value = "Get Device Profile Info (getDeviceProfileInfoById)",
@@ -127,12 +124,12 @@ public class DeviceProfileController extends BaseController {
             @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
             @PathVariable(DEVICE_PROFILE_ID) String strDeviceProfileId) throws ThingsboardException {
         checkParameter(DEVICE_PROFILE_ID, strDeviceProfileId);
-        try {
-            DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
-            return new DeviceProfileInfo(checkDeviceProfileId(deviceProfileId, Operation.READ));
-        } catch (Exception e) {
-            throw handleException(e);
+        DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
+        DeviceProfileInfo deviceProfileInfo = checkNotNull(deviceProfileService.findDeviceProfileInfoById(getTenantId(), deviceProfileId));
+        if (!getTenantId().equals(deviceProfileInfo.getTenantId())) {
+            throw permissionDenied();
         }
+        return deviceProfileInfo;
     }
 
     @ApiOperation(value = "Get Default Device Profile (getDefaultDeviceProfileInfo)",
@@ -143,11 +140,7 @@ public class DeviceProfileController extends BaseController {
     @RequestMapping(value = "/deviceProfileInfo/default", method = RequestMethod.GET)
     @ResponseBody
     public DeviceProfileInfo getDefaultDeviceProfileInfo() throws ThingsboardException {
-        try {
-            return checkNotNull(deviceProfileService.findDefaultDeviceProfileInfo(getTenantId()));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkNotNull(deviceProfileService.findDefaultDeviceProfileInfo(getTenantId()));
     }
 
     @ApiOperation(value = "Get time-series keys (getTimeseriesKeys)",
@@ -171,11 +164,7 @@ public class DeviceProfileController extends BaseController {
             deviceProfileId = null;
         }
 
-        try {
-            return timeseriesService.findAllKeysByDeviceProfileId(getTenantId(), deviceProfileId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return timeseriesService.findAllKeysByDeviceProfileId(getTenantId(), deviceProfileId);
     }
 
     @ApiOperation(value = "Get attribute keys (getAttributesKeys)",
@@ -199,11 +188,7 @@ public class DeviceProfileController extends BaseController {
             deviceProfileId = null;
         }
 
-        try {
-            return attributesService.findAllKeysByDeviceProfileId(getTenantId(), deviceProfileId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return attributesService.findAllKeysByDeviceProfileId(getTenantId(), deviceProfileId);
     }
 
     @ApiOperation(value = "Create Or Update Device Profile (saveDeviceProfile)",
@@ -212,7 +197,7 @@ public class DeviceProfileController extends BaseController {
                     "Specify existing device profile id to update the device profile. " +
                     "Referencing non-existing device profile Id will cause 'Not Found' error. " + NEW_LINE +
                     "Device profile name is unique in the scope of tenant. Only one 'default' device profile may exist in scope of tenant." + DEVICE_PROFILE_DATA +
-                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Device Profile entity. " +
+                    "Remove 'id', 'tenantId' from the request body example (below) to create new Device Profile entity. " +
                     TENANT_AUTHORITY_PARAGRAPH,
             produces = "application/json",
             consumes = "application/json")
@@ -277,13 +262,9 @@ public class DeviceProfileController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(deviceProfileService.findDeviceProfiles(getTenantId(), pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(deviceProfileService.findDeviceProfiles(getTenantId(), pageLink));
     }
 
     @ApiOperation(value = "Get Device Profiles for transport type (getDeviceProfileInfos)",
@@ -306,13 +287,9 @@ public class DeviceProfileController extends BaseController {
             @RequestParam(required = false) String sortOrder,
             @ApiParam(value = "Type of the transport", allowableValues = TRANSPORT_TYPE_ALLOWABLE_VALUES)
             @RequestParam(required = false) String transportType) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(deviceProfileService.findDeviceProfileInfos(getTenantId(), pageLink, transportType));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(deviceProfileService.findDeviceProfileInfos(getTenantId(), pageLink, transportType));
     }
 
     @ApiOperation(value = "Get Device Profiles By Ids (getDeviceProfilesByIds)",
@@ -323,22 +300,18 @@ public class DeviceProfileController extends BaseController {
     @ResponseBody
     public List<DeviceProfileInfo> getDeviceProfilesByIds(
             @ApiParam(value = "A list of device profile ids, separated by comma ','", required = true)
-            @RequestParam("deviceProfileIds") String[] strDeviceProfileIds) throws ThingsboardException {
+            @RequestParam("deviceProfileIds") String[] strDeviceProfileIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("deviceProfileIds", strDeviceProfileIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<DeviceProfileId> deviceProfileIds = new ArrayList<>();
-            for (String strDeviceProfileId : strDeviceProfileIds) {
-                deviceProfileIds.add(new DeviceProfileId(toUUID(strDeviceProfileId)));
-            }
-            return checkNotNull(deviceProfileService.findDeviceProfilesByIdsAsync(tenantId, deviceProfileIds).get());
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ)) {
+            return Collections.emptyList();
         }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<DeviceProfileId> deviceProfileIds = new ArrayList<>();
+        for (String strDeviceProfileId : strDeviceProfileIds) {
+            deviceProfileIds.add(new DeviceProfileId(toUUID(strDeviceProfileId)));
+        }
+        return checkNotNull(deviceProfileService.findDeviceProfilesByIdsAsync(tenantId, deviceProfileIds).get());
     }
 
 }

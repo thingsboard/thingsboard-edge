@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -51,13 +52,13 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
  */
 public interface PlatformIntegrationService {
 
-    void processUplinkData(IntegrationInfo info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    void processUplinkData(AbstractIntegration info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(IntegrationInfo info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    void processUplinkData(AbstractIntegration info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(IntegrationInfo info, EntityViewDataProto data, IntegrationCallback<Void> callback);
+    void processUplinkData(AbstractIntegration info, EntityViewDataProto data, IntegrationCallback<Void> callback);
 
-    void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback integrationApiCallback);
+    void processUplinkData(AbstractIntegration info, TbMsg data, IntegrationApiCallback integrationApiCallback);
 
     void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
 
@@ -69,10 +70,10 @@ public interface PlatformIntegrationService {
 
     void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
 
-    Device getOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
+    Device getOrCreateDevice(AbstractIntegration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
 
-    Asset getOrCreateAsset(IntegrationInfo configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
+    Asset getOrCreateAsset(AbstractIntegration configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
 
-    EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
+    EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
 
 }

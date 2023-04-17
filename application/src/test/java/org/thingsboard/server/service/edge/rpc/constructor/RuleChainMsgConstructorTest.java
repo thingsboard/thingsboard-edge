@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,7 +33,6 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -330,7 +329,6 @@ public class RuleChainMsgConstructorTest {
     }
 
 
-    @NotNull
     private RuleNode getOutputNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.flow.TbRuleChainOutputNode",
@@ -339,7 +337,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"description\":\"\",\"layoutX\":178,\"layoutY\":592}"));
     }
 
-    @NotNull
     private RuleNode getCheckpointNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.flow.TbCheckpointNode",
@@ -348,7 +345,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"description\":\"\",\"layoutX\":178,\"layoutY\":647}"));
     }
 
-    @NotNull
     private RuleNode getSaveTimeSeriesNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
@@ -357,7 +353,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":823,\"layoutY\":157}"));
     }
 
-    @NotNull
     private RuleNode getMessageTypeSwitchNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
@@ -366,7 +361,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":347,\"layoutY\":149}"));
     }
 
-    @NotNull
     private RuleNode getLogOtherNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.action.TbLogNode",
@@ -375,7 +369,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":824,\"layoutY\":378}"));
     }
 
-    @NotNull
     private RuleNode getPushToCloudNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
@@ -384,7 +377,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":1129,\"layoutY\":52}"));
     }
 
-    @NotNull
     private RuleNode getAcknowledgeNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.flow.TbAckNode",
@@ -393,7 +385,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"description\":\"\",\"layoutX\":177,\"layoutY\":703}"));
     }
 
-    @NotNull
     private RuleNode getDeviceProfileNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
@@ -402,7 +393,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"description\":\"Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \\\"Success\\\" relation type.\",\"layoutX\":187,\"layoutY\":468}"));
     }
 
-    @NotNull
     private RuleNode getSaveClientAttributesNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
@@ -411,7 +401,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":824,\"layoutY\":52}"));
     }
 
-    @NotNull
     private RuleNode getLogRpcFromDeviceNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.action.TbLogNode",
@@ -420,7 +409,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":825,\"layoutY\":266}"));
     }
 
-    @NotNull
     private RuleNode getRpcCallRequestNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
@@ -429,7 +417,6 @@ public class RuleChainMsgConstructorTest {
                 JacksonUtil.OBJECT_MAPPER.readTree("{\"layoutX\":824,\"layoutY\":466}"));
     }
 
-    @NotNull
     private RuleNode getPushToAnalyticsNode(RuleChainId ruleChainId) throws JsonProcessingException {
         return createRuleNode(ruleChainId,
                 "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",

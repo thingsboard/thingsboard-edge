@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -37,6 +38,7 @@ import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.rule.engine.util.EntitiesRelatedEntityIdAsyncLoader;
 import org.thingsboard.server.common.data.id.EntityId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -45,11 +47,22 @@ public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
     private EntityId rootEntityId;
     private RelationsQuery relationsQuery;
     private RelationsQuery childRelationsQuery;
+    private boolean includeRootEntity;
 
     @Override
     public ListenableFuture<List<EntityId>> getParentEntitiesAsync(TbContext ctx) {
-        return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, rootEntityId, relationsQuery,
+        ListenableFuture<List<EntityId>> parentEntities = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, rootEntityId, relationsQuery,
                 entityId -> ctx.getPeContext().isLocalEntity(entityId));
+        if (includeRootEntity) {
+            return Futures.transform(parentEntities, entityIds -> {
+                List<EntityId> newEntityIds = new ArrayList<>(entityIds);
+                if (!newEntityIds.contains(rootEntityId)) {
+                    newEntityIds.add(rootEntityId);
+                }
+                return newEntityIds;
+            }, ctx.getDbCallbackExecutor());
+        }
+        return parentEntities;
     }
 
     @Override

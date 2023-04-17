@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,11 +35,20 @@ import lombok.Data;
 @Data
 public class BaseTsKvQuery implements TsKvQuery {
 
+    private static final ThreadLocal<Integer> idSeq = ThreadLocal.withInitial(() -> 0);
+
+    private final int id;
     private final String key;
     private final long startTs;
     private final long endTs;
 
     public BaseTsKvQuery(String key, long startTs, long endTs) {
+        this(idSeq.get(), key, startTs, endTs);
+        idSeq.set(id + 1);
+    }
+
+    protected BaseTsKvQuery(int id, String key, long startTs, long endTs) {
+        this.id = id;
         this.key = key;
         this.startTs = startTs;
         this.endTs = endTs;

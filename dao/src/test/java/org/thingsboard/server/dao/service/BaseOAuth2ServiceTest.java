@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,12 +31,13 @@
 package org.thingsboard.server.dao.service;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.oauth2.MapperType;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2CustomMapperConfig;
@@ -49,8 +50,8 @@ import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
 import org.thingsboard.server.common.data.oauth2.OAuth2RegistrationInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.oauth2.SchemeType;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,7 +77,7 @@ public abstract class BaseOAuth2ServiceTest extends AbstractServiceTest {
         Assert.assertTrue(oAuth2Service.findOAuth2Info().getOauth2ParamsInfos().isEmpty());
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveHttpAndMixedDomainsTogether() {
         OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
@@ -92,10 +93,12 @@ public abstract class BaseOAuth2ServiceTest extends AbstractServiceTest {
                         ))
                         .build()
         ));
-        oAuth2Service.saveOAuth2Info(oAuth2Info);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            oAuth2Service.saveOAuth2Info(oAuth2Info);
+        });
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveHttpsAndMixedDomainsTogether() {
         OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
@@ -111,7 +114,9 @@ public abstract class BaseOAuth2ServiceTest extends AbstractServiceTest {
                         ))
                         .build()
         ));
-        oAuth2Service.saveOAuth2Info(oAuth2Info);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            oAuth2Service.saveOAuth2Info(oAuth2Info);
+        });
     }
 
     @Test
@@ -669,7 +674,7 @@ public abstract class BaseOAuth2ServiceTest extends AbstractServiceTest {
 
     private OAuth2MobileInfo validMobileInfo(String pkgName, String appSecret) {
         return OAuth2MobileInfo.builder().pkgName(pkgName)
-                .appSecret(appSecret != null ? appSecret : RandomStringUtils.randomAlphanumeric(24))
+                .appSecret(appSecret != null ? appSecret : StringUtils.randomAlphanumeric(24))
                 .build();
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,7 @@ package org.thingsboard.server.service.mail;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -49,9 +48,10 @@ import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
-import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -87,9 +87,6 @@ public class DefaultMailService implements MailService {
     public static final String MAIL_PROP = "mail.";
     public static final String TARGET_EMAIL = "targetEmail";
     public static final String UTF_8 = "UTF-8";
-
-    public static final int _10K = 10000;
-    public static final int _1M = 1000000;
 
     private final AdminSettingsService adminSettingsService;
     private final AttributesService attributesService;
@@ -339,7 +336,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException {
+    public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageRecordState recordState) throws ThingsboardException {
         JsonNode mailTemplates = getConfig(null, "mailTemplates");
         String subject = null;
 
@@ -356,12 +353,12 @@ public class DefaultMailService implements MailService {
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_ENABLED);
                 break;
             case WARNING:
-                model.put("apiValueLabel", toDisabledValueLabel(apiFeature) + " " + toWarningValueLabel(msg.getKey(), msg.getValue(), msg.getThreshold()));
+                model.put("apiValueLabel", toDisabledValueLabel(apiFeature) + " " + toWarningValueLabel(recordState));
                 message = body(mailTemplates, MailTemplates.API_USAGE_STATE_WARNING, model);
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_WARNING);
                 break;
             case DISABLED:
-                model.put("apiLimitValueLabel", toDisabledValueLabel(apiFeature) + " " + toDisabledValueLabel(msg.getKey(), msg.getThreshold()));
+                model.put("apiLimitValueLabel", toDisabledValueLabel(apiFeature) + " " + toDisabledValueLabel(recordState));
                 message = body(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED, model);
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED);
                 break;
@@ -423,10 +420,10 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private String toWarningValueLabel(ApiUsageRecordKey key, long value, long threshold) {
-        String valueInM = getValueAsString(value);
-        String thresholdInM = getValueAsString(threshold);
-        switch (key) {
+    private String toWarningValueLabel(ApiUsageRecordState recordState) {
+        String valueInM = recordState.getValueAsString();
+        String thresholdInM = recordState.getThresholdAsString();
+        switch (recordState.getKey()) {
             case STORAGE_DP_COUNT:
             case TRANSPORT_DP_COUNT:
                 return valueInM + " out of " + thresholdInM + " allowed data points";
@@ -445,33 +442,23 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private String toDisabledValueLabel(ApiUsageRecordKey key, long value) {
-        switch (key) {
+    private String toDisabledValueLabel(ApiUsageRecordState recordState) {
+        switch (recordState.getKey()) {
             case STORAGE_DP_COUNT:
             case TRANSPORT_DP_COUNT:
-                return getValueAsString(value) + " data points";
+                return recordState.getValueAsString() + " data points";
             case TRANSPORT_MSG_COUNT:
-                return getValueAsString(value) + " messages";
+                return recordState.getValueAsString() + " messages";
             case JS_EXEC_COUNT:
-                return "JavaScript functions " + getValueAsString(value) + " times";
+                return "JavaScript functions " + recordState.getValueAsString() + " times";
             case RE_EXEC_COUNT:
-                return getValueAsString(value) + " Rule Engine messages";
+                return recordState.getValueAsString() + " Rule Engine messages";
             case EMAIL_EXEC_COUNT:
-                return getValueAsString(value) + " Email messages";
+                return recordState.getValueAsString() + " Email messages";
             case SMS_EXEC_COUNT:
-                return getValueAsString(value) + " SMS messages";
+                return recordState.getValueAsString() + " SMS messages";
             default:
                 throw new RuntimeException("Not implemented!");
-        }
-    }
-
-    private String getValueAsString(long value) {
-        if (value > _1M && value % _1M < _10K) {
-            return value / _1M + "M";
-        } else if (value > _10K) {
-            return String.format("%.2fM", ((double) value) / 1000000);
-        } else {
-            return value + "";
         }
     }
 

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Air Quality Monitoring",
+    "file": "air_quality_monitoring.json",
+    "group": "Air Quality Monitoring Public",
+    "main": true,
+    "makePublic": true
+  },
+  {
+    "name": "Air Quality Monitoring Administration",
+    "file": "air_quality_monitoring_administration.json",
+    "group": "Air Quality Monitoring"
+  }
+]

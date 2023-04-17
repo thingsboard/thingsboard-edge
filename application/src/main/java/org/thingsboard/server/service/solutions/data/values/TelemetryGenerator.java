@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,14 @@ public abstract class TelemetryGenerator {
     public TelemetryGenerator(TelemetryProfile telemetryProfile) {
         this.profile = telemetryProfile;
         this.key = telemetryProfile.getKey();
+    }
+
+    public double getValue() {
+        throw new RuntimeException("Not supported");
+    }
+
+    public void setValue(double value) {
+        throw new RuntimeException("Not supported");
     }
 
     public abstract void addValue(long ts, ObjectNode values);

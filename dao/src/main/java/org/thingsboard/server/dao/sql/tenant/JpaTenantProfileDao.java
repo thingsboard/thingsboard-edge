@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,11 +42,15 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.TenantProfileEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.tenant.TenantProfileDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 @Component
+@SqlDao
 public class JpaTenantProfileDao extends JpaAbstractSearchTextDao<TenantProfileEntity, TenantProfile> implements TenantProfileDao {
 
     @Autowired
@@ -92,4 +96,10 @@ public class JpaTenantProfileDao extends JpaAbstractSearchTextDao<TenantProfileE
     public EntityInfo findDefaultTenantProfileInfo(TenantId tenantId) {
         return tenantProfileRepository.findDefaultTenantProfileInfo();
     }
+
+    @Override
+    public List<TenantProfile> findTenantProfilesByIds(TenantId tenantId, UUID[] ids) {
+        return DaoUtil.convertDataList(tenantProfileRepository.findByIdIn(Arrays.asList(ids)));
+    }
+
 }

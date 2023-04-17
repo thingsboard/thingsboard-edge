@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,17 +30,9 @@
  */
 package org.thingsboard.server.common.data.security.event;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.UserId;
+import java.io.Serializable;
 
-@Data
-public class UserAuthDataChangedEvent {
-    private final UserId userId;
-    private final long ts;
-
-    public UserAuthDataChangedEvent(UserId userId) {
-        this.userId = userId;
-        this.ts = System.currentTimeMillis();
-    }
-
+public abstract class UserAuthDataChangedEvent implements Serializable {
+    public abstract String getId();
+    public abstract long getTs();
 }

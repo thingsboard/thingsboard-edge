@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,18 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
-import { Integration } from '@shared/models/integration.models';
+import { Integration, IntegrationInfo } from '@shared/models/integration.models';
+import { PageLink } from '@shared/models/page/page-link';
+import { DebugEventType, EventType } from '@shared/models/event.models';
 
 @Component({
   selector: 'tb-integration-tabs',
-  templateUrl: './integration-tabs.component.html',
-  styleUrls: []
+  templateUrl: './integration-tabs.component.html'
 })
-export class IntegrationTabsComponent extends EntityTabsComponent<Integration> {
+export class IntegrationTabsComponent extends EntityTabsComponent<Integration, PageLink, IntegrationInfo> {
+
+  private defaultEventTypeValue: DebugEventType | EventType  = DebugEventType.DEBUG_INTEGRATION;
+  get defaultEventType(): DebugEventType | EventType {
+    return this.defaultEventTypeValue;
+  }
+
+  @Input()
+  set defaultEventType(value: DebugEventType | EventType) {
+    this.defaultEventTypeValue = value || DebugEventType.DEBUG_INTEGRATION;
+  }
 
   constructor(protected store: Store<AppState>) {
     super(store);

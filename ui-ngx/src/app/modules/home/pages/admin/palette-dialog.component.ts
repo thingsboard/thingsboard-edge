@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,10 +39,8 @@ import { Router } from '@angular/router';
 import { Palette } from '@shared/models/white-labeling.models';
 import { ColorPalette, getContrastColor, materialColorPalette } from '@shared/models/material.models';
 import { TranslateService } from '@ngx-translate/core';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { DialogService } from '@core/services/dialog.service';
-
-const tinycolor = tinycolor_;
 
 export interface PaletteDialogData {
   palette: Palette;

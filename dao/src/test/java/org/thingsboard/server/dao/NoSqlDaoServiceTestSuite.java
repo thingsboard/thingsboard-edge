@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,27 +30,14 @@
  */
 package org.thingsboard.server.dao;
 
-import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
-import org.junit.ClassRule;
 import org.junit.extensions.cpsuite.ClasspathSuite;
 import org.junit.extensions.cpsuite.ClasspathSuite.ClassnameFilters;
 import org.junit.runner.RunWith;
-
-import java.util.Arrays;
 
 @RunWith(ClasspathSuite.class)
 @ClassnameFilters({
         "org.thingsboard.server.dao.service.*.nosql.*ServiceNoSqlTest",
 })
-public class NoSqlDaoServiceTestSuite {
-
-    @ClassRule
-    public static CustomCassandraCQLUnit cassandraUnit =
-            new CustomCassandraCQLUnit(
-                    Arrays.asList(
-                            new ClassPathCQLDataSet("cassandra/schema-ts.cql", false, false),
-                            new ClassPathCQLDataSet("cassandra/schema-ts-latest.cql", false, false)
-                    ),
-                    "cassandra-test.yaml", 30000L);
+public class NoSqlDaoServiceTestSuite extends AbstractNoSqlContainer {
 
 }

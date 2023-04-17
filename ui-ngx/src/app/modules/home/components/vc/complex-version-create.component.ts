@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   ComplexVersionCreateRequest,
   createDefaultEntityTypesVersionCreate,
@@ -67,7 +67,7 @@ export class ComplexVersionCreateComponent extends PageComponent implements OnIn
   @Input()
   popoverComponent: TbPopoverComponent;
 
-  createVersionFormGroup: FormGroup;
+  createVersionFormGroup: UntypedFormGroup;
 
   syncStrategies = Object.values(SyncStrategy);
 
@@ -92,7 +92,7 @@ export class ComplexVersionCreateComponent extends PageComponent implements OnIn
               private cd: ChangeDetectorRef,
               private sanitizer: DomSanitizer,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -135,26 +135,34 @@ export class ComplexVersionCreateComponent extends PageComponent implements OnIn
       this.popoverComponent.updatePosition();
     }
 
-    this.versionCreateResultSubscription = this.versionCreateResult$.subscribe((result) => {
-      if (result.done && !result.added && !result.modified && !result.removed) {
-        this.resultMessage = this.sanitizer.bypassSecurityTrustHtml(this.translate.instant('version-control.nothing-to-commit'));
-      } else {
-        this.resultMessage = this.sanitizer.bypassSecurityTrustHtml(result.error ? result.error : this.translate.instant('version-control.version-create-result',
-          {added: result.added, modified: result.modified, removed: result.removed}));
-      }
-      this.versionCreateResult = result;
-      this.versionCreateBranch = request.branch;
-      this.cd.detectChanges();
-      if (this.popoverComponent) {
-        this.popoverComponent.updatePosition();
-      }
-    },
-    (error) => {
-      this.hasError = true;
-      this.resultMessage = this.sanitizer.bypassSecurityTrustHtml(parseHttpErrorMessage(error, this.translate).message);
-      this.cd.detectChanges();
-      if (this.popoverComponent) {
-        this.popoverComponent.updatePosition();
+    this.versionCreateResultSubscription = this.versionCreateResult$.subscribe({
+      next: (result) => {
+        let message: string;
+        if (!result.error) {
+          if (result.done && !result.added && !result.modified && !result.removed) {
+            message = this.translate.instant('version-control.nothing-to-commit');
+          } else {
+            message = this.translate.instant('version-control.version-create-result',
+              {added: result.added, modified: result.modified, removed: result.removed});
+          }
+        } else {
+          message = result.error;
+        }
+        this.resultMessage = this.sanitizer.bypassSecurityTrustHtml(message);
+        this.versionCreateResult = result;
+        this.versionCreateBranch = request.branch;
+        this.cd.detectChanges();
+        if (this.popoverComponent) {
+          this.popoverComponent.updatePosition();
+        }
+      },
+      error: (error) => {
+        this.hasError = true;
+        this.resultMessage = this.sanitizer.bypassSecurityTrustHtml(parseHttpErrorMessage(error, this.translate).message);
+        this.cd.detectChanges();
+        if (this.popoverComponent) {
+          this.popoverComponent.updatePosition();
+        }
       }
     });
   }

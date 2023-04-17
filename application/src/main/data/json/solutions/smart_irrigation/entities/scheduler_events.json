@@ -1,0 +1,98 @@
+[
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e91"
+    },
+    "name": "Morning",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664877600000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "durationInMinutes": 60
+      },
+      "metadata": {}
+    },
+    "jsonId": "18dd3f10-967b-11ed-b5e1-392bb934190c"
+  },
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e92"
+    },
+    "name": "Morning",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664877600000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "durationInMinutes": 60
+      },
+      "metadata": {}
+    },
+    "jsonId": "18dcc9e0-967b-11ed-b5e1-392bb934190c"
+  },
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e91"
+    },
+    "name": "Evening",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664924400000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "volumeInLitters": 1000
+      },
+      "metadata": {}
+    },
+    "jsonId": "18dd8d30-967b-11ed-b5e1-392bb934190c"
+  },
+  {
+    "originatorId": {
+      "entityType": "ASSET",
+      "id": "f19a9530-38d6-11ed-af17-3d7337747e92"
+    },
+    "name": "Evening",
+    "type": "START_IRRIGATION",
+    "schedule": {
+      "timezone": "America/New_York",
+      "startTime": 1664924400000,
+      "repeat": {
+        "type": "DAILY",
+        "endsOn": 1893474000000
+      }
+    },
+    "configuration": {
+      "msgType": "START_IRRIGATION",
+      "msgBody": {
+        "volumeInLitters": 500
+      },
+      "metadata": {}
+    },
+    "jsonId": "18dd1800-967b-11ed-b5e1-392bb934190c"
+  }
+]

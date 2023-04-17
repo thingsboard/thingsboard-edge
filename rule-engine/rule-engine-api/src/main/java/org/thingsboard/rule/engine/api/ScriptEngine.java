@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.Map;
@@ -44,7 +45,7 @@ public interface ScriptEngine {
 
     ListenableFuture<TbMsg> executeGenerateAsync(TbMsg prevMsg);
 
-    ListenableFuture<Boolean> executeAttributesFilterAsync(Map<String,String> attributes);
+    ListenableFuture<Boolean> executeAttributesFilterAsync(Map<String, KvEntry> attributes);
 
     ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -87,7 +87,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private CountDownLatch latch;
 
     @Override
-    public void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate
+    public void connect(String integrationKey, String integrationSecret, String serviceId, Consumer<IntegrationConfigurationProto> onIntegrationUpdate
             , Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<DeviceDownlinkDataProto> onDownlink, Consumer<Exception> onError) {
         NettyChannelBuilder builder = NettyChannelBuilder
                 .forAddress(rpcHost, rpcPort)
@@ -112,7 +112,11 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
         this.inputStream = stub.handleMsgs(initOutputStream(integrationKey, onIntegrationUpdate, onConverterUpdate, onDownlink, onError));
         this.inputStream.onNext(RequestMsg.newBuilder()
                 .setMessageType(MessageType.CONNECT_RPC_MESSAGE)
-                .setConnectRequestMsg(ConnectRequestMsg.newBuilder().setIntegrationRoutingKey(integrationKey).setIntegrationSecret(integrationSecret).build())
+                .setConnectRequestMsg(ConnectRequestMsg.newBuilder()
+                        .setIntegrationRoutingKey(integrationKey)
+                        .setIntegrationSecret(integrationSecret)
+                        .setServiceId(serviceId)
+                        .build())
                 .build());
     }
 

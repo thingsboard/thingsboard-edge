@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
@@ -61,6 +62,7 @@ import java.lang.annotation.Target;
         @Type(name = "DEVICE", value = Device.class),
         @Type(name = "RULE_CHAIN", value = RuleChain.class),
         @Type(name = "DEVICE_PROFILE", value = DeviceProfile.class),
+        @Type(name = "ASSET_PROFILE", value = AssetProfile.class),
         @Type(name = "ASSET", value = Asset.class),
         @Type(name = "DASHBOARD", value = Dashboard.class),
         @Type(name = "CUSTOMER", value = Customer.class),
@@ -71,6 +73,6 @@ import java.lang.annotation.Target;
         @Type(name = "INTEGRATION", value = Integration.class),
         @Type(name = "ROLE", value = Role.class)
 })
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(value = {"tenantId", "createdTime"}, ignoreUnknown = true)
 public @interface JsonTbEntity {
 }

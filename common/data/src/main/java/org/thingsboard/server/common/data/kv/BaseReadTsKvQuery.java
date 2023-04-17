@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -46,8 +46,7 @@ public class BaseReadTsKvQuery extends BaseTsKvQuery implements ReadTsKvQuery {
         this(key, startTs, endTs, interval, limit, aggregation, "DESC");
     }
 
-    public BaseReadTsKvQuery(String key, long startTs, long endTs, long interval, int limit, Aggregation aggregation,
-                             String order) {
+    public BaseReadTsKvQuery(String key, long startTs, long endTs, long interval, int limit, Aggregation aggregation, String order) {
         super(key, startTs, endTs);
         this.interval = interval;
         this.limit = limit;
@@ -61,6 +60,14 @@ public class BaseReadTsKvQuery extends BaseTsKvQuery implements ReadTsKvQuery {
 
     public BaseReadTsKvQuery(String key, long startTs, long endTs, int limit, String order) {
         this(key, startTs, endTs, endTs - startTs, limit, Aggregation.NONE, order);
+    }
+
+    public BaseReadTsKvQuery(ReadTsKvQuery query, long startTs, long endTs) {
+        super(query.getId(), query.getKey(), startTs, endTs);
+        this.interval = query.getInterval();
+        this.limit = query.getLimit();
+        this.aggregation = query.getAggregation();
+        this.order = query.getOrder();
     }
 
 }

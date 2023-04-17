@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,11 +34,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.alarm.AlarmStatus;
+import org.thingsboard.server.common.data.id.UserId;
 
 import java.util.List;
 
@@ -56,6 +55,7 @@ public class AlarmDataPageLink extends EntityDataPageLink {
     private List<AlarmSearchStatus> statusList;
     private List<AlarmSeverity> severityList;
     private boolean searchPropagatedAlarms;
+    private UserId assigneeId;
 
     public AlarmDataPageLink() {
         super();
@@ -64,7 +64,8 @@ public class AlarmDataPageLink extends EntityDataPageLink {
     public AlarmDataPageLink(int pageSize, int page, String textSearch, EntityDataSortOrder sortOrder, boolean dynamic,
                              boolean searchPropagatedAlarms,
                              long startTs, long endTs, long timeWindow,
-                             List<String> typeList, List<AlarmSearchStatus> statusList, List<AlarmSeverity> severityList) {
+                             List<String> typeList, List<AlarmSearchStatus> statusList, List<AlarmSeverity> severityList,
+                             UserId assigneeId) {
         super(pageSize, page, textSearch, sortOrder, dynamic);
         this.searchPropagatedAlarms = searchPropagatedAlarms;
         this.startTs = startTs;
@@ -73,6 +74,7 @@ public class AlarmDataPageLink extends EntityDataPageLink {
         this.typeList = typeList;
         this.statusList = statusList;
         this.severityList = severityList;
+        this.assigneeId = assigneeId;
     }
 
     @JsonIgnore
@@ -80,7 +82,8 @@ public class AlarmDataPageLink extends EntityDataPageLink {
         return new AlarmDataPageLink(this.getPageSize(), this.getPage() + 1, this.getTextSearch(), this.getSortOrder(), this.isDynamic(),
                 this.searchPropagatedAlarms,
                 this.startTs, this.endTs, this.timeWindow,
-                this.typeList, this.statusList, this.severityList
+                this.typeList, this.statusList, this.severityList,
+                this.assigneeId
         );
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -50,6 +51,7 @@ import java.util.regex.Pattern;
 
 @Repository
 @Slf4j
+@SqlDao
 public abstract class AttributeKvInsertRepository {
 
     private static final ThreadLocal<Pattern> PATTERN_THREAD_LOCAL = ThreadLocal.withInitial(() -> Pattern.compile(String.valueOf(Character.MIN_VALUE)));
@@ -73,7 +75,7 @@ public abstract class AttributeKvInsertRepository {
     @Value("${sql.remove_null_chars:true}")
     private boolean removeNullChars;
 
-    protected void saveOrUpdate(List<AttributeKvEntity> entities) {
+    public void saveOrUpdate(List<AttributeKvEntity> entities) {
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
 import java.util.List;
@@ -65,13 +64,13 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupNodeConfiguration.class);
-        validateConfig(config);
+        validateConfig(ctx, config);
         setConfig(config);
     }
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
     }
 
     private EntityGroupId detectTargetEntityGroupId(EntityId original) {
@@ -86,15 +85,14 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
         }
     }
 
-    private void validateConfig(TbDuplicateMsgToGroupNodeConfiguration conf) {
-        if (!conf.isEntityGroupIsMessageOriginator() && (conf.getEntityGroupId() == null || conf.getEntityGroupId().isNullUid())) {
-            log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
-            throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+    private void validateConfig(TbContext ctx, TbDuplicateMsgToGroupNodeConfiguration conf) {
+        if (!conf.isEntityGroupIsMessageOriginator()) {
+            if (conf.getEntityGroupId() == null || conf.getEntityGroupId().isNullUid()) {
+                log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
+                throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+            }
+            ctx.checkTenantEntity(conf.getEntityGroupId());
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

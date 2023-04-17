@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,10 +33,11 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DialogService } from '@core/services/dialog.service';
+import { coerceBoolean } from '@shared/decorators/coerce-boolean';
 
 @Component({
   selector: 'tb-color-input',
@@ -60,6 +61,10 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   @Input()
   requiredText: string;
+
+  @Input()
+  @coerceBoolean()
+  useThemePalette = false;
 
   private colorClearButtonValue: boolean;
   get colorClearButton(): boolean {
@@ -105,12 +110,12 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   private propagateChange = null;
 
-  public colorFormGroup: FormGroup;
+  public colorFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private dialogs: DialogService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
   }
 
@@ -163,7 +168,7 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   }
 
   showColorPicker() {
-    this.dialogs.colorPicker(this.colorFormGroup.get('color').value).subscribe(
+    this.dialogs.colorPicker(this.colorFormGroup.get('color').value, this.useThemePalette).subscribe(
       (color) => {
         if (color) {
           this.colorFormGroup.patchValue(

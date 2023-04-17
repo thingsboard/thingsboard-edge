@@ -1,0 +1,259 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-toolbar color="primary">
+  <h2 translate>integration.add</h2>
+  <span fxFlex></span>
+  <div [tb-help]="helpLinkId"></div>
+  <button mat-icon-button
+          (click)="cancel()"
+          type="button">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+</mat-toolbar>
+<mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+</mat-progress-bar>
+<div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+<div mat-dialog-content>
+  <mat-stepper linear="true" labelPosition="bottom" #addIntegrationWizardStepper [orientation]="(stepperOrientation | async)"
+               (selectionChange)="changeStep($event)">
+    <ng-template matStepperIcon="edit">
+      <mat-icon>check</mat-icon>
+    </ng-template>
+    <mat-step [stepControl]="integrationWizardForm">
+      <form [formGroup]="integrationWizardForm">
+        <ng-template matStepLabel>
+          {{ "integration.basic-settings" | translate }}<br>
+          <div class="mat-step-optional" [fxHide]="selectedIndex === 0">{{integrationType}}</div>
+        </ng-template>
+        <tb-integration-type-select formControlName="type" required fxFlex>
+        </tb-integration-type-select>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>integration.name</mat-label>
+          <input matInput formControlName="name" required>
+          <mat-error *ngIf="integrationWizardForm.get('name').hasError('required') || integrationWizardForm.get('name').hasError('pattern')">
+            {{ 'integration.name-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="integrationWizardForm.get('name').hasError('maxlength')">
+            {{ 'integration.name-max-length' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <div class="row" fxLayout="column" fxLayoutGap="8px">
+          <mat-slide-toggle formControlName="enabled">
+            {{ 'integration.enabled' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="debugMode">
+            {{ 'integration.debug-mode' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="allowCreateDevicesOrAssets">
+            {{ 'integration.allow-create-devices-or-assets' | translate }}
+          </mat-slide-toggle>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="uplinkConverterForm">
+      <form [formGroup]="uplinkConverterForm">
+        <ng-template matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
+        <mat-radio-group formControlName="converterType" fxLayout="column" class="tb-radio-button-group">
+          <section class="tb-radio-button-content"
+                   [ngClass]="{'tb-select-button': uplinkConverterForm.get('converterType').value === 'exist'}">
+            <mat-radio-button value="exist" color="primary" class="tb-radio-button">
+              <span translate>integration.existing-uplink-converter</span>
+            </mat-radio-button>
+            <tb-converter-autocomplete fxFlex formControlName="uplinkConverterId" required
+                                       *ngIf="uplinkConverterForm.get('converterType').value === 'exist'"
+                                       labelText="integration.uplink-converter"
+                                       requiredText="integration.uplink-converter-required"
+                                       [converterType]="converterType.UPLINK"
+                                       [useFullEntityId]="true"
+                                       [isEdgeTemplate]="isEdgeTemplate">
+            </tb-converter-autocomplete>
+          </section>
+          <mat-divider class="tb-button-divider"></mat-divider>
+          <section class="tb-radio-button-content"
+                   [ngClass]="{'tb-select-button': uplinkConverterForm.get('converterType').value === 'new'}">
+            <mat-radio-button value="new" color="primary" class="tb-radio-button">
+              <span translate>integration.new-uplink-converter</span>
+            </mat-radio-button>
+            <tb-converter #uplinkDataConverter
+                          [fxShow]="uplinkConverterForm.get('converterType').value === 'new'"
+                          hideType="true"
+                          isEdit="true"
+                          [entity]="uplinkConverter"
+            ></tb-converter>
+          </section>
+        </mat-radio-group>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
+      <form [formGroup]="downlinkConverterForm">
+        <ng-template matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
+        <mat-radio-group formControlName="converterType" fxLayout="column" class="tb-radio-button-group">
+          <section class="tb-radio-button-content" [ngClass]="{'tb-select-button': downlinkConverterForm.get('converterType').value === 'exist'}">
+            <mat-radio-button value="exist" color="primary" class="tb-radio-button">
+              <span translate>integration.existing-downlink-converter</span>
+            </mat-radio-button>
+            <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+                                       *ngIf="downlinkConverterForm.get('converterType').value === 'exist'"
+                                       labelText="integration.downlink-converter"
+                                       [converterType]="converterType.DOWNLINK"
+                                       [useFullEntityId]="true"
+                                       [isEdgeTemplate]="isEdgeTemplate">
+            </tb-converter-autocomplete>
+          </section>
+          <mat-divider class="tb-button-divider"></mat-divider>
+          <section class="tb-radio-button-content" [ngClass]="{'tb-select-button': downlinkConverterForm.get('converterType').value === 'new'}">
+            <mat-radio-button value="new" color="primary" class="tb-radio-button">
+              <span translate>integration.new-downlink-converter</span>
+            </mat-radio-button>
+            <tb-converter #downlinkDataConverter
+              [fxShow]="downlinkConverterForm.get('converterType').value === 'new'"
+              hideType="true"
+              isEdit="true"
+              [entity]="downlinkConverter"
+            ></tb-converter>
+          </section>
+        </mat-radio-group>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="integrationConfigurationForm">
+      <ng-template matStepLabel>{{ "integration.connection" | translate }}</ng-template>
+      <form [formGroup]="integrationConfigurationForm" tb-toast toastTarget="integrationRoot">
+        <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
+        <tb-integration-configuration
+          formControlName="configuration"
+          [routingKey]="integrationConfigurationForm.get('routingKey').value"
+          [genericAdditionalInfoTemplate]="genericAdditionalInfo"
+          [executeRemotelyTemplate]="executeRemotely"
+          [integrationType]="integrationWizardForm.get('type').value"
+          [isSetDownlink]="!!downlinkConverterForm.get('downlinkConverterId').value || downlinkConverterForm.get('converterType').value === 'new'"
+          [isEdgeTemplate]="isEdgeTemplate"
+        ></tb-integration-configuration>
+        <ng-template #genericAdditionalInfo>
+          <section [formGroup]="integrationConfigurationForm">
+            <div formGroupName="additionalInfo" fxLayout="column">
+              <mat-form-field class="mat-block">
+                <mat-label translate>integration.description</mat-label>
+                <textarea matInput formControlName="description" cdkTextareaAutosize
+                          cdkAutosizeMinRows="1" rows="1"></textarea>
+              </mat-form-field>
+            </div>
+            <fieldset class="fields-group">
+              <legend class="group-title" translate>integration.metadata</legend>
+              <tb-key-val-map formControlName="metadata" isStrokedButton="true"></tb-key-val-map>
+            </fieldset>
+          </section>
+        </ng-template>
+        <ng-template #executeRemotely>
+          <section [formGroup]="integrationConfigurationForm">
+            <mat-expansion-panel class="remote-integration-setting" [expanded]="integrationConfigurationForm.get('remote').value">
+              <mat-expansion-panel-header fxLayout="row">
+                <mat-panel-title>
+                  <mat-slide-toggle formControlName="remote" (click)="$event.stopPropagation()">
+                    {{'integration.execute-remotely' | translate}}
+                  </mat-slide-toggle>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <ng-template matExpansionPanelContent>
+                <section class="remote-integration-setting-content">
+                  <div fxLayout="row" fxLayoutAlign="start center">
+                    <mat-form-field class="mat-block" fxFlex>
+                      <mat-label translate>integration.integration-key</mat-label>
+                      <input matInput formControlName="routingKey">
+                    </mat-form-field>
+                    <button mat-icon-button ngxClipboard type="button" color="primary"
+                            (cbOnSuccess)="onIntegrationInfoCopied('key')"
+                            [cbContent]="integrationConfigurationForm.get('routingKey').value"
+                            matTooltip="{{'integration.copy-integration-key' | translate}}">
+                      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+                    </button>
+                  </div>
+                  <div fxLayout="row" fxLayoutAlign="start center">
+                    <mat-form-field class="mat-block" fxFlex>
+                      <mat-label translate>integration.integration-secret</mat-label>
+                      <input matInput formControlName="secret">
+                    </mat-form-field>
+                    <button mat-icon-button ngxClipboard type="button" color="primary"
+                            (cbOnSuccess)="onIntegrationInfoCopied('secret')"
+                            [cbContent]="integrationConfigurationForm.get('secret').value"
+                            matTooltip="{{'integration.copy-integration-secret' | translate}}">
+                      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+                    </button>
+                  </div>
+                </section>
+              </ng-template>
+            </mat-expansion-panel>
+          </section>
+        </ng-template>
+      </form>
+    </mat-step>
+    <mat-step optional="true" *ngIf="showCheckConnection">
+      <ng-template matStepLabel>{{ "integration.check-connection" | translate }}</ng-template>
+      <div fxFlex fxLayout="column" fxLayoutAlign="center center" style="height: 100%">
+        <mat-progress-spinner color="warn" mode="indeterminate"
+                              strokeWidth="5" *ngIf="!showCheckSuccess && !checkErrMsg">
+        </mat-progress-spinner>
+        <div *ngIf="showCheckSuccess">
+          <div fxFlex fxLayoutAlign="center center">
+            <mat-icon class="success connection-icon">check_circle</mat-icon>
+          </div>
+          <span class="connection-status success">{{ "integration.connected" | translate }}</span>
+        </div>
+        <div *ngIf="checkErrMsg">
+          <div fxFlex fxLayoutAlign="center center">
+            <mat-icon class="error connection-icon">cancel</mat-icon>
+          </div>
+          <div class="connection-status error">{{ "integration.not-connected" | translate }}</div>
+          <div class="error_msg">{{ checkErrMsg }}</div>
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>
+<mat-divider></mat-divider>
+<div mat-dialog-actions fxLayout="row">
+  <button mat-stroked-button *ngIf="selectedIndex > 0"
+          [disabled]="(isLoading$ | async)"
+          (click)="backStep()">{{ 'action.back' | translate }}</button>
+  <span fxFlex></span>
+  <button *ngIf="isCheckConnectionAvailable && selectedIndex === 3"
+          mat-button mat-stroked-button color="primary"
+          (click)="onIntegrationCheck()"
+          [disabled]="(isLoading$ | async)">
+    {{ 'integration.check-connection' | translate }}
+  </button>
+  <button mat-raised-button
+          color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="nextStep()">{{ nextStepLabel() | translate }}</button>
+</div>
+

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,10 +42,13 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -57,6 +60,11 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -74,12 +82,13 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 
-@Service
+@Service("TenantDaoService")
 @Slf4j
 public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Tenant, TenantEvictEvent> implements TenantService {
 
@@ -101,6 +110,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
     @Autowired
     private AssetService assetService;
+
+    @Autowired
+    private AssetProfileService assetProfileService;
 
     @Autowired
     private DeviceService deviceService;
@@ -163,6 +175,21 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private AdminSettingsService adminSettingsService;
 
     @Autowired
+    private NotificationSettingsService notificationSettingsService;
+
+    @Autowired
+    private NotificationRequestService notificationRequestService;
+
+    @Autowired
+    private NotificationRuleService notificationRuleService;
+
+    @Autowired
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    private NotificationTargetService notificationTargetService;
+
+    @Autowired
     protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
     @Autowired
@@ -222,6 +249,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), create));
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+            assetProfileService.createDefaultAssetProfile(savedTenant.getId());
 
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
@@ -234,10 +262,20 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
             entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
+            try {
+                notificationSettingsService.createDefaultNotificationConfigs(savedTenant.getId());
+            } catch (Throwable e) {
+                log.error("Failed to create default notification configs for tenant {}", savedTenant.getId(), e);
+            }
         }
         return savedTenant;
     }
 
+    /**
+     * We intentionally leave this method without "Transactional" annotation due to complexity of the method.
+     * Ideally we should delete related entites without "paginatedRemover" logic. But in such a case we can't clear cache and send events.
+     * We will create separate task to make "deleteTenant" transactional.
+     */
     @Override
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
@@ -246,6 +284,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
+        assetProfileService.deleteAssetProfilesByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
@@ -266,6 +305,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         otaPackageService.deleteOtaPackagesByTenantId(tenantId);
         rpcService.deleteAllRpcByTenantId(tenantId);
         queueService.deleteQueuesByTenantId(tenantId);
+        notificationRequestService.deleteNotificationRequestsByTenantId(tenantId);
+        notificationRuleService.deleteNotificationRulesByTenantId(tenantId);
+        notificationTemplateService.deleteNotificationTemplatesByTenantId(tenantId);
+        notificationTargetService.deleteNotificationTargetsByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
@@ -322,4 +365,15 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             deleteTenant(TenantId.fromUUID(entity.getUuidId()));
         }
     };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findTenantById(new TenantId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.TENANT;
+    }
+
 }

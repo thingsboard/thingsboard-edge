@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,7 +63,6 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeMsgDelayConfig"
 )
-
 public class TbMsgDelayNode implements TbNode {
 
     private static final String TB_MSG_DELAY_NODE_MSG = "TbMsgDelayNodeMsg";
@@ -82,7 +81,17 @@ public class TbMsgDelayNode implements TbNode {
         if (msg.getType().equals(TB_MSG_DELAY_NODE_MSG)) {
             TbMsg pendingMsg = pendingMsgs.remove(UUID.fromString(msg.getData()));
             if (pendingMsg != null) {
-                ctx.enqueueForTellNext(pendingMsg, SUCCESS);
+                ctx.enqueueForTellNext(
+                        TbMsg.newMsg(
+                                pendingMsg.getQueueName(),
+                                pendingMsg.getType(),
+                                pendingMsg.getOriginator(),
+                                pendingMsg.getCustomerId(),
+                                pendingMsg.getMetaData(),
+                                pendingMsg.getData()
+                        ),
+                        SUCCESS
+                );
             }
         } else {
             if (pendingMsgs.size() < config.getMaxPendingMsgs()) {

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,39 +31,42 @@
 
 -->
 <section fxLayout="column" class="tb-kv-map" [formGroup]="kvListFormGroup">
-  <label translate class="tb-title no-padding">{{ titleText }}</label>
-  <div class="container">
-    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" style="max-height: 40px;"
-         formArrayName="keyVals"
-         *ngFor="let keyValControl of keyValsFormArray().controls; let $index = index">
-      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block"
-                      style="max-height: 40px;">
-        <mat-label></mat-label>
-        <input [formControl]="keyValControl.get('key')" matInput required [readonly]="isSinglePredefinedKey"
-               placeholder="{{ (keyPlaceholderText ? keyPlaceholderText : 'key-val.key') | translate }}"/>
-      </mat-form-field>
-      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block"
-                      style="max-height: 40px;">
-        <mat-label></mat-label>
-        <input [formControl]="keyValControl.get('value')" matInput required
-               placeholder="{{ (valuePlaceholderText ? valuePlaceholderText : 'key-val.value') | translate }}"/>
-      </mat-form-field>
-      <button mat-icon-button color="primary"
-              [fxShow]="!disabled && !isSinglePredefinedKey"
-              type="button"
-              (click)="removeKeyVal($index)"
-              [disabled]="isLoading$ | async"
-              matTooltip="{{ 'key-val.remove-entry' | translate }}"
-              matTooltipPosition="above">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
+  <label translate class="tb-title">{{ titleText }}</label>
+  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px"
+       formArrayName="keyVals"
+       *ngFor="let keyValControl of keyValsFormArray().controls; let $index = index">
+    <mat-form-field fxFlex class="mat-block" subscriptSizing="{{ subscriptSizing }}">
+      <input [formControl]="keyValControl.get('key')" matInput required
+             placeholder="{{ (keyPlaceholderText ? keyPlaceholderText : 'key-val.key') | translate }}"/>
+    </mat-form-field>
+    <mat-form-field fxFlex class="mat-block" subscriptSizing="{{ subscriptSizing }}">
+      <input [formControl]="keyValControl.get('value')" matInput required
+             placeholder="{{ (valuePlaceholderText ? valuePlaceholderText : 'key-val.value') | translate }}"/>
+    </mat-form-field>
+    <button mat-icon-button color="primary"
+            [fxShow]="!disabled"
+            type="button"
+            (click)="removeKeyVal($index)"
+            [disabled]="isLoading$ | async"
+            matTooltip="{{ 'key-val.remove-entry' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
   <span [fxShow]="!keyValsFormArray().length"
         fxLayoutAlign="center center" [ngClass]="{'disabled': disabled}"
         class="no-data-found" translate>{{noDataText ? noDataText : 'key-val.no-data'}}</span>
   <div style="margin-top: 8px;">
-    <button mat-button mat-raised-button color="primary"
+    <button mat-button mat-raised-button color="primary" *ngIf="!isStrokedButton"
+            [fxShow]="!disabled && (!isSingleMode || !keyValsFormArray().length)"
+            [disabled]="isLoading$ | async"
+            (click)="addKeyVal()"
+            type="button"
+            matTooltip="{{ 'key-val.add-entry' | translate }}"
+            matTooltipPosition="above">
+      {{ 'action.add' | translate }}
+    </button>
+    <button mat-button mat-stroked-button color="primary" *ngIf="isStrokedButton"
             [fxShow]="!disabled && (!isSingleMode || !keyValsFormArray().length)"
             [disabled]="isLoading$ | async"
             (click)="addKeyVal()"

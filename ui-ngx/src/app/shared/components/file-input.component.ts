@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -203,20 +203,18 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
         let fileName = null;
         let fileContent = null;
         let files = null;
-        if (typeof reader.result === 'string') {
-          fileContent = reader.result;
-          if (fileContent && fileContent.length > 0) {
-            if (!this.workFromFileObj) {
+        if (reader.readyState === reader.DONE) {
+          if (!this.workFromFileObj) {
+            fileContent = reader.result;
+            if (fileContent && fileContent.length > 0) {
               if (this.contentConvertFunction) {
                 fileContent = this.contentConvertFunction(fileContent);
               }
-              if (fileContent) {
-                fileName = file.name;
-              }
-            } else {
-              files = file.file;
-              fileName = file.name;
+              fileName = fileContent ? file.name : null;
             }
+          } else if (file.name || file.file){
+            files = file.file;
+            fileName = file.name;
           }
         }
         resolve({fileContent, fileName, files});

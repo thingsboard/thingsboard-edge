@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,18 +36,18 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
@@ -57,7 +57,6 @@ import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -69,7 +68,11 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,31 +89,36 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
+public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
     static final int TIMEOUT = 30;
 
     @Autowired
     private AttributesService attributesService;
+    @Autowired
+    DeviceService deviceService;
+    @Autowired
+    AssetService assetService;
+    @Autowired
+    EntityGroupService entityGroupService;
+    @Autowired
+    EdgeService edgeService;
 
     private MergedUserPermissions mergedUserPermissions;
-
-    private TenantId tenantId;
 
     ListeningExecutorService executor;
 
     @Before
     public void beforeRun() {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
-        tenantId = before();
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
         mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
     @After
     public void after() {
         executor.shutdownNow();
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
@@ -134,7 +142,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         EntityGroup devicesGroup = devicesGroupOptional.get();
 
         PageLink pageLink = new PageLink(Integer.MAX_VALUE);
-        List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, devicesGroup.getId(), pageLink).get();
+        List<EntityId> entityIds = entityGroupService.findAllEntityIdsAsync(tenantId, devicesGroup.getId(), pageLink).get();
         assertThat(entityIds).containsExactlyInAnyOrderElementsOf(
                 devices.stream().map(IdBased::getId).collect(Collectors.toList()));
 
@@ -237,6 +245,45 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         assertThat(allGroupEntities.stream().map(ShortEntityView::getId).collect(Collectors.toList()))
                 .containsExactlyInAnyOrderElementsOf(
                         testGroupDevices.stream().map(IdBased::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void testFindGroupEntityProfileType() throws ExecutionException, InterruptedException {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setName("testDevice");
+        device.setType("default");
+        device = deviceService.saveDevice(device);
+
+        Optional<EntityGroup> devicesGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+        Assert.assertTrue(devicesGroupOptional.isPresent());
+        EntityGroup devicesGroup = devicesGroupOptional.get();
+
+        ShortEntityView shortDevice = entityGroupService.findGroupEntity(tenantId, new CustomerId(CustomerId.NULL_UUID),
+                mergedUserPermissions, devicesGroup.getId(), device.getId());
+
+        Assert.assertNotNull(shortDevice);
+        Assert.assertEquals("testDevice", shortDevice.getName());
+        Assert.assertEquals("default", shortDevice.properties().get("device_profile"));
+
+        Asset asset = new Asset();
+        asset.setTenantId(tenantId);
+        asset.setName("testAsset");
+        asset.setType("default");
+        asset = assetService.saveAsset(asset);
+
+        Optional<EntityGroup> assetsGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.ASSET, EntityGroup.GROUP_ALL_NAME);
+        Assert.assertTrue(assetsGroupOptional.isPresent());
+        EntityGroup assetGroup = assetsGroupOptional.get();
+
+        ShortEntityView shortAsset = entityGroupService.findGroupEntity(tenantId, new CustomerId(CustomerId.NULL_UUID),
+                mergedUserPermissions, assetGroup.getId(), asset.getId());
+
+        Assert.assertNotNull(shortAsset);
+        Assert.assertEquals("testAsset", shortAsset.getName());
+        Assert.assertEquals("default", shortAsset.properties().get("asset_profile"));
     }
 
     @Test
@@ -396,7 +443,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         List<EntityGroup> entityGroupsName1 = new ArrayList<>();
         for (int i = 0; i < 123; i++) {
             EntityGroup entityGroup = new EntityGroup();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = name1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             entityGroup.setName(name);
@@ -410,7 +457,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         List<EntityGroup> entityGroupsName2 = new ArrayList<>();
         for (int i = 0; i < 193; i++) {
             EntityGroup entityGroup = new EntityGroup();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = name2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             entityGroup.setName(name);

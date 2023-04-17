@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,9 @@
  */
 package org.thingsboard.server.service.install;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -52,15 +51,15 @@ import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
-import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.dao.asset.AssetDao;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.queue.QueueService;
-import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
-import org.thingsboard.server.dao.tenant.TenantProfileService;
+import org.thingsboard.server.dao.sql.tenant.TenantRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
@@ -77,11 +76,10 @@ import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
 import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
@@ -131,10 +129,19 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     private TenantService tenantService;
 
     @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
     private DeviceService deviceService;
 
     @Autowired
+    private AssetDao assetDao;
+
+    @Autowired
     private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private AssetProfileService assetProfileService;
 
     @Autowired
     private ApiUsageStateService apiUsageStateService;
@@ -151,10 +158,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     private TbRuleEngineQueueConfigService queueConfig;
 
     @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
-    private TenantProfileService tenantProfileService;
+    private DbUpgradeExecutorService dbUpgradeExecutor;
 
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
@@ -614,10 +618,127 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 }
                 break;
             case "3.4.0":
-                log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.0", SCHEMA_UPDATE_SQL);
                     loadSql(schemaUpdateFile, conn);
+                    log.info("Updating schema settings...");
+                    conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3004001;");
+                    log.info("Schema updated.");
+                } catch (Exception e) {
+                    log.error("Failed updating schema!!!", e);
+                }
+                break;
+            case "3.4.1":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    runSchemaUpdateScript(conn, "3.4.1");
+                    if (isOldSchema(conn, 3004001)) {
+                        try {
+                            conn.createStatement().execute("ALTER TABLE asset ADD COLUMN asset_profile_id uuid");
+                        } catch (Exception e) {
+                        }
+
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.1", "schema_update_before.sql");
+                        loadSql(schemaUpdateFile, conn);
+
+                        conn.createStatement().execute("DELETE FROM asset a WHERE NOT exists(SELECT id FROM tenant WHERE id = a.tenant_id);");
+
+                        log.info("Creating default asset profiles...");
+
+                        PageLink pageLink = new PageLink(1000);
+                        PageData<TenantId> tenantIds;
+                        do {
+                            List<ListenableFuture<?>> futures = new ArrayList<>();
+                            tenantIds = tenantService.findTenantsIds(pageLink);
+                            for (TenantId tenantId : tenantIds.getData()) {
+                                futures.add(dbUpgradeExecutor.submit(() -> {
+                                    try {
+                                        assetProfileService.createDefaultAssetProfile(tenantId);
+                                    } catch (Exception e) {}
+                                }));
+                            }
+                            Futures.allAsList(futures).get();
+                            pageLink = pageLink.nextPageLink();
+                        } while (tenantIds.hasNext());
+
+                        pageLink = new PageLink(1000);
+                        PageData<TbPair<UUID, String>> pairs;
+                        do {
+                            List<ListenableFuture<?>> futures = new ArrayList<>();
+                            pairs = assetDao.getAllAssetTypes(pageLink);
+                            for (TbPair<UUID, String> pair : pairs.getData()) {
+                                TenantId tenantId = new TenantId(pair.getFirst());
+                                String assetType = pair.getSecond();
+                                if (!"default".equals(assetType)) {
+                                    futures.add(dbUpgradeExecutor.submit(() -> {
+                                        try {
+                                            assetProfileService.findOrCreateAssetProfile(tenantId, assetType);
+                                        } catch (Exception e) {}
+                                    }));
+                                }
+                            }
+                            Futures.allAsList(futures).get();
+                            pageLink = pageLink.nextPageLink();
+                        } while (pairs.hasNext());
+
+                        log.info("Updating asset profiles...");
+                        conn.createStatement().execute("call update_asset_profiles()");
+
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.1", "schema_update_after.sql");
+                        loadSql(schemaUpdateFile, conn);
+
+                        conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3004002;");
+                    }
+                    log.info("Schema updated.");
+                } catch (Exception e) {
+                    log.error("Failed updating schema!!!", e);
+                }
+                break;
+            case "3.4.4":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    if (isOldSchema(conn, 3004002)) {
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.4", SCHEMA_UPDATE_SQL);
+                        loadSql(schemaUpdateFile, conn);
+
+                        try {
+                            conn.createStatement().execute("VACUUM FULL ANALYZE alarm;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception e) {
+                        }
+
+                        try {
+                            conn.createStatement().execute("ALTER TABLE asset_profile ADD COLUMN default_edge_rule_chain_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception e) {
+                        }
+                        try {
+                            conn.createStatement().execute("ALTER TABLE device_profile ADD COLUMN default_edge_rule_chain_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception e) {
+                        }
+                        try {
+                            conn.createStatement().execute("ALTER TABLE asset_profile ADD CONSTRAINT fk_default_edge_rule_chain_asset_profile FOREIGN KEY (default_edge_rule_chain_id) REFERENCES rule_chain(id)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception e) {
+                        }
+                        try {
+                            conn.createStatement().execute("ALTER TABLE device_profile ADD CONSTRAINT fk_default_edge_rule_chain_device_profile FOREIGN KEY (default_edge_rule_chain_id) REFERENCES rule_chain(id)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                        } catch (Exception e) {
+                        }
+
+                        conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3005000;");
+                    }
+                    log.info("Schema updated.");
+                } catch (Exception e) {
+                    log.error("Failed updating schema!!!", e);
+                }
+                break;
+            case "3.5.0":
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.5.0pe", SCHEMA_UPDATE_SQL);
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    try {
+                        loadSql(schemaUpdateFile, conn);
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {
@@ -690,7 +811,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
                     integrationRepository.findAll().forEach(integration -> {
-                        if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
+                        if (integration.getType().equals(IntegrationType.LORIOT)) {
+                            ObjectNode credentials = (ObjectNode) integration.getConfiguration().get("credentials");
+                            if (credentials.get("type").asText().equals("basic") && !credentials.has("username")) {
+                                credentials.set("username", credentials.get("email"));
+                                credentials.remove("email");
+                                integrationRepository.save(integration);
+                            }
+
+                        } else if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
                             if (!clientConfiguration.has("connectionString")) {
                                 String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
@@ -707,6 +836,21 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             integrationRepository.save(integration);
                         }
                     });
+                    try {
+                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_type varchar(255);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);");
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
                     log.info("Schema updated.");
                 } catch (Exception e) {
                     log.error("Failed to update schema!!!");
@@ -715,6 +859,11 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }
+    }
+
+    private void runSchemaUpdateScript(Connection connection, String version) throws Exception {
+        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", version, SCHEMA_UPDATE_SQL);
+        loadSql(schemaUpdateFile, connection);
     }
 
     private void loadSql(Path sqlFile, Connection conn) throws Exception {
@@ -780,7 +929,5 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         queue.setConsumerPerPartition(queueSettings.isConsumerPerPartition());
         return queue;
     }
-
-
 
 }

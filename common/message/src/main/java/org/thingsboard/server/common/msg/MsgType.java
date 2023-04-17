@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -137,6 +137,12 @@ public enum MsgType {
     /**
      * Message that is sent on Edge Event to Edge Session
      */
-    EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG;
+    EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG,
+
+    /**
+     * Messages that are sent to and from edge session to start edge synchronization process
+     */
+    EDGE_SYNC_REQUEST_TO_EDGE_SESSION_MSG,
+    EDGE_SYNC_RESPONSE_FROM_EDGE_SESSION_MSG;
 
 }

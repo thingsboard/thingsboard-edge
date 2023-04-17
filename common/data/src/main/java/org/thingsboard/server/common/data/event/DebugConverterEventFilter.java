@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 package org.thingsboard.server.common.data.event;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 @Data
 public class DebugConverterEventFilter extends DebugEventFilter {
@@ -47,7 +47,7 @@ public class DebugConverterEventFilter extends DebugEventFilter {
     private String metadata;
 
     @Override
-    public boolean hasFilterForJsonBody() {
-        return super.hasFilterForJsonBody() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(in) || !StringUtils.isEmpty(out) || !StringUtils.isEmpty(metadata);
+    public boolean isNotEmpty() {
+        return super.isNotEmpty() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(in) || !StringUtils.isEmpty(out) || !StringUtils.isEmpty(metadata);
     }
 }

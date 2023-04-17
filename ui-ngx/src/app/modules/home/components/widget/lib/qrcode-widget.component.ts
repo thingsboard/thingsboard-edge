@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,7 @@ import { DatasourceData, FormattedData } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import {
   createLabelFromPattern,
-  flatFormattedData,
+  flatDataWithoutOverride,
   formattedDataFormDatasourceData,
   isNumber,
   isObject,
@@ -116,7 +116,7 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
     const data = formattedDataFormDatasourceData(initialData);
     const pattern = this.settings.useQrCodeTextFunction ?
       safeExecute(this.qrCodeTextFunction, [data]) : this.settings.qrCodeTextPattern;
-    const allData = flatFormattedData(data);
+    const allData: FormattedData = flatDataWithoutOverride(data);
     qrCodeText = createLabelFromPattern(pattern, allData);
     this.updateQrCodeText(qrCodeText);
   }
@@ -147,5 +147,4 @@ export class QrCodeWidgetComponent extends PageComponent implements OnInit, Afte
       this.scheduleUpdateCanvas = true;
     }
   }
-
 }

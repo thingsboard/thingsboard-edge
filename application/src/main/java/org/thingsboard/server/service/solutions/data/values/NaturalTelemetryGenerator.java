@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.solutions.data.values;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile;
 
 import java.math.BigDecimal;
@@ -42,6 +44,7 @@ import static org.thingsboard.server.service.solutions.data.values.GeneratorTool
 public class NaturalTelemetryGenerator extends TelemetryGenerator {
 
     private final NaturalValueStrategyDefinition strategy;
+    @Getter @Setter
     private double value;
     private boolean isIncrement;
     private double lowValue;
@@ -53,7 +56,7 @@ public class NaturalTelemetryGenerator extends TelemetryGenerator {
         this.value = getRandomStartValue();
         this.lowValue = getRandomLowValue();
         this.highValue = getRandomHighValue();
-        isIncrement = true;
+        isIncrement = !strategy.isDecrementOnStart();
     }
 
     @Override

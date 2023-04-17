@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,15 +41,15 @@ import { DataKey, Datasource, DatasourceData, DatasourceType, WidgetConfig } fro
 import { IWidgetSubscription } from '@core/api/widget-api.models';
 import {
   createLabelFromDatasource,
-  isBoolean, isDefined,
+  isBoolean,
+  isDefined,
   isDefinedAndNotNull,
   isEqual,
-  isNotEmptyStr,
   isUndefined
 } from '@core/utils';
 import { EntityType } from '@shared/models/entity-type.models';
 import * as _moment from 'moment';
-import { FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { RequestConfig } from '@core/http/http-utils';
 import { AttributeService } from '@core/http/attribute.service';
 import { AttributeData, AttributeScope, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
@@ -57,14 +57,19 @@ import { forkJoin, Observable, Subject } from 'rxjs';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { takeUntil } from 'rxjs/operators';
+import {
+  JsonObjectEditDialogComponent,
+  JsonObjectEditDialogData
+} from '@shared/components/dialog/json-object-edit-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 type FieldAlignment = 'row' | 'column';
 
 type MultipleInputWidgetDataKeyType = 'server' | 'shared' | 'timeseries';
-type MultipleInputWidgetDataKeyValueType = 'string' | 'double' | 'integer' |
-                                           'booleanCheckbox' | 'booleanSwitch' |
-                                           'dateTime' | 'date' | 'time' | 'select';
+export type MultipleInputWidgetDataKeyValueType = 'string' | 'double' | 'integer' |
+                                                  'JSON' | 'booleanCheckbox' | 'booleanSwitch' |
+                                                  'dateTime' | 'date' | 'time' | 'select';
 type MultipleInputWidgetDataKeyEditableType = 'editable' | 'disabled' | 'readonly';
 
 type ConvertGetValueFunction = (value: any, ctx: WidgetContext) => any;
@@ -105,6 +110,7 @@ interface MultipleInputWidgetDataKeySettings {
   invalidDateErrorMessage?: string;
   minValueErrorMessage?: string;
   maxValueErrorMessage?: string;
+  invalidJsonErrorMessage?: string;
   useCustomIcon: boolean;
   icon: string;
   customIcon: string ;
@@ -118,6 +124,9 @@ interface MultipleInputWidgetDataKeySettings {
   useSetValueFunction?: boolean;
   setValueFunctionBody?: string;
   setValueFunction?: ConvertSetValueFunction;
+  dialogTitle?: string;
+  saveButtonLabel?: string;
+  cancelButtonLabel?: string;
 }
 
 interface MultipleInputWidgetDataKey extends DataKey {
@@ -149,7 +158,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   private widgetConfig: WidgetConfig;
   private subscription: IWidgetSubscription;
   private datasources: Array<Datasource>;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   public sources: Array<MultipleInputWidgetSource> = [];
   private isSavingInProgress = false;
 
@@ -163,7 +172,7 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   datasourceDetected = false;
   isAllParametersValid = true;
 
-  multipleInputFormGroup: FormGroup;
+  multipleInputFormGroup: UntypedFormGroup;
 
   toastTargetId = 'multiple-input-widget' + this.utils.guid();
 
@@ -173,10 +182,11 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
               private utils: UtilsService,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private attributeService: AttributeService,
               private translate: TranslateService,
-              private sanitizer: DomSanitizer) {
+              private sanitizer: DomSanitizer,
+              private dialog: MatDialog) {
     super(store);
   }
 
@@ -440,6 +450,13 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
             case 'select':
               value = keyValue !== null ? keyValue.toString() : null;
               break;
+            case 'JSON':
+              try {
+                value = JSON.parse(keyValue);
+              } catch (e) {
+                value = keyValue ? keyValue : null;
+              }
+              break;
             default:
               value = keyValue;
           }
@@ -534,6 +551,10 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
       case 'invalidDate':
         errorMessage = keySettings.invalidDateErrorMessage;
         defaultMessage = 'widgets.input-widgets.invalid-date';
+        break;
+      case 'invalidJSON':
+        errorMessage = keySettings.invalidJsonErrorMessage;
+        defaultMessage = 'widgets.input-widgets.json-invalid';
         break;
       default:
         return '';
@@ -685,8 +706,8 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
       }
     });
     if (tasks.length) {
-      forkJoin(tasks).subscribe(
-        () => {
+      forkJoin(tasks).subscribe({
+        next: () => {
           this.multipleInputFormGroup.markAsPristine();
           this.ctx.detectChanges();
           this.isSavingInProgress = false;
@@ -695,13 +716,13 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
               1000, 'bottom', 'left', this.toastTargetId);
           }
         },
-        () => {
+        error: () => {
           this.isSavingInProgress = false;
           if (this.settings.showResultMessage) {
             this.ctx.showErrorToast(this.translate.instant('widgets.input-widgets.update-failed'),
               'bottom', 'left', this.toastTargetId);
           }
-        });
+        }});
     } else {
       this.multipleInputFormGroup.markAsPristine();
       this.ctx.detectChanges();
@@ -732,5 +753,32 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
       }
     });
     this.multipleInputFormGroup.markAsPristine();
+  }
+
+  openEditJSONDialog($event: Event, key: MultipleInputWidgetDataKey, source: MultipleInputWidgetSource) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const formControl = this.multipleInputFormGroup.controls[key.formId];
+    this.dialog.open<JsonObjectEditDialogComponent, JsonObjectEditDialogData, object>(JsonObjectEditDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        jsonValue: formControl.value,
+        title:  key.settings.dialogTitle,
+        saveLabel: key.settings.saveButtonLabel,
+        cancelLabel: key.settings.cancelButtonLabel
+      }
+    }).afterClosed().subscribe(
+      (res) => {
+        if (!isEqual(res, formControl.value)) {
+          formControl.patchValue(res);
+          formControl.markAsDirty();
+          if(!this.settings.showActionButtons) {
+            this.inputChanged(source, key);
+          }
+        }
+      }
+    );
   }
 }

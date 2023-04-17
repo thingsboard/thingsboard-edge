@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,12 +31,15 @@
 package org.thingsboard.server.dao.model.sqlts.ts;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 
 import javax.persistence.Entity;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "ts_kv")
@@ -46,11 +49,13 @@ public final class TsKvEntity extends AbstractTsKvEntity {
     public TsKvEntity() {
     }
 
-    public TsKvEntity(String strValue) {
+    public TsKvEntity(String strValue, Long aggValuesLastTs) {
+        super(aggValuesLastTs);
         this.strValue = strValue;
     }
 
-    public TsKvEntity(Long longValue, Double doubleValue, Long longCountValue, Long doubleCountValue, String aggType) {
+    public TsKvEntity(Long longValue, Double doubleValue, Long longCountValue, Long doubleCountValue, String aggType, Long aggValuesLastTs) {
+        super(aggValuesLastTs);
         if (!isAllNull(longValue, doubleValue, longCountValue, doubleCountValue)) {
             switch (aggType) {
                 case AVG:
@@ -67,6 +72,7 @@ public final class TsKvEntity extends AbstractTsKvEntity {
                     } else {
                         this.doubleValue = 0.0;
                     }
+                    this.aggValuesCount = totalCount;
                     break;
                 case SUM:
                     if (doubleCountValue > 0) {
@@ -89,7 +95,8 @@ public final class TsKvEntity extends AbstractTsKvEntity {
         }
     }
 
-    public TsKvEntity(Long booleanValueCount, Long strValueCount, Long longValueCount, Long doubleValueCount, Long jsonValueCount) {
+    public TsKvEntity(Long booleanValueCount, Long strValueCount, Long longValueCount, Long doubleValueCount, Long jsonValueCount, Long aggValuesLastTs) {
+        super(aggValuesLastTs);
         if (!isAllNull(booleanValueCount, strValueCount, longValueCount, doubleValueCount)) {
             if (booleanValueCount != 0) {
                 this.longValue = booleanValueCount;

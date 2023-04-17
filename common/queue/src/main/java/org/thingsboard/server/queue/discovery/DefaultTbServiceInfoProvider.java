@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,10 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 import org.thingsboard.server.queue.util.AfterContextReady;
 
@@ -51,6 +52,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.common.util.SystemUtil.getCpuUsage;
+import static org.thingsboard.common.util.SystemUtil.getMemoryUsage;
+import static org.thingsboard.common.util.SystemUtil.getDiscSpaceUsage;
+
+import static org.thingsboard.common.util.SystemUtil.getCpuCount;
+import static org.thingsboard.common.util.SystemUtil.getTotalMemory;
+import static org.thingsboard.common.util.SystemUtil.getTotalDiscSpace;
+
 
 @Component
 @Slf4j
@@ -84,7 +94,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
             try {
                 serviceId = InetAddress.getLocalHost().getHostName();
             } catch (UnknownHostException e) {
-                serviceId = org.apache.commons.lang3.RandomStringUtils.randomAlphabetic(10);
+                serviceId = StringUtils.randomAlphabetic(10);
             }
         }
         log.info("Current Service ID: {}", serviceId);
@@ -93,14 +103,8 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         } else {
             serviceTypes = Collections.singletonList(ServiceType.of(serviceType));
         }
-        ServiceInfo.Builder builder = ServiceInfo.newBuilder()
-                .setServiceId(serviceId)
-                .addAllServiceTypes(serviceTypes.stream().map(ServiceType::name).collect(Collectors.toList()));
-        List<IntegrationType> supportedIntegrationTypes = getSupportedIntegrationTypes();
 
-        supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
-
-        serviceInfo = builder.build();
+       generateNewServiceInfoWithCurrentSystemInfo();
     }
 
     @Override
@@ -162,6 +166,33 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     @Override
     public boolean isService(ServiceType serviceType) {
         return serviceTypes.contains(serviceType);
+    }
+
+    @Override
+    public ServiceInfo generateNewServiceInfoWithCurrentSystemInfo() {
+        ServiceInfo.Builder builder = ServiceInfo.newBuilder()
+                .setServiceId(serviceId)
+                .addAllServiceTypes(serviceTypes.stream().map(ServiceType::name).collect(Collectors.toList()))
+                .setSystemInfo(getCurrentSystemInfoProto());
+        List<IntegrationType> supportedIntegrationTypes = getSupportedIntegrationTypes();
+
+        supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
+
+        return serviceInfo = builder.build();
+    }
+
+    private TransportProtos.SystemInfoProto getCurrentSystemInfoProto() {
+        TransportProtos.SystemInfoProto.Builder builder = TransportProtos.SystemInfoProto.newBuilder();
+
+        getCpuUsage().ifPresent(builder::setCpuUsage);
+        getMemoryUsage().ifPresent(builder::setMemoryUsage);
+        getDiscSpaceUsage().ifPresent(builder::setDiskUsage);
+
+        getCpuCount().ifPresent(builder::setCpuCount);
+        getTotalMemory().ifPresent(builder::setTotalMemory);
+        getTotalDiscSpace().ifPresent(builder::setTotalDiscSpace);
+
+        return builder.build();
     }
 
 }

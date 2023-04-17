@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,8 @@ import java.util.List;
 @Slf4j
 @Data
 public class LwM2MBootstrapConfig implements Serializable {
+
+    private static final long serialVersionUID = -4729088085817468640L;
 
     List<LwM2MBootstrapServerCredential> serverConfiguration;
 

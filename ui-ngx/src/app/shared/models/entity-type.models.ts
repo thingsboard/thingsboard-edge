@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ export enum EntityType {
   ASSET = 'ASSET',
   DEVICE = 'DEVICE',
   DEVICE_PROFILE = 'DEVICE_PROFILE',
+  ASSET_PROFILE = 'ASSET_PROFILE',
   ALARM = 'ALARM',
   ENTITY_GROUP = 'ENTITY_GROUP',
   CONVERTER = 'CONVERTER',
@@ -59,7 +60,12 @@ export enum EntityType {
   EDGE = 'EDGE',
   OTA_PACKAGE = 'OTA_PACKAGE',
   RPC = 'RPC',
-  QUEUE = 'QUEUE'
+  QUEUE = 'QUEUE',
+  NOTIFICATION = 'NOTIFICATION',
+  NOTIFICATION_REQUEST = 'NOTIFICATION_REQUEST',
+  NOTIFICATION_RULE = 'NOTIFICATION_RULE',
+  NOTIFICATION_TARGET = 'NOTIFICATION_TARGET',
+  NOTIFICATION_TEMPLATE = 'NOTIFICATION_TEMPLATE'
 }
 
 export enum AliasEntityType {
@@ -197,6 +203,20 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.ASSET_PROFILE,
+      {
+        type: 'entity.type-asset-profile',
+        typePlural: 'entity.type-asset-profiles',
+        list: 'entity.list-of-asset-profiles',
+        nameStartsWith: 'entity.asset-profile-name-starts-with',
+        details: 'asset-profile.asset-profile-details',
+        add: 'asset-profile.add',
+        noEntities: 'asset-profile.no-asset-profiles-text',
+        search: 'asset-profile.search',
+        selectedEntities: 'asset-profile.selected-asset-profiles'
+      }
+    ],
+    [
       EntityType.ASSET,
       {
         type: 'entity.type-asset',
@@ -306,7 +326,7 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         typePlural: 'entity.type-alarms',
         list: 'entity.list-of-alarms',
         nameStartsWith: 'entity.alarm-name-starts-with',
-        details: 'dashboard.dashboard-details',
+        details: 'alarm.alarm-details',
         noEntities: 'alarm.no-alarms-prompt',
         search: 'alarm.search',
         selectedEntities: 'alarm.selected-alarms'
@@ -459,12 +479,63 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.RPC,
+      {
+        type: 'entity.type-rpc'
+      }
+    ],
+    [
       EntityType.QUEUE,
       {
+        type: 'entity.type-queue',
         add: 'queue.add',
         search: 'queue.search',
         details: 'queue.details',
         selectedEntities: 'queue.selected-queues'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION,
+      {
+        type: 'entity.type-notification',
+        noEntities: 'notification.no-inbox-notification',
+        search: 'notification.search-notification',
+        selectedEntities: 'notification.selected-notifications'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_REQUEST,
+      {
+        type: 'entity.type-notification-request',
+        noEntities: 'notification.no-notification-request',
+        selectedEntities: 'notification.selected-requests'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_RULE,
+      {
+        type: 'entity.type-notification-rule',
+        noEntities: 'notification.no-rules-notification',
+        search: 'notification.search-rules',
+        selectedEntities: 'notification.selected-rules'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_TARGET,
+      {
+        type: 'entity.type-notification-target',
+        noEntities: 'notification.no-recipients-notification',
+        search: 'notification.search-recipients',
+        selectedEntities: 'notification.selected-recipients'
+      }
+    ],
+    [
+      EntityType.NOTIFICATION_TEMPLATE,
+      {
+        type: 'entity.type-notification-template',
+        noEntities: 'notification.no-notification-templates',
+        search: 'notification.search-templates',
+        selectedEntities: 'notification.selected-template'
       }
     ]
   ]
@@ -509,9 +580,21 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       }
     ],
     [
+      EntityType.ASSET_PROFILE,
+      {
+        helpLinkId: 'assetProfiles'
+      }
+    ],
+    [
       EntityType.ASSET,
       {
         helpLinkId: 'assets'
+      }
+    ],
+    [
+      EntityType.EDGE,
+      {
+        helpLinkId: 'edges'
       }
     ],
     [
@@ -580,21 +663,32 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
 export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.TENANT, '/tenants'],
   [EntityType.TENANT_PROFILE, '/tenantProfiles'],
-  [EntityType.CUSTOMER, '/customers'],
-  [EntityType.USER, '/users'],
-  [EntityType.DASHBOARD, '/dashboards'],
-  [EntityType.ASSET, '/assets'],
-  [EntityType.DEVICE, '/devices'],
-  [EntityType.DEVICE_PROFILE, '/deviceProfiles'],
-  [EntityType.CONVERTER, '/converters'],
-  [EntityType.INTEGRATION, '/integrations'],
+  [EntityType.CUSTOMER, '/customers/all'],
+  [EntityType.USER, '/users/all'],
+  [EntityType.DASHBOARD, '/dashboards/all'],
+  [EntityType.ASSET, '/entities/assets/all'],
+  [EntityType.DEVICE, '/entities/devices/all'],
+  [EntityType.DEVICE_PROFILE, '/profiles/deviceProfiles'],
+  [EntityType.ASSET_PROFILE, '/profiles/assetProfiles'],
+  [EntityType.CONVERTER, '/integrationsCenter/converters'],
+  [EntityType.INTEGRATION, '/integrationsCenter/integrations'],
   [EntityType.RULE_CHAIN, '/ruleChains'],
-  [EntityType.EDGE, '/edgeInstances'],
-  [EntityType.ENTITY_VIEW, '/entityViews'],
+  [EntityType.EDGE, '/edgeManagement/instances/all'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/all'],
   [EntityType.ROLE, '/roles'],
-  [EntityType.TB_RESOURCE, '/settings/resources-library'],
-  [EntityType.OTA_PACKAGE, '/otaUpdates'],
+  [EntityType.TB_RESOURCE, '/resources/resources-library'],
+  [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
   [EntityType.QUEUE, '/settings/queues']
+]);
+
+export const groupUrlPrefixByEntityType = new Map<EntityType, string>([
+  [EntityType.CUSTOMER, '/customers/groups'],
+  [EntityType.USER, '/users/groups'],
+  [EntityType.DASHBOARD, '/dashboards/groups'],
+  [EntityType.ASSET, '/entities/assets/groups'],
+  [EntityType.DEVICE, '/entities/devices/groups'],
+  [EntityType.EDGE, '/edgeManagement/instances/groups'],
+  [EntityType.ENTITY_VIEW, '/entities/entityViews/groups'],
 ]);
 
 export interface EntitySubtype {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import { Datasource, DatasourceType, Widget, widgetType } from '@app/shared/mode
 import { EntityType } from '@shared/models/entity-type.models';
 import { AliasFilterType, EntityAlias, EntityAliasFilter } from '@app/shared/models/alias.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
+import { initModelFromDefaultTimewindow } from '@shared/models/time/time.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -234,6 +235,9 @@ export class DashboardUtilsService {
         delete datasource.deviceAliasId;
       }
     });
+    if (widget.type === widgetType.latest) {
+      widget.config.timewindow = initModelFromDefaultTimewindow(widget.config.timewindow, true, this.timeService);
+    }
     // Temp workaround
     if (widget.isSystemType  && widget.bundleAlias === 'charts' && widget.typeAlias === 'timeseries') {
       widget.typeAlias = 'basic_timeseries';
@@ -253,6 +257,7 @@ export class DashboardUtilsService {
       backgroundColor: '#eeeeee',
       columns: 24,
       margin: 10,
+      outerMargin: true,
       backgroundSizeMode: '100%'
     };
   }
@@ -310,6 +315,7 @@ export class DashboardUtilsService {
       layout.gridSettings.margin = layout.gridSettings.margins[0];
       delete layout.gridSettings.margins;
     }
+    layout.gridSettings.outerMargin = isDefined(layout.gridSettings.outerMargin) ? layout.gridSettings.outerMargin : true;
     layout.gridSettings.margin = isDefined(layout.gridSettings.margin) ? layout.gridSettings.margin : 10;
   }
 
@@ -423,7 +429,8 @@ export class DashboardUtilsService {
       sizeY: originalSize ? originalSize.sizeY : widget.sizeY,
       mobileOrder: widget.config.mobileOrder,
       mobileHeight: widget.config.mobileHeight,
-      mobileHide: widget.config.mobileHide
+      mobileHide: widget.config.mobileHide,
+      desktopHide: widget.config.desktopHide
     };
     if (isUndefined(originalColumns)) {
       originalColumns = 24;
@@ -630,6 +637,47 @@ export class DashboardUtilsService {
       }
       delete entityAlias.entityType;
       delete entityAlias.entityFilter;
+    }
+    entityAlias = this.validateAndUpdateEntityAliasSingleTypeFilters(entityAlias);
+    return entityAlias;
+  }
+
+  private validateAndUpdateEntityAliasSingleTypeFilters(entityAlias: EntityAlias): EntityAlias {
+    if (entityAlias.filter.type === AliasFilterType.deviceType) {
+      if (entityAlias.filter.deviceType) {
+        if (!entityAlias.filter.deviceTypes) {
+          entityAlias.filter.deviceTypes = [];
+        }
+        entityAlias.filter.deviceTypes.push(entityAlias.filter.deviceType);
+        delete entityAlias.filter.deviceType;
+      }
+    }
+    if (entityAlias.filter.type === AliasFilterType.assetType) {
+      if (entityAlias.filter.assetType) {
+        if (!entityAlias.filter.assetTypes) {
+          entityAlias.filter.assetTypes = [];
+        }
+        entityAlias.filter.assetTypes.push(entityAlias.filter.assetType);
+        delete entityAlias.filter.assetType;
+      }
+    }
+    if (entityAlias.filter.type === AliasFilterType.entityViewType) {
+      if (entityAlias.filter.entityViewType) {
+        if (!entityAlias.filter.entityViewTypes) {
+          entityAlias.filter.entityViewTypes = [];
+        }
+        entityAlias.filter.entityViewTypes.push(entityAlias.filter.entityViewType);
+        delete entityAlias.filter.entityViewType;
+      }
+    }
+    if (entityAlias.filter.type === AliasFilterType.edgeType) {
+      if (entityAlias.filter.edgeType) {
+        if (!entityAlias.filter.edgeTypes) {
+          entityAlias.filter.edgeTypes = [];
+        }
+        entityAlias.filter.edgeTypes.push(entityAlias.filter.edgeType);
+        delete entityAlias.filter.edgeType;
+      }
     }
     return entityAlias;
   }

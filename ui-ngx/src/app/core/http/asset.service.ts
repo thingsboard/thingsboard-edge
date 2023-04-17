@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { Asset, AssetSearchQuery } from '@app/shared/models/asset.models';
+import { Asset, AssetInfo, AssetSearchQuery } from '@app/shared/models/asset.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
@@ -55,6 +55,12 @@ export class AssetService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getTenantAssetInfosByAssetProfileId(pageLink: PageLink, assetProfileId: string = '',
+                                             config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    return this.http.get<PageData<AssetInfo>>(`/api/tenant/assetInfos${pageLink.toQuery()}&assetProfileId=${assetProfileId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getCustomerAssetInfos(customerId: string, pageLink: PageLink, type: string = '',
                                config?: RequestConfig): Observable<PageData<AssetInfo>> {
     return this.http.get<PageData<AssetInfo>>(`/api/customer/${customerId}/assetInfos${pageLink.toQuery()}&type=${type}`,
@@ -67,10 +73,17 @@ export class AssetService {
   }
 
   public getCustomerAssets(customerId: string, pageLink: PageLink, type: string = '',
-                               config?: RequestConfig): Observable<PageData<Asset>> {
+                           config?: RequestConfig): Observable<PageData<Asset>> {
     return this.http.get<PageData<Asset>>(`/api/customer/${customerId}/assets${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
+
+/*  public getCustomerAssetInfosByAssetProfileId(customerId: string, pageLink: PageLink, assetProfileId: string = '',
+                                               config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    return this.http.get<PageData<AssetInfo>>
+    (`/api/customer/${customerId}/assetInfos${pageLink.toQuery()}&assetProfileId=${assetProfileId}`,
+      defaultHttpOptionsFromConfig(config));
+  } */
 
   public getAsset(assetId: string, config?: RequestConfig): Observable<Asset> {
     return this.http.get<Asset>(`/api/asset/${assetId}`, defaultHttpOptionsFromConfig(config));
@@ -87,14 +100,39 @@ export class AssetService {
       defaultHttpOptionsFromConfig(config));
   }
 
-/*  public getAssetInfo(assetId: string, config?: RequestConfig): Observable<AssetInfo> {
-    return this.http.get<AssetInfo>(`/api/asset/info/${assetId}`, defaultHttpOptionsFromConfig(config));
-  }*/
+  public getAllAssetInfos(includeCustomers: boolean,
+                          pageLink: PageLink, assetProfileId: string = '', config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    let url = `/api/assetInfos/all${pageLink.toQuery()}&assetProfileId=${assetProfileId}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<AssetInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
 
-  public saveAsset(asset: Asset, entityGroupId?: string, config?: RequestConfig): Observable<Asset> {
+  public getCustomerAssetInfos(includeCustomers: boolean, customerId: string,
+                               pageLink: PageLink, assetProfileId: string = '',
+                               config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    let url = `/api/customer/${customerId}/assetInfos${pageLink.toQuery()}&assetProfileId=${assetProfileId}`;
+    if (includeCustomers) {
+      url += `&includeCustomers=true`;
+    }
+    return this.http.get<PageData<AssetInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getAssetInfo(assetId: string, config?: RequestConfig): Observable<AssetInfo> {
+    return this.http.get<AssetInfo>(`/api/asset/info/${assetId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public saveAsset(asset: Asset, entityGroupIds?: string | string[], config?: RequestConfig): Observable<Asset> {
     let url = '/api/asset';
-    if (entityGroupId) {
-      url += `?entityGroupId=${entityGroupId}`;
+    if (entityGroupIds) {
+      if (Array.isArray(entityGroupIds)) {
+        url += `?entityGroupIds=${entityGroupIds.join(',')}`;
+      } else {
+        url += `?entityGroupId=${entityGroupIds}`;
+      }
     }
     return this.http.post<Asset>(url, asset, defaultHttpOptionsFromConfig(config));
   }

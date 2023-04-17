@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -69,8 +70,6 @@ public class TbJsFilterNodeTest {
     @Mock
     private TbContext ctx;
     @Mock
-    private ListeningExecutor executor;
-    @Mock
     private ScriptEngine scriptEngine;
 
     private RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
@@ -88,7 +87,7 @@ public class TbJsFilterNodeTest {
     }
 
     @Test
-    public void exceptionInJsThrowsException() throws TbNodeException, ScriptException {
+    public void exceptionInJsThrowsException() throws TbNodeException {
         initWithScript();
         TbMsgMetaData metaData = new TbMsgMetaData();
         TbMsg msg = TbMsg.newMsg("USER", null, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
@@ -100,7 +99,7 @@ public class TbJsFilterNodeTest {
     }
 
     @Test
-    public void metadataConditionCanBeTrue() throws TbNodeException, ScriptException {
+    public void metadataConditionCanBeTrue() throws TbNodeException {
         initWithScript();
         TbMsgMetaData metaData = new TbMsgMetaData();
         TbMsg msg = TbMsg.newMsg("USER", null, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
@@ -113,11 +112,12 @@ public class TbJsFilterNodeTest {
 
     private void initWithScript() throws TbNodeException {
         TbJsFilterNodeConfiguration config = new TbJsFilterNodeConfiguration();
+        config.setScriptLang(ScriptLanguage.JS);
         config.setJsScript("scr");
         ObjectMapper mapper = new ObjectMapper();
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
 
-        when(ctx.createJsScriptEngine("scr")).thenReturn(scriptEngine);
+        when(ctx.createScriptEngine(ScriptLanguage.JS, "scr")).thenReturn(scriptEngine);
 
         node = new TbJsFilterNode();
         node.init(ctx, nodeConfiguration);

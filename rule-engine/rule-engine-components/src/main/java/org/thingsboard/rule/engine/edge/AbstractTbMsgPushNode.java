@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -86,18 +86,15 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         }
     }
 
-    @Override
-    public void destroy() {
-    }
-
     protected S buildEvent(TbMsg msg, TbContext ctx) {
         String msgType = msg.getType();
         if (DataConstants.ALARM.equals(msgType)) {
-            return buildEvent(ctx.getTenantId(), EdgeEventActionType.ADDED, getUUIDFromMsgData(msg), getAlarmEventType(), null);
+            EdgeEventActionType actionType = getAlarmActionType(msg);
+            return buildEvent(ctx.getTenantId(), actionType, getUUIDFromMsgData(msg), getAlarmEventType(), null);
         } else {
-            EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msgType);
-            Map<String, Object> entityBody = new HashMap<>();
             Map<String, String> metadata = msg.getMetaData().getData();
+            EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msgType, metadata);
+            Map<String, Object> entityBody = new HashMap<>();
             JsonNode dataJson = JacksonUtil.toJsonNode(msg.getData());
             switch (actionType) {
                 case ATTRIBUTES_UPDATED:
@@ -126,6 +123,20 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         }
     }
 
+    private static EdgeEventActionType getAlarmActionType(TbMsg msg) {
+        boolean isNewAlarm = Boolean.parseBoolean(msg.getMetaData().getValue(DataConstants.IS_NEW_ALARM));
+        boolean isClearedAlarm = Boolean.parseBoolean(msg.getMetaData().getValue(DataConstants.IS_CLEARED_ALARM));
+        EdgeEventActionType eventAction;
+        if (isNewAlarm) {
+            eventAction = EdgeEventActionType.ADDED;
+        } else if (isClearedAlarm) {
+            eventAction = EdgeEventActionType.ALARM_CLEAR;
+        } else {
+            eventAction = EdgeEventActionType.UPDATED;
+        }
+        return eventAction;
+    }
+
     abstract S buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, U eventType, JsonNode entityBody);
 
     abstract U getEventTypeByEntityType(EntityType entityType);
@@ -152,7 +163,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         return scope;
     }
 
-    protected EdgeEventActionType getEdgeEventActionTypeByMsgType(String msgType) {
+    protected EdgeEventActionType getEdgeEventActionTypeByMsgType(String msgType, Map<String, String> metadata) {
         EdgeEventActionType actionType;
         if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)
                 || DataConstants.TIMESERIES_UPDATED.equals(msgType)) {
@@ -161,8 +172,21 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             actionType = EdgeEventActionType.ATTRIBUTES_UPDATED;
         } else if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)) {
             actionType = EdgeEventActionType.POST_ATTRIBUTES;
-        } else {
+        } else if (DataConstants.ATTRIBUTES_DELETED.equals(msgType)) {
             actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
+        } else if (DataConstants.CONNECT_EVENT.equals(msgType)
+                || DataConstants.DISCONNECT_EVENT.equals(msgType)
+                || DataConstants.ACTIVITY_EVENT.equals(msgType)
+                || DataConstants.INACTIVITY_EVENT.equals(msgType)) {
+            String scope = metadata.get(SCOPE);
+            if ( StringUtils.isEmpty(scope)) {
+                actionType = EdgeEventActionType.TIMESERIES_UPDATED;
+            } else {
+                actionType = EdgeEventActionType.ATTRIBUTES_UPDATED;
+            }
+        } else {
+            log.warn("Unsupported msg type [{}]", msgType);
+            throw new IllegalArgumentException("Unsupported msg type: " + msgType);
         }
         return actionType;
     }
@@ -173,7 +197,11 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
                 || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)
                 || DataConstants.ATTRIBUTES_DELETED.equals(msgType)
                 || DataConstants.TIMESERIES_UPDATED.equals(msgType)
-                || DataConstants.ALARM.equals(msgType);
+                || DataConstants.ALARM.equals(msgType)
+                || DataConstants.CONNECT_EVENT.equals(msgType)
+                || DataConstants.DISCONNECT_EVENT.equals(msgType)
+                || DataConstants.ACTIVITY_EVENT.equals(msgType)
+                || DataConstants.INACTIVITY_EVENT.equals(msgType);
     }
 
     protected boolean isSupportedOriginator(EntityType entityType) {
@@ -184,6 +212,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
             case DASHBOARD:
             case TENANT:
             case CUSTOMER:
+            case USER:
             case EDGE:
             case ENTITY_GROUP:
                 return true;

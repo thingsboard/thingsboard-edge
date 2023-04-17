@@ -3,7 +3,7 @@
     "name": "Bus A",
     "type": "bus",
     "group": "Bus devices",
-    "profile": "onRouteBus",
+    "emulator": "onRouteBus",
     "attributes": {},
     "relations": []
   },
@@ -11,7 +11,7 @@
     "name": "Bus B",
     "type": "bus",
     "group": "Bus devices",
-    "profile": "onRouteBus",
+    "emulator": "onRouteBus",
     "attributes": {},
     "relations": []
   },
@@ -19,7 +19,7 @@
     "name": "Bus C",
     "type": "bus",
     "group": "Bus devices",
-    "profile": "brokenBus",
+    "emulator": "brokenBus",
     "attributes": {},
     "relations": []
   },
@@ -27,7 +27,7 @@
     "name": "Bus D",
     "type": "bus",
     "group": "Bus devices",
-    "profile": "refuelingBus",
+    "emulator": "refuelingBus",
     "attributes": {},
     "relations": []
   }

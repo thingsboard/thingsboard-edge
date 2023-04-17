@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS rule_chain;
 DROP TABLE IF EXISTS entity_view;
 DROP TABLE IF EXISTS device_profile;
 DROP TABLE IF EXISTS tenant_profile;
+DROP TABLE IF EXISTS asset_profile;
 DROP TABLE IF EXISTS dashboard;
 DROP TABLE IF EXISTS tb_schema_settings;
 DROP TABLE IF EXISTS oauth2_client_registration;

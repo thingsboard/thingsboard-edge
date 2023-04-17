@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -61,7 +61,10 @@ export class DashboardStateComponent extends PageComponent implements OnInit, On
   defaultAutofillLayout = true;
 
   @Input()
-  defaultMargin;
+  defaultMargin: number;
+
+  @Input()
+  defaultOuterMargin: boolean;
 
   @Input()
   defaultBackgroundColor;
@@ -100,6 +103,9 @@ export class DashboardStateComponent extends PageComponent implements OnInit, On
         }
         if (isDefinedAndNotNull(this.defaultMargin)) {
           state.layouts[layoutId as DashboardLayoutId].gridSettings.margin = this.defaultMargin;
+        }
+        if (isDefinedAndNotNull(this.defaultOuterMargin)) {
+          state.layouts[layoutId as DashboardLayoutId].gridSettings.outerMargin = this.defaultOuterMargin;
         }
         if (isNotEmptyStr(this.defaultBackgroundColor)) {
           state.layouts[layoutId as DashboardLayoutId].gridSettings.backgroundColor = this.defaultBackgroundColor;

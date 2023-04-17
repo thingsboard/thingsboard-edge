@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,8 @@
 
 import {
   CellActionDescriptor,
+  ChartEntityTableColumn,
+  checkBoxCell,
   DateEntityTableColumn,
   defaultEntityTablePermissions,
   EntityColumn,
@@ -42,6 +44,8 @@ import {
 import {
   getIntegrationHelpLink,
   Integration,
+  IntegrationBasic,
+  IntegrationInfo,
   IntegrationParams,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
@@ -60,7 +64,7 @@ import { IntegrationTabsComponent } from '@home/pages/integration/integration-ta
 import { Operation, Resource } from '@shared/models/security.models';
 import { forkJoin, Observable } from 'rxjs';
 import { isUndefined } from '@core/utils';
-import { map } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Edge } from '@shared/models/edge.models';
@@ -68,8 +72,14 @@ import {
   AddEntitiesToEdgeDialogComponent,
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { PageLink } from '@shared/models/page/page-link';
+import {
+  IntegrationWizardData,
+  IntegrationWizardDialogComponent
+} from '@home/components/wizard/integration-wizard-dialog.component';
+import { EventType } from '@shared/models/event.models';
 
-export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
+export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
   constructor(private integrationService: IntegrationService,
               private userPermissionsService: UserPermissionsService,
@@ -81,7 +91,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
               private dialogService: DialogService,
               private dialog: MatDialog,
               private params: IntegrationParams) {
-    super();
+    super(params);
 
     this.entityType = EntityType.INTEGRATION;
     this.entityComponent = IntegrationComponent;
@@ -117,30 +127,72 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
 
     this.onEntityAction = action => this.onIntegrationAction(action, this.componentsData);
 
+    this.handleRowClick = (event, entity) => {
+      this.getTable().toggleEntityDetails(event, entity);
+      const path = (event as any).path || (event.composedPath && event.composedPath());
+      if ((event.target as HTMLElement).getElementsByClassName('status').length || (event.target as HTMLElement).className === 'status') {
+        setTimeout(() => {
+          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
+          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.LC_EVENT;
+        }, 0);
+      } else if ((event.target as HTMLElement).getElementsByTagName('TB-SPARK-LINE').length || path?.some(el => el.tagName === 'TB-SPARK-LINE')) {
+        setTimeout(() => {
+          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
+          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.STATS;
+        }, 0);
+      } else {
+        (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = '';
+      }
+      return true;
+    };
+
     this.configureIntegrationScope();
+
+    this.addEntity = () => this.addIntegration();
 
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
 
-  private configureEntityTableColumns(): Array<EntityColumn<Integration>> {
-    const columns: Array<EntityColumn<Integration>> = [];
+  private configureEntityTableColumns(): Array<EntityColumn<IntegrationInfo>> {
+    const columns: Array<EntityColumn<IntegrationInfo>> = [];
 
     this.entityTitle = (integration) => integration ?
       this.utils.customTranslation(integration.name, integration.name) : '';
 
     columns.push(
-      new DateEntityTableColumn<Integration>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Integration>('name', 'converter.name', '33%', this.entityTitle),
-      new EntityTableColumn<Integration>('type', 'converter.type', '33%', (integration) => {
+      new DateEntityTableColumn<IntegrationInfo>('createdTime', 'common.created-time', this.datePipe, '15%'),
+      new EntityTableColumn<IntegrationInfo>('name', 'converter.name', '15%', this.entityTitle),
+      new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => {
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
-      })
+      }),
+      new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-activity', '9%',
+        (integration) => integration.stats,
+        () => ({
+          chartRangeMin: '',
+          chartRangeMax: '',
+          minSpotColor: false,
+          maxSpotColor: false,
+          spotColor: false,
+          height: '36px',
+          width: '72px',
+          fillColor: false,
+          lineColor: 'rgba(0, 0, 0, 0.54)',
+          lineWidth: '2'
+        })),
+      new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
+        integration => this.integrationStatus(integration),
+        integration => this.integrationStatusStyle(integration), false),
+      new EntityTableColumn<IntegrationInfo>('remote', 'integration.remote', '60px',
+        integration => {
+            return checkBoxCell(integration.remote);
+        }, () => ({}), false)
     );
     return columns;
   }
 
-  private configureGroupActions(integrationScope: string): Array<GroupActionDescriptor<Integration>> {
-    const actions: Array<GroupActionDescriptor<Integration>> = [];
+  private configureGroupActions(integrationScope: string): Array<GroupActionDescriptor<IntegrationInfo>> {
+    const actions: Array<GroupActionDescriptor<IntegrationInfo>> = [];
     if (integrationScope === 'edge') {
       actions.push(
         {
@@ -179,8 +231,16 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     return actions;
   }
 
-  private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<Integration>> {
-    const actions: Array<CellActionDescriptor<Integration>> = [];
+  private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
+    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [{
+      name: '',
+      nameFunction: (entity) =>
+        this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
+      mdiIcon: 'mdi:bug',
+      isEnabled: () => true,
+      mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
+      onAction: ($event, entity) => this.toggleDebugMode($event, entity)
+    }];
     if (params.integrationScope === 'edge') {
       actions.push(
         {
@@ -196,19 +256,16 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
 
   private saveIntegration(integration: Integration): Observable<Integration> {
     if (isUndefined(integration.edgeTemplate)) {
-      if (this.componentsData.integrationScope === 'tenant') {
-        integration.edgeTemplate = false;
-      } else if (this.componentsData.integrationScope === 'edges') {
+      if (this.componentsData.integrationScope === 'edges') {
         integration.edgeTemplate = true;
       } else {
-        // safe fallback to default
         integration.edgeTemplate = false;
       }
     }
     return this.integrationService.saveIntegration(integration).pipe(
-      map((integration) => {
+      map((integrationInfo) => {
         if (this.componentsData.integrationScope === 'edges') {
-          this.edgeService.findAllRelatedEdgesMissingAttributes(integration.id.id).subscribe(
+          this.edgeService.findAllRelatedEdgesMissingAttributes(integrationInfo.id.id).subscribe(
             (missingEdgeAttributes) => {
               if (missingEdgeAttributes && Object.keys(missingEdgeAttributes).length > 0) {
                 const formattedMissingEdgeAttributes: Array<string> = new Array<string>();
@@ -225,12 +282,12 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
             }
           );
         }
-        return integration;
+        return integrationInfo;
       })
     );
   }
 
-  openIntegration($event: Event, integration: Integration, params?:IntegrationParams) {
+  openIntegration($event: Event, integration: Integration, params?: IntegrationParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -263,11 +320,11 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     return false;
   }
 
-  private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<Integration>> {
+  private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<IntegrationInfo>> {
     if (integrationScope === 'tenant') {
-      return pageLink => this.integrationService.getIntegrations(pageLink);
+      return pageLink => this.integrationService.getIntegrationsInfo(pageLink, false);
     } else if (integrationScope === 'edges') {
-      return pageLink => this.integrationService.getIntegrationsByEdgeTemplate(pageLink, true);
+      return pageLink => this.integrationService.getIntegrationsInfo(pageLink, true);
     } else if (integrationScope === 'edge') {
       return pageLink => this.integrationService.getEdgeIntegrations(edgeId, pageLink);
     }
@@ -352,7 +409,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       );
   }
 
-  private unassignFromEdge($event: Event, integration: Integration): void {
+  private unassignFromEdge($event: Event, integration: IntegrationBasic): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -374,7 +431,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     );
   }
 
-  private unassignIntegrationsFromEdge($event: Event, integrations: Array<Integration>): void {
+  private unassignIntegrationsFromEdge($event: Event, integrations: Array<IntegrationInfo>): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -400,5 +457,67 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
         }
       }
     );
+  }
+
+  private addIntegration(): Observable<Integration> {
+    return this.dialog.open<IntegrationWizardDialogComponent, IntegrationWizardData<IntegrationInfo>,
+      Integration>(IntegrationWizardDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entitiesTableConfig: this as any,
+        edgeTemplate: this.componentsData.integrationScope === 'edges'
+      }
+    }).afterClosed();
+  }
+
+  private integrationStatus(integration: IntegrationInfo): string {
+    let translateKey = 'integration.status.active';
+    let backgroundColor = 'rgba(25, 128, 56, 0.08)';
+    if (!integration.enabled) {
+      translateKey = 'integration.status.disabled';
+      backgroundColor = 'rgba(0, 0, 0, 0.08)';
+    } else if (!integration.status) {
+      translateKey = 'integration.status.pending';
+      backgroundColor = 'rgba(212, 125, 24, 0.08)';
+    } else if (!integration.status.success) {
+      translateKey = 'integration.status.failed';
+      backgroundColor = 'rgba(209, 39, 48, 0.08)';
+    }
+    return `<div class="status" style="border-radius: 16px; height: 32px; line-height: 32px; padding: 0 12px; width: fit-content; background-color: ${backgroundColor}">
+                ${this.translate.instant(translateKey)}
+            </div>`;
+  }
+
+  private integrationStatusStyle(integration: IntegrationInfo): object {
+    const styleObj = {
+      fontSize: '14px',
+      color: '#198038',
+      cursor: 'pointer'
+    };
+    if (!integration.enabled) {
+      styleObj.color = 'rgba(0, 0, 0, 0.54)';
+    } else if (!integration.status) {
+      styleObj.color = '#D47D18';
+    } else if (!integration.status.success) {
+      styleObj.color = '#d12730';
+    }
+    return styleObj;
+  }
+
+  private toggleDebugMode($event: Event, integrations: IntegrationInfo): void {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.integrationService.getIntegration(integrations.id.id, {ignoreLoading: true})
+      .pipe(
+        mergeMap(integration => {
+          integration.debugMode = !integration.debugMode;
+          return this.integrationService.saveIntegration(integration, {ignoreLoading: true});
+        }))
+      .subscribe((integrationData) => {
+        integrations.debugMode = integrationData.debugMode;
+        this.getTable().detectChanges();
+      });
   }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.TsValue;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,12 +70,11 @@ public class EntityDataAdapter {
         EntityType entityType = EntityType.valueOf((String) row.get("entity_type"));
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, id);
         Map<EntityKeyType, Map<String, TsValue>> latest = new HashMap<>();
-        Map<String, TsValue[]> timeseries = new HashMap<>();
-        ;
+        //Maybe avoid empty hashmaps?
         EntityData entityData = new EntityData(entityId,
                 ((int) row.getOrDefault(DefaultEntityQueryRepository.ATTR_READ_FLAG, 1)) > 0,
                 ((int) row.getOrDefault(DefaultEntityQueryRepository.TS_READ_FLAG, 1)) > 0,
-                latest, timeseries);
+                latest, new HashMap<>(), new HashMap<>());
         for (EntityKeyMapping mapping : selectionMapping) {
             if (!mapping.isIgnore()) {
                 EntityKey entityKey = mapping.getEntityKey();
@@ -100,16 +100,20 @@ public class EntityDataAdapter {
         if (value != null) {
             String strVal = value.toString();
             // check number
-            if (strVal.length() > 0 && NumberUtils.isParsable(strVal)) {
+            if (NumberUtils.isParsable(strVal)) {
+                if (strVal.startsWith("0") && !strVal.startsWith("0.")) {
+                    return strVal;
+                }
                 try {
-                    long longVal = Long.parseLong(strVal);
-                    return Long.toString(longVal);
+                    BigInteger longVal = new BigInteger(strVal);
+                    return longVal.toString();
                 } catch (NumberFormatException ignored) {
                 }
                 try {
                     double dblVal = Double.parseDouble(strVal);
-                    if (!Double.isInfinite(dblVal)) {
-                        return Double.toString(dblVal);
+                    String doubleAsString = Double.toString(dblVal);
+                    if (!Double.isInfinite(dblVal) && isSimpleDouble(doubleAsString)) {
+                        return doubleAsString;
                     }
                 } catch (NumberFormatException ignored) {
                 }
@@ -119,5 +123,10 @@ public class EntityDataAdapter {
             return "";
         }
     }
+
+    private static boolean isSimpleDouble(String valueAsString) {
+        return valueAsString.contains(".") && !valueAsString.contains("E") && !valueAsString.contains("e");
+    }
+
 
 }

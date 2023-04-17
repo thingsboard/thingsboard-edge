@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,9 +39,9 @@ import {
   EventEmitter,
   Input,
   OnChanges,
-  OnInit,
+  OnInit, Renderer2,
   SimpleChanges,
-  ViewChild
+  ViewChild, ViewContainerRef
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -60,11 +60,12 @@ import { ActivatedRoute, QueryParamsHandling, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   CellActionDescriptorType,
+  ChartEntityTableColumn,
   EntityActionTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
-  GroupActionDescriptor,
+  GroupActionDescriptor, GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { EntityTypeTranslation } from '@shared/models/entity-type.models';
@@ -74,11 +75,11 @@ import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-co
 import { calculateIntervalStartEndTime, HistoryWindowType, Timewindow } from '@shared/models/time/time.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
-import { isDefined, isEmptyStr, isEqual, isUndefined } from '@core/utils';
+import { isDefined, isEmptyStr, isEqual, isString, isUndefined } from '@core/utils';
 import { HasUUID } from '@shared/models/id/has-uuid';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
-import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
+import { EntitiesTableAction, IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 
 @Component({
@@ -141,6 +142,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   private widgetResize$: ResizeObserver;
 
+  private rxSubscriptions = new Array<Subscription>();
+
   constructor(protected store: Store<AppState>,
               public route: ActivatedRoute,
               public translate: TranslateService,
@@ -150,7 +153,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private cd: ChangeDetectorRef,
               private router: Router,
               private componentFactoryResolver: ComponentFactoryResolver,
-              private elementRef: ElementRef) {
+              private elementRef: ElementRef,
+              public viewContainerRef: ViewContainerRef,
+              public renderer: Renderer2) {
     super(store);
   }
 
@@ -158,7 +163,11 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.entitiesTableConfig) {
       this.init(this.entitiesTableConfig);
     } else {
-      this.init(this.route.snapshot.data.entitiesTableConfig);
+      this.rxSubscriptions.push(this.route.data.subscribe(
+        (data) => {
+          this.init(data.entitiesTableConfig);
+        }
+      ));
     }
     this.widgetResize$ = new ResizeObserver(() => {
       const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
@@ -174,6 +183,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
+    this.rxSubscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    this.rxSubscriptions.length = 0;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -185,6 +198,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         }
       }
     }
+  }
+
+  goBack(): void {
+    this.router.navigate(this.entitiesTableConfig.backNavigationCommands, { relativeTo: this.route });
   }
 
   private init(entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {
@@ -236,8 +253,11 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
 
     let sortOrder: SortOrder = null;
+    let initialAction: EntitiesTableAction = null;
     if (this.pageMode) {
-      if (this.entitiesTableConfig.defaultSortOrder || routerQueryParams.hasOwnProperty('direction') || routerQueryParams.hasOwnProperty('property')) {
+      initialAction = routerQueryParams?.action;
+      if (this.entitiesTableConfig.defaultSortOrder || routerQueryParams.hasOwnProperty('direction')
+        || routerQueryParams.hasOwnProperty('property')) {
         sortOrder = {
           property: routerQueryParams?.property || this.entitiesTableConfig.defaultSortOrder.property,
           direction: routerQueryParams?.direction || this.entitiesTableConfig.defaultSortOrder.direction
@@ -287,6 +307,22 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         this.updatePaginationSubscriptions();
       }, 0);
     }
+    if (this.pageMode) {
+      if (initialAction) {
+        const queryParams: PageQueryParam = {};
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams,
+          queryParamsHandling: '',
+          replaceUrl: true
+        });
+      }
+      if (initialAction === 'add') {
+        setTimeout(() => {
+          this.addEntity(null);
+        }, 0);
+      }
+    }
   }
 
   ngAfterViewInit() {
@@ -297,7 +333,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         distinctUntilChanged(),
         tap(() => {
           const queryParams: PageQueryParam = {
-            textSearch: encodeURI(this.pageLink.textSearch) || null
+            textSearch: isString(this.pageLink.textSearch) && this.pageLink.textSearch !== '' ? encodeURI(this.pageLink.textSearch) : null
           };
           if (this.displayPagination) {
             this.paginator.pageIndex = 0;
@@ -320,7 +356,6 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
           this.textSearchMode = true;
           this.pageLink.textSearch = decodeURI(params.textSearch);
         } else {
-          this.textSearchMode = false;
           this.pageLink.textSearch = null;
         }
         this.updateData();
@@ -582,7 +617,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
-      (column) => column instanceof EntityTableColumn)
+      (column) => column instanceof EntityTableColumn ||
+        column instanceof ChartEntityTableColumn || column instanceof GroupChipsEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)
@@ -634,7 +670,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.cellStyleCache[index] = undefined;
   }
 
-  cellContent(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
+  cellContent(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number): any {
     if (column instanceof EntityTableColumn) {
       const col = this.entitiesTableConfig.columns.indexOf(column);
       const index = row * this.entitiesTableConfig.columns.length + col;
@@ -644,9 +680,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         this.cellContentCache[index] = res;
       }
       return res;
-    } else {
-      return '';
+    } else if (column instanceof ChartEntityTableColumn) {
+      return column.cellContentFunction(entity, column.key);
     }
+    return '';
   }
 
   cellTooltip(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
@@ -686,6 +723,14 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     return res;
   }
 
+  cellChartStyle(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
+    let res;
+    if (column instanceof ChartEntityTableColumn) {
+      res = column.chartStyleFunction(entity, column.key);
+    }
+    return res;
+  }
+
   trackByColumnKey(index, column: EntityTableColumn<BaseData<HasId>>) {
     return column.key;
   }
@@ -707,5 +752,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     } else {
       this.updateData();
     }
+  }
+
+  detectChanges() {
+    this.cd.markForCheck();
   }
 }

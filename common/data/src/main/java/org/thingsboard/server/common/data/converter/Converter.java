@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,6 +60,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private ConverterType type;
     private boolean debugMode;
     private JsonNode configuration;
+    @NoXss
     private JsonNode additionalInfo;
     private boolean edgeTemplate;
 

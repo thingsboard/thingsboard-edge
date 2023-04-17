@@ -133,8 +133,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -350,9 +369,23 @@
         "sizeY": 4,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -649,8 +682,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -728,8 +780,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -807,8 +878,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -886,8 +976,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -2524,9 +2633,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -2865,9 +2988,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -3112,8 +3249,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -3698,8 +3854,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -3764,8 +3939,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -3830,8 +4024,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -4051,8 +4264,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -4175,8 +4407,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -4255,8 +4506,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031165,
+                "endTimeMs": 1678176431165
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -4285,11 +4555,15 @@
               {
                 "name": "Edit Info",
                 "icon": "edit",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
                 "type": "customPretty",
-                "customHtml": "<form #editDeviceForm=\"ngForm\" [formGroup]=\"editDeviceFormGroup\" class=\"edit-device-form\" (ngSubmit)=\"save()\">\n    <mat-toolbar class=\"edit-device-form-toolbar\" fxLayout=\"row\">\n        <h2>Edit Meter Details</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\"></mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <fieldset [disabled]=\"(isLoading$ | async) || loading\">\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Serial Number</mat-label>\n                    <input matInput formControlName=\"deviceName\" required>\n                    <mat-error *ngIf=\"editDeviceFormGroup.get('deviceName').hasError('required')\">\n                        Serial Number is required.\n                    </mat-error>\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Label</mat-label>\n                    <input matInput formControlName=\"deviceLabel\" >\n                </mat-form-field>\n            </div>\n            <div formGroupName=\"attributes\" fxLayout=\"column\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-placeholder>Date of installation</mat-placeholder>\n                    <mat-datetimepicker-toggle [for]=\"datePicker\" matPrefix></mat-datetimepicker-toggle>\n                    <mat-datetimepicker #datePicker type=\"date\" openOnFocus=\"true\"></mat-datetimepicker>\n                    <input matInput formControlName=\"installationDate\" [matDatetimepicker]=\"datePicker\">\n                </mat-form-field>\n            </div>\n        </fieldset>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\" class=\"edit-device-form-actions\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || loading || editDeviceForm.invalid || !editDeviceForm.dirty\">\n            Save\n        </button>\n    </div>\n</form>",
+                "customHtml": "<form #editDeviceForm=\"ngForm\" [formGroup]=\"editDeviceFormGroup\" class=\"edit-device-form\" (ngSubmit)=\"save()\">\n    <mat-toolbar class=\"edit-device-form-toolbar\" fxLayout=\"row\">\n        <h2>Edit Meter Details</h2>\n        <span fxFlex></span>\n        <button mat-icon-button (click)=\"cancel()\" type=\"button\">\n            <mat-icon class=\"material-icons\">close</mat-icon>\n        </button>\n    </mat-toolbar>\n    <mat-progress-bar color=\"warn\" mode=\"indeterminate\" *ngIf=\"isLoading$ | async\"></mat-progress-bar>\n    <div style=\"height: 4px;\" *ngIf=\"!(isLoading$ | async)\"></div>\n    <div mat-dialog-content fxLayout=\"column\">\n        <fieldset [disabled]=\"(isLoading$ | async) || loading\">\n            <div fxLayout=\"row\" fxLayoutGap=\"8px\" fxLayout.xs=\"column\" fxLayoutGap.xs=\"0\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Serial Number</mat-label>\n                    <input matInput formControlName=\"deviceName\" required>\n                    <mat-error *ngIf=\"editDeviceFormGroup.get('deviceName').hasError('required')\">\n                        Serial Number is required.\n                    </mat-error>\n                </mat-form-field>\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Label</mat-label>\n                    <input matInput formControlName=\"deviceLabel\" >\n                </mat-form-field>\n            </div>\n            <div formGroupName=\"attributes\" fxLayout=\"column\">\n                <mat-form-field fxFlex class=\"mat-block\">\n                    <mat-label>Date of installation</mat-label>\n                    <mat-datetimepicker-toggle [for]=\"datePicker\" matPrefix></mat-datetimepicker-toggle>\n                    <mat-datetimepicker #datePicker type=\"date\" openOnFocus=\"true\"></mat-datetimepicker>\n                    <input matInput formControlName=\"installationDate\" [matDatetimepicker]=\"datePicker\">\n                </mat-form-field>\n            </div>\n        </fieldset>\n    </div>\n    <div mat-dialog-actions fxLayout=\"row\" fxLayoutAlign=\"end center\" class=\"edit-device-form-actions\">\n        <button mat-button color=\"primary\"\n                type=\"button\"\n                (click)=\"cancel()\" cdkFocusInitial>\n            Cancel\n        </button>\n        <button mat-button color=\"primary\"\n                type=\"submit\"\n                [disabled]=\"(isLoading$ | async) || loading || editDeviceForm.invalid || !editDeviceForm.dirty\">\n            Save\n        </button>\n    </div>\n</form>",
                 "customCss": ".edit-device-form mat-toolbar.edit-device-form-toolbar {\n    background-color: #ffffff;\n    color: #333333;\n}\n.edit-device-form .edit-device-form-actions button[mat-button][color=\"primary\"] {\n    border: 1px solid #E0E0E0;\n}",
                 "customFunction": "let $injector = widgetContext.$scope.$injector;\nlet customDialog = $injector.get(widgetContext.servicesMap.get('customDialog')),\n    deviceService = $injector.get(widgetContext.servicesMap.get('deviceService')),\n    attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenEditDeviceDialog();\n\nfunction openEditDeviceDialog() {\n    customDialog.customDialog(htmlTemplate, EditDeviceDialogController).subscribe();\n}\n\nfunction EditDeviceDialogController(instance) {\n    let vm = instance;\n\n    vm.device = {};\n    vm.attributes = {};\n    let attributesKeys = ['installationDate'];\n\n    vm.editDeviceFormGroup = vm.fb.group({\n        deviceName: [entityName, [vm.validators.required]],\n        deviceLabel: [entityLabel],\n        attributes: vm.fb.group({\n            installationDate: [null]\n        })\n    });\n\n    getEntityInfo();\n\n    vm.cancel = function() {\n        vm.dialogRef.close(null);\n    };\n\n    vm.save = () => {\n        vm.loading = true;\n        vm.editDeviceFormGroup.markAsPristine();\n        widgetContext.rxjs.forkJoin([saveDevice(), saveAttributes(entityId)]).subscribe(\n            () => {\n                vm.loading = false;\n                widgetContext.updateAliases();\n                vm.dialogRef.close(null);\n            },\n            () => {\n                vm.loading = false;\n            }\n        );\n    };\n\n    function getEntityInfo() {\n        vm.loading = true;\n        widgetContext.rxjs.forkJoin([\n            deviceService.getDevice(entityId.id),\n            attributeService.getEntityAttributes(entityId, 'SERVER_SCOPE', attributesKeys)]).subscribe(\n            (data) => {\n                vm.device = data[0];\n                if (data[1].length) {\n                    getEntityAttributes(data[1]);\n                    vm.editDeviceFormGroup.patchValue(\n                        {attributes: vm.attributes},\n                        {emitEvent: false}\n                        );\n                }\n                vm.loading = false;\n            }\n        );\n    }\n\n    function saveDevice() {\n        const formValues = vm.editDeviceFormGroup.value;\n        if (vm.device.name !== formValues.deviceName || (vm.device.label !== formValues.deviceLabel)) {\n            vm.device.name = formValues.deviceName;\n            vm.device.label = formValues.deviceLabel;\n            return deviceService.saveDevice(vm.device);\n        }\n        return widgetContext.rxjs.of([]);\n    }\n\n    function getEntityAttributes(attributes) {\n        for (let i = 0; i < attributes.length; i++) {\n            if (attributes[i].key === 'installationDate') {\n                vm.attributes[attributes[i].key] = moment(attributes[i].value).toDate();\n            } else {\n                vm.attributes[attributes[i].key] = attributes[i].value;\n            }\n        }\n    }\n\n    function saveAttributes(entityId) {\n        let attributes = vm.editDeviceFormGroup.get('attributes').value;\n        let attributesArray = [];\n        for (let key in attributes) {\n            if (attributes[key] !== vm.attributes[key]) {\n                attributesArray.push({key: key, value: attributes[key]});\n            }\n        }\n        if (attributesArray.length > 0) {\n            return attributeService.saveEntityAttributes(entityId, \"SERVER_SCOPE\", attributesArray);\n        }\n        return widgetContext.rxjs.of([]);\n    }\n}",
                 "customResources": [],
+                "openInSeparateDialog": false,
+                "openInPopover": false,
                 "id": "eae3f520-d7a8-e886-e8ae-ec42f497286e"
               }
             ]
@@ -4330,8 +4604,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -4722,9 +5015,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -5055,8 +5362,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -5095,7 +5421,10 @@
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
           "titleTooltip": "",
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "widgetCss": ".mdc-form-field, .mat-mdc-floating-label {\n    text-transform: uppercase;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "1b26a5b1-61be-945c-b7a7-85edc3e219cf"
       },
@@ -5272,8 +5601,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -5311,7 +5659,10 @@
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
           "titleTooltip": "",
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "widgetCss": ".mdc-form-field, .mat-mdc-floating-label {\n    text-transform: uppercase;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "e5602f65-3248-dc60-799c-0d8b413e3604"
       },
@@ -5488,8 +5839,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -5527,7 +5897,10 @@
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
           "titleTooltip": "",
-          "displayTimewindow": true
+          "displayTimewindow": true,
+          "widgetCss": ".mdc-form-field, .mat-mdc-floating-label {\n    text-transform: uppercase;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
         },
         "id": "2b036a6f-052f-46fe-14c6-6dc59416704f"
       },
@@ -5605,8 +5978,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": true,
@@ -5992,9 +6384,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -6327,8 +6733,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -6387,8 +6812,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -6447,8 +6891,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -6524,8 +6987,27 @@
             }
           ],
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
-              "timewindowMs": 60000
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
             }
           },
           "showTitle": false,
@@ -6806,9 +7288,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -7458,9 +7954,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -7776,9 +8286,23 @@
         "sizeY": 16,
         "config": {
           "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
             "realtime": {
+              "realtimeType": 1,
               "interval": 1000,
-              "timewindowMs": 86400000
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1678090031166,
+                "endTimeMs": 1678176431166
+              },
+              "quickInterval": "CURRENT_DAY"
             },
             "aggregation": {
               "type": "NONE",
@@ -9031,22 +9555,22 @@
           "main": {
             "widgets": {
               "d902d11f-3f82-c6c8-f868-7e795c4981d3": {
-                "sizeX": 48,
-                "sizeY": 3,
+                "sizeX": 100,
+                "sizeY": 7,
                 "row": 0,
                 "col": 0
               },
               "629dcd1a-9569-ba67-0ffd-638051f4ea97": {
-                "sizeX": 48,
-                "sizeY": 19,
-                "row": 3,
+                "sizeX": 100,
+                "sizeY": 39,
+                "row": 7,
                 "col": 0
               }
             },
             "gridSettings": {
               "backgroundColor": "#eeeeee",
               "color": "rgba(0,0,0,0.870588)",
-              "columns": 48,
+              "columns": 100,
               "margin": 0,
               "backgroundSizeMode": "100%",
               "autoFillHeight": true,
@@ -9499,5 +10023,6 @@
       }
     }
   },
+  "externalId": null,
   "name": "Water Metering Tenant Dashboard"
 }

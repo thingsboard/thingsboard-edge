@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import lombok.Data;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -41,7 +42,7 @@ import java.util.concurrent.ScheduledFuture;
 @Data
 public class EdgeSessionState {
 
-    private final Map<Integer, DownlinkMsg> pendingMsgsMap = new LinkedHashMap<>();
+    private final Map<Integer, DownlinkMsg> pendingMsgsMap = Collections.synchronizedMap(new LinkedHashMap<>());
     private SettableFuture<Void> sendDownlinkMsgsFuture;
     private ScheduledFuture<?> scheduledSendDownlinkTask;
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,19 +33,17 @@ package org.thingsboard.server.common.adaptor;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
-@RunWith(MockitoJUnitRunner.class)
 public class JsonConverterTest {
 
-    private static final JsonParser JSON_PARSER = new JsonParser();
+    private final JsonParser JSON_PARSER = new JsonParser();
 
-    @Before
+    @BeforeEach
     public void before() {
         JsonConverter.setTypeCastEnabled(true);
     }
@@ -104,16 +102,20 @@ public class JsonConverterTest {
         Assert.assertEquals("10000000000000000000", result.get(0L).get(0).getStrValue().get());
     }
 
-    @Test(expected = JsonSyntaxException.class)
+    @Test
     public void testParseBigDecimalOutOfLongRangeWithoutParsing() {
         JsonConverter.setTypeCastEnabled(false);
-        JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 89701010051400054084}"), 0L);
+        Assertions.assertThrows(JsonSyntaxException.class, () -> {
+            JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 89701010051400054084}"), 0L);
+        });
     }
 
-    @Test(expected = JsonSyntaxException.class)
+    @Test
     public void testParseBigDecimalOutOfLongRangeWithoutParsing2() {
         JsonConverter.setTypeCastEnabled(false);
-        JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 9.9701010061400066E19}"), 0L);
+        Assertions.assertThrows(JsonSyntaxException.class, () -> {
+            JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 9.9701010061400066E19}"), 0L);
+        });
     }
 
 

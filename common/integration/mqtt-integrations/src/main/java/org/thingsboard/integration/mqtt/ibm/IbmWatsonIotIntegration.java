@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,13 +34,12 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.credentials.BasicCredentials;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
+import org.thingsboard.server.common.data.StringUtils;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
@@ -81,7 +80,7 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
 
         mqttClientConfiguration.setHost(organizationId + "." + IBM_WATSON_IOT_ENDPOINT);
         mqttClientConfiguration.setPort(8883);
-        mqttClientConfiguration.setClientId("a:" + organizationId + ":" + RandomStringUtils.randomAlphanumeric(10));
+        mqttClientConfiguration.setClientId("a:" + organizationId + ":" + StringUtils.randomAlphanumeric(10));
     }
 
     @Override

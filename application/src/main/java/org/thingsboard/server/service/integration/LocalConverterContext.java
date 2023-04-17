@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,12 +30,11 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -52,12 +51,7 @@ public class LocalConverterContext implements ConverterContext {
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-        Event event = new Event();
-        event.setTenantId(tenantId);
-        event.setEntityId(converterId);
-        event.setType(type);
-        event.setBody(body);
+    public void saveEvent(Event event, IntegrationCallback<Void> callback) {
         DonAsynchron.withCallback(ctx.getEventService().saveAsync(event), res -> callback.onSuccess(null), callback::onError);
     }
 }

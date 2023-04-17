@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ import L from 'leaflet';
 import LeafletMap from '../leaflet-map';
 import { DEFAULT_ZOOM_LEVEL, WidgetUnitedMapSettings } from '../map-models';
 import { WidgetContext } from '@home/models/widget-component.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export class HEREMap extends LeafletMap {
     constructor(ctx: WidgetContext, $container, options: WidgetUnitedMapSettings) {
@@ -42,12 +43,15 @@ export class HEREMap extends LeafletMap {
           mapUuid = this.ctx.reportService.onWaitForMap();
         }
         const map = L.map($container, {
-          tap: L.Browser.safari && L.Browser.mobile,
           doubleClickZoom: !this.options.disableDoubleClickZooming,
           zoomControl: !this.options.disableZoomControl,
           fadeAnimation: !ctx.reportService.reportView
         }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
-        const tileLayer = (L.tileLayer as any).provider(options.mapProviderHere || 'HERE.normalDay', options.credentials);
+        let provider = options.mapProviderHere || 'HERE.normalDay';
+        if (options.credentials.useV3 && isDefinedAndNotNull(options.credentials.apiKey)) {
+          provider = options.mapProviderHere?.replace('HERE', 'HEREv3') || 'HEREv3.normalDay';
+        }
+        const tileLayer = (L.tileLayer as any).provider(provider, options.credentials);
         tileLayer.addTo(map);
         if (this.ctx.reportService.reportView) {
           tileLayer.once('load', () => {

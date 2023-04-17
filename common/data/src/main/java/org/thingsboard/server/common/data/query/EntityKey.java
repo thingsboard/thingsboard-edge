@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,6 +38,8 @@ import java.io.Serializable;
 @ApiModel
 @Data
 public class EntityKey implements Serializable {
+    private static final long serialVersionUID = -6421575477523085543L;
+
     private final EntityKeyType type;
     private final String key;
 }

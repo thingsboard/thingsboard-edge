@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,11 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -50,10 +50,8 @@ import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
@@ -91,7 +89,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             Integration integration = saveIntegration(
                     id, tenantId, convId,
                     INTEGRATION_BASE_NAME + i,
-                    RandomStringUtils.randomAlphanumeric(15),
+                    StringUtils.randomAlphanumeric(15),
                     IntegrationType.OCEANCONNECT,
                     false,
                     false
@@ -129,7 +127,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             Integration integration = saveIntegration(
                     id, tenantId, convId,
                     INTEGRATION_BASE_NAME + i,
-                    RandomStringUtils.randomAlphanumeric(15),
+                    StringUtils.randomAlphanumeric(15),
                     IntegrationType.OCEANCONNECT,
                     false,
                     false
@@ -175,7 +173,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             Integration integration = saveIntegration(
                     id, tenantId, convId,
                     INTEGRATION_BASE_NAME + i,
-                    RandomStringUtils.randomAlphanumeric(15),
+                    StringUtils.randomAlphanumeric(15),
                     IntegrationType.OCEANCONNECT,
                     false,
                     false
@@ -203,7 +201,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             Integration integration = saveIntegration(
                     id, tenantId, convId,
                     INTEGRATION_BASE_NAME + i,
-                    RandomStringUtils.randomAlphanumeric(15),
+                    StringUtils.randomAlphanumeric(15),
                     i % 2 == 0 ? IntegrationType.OCEANCONNECT : IntegrationType.MQTT,
                     false,
                     false
@@ -272,7 +270,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             Integration integration = saveIntegration(
                     id, tenantId, convId,
                     INTEGRATION_BASE_NAME + i,
-                    RandomStringUtils.randomAlphanumeric(15),
+                    StringUtils.randomAlphanumeric(15),
                     IntegrationType.OCEANCONNECT,
                     isOdd,
                     !isOdd
@@ -336,7 +334,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             Integration integration = saveIntegration(
                     id, tenantId, convId,
                     INTEGRATION_BASE_NAME + i,
-                    RandomStringUtils.randomAlphanumeric(15),
+                    StringUtils.randomAlphanumeric(15),
                     isOdd ? IntegrationType.OCEANCONNECT : IntegrationType.MQTT,
                     isOdd,
                     !isOdd

@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,12 @@
                       [entityId]="entity.id"
                       [entityName]="entity.name">
   </tb-attribute-table>
+</mat-tab>
+<mat-tab *ngIf="entity"
+         label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
+  <tb-relation-table [readonly]="!(resource.USER | hasGenericPermission: operation.WRITE)"
+                     [active]="relationsTab.isActive"
+                     [entityId]="entity.id"></tb-relation-table>
 </mat-tab>
 <mat-tab *ngIf="entity && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)"
          label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">

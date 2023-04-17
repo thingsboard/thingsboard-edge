@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.api;
 
 import io.netty.channel.EventLoopGroup;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -40,25 +41,32 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -66,6 +74,10 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -74,8 +86,12 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -196,6 +212,10 @@ public interface TbContext {
     // TODO: Does this changes the message?
     TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action);
 
+    TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<AttributeKvEntry> attributes);
+
+    TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys);
+
     void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
 
     /*
@@ -203,6 +223,10 @@ public interface TbContext {
      *  METHODS TO PROCESS THE MESSAGES
      *
      */
+
+    void schedule(Runnable runnable, long delay, TimeUnit timeUnit);
+
+    void checkTenantEntity(EntityId entityId);
 
     boolean isLocalEntity(EntityId entityId);
 
@@ -226,11 +250,19 @@ public interface TbContext {
 
     DeviceService getDeviceService();
 
+    DeviceProfileService getDeviceProfileService();
+
+    AssetProfileService getAssetProfileService();
+
+    DeviceCredentialsService getDeviceCredentialsService();
+
     TbClusterService getClusterService();
 
     DashboardService getDashboardService();
 
     RuleEngineAlarmService getAlarmService();
+
+    AlarmCommentService getAlarmCommentService();
 
     RuleChainService getRuleChainService();
 
@@ -250,6 +282,8 @@ public interface TbContext {
 
     RuleEngineDeviceProfileCache getDeviceProfileCache();
 
+    RuleEngineAssetProfileCache getAssetProfileCache();
+
     EdgeService getEdgeService();
 
     EdgeEventService getEdgeEventService();
@@ -264,13 +298,36 @@ public interface TbContext {
 
     ListeningExecutor getExternalCallExecutor();
 
+    ListeningExecutor getNotificationExecutor();
+
     MailService getMailService();
 
     SmsService getSmsService();
 
     SmsSenderFactory getSmsSenderFactory();
 
+    NotificationCenter getNotificationCenter();
+
+    NotificationTargetService getNotificationTargetService();
+
+    NotificationTemplateService getNotificationTemplateService();
+
+    NotificationRequestService getNotificationRequestService();
+
+    NotificationRuleService getNotificationRuleService();
+
+    SlackService getSlackService();
+
+    /**
+     * Creates JS Script Engine
+     * @deprecated
+     * <p> Use {@link #createScriptEngine} instead.
+     *
+     */
+    @Deprecated
     ScriptEngine createJsScriptEngine(String script, String... argNames);
+
+    ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames);
 
     EventService getEventService();
     /**
@@ -308,7 +365,15 @@ public interface TbContext {
 
     void addDeviceProfileListeners(Consumer<DeviceProfile> listener, BiConsumer<DeviceId, DeviceProfile> deviceListener);
 
+    void addAssetProfileListeners(Consumer<AssetProfile> listener, BiConsumer<AssetId, AssetProfile> assetListener);
+
     void removeListeners();
 
     TenantProfile getTenantProfile();
+
+    WidgetsBundleService getWidgetBundleService();
+
+    WidgetTypeService getWidgetTypeService();
+
+    RuleEngineApiUsageStateService getRuleEngineApiUsageStateService();
 }

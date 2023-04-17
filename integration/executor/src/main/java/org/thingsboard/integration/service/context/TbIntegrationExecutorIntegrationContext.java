@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,19 +31,24 @@
 package org.thingsboard.integration.service.context;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
+import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -64,16 +69,18 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     private final String serviceId;
     private final IntegrationApiService apiService;
+    private final IntegrationStatisticsService statisticsService;
     private final TbIntegrationExecutorContextComponent contextComponent;
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
     private final LogSettingsComponent logSettingsComponent;
 
-    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService,
+    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, IntegrationStatisticsService statisticsService,
                                                    TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
                                                    Integration configuration) {
         this.serviceId = serviceId;
         this.apiService = apiService;
+        this.statisticsService = statisticsService;
         this.contextComponent = contextComponent;
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
@@ -119,13 +126,19 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     }
 
     @Override
-    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(TbEventSource.INTEGRATION, configuration.getId(), null, type, uid, body, callback);
+    public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
+        doSaveEvent(TbEventSource.INTEGRATION, configuration.getId(), event, null, callback);
     }
 
     @Override
     public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(TbEventSource.DEVICE, null, deviceName, type, uid, body, callback);
+        doSaveEvent(TbEventSource.DEVICE, configuration.getTenantId(), RawDataEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .serviceId(getServiceId())
+                .uuid(uid)
+                .messageType(type)
+                .message(body.toString())
+                .build(), deviceName, callback);
     }
 
     @Override
@@ -136,6 +149,25 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
         return contextComponent.getScheduledExecutorService();
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            statisticsService.onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            statisticsService.onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public ExecutorService getExecutorService() {
+        return contextComponent.getGeneralExecutorService();
     }
 
     @Override
@@ -176,20 +208,16 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         return logSettingsComponent.isExceptionStackTraceEnabled();
     }
 
-    private void saveEvent(TbEventSource tbEventSource, EntityId entityId, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        String eventData = JacksonUtil.toString(body);
+    private void doSaveEvent(TbEventSource tbEventSource, EntityId entityId, Event event, String deviceName, IntegrationCallback<Void> callback) {
         var builder = TbIntegrationEventProto.newBuilder()
                 .setSource(tbEventSource)
-                .setType(type)
-                .setData(eventData);
+                .setEvent(ByteString.copyFrom(FSTUtils.encode(event)));
         builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
         builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
-        if (entityId != null) {
-            builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
-            builder.setEventSourceIdLSB(entityId.getId().getLeastSignificantBits());
-        }
-        if (StringUtils.isNotBlank(uid)) {
-            builder.setUid(uid);
+        if (event.getEntityId() != null) {
+            builder.setEventSourceIdMSB(event.getEntityId().getMostSignificantBits());
+            builder.setEventSourceIdLSB(event.getEntityId().getLeastSignificantBits());
+
         }
         if (StringUtils.isNotEmpty(deviceName)) {
             builder.setDeviceName(deviceName);
@@ -209,8 +237,8 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         }
 
         @Override
-        public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-            TbIntegrationExecutorIntegrationContext.this.saveEvent(eventSource, converterId, null, type, null, body, callback);
+        public void saveEvent(Event event, IntegrationCallback<Void> callback) {
+            TbIntegrationExecutorIntegrationContext.this.doSaveEvent(eventSource, converterId, event, null, callback);
         }
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,11 +34,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.server.actors.ActorSystemContext;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.event.StatisticsEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -75,12 +73,13 @@ public class TbCoreEventStorageService implements EventStorageService {
     public void persistStatistics(TenantId tenantId, IntegrationId id, long ts, IntegrationStatistics statistics, ComponentLifecycleEvent currentState) {
         String serviceId = serviceInfoProvider.getServiceId();
 
-        Event event = new Event();
-        event.setEntityId(id);
-        event.setTenantId(tenantId);
-        event.setType(DataConstants.STATS);
-        event.setBody(EventUtil.toBodyJson(serviceInfoProvider.getServiceId(), statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
-        eventService.saveAsync(event);
+        eventService.saveAsync(StatisticsEvent.builder()
+                .tenantId(tenantId)
+                .entityId(id.getId())
+                .serviceId(serviceInfoProvider.getServiceId())
+                .messagesProcessed(statistics.getMessagesProcessed())
+                .errorsOccurred(statistics.getErrorsOccurred())
+                .build());
 
         List<TsKvEntry> statsTs = new ArrayList<>();
         statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,11 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -94,11 +94,13 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.GROUP_PERMISSION, tenantStandaloneEntityPermissionChecker);
         put(Resource.AUDIT_LOG, genericPermissionChecker);
         put(Resource.DEVICE_PROFILE, tenantStandaloneEntityPermissionChecker);
+        put(Resource.ASSET_PROFILE, tenantStandaloneEntityPermissionChecker);
         put(Resource.API_USAGE_STATE, tenantStandaloneEntityPermissionChecker);
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, tenantStandaloneEntityPermissionChecker);
         put(Resource.QUEUE, queuePermissionChecker);
         put(Resource.VERSION_CONTROL, genericPermissionChecker);
+        put(Resource.NOTIFICATION, tenantStandaloneEntityPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -161,7 +163,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
             if (entityId != null) {
                 try {
-                    List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntity(entity.getTenantId(), entityId).get();
+                    List<EntityGroupId> entityGroupIds = entityGroupService.findEntityGroupsForEntityAsync(entity.getTenantId(), entityId).get();
                     for (EntityGroupId groupId : entityGroupIds) {
                         if (user.getUserPermissions().hasGroupPermissions(groupId, operation)) {
                             if (operation.isAllowedForGroupOwnerOnly()) {
@@ -213,6 +215,29 @@ public class TenantAdminPermissions extends AbstractPermissions {
                 return user.getUserPermissions().hasGenericPermission(resource, operation);
             }
             boolean isOwner = ownersCacheService.getOwners(user.getTenantId(), entityGroup.getId(), entityGroup).contains(user.getOwnerId());
+            if (isOwner) {
+                // This entity is a group, so we are checking group generic permission first
+                if (user.getUserPermissions().hasGenericPermission(resource, operation)) {
+                    return true;
+                }
+            }
+            if (!operation.isAllowedForGroupRole()) {
+                return false;
+            }
+            if (operation.isGroupOperationAllowedForGroupOwnerOnly()) {
+                return false;
+            }
+            //Just in case, we are also checking specific group permission
+            return user.getUserPermissions().hasGroupPermissions(entityGroup.getId(), operation);
+        }
+
+        @Override
+        public boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) {
+            Resource resource = Resource.groupResourceFromGroupType(entityGroup.getType());
+            if (operation == Operation.CREATE) {
+                return user.getUserPermissions().hasGenericPermission(resource, operation);
+            }
+            boolean isOwner = entityGroup.getOwnerIds().contains(user.getOwnerId());
             if (isOwner) {
                 // This entity is a group, so we are checking group generic permission first
                 if (user.getUserPermissions().hasGenericPermission(resource, operation)) {

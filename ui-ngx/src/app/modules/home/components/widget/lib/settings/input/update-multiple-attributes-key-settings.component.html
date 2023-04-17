@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@
   </mat-slide-toggle>
   <fieldset [fxShow]="!updateMultipleAttributesKeySettingsForm.get('dataKeyHidden').value" class="fields-group">
     <legend class="group-title" translate>widgets.input-widgets.general-settings</legend>
-    <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign.gt-xs="start center">
       <mat-form-field fxFlex="50" class="mat-block">
         <mat-label translate>widgets.input-widgets.datakey-type</mat-label>
         <mat-select formControlName="dataKeyType">
@@ -81,13 +81,16 @@
           <mat-option [value]="'select'">
             {{ 'widgets.input-widgets.datakey-value-type-select' | translate }}
           </mat-option>
+          <mat-option [value]="'JSON'">
+            {{ 'widgets.input-widgets.datakey-value-type-json' | translate }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
     </section>
     <mat-checkbox formControlName="required" style="margin-bottom: 8px;">
       {{ 'widgets.input-widgets.value-is-required' | translate }}
     </mat-checkbox>
-    <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign.gt-xs="start center">
       <mat-form-field fxFlex="50" class="mat-block">
         <mat-label translate>widgets.input-widgets.ability-to-edit-attribute</mat-label>
         <mat-select formControlName="isEditable">
@@ -155,7 +158,7 @@
                        (updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'integer' ||
                         updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'double')" class="fields-group">
     <legend class="group-title" translate>widgets.input-widgets.numeric-field-settings</legend>
-    <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+    <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px">
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>widgets.input-widgets.step-interval</mat-label>
         <input matInput type="number" min="0" formControlName="step">
@@ -177,7 +180,8 @@
       <input matInput formControlName="requiredErrorMessage">
     </mat-form-field>
     <section [fxShow]="updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'integer' ||
-                       updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'double'" fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+                       updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'double'"
+             fxLayout="row" fxLayoutGap="8px">
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>widgets.input-widgets.min-value-error-message</mat-label>
         <input matInput formControlName="minValueErrorMessage">
@@ -193,6 +197,28 @@
       <mat-label translate>widgets.input-widgets.invalid-date-error-message</mat-label>
       <input matInput formControlName="invalidDateErrorMessage">
     </mat-form-field>
+    <mat-form-field [fxShow]="updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'JSON'" fxFlex class="mat-block">
+      <mat-label translate>widgets.input-widgets.invalid-JSON-error-message</mat-label>
+      <input matInput formControlName="invalidJsonErrorMessage">
+    </mat-form-field>
+  </fieldset>
+  <fieldset [fxShow]="!updateMultipleAttributesKeySettingsForm.get('dataKeyHidden').value &&
+                      updateMultipleAttributesKeySettingsForm.get('dataKeyValueType').value === 'JSON'" class="fields-group">
+    <legend class="group-title" translate>widgets.input-widgets.dialog-editor-settings</legend>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>widgets.input-widgets.title</mat-label>
+      <input matInput formControlName="dialogTitle">
+    </mat-form-field>
+    <section fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px" fxLayoutAlign.gt-xs="start center">
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.input-widgets.save-button-label</mat-label>
+        <input matInput formControlName="saveButtonLabel">
+      </mat-form-field>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.input-widgets.cancel-button-label</mat-label>
+        <input matInput formControlName="cancelButtonLabel">
+      </mat-form-field>
+    </section>
   </fieldset>
   <fieldset [fxShow]="!updateMultipleAttributesKeySettingsForm.get('dataKeyHidden').value" class="fields-group">
     <legend class="group-title" translate>widgets.input-widgets.icon-settings</legend>

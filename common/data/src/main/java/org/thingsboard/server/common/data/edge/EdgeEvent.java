@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,8 @@ package org.thingsboard.server.common.data.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.id.EdgeEventId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -40,6 +42,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class EdgeEvent extends BaseData<EdgeEventId> {
 
     private TenantId tenantId;
@@ -58,9 +62,4 @@ public class EdgeEvent extends BaseData<EdgeEventId> {
     public EdgeEvent(EdgeEventId id) {
         super(id);
     }
-
-    public EdgeEvent(EdgeEvent event) {
-        super(event);
-    }
-
 }

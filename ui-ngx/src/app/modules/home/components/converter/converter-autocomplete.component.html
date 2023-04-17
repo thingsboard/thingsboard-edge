@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,8 @@
 
 -->
 <mat-form-field [formGroup]="selectConverterFormGroup" class="mat-block">
-  <input matInput type="text" placeholder="{{ entityText | translate }}"
+  <mat-label>{{ entityText | translate }}</mat-label>
+  <input matInput type="text"
          #converterInput
          formControlName="entity"
          (focusin)="onFocus()"
@@ -43,7 +44,7 @@
   </a>
   <button *ngIf="selectConverterFormGroup.get('entity').value && !disabled"
           type="button"
-          matSuffix mat-button mat-icon-button aria-label="Clear"
+          matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
@@ -53,10 +54,20 @@
     <mat-option *ngFor="let entity of filteredEntities | async" [value]="entity">
       <span [innerHTML]="entity.name | highlight:searchText"></span>
     </mat-option>
-    <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
-      <span>
-          {{ translate.get('converter.no-converters-matching', {entity: searchText}) | async }}
-      </span>
+    <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText) || !addNewConverter; else searchNotEmpty">
+          <span translate>converter.no-converters-found</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+              {{ 'converter.no-converters-matching' | translate:{entity: truncate.transform(searchText, true, 6, &apos;...&apos;)} }}
+          </span>
+          <span *ngIf="(resource.CONVERTER | hasGenericPermission: operation.WRITE)">
+            <a translate (click)="createConverter($event, searchText)">converter.create-new-converter</a>
+          </span>
+        </ng-template>
+      </div>
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="selectConverterFormGroup.get('entity').hasError('required')">

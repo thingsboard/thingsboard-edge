@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,8 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 @ApiModel
 @Data
 public class DefaultDeviceConfiguration implements DeviceConfiguration {
+
+    private static final long serialVersionUID = -2225378639573611325L;
 
     @Override
     public DeviceProfileType getType() {

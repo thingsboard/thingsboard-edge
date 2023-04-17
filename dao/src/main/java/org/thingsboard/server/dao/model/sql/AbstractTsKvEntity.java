@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.model.sql;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.kv.AggTsKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
@@ -95,6 +96,18 @@ public abstract class AbstractTsKvEntity implements ToData<TsKvEntry> {
     @Transient
     protected String strKey;
 
+    @Transient
+    protected Long aggValuesLastTs;
+    @Transient
+    protected Long aggValuesCount;
+
+    public AbstractTsKvEntity() {
+    }
+
+    public AbstractTsKvEntity(Long aggValuesLastTs) {
+        this.aggValuesLastTs = aggValuesLastTs;
+    }
+
     public abstract boolean isNotEmpty();
 
     protected static boolean isAllNull(Object... args) {
@@ -120,7 +133,12 @@ public abstract class AbstractTsKvEntity implements ToData<TsKvEntry> {
         } else if (jsonValue != null) {
             kvEntry = new JsonDataEntry(strKey, jsonValue);
         }
-        return new BasicTsKvEntry(ts, kvEntry);
+
+        if (aggValuesCount == null) {
+            return new BasicTsKvEntry(ts, kvEntry);
+        } else {
+            return new AggTsKvEntry(ts, kvEntry, aggValuesCount);
+        }
     }
 
 }

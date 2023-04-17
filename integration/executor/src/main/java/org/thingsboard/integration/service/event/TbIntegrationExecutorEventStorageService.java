@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.service.event;
 
+import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,9 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.event.StatisticsEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -79,7 +83,6 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
 
     @Override
     public void persistLifecycleEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent lcEvent, Exception e) {
-        String eventData = JacksonUtil.toString(EventUtil.toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
         TbEventSource eventSource;
         switch (entityId.getEntityType()) {
             case INTEGRATION:
@@ -95,10 +98,20 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
             default:
                 throw new IllegalArgumentException("Unsupported event type: " + entityId.getEntityType());
         }
-        var builder = TbIntegrationEventProto.newBuilder()
-                .setSource(eventSource)
-                .setType(DataConstants.LC_EVENT)
-                .setData(eventData);
+
+        var event = LifecycleEvent.builder()
+                .tenantId(tenantId)
+                .entityId(entityId.getId())
+                .serviceId(serviceInfoProvider.getServiceId())
+                .lcEventType(lcEvent.name());
+        if (e != null) {
+            event.success(false).error(EventUtil.toString(e));
+        } else {
+            event.success(true);
+        }
+
+        var builder = TbIntegrationEventProto.newBuilder().setSource(eventSource)
+                .setEvent(ByteString.copyFrom(FSTUtils.encode(event.build())));
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
         builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
@@ -110,12 +123,16 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
     @Override
     public void persistStatistics(TenantId tenantId, IntegrationId id, long ts, IntegrationStatistics statistics, ComponentLifecycleEvent currentState) {
         String serviceId = serviceInfoProvider.getServiceId();
-        String eventData = JacksonUtil.toString(EventUtil.toBodyJson(serviceId, statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
 
         var builder = TbIntegrationEventProto.newBuilder()
                 .setSource(TbEventSource.INTEGRATION)
-                .setType(DataConstants.STATS)
-                .setData(eventData);
+                .setEvent(ByteString.copyFrom(FSTUtils.encode(StatisticsEvent.builder()
+                        .tenantId(tenantId)
+                        .entityId(id.getId())
+                        .serviceId(serviceInfoProvider.getServiceId())
+                        .messagesProcessed(statistics.getMessagesProcessed())
+                        .errorsOccurred(statistics.getErrorsOccurred())
+                        .build())));
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
         builder.setEventSourceIdMSB(id.getId().getMostSignificantBits());

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.concurrent.TimeUnit;
 
-@TbCoreComponent
 @Slf4j
 @Service
 public class EventsCleanUpService extends AbstractCleanUpService {
@@ -54,9 +53,6 @@ public class EventsCleanUpService extends AbstractCleanUpService {
     @Value("${sql.ttl.events.debug_events_ttl}")
     private long debugTtlInSec;
 
-    @Value("${sql.ttl.events.execution_interval_ms}")
-    private long executionIntervalInMs;
-
     @Value("${sql.ttl.events.enabled}")
     private boolean ttlTaskExecutionEnabled;
 
@@ -69,28 +65,11 @@ public class EventsCleanUpService extends AbstractCleanUpService {
 
     @Scheduled(initialDelayString = RANDOM_DELAY_INTERVAL_MS_EXPRESSION, fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
     public void cleanUp() {
-        if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
+        if (ttlTaskExecutionEnabled) {
             long ts = System.currentTimeMillis();
-            long regularEventStartTs;
-            long regularEventEndTs;
-            long debugEventStartTs;
-            long debugEventEndTs;
-
-            if (ttlInSec > 0) {
-                regularEventEndTs = ts - TimeUnit.SECONDS.toMillis(ttlInSec);
-                regularEventStartTs = regularEventEndTs - 2 * executionIntervalInMs;
-            } else {
-                regularEventStartTs = regularEventEndTs = 0;
-            }
-
-            if (debugTtlInSec > 0) {
-                debugEventEndTs = ts - TimeUnit.SECONDS.toMillis(debugTtlInSec);
-                debugEventStartTs = debugEventEndTs - 2 * executionIntervalInMs;
-            } else {
-                debugEventStartTs = debugEventEndTs = 0;
-            }
-
-            eventService.cleanupEvents(regularEventStartTs, regularEventEndTs, debugEventStartTs, debugEventEndTs);
+            long regularEventExpTs = ttlInSec > 0 ? ts - TimeUnit.SECONDS.toMillis(ttlInSec) : 0;
+            long debugEventExpTs = debugTtlInSec > 0 ? ts - TimeUnit.SECONDS.toMillis(debugTtlInSec) : 0;
+            eventService.cleanupEvents(regularEventExpTs, debugEventExpTs, isSystemTenantPartitionMine());
         }
     }
 

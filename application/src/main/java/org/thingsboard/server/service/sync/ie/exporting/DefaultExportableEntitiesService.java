@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -227,7 +229,7 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
     @Autowired
     private void setRemovers(CustomerService customerService, AssetService assetService, RuleChainService ruleChainService,
                              DashboardService dashboardService, DeviceProfileService deviceProfileService,
-                             DeviceService deviceService, WidgetsBundleService widgetsBundleService,
+                             AssetProfileService assetProfileService, DeviceService deviceService, WidgetsBundleService widgetsBundleService,
                              EntityGroupService entityGroupService, ConverterService converterService,
                              IntegrationService integrationService, RoleService roleService) {
         removers.put(EntityType.CUSTOMER, (tenantId, entityId) -> {
@@ -244,6 +246,9 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
         });
         removers.put(EntityType.DEVICE_PROFILE, (tenantId, entityId) -> {
             deviceProfileService.deleteDeviceProfile(tenantId, (DeviceProfileId) entityId);
+        });
+        removers.put(EntityType.ASSET_PROFILE, (tenantId, entityId) -> {
+            assetProfileService.deleteAssetProfile(tenantId, (AssetProfileId) entityId);
         });
         removers.put(EntityType.DEVICE, (tenantId, entityId) -> {
             deviceService.deleteDevice(tenantId, (DeviceId) entityId);

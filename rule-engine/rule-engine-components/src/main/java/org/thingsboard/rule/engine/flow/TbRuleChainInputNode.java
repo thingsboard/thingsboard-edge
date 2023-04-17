@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -71,6 +71,7 @@ public class TbRuleChainInputNode implements TbNode {
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbRuleChainInputNodeConfiguration.class);
         this.ruleChainId = new RuleChainId(UUID.fromString(config.getRuleChainId()));
+        ctx.checkTenantEntity(ruleChainId);
     }
 
     @Override
@@ -78,7 +79,4 @@ public class TbRuleChainInputNode implements TbNode {
         ctx.input(msg, ruleChainId);
     }
 
-    @Override
-    public void destroy() {
-    }
 }

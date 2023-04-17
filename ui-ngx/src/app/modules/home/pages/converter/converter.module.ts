@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,16 +34,12 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { ConverterComponent } from '@home/pages/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
 import { ConverterRoutingModule } from '@home/pages/converter/converter-routing.module';
-import { ConverterTestDialogComponent } from '@home/pages/converter/converter-test-dialog.component';
 
 @NgModule({
   declarations: [
-    ConverterComponent,
     ConverterTabsComponent,
-    ConverterTestDialogComponent
   ],
   imports: [
     CommonModule,

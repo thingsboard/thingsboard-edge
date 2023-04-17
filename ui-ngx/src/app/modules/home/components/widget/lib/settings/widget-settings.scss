@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@
 
       legend + * {
         display: block;
-        margin-top: 16px;
+        margin-top: 8px;
       }
 
       &.fields-group-slider {
@@ -64,6 +64,7 @@
 
     .tb-control-list {
       overflow-y: auto;
+
       &.mat-padding {
         padding: 8px;
         @media #{$mat-gt-sm} {
@@ -72,18 +73,25 @@
       }
     }
 
-    .tb-prompt{
+    .tb-prompt {
       margin: 30px 0;
+    }
+  }
+
+  .flex-gap-xs {
+    margin-bottom: 8px;
+
+    @media #{$mat-xs} {
+      margin-bottom: 16px;
+      &.large {
+        margin-bottom: 24px;
+      }
     }
   }
 }
 
 :host ::ng-deep {
   .tb-widget-settings {
-    .mat-checkbox-label {
-      white-space: normal;
-    }
-
     .mat-expansion-panel {
       &.tb-settings {
         box-shadow: none;
@@ -113,14 +121,6 @@
             padding: 0;
           }
         }
-
-        .mat-checkbox-layout {
-          margin: 5px 0;
-        }
-
-        .mat-checkbox-inner-container {
-          margin-right: 12px;
-        }
       }
 
       .mat-expansion-panel-content {
@@ -139,10 +139,5 @@
         margin-bottom: 8px;
       }
     }
-
-    .mat-slide-toggle-content {
-      white-space: normal;
-    }
-
   }
 }

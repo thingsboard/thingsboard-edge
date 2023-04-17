@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Assisted Living Read Only",
+    "type": "GROUP",
+    "operations": [
+      "READ",
+      "READ_ATTRIBUTES",
+      "READ_CREDENTIALS",
+      "READ_TELEMETRY"
+    ]
+  },
+  {
+    "name": "Assisted Living Administrator",
+    "type": "GENERIC",
+    "operations": {
+      "ALL": [
+        "ALL"
+      ]
+    }
+  }
+]

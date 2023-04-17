@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,12 +32,15 @@ package org.thingsboard.rule.engine.transform;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.RuleEngineException;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
 import java.util.List;
 
@@ -63,10 +66,18 @@ public abstract class TbAbstractDuplicateMsgNode implements TbNode {
                         if (messages.size() == 1) {
                             ctx.tellNext(messages.get(0), SUCCESS);
                         } else {
-                            ctx.getPeContext().ack(msg);
-                            for (TbMsg newMsg : messages) {
-                                ctx.tellNext(newMsg, SUCCESS);
-                            }
+                            TbMsgCallbackWrapper wrapper = new MultipleTbMsgsCallbackWrapper(messages.size(), new TbMsgCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    ctx.ack(msg);
+                                }
+
+                                @Override
+                                public void onFailure(RuleEngineException e) {
+                                    ctx.tellFailure(msg, e);
+                                }
+                            });
+                            messages.forEach(newMsg -> ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS, wrapper::onSuccess, wrapper::onFailure));
                         }
                     } else {
                         ctx.tellNext(msg, FAILURE);

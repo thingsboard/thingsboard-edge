@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import io.netty.channel.EventLoopGroup;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -92,7 +93,7 @@ public interface IntegrationContext {
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
      */
-    void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
+    void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback);
 
     void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
 
@@ -110,6 +111,14 @@ public interface IntegrationContext {
      * @return scheduled executor
      */
     ScheduledExecutorService getScheduledExecutorService();
+
+    /**
+     * Provides access to ExecutorService to submit tasks.
+     * Allows using N threads per M integrations instead of using N threads per integration.
+     *
+     * @return executor
+     */
+    ExecutorService getExecutorService();
 
     /**
      * Provides access to ExecutorService to process messages after JS executor responses.
@@ -130,4 +139,7 @@ public interface IntegrationContext {
 
     boolean isExceptionStackTraceEnabled();
 
+    void onUplinkMessageProcessed(boolean success);
+
+    void onDownlinkMessageProcessed(boolean success);
 }

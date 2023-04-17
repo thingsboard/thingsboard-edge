@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ import {
 } from '@shared/models/relation.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { WidgetContext } from '@home/models/widget-component.models';
 
 export interface EntitiesHierarchyWidgetSettings {
   nodeRelationQueryFunction: string;
@@ -78,13 +79,13 @@ export interface HierarchyNodeIconInfo {
   materialIcon?: string;
 }
 
-export type NodeRelationQueryFunction = (nodeCtx: HierarchyNodeContext) => EntityRelationsQuery | 'default';
-export type NodeTextFunction = (nodeCtx: HierarchyNodeContext) => string;
-export type NodeDisabledFunction = (nodeCtx: HierarchyNodeContext) => boolean;
-export type NodeIconFunction = (nodeCtx: HierarchyNodeContext) => HierarchyNodeIconInfo | 'default';
-export type NodeOpenedFunction = (nodeCtx: HierarchyNodeContext) => boolean;
-export type NodeHasChildrenFunction = (nodeCtx: HierarchyNodeContext) => boolean;
-export type NodesSortFunction = (nodeCtx1: HierarchyNodeContext, nodeCtx2: HierarchyNodeContext) => number;
+export type NodeRelationQueryFunction = (widgetCtx: WidgetContext, nodeCtx: HierarchyNodeContext) => EntityRelationsQuery | 'default';
+export type NodeTextFunction = (widgetCtx: WidgetContext, nodeCtx: HierarchyNodeContext) => string;
+export type NodeDisabledFunction = (widgetCtx: WidgetContext, nodeCtx: HierarchyNodeContext) => boolean;
+export type NodeIconFunction = (widgetCtx: WidgetContext, nodeCtx: HierarchyNodeContext) => HierarchyNodeIconInfo | 'default';
+export type NodeOpenedFunction = (widgetCtx: WidgetContext, nodeCtx: HierarchyNodeContext) => boolean;
+export type NodeHasChildrenFunction = (widgetCtx: WidgetContext, nodeCtx: HierarchyNodeContext) => boolean;
+export type NodesSortFunction = (widgetCtx: WidgetContext, nodeCtx1: HierarchyNodeContext, nodeCtx2: HierarchyNodeContext) => number;
 
 export function loadNodeCtxFunction<F extends (...args: any[]) => any>(functionBody: string, argNames: string, ...args: any[]): F {
   let nodeCtxFunction: F = null;
@@ -110,10 +111,9 @@ export function iconUrlHtml(iconUrl: string): string {
   return '<div class="node-icon" style="background-image: url(' + iconUrl + ');">&nbsp;</div>';
 }
 
-export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = nodeCtx => {
+export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = (widgetContext, nodeCtx) => {
   const entity = nodeCtx.entity;
   const entityType = entity.id.entityType;
-  let relationTypeGroup = RelationTypeGroup.COMMON;
   let filters: RelationEntityTypeFilter[] = [
     {
       relationType: 'Contains',
@@ -128,7 +128,7 @@ export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = nodeC
       rootId: entity.id.id,
       rootType: entity.id.entityType as EntityType,
       direction: EntitySearchDirection.FROM,
-      relationTypeGroup,
+      relationTypeGroup: RelationTypeGroup.COMMON,
       maxLevel: 1
     },
     filters
@@ -136,7 +136,7 @@ export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = nodeC
   return query;
 };
 
-export const defaultNodeIconFunction: NodeIconFunction = nodeCtx => {
+export const defaultNodeIconFunction: NodeIconFunction = (widgetContext, nodeCtx) => {
   let materialIcon = 'insert_drive_file';
   const entity = nodeCtx.entity;
   if (entity && entity.id && entity.id.entityType) {
@@ -152,7 +152,7 @@ export const defaultNodeIconFunction: NodeIconFunction = nodeCtx => {
   };
 };
 
-function materialIconByEntityType (entityType: EntityType | string): string {
+function materialIconByEntityType(entityType: EntityType | string): string {
   let materialIcon = 'insert_drive_file';
   switch (entityType) {
     case 'function':
@@ -186,11 +186,11 @@ function materialIconByEntityType (entityType: EntityType | string): string {
   return materialIcon;
 }
 
-export const defaultNodeOpenedFunction: NodeOpenedFunction = nodeCtx => {
+export const defaultNodeOpenedFunction: NodeOpenedFunction = (widgetCtx, nodeCtx) => {
   return nodeCtx.level <= 4;
 };
 
-export const defaultNodesSortFunction: NodesSortFunction = (nodeCtx1, nodeCtx2) => {
+export const defaultNodesSortFunction: NodesSortFunction = (widgetCtx, nodeCtx1, nodeCtx2) => {
   let result = 0;
   if (!nodeCtx1.entity.id.entityType || !nodeCtx2.entity.id.entityType ) {
     if (nodeCtx1.entity.id.entityType) {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -98,6 +98,9 @@ export class MapWidgetController implements MapWidgetInterface {
           dynamic: true
         };
         this.map.setLoading(true);
+        this.ctx.defaultSubscription.paginatedDataSubscriptionUpdated.subscribe(() => {
+          this.map.resetState();
+        });
         this.ctx.defaultSubscription.subscribeAllForPaginatedData(this.pageLink, null);
     }
 
@@ -265,6 +268,7 @@ export class MapWidgetController implements MapWidgetInterface {
             parsedCircleFillColorFunction: parseFunction(settings.circleFillColorFunction, functionParams),
             parsedCircleTooltipFunction: parseFunction(settings.circleTooltipFunction, functionParams),
             parsedMarkerImageFunction: parseFunction(settings.markerImageFunction, ['data', 'images', 'dsData', 'dsIndex']),
+            parsedClusterMarkerFunction: parseFunction(settings.clusterMarkerFunction, ['data', 'childCount']),
             // labelColor: this.ctx.widgetConfig.color,
             // polygonLabelColor: this.ctx.widgetConfig.color,
             polygonKeyName: (settings as any).polKeyName ? (settings as any).polKeyName : settings.polygonKeyName,

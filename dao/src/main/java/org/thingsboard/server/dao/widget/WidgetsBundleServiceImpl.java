@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,9 +30,13 @@
  */
 package org.thingsboard.server.dao.widget;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -46,8 +50,13 @@ import org.thingsboard.server.dao.service.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-@Service
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+
+@Service("WidgetsBundleDaoService")
 @Slf4j
 public class WidgetsBundleServiceImpl implements WidgetsBundleService {
 
@@ -160,10 +169,36 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
+    public ListenableFuture<List<WidgetsBundle>> findSystemWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
+        log.trace("Executing findSystemWidgetsBundlesByIdsAsync, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
+        return widgetsBundleDao.findSystemWidgetBundlesByIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
+        log.trace("Executing findAllTenantWidgetsBundlesByIdsAsync, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
+        return widgetsBundleDao.findAllTenantWidgetBundlesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
+    }
+
+    @Override
     public void deleteWidgetsBundlesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteWidgetsBundlesByTenantId, tenantId [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantWidgetsBundleRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findWidgetsBundleById(tenantId, new WidgetsBundleId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.WIDGETS_BUNDLE;
     }
 
     private PaginatedRemover<TenantId, WidgetsBundle> tenantWidgetsBundleRemover =

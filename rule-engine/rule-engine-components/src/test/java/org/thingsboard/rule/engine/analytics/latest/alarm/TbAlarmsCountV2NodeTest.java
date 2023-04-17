@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,12 +33,10 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,18 +44,19 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -70,8 +69,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -85,7 +82,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -140,8 +136,17 @@ public class TbAlarmsCountV2NodeTest {
 
     @Test
     public void alarmsCountV2Test() throws Exception {
+        processTest("ALARM");
+    }
+
+    @Test
+    public void alarmsCountV2Test2() throws Exception {
+        processTest("ENTITY_CREATED");
+    }
+
+    private void processTest(String type) throws Exception {
         init(createConfig());
-        performAlarmsCountTest();
+        performAlarmsCountTest(type);
     }
 
     @Test
@@ -163,6 +168,7 @@ public class TbAlarmsCountV2NodeTest {
         configuration.setCountAlarmsForPropagationEntities(false);
         configuration.setAlarmsCountMappings(getAlarmsCountMappings());
         configuration.setPropagationEntityTypes(Collections.emptyList());
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 
@@ -198,7 +204,7 @@ public class TbAlarmsCountV2NodeTest {
         return alarmsCountMappings;
     }
 
-    private void performAlarmsCountTest() throws Exception {
+    private void performAlarmsCountTest(String type) throws Exception {
         int totalEntitiesCount = 10 + (int) (Math.random() * 20);
         List<AlarmInfo> alarms;
 
@@ -217,7 +223,7 @@ public class TbAlarmsCountV2NodeTest {
             alarm.setOriginator(entityId);
             alarm.setPropagate(true);
             try {
-                TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                TbMsg alarmMsg = TbMsg.newMsg(type, entityId, new TbMsgMetaData(),
                         TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
                 node.onMsg(ctx, alarmMsg);
             } catch (Exception e) {
@@ -276,7 +282,7 @@ public class TbAlarmsCountV2NodeTest {
                 parentEntityIds.add(parentEntityId);
                 parentEntityIds.add(rootEntityId);
                 parentEntityIds.add(alarm.getOriginator());
-                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
+                when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(Collections.emptyList()))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
                             TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
@@ -337,7 +343,7 @@ public class TbAlarmsCountV2NodeTest {
                 Alarm alarm = createAlarm(entityId);
                 Set<EntityId> parentEntityIds = new HashSet<>();
                 parentEntityIds.add(parentEntityId);
-                when(ctx.getAlarmService().getPropagationEntityIds(eq(alarm), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
+                when(ctx.getAlarmService().getPropagationEntityIds(Mockito.any(), eq(propagationEntityTypes))).thenReturn(parentEntityIds);
                 try {
                     TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
                             TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
@@ -396,12 +402,14 @@ public class TbAlarmsCountV2NodeTest {
 
             alarm.setId(new AlarmId(Uuids.startOf(createdTime)));
             int alarmStatusOrdinal = (int) Math.floor(Math.random() * AlarmStatus.values().length);
-            alarm.setStatus(AlarmStatus.values()[alarmStatusOrdinal]);
+            var alarmStatus = AlarmStatus.values()[alarmStatusOrdinal];
+            alarm.setCleared(alarmStatus.isCleared());
+            alarm.setAcknowledged(alarmStatus.isAck());
             alarm.setStartTs(createdTime);
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
             alarm.setOriginator(entityId);
-            alarm.setType(RandomStringUtils.randomAlphanumeric(15));
+            alarm.setType(StringUtils.randomAlphanumeric(15));
             alarm.setPropagate(true);
             alarms.add(alarm);
         }
@@ -460,7 +468,7 @@ public class TbAlarmsCountV2NodeTest {
                     alarmCounts.set(i, count);
                 }
                 if (alarms.hasNext()) {
-                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), false);
+                    query = new AlarmQuery(query.getAffectedEntityId(), query.getPageLink(), query.getSearchStatus(), query.getStatus(), null,false);
                 }
             } catch (ExecutionException | InterruptedException e) {
                 log.warn("Failed to find alarms by query. Query: [{}]", query);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,8 +43,6 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ConvertUtil;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +56,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
     private Subscriber subscriber;
     private volatile boolean stopped;
 
-    @PostConstruct
+    @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         stopped = false;
@@ -92,18 +90,20 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                     log.trace("[{}] Processing uplink data", data);
                 }
             }
+            integrationStatistics.incMessagesProcessed();
             if (configuration.isDebugMode()) {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(),
                         ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
         }
     }
 
-    @PreDestroy
-    public void stop() {
+    @Override
+    public void destroy() {
         stopped = true;
         if (subscriber != null) {
             subscriber.stopAsync();

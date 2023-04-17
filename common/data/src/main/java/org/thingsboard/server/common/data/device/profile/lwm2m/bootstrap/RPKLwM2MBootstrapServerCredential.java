@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,9 @@ package org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap;
 import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode;
 
 public class RPKLwM2MBootstrapServerCredential extends AbstractLwM2MBootstrapServerCredential {
+
+    private static final long serialVersionUID = 6692464656059120166L;
+
     @Override
     public LwM2MSecurityMode getSecurityMode() {
         return LwM2MSecurityMode.RPK;

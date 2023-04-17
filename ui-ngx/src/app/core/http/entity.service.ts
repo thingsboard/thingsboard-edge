@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -93,7 +93,6 @@ import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { Role } from '@shared/models/role.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, resourceByEntityType, RoleType } from '@shared/models/security.models';
-import { EntityGroup } from '@shared/models/entity-group.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import {
   AlarmData,
@@ -119,6 +118,10 @@ import { RuleChain, RuleChainMetaData, RuleChainType } from '@shared/models/rule
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { QueueService } from '@core/http/queue.service';
+import { AssetProfileService } from '@core/http/asset-profile.service';
+import { NotificationService } from '@core/http/notification.service';
+import { TenantProfileService } from '@core/http/tenant-profile.service';
+import { NotificationType } from '@shared/models/notification.models';
 
 @Injectable({
   providedIn: 'root'
@@ -142,6 +145,8 @@ export class EntityService {
     private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
+    private tenantProfileService: TenantProfileService,
+    private assetProfileService: AssetProfileService,
     private converterService: ConverterService,
     private integrationService: IntegrationService,
     private schedulerEventService: SchedulerEventService,
@@ -150,9 +155,9 @@ export class EntityService {
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
     private utils: UtilsService,
-    private queueService: QueueService
-  ) {
-  }
+    private queueService: QueueService,
+    private notificationService: NotificationService
+  ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
                               config?: RequestConfig): Observable<BaseData<EntityId>> {
@@ -296,7 +301,7 @@ export class EntityService {
   }
 
   private saveGroupEntityObservable(entity: BaseData<EntityId>,
-                                    entityGroupId: string,
+                                    entityGroupIds: string | string[],
                                     config?: RequestConfig): Observable<BaseData<EntityId>> {
     let observable: Observable<BaseData<EntityId>>;
     const entityType = entity.id.entityType;
@@ -305,34 +310,34 @@ export class EntityService {
     }
     switch (entityType) {
       case EntityType.DEVICE:
-        observable = this.deviceService.saveDevice(entity as Device, entityGroupId, config);
+        observable = this.deviceService.saveDevice(entity as Device, entityGroupIds, config);
         break;
       case EntityType.ASSET:
-        observable = this.assetService.saveAsset(entity as Asset, entityGroupId, config);
+        observable = this.assetService.saveAsset(entity as Asset, entityGroupIds, config);
         break;
       case EntityType.ENTITY_VIEW:
-        observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupId, config);
+        observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupIds, config);
         break;
       case EntityType.EDGE:
-        observable = this.edgeService.saveEdge(entity as Edge, entityGroupId, config);
+        observable = this.edgeService.saveEdge(entity as Edge, entityGroupIds, config);
         break;
       case EntityType.CUSTOMER:
-        observable = this.customerService.saveCustomer(entity as Customer, entityGroupId, config);
+        observable = this.customerService.saveCustomer(entity as Customer, entityGroupIds, config);
         break;
       case EntityType.DASHBOARD:
-        observable = this.dashboardService.saveDashboard(entity as Dashboard, entityGroupId, config);
+        observable = this.dashboardService.saveDashboard(entity as Dashboard, entityGroupIds, config);
         break;
       case EntityType.USER:
-        observable = this.userService.saveUser(entity as User, false, entityGroupId, config);
+        observable = this.userService.saveUser(entity as User, false, entityGroupIds, config);
         break;
     }
     return observable;
   }
 
   public saveGroupEntity(entity: BaseData<EntityId>,
-                         entityGroupId: string,
+                         entityGroupIds: string | string[],
                          config?: RequestConfig): Observable<BaseData<EntityId>> {
-    const entityObservable = this.saveGroupEntityObservable(entity, entityGroupId, config);
+    const entityObservable = this.saveGroupEntityObservable(entity, entityGroupIds, config);
     if (entityObservable) {
       return entityObservable;
     } else {
@@ -414,6 +419,18 @@ export class EntityService {
         break;
       case EntityType.ROLE:
         observable = this.roleService.getRolesByIds(entityIds, config);
+        break;
+      case EntityType.TENANT_PROFILE:
+        observable = this.tenantProfileService.getTenantProfilesByIds(entityIds, config);
+        break;
+      case EntityType.ASSET_PROFILE:
+        observable = this.assetProfileService.getAssetProfilesByIds(entityIds, config);
+        break;
+      case EntityType.WIDGETS_BUNDLE:
+        observable = this.widgetService.getWidgetsBundlesByIds(entityIds, config);
+        break;
+      case EntityType.NOTIFICATION_TARGET:
+        observable = this.notificationService.getNotificationTargetsByIds(entityIds, config);
         break;
     }
     return observable;
@@ -530,7 +547,7 @@ export class EntityService {
       case EntityType.ENTITY_GROUP:
         pageLink.sortOrder.property = 'name';
         if (subType && subType.length) {
-          entitiesObservable = this.entityGroupService.getEntityGroupsByPageLink(pageLink, subType as EntityType, config);
+          entitiesObservable = this.entityGroupService.getEntityGroups(pageLink, subType as EntityType, true, config);
         } else {
           entitiesObservable = of(null);
         }
@@ -547,9 +564,7 @@ export class EntityService {
       case EntityType.SCHEDULER_EVENT:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.schedulerEventService.getSchedulerEvents(null, config).pipe(
-          map((schedulerEvents) => {
-            return pageLink.filterData(schedulerEvents);
-          })
+          map((schedulerEvents) => pageLink.filterData(schedulerEvents))
         );
         break;
       case EntityType.BLOB_ENTITY:
@@ -567,6 +582,22 @@ export class EntityService {
       case EntityType.DEVICE_PROFILE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.deviceProfileService.getDeviceProfileInfos(pageLink, null, config);
+        break;
+      case EntityType.TENANT_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.tenantProfileService.getTenantProfiles(pageLink, config);
+        break;
+      case EntityType.ASSET_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.assetProfileService.getAssetProfileInfos(pageLink, config);
+        break;
+      case EntityType.WIDGETS_BUNDLE:
+        pageLink.sortOrder.property = 'title';
+        entitiesObservable = this.widgetService.getWidgetBundles(pageLink, config);
+        break;
+      case EntityType.NOTIFICATION_TARGET:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationTargets(pageLink, subType as NotificationType, config);
         break;
     }
     return entitiesObservable;
@@ -665,55 +696,6 @@ export class EntityService {
         return of(null);
       }
     }
-  }
-
-  public getEntitiesByGroupName(entityType: EntityType, entityNameFilter: string,
-                                pageSize: number, stateEntityId?: EntityId, config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
-    let entityGroupsObservable: Observable<Array<EntityGroup>>;
-    if (isDefined(stateEntityId)) {
-      entityGroupsObservable = this.getEntity(stateEntityId.entityType as EntityType, stateEntityId.id, config).pipe(
-        mergeMap((entity) => {
-          let entityId: EntityId;
-          if (entity.id.entityType === EntityType.CUSTOMER) {
-            entityId = entity.id;
-          } else {
-            entityId = entity.ownerId;
-          }
-          return this.entityGroupService.getEntityGroupsByOwnerId(entityId.entityType as EntityType, entityId.id, entityType, config);
-        }),
-        catchError(() => {
-          return of(null);
-        })
-      );
-    } else {
-      entityGroupsObservable = this.entityGroupService.getEntityGroups(entityType, config);
-    }
-    return entityGroupsObservable.pipe(
-      map((entityGroups) => {
-        if (entityGroups && entityGroups.length) {
-          for (const entityGroup of entityGroups) {
-            if (entityGroup.name === entityNameFilter) {
-              return entityGroup.id.id;
-            }
-          }
-        }
-        return null;
-      }),
-      catchError((err) => {
-        return of(null as string);
-      })
-    ).pipe(
-      mergeMap((groupId) => {
-        if (groupId) {
-          return this.getEntityGroupEntities(groupId, entityType, pageSize, config);
-        } else {
-          return of(null as Array<BaseData<EntityId>>);
-        }
-      }),
-      catchError((err) => {
-        return of(null as Array<BaseData<EntityId>>);
-      })
-    );
   }
 
   public findEntityDataByQuery(query: EntityDataQuery, config?: RequestConfig): Observable<PageData<EntityData>> {
@@ -872,6 +854,8 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
         case AliasFilterType.edgeSearchQuery:
           return entityTypes.indexOf(EntityType.EDGE) > -1;
+        case AliasFilterType.schedulerEvent:
+          return entityTypes.indexOf(EntityType.SCHEDULER_EVENT) > -1;
       }
     }
     return false;
@@ -930,6 +914,8 @@ export class EntityService {
         return entityType === EntityType.ENTITY_VIEW;
       case AliasFilterType.edgeSearchQuery:
         return entityType === EntityType.EDGE;
+      case AliasFilterType.schedulerEvent:
+        return entityType === EntityType.SCHEDULER_EVENT;
     }
     return false;
   }
@@ -1015,6 +1001,7 @@ export class EntityService {
         entityFieldKeys.push(entityFields.email.keyName);
         entityFieldKeys.push(entityFields.firstName.keyName);
         entityFieldKeys.push(entityFields.lastName.keyName);
+        entityFieldKeys.push(entityFields.phone.keyName);
         break;
       case EntityType.TENANT:
       case EntityType.CUSTOMER:
@@ -1044,7 +1031,6 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
       case EntityType.INTEGRATION:
-      case EntityType.SCHEDULER_EVENT:
       case EntityType.BLOB_ENTITY:
       case EntityType.ROLE:
         entityFieldKeys.push(entityFields.name.keyName);
@@ -1056,6 +1042,14 @@ export class EntityService {
         break;
       case EntityType.API_USAGE_STATE:
         entityFieldKeys.push(entityFields.name.keyName);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        entityFieldKeys.push(entityFields.configuration.keyName);
+        entityFieldKeys.push(entityFields.schedule.keyName);
+        entityFieldKeys.push(entityFields.originatorId.keyName);
+        entityFieldKeys.push(entityFields.originatorType.keyName);
         break;
     }
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;
@@ -1139,9 +1133,7 @@ export class EntityService {
               break;
           }
           if (keys) {
-            dataKeys.push(...keys.map(key => {
-              return {name: key, type};
-            }));
+            dataKeys.push(...keys.map(key => ({name: key, type})));
           }
         });
         return dataKeys;
@@ -1178,8 +1170,26 @@ export class EntityService {
         };
         aliasInfo.currentEntity = null;
         if (!aliasInfo.resolveMultiple && aliasInfo.entityFilter) {
-          return this.findSingleEntityInfoByEntityFilter(aliasInfo.entityFilter,
-            {ignoreLoading: true, ignoreErrors: true}).pipe(
+          let currentEntity: EntityInfo = null;
+          if (result.stateEntity && aliasInfo.entityFilter.type === AliasFilterType.singleEntity) {
+            if (stateParams) {
+              let targetParams = stateParams;
+              if (result.entityParamName && result.entityParamName.length) {
+                targetParams = stateParams[result.entityParamName];
+              }
+              if (targetParams && targetParams.entityId && targetParams.entityName) {
+                currentEntity = {
+                  id: targetParams.entityId.id,
+                  entityType: targetParams.entityId.entityType as EntityType,
+                  name: targetParams.entityName,
+                  label: targetParams.entityLabel
+                };
+              }
+            }
+          }
+          const entityInfoObservable = currentEntity ? of(currentEntity) : this.findSingleEntityInfoByEntityFilter(aliasInfo.entityFilter,
+            {ignoreLoading: true, ignoreErrors: true});
+          return entityInfoObservable.pipe(
             map((entity) => {
               aliasInfo.currentEntity = entity;
               return aliasInfo;
@@ -1308,6 +1318,24 @@ export class EntityService {
         } else {
           return of(result);
         }
+      case AliasFilterType.schedulerEvent:
+        let originatorType;
+        let originatorId;
+        result.stateEntity = filter.originatorStateEntity;
+        result.entityFilter = deepClone(filter);
+        if (result.stateEntity && stateEntityId) {
+          originatorType = stateEntityId.entityType;
+          originatorId = stateEntityId.id;
+        } else if (!result.stateEntity && filter.originator) {
+          originatorType = filter.originator.entityType;
+          originatorId = filter.originator.id;
+        }
+        if (originatorType && originatorId) {
+          result.entityFilter.originator = this.resolveAliasEntityId(originatorType, originatorId);
+          return of(result);
+        } else {
+          return of(result);
+        }
     }
   }
 
@@ -1320,7 +1348,7 @@ export class EntityService {
           return isDefinedAndNotNull(result.entityFilter);
         }
       }),
-      catchError(err => of(false))
+      catchError(() => of(false))
     );
   }
 
@@ -1330,19 +1358,15 @@ export class EntityService {
     const saveEntityObservable: Observable<BaseData<EntityId>> =
       this.getSaveEntityObservable(customerId, entityType, entityGroupId, entityData, config);
     return saveEntityObservable.pipe(
-      mergeMap((entity) => {
-        return this.saveEntityData(entity.id, entityData, config).pipe(
-          map(() => {
-            return { create: { entity: 1 } } as ImportEntitiesResultInfo;
-          }),
+      mergeMap((entity) => this.saveEntityData(entity.id, entityData, config).pipe(
+          map(() => ({ create: { entity: 1 } } as ImportEntitiesResultInfo)),
           catchError(err => of({
             error: {
               entity: 1,
               errors: err.message
             }
           } as ImportEntitiesResultInfo))
-        );
-      }),
+        )),
       catchError(err => {
         if (update) {
           let findEntityObservable: Observable<BaseData<EntityId>>;
@@ -1384,9 +1408,7 @@ export class EntityService {
               const updateEntityTasks: Observable<any>[] =
                 this.getUpdateEntityTasks(entityType, entityData, entityGroupId, entity, config);
               return forkJoin(updateEntityTasks).pipe(
-                map(() => {
-                  return { update: { entity: 1 } } as ImportEntitiesResultInfo;
-                }),
+                map(() => ({ update: { entity: 1 } } as ImportEntitiesResultInfo)),
                 catchError(updateError => of({
                   error: {
                     entity: 1,
@@ -1457,7 +1479,7 @@ export class EntityService {
           additionalInfo: {
             description: edgeEntityData.description
           },
-          edgeLicenseKey: edgeEntityData.edgeLicenseKey,
+          edgeLicenseKey: edgeEntityData.edgeLicenseKey !== '' ? edgeEntityData.edgeLicenseKey : '6qcGys6gz4M2ZuIqZ6hRDjWT',
           cloudEndpoint: edgeEntityData.cloudEndpoint !== '' ? edgeEntityData.cloudEndpoint : window.location.origin,
           routingKey: edgeEntityData.routingKey !== '' ? edgeEntityData.routingKey : guid(),
           secret: edgeEntityData.secret !== '' ? edgeEntityData.secret : generateSecret(20)
@@ -1610,7 +1632,7 @@ export class EntityService {
     }
   }
 
-  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): { entityId: EntityId, entityGroupType: EntityType } {
+  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): { entityId: EntityId; entityGroupType: EntityType } {
     let entityId: EntityId = null;
     let entityGroupType: EntityType = null;
     if (stateParams) {
@@ -1785,7 +1807,8 @@ export class EntityService {
       case EntityType.DEVICE:
       case EntityType.ENTITY_VIEW:
       case EntityType.DASHBOARD:
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: true });
+        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(pageLink, edgeId, entityType, { ignoreLoading: true })
+          .pipe(map(entities => entities.data));
         break;
       case EntityType.SCHEDULER_EVENT:
         entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
@@ -1843,6 +1866,9 @@ export class EntityService {
         break;
       case EdgeEventType.GROUP_PERMISSION:
         entityObservable = this.roleService.getGroupPermissionInfo(entityId, false);
+        break;
+      case EdgeEventType.ASSET_PROFILE:
+        entityObservable = this.assetProfileService.getAssetProfile(entityId);
         break;
       case EdgeEventType.RELATION:
         entityObservable = of(entity.body);

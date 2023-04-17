@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,12 +30,13 @@
  */
 package org.thingsboard.integration.mqtt;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -44,12 +45,17 @@ import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttConnectResult;
 import org.thingsboard.mqtt.MqttHandler;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.net.ssl.SSLException;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -61,12 +67,19 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     protected MqttClient mqttClient;
     protected IntegrationContext ctx;
 
+    public void setMqttClient(MqttClient mqttClient) {
+        this.mqttClient = mqttClient;
+    }
+
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         this.ctx = params.getContext();
         mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
         setupConfiguration(mqttClientConfiguration);
+        if (mqttClientConfiguration.getConnectTimeoutSec() < 1) {
+            mqttClientConfiguration.setConnectTimeoutSec(10);
+        }
     }
 
     @Override
@@ -88,9 +101,49 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     @Override
     public void update(TbIntegrationInitParams params) throws Exception {
         if (mqttClient != null) {
+            sendUnsubscribeRequestsIfNeeded(params.getConfiguration());
             mqttClient.disconnect();
         }
         init(params);
+    }
+
+    void sendUnsubscribeRequestsIfNeeded(Integration updatedIntegration) throws JsonProcessingException {
+        MqttClientConfiguration newMqttClientConfiguration = getClientConfiguration(updatedIntegration, MqttClientConfiguration.class);
+        if (isClientPersistedWithSpecifiedClientId(newMqttClientConfiguration)) {
+            Set<String> oldTopics = getOldTopics(updatedIntegration);
+            oldTopics.forEach(topic -> unsubscribe(topic, updatedIntegration));
+        }
+    }
+
+    private boolean isClientPersistedWithSpecifiedClientId(MqttClientConfiguration newMqttClientConfiguration) {
+        return !newMqttClientConfiguration.isCleanSession() && StringUtils.isNotEmpty(newMqttClientConfiguration.getClientId());
+    }
+
+    private Set<String> getOldTopics(Integration updatedIntegration) throws JsonProcessingException {
+        Set<String> oldTopics = getTopics(configuration);
+        Set<String> newTopics = getTopics(updatedIntegration);
+
+        oldTopics.removeAll(newTopics);
+        return oldTopics;
+    }
+
+    private Set<String> getTopics(Integration configuration) throws JsonProcessingException {
+        List<MqttTopicFilter> topicFilters = getMqttTopicFilters(configuration);
+        return topicFilters.stream().map(MqttTopicFilter::getFilter).collect(Collectors.toSet());
+    }
+
+    protected List<MqttTopicFilter> getMqttTopicFilters(Integration configuration) throws JsonProcessingException {
+        return mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("topicFilters")),
+                new TypeReference<>() {
+                });
+    }
+
+    private void unsubscribe(String topic, Integration updatedIntegration) {
+        try {
+            mqttClient.off(topic).get(3, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.warn("[{}] Failed to unsubscribe to the following topic: {}", updatedIntegration.getName(), topic, e);
+        }
     }
 
     @Override
@@ -125,7 +178,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {

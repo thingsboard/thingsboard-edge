@@ -3,7 +3,7 @@
     "name": "Smart sensor",
     "type": "smart-sensor",
     "group": "Office sensors",
-    "profile": "smart-sensor",
+    "emulator": "smart-sensor",
     "attributes": {
       "type": "smart-sensor",
       "xPos": 0.55,
@@ -22,7 +22,7 @@
     "name": "HVAC",
     "type": "hvac",
     "group": "Office sensors",
-    "profile": "hvac",
+    "emulator": "hvac",
     "attributes": {
       "type": "hvac",
       "xPos": 0.35,
@@ -41,7 +41,7 @@
     "name": "Energy meter",
     "type": "energy-meter",
     "group": "Office sensors",
-    "profile": "energy-meter",
+    "emulator": "energy-meter",
     "attributes": {
       "type": "energy-meter",
       "xPos": 0.2,
@@ -60,7 +60,7 @@
     "name": "Water meter",
     "type": "water-meter",
     "group": "Office sensors",
-    "profile": "water-meter",
+    "emulator": "water-meter",
     "attributes": {
       "type": "water-meter",
       "xPos": 0.9,

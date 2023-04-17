@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,18 +31,21 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
@@ -50,22 +53,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
-    
+public abstract class BaseDashboardServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    CustomerService customerService;
+    @Autowired
+    DashboardService dashboardService;
+    @Autowired
+    EdgeService edgeService;
+
     private IdComparator<DashboardInfo> idComparator = new IdComparator<>();
-    
-    private TenantId tenantId;
 
-    @Before
-    public void beforeRun() {
-        tenantId = before();
-    }
-
-    @After
-    public void after() {
-        tenantService.deleteTenant(tenantId);
-    }
-    
     @Test
     public void testSaveDashboard() throws IOException {
         Dashboard dashboard = new Dashboard();
@@ -88,26 +86,32 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         dashboardService.deleteDashboard(tenantId, savedDashboard.getId());
     }
     
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDashboardWithEmptyTitle() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTenantId(tenantId);
-        dashboardService.saveDashboard(dashboard);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            dashboardService.saveDashboard(dashboard);
+        });
     }
     
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDashboardWithEmptyTenant() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
-        dashboardService.saveDashboard(dashboard);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            dashboardService.saveDashboard(dashboard);
+        });
     }
     
-    @Test(expected = DataValidationException.class)
+    @Test
     public void testSaveDashboardWithInvalidTenant() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
         dashboard.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        dashboardService.saveDashboard(dashboard);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            dashboardService.saveDashboard(dashboard);
+        });
     }
 
     @Test
@@ -137,12 +141,6 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
     
     @Test
     public void testFindDashboardsByTenantId() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-        
-        TenantId tenantId = tenant.getId();
-        
         List<DashboardInfo> dashboards = new ArrayList<>();
         for (int i=0;i<165;i++) {
             Dashboard dashboard = new Dashboard();
@@ -173,18 +171,10 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         pageData = dashboardService.findDashboardsByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-        
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
     public void testFindMobileDashboardsByTenantId() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
         List<DashboardInfo> mobileDashboards = new ArrayList<>();
         for (int i=0;i<165;i++) {
             Dashboard dashboard = new Dashboard();
@@ -233,8 +223,6 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         pageData = dashboardService.findMobileDashboardsByTenantId(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
-
-        tenantService.deleteTenant(tenantId);
     }
     
     @Test
@@ -244,7 +232,7 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         for (int i = 0; i < 123; i++) {
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 17));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 17));
             String title = title1 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             dashboard.setTitle(title);
@@ -255,7 +243,7 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         for (int i = 0; i < 193; i++) {
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String title = title2 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             dashboard.setTitle(title);

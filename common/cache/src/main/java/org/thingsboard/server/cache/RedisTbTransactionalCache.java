@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -123,6 +123,10 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     @Override
     public void evict(Collection<K> keys) {
+        //Redis expects at least 1 key to delete. Otherwise - ERR wrong number of arguments for 'del' command
+        if (keys.isEmpty()) {
+            return;
+        }
         try (var connection = connectionFactory.getConnection()) {
             connection.del(keys.stream().map(this::getRawKey).toArray(byte[][]::new));
         }

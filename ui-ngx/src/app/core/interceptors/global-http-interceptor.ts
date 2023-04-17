@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -118,7 +118,8 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
     const ignoreErrors = config.ignoreErrors;
     const resendRequest = config.resendRequest;
     const errorCode = errorResponse.error ? errorResponse.error.errorCode : null;
-    if (errorResponse.error && errorResponse.error.refreshTokenPending || errorResponse.status === 401) {
+    if (errorResponse.error && errorResponse.error.refreshTokenPending ||
+      errorResponse.status === 401 && req.url !== Constants.entryPoints.tokenRefresh) {
       if (errorResponse.error && errorResponse.error.refreshTokenPending ||
           errorCode && errorCode === Constants.serverErrorCode.jwtTokenExpired) {
           return this.refreshTokenAndRetry(req, next);
@@ -168,7 +169,7 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
       return this.jwtIntercept(req, next);
     }),
     catchError((err: Error) => {
-      this.authService.logout(true);
+      this.authService.logout(true, true);
       const message = err ? err.message : 'Unauthorized!';
       return this.handleResponseError(req, next, new HttpErrorResponse({error: {message, timeout: 200}, status: 401}));
     }));

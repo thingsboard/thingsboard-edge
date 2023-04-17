@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -82,7 +82,7 @@ executors:
 
 rpc:
   # Host of the ThingsBoard server
-  host: "${RPC_HOST:cloud.thingsboard.io}"
+  host: "${RPC_HOST:thingsboard.cloud}"
   # Port of the ThingsBoard server
   port: "${RPC_PORT:9090}"
   # No reply timeout
@@ -96,6 +96,25 @@ rpc:
     enabled: "${RPC_SSL_ENABLED:false}"
     # SSL certificate
     cert: "${RPC_SSL_CERT:}"
+
+tbel:
+  enabled: "${TBEL_ENABLED:true}"
+  max_total_args_size: "${TBEL_MAX_TOTAL_ARGS_SIZE:300000}"
+  max_result_size: "${TBEL_MAX_RESULT_SIZE:300000}"
+  max_script_body_size: "${TBEL_MAX_SCRIPT_BODY_SIZE:100000}"
+  # Maximum allowed TBEL script execution memory
+  max_memory_limit_mb: "${TBEL_MAX_MEMORY_LIMIT_MB: 16}"
+  # Maximum allowed TBEL script execution errors before it will be blacklisted
+  max_errors: "${TBEL_MAX_ERRORS:3}"
+  # TBEL Eval max request timeout in milliseconds. 0 - no timeout
+  max_requests_timeout: "${TBEL_MAX_REQUEST_TIMEOUT:500}"
+  # Maximum time in seconds for black listed function to stay in the list.
+  max_black_list_duration_sec: "${TBEL_MAX_BLACKLIST_DURATION_SEC:60}"
+  # Specify thread pool size for javascript executor service
+  thread_pool_size: "${TBEL_THREAD_POOL_SIZE:50}"
+  stats:
+    enabled: "${TB_TBEL_STATS_ENABLED:false}"
+    print_interval_ms: "${TB_TBEL_STATS_PRINT_INTERVAL_MS:10000}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}"

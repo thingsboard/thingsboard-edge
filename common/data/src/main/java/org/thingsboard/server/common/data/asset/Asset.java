@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,10 +38,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasLabel;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -52,7 +54,7 @@ import java.util.Optional;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements GroupEntity<AssetId>, ExportableEntity<AssetId> {
+public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements HasLabel, GroupEntity<AssetId>, ExportableEntity<AssetId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -67,6 +69,8 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     @NoXss
     @Length(fieldName = "label")
     private String label;
+
+    private AssetProfileId assetProfileId;
 
     @Getter @Setter
     private AssetId externalId;
@@ -86,6 +90,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
+        this.assetProfileId = asset.getAssetProfileId();
         this.externalId = asset.getExternalId();
     }
 
@@ -95,6 +100,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
+        this.assetProfileId = asset.getAssetProfileId();
         Optional.ofNullable(asset.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
         this.externalId = asset.getExternalId();
     }
@@ -175,12 +181,22 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.label = label;
     }
 
+    @ApiModelProperty(position = 8, required = true, value = "JSON object with Asset Profile Id.")
+    public AssetProfileId getAssetProfileId() {
+        return assetProfileId;
+    }
+
+    public void setAssetProfileId(AssetProfileId assetProfileId) {
+        this.assetProfileId = assetProfileId;
+    }
+
+
     @Override
     public String getSearchText() {
         return getName();
     }
 
-    @ApiModelProperty(position = 8, value = "Additional parameters of the asset", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 9, value = "Additional parameters of the asset", dataType = "com.fasterxml.jackson.databind.JsonNode")
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
@@ -199,6 +215,8 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         builder.append(type);
         builder.append(", label=");
         builder.append(label);
+        builder.append(", assetProfileId=");
+        builder.append(assetProfileId);
         builder.append(", additionalInfo=");
         builder.append(getAdditionalInfo());
         builder.append(", createdTime=");

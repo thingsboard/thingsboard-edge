@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,11 +36,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -53,24 +50,31 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -90,9 +94,11 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -102,27 +108,29 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.TbQueueProducer;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
+import org.thingsboard.server.service.entitiy.asset.TbAssetService;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
+import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
+import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
+import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
 import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
 import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
+import org.thingsboard.server.service.solutions.data.EdgeLinkInfo;
 import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
 import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
 import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
@@ -131,14 +139,18 @@ import org.thingsboard.server.service.solutions.data.definition.CustomerEntityDe
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardUserDetailsDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
-import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeEntityGroupDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RoleDefinition;
+import org.thingsboard.server.service.solutions.data.definition.SchedulerEventDefinition;
 import org.thingsboard.server.service.solutions.data.definition.TenantDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserGroupDefinition;
+import org.thingsboard.server.service.solutions.data.emulator.AssetEmulatorLauncher;
 import org.thingsboard.server.service.solutions.data.emulator.DeviceEmulatorLauncher;
 import org.thingsboard.server.service.solutions.data.names.RandomNameData;
 import org.thingsboard.server.service.solutions.data.names.RandomNameUtil;
@@ -151,7 +163,6 @@ import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateLe
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateDetails;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInfo;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
-import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
@@ -166,6 +177,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -198,17 +210,23 @@ public class DefaultSolutionService implements SolutionService {
 
     private final InstallScripts installScripts;
     private final DeviceProfileService deviceProfileService;
+    private final AssetProfileService assetProfileService;
     private final RuleChainService ruleChainService;
     private final AttributesService attributesService;
     private final TimeseriesService tsService;
     private final DashboardService dashboardService;
-    private final RelationService relationService;
+    private final TbEntityRelationService relationService;
     private final DeviceService deviceService;
+    private final TbDeviceService tbDeviceService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
+    private final TbAssetService tbAssetService;
     private final CustomerService customerService;
     private final UserService userService;
+
+    private final TbEdgeService tbEdgeService;
     private final EntityGroupService entityGroupService;
+    private final TbEntityGroupService tbEntityGroupService;
     private final GroupPermissionService groupPermissionService;
     private final RoleService roleService;
     private final SystemSecurityService systemSecurityService;
@@ -220,6 +238,8 @@ public class DefaultSolutionService implements SolutionService {
     private final TelemetrySubscriptionService tsSubService;
     private final EntityActionService entityActionService;
     private final AlarmService alarmService;
+    private final SchedulerEventService schedulerEventService;
+    private final SchedulerService schedulerService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
@@ -338,7 +358,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     @Override
-    public void deleteSolution(TenantId tenantId, String solutionId) throws ThingsboardException {
+    public void deleteSolution(TenantId tenantId, String solutionId, User user) throws ThingsboardException {
         try {
             Optional<AttributeKvEntry> entitiesOpt = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toCreatedEntitiesKey(solutionId)).get();
             if (entitiesOpt.isPresent()) {
@@ -349,7 +369,7 @@ public class DefaultSolutionService implements SolutionService {
                 Collections.reverse(entityIds);
                 for (EntityId entityId : entityIds) {
                     try {
-                        deleteEntity(tenantId, entityId);
+                        deleteEntity(tenantId, entityId, user);
                     } catch (RuntimeException e) {
                         log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, e);
                     }
@@ -407,6 +427,19 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
+        List<AssetProfile> assetProfiles = loadListOfEntitiesIfFileExists(solutionId, "asset_profiles.json", new TypeReference<>() {
+        });
+        assetProfiles.addAll(loadListOfEntitiesFromDirectory(solutionId, "asset_profiles", AssetProfile.class));
+        // Validate that entities with such name does not exist entities
+        if (!assetProfiles.isEmpty()) {
+            for (AssetProfile assetProfile : assetProfiles) {
+                AssetProfile savedProfile = assetProfileService.findAssetProfileByName(tenantId, assetProfile.getName());
+                if (savedProfile != null) {
+                    alreadyExistingEntities.computeIfAbsent(EntityType.ASSET_PROFILE, key -> new ArrayList<>()).add(savedProfile);
+                }
+            }
+        }
+
         List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<>() {
         });
         if (!dashboards.isEmpty()) {
@@ -433,7 +466,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private SolutionInstallResponse doInstallSolution(User user, TenantId tenantId, String solutionId, HttpServletRequest request) {
-        SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, new TenantSolutionTemplateInstructions());
+        SolutionInstallContext ctx = new SolutionInstallContext(tenantId, solutionId, user, new TenantSolutionTemplateInstructions());
         try {
             provisionRoles(ctx);
 
@@ -443,22 +476,30 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionDeviceProfiles(ctx);
 
+            provisionAssetProfiles(ctx);
+
             List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
             });
 
             provisionCustomers(ctx, customers);
 
-            provisionAssets(ctx);
+            var assets = provisionAssets(ctx);
 
             var devices = provisionDevices(user, ctx);
-
-            provisionRelations(ctx);
 
             provisionDashboards(ctx);
 
             provisionCustomerUsers(ctx, customers);
 
-            launchEmulators(ctx, devices);
+            provisionRelations(ctx);
+
+            provisionSchedulerEvents(ctx);
+
+            updateRuleChains(ctx);
+
+            provisionEdges(user, ctx, request);
+
+            launchEmulators(ctx, devices, assets);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
 
@@ -469,6 +510,15 @@ public class DefaultSolutionService implements SolutionService {
             TenantSolutionTemplateInstructions instructions = new TenantSolutionTemplateInstructions(ctx.getSolutionInstructions());
             AttributeKvEntry instructionAttribute = new BaseAttributeKvEntry(new StringDataEntry(toInstructionsKey(solutionId), JacksonUtil.toString(instructions)), ts);
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(createdEntitiesAttribute, statusAttribute, instructionAttribute));
+
+            List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+            });
+            if (ruleChains.stream().anyMatch(r -> StringUtils.isNotEmpty(r.getUpdate()))) {
+                long timeout = solutions.stream().filter(s -> s.getId().equals(solutionId))
+                        .map(SolutionTemplate::getInstallTimeoutMs).findFirst().orElseThrow(RuntimeException::new);
+                Thread.sleep(timeout);
+                finalUpdateRuleChains(ctx);
+            }
 
             return new SolutionInstallResponse(ctx.getSolutionInstructions(), true);
         } catch (Throwable e) {
@@ -483,7 +533,7 @@ public class DefaultSolutionService implements SolutionService {
         Collections.reverse(createdEntities);
         for (EntityId entityId : createdEntities) {
             try {
-                deleteEntity(tenantId, entityId);
+                deleteEntity(tenantId, entityId, ctx.getUser());
             } catch (RuntimeException re) {
                 log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, re);
             }
@@ -495,14 +545,21 @@ public class DefaultSolutionService implements SolutionService {
     private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
         String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
         template = template.replace("${BASE_URL}", systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+        TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
         template = template.replace("${MAIN_DASHBOARD_URL}",
-                "/dashboardGroups/" + ctx.getSolutionInstructions().getDashboardGroupId().getId() +
-                        "/" + ctx.getSolutionInstructions().getDashboardId().getId());
+                getDashboardLink(solutionInstructions, solutionInstructions.getDashboardGroupId(), solutionInstructions.getDashboardId(), false));
+        if (solutionInstructions.isMainDashboardPublic()) {
+            template = template.replace("${MAIN_DASHBOARD_PUBLIC_URL}",
+                    getDashboardLink(solutionInstructions, solutionInstructions.getDashboardGroupId(), solutionInstructions.getDashboardId(), true));
+        }
 
         for (DashboardLinkInfo dashboardLinkInfo : ctx.getDashboardLinks()) {
             template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_URL}",
-                    "/dashboardGroups/" + dashboardLinkInfo.getEntityGroupId().getId() +
-                            "/" + dashboardLinkInfo.getDashboardId().getId());
+                    getDashboardLink(solutionInstructions, dashboardLinkInfo.getEntityGroupId(), dashboardLinkInfo.getDashboardId(), false));
+            if (dashboardLinkInfo.isPublic()) {
+                template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_PUBLIC_URL}",
+                        getDashboardLink(solutionInstructions, dashboardLinkInfo.getEntityGroupId(), dashboardLinkInfo.getDashboardId(), true));
+            }
         }
 
         StringBuilder devList = new StringBuilder();
@@ -557,7 +614,28 @@ public class DefaultSolutionService implements SolutionService {
 
         template = template.replace("${all_entities}", entityList.toString());
 
+        for (Map.Entry<String, EdgeLinkInfo> edgeLinkInfoEntry : ctx.getCreatedEdges().entrySet()) {
+            EdgeLinkInfo edgeLinkInfo = edgeLinkInfoEntry.getValue();
+            StringBuilder edgeDetailsUrl = new StringBuilder();
+            if (EntityType.CUSTOMER.equals(edgeLinkInfo.getOwnerId().getEntityType())) {
+                edgeDetailsUrl.append("/customers/all/").append(edgeLinkInfo.getOwnerId().getId());
+            }
+            edgeDetailsUrl.append("/edgeManagement/instances/all/").append(edgeLinkInfo.getEdgeId().getId());
+            String edgeName = edgeLinkInfoEntry.getKey();
+            template = template.replace("${" + edgeName + "EDGE_DETAILS_URL}", edgeDetailsUrl.toString());
+        }
+
         return template;
+    }
+
+    private String getDashboardLink(TenantSolutionTemplateInstructions solutionInstructions, EntityGroupId dashboardGroupId, DashboardId dashboardId, boolean isPublic) {
+        String dashboardLink;
+        if (isPublic) {
+            dashboardLink = "/dashboard/" + dashboardId.getId() + "?publicId=" + solutionInstructions.getPublicId();
+        } else {
+            dashboardLink = "/dashboardGroups/" + dashboardGroupId.getId() + "/" + dashboardId.getId();
+        }
+        return dashboardLink;
     }
 
     private void provisionRoles(SolutionInstallContext ctx) {
@@ -585,9 +663,6 @@ public class DefaultSolutionService implements SolutionService {
             RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             ruleChain.setTenantId(ctx.getTenantId());
             String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
-            for (var entry : ctx.getRealIds().entrySet()) {
-                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
-            }
             RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
             RuleChain savedRuleChain = ruleChainService.saveRuleChain(ruleChain);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
@@ -597,6 +672,60 @@ public class DefaultSolutionService implements SolutionService {
             }
             ctx.register(entityDefinition.getJsonId(), savedRuleChain);
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
+        }
+    }
+
+    private void updateRuleChains(SolutionInstallContext ctx) {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+        });
+        for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
+            // Rule chains should be ordered correctly to exclude dependencies.
+            Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getFile());
+            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            ruleChain.setTenantId(ctx.getTenantId());
+            String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
+            String oldMetadataStr = metadataStr;
+            for (var entry : ctx.getRealIds().entrySet()) {
+                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
+            }
+            if (metadataStr.equals(oldMetadataStr)) {
+                continue;
+            }
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
+
+            RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
+            RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
+            ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
+        }
+    }
+
+    private void finalUpdateRuleChains(SolutionInstallContext ctx) {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+        });
+        for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
+            if (StringUtils.isEmpty(entityDefinition.getUpdate())) {
+                continue;
+            }
+            // Rule chains should be ordered correctly to exclude dependencies.
+            Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getUpdate());
+            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            ruleChain.setTenantId(ctx.getTenantId());
+            String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
+            String oldMetadataStr = metadataStr;
+            for (var entry : ctx.getRealIds().entrySet()) {
+                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
+            }
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
+
+            RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
+            RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
+            ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
 
@@ -617,13 +746,97 @@ public class DefaultSolutionService implements SolutionService {
                     throw new ThingsboardRuntimeException();
                 }
             }
+            if (deviceProfile.getDefaultEdgeRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(deviceProfile.getDefaultEdgeRuleChainId().getId().toString());
+                if (newId != null) {
+                    deviceProfile.setDefaultEdgeRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Device profile: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), deviceProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
         });
 
         deviceProfiles = deviceProfiles.stream().map(deviceProfileService::saveDeviceProfile).collect(Collectors.toList());
         deviceProfiles.forEach(ctx::register);
     }
 
-    private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
+    private void provisionAssetProfiles(SolutionInstallContext ctx) {
+        List<AssetProfile> assetProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "asset_profiles.json", new TypeReference<>() {
+        });
+        assetProfiles.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "asset_profiles", AssetProfile.class));
+        assetProfiles.forEach(assetProfile -> {
+            assetProfile.setId(null);
+            assetProfile.setCreatedTime(0L);
+            assetProfile.setTenantId(ctx.getTenantId());
+            if (assetProfile.getDefaultRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(assetProfile.getDefaultRuleChainId().getId().toString());
+                if (newId != null) {
+                    assetProfile.setDefaultRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Asset profile: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+            if (assetProfile.getDefaultEdgeRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(assetProfile.getDefaultEdgeRuleChainId().getId().toString());
+                if (newId != null) {
+                    assetProfile.setDefaultEdgeRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Asset profile: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+        });
+
+        assetProfiles = assetProfiles.stream().map(assetProfileService::saveAssetProfile).collect(Collectors.toList());
+        assetProfiles.forEach(ctx::register);
+    }
+
+    private void provisionSchedulerEvents(SolutionInstallContext ctx) {
+        List<SchedulerEventDefinition> schedulerEvents = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "scheduler_events.json", new TypeReference<>() {
+        });
+        schedulerEvents.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "scheduler_events", SchedulerEventDefinition.class));
+        schedulerEvents.forEach(entityDef -> {
+            SchedulerEvent schedulerEvent = getSchedulerEvent(ctx, entityDef);
+            //TODO: use tbSchedulerService here when it becomes available.
+            SchedulerEvent savedSchedulerEvent = schedulerEventService.saveSchedulerEvent(schedulerEvent);
+
+            if (schedulerEvent.getId() == null) {
+                schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
+            } else {
+                schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
+            }
+            log.info("[{}] Saved scheduler event: {}", schedulerEvent.getId(), schedulerEvent);
+            ctx.register(entityDef, savedSchedulerEvent);
+        });
+    }
+
+    private SchedulerEvent getSchedulerEvent(SolutionInstallContext ctx, SchedulerEventDefinition entityDef) {
+        SchedulerEvent schedulerEvent = new SchedulerEvent();
+        schedulerEvent.setTenantId(ctx.getTenantId());
+        schedulerEvent.setName(entityDef.getName());
+        schedulerEvent.setType(entityDef.getType());
+        schedulerEvent.setConfiguration(entityDef.getConfiguration());
+        schedulerEvent.setSchedule(entityDef.getSchedule());
+        schedulerEvent.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+        if (entityDef.getOriginatorId() != null) {
+            String newIdStr = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
+            if (newIdStr != null) {
+                EntityId newId = EntityIdFactory.getByTypeAndUuid(entityDef.getOriginatorId().getEntityType(), UUID.fromString(newIdStr));
+                schedulerEvent.setOriginatorId(newId);
+            } else {
+                log.error("[{}][{}] Scheduler event: {} references non existing entity.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
+                throw new ThingsboardRuntimeException(
+                        String.format("[{}][{}] Scheduler event: {} references non existing entity.",
+                                ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName()),
+                        ThingsboardErrorCode.GENERAL);
+            }
+        }
+        return schedulerEvent;
+    }
+
+    private void provisionDashboards(SolutionInstallContext ctx) throws ThingsboardException {
         List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "dashboards.json", new TypeReference<>() {
         });
         for (DashboardDefinition entityDef : dashboards) {
@@ -645,8 +858,9 @@ public class DefaultSolutionService implements SolutionService {
             if (entityDef.isMain()) {
                 ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
                 ctx.getSolutionInstructions().setDashboardId(dashboard.getId());
+                ctx.getSolutionInstructions().setMainDashboardPublic(entityDef.isMakePublic());
             }
-            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId()));
+            ctx.getDashboardLinks().add(new DashboardLinkInfo(dashboard.getName(), entityGroupId, dashboard.getId(), entityDef.isMakePublic()));
         }
     }
 
@@ -666,7 +880,7 @@ public class DefaultSolutionService implements SolutionService {
                 entityRelation.setTypeGroup(RelationTypeGroup.COMMON);
                 entityRelation.setType(relationDef.getType());
                 try {
-                    relationService.saveRelation(ctx.getTenantId(), entityRelation);
+                    relationService.save(ctx.getTenantId(), null, entityRelation, null);
                 } catch (Exception e) {
                     log.info("[{}] Failed to save relation: {}, cause: {}", id, relationDef, e.getMessage());
                 }
@@ -676,6 +890,7 @@ public class DefaultSolutionService implements SolutionService {
 
     protected Map<Device, DeviceDefinition> provisionDevices(User user, SolutionInstallContext ctx) throws Exception {
         Map<Device, DeviceDefinition> result = new HashMap<>();
+        Set<String> deviceTypeSet = new HashSet<>();
         List<DeviceDefinition> devices = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "devices.json", new TypeReference<>() {
         });
 
@@ -685,6 +900,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setTenantId(ctx.getTenantId());
             entity.setName(entityDef.getName());
             entity.setLabel(entityDef.getLabel());
+            ensureDeviceProfileExists(ctx, deviceTypeSet, entityDef);
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
             entity = deviceService.saveDevice(entity);
@@ -713,14 +929,51 @@ public class DefaultSolutionService implements SolutionService {
         return result;
     }
 
-    private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap) throws Exception {
-        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+    private void ensureDeviceProfileExists(SolutionInstallContext ctx, Set<String> deviceTypeSet, DeviceDefinition entityDef) {
+        if (!deviceTypeSet.contains(entityDef.getType())) {
+            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileByName(ctx.getTenantId(), entityDef.getType());
+            if (deviceProfile == null) {
+                DeviceProfile created = deviceProfileService.findOrCreateDeviceProfile(ctx.getTenantId(), entityDef.getType());
+                ctx.register(created.getId());
+                log.info("Saved device profile: {}", created.getId());
+                deviceTypeSet.add(entityDef.getType());
+            }
+        }
+    }
 
-        for (var entry : devicesMap.entrySet()) {
+    private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
+        List<EmulatorDefinition> emulatorDefinitions = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<>() {
+        });
+        Map<String, EmulatorDefinition> deviceEmulators = emulatorDefinitions.stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+        emulatorDefinitions.stream().filter(ed -> StringUtils.isNotEmpty(ed.getExtendz()))
+                .forEach(ed -> {
+                    EmulatorDefinition parent = deviceEmulators.get(ed.getExtendz());
+                    if (parent != null) {
+                        ed.enrich(parent);
+                    }
+                });
+
+
+        for (var entry : devicesMap.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
             DeviceEmulatorLauncher.builder()
-                    .device(entry.getKey())
-                    .deviceProfile(deviceEmulators.get(entry.getValue().getProfile()))
+                    .entity(entry.getKey())
+                    .emulatorDefinition(deviceEmulators.get(entry.getValue().getEmulator()))
+                    .oldTelemetryExecutor(emulatorExecutor)
+                    .tbClusterService(tbClusterService)
+                    .partitionService(partitionService)
+                    .tbQueueProducerProvider(tbQueueProducerProvider)
+                    .serviceInfoProvider(serviceInfoProvider)
+                    .tsSubService(tsSubService)
+                    .build().launch();
+        }
+
+        Map<String, EmulatorDefinition> assetEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "asset_emulators.json", new TypeReference<List<EmulatorDefinition>>() {
+        }).stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+
+        for (var entry : assets.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
+            AssetEmulatorLauncher.builder()
+                    .entity(entry.getKey())
+                    .emulatorDefinition(assetEmulators.get(entry.getValue().getEmulator()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
                     .partitionService(partitionService)
@@ -770,7 +1023,9 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    protected void provisionAssets(SolutionInstallContext ctx) {
+    protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) throws ThingsboardException {
+        Map<Asset, AssetDefinition> result = new HashMap<>();
+        Set<String> assetTypeSet = new HashSet<>();
         List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
@@ -780,6 +1035,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setLabel(entityDef.getLabel());
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            ensureAssetProfileExists(ctx, assetTypeSet, entityDef);
             entity = assetService.saveAsset(entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved asset: {}", entity.getId(), entity);
@@ -788,6 +1044,20 @@ public class DefaultSolutionService implements SolutionService {
             saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
+            result.put(entity, entityDef);
+        }
+        return result;
+    }
+
+    private void ensureAssetProfileExists(SolutionInstallContext ctx, Set<String> assetTypeSet, AssetDefinition entityDef) {
+        if (!assetTypeSet.contains(entityDef.getType())) {
+            AssetProfile assetProfile = assetProfileService.findAssetProfileByName(ctx.getTenantId(), entityDef.getType());
+            if (assetProfile == null) {
+                AssetProfile created = assetProfileService.findOrCreateAssetProfile(ctx.getTenantId(), entityDef.getType());
+                ctx.register(created.getId());
+                log.info("Saved asset profile: {}", created.getId());
+                assetTypeSet.add(entityDef.getType());
+            }
         }
     }
 
@@ -827,7 +1097,6 @@ public class DefaultSolutionService implements SolutionService {
     private void provisionCustomerUsers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {
         for (CustomerDefinition entityDef : customers) {
             Customer entity = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entityDef.getName()).get();
-
             for (UserGroupDefinition ugDef : entityDef.getUserGroups()) {
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), ugDef.getName());
                 ctx.registerReferenceOnly(ugDef.getJsonId(), ugEntity.getId());
@@ -859,6 +1128,7 @@ public class DefaultSolutionService implements SolutionService {
             }
 
             for (UserDefinition uDef : entityDef.getUsers()) {
+                String originalName = uDef.getName(); // May not be unique;
                 EntityGroup ugEntity = getUserGroupInfo(ctx, entity.getId(), uDef.getGroup());
                 User user = createUser(ctx, entity, uDef, entityDef);
                 // TODO: get activation token, etc..
@@ -886,6 +1156,10 @@ public class DefaultSolutionService implements SolutionService {
                 credentialsInfo.setCustomerGroup(uDef.getGroup());
                 ctx.addUserCredentials(credentialsInfo);
                 ctx.register(entityDef, uDef, user);
+                ctx.put(user.getId(), uDef.getRelations());
+                ctx.putIdToMap(EntityType.USER, originalName, user.getId());
+                ctx.putIdToMap(EntityType.USER, uDef.getName(), user.getId());
+                saveServerSideAttributes(ctx.getTenantId(), user.getId(), uDef.getAttributes());
             }
         }
     }
@@ -925,6 +1199,147 @@ public class DefaultSolutionService implements SolutionService {
         throw new RuntimeException(finalE);
     }
 
+    private void provisionEdges(User user, SolutionInstallContext ctx, HttpServletRequest request) throws Exception {
+        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
+        RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
+        for (EdgeDefinition entityDef : edges) {
+            Edge entity = new Edge();
+            entity.setTenantId(ctx.getTenantId());
+            entity.setName(entityDef.getName());
+            entity.setLabel(entityDef.getLabel());
+            entity.setType(entityDef.getType());
+            entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            entity.setRoutingKey(UUID.randomUUID().toString());
+            entity.setSecret(StringUtils.randomAlphanumeric(20));
+            entity.setEdgeLicenseKey("6qcGys6gz4M2ZuIqZ6hRDjWT");
+            entity.setCloudEndpoint(systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+            RuleChainId rootRuleChainId = edgeTemplateRootRuleChain.getId();
+            if (StringUtils.isNotBlank(entityDef.getRootRuleChainId())) {
+                String newId = ctx.getRealIds().get(entityDef.getRootRuleChainId());
+                if (newId != null) {
+                    rootRuleChainId = new RuleChainId(UUID.fromString(newId));
+                } else {
+                    log.error("[{}][{}] Edge: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+            entity.setRootRuleChainId(rootRuleChainId);
+            RuleChain rootRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), rootRuleChainId);
+            entity = tbEdgeService.save(entity, rootRuleChain, Collections.emptyList(), user);
+            assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.USER, entityDef.getUserGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.DASHBOARD, entityDef.getDashboardGroups(), entity);
+            assignAssetsToEdge(ctx, entityDef.getAssetIds(), entity);
+            assignDevicesToEdge(ctx, entityDef.getDeviceIds(), entity);
+            assignSchedulerEventsToEdge(ctx, entityDef.getSchedulerEventIds(), entity);
+            ctx.register(entityDef, entity);
+            log.info("[{}] Saved edge: {}", entity.getId(), entity);
+            EdgeId entityId = entity.getId();
+            ctx.putIdToMap(entityDef, entityId);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            ctx.put(entityId, entityDef.getRelations());
+            addEntityToGroup(ctx, entityDef, entityId);
+
+            EdgeLinkInfo edgeLinkInfo = new EdgeLinkInfo(entity.getId(), entity.getOwnerId());
+            ctx.addEdgeLinkInfo(entity.getName(), edgeLinkInfo);
+        }
+    }
+
+    private void assignRuleChainsToEdge(SolutionInstallContext ctx, List<String> ruleChainIds, Edge entity) {
+        if (ruleChainIds == null || ruleChainIds.isEmpty()) {
+            return;
+        }
+        for (String strRuleChainId : ruleChainIds) {
+            String newId = ctx.getRealIds().get(strRuleChainId);
+            if (newId != null) {
+                RuleChainId ruleChainId = new RuleChainId(UUID.fromString(newId));
+                ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), ruleChainId, entity.getId());
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
+    private void assignEntityGroupsToEdge(SolutionInstallContext ctx, EntityType entityType, List<EdgeEntityGroupDefinition> entityGroupDefinitions, Edge edge) {
+        for (EdgeEntityGroupDefinition entityGroupDefinition : entityGroupDefinitions) {
+            EntityId parentEntityId = ctx.getTenantId();
+            if (entityGroupDefinition.getCustomer() != null) {
+                parentEntityId = ctx.getIdFromMap(EntityType.CUSTOMER, entityGroupDefinition.getCustomer());
+            }
+            Optional<EntityGroup> entityGroupOptional = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), parentEntityId, entityType, entityGroupDefinition.getName());
+            entityGroupOptional.ifPresent(entityGroup -> entityGroupService.assignEntityGroupToEdge(ctx.getTenantId(), entityGroup.getId(), edge.getId(), entityType));
+        }
+    }
+
+    private void assignSchedulerEventsToEdge(SolutionInstallContext ctx, List<String> schedulerEventIds, Edge entity) {
+        if (schedulerEventIds == null || schedulerEventIds.isEmpty()) {
+            return;
+        }
+        for (String strSchedulerEventId : schedulerEventIds) {
+            String newId = ctx.getRealIds().get(strSchedulerEventId);
+            if (newId != null) {
+                SchedulerEventId schedulerEventId = new SchedulerEventId(UUID.fromString(newId));
+                schedulerEventService.assignSchedulerEventToEdge(ctx.getTenantId(), schedulerEventId, entity.getId());
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing scheduler event.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
+    private void assignAssetsToEdge(SolutionInstallContext ctx, List<String> assetIds, Edge entity) throws ThingsboardException {
+        if (assetIds == null || assetIds.isEmpty()) {
+            return;
+        }
+        EntityGroup edgeAssetGroup;
+        try {
+            edgeAssetGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.ASSET).get();
+            ctx.register(edgeAssetGroup.getId());
+            ctx.putIdToMap(edgeAssetGroup.getOwnerId(), EntityType.ASSET, edgeAssetGroup.getName(), edgeAssetGroup.getId());
+        } catch (Exception e) {
+            log.error("[{}] Failed to find or create edge all asset group", ctx.getTenantId(), e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+        for (String strAssetId : assetIds) {
+            String newId = ctx.getRealIds().get(strAssetId);
+            if (newId != null) {
+                AssetId assetId = new AssetId(UUID.fromString(newId));
+                entityGroupService.addEntityToEntityGroup(ctx.getTenantId(), edgeAssetGroup.getId(), assetId);
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing asset.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
+    private void assignDevicesToEdge(SolutionInstallContext ctx, List<String> deviceIds, Edge entity) throws ThingsboardException {
+        if (deviceIds == null || deviceIds.isEmpty()) {
+            return;
+        }
+        EntityGroup edgeDeviceGroup;
+        try {
+            edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroupAsync(ctx.getTenantId(), entity, entity.getName(), EntityType.DEVICE).get();
+            ctx.register(edgeDeviceGroup.getId());
+            ctx.putIdToMap(edgeDeviceGroup.getOwnerId(), EntityType.DEVICE, edgeDeviceGroup.getName(), edgeDeviceGroup.getId());
+        } catch (Exception e) {
+            log.error("[{}] Failed to find or create edge all device group", ctx.getTenantId(), e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.GENERAL);
+        }
+        for (String strDeviceId : deviceIds) {
+            String newId = ctx.getRealIds().get(strDeviceId);
+            if (newId != null) {
+                DeviceId deviceId = new DeviceId(UUID.fromString(newId));
+                entityGroupService.addEntityToEntityGroup(ctx.getTenantId(), edgeDeviceGroup.getId(), deviceId);
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing device.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
+        }
+    }
+
     private RandomNameData generateRandomName(SolutionInstallContext ctx) {
         int i = 0;
         while (i < 10) {
@@ -936,8 +1351,8 @@ public class DefaultSolutionService implements SolutionService {
                 i++;
             }
         }
-        String firstName = RandomStringUtils.randomAlphanumeric(5);
-        String lastName = RandomStringUtils.randomAlphanumeric(5);
+        String firstName = StringUtils.randomAlphanumeric(5);
+        String lastName = StringUtils.randomAlphanumeric(5);
         return new RandomNameData(firstName, lastName, firstName + "." + lastName + "@thingsboard.io");
     }
 
@@ -959,7 +1374,7 @@ public class DefaultSolutionService implements SolutionService {
                         .replace("$customerLastName", customer.getLastName())
                         .replace("$customerEmail", customer.getEmail());
             }
-            return result.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase());
+            return result.replace("$random", StringUtils.randomAlphanumeric(10).toLowerCase());
         }
     }
 
@@ -1013,7 +1428,7 @@ public class DefaultSolutionService implements SolutionService {
         return eg;
     }
 
-    private EntityGroupId addEntityToGroup(SolutionInstallContext ctx, CustomerEntityDefinition entityDef, EntityId entityId) {
+    private EntityGroupId addEntityToGroup(SolutionInstallContext ctx, CustomerEntityDefinition entityDef, EntityId entityId) throws ThingsboardException {
         CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
         if (!StringUtils.isEmpty(entityDef.getGroup())) {
             EntityId ownerId = customerId == null ? ctx.getTenantId() : customerId;
@@ -1028,9 +1443,28 @@ public class DefaultSolutionService implements SolutionService {
                 }
             }
             entityGroupService.addEntitiesToEntityGroup(ctx.getTenantId(), egId, Collections.singletonList(entityId));
+
+            if (entityDef.isMakePublic()) {
+                EntityGroup eg = entityGroupService.findEntityGroupById(ctx.getTenantId(), egId);
+                TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
+                if (!eg.isPublic()) {
+                    EntityId publicId = tbEntityGroupService.makePublic(ctx.getTenantId(), eg, ctx.getUser());
+                    solutionInstructions.setPublicId(new CustomerId(publicId.getId()));
+                } else {
+                    if (solutionInstructions.getPublicId() == null) {
+                        solutionInstructions.setPublicId(new CustomerId(
+                                customerService.findOrCreatePublicUserGroup(ctx.getTenantId(), ctx.getUser().getOwnerId()).getOwnerId().getId()));
+                    }
+                }
+            }
+
             return egId;
         } else {
-            return null;
+            if (entityDef.isMakePublic()) {
+                throw new IllegalArgumentException("Entity is assigned to group 'All' only. Can't make entity public!");
+            } else {
+                return null;
+            }
         }
     }
 
@@ -1074,9 +1508,9 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    private void deleteEntity(TenantId tenantId, EntityId entityId) {
+    private void deleteEntity(TenantId tenantId, EntityId entityId, User user) {
         try {
-            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, false))
+            List<AlarmId> alarmIds = alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false))
                     .get().getData().stream().map(AlarmInfo::getId).collect(Collectors.toList());
             alarmIds.forEach(alarmId -> {
                 alarmService.deleteAlarm(tenantId, alarmId);
@@ -1086,10 +1520,15 @@ public class DefaultSolutionService implements SolutionService {
         }
         switch (entityId.getEntityType()) {
             case RULE_CHAIN:
-                ruleChainService.deleteRuleChainById(tenantId, new RuleChainId(entityId.getId()));
+                var ruleChainId = new RuleChainId(entityId.getId());
+                ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+                tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                 break;
             case DEVICE_PROFILE:
                 deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));
+                break;
+            case ASSET_PROFILE:
+                assetProfileService.deleteAssetProfile(tenantId, new AssetProfileId(entityId.getId()));
                 break;
             case DASHBOARD:
                 dashboardService.deleteDashboard(tenantId, new DashboardId(entityId.getId()));
@@ -1101,16 +1540,22 @@ public class DefaultSolutionService implements SolutionService {
                 userService.deleteUser(tenantId, new UserId(entityId.getId()));
                 break;
             case ASSET:
-                assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
+                tbAssetService.delete(new AssetId(entityId.getId()), user);
                 break;
             case DEVICE:
-                deviceService.deleteDevice(tenantId, new DeviceId(entityId.getId()));
+                tbDeviceService.delete(new DeviceId(entityId.getId()), user);
                 break;
             case CUSTOMER:
                 customerService.deleteCustomer(tenantId, new CustomerId(entityId.getId()));
                 break;
             case ENTITY_GROUP:
                 entityGroupService.deleteEntityGroup(tenantId, new EntityGroupId(entityId.getId()));
+                break;
+            case SCHEDULER_EVENT:
+                schedulerEventService.deleteSchedulerEvent(tenantId, new SchedulerEventId(entityId.getId()));
+                break;
+            case EDGE:
+                tbEdgeService.delete(new EdgeId(entityId.getId()), user);
                 break;
         }
     }

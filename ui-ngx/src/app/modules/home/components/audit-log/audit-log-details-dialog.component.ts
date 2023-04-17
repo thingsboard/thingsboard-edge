@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ElementRef, Inject, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -48,7 +48,7 @@ export interface AuditLogDetailsDialogData {
   templateUrl: './audit-log-details-dialog.component.html',
   styleUrls: ['./audit-log-details-dialog.component.scss']
 })
-export class AuditLogDetailsDialogComponent extends DialogComponent<AuditLogDetailsDialogComponent> implements OnInit {
+export class AuditLogDetailsDialogComponent extends DialogComponent<AuditLogDetailsDialogComponent> implements OnInit, OnDestroy {
 
   @ViewChild('actionDataEditor', {static: true})
   actionDataEditorElmRef: ElementRef;
@@ -60,6 +60,7 @@ export class AuditLogDetailsDialogComponent extends DialogComponent<AuditLogDeta
   displayFailureDetails: boolean;
   actionData: string;
   actionFailureDetails: string;
+  aceEditors: Ace.Editor[] = [];
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -79,6 +80,11 @@ export class AuditLogDetailsDialogComponent extends DialogComponent<AuditLogDeta
     if (this.displayFailureDetails) {
       this.createEditor(this.failureDetailsEditorElmRef, this.actionFailureDetails);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.aceEditors.forEach(editor => editor.destroy());
+    super.ngOnDestroy();
   }
 
   createEditor(editorElementRef: ElementRef, content: string): void {
@@ -101,6 +107,7 @@ export class AuditLogDetailsDialogComponent extends DialogComponent<AuditLogDeta
     getAce().subscribe(
       (ace) => {
         const editor = ace.edit(editorElement, editorOptions);
+        this.aceEditors.push(editor);
         editor.session.setUseWrapMode(false);
         editor.setValue(content, -1);
         this.updateEditorSize(editorElement, content, editor);

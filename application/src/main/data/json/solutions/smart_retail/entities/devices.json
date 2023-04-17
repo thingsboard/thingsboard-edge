@@ -5,7 +5,7 @@
     "type": "Smart Shelf",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Shelf",
+    "emulator": "Smart Shelf",
     "attributes": {
       "xPos": 0.7241627311506073,
       "yPos": 0.5483131839908542,
@@ -27,7 +27,7 @@
     "type": "Smart Shelf",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Shelf",
+    "emulator": "Smart Shelf",
     "attributes": {
       "xPos": 0.6895846593918546,
       "yPos": 0.6990715532286214,
@@ -49,7 +49,7 @@
     "type": "Chiller",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Chiller",
+    "emulator": "Chiller",
     "attributes": {
       "xPos": 0.5121248625980332,
       "yPos": 0.1313582387925827,
@@ -71,7 +71,7 @@
     "label": "Meat",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Freezer",
+    "emulator": "Freezer",
     "attributes": {
       "xPos": 0.0690506009660354,
       "yPos": 0.7218696071835972,
@@ -93,7 +93,7 @@
     "type": "Smart Bin",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Bin",
+    "emulator": "Smart Bin",
     "attributes": {
       "xPos": 0.4598393861933647,
       "yPos": 0.8291699184647086,
@@ -115,7 +115,7 @@
     "type": "Smart Bin",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Bin",
+    "emulator": "Smart Bin",
     "attributes": {
       "xPos": 0.4593,
       "yPos": 0.7494,
@@ -137,7 +137,7 @@
     "type": "Smart Bin",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Bin",
+    "emulator": "Smart Bin",
     "attributes": {
       "xPos": 0.4599,
       "yPos": 0.7874,
@@ -159,7 +159,7 @@
     "type": "Smart Bin",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Bin",
+    "emulator": "Smart Bin",
     "attributes": {
       "xPos": 0.4593,
       "yPos": 0.8667,
@@ -181,7 +181,7 @@
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Liquid Level Sensor",
+    "emulator": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 1.0,
       "xPos": 0.3072,
@@ -206,7 +206,7 @@
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Liquid Level Sensor",
+    "emulator": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 1.0,
       "xPos": 0.3072,
@@ -231,7 +231,7 @@
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Liquid Level Sensor",
+    "emulator": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 3.0,
       "xPos": 0.4593,
@@ -256,7 +256,7 @@
     "type": "Liquid Level Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Liquid Level Sensor",
+    "emulator": "Liquid Level Sensor",
     "attributes": {
       "totalCapacity": 3.0,
       "xPos": 0.5356,
@@ -281,7 +281,7 @@
     "type": "Door Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Door Sensor",
+    "emulator": "Door Sensor",
     "attributes": {
       "xPos": 0.0557,
       "yPos": 0.0636,
@@ -305,7 +305,7 @@
     "type": "Door Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Door Sensor",
+    "emulator": "Door Sensor",
     "attributes": {
       "xPos": 0.3585,
       "yPos": 0.1273,
@@ -329,7 +329,7 @@
     "type": "Door Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Door Sensor",
+    "emulator": "Door Sensor",
     "attributes": {
       "xPos": 0.4996,
       "yPos": 0.9303,
@@ -353,7 +353,7 @@
     "type": "Occupancy Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Occupancy Sensor",
+    "emulator": "Occupancy Sensor",
     "attributes": {
       "xPos": 0.3290,
       "yPos": 0.3361,
@@ -375,7 +375,7 @@
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smoke Sensor",
+    "emulator": "Smoke Sensor",
     "attributes": {
       "xPos": 0.4964,
       "yPos": 0.7103,
@@ -397,7 +397,7 @@
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smoke Sensor",
+    "emulator": "Smoke Sensor",
     "attributes": {
       "xPos": 0.7646,
       "yPos": 0.2278,
@@ -419,7 +419,7 @@
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smoke Sensor",
+    "emulator": "Smoke Sensor",
     "attributes": {
       "xPos": 0.4983,
       "yPos": 0.2211,
@@ -441,7 +441,7 @@
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smoke Sensor",
+    "emulator": "Smoke Sensor",
     "attributes": {
       "xPos": 0.1345,
       "yPos": 0.2590,
@@ -463,7 +463,7 @@
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smoke Sensor",
+    "emulator": "Smoke Sensor",
     "attributes": {
       "xPos": 0.7716,
       "yPos": 0.6221,
@@ -485,7 +485,7 @@
     "type": "Smoke Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smoke Sensor",
+    "emulator": "Smoke Sensor",
     "attributes": {
       "xPos": 0.2276,
       "yPos": 0.6221,
@@ -507,7 +507,7 @@
     "type": "Motion Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Motion Sensor",
+    "emulator": "Motion Sensor",
     "attributes": {
       "xPos": 0.0255,
       "yPos": 0.1551,
@@ -529,7 +529,7 @@
     "type": "Smart Shelf",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Smart Shelf",
+    "emulator": "Smart Shelf",
     "attributes": {
       "xPos": 0.8554396146493717,
       "yPos": 0.2868097994555209,
@@ -551,7 +551,7 @@
     "type": "Chiller",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Chiller",
+    "emulator": "Chiller",
     "attributes": {
       "xPos": 0.0491628292173387,
       "yPos": 0.9502955437131321,
@@ -573,7 +573,7 @@
     "label": "Meat",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Freezer",
+    "emulator": "Freezer",
     "attributes": {
       "xPos": 0.2647355841475662,
       "yPos": 0.7933730007919398,
@@ -595,7 +595,7 @@
     "type": "Door Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company A",
-    "profile": "Door Sensor",
+    "emulator": "Door Sensor",
     "attributes": {
       "xPos": 0.0867232290409743,
       "yPos": 0.0691862026256517,
@@ -619,7 +619,7 @@
     "type": "Smart Shelf",
     "group": "Supermarket Devices",
     "customer": "Retail Company B",
-    "profile": "Smart Shelf",
+    "emulator": "Smart Shelf",
     "attributes": {
       "xPos": 0.5156885661722124,
       "yPos": 0.3227717783356312,
@@ -641,7 +641,7 @@
     "type": "Chiller",
     "group": "Supermarket Devices",
     "customer": "Retail Company B",
-    "profile": "Chiller",
+    "emulator": "Chiller",
     "attributes": {
       "xPos": 0.3240744362093502,
       "yPos": 0.2329703441791172,
@@ -663,7 +663,7 @@
     "label": "Meat",
     "group": "Supermarket Devices",
     "customer": "Retail Company B",
-    "profile": "Freezer",
+    "emulator": "Freezer",
     "attributes": {
       "xPos": 0.8647263298256778,
       "yPos": 0.2506574261603276,
@@ -685,7 +685,7 @@
     "type": "Door Sensor",
     "group": "Supermarket Devices",
     "customer": "Retail Company B",
-    "profile": "Door Sensor",
+    "emulator": "Door Sensor",
     "attributes": {
       "xPos": 0.9322576326827318,
       "yPos": 0.6866720308317166,

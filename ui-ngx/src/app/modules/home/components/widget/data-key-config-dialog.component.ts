@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,10 +34,10 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
-import { DataKey, Widget } from '@shared/models/widget.models';
+import { DataKey, Widget, widgetType } from '@shared/models/widget.models';
 import { DataKeysCallbacks } from './data-keys.component.models';
 import { DataKeyConfigComponent } from '@home/components/widget/data-key-config.component';
 import { Dashboard } from '@shared/models/dashboard.models';
@@ -50,6 +50,7 @@ export interface DataKeyConfigDialogData {
   dashboard: Dashboard;
   aliasController: IAliasController;
   widget: Widget;
+  widgetType: widgetType;
   entityAliasId?: string;
   showPostProcessing?: boolean;
   callbacks?: DataKeysCallbacks;
@@ -66,7 +67,7 @@ export class DataKeyConfigDialogComponent extends DialogComponent<DataKeyConfigD
 
   @ViewChild('dataKeyConfig', {static: true}) dataKeyConfig: DataKeyConfigComponent;
 
-  dataKeyFormGroup: FormGroup;
+  dataKeyFormGroup: UntypedFormGroup;
 
   submitted = false;
 
@@ -75,7 +76,7 @@ export class DataKeyConfigDialogComponent extends DialogComponent<DataKeyConfigD
               @Inject(MAT_DIALOG_DATA) public data: DataKeyConfigDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<DataKeyConfigDialogComponent, DataKey>,
-              public fb: FormBuilder) {
+              public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
   }
 
@@ -85,7 +86,7 @@ export class DataKeyConfigDialogComponent extends DialogComponent<DataKeyConfigD
     });
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

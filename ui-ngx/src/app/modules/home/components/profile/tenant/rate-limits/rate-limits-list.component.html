@@ -1,0 +1,81 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-rate-limits-form" [formGroup]="rateLimitsListFormGroup">
+  <div fxFlex [formGroup]="rateLimit" *ngFor="let rateLimit of rateLimitsFormArray.controls; let $index = index">
+    <div class="tb-rate-limits-operation" *ngIf="$index > 0 && rateLimitsFormArray.controls.length > 1" translate>
+      tenant-profile.rate-limits.but-less-than
+    </div>
+    <div fxFlex fxLayout="row" fxLayoutGap="8px">
+      <mat-form-field fxFlex hideRequiredMarker appearance="fill" class="mat-block">
+        <mat-label translate>tenant-profile.rate-limits.number-of-messages</mat-label>
+        <input matInput placeholder="{{ 'tenant-profile.rate-limits.number-of-messages' | translate }}"
+               type="number" min="1" step="1" formControlName="value" required>
+        <mat-error *ngIf="rateLimit.get('value').hasError('required')">
+          {{ 'tenant-profile.rate-limits.number-of-messages-required' | translate }}
+        </mat-error>
+        <mat-error *ngIf="rateLimit.get('value').hasError('min')">
+          {{ 'tenant-profile.rate-limits.number-of-messages-min' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex hideRequiredMarker appearance="fill" class="mat-block">
+        <mat-label translate>tenant-profile.rate-limits.per-seconds</mat-label>
+        <input matInput placeholder="{{ 'tenant-profile.rate-limits.per-seconds' | translate }}"
+               type="number" min="1" step="1" formControlName="time" required>
+        <mat-error *ngIf="rateLimit.get('time').hasError('required')">
+          {{ 'tenant-profile.rate-limits.per-seconds-required' | translate }}
+        </mat-error>
+        <mat-error *ngIf="rateLimit.get('time').hasError('min')">
+          {{ 'tenant-profile.rate-limits.per-seconds-min' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <button mat-icon-button type="button" color="primary"
+              class="tb-rate-limits-button"
+              *ngIf="!rateLimitsFormArray.disabled"
+              (click)="removeRateLimits($index)"
+              [disabled]="disabled"
+              [matTooltip]="'tenant-profile.rate-limits.remove-limit' | translate" matTooltipPosition="above">
+        <mat-icon>remove_circle_outline</mat-icon>
+      </button>
+    </div>
+  </div>
+  <button mat-raised-button color="primary" *ngIf="!rateLimitsFormArray.disabled"
+          (click)="addRateLimits()"
+          [disabled]="disabled"
+          [matTooltip]="'tenant-profile.rate-limits.add-limit' | translate" matTooltipPosition="above">
+    <span translate>tenant-profile.rate-limits.add-limit</span>
+  </button>
+  <div fxFlex fxLayoutGap="8px" fxLayout="column" class="tb-rate-limits-preview" [ngClass]="{'tb-rate-limits-preview-short': !disabled}">
+    <span translate>tenant-profile.rate-limits.preview</span>
+    <tb-rate-limits-text [rateLimitsArray]="rateLimitsArray" [disabled]="disabled"></tb-rate-limits-text>
+  </div>
+</section>

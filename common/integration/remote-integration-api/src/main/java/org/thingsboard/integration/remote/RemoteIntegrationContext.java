@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,12 @@
  */
 package org.thingsboard.integration.remote;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -42,6 +43,10 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.storage.EventStorage;
+import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
+import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -56,6 +61,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Data
 @Slf4j
+@RequiredArgsConstructor
 public class RemoteIntegrationContext implements IntegrationContext {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -68,10 +74,12 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
     protected final ScheduledExecutorService scheduledExecutorService;
+    protected final ExecutorService generalExecutorService;
     protected final ExecutorService callBackExecutorService;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, Integration configuration, String clientId, int port,
-                                    ExecutorService callBackExecutorService) {
+    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService,
+                                    ExecutorService generalExecutorService, ExecutorService callBackExecutorService,
+                                    Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
@@ -79,6 +87,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
         this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, mapper, clientId, port);
         this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
         this.scheduledExecutorService = scheduledExecutorService;
+        this.generalExecutorService = generalExecutorService;
         this.callBackExecutorService = callBackExecutorService;
     }
 
@@ -108,13 +117,19 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(TbEventSource.INTEGRATION, "", type, uid, body, callback);
+    public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
+        doSaveEvent(TbEventSource.INTEGRATION, event, null, callback);
     }
 
     @Override
     public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(TbEventSource.DEVICE, deviceName, type, uid, body, callback);
+        doSaveEvent(TbEventSource.DEVICE, RawDataEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .serviceId(getServiceId())
+                .uuid(uid)
+                .messageType(type)
+                .message(body.toString())
+                .build(), deviceName, callback);
     }
 
     @Override
@@ -143,6 +158,11 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
+    public ExecutorService getExecutorService() {
+        return generalExecutorService;
+    }
+
+    @Override
     public ExecutorService getCallBackExecutorService() {
         return callBackExecutorService;
     }
@@ -157,21 +177,25 @@ public class RemoteIntegrationContext implements IntegrationContext {
         return true;
     }
 
-    private void saveEvent(TbEventSource tbEventSource, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        String eventData = "";
-        try {
-            eventData = mapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event body!", body, e);
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        // Statistics for remote integrations is not supported
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        // Statistics for remote integrations is not supported
+    }
+
+    private void doSaveEvent(TbEventSource tbEventSource, Event event, String deviceName, IntegrationCallback<Void> callback) {
+        var builder = TbEventProto.newBuilder()
+                .setSource(tbEventSource)
+                .setEvent(ByteString.copyFrom(FSTUtils.encode(event)));
+        if (deviceName != null) {
+            builder.setDeviceName(deviceName);
         }
         eventStorage.write(UplinkMsg.newBuilder()
-                .addEventsData(TbEventProto.newBuilder()
-                        .setSource(tbEventSource)
-                        .setType(type)
-                        .setUid(uid)
-                        .setData(eventData)
-                        .setDeviceName(deviceName)
-                        .build())
+                .addEventsData(builder.build())
                 .build(), callback);
     }
 

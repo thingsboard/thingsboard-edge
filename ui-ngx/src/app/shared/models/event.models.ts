@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -90,7 +90,7 @@ export interface RawDataEventBody extends BaseEventBody {
 export interface DebugRuleNodeEventBody extends BaseEventBody {
   type: string;
   entityId: string;
-  entityName: string;
+  entityType: string;
   msgId: string;
   msgType: string;
   relationType: string;
@@ -98,6 +98,11 @@ export interface DebugRuleNodeEventBody extends BaseEventBody {
   data: string;
   metadata: string;
   error: string;
+}
+
+export interface DebugRuleChainEventBody extends BaseEventBody {
+  message: string;
+  error?: string;
 }
 
 export interface DebugConverterEventBody extends BaseEventBody {
@@ -119,7 +124,7 @@ export interface DebugIntegrationEventBody extends BaseEventBody {
 }
 
 export type EventBody = ErrorEventBody & LcEventEventBody & StatsEventBody & RawDataEventBody
-                        & DebugRuleNodeEventBody & DebugConverterEventBody & DebugIntegrationEventBody;
+                        & DebugRuleNodeEventBody & DebugRuleChainEventBody & DebugConverterEventBody & DebugIntegrationEventBody;
 
 export interface Event extends BaseData<EventId> {
   tenantId: TenantId;

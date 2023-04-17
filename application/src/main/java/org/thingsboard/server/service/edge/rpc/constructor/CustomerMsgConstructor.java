@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -42,12 +43,15 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class CustomerMsgConstructor {
 
-    public CustomerUpdateMsg constructCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer) {
+    public CustomerUpdateMsg constructCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer, EntityGroupId entityGroupId) {
         CustomerUpdateMsg.Builder builder = CustomerUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(customer.getId().getId().getMostSignificantBits())
                 .setIdLSB(customer.getId().getId().getLeastSignificantBits())
-                .setTitle(customer.getTitle());
+                .setTitle(customer.getTitle())
+                .setOwnerIdMSB(customer.getOwnerId().getId().getMostSignificantBits())
+                .setOwnerIdLSB(customer.getOwnerId().getId().getLeastSignificantBits())
+                .setOwnerEntityType(customer.getOwnerId().getEntityType().name());
         if (customer.getCountry() != null) {
             builder.setCountry(customer.getCountry());
         }
@@ -74,6 +78,10 @@ public class CustomerMsgConstructor {
         }
         if (customer.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(customer.getAdditionalInfo()));
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         return builder.build();
     }

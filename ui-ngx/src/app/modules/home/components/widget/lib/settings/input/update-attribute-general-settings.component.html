@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -37,20 +37,20 @@
       <mat-label translate>widgets.input-widgets.widget-title</mat-label>
       <input matInput formControlName="widgetTitle">
     </mat-form-field>
-    <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px" fxLayoutAlign.gt-sm="start center">
-      <mat-slide-toggle fxFlex fxFlex.gt-sm="20" formControlName="showLabel">
+    <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign.gt-xs="start center">
+      <mat-slide-toggle fxFlex fxFlex.gt-xs="25" formControlName="showLabel">
         {{ 'widgets.input-widgets.show-label' | translate }}
       </mat-slide-toggle>
-      <mat-form-field *ngIf="hasLabelValue" fxFlex fxFlex.gt-sm="80" class="mat-block">
+      <mat-form-field *ngIf="hasLabelValue" fxFlex class="mat-block">
         <mat-label translate>widgets.input-widgets.label</mat-label>
         <input matInput formControlName="labelValue">
       </mat-form-field>
     </section>
-    <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px" fxLayoutAlign.gt-sm="start center">
-      <mat-slide-toggle fxFlex fxFlex.gt-sm="20" formControlName="isRequired">
+    <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap.gt-xs="8px" fxLayoutAlign.gt-xs="start center">
+      <mat-slide-toggle fxFlex fxFlex.gt-xs="25" formControlName="isRequired">
         {{ 'widgets.input-widgets.required' | translate }}
       </mat-slide-toggle>
-      <mat-form-field fxFlex fxFlex.gt-sm="80" class="mat-block">
+      <mat-form-field fxFlex class="mat-block">
         <mat-label translate>widgets.input-widgets.required-error-message</mat-label>
         <input matInput formControlName="requiredErrorMessage">
       </mat-form-field>

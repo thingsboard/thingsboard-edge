@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,9 +30,8 @@
  */
 package org.thingsboard.server.service.solutions.data.names;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
-import java.util.Locale;
 import java.util.Random;
 
 public class RandomNameUtil {
@@ -414,8 +413,8 @@ public class RandomNameUtil {
     }
 
     public static RandomNameData nextSuperRandom() {
-        var firstName = nextFirstName() + RandomStringUtils.randomAlphanumeric(10).toLowerCase();
-        var lastName = nextLastName() + RandomStringUtils.randomAlphanumeric(10).toLowerCase();
+        var firstName = nextFirstName() + StringUtils.randomAlphanumeric(10).toLowerCase();
+        var lastName = nextLastName() + StringUtils.randomAlphanumeric(10).toLowerCase();
         return new RandomNameData(firstName, lastName, toEmail(firstName, lastName));
     }
 

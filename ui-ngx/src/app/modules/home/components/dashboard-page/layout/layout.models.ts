@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -37,3 +37,19 @@ export interface ILayoutController {
   pasteWidget($event: MouseEvent);
   pasteWidgetReference($event: MouseEvent);
 }
+
+export enum LayoutWidthType {
+  PERCENTAGE = 'percentage',
+  FIXED = 'fixed'
+}
+
+export enum LayoutPercentageSize {
+  MIN = 10,
+  MAX = 90
+}
+
+export enum LayoutFixedSize {
+  MIN = 150,
+  MAX = 4000
+}
+

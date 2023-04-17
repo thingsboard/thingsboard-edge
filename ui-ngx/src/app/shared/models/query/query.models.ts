@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -753,7 +753,6 @@ export function createDefaultEntityDataPageLink(pageSize: number): EntityDataPag
 }
 
 export const singleEntityDataPageLink: EntityDataPageLink = createDefaultEntityDataPageLink(1);
-export const defaultEntityDataPageLink: EntityDataPageLink = createDefaultEntityDataPageLink(1024);
 
 export interface EntityCountQuery {
   entityFilter: EntityFilter;
@@ -776,12 +775,19 @@ export interface AlarmDataQuery extends AbstractDataQuery<AlarmDataPageLink> {
 export interface TsValue {
   ts: number;
   value: string;
+  count?: number;
+}
+
+export interface ComparisonTsValue {
+  current?: TsValue;
+  previous?: TsValue;
 }
 
 export interface EntityData {
   entityId: EntityId;
   latest: {[entityKeyType: string]: {[key: string]: TsValue}};
   timeseries: {[key: string]: Array<TsValue>};
+  aggLatest?: {[id: number]: ComparisonTsValue};
 }
 
 export interface AlarmData extends AlarmInfo {

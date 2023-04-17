@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -117,7 +117,7 @@ export class Circle {
       const circleLabelText = fillDataPattern(this.map.circleLabelText, this.map.replaceInfoTooltipCircle, this.data);
       const labelColor = this.map.ctx.widgetConfig.color;
       this.leafletCircle.bindTooltip(`<div style="color: ${labelColor};"><b>${circleLabelText}</b></div>`,
-        { className: 'tb-polygon-label', permanent: true, sticky: true, direction: 'center'})
+        { className: 'tb-polygon-label', permanent: true, direction: 'center'})
         .openTooltip(this.leafletCircle.getLatLng());
     }
   }

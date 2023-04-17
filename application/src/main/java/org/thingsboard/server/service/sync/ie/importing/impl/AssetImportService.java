@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,7 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
 
     @Override
     protected Asset prepare(EntitiesImportCtx ctx, Asset asset, Asset old, GroupEntityExportData<Asset> exportData, IdProvider idProvider) {
+        asset.setAssetProfileId(idProvider.getInternalId(asset.getAssetProfileId()));
         return asset;
     }
 

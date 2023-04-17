@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, HostBinding, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -47,9 +47,11 @@ export interface SignupDialogData {
 @Component({
   selector: 'tb-signup-dialog',
   templateUrl: './signup-dialog.component.html',
-  styleUrls: []
+  styleUrls: ['./signup-dialog.component.scss']
 })
 export class SignupDialogComponent extends DialogComponent<SignupDialogComponent, boolean> implements OnInit {
+
+  @HostBinding('class') class = 'tb-custom-css';
 
   title: string;
   dialogText: SafeHtml;

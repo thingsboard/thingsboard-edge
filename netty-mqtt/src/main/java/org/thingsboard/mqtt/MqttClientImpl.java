@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,6 +60,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -75,6 +76,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Represents an MqttClientImpl connected to a single MQTT server. Will try to keep the connection going at all times
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
+@Slf4j
 final class MqttClientImpl implements MqttClient {
 
     private final Set<String> serverSubscriptions = new HashSet<>();
@@ -146,6 +148,7 @@ final class MqttClientImpl implements MqttClient {
     }
 
     private Future<MqttConnectResult> connect(String host, int port, boolean reconnect) {
+        log.trace("[{}] Connecting to server, isReconnect - {}", channel != null ? channel.id() : "UNKNOWN", reconnect);
         if (this.eventLoop == null) {
             this.eventLoop = new NioEventLoopGroup();
         }
@@ -162,10 +165,12 @@ final class MqttClientImpl implements MqttClient {
         future.addListener((ChannelFutureListener) f -> {
             if (f.isSuccess()) {
                 MqttClientImpl.this.channel = f.channel();
+                log.debug("[{}][{}] Connected successfully {}!", host, port, this.channel.id());
                 MqttClientImpl.this.channel.closeFuture().addListener((ChannelFutureListener) channelFuture -> {
                     if (isConnected()) {
                         return;
                     }
+                    log.debug("[{}][{}] Channel is closed {}!", host, port, this.channel.id());
                     ChannelClosedException e = new ChannelClosedException("Channel is closed!");
                     if (callback != null) {
                         callback.connectionLost(e);
@@ -184,6 +189,7 @@ final class MqttClientImpl implements MqttClient {
                     scheduleConnectIfRequired(host, port, true);
                 });
             } else {
+                log.debug("[{}][{}] Connect failed, trying reconnect!", host, port);
                 scheduleConnectIfRequired(host, port, reconnect);
             }
         });
@@ -191,6 +197,7 @@ final class MqttClientImpl implements MqttClient {
     }
 
     private void scheduleConnectIfRequired(String host, int port, boolean reconnect) {
+        log.trace("[{}] Scheduling connect to server, isReconnect - {}", channel != null ? channel.id() : "UNKNOWN", reconnect);
         if (clientConfig.isReconnect() && !disconnected) {
             if (reconnect) {
                 this.reconnect = true;
@@ -206,6 +213,7 @@ final class MqttClientImpl implements MqttClient {
 
     @Override
     public Future<MqttConnectResult> reconnect() {
+        log.trace("[{}] Reconnecting to server, isReconnect - {}", channel != null ? channel.id() : "UNKNOWN", reconnect);
         if (host == null) {
             throw new IllegalStateException("Cannot reconnect. Call connect() first");
         }
@@ -296,6 +304,7 @@ final class MqttClientImpl implements MqttClient {
      */
     @Override
     public Future<Void> off(String topic, MqttHandler handler) {
+        log.trace("[{}] Unsubscribing from {}", channel != null ? channel.id() : "UNKNOWN", topic);
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
         for (MqttSubscription subscription : this.handlerToSubscription.get(handler)) {
             this.subscriptions.remove(topic, subscription);
@@ -314,6 +323,7 @@ final class MqttClientImpl implements MqttClient {
      */
     @Override
     public Future<Void> off(String topic) {
+        log.trace("[{}] Unsubscribing from {}", channel != null ? channel.id() : "UNKNOWN", topic);
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
         ImmutableSet<MqttSubscription> subscriptions = ImmutableSet.copyOf(this.subscriptions.get(topic));
         for (MqttSubscription subscription : subscriptions) {
@@ -375,6 +385,7 @@ final class MqttClientImpl implements MqttClient {
      */
     @Override
     public Future<Void> publish(String topic, ByteBuf payload, MqttQoS qos, boolean retain) {
+        log.trace("[{}] Publishing message to {}", channel != null ? channel.id() : "UNKNOWN", topic);
         Promise<Void> future = new DefaultPromise<>(this.eventLoop.next());
         MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBLISH, false, qos, retain, 0);
         MqttPublishVariableHeader variableHeader = new MqttPublishVariableHeader(topic, getNewMessageId().messageId());
@@ -419,6 +430,7 @@ final class MqttClientImpl implements MqttClient {
 
     @Override
     public void disconnect() {
+        log.trace("[{}] Disconnecting from server", channel != null ? channel.id() : "UNKNOWN");
         disconnected = true;
         if (this.channel != null) {
             MqttMessage message = new MqttMessage(new MqttFixedHeader(MqttMessageType.DISCONNECT, false, MqttQoS.AT_MOST_ONCE, false, 0));
@@ -450,6 +462,7 @@ final class MqttClientImpl implements MqttClient {
             return null;
         }
         if (this.channel.isActive()) {
+            log.trace("[{}] Sending message {}", channel != null ? channel.id() : "UNKNOWN", message);
             return this.channel.writeAndFlush(message);
         }
         return this.channel.newFailedFuture(new ChannelClosedException("Channel is closed!"));
@@ -465,6 +478,7 @@ final class MqttClientImpl implements MqttClient {
     }
 
     private Future<Void> createSubscription(String topic, MqttHandler handler, boolean once, MqttQoS qos) {
+        log.trace("[{}] Creating subscription to {}", channel != null ? channel.id() : "UNKNOWN", topic);
         if (this.pendingSubscribeTopics.contains(topic)) {
             Optional<Map.Entry<Integer, MqttPendingSubscription>> subscriptionEntry = this.pendingSubscriptions.entrySet().stream().filter((e) -> e.getValue().getTopic().equals(topic)).findAny();
             if (subscriptionEntry.isPresent()) {
