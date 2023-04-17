@@ -33,7 +33,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { UntypedFormBuilder } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { UtilsService } from '@core/services/utils.service';
@@ -70,7 +70,7 @@ export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialo
               private utils: UtilsService,
               @Inject(MAT_DIALOG_DATA) public data: ColorPickerDialogData,
               public dialogRef: MatDialogRef<ColorPickerDialogComponent, string>,
-              public fb: UntypedFormBuilder) {
+              public fb: FormBuilder) {
     super(store, router, dialogRef);
   }
 
@@ -144,7 +144,7 @@ export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialo
   }
 
   select(): void {
-    this.submitted = true;
+    // const color: string = this.colorPickerFormGroup.get('color').value;
     const color = this.getColor();
     this.dialogRef.close(color);
   }
