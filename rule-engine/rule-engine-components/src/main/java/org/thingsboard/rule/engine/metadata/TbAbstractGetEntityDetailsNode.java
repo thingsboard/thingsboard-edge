@@ -54,7 +54,6 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEntityDetailsNodeConfiguration> implements TbNode {
@@ -82,7 +81,7 @@ public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEnti
 
     protected abstract ListenableFuture<TbMsg> getDetails(TbContext ctx, TbMsg msg);
 
-    protected abstract ListenableFuture<ContactBased> getContactBasedListenableFuture(TbContext ctx, TbMsg msg);
+    protected abstract ListenableFuture<? extends ContactBased> getContactBasedListenableFuture(TbContext ctx, TbMsg msg);
 
     protected MessageData getDataAsJson(TbMsg msg) {
         if (this.config.isAddToMetadata()) {
@@ -94,7 +93,7 @@ public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEnti
 
     protected ListenableFuture<TbMsg> getTbMsgListenableFuture(TbContext ctx, TbMsg msg, MessageData messageData, String prefix) {
         if (!this.config.getDetailsList().isEmpty()) {
-            ListenableFuture<ContactBased> contactBasedListenableFuture = getContactBasedListenableFuture(ctx, msg);
+            ListenableFuture<? extends ContactBased> contactBasedListenableFuture = getContactBasedListenableFuture(ctx, msg);
             ListenableFuture<JsonElement> resultObject = addContactProperties(messageData.getData(), contactBasedListenableFuture, prefix);
             return transformMsg(ctx, msg, resultObject, messageData);
         } else {
@@ -117,7 +116,7 @@ public abstract class TbAbstractGetEntityDetailsNode<C extends TbAbstractGetEnti
         }, MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<JsonElement> addContactProperties(JsonElement data, ListenableFuture<ContactBased> entityFuture, String prefix) {
+    private ListenableFuture<JsonElement> addContactProperties(JsonElement data, ListenableFuture<? extends ContactBased> entityFuture, String prefix) {
         return Futures.transformAsync(entityFuture, contactBased -> {
             if (contactBased != null) {
                 JsonElement jsonElement = null;
