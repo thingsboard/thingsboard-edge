@@ -82,7 +82,7 @@ public abstract class TransportHealthChecker<C extends TransportMonitoringConfig
             wsClient.registerWaitForUpdate();
 
             String testValue = UUID.randomUUID().toString();
-            String testPayload = JacksonUtil.newObjectNode().set(TEST_TELEMETRY_KEY, new TextNode(testValue)).toString();
+            String testPayload = createTestPayload(testValue);
             try {
                 initClientAndSendPayload(testPayload);
                 log.trace("[{}] Sent test payload ({})", transportInfo, testPayload);
@@ -122,6 +122,9 @@ public abstract class TransportHealthChecker<C extends TransportMonitoringConfig
         reporter.reportLatency(Latencies.WS_UPDATE, stopWatch.getTime());
     }
 
+    protected String createTestPayload(String testValue) {
+        return JacksonUtil.newObjectNode().set(TEST_TELEMETRY_KEY, new TextNode(testValue)).toString();
+    }
 
     protected abstract void initClient() throws Exception;
 
