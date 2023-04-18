@@ -222,7 +222,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         String customerName = ENTITY_NAME;
         String number = "12015550123";
 
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.phoneNumberAddEntityView().sendKeys(number);
