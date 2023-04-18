@@ -220,9 +220,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
             public void onSuccess(@Nullable Object result) {
                 try {
                     doCalculate(ctx, msg, ts, entityDataList.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
                 } catch (Exception e) {
+                    log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
                     onFailure(e);
                 }
             }

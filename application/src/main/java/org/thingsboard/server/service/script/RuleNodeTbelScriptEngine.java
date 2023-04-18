@@ -85,19 +85,19 @@ public class RuleNodeTbelScriptEngine extends RuleNodeScriptEngine<TbelInvokeSer
             attributes.forEach((k, v) -> {
                 switch (v.getDataType()) {
                     case STRING:
-                        result.put(k, v.getStrValue().get());
+                        v.getStrValue().ifPresent(val -> result.put(k, val));
                         break;
                     case BOOLEAN:
-                        result.put(k, v.getBooleanValue().get());
+                        v.getBooleanValue().ifPresent(val -> result.put(k, val));
                         break;
                     case DOUBLE:
-                        result.put(k, v.getDoubleValue().get());
+                        v.getDoubleValue().ifPresent(val -> result.put(k, val));
                         break;
                     case LONG:
-                        result.put(k, v.getLongValue().get());
+                        v.getLongValue().ifPresent(val -> result.put(k, val));
                         break;
                     case JSON:
-                        result.put(k, JacksonUtil.toJsonNode(v.getJsonValue().get()));
+                        v.getJsonValue().ifPresent(val -> result.put(k, JacksonUtil.toJsonNode(val)));
                         break;
                 }
             });
