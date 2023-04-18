@@ -91,8 +91,8 @@ public class TbKafkaTopicConfigs {
         transportApiRequestConfigs = PropertyUtils.getProps(transportApiProperties);
         transportApiResponseConfigs = PropertyUtils.getProps(transportApiProperties);
         transportApiResponseConfigs.put(NUM_PARTITIONS_SETTING, "1");
-        integrationApiRequestConfigs = PropertyUtils.getConfigs(integrationApiProperties);
-        integrationApiResponseConfigs = PropertyUtils.getConfigs(integrationApiProperties);
+        integrationApiRequestConfigs = PropertyUtils.getProps(integrationApiProperties);
+        integrationApiResponseConfigs = PropertyUtils.getProps(integrationApiProperties);
         integrationApiResponseConfigs.put(NUM_PARTITIONS_SETTING, "1");
         notificationsConfigs = PropertyUtils.getProps(notificationsProperties);
         jsExecutorRequestConfigs = PropertyUtils.getProps(jsExecutorProperties);
