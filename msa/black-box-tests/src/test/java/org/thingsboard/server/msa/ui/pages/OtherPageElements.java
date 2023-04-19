@@ -44,13 +44,13 @@ public class OtherPageElements extends AbstractBasePage {
 
     protected static final String ENTITY = "//mat-row//span[text() = '%s']";
     protected static final String DELETE_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'delete')]/ancestor::button";
-    protected static final String DETAILS_BTN = ENTITY + "/../..//mat-icon[contains(text(),'edit')]/../..";
+    protected static final String DETAILS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'edit')]/parent::button";
     private static final String ENTITY_COUNT = "//div[@class='mat-paginator-range-label']";
     private static final String CONFIRM_DIALOG = "//tb-confirm-dialog";
     private static final String WARNING_DELETE_POPUP_YES = CONFIRM_DIALOG + "//button[2]";
     private static final String WARNING_DELETE_POPUP_NO = CONFIRM_DIALOG + "//button[1]";
     private static final String WARNING_DELETE_POPUP_TITLE = "//tb-confirm-dialog/h2";
-    private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/..";
+    private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/parent::button";
     private static final String HELP_BTN = "//span[text()='Customer details']/ancestor::div/following-sibling::div[@class='details-buttons']";
     private static final String HELP_BTN_ENTITY_GROUP = "//mat-icon[contains(text(),'help')]/../..";
     private static final String CHECKBOX = "//mat-row//span[contains(text(),'%s')]/../..//mat-checkbox";
