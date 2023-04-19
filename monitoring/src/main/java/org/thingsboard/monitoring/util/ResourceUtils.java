@@ -28,25 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config;
+package org.thingsboard.monitoring.util;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.thingsboard.monitoring.transport.TransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.CoapTransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.HttpTransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.Lwm2mTransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.MqttTransportHealthChecker;
+import lombok.SneakyThrows;
+import org.thingsboard.common.util.JacksonUtil;
 
-@AllArgsConstructor
-@Getter
-public enum TransportType {
+import java.io.InputStream;
 
-    MQTT(MqttTransportHealthChecker.class),
-    COAP(CoapTransportHealthChecker.class),
-    HTTP(HttpTransportHealthChecker.class),
-    LWM2M(Lwm2mTransportHealthChecker.class);
+public class ResourceUtils {
 
-    private final Class<? extends TransportHealthChecker<?>> serviceClass;
+    @SneakyThrows
+    public static <T> T getResource(String path, Class<T> type) {
+        InputStream resource = ResourceUtils.class.getClassLoader().getResourceAsStream(path);
+        if (resource == null) {
+            throw new IllegalArgumentException("Resource not found for path " + path);
+        }
+        return JacksonUtil.OBJECT_MAPPER.readValue(resource, type);
+    }
+
+    public static InputStream getResourceAsStream(String path) {
+        InputStream resource = ResourceUtils.class.getClassLoader().getResourceAsStream(path);
+        if (resource == null) {
+            throw new IllegalArgumentException("Resource not found for path " + path);
+        }
+        return resource;
+    }
 
 }

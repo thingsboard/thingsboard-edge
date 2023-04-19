@@ -28,25 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config;
+package org.thingsboard.monitoring.config.service;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.thingsboard.monitoring.transport.TransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.CoapTransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.HttpTransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.Lwm2mTransportHealthChecker;
-import org.thingsboard.monitoring.transport.impl.MqttTransportHealthChecker;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import org.thingsboard.monitoring.config.TransportType;
 
-@AllArgsConstructor
-@Getter
-public enum TransportType {
+@Component
+@ConditionalOnProperty(name = "monitoring.transports.lwm2m.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.transports.lwm2m")
+public class Lwm2mTransportMonitoringConfig extends TransportMonitoringConfig {
 
-    MQTT(MqttTransportHealthChecker.class),
-    COAP(CoapTransportHealthChecker.class),
-    HTTP(HttpTransportHealthChecker.class),
-    LWM2M(Lwm2mTransportHealthChecker.class);
-
-    private final Class<? extends TransportHealthChecker<?>> serviceClass;
+    @Override
+    public TransportType getTransportType() {
+        return TransportType.LWM2M;
+    }
 
 }
