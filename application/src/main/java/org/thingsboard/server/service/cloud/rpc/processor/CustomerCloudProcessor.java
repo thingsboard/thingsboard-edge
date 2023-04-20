@@ -67,6 +67,9 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 try {
                     EntityId ownerId = safeGetOwnerId(tenantId, customerUpdateMsg.getOwnerEntityType(),
                             customerUpdateMsg.getOwnerIdMSB(), customerUpdateMsg.getOwnerIdLSB());
+                    if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                        createCustomerIfNotExists(tenantId, new CustomerId(ownerId.getId()));
+                    }
                     Customer customer = customerService.findCustomerById(tenantId, customerId);
                     boolean created = false;
                     if (customer == null) {
@@ -116,6 +119,10 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
         CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        createCustomerIfNotExists(tenantId, customerId);
+    }
+
+    private void createCustomerIfNotExists(TenantId tenantId, CustomerId customerId) {
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer == null && customerId != null && !customerId.isNullUid()) {
             customerCreationLock.lock();
