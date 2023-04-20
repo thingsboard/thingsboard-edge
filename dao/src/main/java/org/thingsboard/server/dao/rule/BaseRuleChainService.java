@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeUpdateResult;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -107,6 +108,9 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     private RuleNodeDao ruleNodeDao;
 
     @Autowired
+    private EntityCountService entityCountService;
+
+    @Autowired
     private DataValidator<RuleChain> ruleChainValidator;
 
     @Override
@@ -114,7 +118,11 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     public RuleChain saveRuleChain(RuleChain ruleChain) {
         ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
         try {
-            return ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
+            RuleChain savedRuleChain = ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
+            if (ruleChain.getId() == null) {
+                entityCountService.publishCountEntityEvictEvent(ruleChain.getTenantId(), EntityType.RULE_CHAIN);
+            }
+            return savedRuleChain;
         } catch (Exception e) {
             checkConstraintViolation(e, "rule_chain_external_id_unq_key", "Rule Chain with such external id already exists!");
             throw e;
@@ -712,6 +720,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     private void checkRuleNodesAndDelete(TenantId tenantId, RuleChainId ruleChainId) {
         try {
+            entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.RULE_CHAIN);
             ruleChainDao.removeById(tenantId, ruleChainId.getId());
         } catch (Exception t) {
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
@@ -751,6 +760,11 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 findRuleNodeById(tenantId, new RuleNodeId(entityId.getId())) :
                 findRuleChainById(tenantId, new RuleChainId(entityId.getId()));
         return Optional.ofNullable(hasId);
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return ruleChainDao.countByTenantId(tenantId);
     }
 
     @Override
