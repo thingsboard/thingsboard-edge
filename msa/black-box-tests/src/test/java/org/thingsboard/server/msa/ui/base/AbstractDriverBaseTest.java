@@ -66,7 +66,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -156,23 +155,15 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public RuleChain getRuleChainByName(String name) {
-        Optional<RuleChain> ruleChain = testRestClient.getRuleChains(pageLink).getData().stream()
+        return testRestClient.getRuleChains(pageLink).getData().stream()
                 .filter(s -> s.getName().equals(name))
-                .findFirst();
-        return ruleChain.orElseGet(() -> {
-            log.error("No rule chains found with name: " + name);
-            return null;
-        });
+                .findFirst().orElse(null);
     }
 
     public List<RuleChain> getRuleChainsByName(String name) {
-        List<RuleChain> ruleChains = testRestClient.getRuleChains(pageLink).getData().stream()
+        return testRestClient.getRuleChains(pageLink).getData().stream()
                 .filter(s -> s.getName().equals(name))
                 .collect(Collectors.toList());
-        if (ruleChains.isEmpty()) {
-            log.error("No rule chains found with name: " + name);
-        }
-        return ruleChains;
     }
 
     public Customer getCustomerByName(String name) {
