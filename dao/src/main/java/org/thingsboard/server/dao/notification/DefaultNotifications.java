@@ -294,7 +294,7 @@ public class DefaultNotifications {
             .rule(DefaultRule.builder()
                     .name("Integration start failure")
                     .triggerConfig(IntegrationLifecycleEventNotificationRuleTriggerConfig.builder()
-                            .notifyOn(Set.of(ComponentLifecycleEvent.STARTED, ComponentLifecycleEvent.UPDATED))
+                            .notifyOn(Set.of(ComponentLifecycleEvent.STARTED))
                             .onlyOnError(true)
                             .build())
                     .description("Send notification to tenant admins when any integration fails to start")
