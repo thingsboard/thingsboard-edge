@@ -66,7 +66,6 @@ import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [

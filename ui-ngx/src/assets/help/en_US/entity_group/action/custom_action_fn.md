@@ -39,11 +39,11 @@ A JavaScript function performing custom action.
 <br>
 
 <div style="padding-left: 32px;"
-     tb-help-popup="entity_group/action/examples_custom_action/custom_action_delete_device_confirm"
+     tb-help-popup="entity_group/action/examples_custom_action/custom_action_delete_entity_confirm"
      tb-help-popup-placement="top"
      [tb-help-popup-style]="{maxHeight: '50vh', maxWidth: '50vw'}"
      trigger-style="font-size: 16px;"
-     trigger-text="Delete device after confirmation">
+     trigger-text="Delete Entity after confirmation">
 </div>
 
 <br>

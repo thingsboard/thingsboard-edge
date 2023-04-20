@@ -70,6 +70,7 @@ import { deepClone } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { coerceBoolean } from '@shared/decorators/coerce-boolean';
 
 @Component({
   selector: 'tb-manage-widget-actions',
@@ -95,7 +96,9 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   @Input() customFunctionArgs: string[];
 
-  @Input() isEntityGroup: boolean = false;
+  @Input()
+  @coerceBoolean()
+  isEntityGroup = false;
 
   innerValue: WidgetActionsData;
 
