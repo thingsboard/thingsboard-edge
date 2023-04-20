@@ -193,6 +193,7 @@
         <module>msa</module>
         <module>rest-client</module>
         <module>monitoring</module>
+        <module>tenant-migrator</module>
     </modules>
 
     <profiles>
@@ -1281,6 +1282,11 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-data-jpa</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jdbc</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
             <dependency>

@@ -1142,6 +1142,14 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     const alarm = this.alarmsDatasource.alarmDataToInfo(alarmData);
     const dataObj: {[key: string]: any} = {};
     columns.forEach(column => {
+      if (column.name === alarmFields.assignee.value) {
+        let displayName = '';
+        if (alarmData.assignee) {
+          displayName = this.getUserDisplayName(alarmData);
+        }
+        dataObj[column.title] = displayName;
+        return
+      }
       dataObj[column.title] = this.cellContent(alarm, column, index, false);
     });
     return dataObj;
