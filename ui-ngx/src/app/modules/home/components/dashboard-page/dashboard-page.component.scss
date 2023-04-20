@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,9 +50,15 @@ div.tb-dashboard-page {
     position: relative;
     padding-left: 20px;
     max-height: 60px;
-    mat-form-field {
-      .mat-form-field-infix {
-        width: 100%;
+    .mat-mdc-form-field.mat-form-field-appearance-fill.tb-appearance-transparent {
+      .mat-mdc-text-field-wrapper {
+        .mat-mdc-form-field-infix {
+          width: 100%;
+          padding-top: 20px;
+          .mat-mdc-floating-label {
+            top: 24px;
+          }
+        }
       }
     }
     input.tb-dashboard-title {

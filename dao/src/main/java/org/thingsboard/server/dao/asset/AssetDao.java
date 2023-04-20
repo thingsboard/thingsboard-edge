@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -68,6 +68,8 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao, ExportableCustome
      * @return the list of asset objects
      */
     PageData<Asset> findAssetsByTenantId(UUID tenantId, PageLink pageLink);
+
+    Long countAssets();
 
     /**
      * Find assets by tenantId, type and page link.

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -121,6 +121,9 @@ public class DefaultReportService implements ReportService {
     @Value("${reports.rate_limits.configuration:5:300}")
     private String rateLimitsConfiguration;
 
+    @Value("${reports.server.maxResponseSize:52428800}")
+    private int maxResponseSize;
+
     @Autowired
     private UserService userService;
 
@@ -148,6 +151,7 @@ public class DefaultReportService implements ReportService {
             this.eventLoopGroup = new NioEventLoopGroup();
             Netty4ClientHttpRequestFactory nettyFactory = new Netty4ClientHttpRequestFactory(this.eventLoopGroup);
             nettyFactory.setSslContext(SslContextBuilder.forClient().build());
+            nettyFactory.setMaxResponseSize(maxResponseSize);
             httpClient = new AsyncRestTemplate(nettyFactory);
         } catch (SSLException e) {
             log.error("Can't initialize report service due to {}", e.getMessage(), e);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,7 @@ public class OpcUaIntegrationTest extends AbstractIntegrationTest {
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"applicationName\":\"\"," +
             "\"applicationUri\":\"\"," +
-            "\"host\":\"qa-integrations.thingsboard.io\"," +
+            "\"host\":\"opcplc\"," +
             "\"port\":50000," +
             "\"scanPeriodInSeconds\":10," +
             "\"timeoutInMillis\":5000," +

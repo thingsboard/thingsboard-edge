@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,11 +80,7 @@ public class Lwm2mController extends BaseController {
     public LwM2MServerSecurityConfigDefault getLwm2mBootstrapSecurityInfo(
         @ApiParam(value = IS_BOOTSTRAP_SERVER_PARAM_DESCRIPTION)
         @PathVariable(IS_BOOTSTRAP_SERVER) boolean bootstrapServer) throws ThingsboardException {
-            try {
-                return lwM2MService.getServerSecurityInfo(bootstrapServer);
-            } catch (Exception e) {
-                throw handleException(e);
-            }
+            return lwM2MService.getServerSecurityInfo(bootstrapServer);
     }
 
     @ApiOperation(hidden = true, value = "Save device with credentials (Deprecated)")

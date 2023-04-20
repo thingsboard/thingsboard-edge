@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -111,35 +111,32 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
 
     @Override
     public ListenableFuture<Void> registerClaimingInfo(TenantId tenantId, DeviceId deviceId, String secretKey, long durationMs) {
-        ListenableFuture<Device> deviceFuture = deviceService.findDeviceByIdAsync(tenantId, deviceId);
-        return Futures.transformAsync(deviceFuture, device -> {
-            Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
-            List<Object> key = constructCacheKey(device.getId());
-
-            if (isAllowedClaimingByDefault) {
-                if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                    persistInCache(secretKey, durationMs, cache, key);
-                    return Futures.immediateFuture(null);
-                }
-                log.warn("The device [{}] has been already claimed!", device.getName());
-                throw new IllegalArgumentException();
-            } else {
-                ListenableFuture<List<AttributeKvEntry>> claimingAllowedFuture = attributesService.find(tenantId, device.getId(),
-                        DataConstants.SERVER_SCOPE, Collections.singletonList(CLAIM_ATTRIBUTE_NAME));
-                return Futures.transform(claimingAllowedFuture, list -> {
-                    if (list != null && !list.isEmpty()) {
-                        Optional<Boolean> claimingAllowedOptional = list.get(0).getBooleanValue();
-                        if (claimingAllowedOptional.isPresent() && claimingAllowedOptional.get()
-                                && device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                            persistInCache(secretKey, durationMs, cache, key);
-                            return null;
-                        }
-                    }
-                    log.warn("Failed to find claimingAllowed attribute for device or it is already claimed![{}]", device.getName());
-                    throw new IllegalArgumentException();
-                }, MoreExecutors.directExecutor());
+        Device device = deviceService.findDeviceById(tenantId, deviceId);
+        Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
+        List<Object> key = constructCacheKey(device.getId());
+        if (isAllowedClaimingByDefault) {
+            if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+                persistInCache(secretKey, durationMs, cache, key);
+                return Futures.immediateFuture(null);
             }
-        }, MoreExecutors.directExecutor());
+            log.warn("The device [{}] has been already claimed!", device.getName());
+            return Futures.immediateFailedFuture(new IllegalArgumentException());
+        } else {
+            ListenableFuture<List<AttributeKvEntry>> claimingAllowedFuture = attributesService.find(tenantId, device.getId(),
+                    DataConstants.SERVER_SCOPE, Collections.singletonList(CLAIM_ATTRIBUTE_NAME));
+            return Futures.transform(claimingAllowedFuture, list -> {
+                if (list != null && !list.isEmpty()) {
+                    Optional<Boolean> claimingAllowedOptional = list.get(0).getBooleanValue();
+                    if (claimingAllowedOptional.isPresent() && claimingAllowedOptional.get()
+                            && device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
+                        persistInCache(secretKey, durationMs, cache, key);
+                        return null;
+                    }
+                }
+                log.warn("Failed to find claimingAllowed attribute for device or it is already claimed![{}]", device.getName());
+                throw new IllegalArgumentException();
+            }, MoreExecutors.directExecutor());
+        }
     }
 
     private ListenableFuture<ClaimDataInfo> getClaimData(Cache cache, Device device) {
@@ -176,7 +173,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                     return Futures.immediateFuture(new ClaimResult(null, ClaimResponse.FAILURE));
                 } else {
                     if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-                        ListenableFuture<Void> future = Futures.transform(entityGroupService.findEntityGroupsForEntity(device.getTenantId(), device.getId()), entityGroupList -> {
+                        ListenableFuture<Void> future = Futures.transform(entityGroupService.findEntityGroupsForEntityAsync(device.getTenantId(), device.getId()), entityGroupList -> {
                             for (EntityGroupId entityGroupId : entityGroupList) {
                                 entityGroupService.removeEntityFromEntityGroup(device.getTenantId(), entityGroupId, device.getId());
                             }
@@ -216,7 +213,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     @Override
     public ListenableFuture<ReclaimResult> reClaimDevice(TenantId tenantId, Device device) {
         if (!device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
-            return Futures.transformAsync(entityGroupService.findEntityGroupsForEntity(tenantId, device.getId()), entityGroupList -> {
+            return Futures.transformAsync(entityGroupService.findEntityGroupsForEntityAsync(tenantId, device.getId()), entityGroupList -> {
                 for (EntityGroupId entityGroupId : entityGroupList) {
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, device.getId());
                 }

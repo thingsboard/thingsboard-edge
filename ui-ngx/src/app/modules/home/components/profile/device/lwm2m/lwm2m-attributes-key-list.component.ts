@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,15 +33,15 @@ import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
   Validators
 } from '@angular/forms';
-import { Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import {
   AttributeName,
   AttributeNameTranslationMap,
@@ -82,19 +82,21 @@ export class Lwm2mAttributesKeyListComponent extends PageComponent implements Co
   @Input()
   isResource = false;
 
-  attributesValueFormGroup: FormGroup;
+  attributesValueFormGroup: UntypedFormGroup;
 
   private propagateChange = null;
-  private valueChange$: Subscription = null;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
   private usedAttributesName: AttributeName[] = [];
 
   constructor(protected store: Store<AppState>,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.attributesValueFormGroup = this.fb.group({
       attributesValue: this.fb.array([])
     });
+    this.attributesValueFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
   }
 
   ngOnInit() {
@@ -107,9 +109,6 @@ export class Lwm2mAttributesKeyListComponent extends PageComponent implements Co
   }
 
   ngOnDestroy() {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-    }
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -131,29 +130,23 @@ export class Lwm2mAttributesKeyListComponent extends PageComponent implements Co
   }
 
   writeValue(keyValMap: AttributesNameValueMap): void {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-    }
     const attributesValueControls: Array<AbstractControl> = [];
     if (keyValMap) {
       (Object.keys(keyValMap) as AttributeName[]).forEach(name => {
         attributesValueControls.push(this.createdFormGroup({name, value: keyValMap[name]}));
       });
     }
-    this.attributesValueFormGroup.setControl('attributesValue', this.fb.array(attributesValueControls));
+    this.attributesValueFormGroup.setControl('attributesValue', this.fb.array(attributesValueControls), {emitEvent: false});
     if (this.disabled) {
       this.attributesValueFormGroup.disable({emitEvent: false});
     } else {
       this.attributesValueFormGroup.enable({emitEvent: false});
     }
-    this.valueChange$ = this.attributesValueFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
     this.updateUsedAttributesName();
   }
 
-  attributesValueFormArray(): FormArray {
-    return this.attributesValueFormGroup.get('attributesValue') as FormArray;
+  attributesValueFormArray(): UntypedFormArray {
+    return this.attributesValueFormGroup.get('attributesValue') as UntypedFormArray;
   }
 
   public removeKeyVal(index: number) {
@@ -168,7 +161,7 @@ export class Lwm2mAttributesKeyListComponent extends PageComponent implements Co
     }
   }
 
-  private createdFormGroup(value?: AttributesNameValue): FormGroup {
+  private createdFormGroup(value?: AttributesNameValue): UntypedFormGroup {
     if (isUndefinedOrNull(value)) {
       value = {
         name: this.getFirstUnusedAttributesName(),

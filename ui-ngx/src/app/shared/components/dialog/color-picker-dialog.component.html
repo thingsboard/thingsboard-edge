@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,27 +30,47 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="colorPickerFormGroup" (ngSubmit)="select()">
-  <div mat-dialog-content fxLayout="row" fxLayoutAlign="center">
-    <span [style.background]="colorPickerFormGroup.get('color').value"
-          [cpToggle]="true"
-          [cpDialogDisplay]="'inline'"
-          [colorPicker]="colorPickerFormGroup.get('color').value"
-          (colorPickerChange)="onColorChange($event)">
-    </span>
-  </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
-    <button mat-button
-            type="button"
-            [disabled]="(isLoading$ | async)"
-            (click)="cancel()">
-      {{ 'action.cancel' | translate }}
-    </button>
-    <button mat-button
-            type="submit"
-            [disabled]="(isLoading$ | async) || colorPickerFormGroup.invalid || !colorPickerFormGroup.dirty">
-      {{ 'action.select' | translate }}
-    </button>
-  </div>
-</form>
+<div mat-dialog-content fxLayout="row" fxLayoutAlign="center" [ngClass]="{'singleTab': !useThemePalette}" style="padding: 16px">
+  <mat-tab-group *ngIf="useThemePalette; else colorPicker" style="width: 100%;" dynamicHeight
+                 [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
+    <mat-tab label="{{ 'color.color-picker' | translate }}">
+      <div style="padding: 8px 0 0; display: flex; height: 100%;">
+        <ng-container *ngTemplateOutlet="colorPicker"></ng-container>
+      </div>
+    </mat-tab>
+    <mat-tab label="{{ 'color.primary-colors' | translate }}">
+      <tb-theme-color-select
+        palette="primary"
+        [ngModel]="primaryColor"
+        (ngModelChange)="onPrimaryColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+    <mat-tab label="{{ 'color.accent-colors' | translate }}">
+      <tb-theme-color-select
+        palette="accent"
+        [ngModel]="accentColor"
+        (ngModelChange)="onAccentColorChange($event)"
+        [ngModelOptions]="{standalone: true}">
+      </tb-theme-color-select>
+    </mat-tab>
+  </mat-tab-group>
+  <ng-template #colorPicker>
+    <tb-color-picker [(ngModel)]="plainColor" (ngModelChange)="onPlainColorChange($event)"></tb-color-picker>
+  </ng-template>
+</div>
+<div mat-dialog-actions fxLayout="row">
+  <span fxFlex></span>
+  <button mat-button
+          type="button"
+          [disabled]="(isLoading$ | async)"
+          (click)="cancel()">
+    {{ 'action.cancel' | translate }}
+  </button>
+  <button mat-button
+          type="button"
+          (click)="select()"
+          [disabled]="(isLoading$ | async) || !valid || !dirty">
+    {{ 'action.select' | translate }}
+  </button>
+</div>

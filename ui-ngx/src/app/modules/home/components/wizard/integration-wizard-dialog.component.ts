@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,7 @@ import { map, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { forkJoin, Observable, of, Subject } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { deepTrim, guid } from '@core/utils';
@@ -86,10 +86,10 @@ export class IntegrationWizardDialogComponent extends
 
   stepperOrientation: Observable<StepperOrientation>;
 
-  integrationWizardForm: FormGroup;
-  uplinkConverterForm: FormGroup;
-  downlinkConverterForm: FormGroup;
-  integrationConfigurationForm: FormGroup;
+  integrationWizardForm: UntypedFormGroup;
+  uplinkConverterForm: UntypedFormGroup;
+  downlinkConverterForm: UntypedFormGroup;
+  integrationConfigurationForm: UntypedFormGroup;
 
   uplinkConverter = {
     type: ConverterType.UPLINK
@@ -100,7 +100,7 @@ export class IntegrationWizardDialogComponent extends
   } as Converter;
 
   private checkConnectionAllow = false;
-  private destroy$ = new Subject();
+  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -110,7 +110,7 @@ export class IntegrationWizardDialogComponent extends
               private converterService: ConverterService,
               private integrationService: IntegrationService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
 
     this.isEdgeTemplate = this.data.edgeTemplate;

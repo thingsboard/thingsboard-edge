@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +48,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -57,12 +57,12 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.exception.ToErrorResponseEntity;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -109,7 +109,7 @@ public class RuleEngineController extends BaseController {
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(
             @ApiParam(value = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest(null, null, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(null, null, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @ApiOperation(value = "Push entity message to the rule engine (handleRuleEngineRequest)",
@@ -128,7 +128,7 @@ public class RuleEngineController extends BaseController {
             @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest(entityType, entityIdStr, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(entityType, entityIdStr, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @ApiOperation(value = "Push entity message with timeout to the rule engine (handleRuleEngineRequest)",
@@ -145,6 +145,30 @@ public class RuleEngineController extends BaseController {
             @PathVariable("entityType") String entityType,
             @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("entityId") String entityIdStr,
+            @ApiParam(value = "Timeout to process the request in milliseconds", required = true)
+            @PathVariable("timeout") int timeout,
+            @ApiParam(value = "A JSON value representing the message.", required = true)
+            @RequestBody String requestBody) throws ThingsboardException {
+        return handleRuleEngineRequest(entityType, entityIdStr, null, timeout, requestBody);
+    }
+
+    @ApiOperation(value = "Push entity message with timeout and specified queue to the rule engine (handleRuleEngineRequest)",
+            notes = MSG_DESCRIPTION_PREFIX +
+                    "Uses specified Entity Id as the Rule Engine message originator. " +
+                    MSG_DESCRIPTION +
+                    "If request sent for Device/Device Profile or Asset/Asset Profile entity, specified queue will be used instead of the queue selected in the device or asset profile. " +
+                    "The platform expects the timeout value in milliseconds."
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/{entityType}/{entityId}/{queueName}/{timeout}", method = RequestMethod.POST)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(
+            @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+            @PathVariable("entityType") String entityType,
+            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable("entityId") String entityIdStr,
+            @ApiParam(value = "Queue name to process the request in the rule engine", required = true)
+            @PathVariable("queueName") String queueName,
             @ApiParam(value = "Timeout to process the request in milliseconds", required = true)
             @PathVariable("timeout") int timeout,
             @ApiParam(value = "A JSON value representing the message.", required = true)
@@ -169,8 +193,8 @@ public class RuleEngineController extends BaseController {
                     metaData.put("serviceId", serviceInfoProvider.getServiceId());
                     metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
-                    TbMsg msg = TbMsg.newMsg(DataConstants.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
-                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg,
+                    TbMsg msg = TbMsg.newMsg(queueName, DataConstants.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
+                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
 

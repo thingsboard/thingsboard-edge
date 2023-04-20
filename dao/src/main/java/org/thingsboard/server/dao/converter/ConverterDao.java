@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -84,6 +85,16 @@ public interface ConverterDao extends Dao<Converter>, TenantEntityDao, Exportabl
      * @return the optional converter object
      */
     Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name);
+
+    /**
+     * Find converter by tenantId and converter name.
+     *
+     * @param tenantId the tenantId
+     * @param name     the converter name
+     * @param type     the converter type
+     * @return the optional converter object
+     */
+    Optional<Converter> findConverterByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type);
 
     /**
      * Find converters by tenantId and converter Ids.

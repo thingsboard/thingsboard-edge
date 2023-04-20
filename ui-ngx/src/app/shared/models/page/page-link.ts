@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { getDescendantProp, isObject } from '@core/utils';
 import { SortDirection } from '@angular/material/sort';
+import { EntitiesTableAction } from '@home/models/entity/entity-table-component.models';
 
 export const MAX_SAFE_PAGE_SIZE = 2147483647;
 
@@ -42,6 +43,7 @@ export interface PageQueryParam extends Partial<SortOrder>{
   textSearch?: string;
   pageSize?: number;
   page?: number;
+  action?: EntitiesTableAction;
 }
 
 export function defaultPageLinkSearchFunction(searchProperty?: string): PageLinkSearchFunction<any> {

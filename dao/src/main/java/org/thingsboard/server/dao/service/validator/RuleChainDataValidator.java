@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -75,16 +75,9 @@ public class RuleChainDataValidator extends DataValidator<RuleChain> {
     @Autowired
     private TenantService tenantService;
 
-    @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
     @Override
     protected void validateCreate(TenantId tenantId, RuleChain data) {
-        DefaultTenantProfileConfiguration profileConfiguration =
-                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-        long maxRuleChains = profileConfiguration.getMaxRuleChains();
-        validateNumberOfEntitiesPerTenant(tenantId, ruleChainDao, maxRuleChains, EntityType.RULE_CHAIN);
+         validateNumberOfEntitiesPerTenant(tenantId, EntityType.RULE_CHAIN);
     }
 
     @Override

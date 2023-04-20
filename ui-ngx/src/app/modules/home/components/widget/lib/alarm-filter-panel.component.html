@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -51,18 +51,18 @@
   </mat-form-field>
   <mat-form-field fxFlex class="mat-block" floatLabel="always">
     <mat-label translate>alarm.alarm-type-list</mat-label>
-    <mat-chip-list #alarmTypeChipList formControlName="alarmTypeList">
-      <mat-chip *ngFor="let type of alarmTypeList()" [selectable]="true"
+    <mat-chip-grid #alarmTypeChipList formControlName="alarmTypeList">
+      <mat-chip-row *ngFor="let type of alarmTypeList()"
                 [removable]="true" (removed)="removeAlarmType(type)">
         {{type}}
         <mat-icon matChipRemove>cancel</mat-icon>
-      </mat-chip>
+      </mat-chip-row>
       <input placeholder="{{ !alarmFilterFormGroup.get('alarmTypeList').value?.length ? ('alarm.any-type' | translate) : '' }}"
              [matChipInputFor]="alarmTypeChipList"
              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
              matChipInputAddOnBlur
              (matChipInputTokenEnd)="addAlarmType($event)">
-    </mat-chip-list>
+    </mat-chip-grid>
   </mat-form-field>
   <div fxLayout="row" class="tb-panel-actions" fxLayoutAlign="end center">
     <button type="button"

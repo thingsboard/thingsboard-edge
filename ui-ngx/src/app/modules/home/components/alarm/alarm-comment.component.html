@@ -1,0 +1,195 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="alarmCommentFormGroup" class="tb-alarm-comments" fxLayout="column">
+  <div class="header"  [ngClass]="{'activity-only': alarmActivityOnly}">
+    <div class="header-container" fxLayout="row" fxLayoutAlign="space-between center"
+         [ngClass]="{'asc': isDirectionAscending(), 'activity-only': alarmActivityOnly}">
+      <span class="header-title" translate>
+        alarm-activity.activity
+      </span>
+      <div style="margin-left: auto">
+        <button mat-icon-button
+                type="button"
+                (click)="exportAlarmActivity()"
+                matTooltip="{{ 'alarm-activity.export' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon class="material-icons" svgIcon="mdi:file-export"></mat-icon>
+        </button>
+        <button mat-icon-button
+                type="button"
+                (click)="changeSortDirection()"
+                [matTooltip]="getSortDirectionTooltipText()"
+                matTooltipPosition="above">
+          <mat-icon class="material-icons" [svgIcon]="getSortDirectionIcon()"></mat-icon>
+        </button>
+        <button mat-icon-button
+                type="button"
+                (click)="loadAlarmComments()"
+                matTooltip="{{ 'alarm-activity.refresh' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon class="material-icons">refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div fxLayout="column">
+    <ng-container *ngIf="!isDirectionAscending()">
+      <ng-container *ngTemplateOutlet="commentInput"></ng-container>
+    </ng-container>
+    <div class="comments-container" fxLayout="column" fxLayoutGap="12px" style="padding: 24px"
+         [ngClass]="{'asc': isDirectionAscending(), 'activity-only': alarmActivityOnly}">
+      <div fxFlex *ngFor="let displayDataElement of displayData; index as i">
+        <div class="system-comment" *ngIf="displayDataElement.isSystemComment; else userComment">
+          <span class="system-text" style="margin-right: 8px">
+            {{ displayDataElement.commentText }}
+          </span>
+          <span class="time" style="padding: 3px"
+                [matTooltip]="displayDataElement.createdTime"
+                matTooltipPosition="right">
+            {{ displayDataElement.createdDateAgo }}
+          </span>
+        </div>
+        <ng-template #userComment>
+          <div class="user-comment" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px"
+               *ngIf="!displayDataElement.edit; else commentEditing"
+               (mouseenter)="onCommentMouseEnter(displayDataElement.commentId, i)"
+               (mouseleave)="onCommentMouseLeave(i)">
+            <div class="user-avatar" fxLayout="row" fxLayoutAlign="center center" fxFlexAlign="start" fxHide.xs
+                 [style.background-color]="displayDataElement.avatarBgColor">
+              {{ getUserInitials(displayDataElement.displayName) }}
+            </div>
+            <div fxFlex fxLayout="column" fxLayoutGap="5px">
+              <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+                <span class="user-name">{{ displayDataElement.displayName }}</span>
+                <span class="time"
+                      [matTooltip]="displayDataElement.createdTime"
+                      matTooltipPosition="right">
+                  {{ displayDataElement.createdDateAgo }}
+                </span>
+                <span class="time" *ngIf="displayDataElement.isEdited"
+                      matTooltip="{{ displayDataElement.editedDateAgo }} {{ displayDataElement.editedTime }}"
+                      matTooltipPosition="right">
+                  Edited
+                </span>
+              </div>
+              <span class="text">{{ displayDataElement.commentText }}</span>
+            </div>
+            <div fxLayout="row" fxLayout.xs="column"  class="action-buttons"
+                 [ngClass]="{ 'show-buttons': displayDataElement.showActions }">
+              <button mat-icon-button
+                      type="button"
+                      (click)="editComment(displayDataElement.commentId)">
+                <mat-icon class="material-icons">edit</mat-icon>
+              </button>
+              <button mat-icon-button
+                      type="button"
+                      (click)="deleteComment(displayDataElement.commentId)">
+                <mat-icon class="material-icons">delete</mat-icon>
+              </button>
+            </div>
+          </div>
+          <ng-template #commentEditing>
+            <div fxLayoutAlign="row center" fxLayoutGap="8px">
+              <div fxLayout="row" fxLayoutAlign="center center"
+                   class="user-avatar"
+                   [style.background-color]="displayDataElement.avatarBgColor">
+                {{ getUserInitials(displayDataElement.displayName) }}
+              </div>
+              <mat-form-field fxFlex class="mat-block tb-appearance-transparent">
+                <textarea matInput
+                          type="text"
+                          placeholder="{{ 'alarm-activity.add' | translate }}"
+                          cdkTextareaAutosize
+                          cdkAutosizeMinRows="1"
+                          cols="1"
+                          formControlName="alarmCommentEdit"
+                          (keyup.enter)="saveEditedComment(displayDataElement.commentId)"
+                          (keydown.enter)="$event.preventDefault()">
+                </textarea>
+                <div matSuffix fxLayout="row">
+                  <button mat-icon-button
+                          (click)="cancelEdit(displayDataElement.commentId)"
+                          type="button">
+                    <mat-icon class="material-icons red-button">close</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          type="button"
+                          (click)="saveEditedComment(displayDataElement.commentId)">
+                    <mat-icon class="material-icons green-button">check</mat-icon>
+                  </button>
+                </div>
+              </mat-form-field>
+            </div>
+          </ng-template>
+        </ng-template>
+      </div>
+    </div>
+    <ng-container *ngIf="isDirectionAscending()">
+      <ng-container *ngTemplateOutlet="commentInput"></ng-container>
+    </ng-container>
+  </div>
+  <ng-template #commentInput>
+    <div style="background-color: white" class="comment-input"
+         [ngClass]="{'newest-first': !isDirectionAscending(), 'oldest-first': isDirectionAscending(), 'activity-only': alarmActivityOnly}">
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" class="inner-wrap">
+        <div fxLayout="row" fxLayoutAlign="center center"
+             class="user-avatar"
+             *ngIf="userDisplayName$ | async; let userDisplayName"
+             [style.background-color]="getCurrentUserBgColor(userDisplayName)">
+          {{ getUserInitials(userDisplayName) }}
+        </div>
+        <mat-form-field fxFlex class="mat-block tb-appearance-transparent">
+          <textarea matInput
+                    type="text"
+                    placeholder="{{ 'alarm-activity.add' | translate }}"
+                    cdkTextareaAutosize
+                    cdkAutosizeMinRows="1"
+                    cols="1"
+                    formControlName="alarmComment"
+                    (keyup.enter)="saveComment()"
+                    (keydown.enter)="$event.preventDefault()">
+          </textarea>
+          <button mat-icon-button
+                  type="button"
+                  matSuffix
+                  *ngIf="getAlarmCommentFormControl().value"
+                  (click)="saveComment()">
+            <mat-icon color="primary">
+              send
+            </mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+    </div>
+  </ng-template>
+</div>

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,56 +29,114 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
-import { ErrorStateMatcher } from '@angular/material/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
+import { UtilsService } from '@core/services/utils.service';
+import { isDefinedAndNotNull } from '@core/utils';
+import { accentPalette, primaryPalette } from '@shared/models/material.models';
 
 export interface ColorPickerDialogData {
   color: string;
+  useThemePalette?: boolean;
 }
+
+type ColorMode = 'color' | 'primary' | 'accent';
 
 @Component({
   selector: 'tb-color-picker-dialog',
   templateUrl: './color-picker-dialog.component.html',
-  providers: [{provide: ErrorStateMatcher, useExisting: ColorPickerDialogComponent}],
-  styleUrls: []
+  styleUrls: ['./color-picker-dialog.component.scss']
 })
 export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialogComponent, string>
-  implements OnInit, ErrorStateMatcher {
+  implements OnInit {
 
-  colorPickerFormGroup: FormGroup;
+  useThemePalette: boolean;
+  colorMode: ColorMode = 'color';
+  plainColor: string;
+  primaryColor: string;
+  accentColor: string;
 
+  dirty = false;
+  valid = true;
   submitted = false;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
+              private utils: UtilsService,
               @Inject(MAT_DIALOG_DATA) public data: ColorPickerDialogData,
-              @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<ColorPickerDialogComponent, string>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
   }
 
   ngOnInit(): void {
-    this.colorPickerFormGroup = this.fb.group({
-      color: [this.data.color, [Validators.required]]
-    });
+    this.useThemePalette = this.data.useThemePalette;
+    if (this.useThemePalette) {
+      if (this.data.color && this.data.color.startsWith('var(')) {
+        this.colorMode = 'primary';
+        if (Object.values(primaryPalette).indexOf(this.data.color) > -1) {
+          this.primaryColor = this.data.color;
+        } else if (Object.values(accentPalette).indexOf(this.data.color) > -1) {
+          this.colorMode = 'accent';
+          this.accentColor = this.data.color;
+        }
+        this.plainColor = this.utils.plainColorFromVariable(this.data.color);
+      } else {
+        this.plainColor = this.data.color;
+      }
+    } else {
+      this.plainColor = this.data.color;
+    }
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
-    const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
-    const customErrorState = !!(control && control.invalid && this.submitted);
-    return originalErrorState || customErrorState;
+  onPrimaryColorChange(color: string) {
+    this.primaryColor = color;
+    this.accentColor = null;
+    this.plainColor = this.utils.plainColorFromVariable(this.primaryColor);
+    this.dirty = true;
+    this.updateValidity();
   }
 
-  onColorChange(color: string) {
-    this.colorPickerFormGroup.get('color').setValue(color);
-    this.colorPickerFormGroup.markAsDirty();
+  onAccentColorChange(color: string) {
+    this.accentColor = color;
+    this.primaryColor = null;
+    this.plainColor = this.utils.plainColorFromVariable(this.accentColor);
+    this.dirty = true;
+    this.updateValidity();
+  }
+
+  onPlainColorChange(color: string) {
+    this.primaryColor = null;
+    this.accentColor = null;
+    this.plainColor = color;
+    this.dirty = true;
+    this.updateValidity();
+  }
+
+  selectedIndexChange(index: number) {
+    switch (index) {
+      case 0:
+        this.colorMode = 'color';
+        break;
+      case 1:
+        this.colorMode = 'primary';
+        break;
+      case 2:
+        this.colorMode = 'accent';
+        break;
+    }
+    this.dirty = true;
+    this.updateValidity();
+  }
+
+  private updateValidity() {
+    const color = this.getColor();
+    this.valid = isDefinedAndNotNull(color);
   }
 
   cancel(): void {
@@ -86,8 +144,19 @@ export class ColorPickerDialogComponent extends DialogComponent<ColorPickerDialo
   }
 
   select(): void {
-    this.submitted = true;
-    const color: string = this.colorPickerFormGroup.get('color').value;
+    // const color: string = this.colorPickerFormGroup.get('color').value;
+    const color = this.getColor();
     this.dialogRef.close(color);
+  }
+
+  private getColor() {
+    switch (this.colorMode) {
+      case 'color':
+        return this.plainColor;
+      case 'primary':
+        return this.primaryColor;
+      case 'accent':
+        return this.accentColor;
+    }
   }
 }

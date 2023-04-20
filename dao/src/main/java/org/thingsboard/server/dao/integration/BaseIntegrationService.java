@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,9 +36,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -62,7 +65,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("IntegrationDaoService")
 @Slf4j
 public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
@@ -197,6 +200,12 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
+    @Override
+    public Long countCoreIntegrations() {
+        log.trace("Executing countCoreIntegrations");
+        return integrationDao.countCoreIntegrations();
+    }
+
     public List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
         log.trace("Executing findAllCoreIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
         return integrationInfoDao.findAllCoreIntegrationInfos(integrationType, remote, enabled);
@@ -271,5 +280,15 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
                     deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findIntegrationById(tenantId, new IntegrationId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.INTEGRATION;
+    }
 
 }

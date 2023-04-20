@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,15 +36,21 @@ import { CustomerComponent } from '@modules/home/pages/customer/customer.compone
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { CUSTOMER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { CustomerGroupConfigFactory } from '@home/pages/customer/customer-group-config.factory';
+import { CustomerRoutingModule } from '@home/pages/customer/customer-routing.module';
+import { CustomerTableHeaderComponent } from '@home/pages/customer/customer-table-header.component';
+import { CustomersHierarchyComponent } from '@home/pages/customer/customers-hierarchy.component';
 
 @NgModule({
   declarations: [
-    CustomerComponent
+    CustomerComponent,
+    CustomerTableHeaderComponent,
+    CustomersHierarchyComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
-    HomeComponentsModule
+    HomeComponentsModule,
+    CustomerRoutingModule
   ],
   providers: [
     {

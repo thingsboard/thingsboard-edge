@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -226,7 +226,7 @@ export abstract class StateControllerComponent implements IStateControllerCompon
 
   public abstract getStateParamsByStateId(stateId: string): StateParams;
 
-  public abstract navigatePrevState(index: number): void;
+  public abstract navigatePrevState(index: number, params?: StateParams): void;
 
   public abstract openState(id: string, params?: StateParams, openRightLayout?: boolean): void;
 

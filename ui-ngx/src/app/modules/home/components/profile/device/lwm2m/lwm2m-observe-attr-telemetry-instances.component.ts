@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormArray,
-  FormBuilder,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -46,7 +46,8 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Instance, ResourceLwM2M, ResourceSettingTelemetry, } from './lwm2m-profile-config.models';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-profile-lwm2m-observe-attr-telemetry-instances',
@@ -68,7 +69,7 @@ import { Subscription } from 'rxjs';
 
 export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  instancesFormGroup: FormGroup;
+  instancesFormGroup: UntypedFormGroup;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -87,20 +88,23 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
   @Input()
   disabled: boolean;
 
-  private valueChange$: Subscription = null;
+  private destroy$ = new Subject<void>();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
               public translate: TranslateService) {
     this.instancesFormGroup = this.fb.group({
       instances: this.fb.array([])
     });
+
+    this.instancesFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.updateModel(value.instances));
   }
 
   ngOnDestroy() {
-    if (this.valueChange$) {
-      this.valueChange$.unsubscribe();
-    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   registerOnChange(fn: any): void {
@@ -129,34 +133,28 @@ export class Lwm2mObserveAttrTelemetryInstancesComponent implements ControlValue
     };
   }
 
-  get instancesFormArray(): FormArray {
-    return this.instancesFormGroup.get('instances') as FormArray;
+  get instancesFormArray(): UntypedFormArray {
+    return this.instancesFormGroup.get('instances') as UntypedFormArray;
   }
 
   private updateInstances(instances: Instance[]): void {
     if (instances.length === this.instancesFormArray.length) {
       this.instancesFormArray.patchValue(instances, {emitEvent: false});
     } else {
-      if (this.valueChange$) {
-        this.valueChange$.unsubscribe();
-      }
       const instancesControl: Array<AbstractControl> = [];
       if (instances) {
         instances.forEach((instance) => {
           instancesControl.push(this.createInstanceFormGroup(instance));
         });
       }
-      this.instancesFormGroup.setControl('instances', this.fb.array(instancesControl));
+      this.instancesFormGroup.setControl('instances', this.fb.array(instancesControl), {emitEvent: false});
       if (this.disabled) {
         this.instancesFormGroup.disable({emitEvent: false});
       }
-      this.valueChange$ = this.instancesFormGroup.valueChanges.subscribe(value => {
-        this.updateModel(value.instances);
-      });
     }
   }
 
-  private createInstanceFormGroup(instance: Instance): FormGroup {
+  private createInstanceFormGroup(instance: Instance): UntypedFormGroup {
     return this.fb.group({
       id: [instance.id],
       attributes: [instance.attributes],

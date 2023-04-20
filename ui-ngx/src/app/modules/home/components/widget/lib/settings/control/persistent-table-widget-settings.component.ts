@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, of, Subject } from 'rxjs';
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
-import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
+import { MatChipInputEvent, MatChipGrid } from '@angular/material/chips';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { map, mergeMap, share, startWith } from 'rxjs/operators';
 import { COMMA, ENTER, SEMICOLON } from '@angular/cdk/keycodes';
@@ -55,7 +55,7 @@ interface DisplayColumn {
 })
 export class PersistentTableWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  @ViewChild('columnsChipList') columnsChipList: MatChipList;
+  @ViewChild('columnsChipList') columnsChipList: MatChipGrid;
   @ViewChild('columnAutocomplete') columnAutocomplete: MatAutocomplete;
   @ViewChild('columnInput') columnInput: ElementRef<HTMLInputElement>;
 
@@ -70,7 +70,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
 
   separatorKeysCodes = [ENTER, COMMA, SEMICOLON];
 
-  persistentTableWidgetSettingsForm: FormGroup;
+  persistentTableWidgetSettingsForm: UntypedFormGroup;
 
   filteredDisplayColumns: Observable<Array<DisplayColumn>>;
 
@@ -81,7 +81,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
   constructor(protected store: Store<AppState>,
               public translate: TranslateService,
               public truncate: TruncatePipe,
-              private fb: FormBuilder) {
+              private fb: UntypedFormBuilder) {
     super(store);
     this.filteredDisplayColumns = this.columnInputChange
       .pipe(
@@ -92,7 +92,7 @@ export class PersistentTableWidgetSettingsComponent extends WidgetSettingsCompon
       );
   }
 
-  protected settingsForm(): FormGroup {
+  protected settingsForm(): UntypedFormGroup {
     return this.persistentTableWidgetSettingsForm;
   }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.mvel2.execution.ExecutionArrayList;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.script.api.RuleNodeScriptFactory;
 import org.thingsboard.script.api.ScriptType;
@@ -65,7 +66,7 @@ public class RuleNodeTbelScriptEngine extends RuleNodeScriptEngine<TbelInvokeSer
         this(tenantId, scriptInvokeService, ScriptType.RULE_NODE_SCRIPT, script, argNames);
     }
 
-   public RuleNodeTbelScriptEngine(TenantId tenantId, TbelInvokeService scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
+    public RuleNodeTbelScriptEngine(TenantId tenantId, TbelInvokeService scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
         super(tenantId, scriptInvokeService, scriptType, script, argNames);
     }
 
@@ -84,19 +85,19 @@ public class RuleNodeTbelScriptEngine extends RuleNodeScriptEngine<TbelInvokeSer
             attributes.forEach((k, v) -> {
                 switch (v.getDataType()) {
                     case STRING:
-                        result.put(k, v.getStrValue().get());
+                        v.getStrValue().ifPresent(val -> result.put(k, val));
                         break;
                     case BOOLEAN:
-                        result.put(k, v.getBooleanValue().get());
+                        v.getBooleanValue().ifPresent(val -> result.put(k, val));
                         break;
                     case DOUBLE:
-                        result.put(k, v.getDoubleValue().get());
+                        v.getDoubleValue().ifPresent(val -> result.put(k, val));
                         break;
                     case LONG:
-                        result.put(k, v.getLongValue().get());
+                        v.getLongValue().ifPresent(val -> result.put(k, val));
                         break;
                     case JSON:
-                        result.put(k, JacksonUtil.toJsonNode(v.getJsonValue().get()));
+                        v.getJsonValue().ifPresent(val -> result.put(k, JacksonUtil.toJsonNode(val)));
                         break;
                 }
             });
@@ -172,7 +173,7 @@ public class RuleNodeTbelScriptEngine extends RuleNodeScriptEngine<TbelInvokeSer
     protected Object[] prepareArgs(TbMsg msg) {
         Object[] args = new Object[3];
         if (msg.getData() != null) {
-            args[0] = JacksonUtil.fromString(msg.getData(), Map.class);
+            args[0] = JacksonUtil.fromString(msg.getData(), Object.class);
         } else {
             args[0] = new HashMap<>();
         }

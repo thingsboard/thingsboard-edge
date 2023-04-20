@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -127,8 +127,12 @@ export interface JwtSettings {
 }
 
 export interface UpdateMessage {
-  message: string;
   updateAvailable: boolean;
+  currentVersion: string;
+  latestVersion: string;
+  upgradeInstructionsUrl: string;
+  currentVersionReleaseNotesUrl: string;
+  latestVersionReleaseNotesUrl: string;
 }
 
 export const phoneNumberPattern = /^\+[1-9]\d{1,14}$/;
@@ -494,3 +498,27 @@ export interface AutoVersionCreateConfig extends VersionCreateConfig {
 }
 
 export type AutoCommitSettings = {[entityType: string]: AutoVersionCreateConfig};
+
+export interface FeaturesInfo {
+  whiteLabelingEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  notificationEnabled: boolean;
+  oauthEnabled: boolean;
+  twoFaEnabled: boolean;
+}
+
+export interface LicenseInfo {
+  maxDevices: number;
+  maxAssets: number;
+  whiteLabelingEnabled: boolean;
+  development: boolean;
+  plan: string;
+}
+
+export interface LicenseUsageInfo extends LicenseInfo {
+  devicesCount: number;
+  assetsCount: number;
+  dashboardsCount: number;
+  integrationsCount: number;
+}

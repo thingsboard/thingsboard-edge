@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -101,6 +101,9 @@ public class ThingsBoardDbInstaller {
         ));
         if (IS_HYBRID_MODE) {
             composeFiles.add(new File("./../../docker/advanced/docker-compose.cassandra.volumes.yml"));
+            composeFiles.add(new File("src/test/resources/docker-compose.hybrid-test-extras.yml"));
+        } else {
+            composeFiles.add(new File("src/test/resources/docker-compose.postgres-test-extras.yml"));
         }
 
         String identifier = Base58.randomString(6).toLowerCase();

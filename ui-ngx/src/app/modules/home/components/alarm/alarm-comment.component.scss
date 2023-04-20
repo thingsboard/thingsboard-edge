@@ -1,0 +1,263 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@use '@angular/material' as mat;
+@import "../theme/app-theme.scss";
+@import '../../../../../scss/constants';
+
+$primary-color: mat.get-color-from-palette($tb-primary);
+$border: 1px solid mat.get-color-from-palette($tb-primary);
+@mixin primary-theme-background {
+  &:before {
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: $primary-color;
+    opacity: 0.04;
+    border-radius: 8px;
+  }
+}
+
+:host {
+  .tb-alarm-comments {
+    max-width: 600px;
+    width: 100%;
+
+    .comment-input {
+      position: sticky;
+      z-index: 2;
+      background-color: transparent;
+      @include primary-theme-background;
+
+      .inner-wrap {
+        border: $border;
+        padding: 0 24px;
+      }
+
+      &.oldest-first {
+        bottom: -24px;
+        box-shadow: 0px -4px 12px rgba(0, 0, 0, 0.04);
+
+        .inner-wrap {
+          border-radius: 0 0 8px 8px;
+        }
+
+        &.activity-only {
+          bottom: -1px;
+
+          .inner-wrap {
+            border: none
+          }
+        }
+      }
+
+      &.newest-first {
+        top: 24px;
+        box-shadow: 0 8px 10px rgba(23, 33, 90, 0.08);
+
+        .inner-wrap {
+          border-top: none;
+        }
+
+        &.activity-only {
+          top: 48px;
+          box-shadow: 0 8px 10px rgba(23, 33, 90, 0.08);
+
+          .inner-wrap {
+            border: none;
+          }
+        }
+      }
+    }
+
+    .header {
+      z-index: 2;
+      position: sticky;
+      top: -24px;
+      background-color: white;
+
+      &.activity-only {
+        top: 0;
+      }
+
+      &-container {
+        padding: 0 24px;
+        border: $border;
+        border-bottom: none;
+        border-radius: 8px 8px 0px 0px;
+        position: relative;
+        background-color: transparent;
+        @include primary-theme-background;
+
+        &.activity-only {
+          border: none;
+        }
+
+        &.asc {
+          border-bottom: $border;
+          box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);
+
+          &.activity-only {
+            border: none;
+          }
+        }
+
+        .header-title {
+          color: rgba(0, 0, 0, 0.76);
+          letter-spacing: 0.25px;
+          font-weight: 500;
+        }
+
+        .mat-icon {
+          color: rgba(0, 0, 0, 0.38);
+        }
+      }
+    }
+
+    .comments-container {
+      border: $border;
+      border-top: none;
+      border-radius: 0px 0px 8px 8px;
+      position: relative;
+      background-color: transparent;
+      @include primary-theme-background;
+
+      & > div {
+        z-index: 1;
+      }
+
+      &.activity-only {
+        border: none;
+      }
+
+      &.asc {
+        border-bottom: none;
+        border-radius: unset;
+      }
+    }
+
+    .user-comment {
+      padding: 4px;
+      position: relative;
+      background-color: transparent;
+
+      &:hover {
+        @include primary-theme-background;
+      }
+    }
+
+    .user-avatar {
+      width: 28px;
+      min-width: 28px;
+      height: 28px;
+      min-height: 28px;
+      border-radius: 50%;
+      font-weight: 700;
+      color: white;
+      font-size: 13px;
+    }
+
+    .user-name {
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.76);
+      font-weight: 500;
+      letter-spacing: 0.25px;
+    }
+
+    .time {
+      font-size: 14px;
+      font-weight: 400;
+      color: rgba(0, 0, 0, 0.38);
+      letter-spacing: 0.2px;
+      border-radius: 16px;
+      padding: 0 3px;
+      z-index: 1;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+    }
+
+    .system-comment {
+      margin-left: 38px;
+      @media #{$mat-xs} {
+        margin-left: 0;
+      }
+    }
+
+    .system-text {
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.25px;
+      color: rgba(0, 0, 0, 0.38);
+    }
+
+    .text {
+      white-space: pre-line;
+      word-break: break-word;
+      font-size: 16px;
+      letter-spacing: 0.15px;
+      color: rgba(0, 0, 0, 0.54);
+    }
+
+    .action-buttons {
+      visibility: hidden;
+      z-index: 1;
+      .mat-icon {
+        color: rgba(0, 0, 0, 0.38);
+      }
+    }
+
+    .show-buttons {
+      visibility: visible;
+    }
+
+    .green-button {
+      color: #00695C;
+    }
+
+    .red-button {
+      color: #D12730;
+    }
+
+    .mat-form-field {
+      font-size: 16px;
+      letter-spacing: 0.15px;
+      color: rgba(0, 0, 0, 0.76);
+    }
+
+    textarea {
+      letter-spacing: 0.15px;
+    }
+  }
+}

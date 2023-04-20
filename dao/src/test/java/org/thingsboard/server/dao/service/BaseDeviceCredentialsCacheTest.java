@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -58,8 +58,8 @@ import static org.mockito.Mockito.when;
 
 public abstract class BaseDeviceCredentialsCacheTest extends AbstractServiceTest {
 
-    private static final String CREDENTIALS_ID_1 = StringUtils.randomAlphanumeric(20);
-    private static final String CREDENTIALS_ID_2 = StringUtils.randomAlphanumeric(20);
+    private final String CREDENTIALS_ID_1 = StringUtils.randomAlphanumeric(20);
+    private final String CREDENTIALS_ID_2 = StringUtils.randomAlphanumeric(20);
 
     @Autowired
     private DeviceCredentialsService deviceCredentialsService;

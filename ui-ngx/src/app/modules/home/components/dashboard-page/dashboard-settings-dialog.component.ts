@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
 import { UtilsService } from '@core/services/utils.service';
@@ -61,8 +61,8 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
   settings: DashboardSettings;
   gridSettings: GridSettings;
 
-  settingsFormGroup: FormGroup;
-  gridSettingsFormGroup: FormGroup;
+  settingsFormGroup: UntypedFormGroup;
+  gridSettingsFormGroup: UntypedFormGroup;
 
   stateControllerIds: string[];
 
@@ -73,7 +73,7 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
               @Inject(MAT_DIALOG_DATA) public data: DashboardSettingsDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<DashboardSettingsDialogComponent, DashboardSettingsDialogData>,
-              private fb: FormBuilder,
+              private fb: UntypedFormBuilder,
               private utils: UtilsService,
               private dashboardUtils: DashboardUtilsService,
               private translate: TranslateService,
@@ -171,6 +171,7 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
         columns: [this.gridSettings.columns || 24, [Validators.required, Validators.min(10), Validators.max(1000)]],
         margin: [isDefined(this.gridSettings.margin) ? this.gridSettings.margin : 10,
           [Validators.required, Validators.min(0), Validators.max(50)]],
+        outerMargin: [isUndefined(this.gridSettings.outerMargin) ? true : this.gridSettings.outerMargin, []],
         autoFillHeight: [isUndefined(this.gridSettings.autoFillHeight) ? false : this.gridSettings.autoFillHeight, []],
         backgroundColor: [this.gridSettings.backgroundColor || 'rgba(0,0,0,0)', []],
         backgroundImageUrl: [this.gridSettings.backgroundImageUrl, []],
@@ -196,7 +197,7 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
   ngOnInit(): void {
   }
 
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
+  isErrorState(control: UntypedFormControl | null, form: FormGroupDirective | NgForm | null): boolean {
     const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
     const customErrorState = !!(control && control.invalid && this.submitted);
     return originalErrorState || customErrorState;

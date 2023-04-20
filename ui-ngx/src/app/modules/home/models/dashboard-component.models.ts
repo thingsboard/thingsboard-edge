@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -301,7 +301,7 @@ export class DashboardWidgets implements Iterable<DashboardWidget> {
     return this.dashboardWidgets.find((dashboardWidget) => dashboardWidget.widgetId === widgetId);
   }
 
-  private updateRowsAndSort() {
+  updateRowsAndSort() {
     let maxRows = this.dashboard.gridsterOpts.maxRows;
     this.activeDashboardWidgets.forEach((dashboardWidget) => {
       const bottom = dashboardWidget.y + dashboardWidget.rows;
@@ -316,6 +316,13 @@ export class DashboardWidgets implements Iterable<DashboardWidget> {
     this.dashboardWidgets.sort((widget1, widget2) => {
       const row1 = widget1.widgetOrder;
       const row2 = widget2.widgetOrder;
+      if (isDefined(row1) && isUndefined(row2)) {
+        return -1;
+      } else if (isUndefined(row1) && isDefined(row2)) {
+        return 1;
+      } else if (isUndefined(row1) && isUndefined(row2)) {
+        return 0;
+      }
       let res = row1 - row2;
       if (res === 0) {
         res = widget1.x - widget2.x;
@@ -654,10 +661,12 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
       order = this.widgetLayout.mobileOrder;
     } else if (isDefined(this.widget.config.mobileOrder) && this.widget.config.mobileOrder >= 0) {
       order = this.widget.config.mobileOrder;
-    } else if (this.widgetLayout) {
-      order = this.widgetLayout.row;
-    } else {
-      order = this.widget.row;
+    } else if (!this.dashboard.isMobileSize) {
+      if (this.widgetLayout) {
+        order = this.widgetLayout.row;
+      } else {
+        order = this.widget.row;
+      }
     }
     return order;
   }
