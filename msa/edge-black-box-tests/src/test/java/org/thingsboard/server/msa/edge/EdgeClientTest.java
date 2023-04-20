@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
     @Test
-    public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() {
+    public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() throws Exception {
         // create customer
         Customer savedCustomer = saveCustomer("Edge Customer", null);
 
@@ -72,8 +72,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         // validate customer groups on edge
         List<EntityGroupId> customerEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomer.getId());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         // validate that tenant groups are still on edge
         validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
@@ -100,7 +106,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testChangeOwner_fromTenantToSubCustomer_andFromSubCustomerToTenant() {
+    public void testChangeOwner_fromTenantToSubCustomer_andFromSubCustomerToTenant() throws Exception {
         // create customer A
         Customer savedCustomerA = saveCustomer("Edge Customer A", null);
         // create sub customer A
@@ -134,8 +140,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         // validate sub customer groups on edge
         List<EntityGroupId> subCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubCustomerA.getId());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         // validate that customer and sub customer entity groups were deleted from edge
         validateEntityGroupsAreRemovedFromEdge(customerAEntityGroupIds);
@@ -158,7 +170,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testChangeOwner_fromCustomerToSubCustomer_andFromSubCustomerToCustomer() {
+    public void testChangeOwner_fromCustomerToSubCustomer_andFromSubCustomerToCustomer() throws Exception {
         // create customer A
         Customer savedCustomerA = saveCustomer("Edge Customer A", null);
         // create sub customer A
@@ -204,6 +216,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         // validate sub customer groups on edge
         List<EntityGroupId> subCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubCustomerA.getId());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to parent customer
         cloudRestClient.changeOwnerToCustomer(savedCustomerA.getId(), edge.getId());
 
@@ -225,8 +240,14 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         // validate that customer was deleted from edge
         Awaitility.await()
@@ -255,7 +276,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testChangeOwner_fromSubCustomerToSubSubCustomer_andFromSubSubCustomerToSubCustomer() {
+    public void testChangeOwner_fromSubCustomerToSubSubCustomer_andFromSubSubCustomerToSubCustomer() throws Exception {
         // create customer A
         Customer savedCustomerA = saveCustomer("Edge Customer A", null);
         // create sub customer A
@@ -314,6 +335,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         // validate sub customer groups on edge
         List<EntityGroupId> subSubCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubSubCustomerA.getId());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to parent customer
         cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
 
@@ -338,8 +362,14 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubSubCustomerA.getId()).isEmpty());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         // validate that customer was deleted from edge
         Awaitility.await()
@@ -380,7 +410,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testChangeOwner_fromSubCustomerAToCustomerB_andFromCustomerBToCustomerA() {
+    public void testChangeOwner_fromSubCustomerAToCustomerB_andFromCustomerBToCustomerA() throws Exception {
         // create customer A
         Customer savedCustomerA = saveCustomer("Edge Customer A", null);
 
@@ -406,6 +436,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         // create device, asset, entity view, dashboard, user entity groups on customer A level and assign to edge
         // validate customer A groups on edge
         List<EntityGroupId> customerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerA.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         // change owner to customer B
         cloudRestClient.changeOwnerToCustomer(savedCustomerB.getId(), edge.getId());
@@ -435,8 +468,14 @@ public class EdgeClientTest extends AbstractContainerTest {
         // validate customer B groups on edge
         List<EntityGroupId> customerBEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerB.getId());
 
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
 
         // validate that tenant groups are still on edge
         validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);

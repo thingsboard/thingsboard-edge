@@ -105,7 +105,7 @@ public class RoleClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testCustomerRole() {
+    public void testCustomerRole() throws Exception {
         // create customer
         Customer savedCustomer = saveCustomer("Edge Customer A", null);
 
@@ -119,6 +119,10 @@ public class RoleClientTest extends AbstractContainerTest {
 
         // change owner to customer
         cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
+
+        // make sure that all group permissions request are processed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(3));
+
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
