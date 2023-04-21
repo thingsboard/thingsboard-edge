@@ -794,11 +794,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public ConverterService getConverterService() {
-        return mainCtx.getConverterService();
-    }
-
-    @Override
     public ReportService getReportService() {
         return mainCtx.getReportService();
     }

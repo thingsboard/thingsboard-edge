@@ -63,8 +63,6 @@ public interface TbPeContext {
 
     EntityGroupService getEntityGroupService();
 
-    ConverterService getConverterService();
-
     ReportService getReportService();
 
     BlobEntityService getBlobEntityService();
