@@ -149,6 +149,7 @@ export const HelpLinks = {
     ruleNodeSendEmail: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
     ruleNodeSendSms: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
     ruleNodeMath: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#math-function-node',
+    ruleNodeCalculateDelta: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/enrichment-nodes/#calculate-delta',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#remove-from-group-node',
