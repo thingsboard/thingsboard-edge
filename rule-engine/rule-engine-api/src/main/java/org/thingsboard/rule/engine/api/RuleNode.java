@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.api;
 
 import org.thingsboard.server.common.data.plugin.ComponentScope;
+import org.thingsboard.server.common.data.plugin.ComponentSingletonSupport;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 
@@ -52,6 +53,8 @@ public @interface RuleNode {
     String nodeDetails();
 
     Class<? extends NodeConfiguration> configClazz();
+
+    ComponentSingletonSupport singleton() default ComponentSingletonSupport.NOT_SUPPORTED;
 
     boolean inEnabled() default true;
 
