@@ -629,6 +629,7 @@
     },
     "asset": {
         "all": "All",
+        "all-assets": "All assets",
         "groups": "Groups",
         "shared": "Shared",
         "asset": "Asset",
@@ -969,6 +970,7 @@
     },
     "customer": {
         "all": "All",
+        "all-customers": "All customers",
         "groups": "Groups",
         "shared": "Shared",
         "hierarchy": "Hierarchy",
@@ -1078,6 +1080,7 @@
     },
     "dashboard": {
         "all": "All",
+        "all-dashboards": "All dashboards",
         "groups": "Groups",
         "shared": "Shared",
         "dashboard": "Dashboard",
@@ -1343,6 +1346,7 @@
     },
     "device": {
         "all": "All",
+        "all-devices": "All devices",
         "groups": "Groups",
         "shared": "Shared",
         "device": "Device",
@@ -1973,6 +1977,7 @@
     },
     "edge": {
         "all": "All",
+        "all-edges": "All edges",
         "groups": "Groups",
         "shared": "Shared",
         "edge": "Edge",
@@ -2522,6 +2527,7 @@
     },
     "entity-view": {
         "all": "All",
+        "all-entity-views": "All entity views",
         "groups": "Groups",
         "shared": "Shared",
         "entity-view": "Entity View",
@@ -5068,6 +5074,7 @@
     },
     "user": {
         "all": "All",
+        "all-users": "All users",
         "groups": "Groups",
         "user": "User",
         "users": "Users",
@@ -6803,9 +6810,9 @@
                     "how-to-create-alarm": "How to create Alarm"
                 },
                 "step6": {
-                    "title": "Create customer and assign dashboard",
+                    "title": "Create customer and share dashboard",
                     "content": "<p>By creating end-user dashboards, a customer user can only see his own devices, and data from another customer will be hidden.</p><p>Follow the documentation on how to do it:</p>",
-                    "how-to-create-customer-and-assign-dashboard": "How to create Customer and assign Dashboard"
+                    "how-to-create-customer-and-share-dashboard": "How to create Customer and share Dashboard"
                 }
             }
         }

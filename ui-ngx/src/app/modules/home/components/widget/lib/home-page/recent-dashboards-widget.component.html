@@ -32,7 +32,7 @@
 -->
 <div class="tb-card-content" fxLayout="column" fxLayoutGap="8px">
   <div class="tb-card-header">
-    <a class="tb-title-link" routerLink="/dashboards">{{ 'widgets.recent-dashboards.title' | translate }}</a>
+    <a class="tb-title-link" routerLink="/dashboards/all">{{ 'widgets.recent-dashboards.title' | translate }}</a>
     <div fxLayout="row" fxLayoutAlign="start center" fxLayoutAlign.lt-md="space-between center" fxLayoutGap="8px">
       <tb-toggle-header #dashboardsToggle [value]="toggleValue" name="usageToggle" (valueChange)="toggleValueChange($event)" [options]="[
         {
@@ -46,7 +46,7 @@
       ]">
       </tb-toggle-header>
       <a *ngIf="authUser.authority === authority.TENANT_ADMIN" fxHide.md
-         mat-flat-button color="primary" routerLink="/dashboards" [queryParams]="{action: 'add'}">{{ 'dashboard.add' | translate }}</a>
+         mat-flat-button color="primary" routerLink="/dashboards/all" [queryParams]="{action: 'add'}">{{ 'dashboard.add' | translate }}</a>
     </div>
   </div>
   <ng-container *ngIf="userDashboardsInfo; else loading" [ngSwitch]="dashboardsToggle.value">

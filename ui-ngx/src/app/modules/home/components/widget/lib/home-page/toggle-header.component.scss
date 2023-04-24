@@ -45,6 +45,7 @@
       flex: 1;
       color: rgba(0, 0, 0, 0.38);
       background: transparent;
+      position: relative;
 
       .mat-button-toggle-focus-overlay, .mat-button-toggle-ripple {
         border-radius: 20px;
@@ -60,11 +61,23 @@
       }
       &.mat-button-toggle-checked {
         .mat-button-toggle-button {
-          background: #F3F6FA;
-          color: #305680;
-          border: 1px solid #305680;
+          position: relative;
+          background: #fff;
+          color: var(--tb-primary-500);
+          border: 1px solid var(--tb-primary-500);
           border-radius: 20px;
-
+          &:before {
+            content: "";
+            display: block;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 20px;
+            background: var(--tb-primary-500);
+            opacity: 0.04;
+          }
           .mat-button-toggle-label-content {
             font-weight: 500;
             line-height: 24px;

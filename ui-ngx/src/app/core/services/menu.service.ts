@@ -540,6 +540,7 @@ export class MenuService {
         {
           id: 'dashboard_all',
           name: 'dashboard.all',
+          fullName: 'dashboard.all-dashboards',
           type: 'link',
           path: '/dashboards/all',
           icon: 'dashboards'
@@ -551,6 +552,7 @@ export class MenuService {
         {
           id: 'dashboard_groups',
           name: 'dashboard.groups',
+          fullName: 'entity-group.dashboard-groups',
           type: 'link',
           path: '/dashboards/groups',
           icon: 'dashboard'
@@ -562,6 +564,7 @@ export class MenuService {
         {
           id: 'dashboard_shared',
           name: 'dashboard.shared',
+          fullName: 'entity-group.shared-dashboard-groups',
           type: 'link',
           path: '/dashboards/shared',
           icon: 'dashboard',
@@ -600,6 +603,7 @@ export class MenuService {
         {
           id: 'device_all',
           name: 'device.all',
+          fullName: 'device.all-devices',
           type: 'link',
           path: '/entities/devices/all',
           icon: 'devices_other'
@@ -611,6 +615,7 @@ export class MenuService {
         {
           id: 'device_groups',
           name: 'device.groups',
+          fullName: 'entity-group.device-groups',
           type: 'link',
           path: '/entities/devices/groups',
           icon: 'devices_other'
@@ -622,6 +627,7 @@ export class MenuService {
         {
           id: 'device_shared',
           name: 'device.shared',
+          fullName: 'entity-group.shared-device-groups',
           type: 'link',
           path: '/entities/devices/shared',
           icon: 'devices_other',
@@ -647,6 +653,7 @@ export class MenuService {
         {
           id: 'asset_all',
           name: 'asset.all',
+          fullName: 'asset.all-assets',
           type: 'link',
           path: '/entities/assets/all',
           icon: 'domain'
@@ -658,6 +665,7 @@ export class MenuService {
         {
           id: 'asset_groups',
           name: 'asset.groups',
+          fullName: 'entity-group.asset-groups',
           type: 'link',
           path: '/entities/assets/groups',
           icon: 'domain'
@@ -669,6 +677,7 @@ export class MenuService {
         {
           id: 'asset_shared',
           name: 'asset.shared',
+          fullName: 'entity-group.shared-asset-groups',
           type: 'link',
           path: '/entities/assets/shared',
           icon: 'domain',
@@ -694,6 +703,7 @@ export class MenuService {
         {
           id: 'entity_view_all',
           name: 'entity-view.all',
+          fullName: 'entity-view.all-entity-views',
           type: 'link',
           path: '/entities/entityViews/all',
           icon: 'view_quilt'
@@ -705,6 +715,7 @@ export class MenuService {
         {
           id: 'entity_view_groups',
           name: 'entity-view.groups',
+          fullName: 'entity-group.entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/groups',
           icon: 'view_quilt'
@@ -716,6 +727,7 @@ export class MenuService {
         {
           id: 'entity_view_shared',
           name: 'entity-view.shared',
+          fullName: 'entity-group.shared-entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/shared',
           icon: 'view_quilt',
@@ -791,6 +803,7 @@ export class MenuService {
         {
           id: 'customer_all',
           name: 'customer.all',
+          fullName: 'customer.all-customers',
           type: 'link',
           path: '/customers/all',
           icon: 'supervisor_account'
@@ -802,6 +815,7 @@ export class MenuService {
         {
           id: 'customer_groups',
           name: 'customer.groups',
+          fullName: 'entity-group.customer-groups',
           type: 'link',
           path: '/customers/groups',
           icon: 'supervisor_account'
@@ -813,6 +827,7 @@ export class MenuService {
         {
           id: 'customer_shared',
           name: 'customer.shared',
+          fullName: 'entity-group.shared-customer-groups',
           type: 'link',
           path: '/customers/shared',
           icon: 'supervisor_account',
@@ -825,6 +840,7 @@ export class MenuService {
         {
           id: 'customers_hierarchy',
           name: 'customer.hierarchy',
+          fullName: 'customers-hierarchy.customers-hierarchy',
           type: 'link',
           path: '/customers/hierarchy',
           icon: 'sort',
@@ -850,6 +866,7 @@ export class MenuService {
         {
           id: 'user_all',
           name: 'user.all',
+          fullName: 'user.all-users',
           type: 'link',
           path: '/users/all',
           icon: 'account_circle'
@@ -861,6 +878,7 @@ export class MenuService {
         {
           id: 'user_groups',
           name: 'user.groups',
+          fullName: 'entity-group.user-groups',
           type: 'link',
           path: '/users/groups',
           icon: 'account_circle'
@@ -933,6 +951,7 @@ export class MenuService {
           {
             id: 'edge_all',
             name: 'edge.all',
+            fullName: 'edge.all-edges',
             type: 'link',
             path: '/edgeManagement/instances/all',
             icon: 'router'
@@ -944,6 +963,7 @@ export class MenuService {
           {
             id: 'edge_groups',
             name: 'edge.groups',
+            fullName: 'entity-group.edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/groups',
             icon: 'router'
@@ -955,6 +975,7 @@ export class MenuService {
           {
             id: 'edge_shared',
             name: 'edge.shared',
+            fullName: 'entity-group.shared-edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/shared',
             icon: 'router',
@@ -967,6 +988,7 @@ export class MenuService {
           {
             id: 'edges',
             name: 'edge.instances',
+            fullName: 'edge.edge-instances',
             type: 'link',
             path: '/edgeManagement/instances',
             icon: 'router',
@@ -1815,6 +1837,7 @@ export class MenuService {
         {
           id: 'dashboard_all',
           name: 'dashboard.all',
+          fullName: 'dashboard.all-dashboards',
           type: 'link',
           path: '/dashboards/all',
           icon: 'dashboards'
@@ -1826,6 +1849,7 @@ export class MenuService {
         {
           id: 'dashboard_groups',
           name: 'dashboard.groups',
+          fullName: 'entity-group.dashboard-groups',
           type: 'link',
           path: '/dashboards/groups',
           icon: 'dashboard'
@@ -1837,6 +1861,7 @@ export class MenuService {
         {
           id: 'dashboard_shared',
           name: 'dashboard.shared',
+          fullName: 'entity-group.shared-dashboard-groups',
           type: 'link',
           path: '/dashboards/shared',
           icon: 'dashboard',
@@ -1863,6 +1888,7 @@ export class MenuService {
         {
           id: 'device_all',
           name: 'device.all',
+          fullName: 'device.all-devices',
           type: 'link',
           path: '/entities/devices/all',
           icon: 'devices_other'
@@ -1874,6 +1900,7 @@ export class MenuService {
         {
           id: 'device_groups',
           name: 'device.groups',
+          fullName: 'entity-group.device-groups',
           type: 'link',
           path: '/entities/devices/groups',
           icon: 'devices_other'
@@ -1885,6 +1912,7 @@ export class MenuService {
         {
           id: 'device_shared',
           name: 'device.shared',
+          fullName: 'entity-group.shared-device-groups',
           type: 'link',
           path: '/entities/devices/shared',
           icon: 'devices_other',
@@ -1910,6 +1938,7 @@ export class MenuService {
         {
           id: 'asset_all',
           name: 'asset.all',
+          fullName: 'asset.all-assets',
           type: 'link',
           path: '/entities/assets/all',
           icon: 'domain'
@@ -1921,6 +1950,7 @@ export class MenuService {
         {
           id: 'asset_groups',
           name: 'asset.groups',
+          fullName: 'entity-group.asset-groups',
           type: 'link',
           path: '/entities/assets/groups',
           icon: 'domain'
@@ -1932,6 +1962,7 @@ export class MenuService {
         {
           id: 'asset_shared',
           name: 'asset.shared',
+          fullName: 'entity-group.shared-asset-groups',
           type: 'link',
           path: '/entities/assets/shared',
           icon: 'domain',
@@ -1957,6 +1988,7 @@ export class MenuService {
         {
           id: 'entity_view_all',
           name: 'entity-view.all',
+          fullName: 'entity-view.all-entity-views',
           type: 'link',
           path: '/entities/entityViews/all',
           icon: 'view_quilt'
@@ -1968,6 +2000,7 @@ export class MenuService {
         {
           id: 'entity_view_groups',
           name: 'entity-view.groups',
+          fullName: 'entity-group.entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/groups',
           icon: 'view_quilt'
@@ -1979,6 +2012,7 @@ export class MenuService {
         {
           id: 'entity_view_shared',
           name: 'entity-view.shared',
+          fullName: 'entity-group.shared-entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/shared',
           icon: 'view_quilt',
@@ -2016,6 +2050,7 @@ export class MenuService {
         {
           id: 'customer_all',
           name: 'customer.all',
+          fullName: 'customer.all-customers',
           type: 'link',
           path: '/customers/all',
           icon: 'supervisor_account'
@@ -2027,6 +2062,7 @@ export class MenuService {
         {
           id: 'customer_groups',
           name: 'customer.groups',
+          fullName: 'entity-group.customer-groups',
           type: 'link',
           path: '/customers/groups',
           icon: 'supervisor_account'
@@ -2038,6 +2074,7 @@ export class MenuService {
         {
           id: 'customer_shared',
           name: 'customer.shared',
+          fullName: 'entity-group.shared-customer-groups',
           type: 'link',
           path: '/customers/shared',
           icon: 'supervisor_account',
@@ -2050,6 +2087,7 @@ export class MenuService {
         {
           id: 'customers_hierarchy',
           name: 'customer.hierarchy',
+          fullName: 'customers-hierarchy.customers-hierarchy',
           type: 'link',
           path: '/customers/hierarchy',
           icon: 'sort',
@@ -2075,6 +2113,7 @@ export class MenuService {
         {
           id: 'user_all',
           name: 'user.all',
+          fullName: 'user.all-users',
           type: 'link',
           path: '/users/all',
           icon: 'account_circle'
@@ -2086,6 +2125,7 @@ export class MenuService {
         {
           id: 'user_groups',
           name: 'user.groups',
+          fullName: 'entity-group.user-groups',
           type: 'link',
           path: '/users/groups',
           icon: 'account_circle'
@@ -2111,6 +2151,7 @@ export class MenuService {
           {
             id: 'edge_all',
             name: 'edge.all',
+            fullName: 'edge.all-edges',
             type: 'link',
             path: '/edgeManagement/instances/all',
             icon: 'router'
@@ -2122,6 +2163,7 @@ export class MenuService {
           {
             id: 'edge_groups',
             name: 'edge.groups',
+            fullName: 'entity-group.edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/groups',
             icon: 'router'
@@ -2133,6 +2175,7 @@ export class MenuService {
           {
             id: 'edge_shared',
             name: 'edge.shared',
+            fullName: 'entity-group.shared-edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/shared',
             icon: 'router',
@@ -2145,6 +2188,7 @@ export class MenuService {
           {
             id: 'edges',
             name: 'edge.edge-instances',
+            fullName: 'edge.edge-instances',
             type: 'link',
             path: '/edgeManagement/instances',
             icon: 'router',

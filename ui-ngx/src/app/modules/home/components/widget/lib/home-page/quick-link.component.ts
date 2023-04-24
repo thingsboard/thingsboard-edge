@@ -217,7 +217,9 @@ export class QuickLinkComponent extends PageComponent implements OnInit, Control
   }
 
   displayLinkFn = (link?: MenuSection): string | undefined =>
-    link ? ((link as any).translated ? link.name : this.translate.instant(link.name)) : undefined;
+    link ? ((link as any).translated ? link.name
+      : ((link.ignoreTranslate || link.isCustom) ? (link.fullName || link.name) : this.translate.instant(link.fullName || link.name)))
+      : undefined;
 
   fetchLinks(searchText?: string): Observable<Array<MenuSection>> {
     this.searchText = searchText;
@@ -243,7 +245,9 @@ export class QuickLinkComponent extends PageComponent implements OnInit, Control
         map((links) => {
           const result = deepClone(links);
           for (const link of result) {
-            link.name = this.translate.instant(link.name);
+            if (!link.ignoreTranslate && !link.isCustom) {
+              link.name = this.translate.instant(link.fullName || link.name);
+            }
             (link as any).translated = true;
           }
           return result;

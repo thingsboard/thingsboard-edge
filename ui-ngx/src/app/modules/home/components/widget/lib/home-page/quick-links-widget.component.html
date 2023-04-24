@@ -44,13 +44,14 @@
   <mat-grid-list class="tb-links-list" fxFlex [cols]="columns" [rowHeight]="rowHeight" [gutterSize]="gutterSize">
     <mat-grid-tile class="tb-links-tile" *ngFor="let quickLink of menuLinks$() | async">
       <a fxFlex class="tb-link-button"
-         [routerLink]="quickLink.path">
+         [routerLink]="quickLink.path"
+         [queryParams]="quickLink.queryParams">
         <div class="tb-link-container">
           <div class="tb-link-icon-container">
             <mat-icon *ngIf="!quickLink.isMdiIcon" color="primary">{{ quickLink.icon }}</mat-icon>
             <mat-icon *ngIf="quickLink.isMdiIcon" color="primary" [svgIcon]="quickLink.icon"></mat-icon>
           </div>
-          <div class="tb-link-text">{{ quickLink.name | translate }}</div>
+          <div class="tb-link-text">{{ (quickLink.ignoreTranslate || quickLink.isCustom) ? (quickLink.fullName || quickLink.name) : ((quickLink.fullName || quickLink.name) | translate) }}</div>
         </div>
       </a>
     </mat-grid-tile>
