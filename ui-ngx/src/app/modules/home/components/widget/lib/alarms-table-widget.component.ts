@@ -150,7 +150,6 @@ import {
   AlarmCommentDialogComponent,
   AlarmCommentDialogData
 } from '@home/components/alarm/alarm-comment-dialog.component';
-import { EntityService } from '@core/http/entity.service';
 import {
   ALARM_FILTER_CONFIG_DATA,
   AlarmFilterConfigComponent,
@@ -279,7 +278,6 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
               private datePipe: DatePipe,
               private dialog: MatDialog,
               private dialogService: DialogService,
-              private entityService: EntityService,
               private alarmService: AlarmService,
               private cd: ChangeDetectorRef) {
     super(store);
