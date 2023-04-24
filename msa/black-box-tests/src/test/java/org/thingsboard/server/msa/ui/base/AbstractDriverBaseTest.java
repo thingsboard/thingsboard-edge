@@ -65,6 +65,7 @@ import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -154,13 +155,15 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public RuleChain getRuleChainByName(String name) {
-        try {
-            return testRestClient.getRuleChains(pageLink).getData().stream()
-                    .filter(s -> s.getName().equals(name)).collect(Collectors.toList()).get(0);
-        } catch (Exception e) {
-            log.error("No such rule chain with name: " + name);
-            return null;
-        }
+        return testRestClient.getRuleChains(pageLink).getData().stream()
+                .filter(s -> s.getName().equals(name))
+                .findFirst().orElse(null);
+    }
+
+    public List<RuleChain> getRuleChainsByName(String name) {
+        return testRestClient.getRuleChains(pageLink).getData().stream()
+                .filter(s -> s.getName().equals(name))
+                .collect(Collectors.toList());
     }
 
     public Customer getCustomerByName(String name) {
@@ -238,11 +241,29 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         }
     }
 
+    public JavascriptExecutor getJs() {
+        return js = (JavascriptExecutor) driver;
+    }
+
     public void assertIsDisplayed(WebElement element) {
         assertThat(element.isDisplayed()).as(element + " is displayed").isTrue();
     }
 
-    public JavascriptExecutor getJs() {
-        return js = (JavascriptExecutor) driver;
+    public void assertIsDisable(WebElement element) {
+        assertThat(element.isEnabled()).as(element + " is disabled").isFalse();
+    }
+
+    public void deleteRuleChainByName(String ruleChainName) {
+        List<RuleChain> ruleChains = getRuleChainsByName(ruleChainName);
+        if (!ruleChains.isEmpty()) {
+            ruleChains.forEach(rc -> testRestClient.deleteRuleChain(rc.getId()));
+        }
+    }
+
+    public void setRootRuleChain(String ruleChainName) {
+        List<RuleChain> ruleChains = getRuleChainsByName(ruleChainName);
+        if (!ruleChains.isEmpty()) {
+            testRestClient.setRootRuleChain(ruleChains.stream().findFirst().get().getId());
+        }
     }
 }
