@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.exception.TenantNotFoundException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -404,7 +405,7 @@ public class HashPartitionService implements PartitionService {
             }
         }
         if (routingInfo == null) {
-            throw new RuntimeException("Tenant not found!");
+            throw new TenantNotFoundException(tenantId);
         }
         switch (serviceType) {
             case TB_RULE_ENGINE:

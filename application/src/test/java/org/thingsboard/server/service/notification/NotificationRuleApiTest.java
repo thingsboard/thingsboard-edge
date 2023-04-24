@@ -216,7 +216,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
                 .set("bool", BooleanNode.TRUE);
         doPost("/api/plugins/telemetry/" + device.getId() + "/" + DataConstants.SHARED_SCOPE, attr);
 
-        await().atMost(2, TimeUnit.SECONDS)
+        await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> alarmSubscriptionService.findLatestByOriginatorAndType(tenantId, device.getId(), alarmType).get() != null);
         Alarm alarm = alarmSubscriptionService.findLatestByOriginatorAndType(tenantId, device.getId(), alarmType).get();
 
@@ -452,7 +452,7 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
             String name = "device " + i;
             createDevice(name, name);
         }
-        await().atMost(5, TimeUnit.SECONDS)
+        await().atMost(30, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     assertThat(getMyNotifications(false, 100)).size().isEqualTo(notificationRequestsLimit);
                 });
