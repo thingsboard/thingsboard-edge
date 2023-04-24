@@ -202,6 +202,7 @@ export class MenuService {
     const notificationPages: Array<MenuSection> = [{
         id: 'notification_inbox',
         name: 'notification.inbox',
+        fullName: 'notification.notification-inbox',
         type: 'link',
         path: '/notification/inbox',
         icon: 'inbox'
@@ -209,6 +210,7 @@ export class MenuService {
       {
         id: 'notification_sent',
         name: 'notification.sent',
+        fullName: 'notification.notification-sent',
         type: 'link',
         path: '/notification/sent',
         icon: 'outbox'
@@ -216,6 +218,7 @@ export class MenuService {
       {
         id: 'notification_recipients',
         name: 'notification.recipients',
+        fullName: 'notification.notification-recipients',
         type: 'link',
         path: '/notification/recipients',
         icon: 'contacts'
@@ -223,6 +226,7 @@ export class MenuService {
       {
         id: 'notification_templates',
         name: 'notification.templates',
+        fullName: 'notification.notification-templates',
         type: 'link',
         path: '/notification/templates',
         icon: 'mdi:message-draw',
@@ -231,6 +235,7 @@ export class MenuService {
       {
         id: 'notification_rules',
         name: 'notification.rules',
+        fullName: 'notification.notification-rules',
         type: 'link',
         path: '/notification/rules',
         icon: 'mdi:message-cog',
@@ -253,6 +258,7 @@ export class MenuService {
       {
         id: 'white_labeling_general',
         name: 'white-labeling.general',
+        fullName: 'white-labeling.white-labeling-general',
         type: 'link',
         path: '/white-labeling/whiteLabel',
         icon: 'format_paint'
@@ -260,6 +266,7 @@ export class MenuService {
       {
         id: 'login_white_labeling',
         name: 'white-labeling.login',
+        fullName: 'white-labeling.login-white-labeling',
         type: 'link',
         path: '/white-labeling/loginWhiteLabel',
         icon: 'format_paint'
@@ -301,6 +308,7 @@ export class MenuService {
       {
         id: 'general',
         name: 'admin.general',
+        fullName: 'admin.general-settings',
         type: 'link',
         path: '/settings/general',
         icon: 'settings_applications'
@@ -315,6 +323,7 @@ export class MenuService {
       {
         id: 'notification_settings',
         name: 'admin.notifications',
+        fullName: 'admin.notifications-settings',
         type: 'link',
         path: '/settings/notifications',
         icon: 'sms'
@@ -340,8 +349,9 @@ export class MenuService {
 
     const securitySettingPages: Array<MenuSection> = [
       {
-        id: 'security_settings',
+        id: 'security_settings_general',
         name: 'admin.general',
+        fullName: 'security.general-settings',
         type: 'link',
         path: '/security-settings/general',
         icon: 'settings_applications'
@@ -1001,6 +1011,7 @@ export class MenuService {
           {
             id: 'rulechain_templates',
             name: 'edge.rulechain-templates',
+            fullName: 'edge.edge-rulechain-templates',
             type: 'link',
             path: '/edgeManagement/ruleChains',
             icon: 'settings_ethernet'
@@ -1012,6 +1023,7 @@ export class MenuService {
           {
             id: 'integration_templates',
             name: 'edge.integration-templates',
+            fullName: 'edge.edge-integration-templates',
             type: 'link',
             path: '/edgeManagement/integrations',
             icon: 'input'
@@ -1023,6 +1035,7 @@ export class MenuService {
           {
             id: 'converter_templates',
             name: 'edge.converter-templates',
+            fullName: 'edge.edge-converter-templates',
             type: 'link',
             path: '/edgeManagement/converters',
             icon: 'transform'
@@ -1127,6 +1140,7 @@ export class MenuService {
       {
         id: 'notification_inbox',
         name: 'notification.inbox',
+        fullName: 'notification.notification-inbox',
         type: 'link',
         path: '/notification/inbox',
         icon: 'inbox'
@@ -1137,6 +1151,7 @@ export class MenuService {
         {
           id: 'notification_sent',
           name: 'notification.sent',
+          fullName: 'notification.notification-sent',
           type: 'link',
           path: '/notification/sent',
           icon: 'outbox'
@@ -1148,6 +1163,7 @@ export class MenuService {
         {
           id: 'notification_recipients',
           name: 'notification.recipients',
+          fullName: 'notification.notification-recipients',
           type: 'link',
           path: '/notification/recipients',
           icon: 'contacts'
@@ -1159,6 +1175,7 @@ export class MenuService {
         {
           id: 'notification_templates',
           name: 'notification.templates',
+          fullName: 'notification.notification-templates',
           type: 'link',
           path: '/notification/templates',
           icon: 'mdi:message-draw',
@@ -1171,6 +1188,7 @@ export class MenuService {
         {
           id: 'notification_rules',
           name: 'notification.rules',
+          fullName: 'notification.notification-rules',
           type: 'link',
           path: '/notification/rules',
           icon: 'mdi:message-cog',
@@ -1208,6 +1226,7 @@ export class MenuService {
         {
           id: 'white_labeling_general',
           name: 'white-labeling.general',
+          fullName: 'white-labeling.white-labeling-general',
           type: 'link',
           path: '/white-labeling/whiteLabel',
           icon: 'format_paint'
@@ -1215,6 +1234,7 @@ export class MenuService {
         {
           id: 'login_white_labeling',
           name: 'white-labeling.login',
+          fullName: 'white-labeling.login-white-labeling',
           type: 'link',
           path: '/white-labeling/loginWhiteLabel',
           icon: 'format_paint'
@@ -1258,6 +1278,7 @@ export class MenuService {
         {
           id: 'home_settings',
           name: 'admin.home-settings',
+          fullName: 'admin.home-settings',
           type: 'link',
           path: '/settings/home',
           icon: 'settings_applications'
@@ -1272,6 +1293,7 @@ export class MenuService {
         {
           id: 'notification_settings',
           name: 'admin.notifications',
+          fullName: 'admin.notifications-settings',
           type: 'link',
           path: '/settings/notifications',
           icon: 'sms'
@@ -1282,6 +1304,7 @@ export class MenuService {
       settingPages.push({
         id: 'repository_settings',
         name: 'admin.repository-settings',
+        fullName: 'admin.repository-settings',
         type: 'link',
         path: '/settings/repository',
         icon: 'manage_history'
@@ -1289,6 +1312,7 @@ export class MenuService {
       settingPages.push({
         id: 'auto_commit_settings',
         name: 'admin.auto-commit-settings',
+        fullName: 'admin.auto-commit-settings',
         type: 'link',
         path: '/settings/auto-commit',
         icon: 'settings_backup_restore'
@@ -2203,6 +2227,7 @@ export class MenuService {
       {
         id: 'notification_inbox',
         name: 'notification.inbox',
+        fullName: 'notification.notification-inbox',
         type: 'link',
         path: '/notification/inbox',
         icon: 'inbox'
@@ -2237,6 +2262,7 @@ export class MenuService {
         {
           id: 'white_labeling_general',
           name: 'white-labeling.general',
+          fullName: 'white-labeling.white-labeling-general',
           type: 'link',
           path: '/white-labeling/whiteLabel',
           icon: 'format_paint'
@@ -2244,6 +2270,7 @@ export class MenuService {
         {
           id: 'login_white_labeling',
           name: 'white-labeling.login',
+          fullName: 'white-labeling.login-white-labeling',
           type: 'link',
           path: '/white-labeling/loginWhiteLabel',
           icon: 'format_paint'
@@ -2280,6 +2307,7 @@ export class MenuService {
         {
           id: 'home_settings',
           name: 'admin.home-settings',
+          fullName: 'admin.home-settings',
           type: 'link',
           path: '/settings/home',
           icon: 'settings_applications'

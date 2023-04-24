@@ -5533,6 +5533,7 @@
     },
     "white-labeling": {
         "white-labeling": "White Labeling",
+        "white-labeling-general": "General White Labeling",
         "login-white-labeling": "Login White Labeling",
         "general": "General",
         "login": "Login",
