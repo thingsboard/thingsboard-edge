@@ -40,6 +40,8 @@ import { WidgetContext } from '@home/models/widget-component.models';
 import { UsageInfo } from '@shared/models/usage.models';
 import { UsageInfoService } from '@core/http/usage-info.service';
 import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-usage-info-widget',
@@ -61,13 +63,14 @@ export class UsageInfoWidgetComponent extends PageComponent implements OnInit, O
 
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
+              private userPermissionsService: UserPermissionsService,
               private shortNumberPipe: ShortNumberPipe,
               private usageInfoService: UsageInfoService) {
     super(store);
   }
 
   ngOnInit() {
-    (this.authUser.authority === Authority.TENANT_ADMIN ?
+    (this.authUser.authority === Authority.TENANT_ADMIN && this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.READ) ?
       this.usageInfoService.getUsageInfo() : of(null)).subscribe(
       (usageInfo) => {
         this.usageInfo = usageInfo;

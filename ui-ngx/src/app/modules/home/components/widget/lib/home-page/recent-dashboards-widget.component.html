@@ -45,7 +45,7 @@
         }
       ]">
       </tb-toggle-header>
-      <a *ngIf="authUser.authority === authority.TENANT_ADMIN" fxHide.md
+      <a *ngIf="authUser.authority === authority.TENANT_ADMIN && (resource.DASHBOARD | hasGenericPermission:operation.CREATE)" fxHide.md
          mat-flat-button color="primary" routerLink="/dashboards/all" [queryParams]="{action: 'add'}">{{ 'dashboard.add' | translate }}</a>
     </div>
   </div>
