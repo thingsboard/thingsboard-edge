@@ -34,8 +34,8 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.validator.RuleChainDataValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 public class RuleChainDataValidatorTest {
 
