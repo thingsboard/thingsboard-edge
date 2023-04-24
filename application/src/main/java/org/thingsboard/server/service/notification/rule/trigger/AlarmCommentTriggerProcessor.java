@@ -48,6 +48,7 @@ import org.thingsboard.server.common.msg.notification.trigger.RuleEngineMsgTrigg
 import java.util.Set;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.thingsboard.server.common.data.util.CollectionsUtil.emptyOrContains;
 
 @Service
 public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRuleTriggerProcessor<AlarmCommentNotificationRuleTriggerConfig> {
@@ -68,8 +69,8 @@ public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRu
             }
         }
         Alarm alarm = JacksonUtil.fromString(msg.getData(), Alarm.class);
-        return (isEmpty(triggerConfig.getAlarmTypes()) || triggerConfig.getAlarmTypes().contains(alarm.getType())) &&
-                (isEmpty(triggerConfig.getAlarmSeverities()) || triggerConfig.getAlarmSeverities().contains(alarm.getSeverity())) &&
+        return emptyOrContains(triggerConfig.getAlarmTypes(), alarm.getType()) &&
+                emptyOrContains(triggerConfig.getAlarmSeverities(), alarm.getSeverity()) &&
                 (isEmpty(triggerConfig.getAlarmStatuses()) || AlarmStatusFilter.from(triggerConfig.getAlarmStatuses()).matches(alarm));
     }
 

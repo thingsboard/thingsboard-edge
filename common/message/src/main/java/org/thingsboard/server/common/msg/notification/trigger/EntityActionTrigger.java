@@ -28,61 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.info;
+package org.thingsboard.server.common.msg.notification.trigger;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
-
-import java.util.Map;
-import java.util.UUID;
-
-import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class EntityActionNotificationInfo implements RuleOriginatedNotificationInfo {
+public class EntityActionTrigger implements NotificationRuleTrigger {
 
-    private EntityId entityId;
-    private String entityName;
-    private ActionType actionType;
-    private CustomerId entityCustomerId;
-
-    private UUID userId;
-    private String userTitle;
-    private String userEmail;
-    private String userFirstName;
-    private String userLastName;
+    private final TenantId tenantId;
+    private final EntityId entityId;
+    private final HasName entity;
+    private final ActionType actionType;
+    private final User user;
 
     @Override
-    public Map<String, String> getTemplateData() {
-        return mapOf(
-                "entityType", entityId.getEntityType().getNormalName(),
-                "entityId", entityId.toString(),
-                "entityName", entityName,
-                "actionType", actionType.name().toLowerCase(),
-                "userId", userId.toString(),
-                "userTitle", userTitle,
-                "userEmail", userEmail,
-                "userFirstName", userFirstName,
-                "userLastName", userLastName
-        );
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.ENTITY_ACTION;
     }
 
     @Override
-    public CustomerId getAffectedCustomerId() {
-        return entityCustomerId;
-    }
-
-    @Override
-    public EntityId getStateEntityId() {
+    public EntityId getOriginatorEntityId() {
         return entityId;
     }
 
