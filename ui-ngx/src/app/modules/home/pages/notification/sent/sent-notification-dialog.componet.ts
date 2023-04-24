@@ -98,6 +98,8 @@ export class SentNotificationDialogComponent extends
 
   dialogTitle = 'notification.notify-again';
 
+  showRefresh = false;
+
   private authUser: AuthUser = getCurrentAuthUser(this.store);
   private authState: AuthState = getCurrentAuthState(this.store);
 
@@ -182,15 +184,7 @@ export class SentNotificationDialogComponent extends
       this.notificationRequestForm.get('useTemplate').setValue(useTemplate, {onlySelf : true});
     }
 
-    this.notificationService.getAvailableDeliveryMethods({ignoreLoading: true}).subscribe(allowMethods => {
-      this.notificationDeliveryMethods.forEach(method => {
-        if (allowMethods.includes(method)) {
-          this.getDeliveryMethodsTemplatesControl(method).enable({emitEvent: true});
-        } else {
-          this.getDeliveryMethodsTemplatesControl(method).setValue(false, {emitEvent: true}); //used for notify again
-        }
-      });
-    });
+    this.refreshAllowDeliveryMethod();
   }
 
   ngOnDestroy() {
@@ -360,5 +354,19 @@ export class SentNotificationDialogComponent extends
       case NotificationDeliveryMethod.SLACK:
         return '/settings/notifications';
     }
+  }
+
+  refreshAllowDeliveryMethod() {
+    this.notificationService.getAvailableDeliveryMethods({ignoreLoading: true}).subscribe(allowMethods => {
+      this.notificationDeliveryMethods.forEach(method => {
+        if (allowMethods.includes(method)) {
+          this.getDeliveryMethodsTemplatesControl(method).enable({emitEvent: true});
+        } else {
+          this.getDeliveryMethodsTemplatesControl(method).disable({emitEvent: true});
+          this.getDeliveryMethodsTemplatesControl(method).setValue(false, {emitEvent: true}); //used for notify again
+        }
+      });
+      this.showRefresh = (this.notificationDeliveryMethods.length !== allowMethods.length);
+    });
   }
 }
