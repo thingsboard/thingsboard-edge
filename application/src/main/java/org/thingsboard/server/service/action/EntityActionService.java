@@ -125,20 +125,20 @@ public class EntityActionService {
             case ALARM_CLEAR:
                 msgType = DataConstants.ALARM_CLEAR;
                 break;
+            case ALARM_ASSIGNED:
+                msgType = DataConstants.ALARM_ASSIGNED;
+                break;
+            case ALARM_UNASSIGNED:
+                msgType = DataConstants.ALARM_UNASSIGNED;
+                break;
+            case ALARM_DELETE:
+                msgType = DataConstants.ALARM_DELETE;
+                break;
             case ADDED_COMMENT:
                 msgType = DataConstants.COMMENT_CREATED;
                 break;
             case UPDATED_COMMENT:
                 msgType = DataConstants.COMMENT_UPDATED;
-                break;
-            case ALARM_ASSIGN:
-                msgType = DataConstants.ALARM_ASSIGN;
-                break;
-            case ALARM_UNASSIGN:
-                msgType = DataConstants.ALARM_UNASSIGN;
-                break;
-            case ALARM_DELETE:
-                msgType = DataConstants.ALARM_DELETE;
                 break;
             case ASSIGNED_FROM_TENANT:
                 msgType = DataConstants.ENTITY_ASSIGNED_FROM_TENANT;

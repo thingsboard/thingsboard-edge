@@ -50,7 +50,7 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Post attributes", "Post telemetry", "RPC Request from Device", "RPC Request to Device", "RPC Queued", "RPC Sent", "RPC Delivered", "RPC Successful", "RPC Timeout", "RPC Expired", "RPC Failed", "RPC Deleted",
                 "Activity Event", "Inactivity Event", "Connect Event", "Disconnect Event", "Entity Created", "Entity Updated", "Entity Deleted", "Entity Assigned",
-                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Alarm Assign", "Alarm Unassign", "Comment Created", "Comment Updated",
+                "Entity Unassigned", "Attributes Updated", "Attributes Deleted", "Alarm Acknowledged", "Alarm Cleared", "Alarm Assigned", "Alarm Unassigned", "Comment Created", "Comment Updated",
                 "Added to Group", "Removed from Group", "REST API request", "Generate Report", "Other", "Entity Assigned From Tenant", "Entity Assigned To Tenant",
                 "Relation Added or Updated", "Relation Deleted", "All Relations Deleted", "Timeseries Updated", "Timeseries Deleted", "Owner changed"},
         nodeDescription = "Route incoming messages by Message Type",
@@ -101,10 +101,10 @@ public class TbMsgTypeSwitchNode implements TbNode {
             relationType = "Alarm Acknowledged";
         } else if (msg.getType().equals(DataConstants.ALARM_CLEAR)) {
             relationType = "Alarm Cleared";
-        } else if (msg.getType().equals(DataConstants.ALARM_ASSIGN)) {
-            relationType = "Alarm Assign";
-        } else if (msg.getType().equals(DataConstants.ALARM_UNASSIGN)) {
-            relationType = "Alarm Unassign";
+        } else if (msg.getType().equals(DataConstants.ALARM_ASSIGNED)) {
+            relationType = "Alarm Assigned";
+        } else if (msg.getType().equals(DataConstants.ALARM_UNASSIGNED)) {
+            relationType = "Alarm Unassigned";
         } else if (msg.getType().equals(DataConstants.COMMENT_CREATED)) {
             relationType = "Comment Created";
         } else if (msg.getType().equals(DataConstants.COMMENT_UPDATED)) {
