@@ -29,52 +29,22 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .tb-edit-doc-links-dialog {
-    width: 480px;
-    .mat-mdc-dialog-content {
-      max-height: 50vh;
-    }
-    .mat-toolbar-single-row {
-      padding: 0 24px;
-    }
-    h2 {
-      color: rgba(0, 0, 0, 0.76);
-    }
-    .mat-icon {
-      color: rgba(0, 0, 0, 0.54);
-    }
-    .mat-mdc-dialog-content {
-      padding: 24px 24px 8px 24px;
-    }
-    .mdc-dialog__actions {
-      padding: 0 24px 24px;
-    }
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  .mdc-button {
+    max-width: 100%;
   }
-  .tb-drag-handle {
-    height: 24px;
-    margin-left: 12px;
+}
+
+:host ::ng-deep {
+  .mdc-button {
     .mat-icon {
-      color: rgba(0, 0, 0, 0.38);
+      min-width: 24px;
     }
-  }
-  .tb-add-doc-button {
-    height: 55px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: #FFFFFF;
-    padding: 8px;
-    border: 2px dashed rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    .tb-add-icon {
-      color: rgba(0, 0, 0, 0.12);
-    }
-    &:hover {
-      .tb-add-icon {
-        color: rgba(0, 0, 0, 0.38);
-      }
+    .mdc-button__label {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

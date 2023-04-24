@@ -36,88 +36,96 @@ import { AppState } from '@core/core.state';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import { DocumentationLink, DocumentationLinks } from '@shared/models/user-settings.models';
+import { DocumentationLink, DocumentationLinks, QuickLinks } from '@shared/models/user-settings.models';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { UserSettingsService } from '@core/http/user-settings.service';
+import { Observable } from 'rxjs';
 
-export interface EditDocLinksDialogData {
-  docLinks: DocumentationLinks;
+export interface EditLinksDialogData {
+  mode: 'docs' | 'quickLinks';
+  links: DocumentationLinks | QuickLinks;
 }
 
 @Component({
-  selector: 'tb-edit-doc-links-dialog',
-  templateUrl: './edit-doc-links-dialog.component.html',
-  styleUrls: ['./edit-doc-links-dialog.component.scss']
+  selector: 'tb-edit-links-dialog',
+  templateUrl: './edit-links-dialog.component.html',
+  styleUrls: ['./edit-links-dialog.component.scss']
 })
-export class EditDocLinksDialogComponent extends
-  DialogComponent<EditDocLinksDialogComponent, boolean> implements OnInit {
+export class EditLinksDialogComponent extends
+  DialogComponent<EditLinksDialogComponent, boolean> implements OnInit {
 
   updated = false;
   addMode = false;
   editMode = false;
 
-  docLinks = this.data.docLinks;
-  addingDocLink: Partial<DocumentationLink>;
+  links = this.data.links;
+  mode = this.data.mode;
+  addingLink: Partial<DocumentationLink> | string;
 
-  editDocLinksFormGroup: UntypedFormGroup;
+  editLinksFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: EditDocLinksDialogData,
-              public dialogRef: MatDialogRef<EditDocLinksDialogComponent, boolean>,
+              @Inject(MAT_DIALOG_DATA) public data: EditLinksDialogData,
+              public dialogRef: MatDialogRef<EditLinksDialogComponent, boolean>,
               public fb: UntypedFormBuilder,
               private userSettingsService: UserSettingsService) {
     super(store, router, dialogRef);
   }
 
   ngOnInit(): void {
-    const docLinksControls: Array<AbstractControl> = [];
-    for (const docLink of this.docLinks.links) {
-      docLinksControls.push(this.fb.control(docLink, [Validators.required]));
+    const linksControls: Array<AbstractControl> = [];
+    for (const link of this.links.links) {
+      linksControls.push(this.fb.control(link, [Validators.required]));
     }
-    this.editDocLinksFormGroup = this.fb.group({
-      links: this.fb.array(docLinksControls)
+    this.editLinksFormGroup = this.fb.group({
+      links: this.fb.array(linksControls)
     });
   }
 
-  docLinksFormArray(): UntypedFormArray {
-    return this.editDocLinksFormGroup.get('links') as UntypedFormArray;
+  linksFormArray(): UntypedFormArray {
+    return this.editLinksFormGroup.get('links') as UntypedFormArray;
   }
 
-  trackByDocLink(index: number, docLinkControl: AbstractControl): any {
-    return docLinkControl;
+  trackByLink(index: number, linkControl: AbstractControl): any {
+    return linkControl;
   }
 
-  docLinkDrop(event: CdkDragDrop<string[]>) {
-    const docLinksArray = this.editDocLinksFormGroup.get('links') as UntypedFormArray;
-    const docLink = docLinksArray.at(event.previousIndex);
-    docLinksArray.removeAt(event.previousIndex);
-    docLinksArray.insert(event.currentIndex, docLink);
+  linkDrop(event: CdkDragDrop<string[]>) {
+    const linksArray = this.editLinksFormGroup.get('links') as UntypedFormArray;
+    const link = linksArray.at(event.previousIndex);
+    linksArray.removeAt(event.previousIndex);
+    linksArray.insert(event.currentIndex, link);
     this.update();
   }
 
   addLink() {
-    this.addingDocLink = { icon: 'notifications' };
+    this.addingLink = this.mode === 'docs' ? { icon: 'notifications' } : null;
     this.addMode = true;
   }
 
-  linkAdded(docLink: DocumentationLink) {
+  linkAdded(link: DocumentationLink | string) {
     this.addMode = false;
-    const docLinksArray = this.editDocLinksFormGroup.get('links') as UntypedFormArray;
-    const docLinkControl = this.fb.control(docLink, [Validators.required]);
-    docLinksArray.push(docLinkControl);
+    const linksArray = this.editLinksFormGroup.get('links') as UntypedFormArray;
+    const linkControl = this.fb.control(link, [Validators.required]);
+    linksArray.push(linkControl);
     this.update();
   }
 
   deleteLink(index: number) {
-    (this.editDocLinksFormGroup.get('links') as UntypedFormArray).removeAt(index);
+    (this.editLinksFormGroup.get('links') as UntypedFormArray).removeAt(index);
     this.update();
   }
 
   update() {
-    if (this.editDocLinksFormGroup.valid) {
-      const docLinks: DocumentationLinks = this.editDocLinksFormGroup.value;
-      this.userSettingsService.updateDocumentationLinks(docLinks).subscribe(() => {
+    if (this.editLinksFormGroup.valid) {
+      let updateObservable: Observable<void>;
+      if (this.mode === 'docs') {
+        updateObservable = this.userSettingsService.updateDocumentationLinks(this.editLinksFormGroup.value);
+      } else {
+        updateObservable = this.userSettingsService.updateQuickLinks(this.editLinksFormGroup.value);
+      }
+      updateObservable.subscribe(() => {
         this.updated = true;
       });
     }
