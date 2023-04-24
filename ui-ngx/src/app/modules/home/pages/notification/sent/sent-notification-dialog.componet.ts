@@ -61,8 +61,11 @@ import { MatButton } from '@angular/material/button';
 import { TemplateConfiguration } from '@home/pages/notification/template/template-configuration';
 import { Authority } from '@shared/models/authority.enum';
 import { AuthUser } from '@shared/models/user.model';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { TranslateService } from '@ngx-translate/core';
+import { AuthState } from '@core/auth/auth.models';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 export interface RequestNotificationDialogData {
   request?: NotificationRequest;
@@ -96,6 +99,7 @@ export class SentNotificationDialogComponent extends
   dialogTitle = 'notification.notify-again';
 
   private authUser: AuthUser = getCurrentAuthUser(this.store);
+  private authState: AuthState = getCurrentAuthState(this.store);
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -105,7 +109,8 @@ export class SentNotificationDialogComponent extends
               protected fb: FormBuilder,
               private notificationService: NotificationService,
               private dialog: MatDialog,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private userPermissionsService: UserPermissionsService) {
     super(store, router, dialogRef, fb);
 
     this.notificationDeliveryMethods.forEach(method => {
@@ -337,7 +342,8 @@ export class SentNotificationDialogComponent extends
     if(this.isSysAdmin()) {
       return true;
     } else if (this.isTenantAdmin()) {
-      return deliveryMethod === NotificationDeliveryMethod.SLACK;
+      return this.authState.whiteLabelingAllowed &&
+        this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
     }
     return false;
   }
