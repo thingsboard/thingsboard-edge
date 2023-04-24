@@ -39,15 +39,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
-import org.thingsboard.rule.engine.api.TbNodeConfiguration;
-import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.util.EntityContainer;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -58,13 +57,20 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
 
 import java.util.List;
@@ -89,7 +95,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
         if (this.config.getEntityCacheExpiration() > 0) {
             cacheBuilder.expireAfterWrite(this.config.getEntityCacheExpiration(), TimeUnit.SECONDS);
         }
-        entityIdCache = cacheBuilder.build(new EntityCacheLoader(ctx, createEntityIfNotExists()));
+        entityIdCache = cacheBuilder.build(new EntityCacheLoader(ctx, ctx.getPeContext(), createEntityIfNotExists()));
     }
 
     @Override
@@ -181,10 +187,13 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
     private static class EntityCacheLoader extends CacheLoader<EntityKey, EntityContainer> {
 
         private final TbContext ctx;
+
+        private final TbPeContext peContext;
         private final boolean createIfNotExists;
 
-        private EntityCacheLoader(TbContext ctx, boolean createIfNotExists) {
+        private EntityCacheLoader(TbContext ctx, TbPeContext peContext, boolean createIfNotExists) {
             this.ctx = ctx;
+            this.peContext = peContext;
             this.createIfNotExists = createIfNotExists;
         }
 
@@ -282,6 +291,16 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     if (user != null) {
                         targetEntity.setEntityId(user.getId());
                     }
+                    break;
+                case CONVERTER:
+                    ConverterService converterService = peContext.getConverterService();
+                    Optional<Converter> converter = converterService.findConverterByName(ctx.getTenantId(), entitykey.getEntityName());
+                    converter.ifPresent(value -> targetEntity.setEntityId(value.getId()));
+                    break;
+                case ROLE:
+                    RoleService roleService = peContext.getRoleService();
+                    Optional<Role> roleOpt = roleService.findRoleByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
+                    roleOpt.ifPresent(value -> targetEntity.setEntityId(value.getId()));
                     break;
                 default:
                     return targetEntity;
