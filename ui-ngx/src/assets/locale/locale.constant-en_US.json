@@ -6615,6 +6615,9 @@
             "color": "Color",
             "shadow-color": "Shadow color"
         },
+        "home": {
+            "no-data-available": "No data available"
+        },
         "system-info": {
             "cpu": "CPU",
             "ram": "RAM",

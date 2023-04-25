@@ -92,8 +92,7 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false): Route =>
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
-        userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ),
+        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
       hideTabs: true,
       widgetEditMode: false,

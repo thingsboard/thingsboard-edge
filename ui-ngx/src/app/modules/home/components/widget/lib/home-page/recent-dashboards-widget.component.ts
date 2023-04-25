@@ -61,6 +61,9 @@ import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { MatSort } from '@angular/material/sort';
 import { DashboardInfo } from '@shared/models/dashboard.models';
 import { DashboardAutocompleteComponent } from '@shared/components/dashboard-autocomplete.component';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Resource } from '@shared/models/security.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-recent-dashboards-widget',
@@ -90,16 +93,29 @@ export class RecentDashboardsWidgetComponent extends PageComponent implements On
 
   starredDashboardValue = null;
 
+  dashboardsLink = '/dashboards/all';
+  hasDashboardsAccess = true;
+
   dirty = false;
 
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
+              private userPermissionsService: UserPermissionsService,
               private userSettingService: UserSettingsService) {
     super(store);
   }
 
   ngOnInit() {
-    this.reload();
+    if (!this.userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD)) {
+      if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DASHBOARD)) {
+        this.dashboardsLink = '/dashboards/shared';
+      } else {
+        this.hasDashboardsAccess = false;
+      }
+    }
+    if (this.hasDashboardsAccess) {
+      this.reload();
+    }
   }
 
   reload() {
