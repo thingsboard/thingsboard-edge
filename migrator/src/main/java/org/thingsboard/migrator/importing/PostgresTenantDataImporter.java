@@ -97,6 +97,7 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
         storage.readAndProcess(table.getName(), false, row -> {
             saveRow(table, row);
         });
+        finishedProcessing(table.getName());
     }
 
     private void saveRow(Table table, Map<String, Object> row) {
@@ -128,8 +129,8 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
         }
 
         String query = format("INSERT INTO %s (%s) VALUES (%s)", table.getName(), columnsStatement, valuesStatement);
-        System.out.println("Executing query: " + query);
         jdbcTemplate.update(query, row.values().toArray());
+        reportProcessed(table.getName(), row);
         try {
             TimeUnit.MILLISECONDS.sleep(delayBetweenQueries);
         } catch (InterruptedException e) {
@@ -153,7 +154,6 @@ public class PostgresTenantDataImporter extends BaseMigrationService {
                     keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
                 }
                 Object oldKey = row.put("key", keyId);
-                System.out.println("Replaced old keyId " + oldKey + " with newly created " + keyId);
             }
         } else if (table == Table.GROUP_PERMISSION) {
             UUID roleId = (UUID) row.get("role_id");

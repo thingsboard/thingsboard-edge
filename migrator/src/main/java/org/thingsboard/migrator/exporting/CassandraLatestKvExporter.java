@@ -53,13 +53,14 @@ public class CassandraLatestKvExporter extends BaseMigrationService {
     private final CassandraService cassandraService;
     private final Storage storage;
 
+    private static final String LATEST_KV_TABLE = "ts_kv_latest_cf";
     public static final String LATEST_KV_FILE = "latest_kv.gz";
 
     @Override
     protected void start() throws Exception {
         storage.newFile(LATEST_KV_FILE);
         try (Writer writer = storage.newWriter(LATEST_KV_FILE, true)) {
-            String query = "SELECT * FROM ts_kv_latest_cf";
+            String query = "SELECT * FROM " + LATEST_KV_TABLE;
             ResultSet rows = cassandraService.query(query);
             for (Row row : rows) {
                 Map<String, Object> data = new HashMap<>();
@@ -75,9 +76,14 @@ public class CassandraLatestKvExporter extends BaseMigrationService {
                     data.put(column, value);
                 }
                 storage.addToFile(writer, data);
-                report(data);
+                reportProcessed(LATEST_KV_TABLE, data);
             }
         }
+    }
+
+    @Override
+    protected void afterFinished() throws Exception {
+        finishedProcessing(LATEST_KV_TABLE);
     }
 
 }

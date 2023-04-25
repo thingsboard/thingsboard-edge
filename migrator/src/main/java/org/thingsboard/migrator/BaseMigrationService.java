@@ -30,12 +30,16 @@
  */
 package org.thingsboard.migrator;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
 import java.time.LocalTime;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,7 +52,7 @@ public abstract class BaseMigrationService implements ApplicationRunner {
     @Value("${stats_print_interval}")
     private int statsPrintInterval;
 
-    protected final AtomicInteger counter = new AtomicInteger();
+    protected final ConcurrentMap<Object, AtomicInteger> processed = new ConcurrentHashMap<>();
 
     @Override
     public final void run(ApplicationArguments args) throws Exception {
@@ -63,7 +67,7 @@ public abstract class BaseMigrationService implements ApplicationRunner {
         executor.shutdown();
         executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
         afterFinished();
-        System.out.println("Finished successfully. Total processed: " + counter.get());
+        System.out.println("Finished successfully!");
         System.exit(0);
     }
 
@@ -71,15 +75,23 @@ public abstract class BaseMigrationService implements ApplicationRunner {
 
     protected void afterFinished() throws Exception {}
 
-    protected void report(Object data) {
-        int n = counter.incrementAndGet();
+    protected void reportProcessed(Object key, Object data) {
+        int n = processed.computeIfAbsent(key, k -> new AtomicInteger()).incrementAndGet();
         if (n % statsPrintInterval == 0) {
-            printStats(n, data);
+            printStats(key, n, data);
         }
     }
 
-    protected void printStats(int n, Object lastData) {
-        System.out.println("[" + LocalTime.now() + "] Processed: " + n + ". Last: " + lastData);
+    protected void finishedProcessing(Object key) {
+        int n = Optional.ofNullable(processed.remove(key)).map(AtomicInteger::get).orElse(0);
+        printStats(key, n, null);
+    }
+
+    protected void printStats(Object key, int n, Object lastData) {
+        if (n > 0) {
+            System.out.println("[" + LocalTime.now() + "] [" + key + "] Processed: " + n +
+                    (lastData != null ? ". Last: " + StringUtils.abbreviate(lastData.toString(), 100) : ""));
+        }
     }
 
 }

@@ -84,6 +84,10 @@ public class PostgresTenantDataExporter extends BaseMigrationService {
                 continue;
             }
             exportTableData(table, exportedTenantId);
+            finishedProcessing(table.getName());
+        }
+        for (Table relatedTable : relatedTables) {
+            finishedProcessing(relatedTable);
         }
     }
 
@@ -132,6 +136,7 @@ public class PostgresTenantDataExporter extends BaseMigrationService {
             Consumer<Map<String, Object>> processor = row -> {
                 try {
                     storage.addToFile(writer, row);
+                    reportProcessed(table.getName(), row);
                     for (Table relatedTable : relatedTables) {
                         if (skippedTables.contains(relatedTable)) {
                             continue;
@@ -174,7 +179,6 @@ public class PostgresTenantDataExporter extends BaseMigrationService {
             int offset = batchIndex * batchSize;
             String batchQuery = query + " LIMIT " + batchSize + " OFFSET " + offset;
 
-            System.out.println("Executing query: " + batchQuery);
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(batchQuery, queryParams);
             rows.forEach(rowProcessor);
             batchIndex++;

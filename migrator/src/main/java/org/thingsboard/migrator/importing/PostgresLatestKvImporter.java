@@ -63,6 +63,7 @@ public class PostgresLatestKvImporter extends BaseMigrationService {
     @Value("${import.sql.ignore_conflicts}")
     private boolean ignoreConflicts;
 
+    private static final String LATEST_KV_TABLE = "ts_kv_latest";
     private Map<String, String> columns;
 
     @Override
@@ -103,12 +104,12 @@ public class PostgresLatestKvImporter extends BaseMigrationService {
             valuesStatement += "::" + valueType;
         }
 
-        String query = format("INSERT INTO ts_kv_latest (%s) VALUES (%s)", columnsStatement, valuesStatement);
+        String query = format("INSERT INTO " + LATEST_KV_TABLE + " (%s) VALUES (%s)", columnsStatement, valuesStatement);
         if (ignoreConflicts) {
             query += " ON CONFLICT DO NOTHING";
         }
         jdbcTemplate.update(query, row.values().toArray());
-        report(row);
+        reportProcessed(LATEST_KV_TABLE, row);
         try {
             TimeUnit.MILLISECONDS.sleep(delayBetweenQueries);
         } catch (InterruptedException e) {
@@ -128,10 +129,15 @@ public class PostgresLatestKvImporter extends BaseMigrationService {
 
         if (columns == null) {
             columns = jdbcTemplate.queryForList("SELECT column_name, udt_name FROM information_schema.columns " +
-                            "WHERE table_schema = 'public' AND table_name = 'ts_kv_latest'").stream()
+                            "WHERE table_schema = 'public' AND table_name = '" + LATEST_KV_TABLE + "'").stream()
                     .collect(Collectors.toMap(vals -> vals.get("column_name").toString(), vals -> vals.get("udt_name").toString()));
         }
         row.keySet().removeIf(column -> !columns.containsKey(column));
+    }
+
+    @Override
+    protected void afterFinished() throws Exception {
+        finishedProcessing(LATEST_KV_TABLE);
     }
 
 }

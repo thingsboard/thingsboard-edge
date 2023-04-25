@@ -56,6 +56,8 @@ public class CassandraTenantDataExporter extends BaseMigrationService {
     private final Storage storage;
     private final CassandraService cassandraService;
 
+    public static final String TS_KV_TABLE = "ts_kv_cf";
+    public static final String TS_KV_PARTITIONS_TABLE = "ts_kv_partitions_cf";
     public static final String TS_KV_FILE = "ts_kv.gz";
 
     private Writer writer;
@@ -76,12 +78,11 @@ public class CassandraTenantDataExporter extends BaseMigrationService {
         String entityType = (String) latestKvRow.get("table_name");
         UUID entityId = (UUID) latestKvRow.get("entity_id");
         String key = (String) latestKvRow.get("key_name");
-        System.out.printf("Exporting data for %s %s (%s)\n", entityType, entityId, key);
 
-        List<Long> partitions = cassandraService.query("SELECT partition FROM ts_kv_partitions_cf " +
+        List<Long> partitions = cassandraService.query("SELECT partition FROM " + TS_KV_PARTITIONS_TABLE + " " +
                 "WHERE entity_type = ? AND entity_id = ? AND key = ?", Long.class, entityType, entityId, key);
         for (Long partition : partitions) {
-            String query = "SELECT * FROM ts_kv_cf WHERE entity_type = ? AND entity_id = ? AND key = ? " +
+            String query = "SELECT * FROM " + TS_KV_TABLE + " WHERE entity_type = ? AND entity_id = ? AND key = ? " +
                     "AND partition = ? ORDER BY ts";
             ResultSet rows = cassandraService.query(query, entityType, entityId, key, partition);
             for (Row row : rows) {
@@ -95,12 +96,14 @@ public class CassandraTenantDataExporter extends BaseMigrationService {
                     data.put(column, value);
                 }
                 storage.addToFile(writer, data);
+                reportProcessed(TS_KV_TABLE, data);
             }
         }
     }
 
     @Override
     protected void afterFinished() throws Exception {
+        finishedProcessing(TS_KV_TABLE);
         writer.close();
     }
 

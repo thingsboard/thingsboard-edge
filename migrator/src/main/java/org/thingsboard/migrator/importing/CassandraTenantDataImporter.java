@@ -50,6 +50,8 @@ import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
+import static org.thingsboard.migrator.exporting.CassandraTenantDataExporter.TS_KV_PARTITIONS_TABLE;
+import static org.thingsboard.migrator.exporting.CassandraTenantDataExporter.TS_KV_TABLE;
 
 @Service
 @RequiredArgsConstructor
@@ -86,8 +88,7 @@ public class CassandraTenantDataImporter extends BaseMigrationService {
         long ttl = TimeUnit.DAYS.toSeconds(tsKvTtlDays);
         boolean newPartition = partitions.computeIfAbsent(partitionKey, k -> new HashSet<>()).add(partition);
         if (newPartition) {
-            String query = "INSERT INTO ts_kv_partitions_cf " +
-                    "(entity_type, entity_id, key, partition) VALUES (?, ?, ?, ?)";
+            String query = "INSERT INTO " + TS_KV_PARTITIONS_TABLE + " (entity_type, entity_id, key, partition) VALUES (?, ?, ?, ?)";
             if (ttl > 0) {
                 query += " USING TTL " + ttl;
             }
@@ -111,15 +112,20 @@ public class CassandraTenantDataImporter extends BaseMigrationService {
 
         String columnsStmt = String.join(", ", row.keySet());
         String valuesStmt = StringUtils.removeEnd("?,".repeat(row.size()), ",");
-        String query = format("INSERT INTO ts_kv_cf (%s) VALUES (%s)", columnsStmt, valuesStmt);
+        String query = format("INSERT INTO " + TS_KV_TABLE + " (%s) VALUES (%s)", columnsStmt, valuesStmt);
         if (ttl > 0) {
             query += " USING TTL " + ttl;
         }
         String finalQuery = query;
         executor.submit(() -> {
             cassandraService.execute(finalQuery, row.values().toArray());
-            report(row);
+            reportProcessed(TS_KV_TABLE, row);
         });
+    }
+
+    @Override
+    protected void afterFinished() throws Exception {
+        finishedProcessing(TS_KV_TABLE);
     }
 
     @Data(staticConstructor = "of")
