@@ -36,26 +36,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
+import org.thingsboard.migrator.tenant.BaseMigrationService;
 import org.thingsboard.migrator.tenant.exporting.CassandraTenantDataExporter;
 import org.thingsboard.migrator.tenant.utils.CassandraService;
 import org.thingsboard.migrator.tenant.utils.Storage;
 
-import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "mode", havingValue = "CASSANDRA_DATA_IMPORT")
-public class CassandraTenantDataImporter extends BaseTenantMigrationService {
+public class CassandraTenantDataImporter extends BaseMigrationService {
 
     private final Storage storage;
     private final CassandraService cassandraService;
@@ -64,10 +62,6 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
 
     @Value("${import.cassandra.ttl}")
     private int tsKvTtlDays;
-    @Value("${import.cassandra.stats_print_interval}")
-    private int statsPrintInterval;
-
-    private final AtomicLong records = new AtomicLong();
 
     @Override
     protected void start() throws Exception {
@@ -79,11 +73,6 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
                 throw e;
             }
         });
-    }
-
-    @Override
-    protected void afterFinished() throws Exception {
-        System.out.println("Total processed records: " + records.get());
     }
 
     private void saveTsKv(Map<String, Object> row) {
@@ -128,10 +117,7 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
         String finalQuery = query;
         executor.submit(() -> {
             cassandraService.execute(finalQuery, row.values().toArray());
-            long n = records.incrementAndGet();
-            if (n % statsPrintInterval == 0) {
-                System.out.println("[" + LocalTime.now() + "] Records inserted: " + n + ". Last row: " + row);
-            }
+            report(row);
         });
     }
 

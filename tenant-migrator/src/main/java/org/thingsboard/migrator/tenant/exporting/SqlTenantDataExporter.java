@@ -38,7 +38,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.thingsboard.migrator.tenant.Table;
-import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
+import org.thingsboard.migrator.tenant.BaseMigrationService;
 import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
 import org.thingsboard.migrator.tenant.utils.Storage;
 
@@ -56,7 +56,7 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_EXPORT")
-public class SqlTenantDataExporter extends BaseTenantMigrationService {
+public class SqlTenantDataExporter extends BaseMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final Storage storage;

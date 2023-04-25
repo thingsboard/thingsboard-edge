@@ -41,12 +41,13 @@
         <version>3.5.0PE-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tenant-migrator</artifactId>
+    <artifactId>migrator</artifactId>
+    <name>ThingsBoard Tenant Migrator</name>
     <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <pkg.name>tenant-migrator</pkg.name>
+        <pkg.name>migrator</pkg.name>
         <main.dir>${basedir}/..</main.dir>
         <pkg.mainClass>org.thingsboard.migrator.tenant.TenantMigratorApplication</pkg.mainClass>
     </properties>

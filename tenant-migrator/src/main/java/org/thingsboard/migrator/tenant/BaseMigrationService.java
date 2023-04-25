@@ -31,29 +31,55 @@
 package org.thingsboard.migrator.tenant;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
+import java.time.LocalTime;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class BaseTenantMigrationService implements ApplicationRunner {
+public abstract class BaseMigrationService implements ApplicationRunner {
 
     @Autowired
     protected ThreadPoolExecutor executor;
 
+    @Value("${stats_print_interval}")
+    private int statsPrintInterval;
+
+    protected final AtomicInteger counter = new AtomicInteger();
+
     @Override
     public final void run(ApplicationArguments args) throws Exception {
-        start();
+        System.out.println("Starting " + getClass().getSimpleName());
+        try {
+            start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0);
+            return;
+        }
         executor.shutdown();
         executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
         afterFinished();
-        System.out.println("Finished successfully");
+        System.out.println("Finished successfully. Total processed: " + counter.get());
         System.exit(0);
     }
 
     protected abstract void start() throws Exception;
 
     protected void afterFinished() throws Exception {}
+
+    protected void report(Object data) {
+        int n = counter.incrementAndGet();
+        if (n % statsPrintInterval == 0) {
+            printStats(n, data);
+        }
+    }
+
+    protected void printStats(int n, Object lastData) {
+        System.out.println("[" + LocalTime.now() + "] Processed: " + n + ". Last: " + lastData);
+    }
 
 }
