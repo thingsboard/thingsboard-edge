@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.importing;
+package org.thingsboard.migrator.importing;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -36,10 +36,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.BaseMigrationService;
-import org.thingsboard.migrator.tenant.exporting.CassandraTenantDataExporter;
-import org.thingsboard.migrator.tenant.utils.CassandraService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.exporting.CassandraTenantDataExporter;
+import org.thingsboard.migrator.utils.CassandraService;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -52,7 +53,7 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "CASSANDRA_DATA_IMPORT")
+@ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_TENANT_DATA_IMPORT)
 public class CassandraTenantDataImporter extends BaseMigrationService {
 
     private final Storage storage;

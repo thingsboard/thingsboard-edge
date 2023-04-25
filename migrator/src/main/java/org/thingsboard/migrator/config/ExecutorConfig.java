@@ -28,19 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.config;
+package org.thingsboard.migrator.config;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/*
-* Disables Cassandra auto-configuration if mode is related to SQL
-* */
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 @Configuration
-@EnableAutoConfiguration(exclude = {CassandraDataAutoConfiguration.class, CassandraAutoConfiguration.class})
-@ConditionalOnExpression("'${mode}'.startsWith('SQL')")
-public class Config {
+public class ExecutorConfig {
+
+    private static final int MAX_TASK_QUEUE_SIZE = 5000;
+
+    /*
+    * Executor with limited task queue size
+    * */
+    @Bean
+    public ThreadPoolExecutor executor(@Value("${parallelism_level}") int parallelismLevel) {
+        return new ThreadPoolExecutor(parallelismLevel, parallelismLevel,
+                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
 }

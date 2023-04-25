@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.exporting;
+package org.thingsboard.migrator.exporting;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -37,10 +37,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.Table;
-import org.thingsboard.migrator.tenant.BaseMigrationService;
-import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.utils.SqlPartitionService;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -55,8 +56,8 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_EXPORT")
-public class SqlTenantDataExporter extends BaseMigrationService {
+@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_TENANT_DATA_EXPORT)
+public class PostgresTenantDataExporter extends BaseMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final Storage storage;

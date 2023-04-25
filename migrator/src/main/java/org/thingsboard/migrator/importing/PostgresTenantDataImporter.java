@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.importing;
+package org.thingsboard.migrator.importing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -38,10 +38,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.migrator.tenant.BaseMigrationService;
-import org.thingsboard.migrator.tenant.Table;
-import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.utils.SqlPartitionService;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -55,8 +56,8 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_IMPORT")
-public class SqlTenantDataImporter extends BaseMigrationService {
+@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_TENANT_DATA_IMPORT)
+public class PostgresTenantDataImporter extends BaseMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;

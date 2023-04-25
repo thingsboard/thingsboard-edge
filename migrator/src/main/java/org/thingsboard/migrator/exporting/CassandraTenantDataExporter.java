@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.exporting;
+package org.thingsboard.migrator.exporting;
 
 import com.datastax.oss.driver.api.core.cql.ColumnDefinition;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
@@ -36,31 +36,54 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.BaseMigrationService;
-import org.thingsboard.migrator.tenant.utils.CassandraService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.utils.CassandraService;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.io.Writer;
-import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "CASSANDRA_LATEST_KV_EXPORT")
-public class CassandraLatestKvExporter extends BaseMigrationService {
+@ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_TENANT_DATA_EXPORT)
+public class CassandraTenantDataExporter extends BaseMigrationService {
 
-    private final CassandraService cassandraService;
     private final Storage storage;
+    private final CassandraService cassandraService;
 
-    public static final String LATEST_KV_FILE = "latest_kv.gz";
+    public static final String TS_KV_FILE = "ts_kv.gz";
+
+    private Writer writer;
 
     @Override
     protected void start() throws Exception {
-        storage.newFile(LATEST_KV_FILE);
-        try (Writer writer = storage.newWriter(LATEST_KV_FILE, true)) {
-            String query = "SELECT * FROM ts_kv_latest_cf";
-            ResultSet rows = cassandraService.query(query);
+        storage.newFile(TS_KV_FILE);
+        writer = storage.newWriter(TS_KV_FILE, true);
+
+        storage.readAndProcess(Table.LATEST_KV.getName(), false, latestKvRow -> {
+            executor.submit(() -> {
+                getTsHistoryAndSave(latestKvRow);
+            });
+        });
+    }
+
+    private void getTsHistoryAndSave(Map<String, Object> latestKvRow) {
+        String entityType = (String) latestKvRow.get("table_name");
+        UUID entityId = (UUID) latestKvRow.get("entity_id");
+        String key = (String) latestKvRow.get("key_name");
+        System.out.printf("Exporting data for %s %s (%s)\n", entityType, entityId, key);
+
+        List<Long> partitions = cassandraService.query("SELECT partition FROM ts_kv_partitions_cf " +
+                "WHERE entity_type = ? AND entity_id = ? AND key = ?", Long.class, entityType, entityId, key);
+        for (Long partition : partitions) {
+            String query = "SELECT * FROM ts_kv_cf WHERE entity_type = ? AND entity_id = ? AND key = ? " +
+                    "AND partition = ? ORDER BY ts";
+            ResultSet rows = cassandraService.query(query, entityType, entityId, key, partition);
             for (Row row : rows) {
                 Map<String, Object> data = new HashMap<>();
                 for (ColumnDefinition columnDefinition : row.getColumnDefinitions()) {
@@ -69,15 +92,16 @@ public class CassandraLatestKvExporter extends BaseMigrationService {
                     if (column.endsWith("_v") && value == null) {
                         continue;
                     }
-                    if (column.equals("key")) {
-                        column = "key_name";
-                    }
                     data.put(column, value);
                 }
                 storage.addToFile(writer, data);
-                report(data);
             }
         }
+    }
+
+    @Override
+    protected void afterFinished() throws Exception {
+        writer.close();
     }
 
 }

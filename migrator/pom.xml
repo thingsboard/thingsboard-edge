@@ -42,14 +42,14 @@
     </parent>
 
     <artifactId>migrator</artifactId>
-    <name>ThingsBoard Tenant Migrator</name>
+    <name>ThingsBoard Migrator Application</name>
     <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <pkg.name>migrator</pkg.name>
         <main.dir>${basedir}/..</main.dir>
-        <pkg.mainClass>org.thingsboard.migrator.tenant.TenantMigratorApplication</pkg.mainClass>
+        <pkg.mainClass>org.thingsboard.migrator.MigratorApplication</pkg.mainClass>
     </properties>
 
     <dependencies>
