@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.exception.TenantNotFoundException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -468,6 +469,9 @@ public class DefaultDeviceStateService extends AbstractPartitionBasedService<Dev
                         updateInactivityStateIfExpired(ts, deviceId, stateData);
                     } catch (Exception e) {
                         log.warn("[{}] Failed to update inactivity state", deviceId, e);
+                        if (e instanceof TenantNotFoundException) {
+                            continue;
+                        }
                     }
                     Pair<AtomicInteger, AtomicInteger> tenantDevicesActivity = devicesActivity.computeIfAbsent(stateData.getTenantId(),
                             tenantId -> Pair.of(new AtomicInteger(), new AtomicInteger()));
