@@ -507,6 +507,7 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_COLUMN_FAMILY_NAME = "component_descriptor";
     public static final String COMPONENT_DESCRIPTOR_TYPE_PROPERTY = "type";
     public static final String COMPONENT_DESCRIPTOR_SCOPE_PROPERTY = "scope";
+    public static final String COMPONENT_DESCRIPTOR_CLUSTERING_MODE_PROPERTY = "clustering_mode";
     public static final String COMPONENT_DESCRIPTOR_NAME_PROPERTY = "name";
     public static final String COMPONENT_DESCRIPTOR_CLASS_PROPERTY = "clazz";
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_DESCRIPTOR_PROPERTY = "configuration_descriptor";
@@ -561,6 +562,7 @@ public class ModelConstants {
     public static final String EVENT_OUT_MSG_COLUMN_NAME = "e_out_message";
 
     public static final String DEBUG_MODE = "debug_mode";
+    public static final String SINGLETON_MODE = "singleton_mode";
 
     /**
      * Cassandra rule chain constants.

@@ -28,56 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.common.data.plugin;
 
-import org.thingsboard.server.common.data.plugin.ComponentScope;
-import org.thingsboard.server.common.data.plugin.ComponentClusteringMode;
-import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.rule.RuleChainType;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface RuleNode {
-
-    ComponentType type();
-
-    String name();
-
-    String nodeDescription();
-
-    String nodeDetails();
-
-    Class<? extends NodeConfiguration> configClazz();
-
-    ComponentClusteringMode clusteringMode() default ComponentClusteringMode.ENABLED;
-
-    boolean inEnabled() default true;
-
-    boolean outEnabled() default true;
-
-    ComponentScope scope() default ComponentScope.TENANT;
-
-    String[] relationTypes() default {"Success", "Failure"};
-
-    String[] uiResources() default {};
-
-    String configDirective() default "";
-
-    String icon() default "";
-
-    String iconUrl() default "";
-
-    String docUrl() default "";
-
-    boolean customRelations() default false;
-
-    boolean ruleChainNode() default false;
-
-    RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
-
+/**
+ * The main idea to use this - it's adding the ability to start rule nodes in singleton mode in cluster setup
+ * (singleton rule node will start in only one Rule Engine instance)
+ * USER_PREFERENCE - user has ability to configure clustering mode (enable/disable singleton mode in rule node config)
+ * ENABLE - user doesn't have ability to configure clustering mode (singleton mode is always FALSE in rule node config)
+ * SINGLETON - user doesn't have ability to configure clustering mode (singleton mode is always TRUE in rule node config)
+ */
+public enum ComponentClusteringMode {
+    USER_PREFERENCE,
+    ENABLED,
+    SINGLETON
 }
