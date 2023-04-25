@@ -335,9 +335,8 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
     public long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query) {
         QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
 
-        ctx.append("select count(id) from alarm_info a ");
-
         if (query.isSearchPropagatedAlarms()) {
+            ctx.append("select count(distinct(a.id)) from alarm_info a ");
             ctx.append(JOIN_ENTITY_ALARMS);
             ctx.append("where a.tenant_id = :tenantId and ea.tenant_id = :tenantId");
             ctx.addUuidParameter("tenantId", tenantId.getId());
@@ -346,6 +345,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
                 ctx.addUuidParameter("customerId", customerId.getId());
             }
         } else {
+            ctx.append("select count(id) from alarm_info a ");
             ctx.append("where a.tenant_id = :tenantId");
             ctx.addUuidParameter("tenantId", tenantId.getId());
             if (customerId != null && !customerId.isNullUid()) {
