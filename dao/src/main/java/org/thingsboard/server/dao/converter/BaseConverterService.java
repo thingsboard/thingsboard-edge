@@ -92,6 +92,13 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
+    public Optional<Converter> findConverterByName(TenantId tenantId, String converterName) {
+        log.trace("Executing findConverterByName [{}]", converterName);
+        PageLink pageLink = new PageLink(1);
+        PageData<Converter> pageData = converterDao.findConverterByTenantIdAndName(tenantId.getId(), converterName, pageLink);
+        return pageData.getData().stream().findFirst();
+    }
+    @Override
     public ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
         validateId(converterId, INCORRECT_CONVERTER_ID + converterId);

@@ -51,6 +51,7 @@ export interface RuleNode extends BaseData<RuleNodeId> {
   type: string;
   name: string;
   debugMode: boolean;
+  singletonMode: boolean;
   configuration: RuleNodeConfiguration;
   additionalInfo?: any;
 }
@@ -335,6 +336,7 @@ export interface RuleNodeComponentDescriptor extends ComponentDescriptor {
 
 export interface FcRuleNodeType extends FcNode {
   component?: RuleNodeComponentDescriptor;
+  singletonMode?: boolean;
   nodeClass?: string;
   icon?: string;
   iconUrl?: string;
@@ -400,6 +402,10 @@ export enum MessageType {
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
   ALARM_ACKNOWLEDGED = 'ALARM_ACKNOWLEDGED',
   ALARM_CLEARED = 'ALARM_CLEARED',
+  ALARM_ASSIGNED = 'ALARM_ASSIGNED',
+  ALARM_UNASSIGNED = 'ALARM_UNASSIGNED',
+  COMMENT_CREATED = 'COMMENT_CREATED',
+  COMMENT_UPDATED = 'COMMENT_UPDATED',
   ADDED_TO_GROUP = 'ADDED_TO_GROUP',
   REMOVED_FROM_GROUP = 'REMOVED_FROM_GROUP',
   ENTITY_ASSIGNED_FROM_TENANT = 'ENTITY_ASSIGNED_FROM_TENANT',
@@ -442,6 +448,10 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
     [MessageType.ALARM_ACKNOWLEDGED, 'Alarm Acknowledged'],
     [MessageType.ALARM_CLEARED, 'Alarm Cleared'],
+    [MessageType.ALARM_ASSIGNED, 'Alarm Assigned'],
+    [MessageType.ALARM_UNASSIGNED, 'Alarm Unassigned'],
+    [MessageType.COMMENT_CREATED, 'Comment Created'],
+    [MessageType.COMMENT_UPDATED, 'Comment Updated'],
     [MessageType.ADDED_TO_GROUP, 'Added to Group'],
     [MessageType.REMOVED_FROM_GROUP, 'Removed from Group'],
     [MessageType.ENTITY_ASSIGNED_FROM_TENANT, 'Entity Assigned From Tenant'],

@@ -36,12 +36,12 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 
@@ -80,14 +80,22 @@ public class EntityPrototypes {
         return ruleChain;
     }
 
-    public static EntityGroup defaultEntityGroupPrototype(String entityName, EntityType entityType){
+    public static RuleChain defaultRuleChainPrototype(String entityName, boolean debugMode) {
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName(entityName);
+        ruleChain.setDebugMode(debugMode);
+        return ruleChain;
+    }
+
+    public static EntityGroup defaultEntityGroupPrototype(String entityName, EntityType entityType) {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(entityName);
         entityGroup.setType(entityType);
         return entityGroup;
     }
 
-    public static EntityGroup defaultEntityGroupPrototype(String entityName, EntityType entityType, String description){
+    public static EntityGroup defaultEntityGroupPrototype(String entityName, EntityType entityType, String
+            description) {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(entityName);
         entityGroup.setType(entityType);

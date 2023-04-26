@@ -28,70 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.ui.tests.ruleChainsSmoke;
+package org.thingsboard.server.msa.ui.tests.rulechainssmoke;
 
 import io.qameta.allure.Description;
-import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
-import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
-import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultRuleChainPrototype;
 
-public class SortByTimeTest extends AbstractDriverBaseTest {
+@Feature("Sort rule chain by time")
+public class SortByTimeTest extends AbstractRuleChainTest {
 
-    private SideBarMenuViewElements sideBarMenuView;
-    private RuleChainsPageHelper ruleChainsPage;
-    private String ruleChainName;
-
-    @BeforeClass
-    public void login() {
-        new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewElements(driver);
-        ruleChainsPage = new RuleChainsPageHelper(driver);
-    }
-
-    @AfterMethod
-    public void delete() {
-        if (ruleChainName != null) {
-            testRestClient.deleteRuleChain(getRuleChainByName(ruleChainName).getId());
-            ruleChainName = null;
-        }
-    }
-
-    @Epic("Rule chains smoke tests")
-    @Feature("Sort rule chain by time")
     @Test(priority = 10, groups = "smoke")
     @Description("Sort rule chain 'DOWN'")
     public void sortByTimeDown() {
-        String ruleChain = ENTITY_NAME;
-        testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChain));
-        ruleChainName = ruleChain;
+        ruleChainName = ENTITY_NAME;
+        testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.setSort();
         String firstListElement = ruleChainsPage.getSort().get(ruleChainsPage.getSort().size() - 1);
         String lastCreated = ruleChainsPage.createdTime().get(0).getText();
 
-        Assert.assertEquals(firstListElement, lastCreated);
-        Assert.assertNotNull(ruleChainsPage.createdTimeEntity(ruleChainName, lastCreated));
+        assertThat(firstListElement).as("Last in list is last created").isEqualTo(lastCreated);
+        assertIsDisplayed(ruleChainsPage.createdTimeEntity(ruleChainName, lastCreated));
     }
 
-    @Epic("Rule chains smoke tests")
-    @Feature("Sort rule chain by time")
     @Test(priority = 10, groups = "smoke")
     @Description("Sort rule chain 'UP'")
     public void sortByTimeUp() {
-        String ruleChain = ENTITY_NAME;
-        testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChain));
-        ruleChainName = ruleChain;
+        ruleChainName = ENTITY_NAME;
+        testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.sortByTimeBtn().click();
@@ -99,7 +68,7 @@ public class SortByTimeTest extends AbstractDriverBaseTest {
         String firstListElement = ruleChainsPage.getSort().get(ruleChainsPage.getSort().size() - 1);
         String lastCreated = ruleChainsPage.createdTime().get(ruleChainsPage.createdTime().size() - 1).getText();
 
-        Assert.assertEquals(firstListElement, lastCreated);
-        Assert.assertNotNull(ruleChainsPage.createdTimeEntity(ruleChainName, lastCreated));
+        assertThat(firstListElement).as("First in list is last created").isEqualTo(lastCreated);
+        assertIsDisplayed(ruleChainsPage.createdTimeEntity(ruleChainName, lastCreated));
     }
 }

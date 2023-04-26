@@ -3950,7 +3950,7 @@
             "general": "General",
             "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
-            "rule-engine": "Rule engine",
+            "rule-node": "Rule node",
             "new-platform-version": "New platform version"
         },
         "templates": "Templates",
@@ -4302,6 +4302,7 @@
         "deselect-all": "Deselect all",
         "rulenode-details": "Rule node details",
         "debug-mode": "Debug mode",
+        "singleton-mode": "Singleton mode",
         "configuration": "Configuration",
         "link": "Link",
         "link-details": "Rule node link details",
