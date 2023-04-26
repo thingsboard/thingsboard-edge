@@ -70,6 +70,7 @@ import { deepClone } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { coerceBoolean } from '@shared/decorators/coerce-boolean';
 
 @Component({
   selector: 'tb-manage-widget-actions',
@@ -94,6 +95,10 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   @Input() actionTypes: WidgetActionType[];
 
   @Input() customFunctionArgs: string[];
+
+  @Input()
+  @coerceBoolean()
+  isEntityGroup = false;
 
   innerValue: WidgetActionsData;
 
@@ -251,7 +256,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         action: deepClone(action),
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
-        widgetType: this.widgetType
+        widgetType: this.widgetType,
+        isEntityGroup: this.isEntityGroup
       }
     }).afterClosed().subscribe(
       (res) => {
