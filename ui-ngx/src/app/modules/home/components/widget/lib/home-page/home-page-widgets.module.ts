@@ -52,6 +52,12 @@ import { AddQuickLinkDialogComponent } from '@home/components/widget/lib/home-pa
 import {
   RecentDashboardsWidgetComponent
 } from '@home/components/widget/lib/home-page/recent-dashboards-widget.component';
+import {
+  SolutionTemplatesWidgetComponent
+} from '@home/components/widget/lib/home-page/solution-templates-widget.component';
+import {
+  SolutionTemplateVideoComponent
+} from '@home/components/widget/lib/home-page/solution-template-video.component';
 
 @NgModule({
   declarations:
@@ -71,7 +77,9 @@ import {
       QuickLinksWidgetComponent,
       QuickLinkComponent,
       AddQuickLinkDialogComponent,
-      RecentDashboardsWidgetComponent
+      RecentDashboardsWidgetComponent,
+      SolutionTemplatesWidgetComponent,
+      SolutionTemplateVideoComponent
     ],
   imports: [
     CommonModule,
@@ -93,7 +101,9 @@ import {
     QuickLinksWidgetComponent,
     QuickLinkComponent,
     AddQuickLinkDialogComponent,
-    RecentDashboardsWidgetComponent
+    RecentDashboardsWidgetComponent,
+    SolutionTemplatesWidgetComponent,
+    SolutionTemplateVideoComponent
   ]
 })
 export class HomePageWidgetsModule { }

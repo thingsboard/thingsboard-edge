@@ -28,19 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.solution;
-
-import lombok.Data;
-
-import java.util.List;
-
-@Data
-public class SolutionDescriptor extends SolutionTemplate {
-
-    private List<String> imageUrls;
-    private String previewImageUrl;
-    private String videoPreviewImageUrl;
-    private String previewMp4Url;
-    private String previewWebmUrl;
-
+:host {
+  display: block;
+  width: 600px;
+  max-width: 60vw;
+  position: relative;
+  overflow: hidden;
+  &:before {
+    content: "";
+    display: block;
+    padding-top: 45%;
+  }
+  .tb-frame-image, .tb-frame-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin-left: -1px;
+  }
+  img, video {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
 }

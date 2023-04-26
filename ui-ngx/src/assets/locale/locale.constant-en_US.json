@@ -6739,6 +6739,11 @@
             "assigned-to-me": "Assigned to me",
             "total": "Total"
         },
+        "solution-templates": {
+            "title": "Solution templates",
+            "prototype-plan": "Prototype plan",
+            "startup-plan": "Startup plan"
+        },
         "getting-started": {
             "get-started": "Get started",
             "finish": "Finish",

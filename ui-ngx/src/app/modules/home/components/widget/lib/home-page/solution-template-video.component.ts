@@ -29,58 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { DashboardId } from '@shared/models/id/dashboard-id';
+import { Component, Input } from '@angular/core';
+import { PageComponent } from '@shared/components/page.component';
+import { SolutionTemplateInfo } from '@shared/models/solution-template.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
-export enum SolutionTemplateLevel {
-  MAKER = 'MAKER',
-  PROTOTYPE = 'PROTOTYPE',
-  STARTUP = 'STARTUP'
-}
+@Component({
+  selector: 'tb-solution-template-video',
+  templateUrl: './solution-template-video.component.html',
+  styleUrls: ['./solution-template-video.component.scss']
+})
+export class SolutionTemplateVideoComponent extends PageComponent {
 
-export const solutionTemplateLevelToPlanNameMap = new Map<SolutionTemplateLevel, string>(
-  [
-    [SolutionTemplateLevel.MAKER, 'Maker'],
-    [SolutionTemplateLevel.PROTOTYPE, 'Prototype'],
-    [SolutionTemplateLevel.STARTUP, 'Startup'],
-  ]
-);
+  @Input()
+  solutionTemplate: SolutionTemplateInfo;
 
-export interface SolutionTemplate {
-  id: string;
-  title: string;
-  level: SolutionTemplateLevel;
-  installTimeoutMs: number;
-}
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
 
-export interface SolutionTemplateInfo extends SolutionTemplate {
-  previewImageUrl: string;
-  shortDescription: string;
-  videoPreviewImageUrl: string;
-  previewMp4Url: string;
-  previewWebmUrl: string;
-}
-
-export interface TenantSolutionTemplateInfo extends SolutionTemplateInfo {
-  installed: boolean;
-}
-
-export interface SolutionTemplateDetails extends SolutionTemplate {
-  imageUrls: string[];
-  highlights: string;
-  description: string;
-}
-
-export interface TenantSolutionTemplateDetails extends SolutionTemplateDetails {
-  installed: boolean;
-}
-
-export interface TenantSolutionTemplateInstructions {
-  dashboardGroupId: EntityGroupId;
-  dashboardId: DashboardId;
-  details: string;
-}
-
-export interface SolutionInstallResponse extends TenantSolutionTemplateInstructions {
-  success: boolean;
 }

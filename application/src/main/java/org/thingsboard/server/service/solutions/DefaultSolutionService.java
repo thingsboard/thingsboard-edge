@@ -255,6 +255,9 @@ public class DefaultSolutionService implements SolutionService {
             templateInfo.setInstallTimeoutMs(descriptor.getInstallTimeoutMs());
             templateInfo.setShortDescription(readFile(resolve(descriptor.getId(), "short.md")));
             templateInfo.setPreviewImageUrl(descriptor.getPreviewImageUrl());
+            templateInfo.setVideoPreviewImageUrl(descriptor.getVideoPreviewImageUrl());
+            templateInfo.setPreviewMp4Url(descriptor.getPreviewMp4Url());
+            templateInfo.setPreviewWebmUrl(descriptor.getPreviewWebmUrl());
             templateInfo.setTenantTelemetryKeys(descriptor.getTenantTelemetryKeys());
             templateInfo.setTenantAttributeKeys(descriptor.getTenantAttributeKeys());
             solutions.add(templateInfo);

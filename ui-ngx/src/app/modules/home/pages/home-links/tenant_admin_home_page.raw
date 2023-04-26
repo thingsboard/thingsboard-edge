@@ -663,7 +663,7 @@
             "useMarkdownTextFunction": false,
             "markdownTextPattern": "<div class=\"tb-card-content\">\n    <ng-container *ngIf=\"'DEVICE' | hasGenericPermission:'READ'; else noDataAvailable\">\n        <div class=\"tb-content-container\">\n            <div class=\"tb-card-header\">\n                <div class=\"tb-card-title\">\n                    <a class=\"tb-home-widget-title tb-home-widget-link\" routerLink=\"/entities/devices/all\">{{ 'device.devices' | translate }}</a>\n                </div>\n                <div fxLayout=\"row\" fxLayoutGap=\"12px\">\n                    <a fxHide.md mat-stroked-button color=\"primary\" href=\"{{ ctx.wl.getHelpLinkBaseUrl() }}/docs/pe\" target=\"_blank\">{{ 'widgets.devices.view-docs' | translate }}</a>\n                    <a *ngIf=\"'DEVICE' | hasGenericPermission:'CREATE'\" fxHide.md mat-flat-button color=\"primary\" routerLink=\"/entities/devices/all\" [queryParams]=\"{action: 'add'}\">{{ 'device.add' | translate }}</a>\n                    <a *ngIf=\"'DEVICE' | hasGenericPermission:'CREATE'\" fxHide fxShow.md mat-icon-button class=\"tb-mat-20\" color=\"primary\" routerLink=\"/entities/devices/all\" [queryParams]=\"{action: 'add'}\"><mat-icon>add</mat-icon></a>\n                </div>\n            </div>\n            <div class=\"tb-item-cards\">\n                <a class=\"tb-item-card tb-inactive\" routerLink=\"/entities/devices/all\">\n                    <div class=\"tb-item-title-container\">\n                        <div class=\"tb-item-title tb-home-widget-link\" translate>widgets.devices.inactive</div>\n                    </div>\n                    <div class=\"tb-count-container\">\n                        <div class=\"tb-count\">${inactiveDevices:0}</div>\n                    </div>\n                </a>\n                <a class=\"tb-item-card tb-active\" routerLink=\"/entities/devices/all\">\n                    <div class=\"tb-active-border\"></div>\n                    <div class=\"tb-item-title-container\">\n                        <div class=\"tb-item-title tb-home-widget-link\" translate>widgets.devices.active</div>\n                    </div>    \n                    <div class=\"tb-count-container\">\n                        <div class=\"tb-count\">${activeDevices:0}</div>\n                    </div>\n                </a>\n                <a fxHide.md class=\"tb-item-card tb-total\" routerLink=\"/entities/devices/all\">\n                    <div class=\"tb-item-title-container\">\n                        <div class=\"tb-item-title tb-home-widget-link\" translate>widgets.devices.total</div>\n                    </div>    \n                    <div class=\"tb-count-container\">\n                        <div class=\"tb-count\">${totalDevices:0}</div>\n                    </div>\n                </a>\n            </div>\n        </div>\n    </ng-container>\n    <ng-template #noDataAvailable>\n        <div class=\"tb-content-container tb-no-data\">\n            <div class=\"tb-card-header tb-no-data\">\n                <div class=\"tb-home-widget-title\">{{ 'device.devices' | translate | translate }}</div>\n            </div>\n            <div class=\"tb-home-widget-no-data-available\">\n                <div class=\"tb-home-widget-no-data-bg\"></div>\n                <div class=\"tb-home-widget-no-data-text\" translate>widgets.home.no-data-available</div>\n            </div>\n        </div>    \n    </ng-template>\n</div>",
             "applyDefaultMarkdownStyle": false,
-            "markdownCss": ".tb-card-content {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    flex-direction: row;\n}\n\n.tb-content-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    gap: 12px;\n}\n\n.tb-content-container.tb-no-data {\n    gap: 0;\n}\n\n.tb-card-header {\n    height: 36px;\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n}\n\n.tb-card-header.tb-no-data {\n    height: auto;\n}\n\n.tb-item-cards {\n    flex: 1;\n    display: flex;\n    flex-direction: row;\n    gap: 12px;\n}\n\na.tb-item-card {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    padding: 8px 12px;\n    border: 1px solid;\n    border-radius: 10px;\n    margin-bottom: 12px;\n}\n\na.tb-item-card.tb-inactive {\n    background: rgba(209, 39, 48, 0.04);\n    border-color: rgba(209, 39, 48, 0.06);\n}\n\na.tb-item-card.tb-active {\n    position: relative;\n    border: none;\n}\n\na.tb-item-card.tb-active::before {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: var(--tb-primary-500);\n    opacity: 0.04;\n} \n\na.tb-item-card.tb-active .tb-active-border {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: transparent;\n    border: 1px solid;\n    border-color: var(--tb-primary-500);\n    opacity: 0.12;\n}\n\na.tb-item-card.tb-total {\n    background: rgba(0, 0, 0, 0.01);\n    border-color: rgba(0, 0, 0, 0.05);\n}\n\n.tb-item-title-container {\n    display: grid;\n}\n\n.tb-item-title {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.2px;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;    \n    color: rgba(0, 0, 0, 0.76);\n}\n\n.tb-item-title.tb-home-widget-link:after {\n    position: absolute;\n    right: 0;\n}\n\na.tb-item-card:hover .tb-item-title.tb-home-widget-link:after { \n    color: rgba(0, 0, 0, 0.38);\n}\n\na.tb-item-card:hover {\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-count-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    align-items: flex-start;\n    justify-content: center;\n}\n\n.tb-count {\n    font-style: normal;\n    font-weight: 500;\n    font-size: 24px;\n    line-height: 36px;\n    white-space: nowrap;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n@media screen and (max-width: 959px) {\n    .tb-item-cards {\n        flex-direction: column;\n    }\n    a.tb-item-card {\n        margin-bottom: 0;\n    }\n}\n\n@media screen and (max-width: 1279px) {\n    a.tb-item-card {\n        flex-direction: row;\n        align-items: center;\n    }\n    .tb-item-title.tb-home-widget-link:after {\n        position: relative;\n    }\n    .tb-count-container {\n        align-items: flex-end;\n    }\n}\n\n@media screen and (min-width: 960px) and (max-width: 1819px) {\n    .tb-item-title {\n        font-size: 11px;\n        line-height: 16px;\n    }\n    .tb-count {\n        font-size: 16px;\n        line-height: 24px;\n    }\n    a.tb-item-card {\n        padding: 4px 8px;\n        margin-bottom: 6px;\n    }\n    a.tb-item-card:hover {\n        box-shadow: 0px 2px 5px rgba(23, 33, 90, 0.08);\n    }\n}\n"
+            "markdownCss": ".tb-card-content {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    flex-direction: row;\n}\n\n.tb-content-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    gap: 12px;\n}\n\n.tb-content-container.tb-no-data {\n    gap: 0;\n}\n\n.tb-card-header {\n    height: 36px;\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n}\n\n.tb-card-header.tb-no-data {\n    height: auto;\n}\n\n.tb-item-cards {\n    flex: 1;\n    display: flex;\n    flex-direction: row;\n    gap: 12px;\n    overflow: hidden;\n}\n\na.tb-item-card {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    padding: 8px 12px;\n    border: 1px solid;\n    border-radius: 10px;\n    margin-bottom: 12px;\n    overflow: hidden;\n    justify-content: space-evenly;\n}\n\na.tb-item-card.tb-inactive {\n    background: rgba(209, 39, 48, 0.04);\n    border-color: rgba(209, 39, 48, 0.06);\n}\n\na.tb-item-card.tb-active {\n    position: relative;\n    border: none;\n}\n\na.tb-item-card.tb-active::before {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: var(--tb-primary-500);\n    opacity: 0.04;\n} \n\na.tb-item-card.tb-active .tb-active-border {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: transparent;\n    border: 1px solid;\n    border-color: var(--tb-primary-500);\n    opacity: 0.12;\n}\n\na.tb-item-card.tb-total {\n    background: rgba(0, 0, 0, 0.01);\n    border-color: rgba(0, 0, 0, 0.05);\n}\n\n.tb-item-title-container {\n    display: grid;\n}\n\n.tb-item-title {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.2px;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;    \n    color: rgba(0, 0, 0, 0.76);\n}\n\n.tb-item-title.tb-home-widget-link:after {\n    position: absolute;\n    right: 0;\n}\n\na.tb-item-card:hover .tb-item-title.tb-home-widget-link:after { \n    color: rgba(0, 0, 0, 0.38);\n}\n\na.tb-item-card:hover {\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-count-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    align-items: flex-start;\n    justify-content: center;\n}\n\n.tb-count {\n    font-style: normal;\n    font-weight: 500;\n    font-size: 24px;\n    line-height: 36px;\n    white-space: nowrap;\n    color: rgba(0, 0, 0, 0.87);\n}\n\n@media screen and (max-width: 959px) {\n    .tb-item-cards {\n        flex-direction: column;\n    }\n    a.tb-item-card {\n        margin-bottom: 0;\n    }\n}\n\n@media screen and (max-width: 1279px) {\n    a.tb-item-card {\n        flex-direction: row;\n        align-items: center;\n    }\n    .tb-item-title.tb-home-widget-link:after {\n        position: relative;\n    }\n    .tb-count-container {\n        align-items: flex-end;\n    }\n}\n\n@media screen and (min-width: 960px) and (max-width: 1819px) {\n    .tb-item-title {\n        font-size: 11px;\n        line-height: 16px;\n    }\n    .tb-count {\n        font-size: 16px;\n        line-height: 24px;\n    }\n    a.tb-item-card {\n        padding: 4px 8px;\n        margin-bottom: 6px;\n    }\n    a.tb-item-card:hover {\n        box-shadow: 0px 2px 5px rgba(23, 33, 90, 0.08);\n    }\n}\n"
           },
           "title": "Devices",
           "showTitleIcon": false,
@@ -818,7 +818,7 @@
             "useMarkdownTextFunction": false,
             "markdownTextPattern": "<div class=\"tb-card-content\">\n    <ng-container *ngIf=\"'ALARM' | hasGenericPermission:'READ'; else noDataAvailable\">\n        <div class=\"tb-content-container\">\n            <div class=\"tb-card-header\">\n                <div class=\"tb-card-title\">\n                    <a class=\"tb-home-widget-title tb-home-widget-link\" routerLink=\"/alarms\">{{ 'alarm.alarms' | translate }}</a>\n                </div>\n            </div>\n            <div class=\"tb-item-cards\">\n                <a class=\"tb-item-card tb-critical\" routerLink=\"/alarms\" [queryParams]=\"{severityList: ['CRITICAL']}\">\n                    <div class=\"tb-item-title-container\">\n                        <div class=\"tb-item-title tb-home-widget-link\" translate>widgets.alarms.critical</div>\n                    </div>    \n                    <div class=\"tb-count-container\">\n                        <div class=\"tb-count\">${criticalAlarms:0}</div>\n                    </div>\n                </a>\n                <a class=\"tb-item-card tb-assigned\" routerLink=\"/alarms\" [queryParams]=\"{assignedToMe: true}\">\n                    <div class=\"tb-assigned-border\"></div>\n                    <div class=\"tb-item-title-container\">\n                        <div class=\"tb-item-title tb-home-widget-link\" translate>widgets.alarms.assigned-to-me</div>\n                    </div>    \n                    <div class=\"tb-count-container\">\n                        <div class=\"tb-count\">${assignedToMeAlarms:0}</div>\n                    </div>\n                </a>\n                <a fxHide.md class=\"tb-item-card tb-total\" routerLink=\"/alarms\">\n                    <div class=\"tb-item-title-container\">\n                        <div class=\"tb-item-title tb-home-widget-link\" translate>widgets.alarms.total</div>\n                    </div>    \n                    <div class=\"tb-count-container\">\n                        <div class=\"tb-count\">${totalAlarms:0}</div>\n                    </div>\n                </a>\n            </div>\n        </div>\n    </ng-container>\n    <ng-template #noDataAvailable>\n        <div class=\"tb-content-container tb-no-data\">\n            <div class=\"tb-card-header tb-no-data\">\n                <div class=\"tb-home-widget-title\">{{ 'alarm.alarms' | translate | translate }}</div>\n            </div>\n            <div class=\"tb-home-widget-no-data-available\">\n                <div class=\"tb-home-widget-no-data-bg\"></div>\n                <div class=\"tb-home-widget-no-data-text\" translate>widgets.home.no-data-available</div>\n            </div>\n        </div>    \n    </ng-template>\n</div>",
             "applyDefaultMarkdownStyle": false,
-            "markdownCss": ".tb-card-content {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    flex-direction: row;\n}\n\n.tb-content-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    gap: 12px;\n}\n\n.tb-content-container.tb-no-data {\n    gap: 0;\n}\n\n.tb-card-header {\n    height: 36px;\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n}\n\n.tb-card-header.tb-no-data {\n    height: auto;\n}\n\n.tb-item-cards {\n    flex: 1;\n    display: flex;\n    flex-direction: row;\n    gap: 12px;\n}\n\na.tb-item-card {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    padding: 8px 12px;\n    border: 1px solid;\n    border-radius: 10px;\n    margin-bottom: 12px;\n}\n\na.tb-item-card.tb-critical {\n    background: rgba(209, 39, 48, 0.04);\n    border-color: rgba(209, 39, 48, 0.06);\n}\n\na.tb-item-card.tb-assigned {\n    position: relative;\n    border: none;\n}\n\na.tb-item-card.tb-assigned::before {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: var(--tb-primary-500);\n    opacity: 0.04;\n} \n\na.tb-item-card.tb-assigned .tb-assigned-border {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: transparent;\n    border: 1px solid;\n    border-color: var(--tb-primary-500);\n    opacity: 0.12;\n}\n\na.tb-item-card.tb-total {\n    background: rgba(0, 0, 0, 0.01);\n    border-color: rgba(0, 0, 0, 0.05);\n}\n\n.tb-item-title-container {\n    display: grid;\n}\n\n.tb-item-title {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.2px;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;    \n    color: rgba(0, 0, 0, 0.76);\n}\n\n.tb-item-title.tb-home-widget-link:after {\n    position: absolute;\n    right: 0;\n}\n\na.tb-item-card:hover .tb-item-title.tb-home-widget-link:after { \n    color: rgba(0, 0, 0, 0.38);\n}\n\na.tb-item-card:hover {\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-count-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    align-items: flex-start;\n    justify-content: center;\n}\n\n.tb-count {\n    font-style: normal;\n    font-weight: 500;\n    font-size: 24px;\n    line-height: 36px;\n    white-space: nowrap;\n    color: rgba(0, 0, 0, 0.87);\n}\n\na.tb-item-card.tb-critical .tb-count:after {\n    content: \"warning\";\n    display: inline-block;\n    position: relative;\n    font-family: 'Material Icons Round';\n    color: #D12730;\n    vertical-align: bottom;\n    margin-left: 6px;\n}\n\n@media screen and (max-width: 959px) {\n    .tb-item-cards {\n        flex-direction: column;\n    }\n    a.tb-item-card {\n        margin-bottom: 0;\n    }\n}\n\n@media screen and (max-width: 1279px) {\n    a.tb-item-card {\n        flex-direction: row;\n        align-items: center;\n    }\n    .tb-item-title.tb-home-widget-link:after {\n        position: relative;\n    }\n    .tb-count-container {\n        align-items: flex-end;\n    }\n}\n\n@media screen and (min-width: 960px) and (max-width: 1819px) {\n    .tb-item-title {\n        font-size: 11px;\n        line-height: 16px;\n    }\n    .tb-count {\n        font-size: 16px;\n        line-height: 24px;\n    }\n    a.tb-item-card {\n        padding: 4px 8px;\n        margin-bottom: 6px;\n    }\n    a.tb-item-card:hover {\n        box-shadow: 0px 2px 5px rgba(23, 33, 90, 0.08);\n    }\n    a.tb-item-card.tb-critical .tb-count:after {\n        margin-left: 2px;\n    }\n}\n"
+            "markdownCss": ".tb-card-content {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    flex-direction: row;\n}\n\n.tb-content-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: flex-start;\n    gap: 12px;\n}\n\n.tb-content-container.tb-no-data {\n    gap: 0;\n}\n\n.tb-card-header {\n    height: 36px;\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n}\n\n.tb-card-header.tb-no-data {\n    height: auto;\n}\n\n.tb-item-cards {\n    flex: 1;\n    display: flex;\n    flex-direction: row;\n    gap: 12px;\n    overflow: hidden;\n}\n\na.tb-item-card {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    padding: 8px 12px;\n    border: 1px solid;\n    border-radius: 10px;\n    margin-bottom: 12px;\n    overflow: hidden;\n    justify-content: space-evenly;\n}\n\na.tb-item-card.tb-critical {\n    background: rgba(209, 39, 48, 0.04);\n    border-color: rgba(209, 39, 48, 0.06);\n}\n\na.tb-item-card.tb-assigned {\n    position: relative;\n    border: none;\n}\n\na.tb-item-card.tb-assigned::before {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: var(--tb-primary-500);\n    opacity: 0.04;\n} \n\na.tb-item-card.tb-assigned .tb-assigned-border {\n    content: \"\";\n    position: absolute;\n    border-radius: 10px;\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    background: transparent;\n    border: 1px solid;\n    border-color: var(--tb-primary-500);\n    opacity: 0.12;\n}\n\na.tb-item-card.tb-total {\n    background: rgba(0, 0, 0, 0.01);\n    border-color: rgba(0, 0, 0, 0.05);\n}\n\n.tb-item-title-container {\n    display: grid;\n}\n\n.tb-item-title {\n    font-weight: 400;\n    font-size: 14px;\n    line-height: 20px;\n    letter-spacing: 0.2px;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;    \n    color: rgba(0, 0, 0, 0.76);\n}\n\n.tb-item-title.tb-home-widget-link:after {\n    position: absolute;\n    right: 0;\n}\n\na.tb-item-card:hover .tb-item-title.tb-home-widget-link:after { \n    color: rgba(0, 0, 0, 0.38);\n}\n\na.tb-item-card:hover {\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-count-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    align-items: flex-start;\n    justify-content: center;\n}\n\n.tb-count {\n    font-style: normal;\n    font-weight: 500;\n    font-size: 24px;\n    line-height: 36px;\n    white-space: nowrap;\n    color: rgba(0, 0, 0, 0.87);\n}\n\na.tb-item-card.tb-critical .tb-count:after {\n    content: \"warning\";\n    display: inline-block;\n    position: relative;\n    font-family: 'Material Icons Round';\n    color: #D12730;\n    vertical-align: bottom;\n    margin-left: 6px;\n}\n\n@media screen and (max-width: 959px) {\n    .tb-item-cards {\n        flex-direction: column;\n    }\n    a.tb-item-card {\n        margin-bottom: 0;\n    }\n}\n\n@media screen and (max-width: 1279px) {\n    a.tb-item-card {\n        flex-direction: row;\n        align-items: center;\n    }\n    .tb-item-title.tb-home-widget-link:after {\n        position: relative;\n    }\n    .tb-count-container {\n        align-items: flex-end;\n    }\n}\n\n@media screen and (min-width: 960px) and (max-width: 1819px) {\n    .tb-item-title {\n        font-size: 11px;\n        line-height: 16px;\n    }\n    .tb-count {\n        font-size: 16px;\n        line-height: 24px;\n    }\n    a.tb-item-card {\n        padding: 4px 8px;\n        margin-bottom: 6px;\n    }\n    a.tb-item-card:hover {\n        box-shadow: 0px 2px 5px rgba(23, 33, 90, 0.08);\n    }\n    a.tb-item-card.tb-critical .tb-count:after {\n        margin-left: 2px;\n    }\n}\n"
           },
           "title": "Alarms",
           "showTitleIcon": false,
@@ -842,6 +842,39 @@
         "row": 0,
         "col": 0,
         "id": "7ac20b6a-dc40-b18e-9f5f-bca20bc693bb"
+      },
+      "c007f42d-23eb-c0c2-9708-2fd380ce0b21": {
+        "isSystemType": true,
+        "bundleAlias": "home_page_widgets",
+        "typeAlias": "solution_templates",
+        "type": "static",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "16px",
+          "settings": {
+            "columns": 3
+          },
+          "title": "Solution templates",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "showLegend": false,
+          "enableDataExport": true,
+          "datasources": []
+        },
+        "row": 0,
+        "col": 0,
+        "id": "c007f42d-23eb-c0c2-9708-2fd380ce0b21"
       }
     },
     "states": {
@@ -853,16 +886,16 @@
             "widgets": {
               "d70cc256-4c7b-ee06-9905-b8c5e546605f": {
                 "sizeX": 42,
-                "sizeY": 20,
-                "row": 22,
+                "sizeY": 19,
+                "row": 25,
                 "col": 43,
-                "mobileOrder": 4,
+                "mobileOrder": 5,
                 "mobileHeight": 10
               },
               "867f82cf-ecf2-2d5c-35cb-08c6f2edc3a4": {
                 "sizeX": 29,
-                "sizeY": 16,
-                "row": 42,
+                "sizeY": 14,
+                "row": 44,
                 "col": 28,
                 "mobileHide": true
               },
@@ -875,42 +908,50 @@
               },
               "ebbd0a6e-8a47-e770-5086-7f4974250f2d": {
                 "sizeX": 28,
-                "sizeY": 16,
-                "row": 42,
+                "sizeY": 14,
+                "row": 44,
                 "col": 57,
-                "mobileOrder": 3,
+                "mobileOrder": 4,
                 "mobileHeight": 10
               },
               "9e3ef045-d8bc-1640-a3f4-2dd10b19d50e": {
                 "sizeX": 28,
-                "sizeY": 16,
-                "row": 42,
+                "sizeY": 14,
+                "row": 44,
                 "col": 0,
                 "mobileHide": true
               },
               "6d6e2b1d-6ce7-4678-3745-c6b0897b2674": {
                 "sizeX": 43,
-                "sizeY": 20,
-                "row": 22,
+                "sizeY": 19,
+                "row": 25,
                 "col": 0,
                 "mobileOrder": 2,
                 "mobileHeight": 10
               },
               "35d3ac3b-f1af-dc3d-a1d1-11f351d16fc6": {
                 "sizeX": 43,
-                "sizeY": 11,
-                "row": 11,
+                "sizeY": 12,
+                "row": 13,
                 "col": 0,
                 "mobileHeight": 9,
                 "mobileOrder": 1
               },
               "7ac20b6a-dc40-b18e-9f5f-bca20bc693bb": {
                 "sizeX": 42,
-                "sizeY": 11,
+                "sizeY": 12,
                 "mobileHeight": 9,
-                "row": 11,
+                "row": 13,
                 "col": 43,
                 "mobileOrder": 0
+              },
+              "c007f42d-23eb-c0c2-9708-2fd380ce0b21": {
+                "sizeX": 85,
+                "sizeY": 13,
+                "row": 0,
+                "col": 0,
+                "mobileOrder": 3,
+                "mobileHeight": 7
               }
             },
             "gridSettings": {
