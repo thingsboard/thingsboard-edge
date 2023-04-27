@@ -318,4 +318,10 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
             testRestClient.deleteEntityView(entityViewId);
         }
     }
+
+    public EntityGroupInfo getCustomerUserGroupByCustomerTitleAndGroupName(String customerTile, String groupName) {
+        return testRestClient.getEntityGroupsByOwnerAndType(EntityType.CUSTOMER, getCustomerByName(customerTile).getId(), EntityType.USER).stream()
+                .filter(eg -> eg.getName().equals(groupName))
+                .findFirst().orElse(null);
+    }
 }

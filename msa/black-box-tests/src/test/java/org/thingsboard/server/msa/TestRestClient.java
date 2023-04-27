@@ -621,6 +621,16 @@ public class TestRestClient {
                 .as(EntityGroupInfo.class);
     }
 
+    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(EntityType ownerType, EntityId ownerId, EntityType groupType) {
+        return given().spec(requestSpec)
+                .get("/api/entityGroups/{ownerType}/{ownerId}/{groupType}", ownerType, ownerId.getId(), groupType)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<EntityGroupInfo>>() {
+                });
+    }
+
     public void deleteEntityGroup(EntityGroupId entityGroupId) {
         given().spec(requestSpec)
                 .delete("/api/entityGroup/{entityGroupId}", entityGroupId.getId())
@@ -649,6 +659,16 @@ public class TestRestClient {
         return given().spec(requestSpec)
                 .body(user)
                 .post("/api/user?sendActivationMail=false")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(User.class);
+    }
+
+    public User postUser(User user, EntityGroupId entityId) {
+        return given().spec(requestSpec)
+                .body(user)
+                .post("/api/user?sendActivationMail=false&entityGroupIds={entityId}", entityId.getId())
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()

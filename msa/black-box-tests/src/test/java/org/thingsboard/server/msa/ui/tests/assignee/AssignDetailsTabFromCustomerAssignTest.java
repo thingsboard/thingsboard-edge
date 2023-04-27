@@ -125,8 +125,9 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.assignAlarmTo(tenantAlarmType, Const.TENANT_EMAIL);
         devicePage.closeDeviceDetailsViewBtn().click();
-        devicePage.assignToCustomerBtn(tenantDeviceName).click();
-        devicePage.assignToCustomer(customerTitle);
+        devicePage.checkBox(tenantDeviceName).click();
+        devicePage.changeOwnerBtn().click();
+        devicePage.changeOwner(customerTitle);
         loginByUser(userEmail);
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(tenantDeviceName);
@@ -141,14 +142,15 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.assignAlarmTo(tenantAlarmType, Const.TENANT_EMAIL);
         devicePage.closeDeviceDetailsViewBtn().click();
-        devicePage.assignToCustomerBtn(tenantDeviceName).click();
-        devicePage.assignToCustomer(customerTitle);
+        devicePage.checkBox(tenantDeviceName).click();
+        devicePage.changeOwnerBtn().click();
+        devicePage.changeOwner(customerTitle);
         loginByUser(userEmail);
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(tenantDeviceName);
-        jsClick(alarmPage.assignBtn(tenantAlarmType));
+        alarmPage.assignAlarmTo(tenantAlarmType, userEmail);
 
-        assertIsDisplayed(alarmPage.accessForbiddenDialogView());
+        assertIsDisplayed(alarmPage.assignedUser(userEmail));
     }
 
     @Description("Check the reassign tenant for old alarm on device")
@@ -158,14 +160,16 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.assignAlarmTo(tenantAlarmType, Const.TENANT_EMAIL);
         devicePage.closeDeviceDetailsViewBtn().click();
-        devicePage.assignToCustomerBtn(tenantDeviceName).click();
-        devicePage.assignToCustomer(customerTitle);
+        devicePage.checkBox(tenantDeviceName).click();
+        devicePage.changeOwnerBtn().click();
+        devicePage.changeOwner(customerTitle);
         loginByUser(userEmail);
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.alarmDetailsBtn(tenantAlarmType).click();
+        alarmDetailsView.assignAlarmTo(userEmail);
+        alarmDetailsView.closeAlarmDetailsViewBtn().click();
 
-
-        assertIsDisplayed(alarmPage.accessForbiddenDialogView());
+        assertIsDisplayed(alarmPage.assignedUser(userEmail));
     }
 }
