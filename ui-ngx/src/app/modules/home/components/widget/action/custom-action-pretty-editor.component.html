@@ -66,7 +66,7 @@
             [(ngModel)]="action.customFunction"
             (ngModelChange)="onActionUpdated()"
             [fillHeight]="true"
-            [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'htmlTemplate', 'additionalParams', 'entityLabel']"
+            [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'htmlTemplate', 'additionalParams', 'entityLabel', 'customModules']"
             [disableUndefinedCheck]="true"
             [validationArgs]="[]"
             [editorCompleter]="customPrettyActionEditorCompleter"
