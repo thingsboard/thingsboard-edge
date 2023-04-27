@@ -58,6 +58,8 @@ public class SideBarMenuViewElements extends AbstractBasePage {
             "/ancestor::span//span[contains(@class,'pull-right')]";
     private static final String INSTANCES_BTN = "//mat-toolbar//span[text()='Instances']";
     private static final String RULE_CHAIN_TEMPLATES_BTN = "//mat-sidenav//span[text() = 'Rule chain templates']";
+    private static final String ALARMS_BTN = "//mat-toolbar//a[@href='/alarms']";
+    private static final String ENTITY_VIEWS_BTN = "//ul[@id='docs-menu-entity.entities']//span[text()='Entity Views']";
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -125,5 +127,13 @@ public class SideBarMenuViewElements extends AbstractBasePage {
 
     public WebElement ruleChainTemplatesBtn() {
         return waitUntilElementToBeClickable(RULE_CHAIN_TEMPLATES_BTN);
+    }
+
+    public WebElement alarmsBtn() {
+        return waitUntilElementToBeClickable(ALARMS_BTN);
+    }
+
+    public WebElement entityViewsBtn() {
+        return waitUntilElementToBeClickable(ENTITY_VIEWS_BTN);
     }
 }
