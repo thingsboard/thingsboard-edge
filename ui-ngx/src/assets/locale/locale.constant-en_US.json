@@ -456,6 +456,8 @@
         "select-alarm": "Select alarm",
         "no-alarms-matching": "No alarms matching '{{entity}}' were found.",
         "alarm-required": "Alarm is required",
+        "alarm-filter": "Alarm filter",
+        "filter": "Filter",
         "alarm-status": "Alarm status",
         "alarm-status-list": "Alarm status list",
         "any-status": "Any status",
@@ -488,6 +490,7 @@
         "assignee-last-name": "Assignee last name",
         "assignee-email": "Assignee email",
         "unassigned": "Unassigned",
+        "assignee-not-set": "All",
         "status": "Status",
         "alarm-details": "Alarm details",
         "start-time": "Start time",
@@ -520,7 +523,9 @@
         "clear-alarm-title": "Clear Alarm",
         "clear-alarm-text": "Are you sure you want to clear Alarm?",
         "alarm-status-filter": "Alarm Status Filter",
-        "alarm-filter": "Alarm Filter",
+        "alarm-filter-title": "Alarm Filter",
+        "assigned": "Assigned",
+        "filter-title": "Filter",
         "max-count-load": "Maximum number of alarms to load (0 - unlimited)",
         "max-count-load-required": "Maximum number of alarms to load is required.",
         "max-count-load-error-min": "Minimum value is 0.",
@@ -529,6 +534,8 @@
         "fetch-size-error-min": "Minimum value is 10.",
         "alarm-type-list": "Alarm type list",
         "any-type": "Any type",
+        "assigned-to-current-user": "Assigned to current user",
+        "assigned-to-me": "Assigned to me",
         "search-propagated-alarms": "Search propagated alarms",
         "comments": "Alarm comments",
         "show-more": "Show more",
@@ -622,6 +629,7 @@
     },
     "asset": {
         "all": "All",
+        "all-assets": "All assets",
         "groups": "Groups",
         "shared": "Shared",
         "asset": "Asset",
@@ -962,6 +970,7 @@
     },
     "customer": {
         "all": "All",
+        "all-customers": "All customers",
         "groups": "Groups",
         "shared": "Shared",
         "hierarchy": "Hierarchy",
@@ -1071,6 +1080,7 @@
     },
     "dashboard": {
         "all": "All",
+        "all-dashboards": "All dashboards",
         "groups": "Groups",
         "shared": "Shared",
         "dashboard": "Dashboard",
@@ -1336,6 +1346,7 @@
     },
     "device": {
         "all": "All",
+        "all-devices": "All devices",
         "groups": "Groups",
         "shared": "Shared",
         "device": "Device",
@@ -1966,6 +1977,7 @@
     },
     "edge": {
         "all": "All",
+        "all-edges": "All edges",
         "groups": "Groups",
         "shared": "Shared",
         "edge": "Edge",
@@ -2051,8 +2063,11 @@
         "dashboard": "Edge dashboard",
         "dashboards": "Edge Dashboards",
         "rulechain-templates": "Rule chain templates",
+        "edge-rulechain-templates": "Edge rule chain templates",
         "converter-templates": "Converter templates",
+        "edge-converter-templates": "Edge converter templates",
         "integration-templates": "Integration templates",
+        "edge-integration-templates": "Edge integration templates",
         "rulechains": "Rule chains",
         "integrations": "Integrations",
         "search": "Search edges",
@@ -2103,7 +2118,6 @@
         "manage-dashboard-groups": "Manage dashboard groups",
         "manage-entity-view-groups": "Manage entity view groups",
         "manage-scheduler-events": "Manage scheduler events",
-        "manage-rulechains": "Manage rule chains",
         "manage-integrations": "Manage integrations",
         "assign-scheduler-event-to-edge-title": "Assign Scheduler Events To Edge",
         "assign-scheduler-event-to-edge-text": "Please select the scheduler events to assign to the edge",
@@ -2175,6 +2189,7 @@
         "entity": "Entity",
         "entities": "Entities",
         "entities-count": "Entities count",
+        "alarms-count": "Alarms count",
         "aliases": "Entity aliases",
         "entity-alias": "Entity alias",
         "unable-delete-entity-alias-title": "Unable to delete entity alias",
@@ -2514,6 +2529,7 @@
     },
     "entity-view": {
         "all": "All",
+        "all-entity-views": "All entity views",
         "groups": "Groups",
         "shared": "Shared",
         "entity-view": "Entity View",
@@ -3784,6 +3800,8 @@
             "web": "Web",
             "web-preview": "Web notification preview"
         },
+        "delivery-method-not-configure-click": "Delivery method is not configured. Click to setup.",
+        "delivery-method-not-configure-contact": "Delivery method is not configured. Contact your system administrator.",
         "delivery-methods": "Delivery methods",
         "description": "Description",
         "device-activity-trigger-settings": "Device active trigger settings",
@@ -3805,6 +3823,7 @@
         "first-recipient": "First recipient",
         "inactive": "Inactive",
         "inbox": "Inbox",
+        "notification-inbox": "Notifications / Inbox",
         "input-field-support-templatization": "Input field support templatization.",
         "input-fields-support-templatization": "Input fields support templatization.",
         "integration-action-trigger-settings": "Integration events trigger settings",
@@ -3874,8 +3893,10 @@
             "users-entity-owner-hint": "Users of the entity owner hint"
         },
         "recipients": "Recipients",
+        "notification-recipients": "Notifications / Recipients",
         "recipients-count": "{ count, plural, =1 {1 recipient} other {# recipients} }",
-        "recipients-required": "Recipients is required",
+        "recipients-required": "Recipients are required",
+        "refresh-allow-delivery-method": "Refresh allow delivery method",
         "request-search": "Request search",
         "request-status": {
             "processing": "Processing",
@@ -3891,6 +3912,7 @@
         "rule-name-required": "Name is required",
         "rule-node-filter": "Rule node filter",
         "rules": "Rules",
+        "notification-rules": "Notifications / Rules",
         "scheduler-later": "Schedule for later",
         "search-notification": "Search notifications",
         "search-recipients": "Search recipients",
@@ -3904,6 +3926,7 @@
         "selected-template": "{ count, plural, =1 {1 template} other {# templates} } selected",
         "send-notification": "Send notification",
         "sent": "Sent",
+        "notification-sent": "Notifications / Sent",
         "set-entity-from-notification": "Set entity from notification to dashboard state",
         "slack-chanel-type": "Slack channel type",
         "slack-chanel-types": {
@@ -3930,10 +3953,11 @@
             "general": "General",
             "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
-            "rule-engine": "Rule engine",
+            "rule-node": "Rule node",
             "new-platform-version": "New platform version"
         },
         "templates": "Templates",
+        "notification-templates": "Notifications / Templates",
         "tenant-profiles-list-rule-hint": "If the field is empty, the trigger will be applied to all tenant profiles",
         "tenants-list-rule-hint": "If the field is empty, the trigger will be applied to all tenants",
         "threshold": "Threshold",
@@ -4051,6 +4075,7 @@
     },
     "security": {
         "security": "Security",
+        "general-settings": "General security settings",
         "2fa": {
             "2fa": "Two-factor authentication",
             "2fa-description": "Two-factor authentication protects your account from unauthorized access. All you have to do is enter a security code when you log in.",
@@ -4280,6 +4305,7 @@
         "deselect-all": "Deselect all",
         "rulenode-details": "Rule node details",
         "debug-mode": "Debug mode",
+        "singleton-mode": "Singleton mode",
         "configuration": "Configuration",
         "link": "Link",
         "link-details": "Rule node link details",
@@ -5050,14 +5076,17 @@
         "period": "from {{ startTime }} to {{ endTime }}",
         "edit": "Edit timewindow",
         "date-range": "Date range",
+        "for-all-time": "For all time",
         "last": "Last",
         "time-period": "Time period",
         "hide": "Hide",
         "interval": "Interval",
-        "just-now": "Just now"
+        "just-now": "Just now",
+        "ago": "ago"
     },
     "user": {
         "all": "All",
+        "all-users": "All users",
         "groups": "Groups",
         "user": "User",
         "users": "Users",
@@ -5508,6 +5537,7 @@
     },
     "white-labeling": {
         "white-labeling": "White Labeling",
+        "white-labeling-general": "General White Labeling",
         "login-white-labeling": "Login White Labeling",
         "general": "General",
         "login": "Login",
@@ -5631,6 +5661,7 @@
             "line-settings": "Line settings",
             "show-line": "Show line",
             "fill-line": "Fill line",
+            "fill-line-opacity": "Fill opacity",
             "points-settings": "Points settings",
             "show-points": "Show points",
             "points-line-width": "Line width of points",
@@ -6588,6 +6619,9 @@
             "color": "Color",
             "shadow-color": "Shadow color"
         },
+        "home": {
+            "no-data-available": "No data available"
+        },
         "system-info": {
             "cpu": "CPU",
             "ram": "RAM",
@@ -6608,6 +6642,9 @@
             "title": "Transport messages",
             "info": "All the messages that came from devices"
         },
+        "activity": {
+            "title": "Activity"
+        },
         "documentation": {
             "title": "Documentation",
             "add-link": "Add link",
@@ -6617,6 +6654,23 @@
             "link": "Link",
             "link-required": "Link is required.",
             "columns": "Columns"
+        },
+        "quick-links": {
+            "title": "Quick links",
+            "add-link": "Add link",
+            "add-link-title": "Add quick link",
+            "quick-link": "Quick link",
+            "quick-link-required": "Quick link is required.",
+            "no-links-matching": "No links matching '{{name}}' were found.",
+            "columns": "Columns"
+        },
+        "recent-dashboards": {
+            "title": "Dashboards",
+            "last": "Last viewed",
+            "starred": "Starred",
+            "name": "Name",
+            "last-viewed": "Last viewed",
+            "no-last-viewed-dashboards": "No last viewed dashboards yet"
         },
         "configured-features": {
             "title": "Configured features",
@@ -6653,6 +6707,11 @@
             "unlimited-datapoints-and-messages": "Unlimited datapoints and messages",
             "unlimited-api-calls": "Unlimited API calls"
         },
+        "usage-info": {
+            "title": "Usage",
+            "entities": "Entities",
+            "api-calls": "API calls"
+        },
         "functions": {
             "title": "Functions",
             "pe-feature-tooltip": "Only on ThingsBoard\nProfessional Edition",
@@ -6672,6 +6731,22 @@
             "solution-templates": "Solution templates",
             "scheduler": "Scheduler",
             "white-labeling": "White-labeling"
+        },
+        "devices": {
+            "view-docs": "View docs",
+            "inactive": "Inactive",
+            "active": "Active",
+            "total": "Total"
+        },
+        "alarms": {
+            "critical": "Critical",
+            "assigned-to-me": "Assigned to me",
+            "total": "Total"
+        },
+        "solution-templates": {
+            "title": "Solution templates",
+            "prototype-plan": "Prototype plan",
+            "startup-plan": "Startup plan"
         },
         "getting-started": {
             "get-started": "Get started",
@@ -6710,9 +6785,55 @@
                     "how-to-configure-oauth2": "How to configure OAuth 2"
                 },
                 "step7": {
-                    "title": "Configure feature: Notifications",
-                    "content": "<p>Some text</p><p>Follow the documentation on how to do it:</p>",
-                    "how-to-configure-notifications": "How to configure Notifications"
+                    "title": "Configure feature: Slack",
+                    "content": "<p>Users will be able to receive notifications in Slack of events occurring in the Thingsboard system according to the notification rules you set.</p><p>Follow the documentation on how to do it:</p>",
+                    "how-to-configure-notifications": "How to configure Slack"
+                }
+            },
+            "tenant-admin": {
+                "step1": {
+                    "title": "Create device",
+                    "content": "<p>We will manually provision the device using the UI. Follow the documentation on how to do it:</p>",
+                    "how-to-create-device": "How to create Device"
+                },
+                "step2": {
+                    "title": "Connect device",
+                    "content-before": "<p>To connect the device you need to get the device credentials. But we recommend using the default auto-generated one.</p><ul><li>Go to device table</li><li>Click on the device row to open device details</li><li>Press the button \"Copy access token\"</li></ul><p>Use simple commands to publish data over HTTP:</p>",
+                    "ubuntu": {
+                        "install-curl": "Install cURL for Ubuntu:"
+                    },
+                    "macos": {
+                        "install-curl": "Install cURL for MacOS:"
+                    },
+                    "windows": {
+                        "install-curl": "Starting Windows 10 b17063, cURL is available by default."
+                    },
+                    "replace-access-token": "Replace <em>$ACCESS_TOKEN</em> with your device's token:",
+                    "content-after": "<p>You can also use other protocols such as MQTT, CoAP, etc.</p><p>Follow the documentation on how to do it:</p>",
+                    "how-to-connect-device": "How to connect Device"
+                },
+                "step3": {
+                    "title": "Create dashboard",
+                    "content": "<p>Create a dashboard to visualize data from entities such as assets, devices, etc.</p><p>Follow the documentation on how to do it:</p>",
+                    "how-to-create-dashboard": "How to create Dashboard"
+                },
+                "step4": {
+                    "title": "Configure alarm rules",
+                    "alarm-rules": "Alarm rules",
+                    "content": "<p>When the temperature reaches 25°C, we will raise an alarm. Follow the documentation on how to do it:</p>",
+                    "how-to-configure-alarm-rules": "How to configure Alarm rules"
+                },
+                "step5": {
+                    "title": "Create alarm",
+                    "content-before": "<p>To trigger the alarm, send a new telemetry value of 26°C or higher.</p>",
+                    "replace-access-token": "Replace <em>$ACCESS_TOKEN</em> with your device's token:",
+                    "content-after": "<p>Follow the documentation on how to do it:</p>",
+                    "how-to-create-alarm": "How to create Alarm"
+                },
+                "step6": {
+                    "title": "Create customer and share dashboard",
+                    "content": "<p>By creating end-user dashboards, a customer user can only see his own devices, and data from another customer will be hidden.</p><p>Follow the documentation on how to do it:</p>",
+                    "how-to-create-customer-and-share-dashboard": "How to create Customer and share Dashboard"
                 }
             }
         }

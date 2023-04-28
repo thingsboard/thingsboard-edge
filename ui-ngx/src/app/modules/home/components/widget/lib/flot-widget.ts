@@ -423,7 +423,7 @@ export class TbFlot {
         }
       }
       series.lines = {
-        fill: keySettings.fillLines === true
+        fill: keySettings.fillLines === true ? (keySettings.fillLinesOpacity || 0.4) : false
       };
 
       if (this.settings.stack && !this.comparisonEnabled) {

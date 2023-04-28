@@ -215,7 +215,6 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.io.Closeable;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -4128,6 +4127,19 @@ public class RestClient implements Closeable {
                 },
                 entityId.getEntityType(),
                 entityId.getId(),
+                timeout).getBody();
+    }
+
+    public JsonNode handleRuleEngineRequest(EntityId entityId, String queueName, int timeout, JsonNode requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/api/rule-engine/{entityType}/{entityId}/{queueName}/{timeout}",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<JsonNode>() {
+                },
+                entityId.getEntityType(),
+                entityId.getId(),
+                queueName,
                 timeout).getBody();
     }
 

@@ -44,13 +44,13 @@ public class OtherPageElements extends AbstractBasePage {
 
     protected static final String ENTITY = "//mat-row//span[text() = '%s']";
     protected static final String DELETE_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'delete')]/ancestor::button";
-    protected static final String DETAILS_BTN = ENTITY + "/../..//mat-icon[contains(text(),'edit')]/../..";
+    protected static final String DETAILS_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'edit')]/parent::button";
     private static final String ENTITY_COUNT = "//div[@class='mat-paginator-range-label']";
     private static final String CONFIRM_DIALOG = "//tb-confirm-dialog";
     private static final String WARNING_DELETE_POPUP_YES = CONFIRM_DIALOG + "//button[2]";
     private static final String WARNING_DELETE_POPUP_NO = CONFIRM_DIALOG + "//button[1]";
     private static final String WARNING_DELETE_POPUP_TITLE = "//tb-confirm-dialog/h2";
-    private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/..";
+    private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/parent::button";
     private static final String HELP_BTN = "//span[text()='Customer details']/ancestor::div/following-sibling::div[@class='details-buttons']";
     private static final String HELP_BTN_ENTITY_GROUP = "//mat-icon[contains(text(),'help')]/../..";
     private static final String CHECKBOX = "//mat-row//span[contains(text(),'%s')]/../..//mat-checkbox";
@@ -110,6 +110,8 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String IMPORT_BROWSE_FILE = "//mat-dialog-container//span[contains(text(),'Import')]/..";
     private static final String IMPORTING_FILE = "//div[contains(text(),'%s')]";
     private static final String CLEAR_IMPORT_FILE_BTN = "//div[@class='tb-file-clear-container']//button";
+    private static final String ITEMS_PER_PAGE = "//div[contains(@id,'mat-select')]";
+    private static final String ITEMS_COUNT = ITEMS_PER_PAGE + "//mat-option/span[contains(text(),'%d')]";
 
     public String getEntity(String entityName) {
         return String.format(ENTITY, entityName);
@@ -432,5 +434,13 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement selectGroupViewSubmitBtnVisible() {
         return waitUntilVisibilityOfElementLocated(SELECT_GROUP_VIEW_SUBMIT_BTN);
+    }
+
+    public WebElement itemsPerPage() {
+        return waitUntilElementToBeClickable(ITEMS_PER_PAGE);
+    }
+
+    public WebElement itemsCount(int itemCount) {
+        return waitUntilElementToBeClickable(String.format(ITEMS_COUNT, itemCount));
     }
 }

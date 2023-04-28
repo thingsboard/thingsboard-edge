@@ -371,6 +371,18 @@ public class DefaultMailService implements MailService {
         mailSender.testConnection();
     }
 
+    @Override
+    public boolean isConfigured(TenantId tenantId) {
+        try {
+            ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+            JsonNode jsonConfig = configEntry.jsonConfig;
+            createMailSender(jsonConfig);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void sendTemplateEmail(TenantId tenantId, String email, String template, Map<String, Object> templateModel) throws ThingsboardException {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, template);

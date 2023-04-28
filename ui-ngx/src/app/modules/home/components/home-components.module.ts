@@ -228,6 +228,9 @@ import { GroupChipsComponent } from '@home/components/group/group-chips.componen
 import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
 import { ManageOwnerAndGroupsDialogComponent } from '@home/components/group/manage-owner-and-groups-dialog.component';
 import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups.component';
+import { AlarmFilterConfigComponent } from '@home/components/alarm/alarm-filter-config.component';
+import { AlarmAssigneeSelectPanelComponent } from '@home/components/alarm/alarm-assignee-select-panel.component';
+import { AlarmAssigneeSelectComponent } from '@home/components/alarm/alarm-assignee-select.component';
 
 @NgModule({
   declarations:
@@ -252,6 +255,9 @@ import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups
       AlarmTableHeaderComponent,
       AlarmTableComponent,
       AlarmAssigneePanelComponent,
+      AlarmAssigneeSelectComponent,
+      AlarmAssigneeSelectPanelComponent,
+      AlarmFilterConfigComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -434,6 +440,9 @@ import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups
     RelationFiltersComponent,
     AlarmTableComponent,
     AlarmAssigneePanelComponent,
+    AlarmAssigneeSelectComponent,
+    AlarmAssigneeSelectPanelComponent,
+    AlarmFilterConfigComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,

@@ -34,7 +34,6 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          *ngIf="[resource.WIDGETS_BUNDLE, resource.WIDGET_TYPE] | hasGenericPermission: operation.READ"
           [fxShow]="!isEdit">
     {{'dashboard.open-dashboard' | translate }}
   </button>

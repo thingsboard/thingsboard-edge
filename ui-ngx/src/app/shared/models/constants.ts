@@ -149,6 +149,7 @@ export const HelpLinks = {
     ruleNodeSendEmail: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
     ruleNodeSendSms: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
     ruleNodeMath: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#math-function-node',
+    ruleNodeCalculateDelta: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/enrichment-nodes/#calculate-delta',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#remove-from-group-node',
@@ -225,7 +226,11 @@ export const HelpLinks = {
     queue: helpBaseUrl + '/docs/pe/user-guide/queue',
     repositorySettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#git-settings-configuration',
     autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#auto-commit',
-    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication'
+    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication',
+    sentNotification: helpBaseUrl + '/docs/pe/user-guide/notifications/#send-notification',
+    templateNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#templates',
+    recipientNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#recipients',
+    ruleNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#rules',
   }
 };
 

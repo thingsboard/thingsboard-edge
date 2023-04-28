@@ -46,6 +46,8 @@ public class DashboardPageElements extends OtherPageElementsHelper {
     private static final String MANAGE_ASSIGNED_ENTITY = "//mat-option//span[contains(text(),'%s')]";
     private static final String MANAGE_ASSIGNED_UPDATE_BTN = "//button[@type='submit']";
     private static final String OPEN_DASHBOARD_GROUP_BTN = "//mat-icon[contains(text(),'view_list')]";
+    private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
+    private static final String GROUPS_BTN = "//a[@href='/dashboards/groups']/span[@class='mdc-tab__content']";
 
     public List<WebElement> entityTitles() {
         return waitUntilVisibilityOfElementsLocated(TITLES);
@@ -69,5 +71,13 @@ public class DashboardPageElements extends OtherPageElementsHelper {
 
     public List<WebElement> openDashboardCroupBtn() {
         return waitUntilElementsToBeClickable(OPEN_DASHBOARD_GROUP_BTN);
+    }
+
+    public List<WebElement> allGroupName() {
+        return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
+    }
+
+    public WebElement groupsBtn() {
+        return waitUntilElementToBeClickable(GROUPS_BTN);
     }
 }

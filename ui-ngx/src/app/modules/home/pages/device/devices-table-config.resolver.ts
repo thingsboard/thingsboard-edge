@@ -246,6 +246,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         onAction: ($event) => this.importDevices($event, config)
       },
     );
+    config.addEntity = () => {this.deviceWizard(null, config); return of(null); };
     return actions;
   }
 

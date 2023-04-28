@@ -143,6 +143,22 @@ public abstract class BaseConverterServiceTest extends AbstractServiceTest {
     }
 
     @Test
+    public void testFindConverterByName() {
+        Converter converter = new Converter();
+        converter.setTenantId(tenantId);
+        converter.setName("My converter");
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        Converter savedConverter = converterService.saveConverter(converter);
+        Converter converter2 = new Converter(converter);
+        Assert.assertThrows(DataValidationException.class, () -> converterService.saveConverter(converter2));
+        Converter foundConverter = converterService.findConverterByName(savedConverter.getTenantId(), savedConverter.getName()).get();
+        Assert.assertNotNull(foundConverter);
+        Assert.assertEquals(savedConverter, foundConverter);
+        converterService.deleteConverter(savedConverter.getTenantId(), savedConverter.getId());
+    }
+
+    @Test
     public void testDeleteConverter() {
         Converter converter = new Converter();
         converter.setTenantId(tenantId);

@@ -44,8 +44,8 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Service
 @TbCoreComponent
@@ -74,10 +74,10 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     @Override
     protected Dashboard prepare(EntitiesImportCtx ctx, Dashboard dashboard, Dashboard old, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
         for (JsonNode entityAlias : dashboard.getEntityAliasesConfig()) {
-            replaceIdsRecursively(ctx, idProvider, entityAlias, Collections.emptySet(), HINTS);
+            replaceIdsRecursively(ctx, idProvider, entityAlias, Set.of("id"), HINTS);
         }
         for (JsonNode widgetConfig : dashboard.getWidgetsConfig()) {
-            replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, "config", "actions"), Collections.singleton("id"), HINTS);
+            replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, "config", "actions"), Set.of("id"), HINTS);
         }
         return dashboard;
     }

@@ -82,10 +82,8 @@ const routes: Routes = [
         skip: true
       },
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      canActivate: (userPermissionsService: UserPermissionsService): boolean => {
-        return userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
-          userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ);
-      },
+      canActivate: (userPermissionsService: UserPermissionsService): boolean =>
+        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
       widgetEditMode: false,
       singlePageMode: true
