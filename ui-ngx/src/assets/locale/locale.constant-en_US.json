@@ -2068,7 +2068,7 @@
         "edge-converter-templates": "Edge converter templates",
         "integration-templates": "Integration templates",
         "edge-integration-templates": "Edge integration templates",
-        "rulechains": "Rule chains",
+        "rulechains": "Edge rule chains",
         "integrations": "Integrations",
         "search": "Search edges",
         "selected-edges": "{ count, plural, =1 {1 edge} other {# edges} } selected",
