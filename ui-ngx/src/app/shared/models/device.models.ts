@@ -733,6 +733,44 @@ export interface DeviceInfo extends Device, GroupEntityInfo<DeviceId> {
   active: boolean;
 }
 
+export interface DeviceInfoFilter {
+  customerId?: CustomerId;
+  includeCustomers?: boolean;
+  deviceProfileId?: DeviceProfileId;
+  active?: boolean;
+}
+
+export class DeviceInfoQuery  {
+
+  pageLink: PageLink;
+  deviceInfoFilter: DeviceInfoFilter;
+
+  constructor(pageLink: PageLink, deviceInfoFilter: DeviceInfoFilter) {
+    this.pageLink = pageLink;
+    this.deviceInfoFilter = deviceInfoFilter;
+  }
+
+  public toQuery(): string {
+    let query;
+    if (this.deviceInfoFilter.customerId) {
+      query = `/customer/${this.deviceInfoFilter.customerId.id}/deviceInfos`;
+    } else {
+      query = '/deviceInfos/all';
+    }
+    query += this.pageLink.toQuery();
+    if (isDefinedAndNotNull(this.deviceInfoFilter.includeCustomers)) {
+      query += `&includeCustomers=${this.deviceInfoFilter.includeCustomers}`;
+    }
+    if (this.deviceInfoFilter.deviceProfileId) {
+      query += `&deviceProfileId=${this.deviceInfoFilter.deviceProfileId.id}`;
+    }
+    if (isDefinedAndNotNull(this.deviceInfoFilter.active)) {
+      query += `&active=${this.deviceInfoFilter.active}`;
+    }
+    return query;
+  }
+}
+
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',
   X509_CERTIFICATE = 'X509_CERTIFICATE',

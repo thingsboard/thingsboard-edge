@@ -44,7 +44,7 @@ import { Authority } from '@shared/models/authority.enum';
   templateUrl: './device-table-header.component.html',
   styleUrls: []
 })
-export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<DeviceInfo | Device> implements OnInit {
+export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<DeviceInfo> implements OnInit {
 
   entityType = EntityType;
 
@@ -58,11 +58,6 @@ export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Devic
     super.ngOnInit();
     this.includeCustomersLabel = (getCurrentAuthUser(this.store).authority === Authority.CUSTOMER_USER ||
       this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
-  }
-
-  deviceProfileChanged(deviceProfileId: DeviceProfileId) {
-    this.entitiesTableConfig.componentsData.deviceProfileId = deviceProfileId;
-    this.entitiesTableConfig.getTable().resetSortAndFilter(true);
   }
 
   deviceInfoFilterChanged(deviceInfoFilter: DeviceInfoFilter) {
