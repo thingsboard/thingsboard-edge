@@ -32,6 +32,8 @@ package org.thingsboard.server.dao.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.DeviceIdInfo;
@@ -215,6 +217,5 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
     Long countByDeviceProfileAndEmptyOtaPackage(UUID tenantId, UUID deviceProfileId, OtaPackageType type);
 
     PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
-
 
 }

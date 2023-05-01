@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
@@ -47,7 +47,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { DeviceCredentials, DeviceInfo } from '@app/shared/models/device.models';
+import { DeviceCredentials, DeviceInfo, DeviceInfoFilter, DeviceInfoQuery } from '@app/shared/models/device.models';
 import { Observable, of, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
@@ -67,7 +67,7 @@ import {
 import { DialogService } from '@core/services/dialog.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { UtilsService } from '@core/services/utils.service';
-import { isDefinedAndNotNull } from '@core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull } from '@core/utils';
 import { DeviceComponent } from './device.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -80,6 +80,13 @@ import {
   DeviceWizardDialogData
 } from '@home/components/wizard/device-wizard-dialog.component';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { PageLink, PageQueryParam } from '@shared/models/page/page-link';
+import { DeviceProfileId } from '@shared/models/id/device-profile-id';
+
+interface DevicePageQueryParams extends PageQueryParam {
+  deviceProfileId?: string;
+  active?: boolean | string;
+}
 
 @Injectable()
 export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<DeviceInfo>> {
@@ -105,8 +112,8 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     this.configDefaults(config);
     const authUser = getCurrentAuthUser(this.store);
     config.componentsData = {
+      deviceInfoFilter: {},
       includeCustomers: true,
-      deviceProfileId: null,
       deviceCredentials$: new Subject<DeviceCredentials>(),
       includeCustomersChanged: (includeCustomers: boolean) => {
         config.componentsData.includeCustomers = includeCustomers;
@@ -128,6 +135,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         config.cellActionDescriptors = this.configureCellActions(config);
         config.groupActionDescriptors = this.configureGroupActions(config);
         config.addActionDescriptors = this.configureAddActions(config);
+        config.onLoadAction = (activatedRoute) => this.onLoadAction(config, activatedRoute);
         return this.allEntitiesTableConfigService.prepareConfiguration(config);
       })
     );
@@ -161,12 +169,40 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     config.headerComponent = DeviceTableHeaderComponent;
   }
 
+  onLoadAction(config: EntityTableConfig<DeviceInfo>, route: ActivatedRoute): void {
+    const routerQueryParams: DevicePageQueryParams = route.snapshot.queryParams;
+    if (routerQueryParams) {
+      const queryParams = deepClone(routerQueryParams);
+      let replaceUrl = false;
+      if (routerQueryParams?.deviceProfileId) {
+        config.componentsData.deviceInfoFilter.deviceProfileId = new DeviceProfileId(routerQueryParams?.deviceProfileId);
+        delete queryParams.deviceProfileId;
+        replaceUrl = true;
+      }
+      if (isDefined(routerQueryParams?.active)) {
+        config.componentsData.deviceInfoFilter.active = (routerQueryParams?.active === true || routerQueryParams?.active === 'true');
+        delete queryParams.active;
+        replaceUrl = true;
+      }
+      if (replaceUrl) {
+        this.router.navigate([], {
+          relativeTo: route,
+          queryParams,
+          queryParamsHandling: '',
+          replaceUrl: true
+        });
+      }
+    }
+  }
+
   configureColumns(authUser: AuthUser, config: EntityTableConfig<DeviceInfo>): Array<EntityColumn<DeviceInfo>> {
     const columns: Array<EntityColumn<DeviceInfo>> = [
       new DateEntityTableColumn<DeviceInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<DeviceInfo>('name', 'device.name', '20%', config.entityTitle),
       new EntityTableColumn<DeviceInfo>('type', 'device.device-type', '20%'),
-      new EntityTableColumn<DeviceInfo>('label', 'device.label', '15%')
+      new EntityTableColumn<DeviceInfo>('label', 'device.label', '15%'),
+      new EntityTableColumn<DeviceInfo>('active', 'device.state', '80px',
+        entity => this.deviceState(entity), entity => this.deviceStateStyle(entity))
     ];
     if (config.componentsData.includeCustomers) {
       const title = (authUser.authority === Authority.CUSTOMER_USER || config.customerId)
@@ -183,19 +219,43 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     return columns;
   }
 
-  configureEntityFunctions(config: EntityTableConfig<DeviceInfo>): void {
-    if (config.customerId) {
-      config.entitiesFetchFunction = pageLink =>
-        this.deviceService.getCustomerDeviceInfos(config.componentsData.includeCustomers,
-          config.customerId, pageLink, config.componentsData.deviceProfileId !== null ?
-            config.componentsData.deviceProfileId.id : '');
-    } else {
-      config.entitiesFetchFunction = pageLink =>
-        this.deviceService.getAllDeviceInfos(config.componentsData.includeCustomers, pageLink,
-          config.componentsData.deviceProfileId !== null ?
-            config.componentsData.deviceProfileId.id : '');
+  private deviceState(device: DeviceInfo): string {
+    let translateKey = 'device.active';
+    let backgroundColor = 'rgba(25, 128, 56, 0.08)';
+    if (!device.active) {
+      translateKey = 'device.inactive';
+      backgroundColor = 'rgba(209, 39, 48, 0.08)';
     }
+    return `<div class="status" style="border-radius: 16px; height: 32px;
+                line-height: 32px; padding: 0 12px; width: fit-content; background-color: ${backgroundColor}">
+                ${this.translate.instant(translateKey)}
+            </div>`;
+  }
+
+  private deviceStateStyle(device: DeviceInfo): object {
+    const styleObj = {
+      fontSize: '14px',
+      color: '#198038',
+      cursor: 'pointer'
+    };
+    if (!device.active) {
+      styleObj.color = '#d12730';
+    }
+    return styleObj;
+  }
+
+  configureEntityFunctions(config: EntityTableConfig<DeviceInfo>): void {
+    config.entitiesFetchFunction = pageLink => this.deviceService.getDeviceInfosByQuery(this.prepareDeviceInfoQuery(config, pageLink));
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
+  }
+
+  prepareDeviceInfoQuery(config: EntityTableConfig<DeviceInfo>, pageLink: PageLink): DeviceInfoQuery {
+    const deviceInfoFilter: DeviceInfoFilter = deepClone(config.componentsData.deviceInfoFilter);
+    deviceInfoFilter.includeCustomers = config.componentsData.includeCustomers;
+    if (config.customerId) {
+      deviceInfoFilter.customerId = new CustomerId(config.customerId);
+    }
+    return new DeviceInfoQuery(pageLink, deviceInfoFilter);
   }
 
   configureCellActions(config: EntityTableConfig<DeviceInfo>): Array<CellActionDescriptor<DeviceInfo>> {

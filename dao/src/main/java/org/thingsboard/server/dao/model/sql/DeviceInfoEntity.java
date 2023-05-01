@@ -62,13 +62,16 @@ public class DeviceInfoEntity extends AbstractDeviceEntity<DeviceInfo> {
     @Column(name = ModelConstants.GROUPS_COLUMN)
     private List<EntityInfo> groups;
 
+    @Column(name = ModelConstants.DEVICE_ACTIVE_PROPERTY)
+    private boolean active;
+
     public DeviceInfoEntity() {
         super();
     }
 
     @Override
     public DeviceInfo toData() {
-        return new DeviceInfo(super.toDevice(), this.ownerName, this.groups);
+        return new DeviceInfo(super.toDevice(), this.ownerName, this.groups, this.active);
     }
 
 }

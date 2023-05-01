@@ -30,34 +30,21 @@
  */
 package org.thingsboard.server.common.data;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import javax.validation.Valid;
-import java.util.List;
-
-@ApiModel
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class UserInfo extends User {
+@Builder
+public class DeviceInfoFilter {
 
-    @Valid
-    @ApiModelProperty(position = 12, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
+    private TenantId tenantId;
+    private boolean includeCustomers;
+    private CustomerId customerId;
+    private DeviceProfileId deviceProfileId;
+    private Boolean active;
 
-    @Valid
-    @ApiModelProperty(position = 13, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private List<EntityInfo> groups;
-
-    public UserInfo() {
-        super();
-    }
-
-    public UserInfo(User user, String ownerName, List<EntityInfo> groups) {
-        super(user);
-        this.ownerName = ownerName;
-        this.groups = groups;
-    }
 }

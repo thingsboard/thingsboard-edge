@@ -28,36 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+:host {
+  display: block;
+  overflow: hidden;
+  max-width: 100%;
+  .mdc-button {
+    max-width: 100%;
+  }
+}
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import javax.validation.Valid;
-import java.util.List;
-
-@ApiModel
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class UserInfo extends User {
-
-    @Valid
-    @ApiModelProperty(position = 12, value = "Owner name", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private String ownerName;
-
-    @Valid
-    @ApiModelProperty(position = 13, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
-    private List<EntityInfo> groups;
-
-    public UserInfo() {
-        super();
+:host ::ng-deep {
+  .mdc-button {
+    .mat-icon {
+      min-width: 24px;
     }
-
-    public UserInfo(User user, String ownerName, List<EntityInfo> groups) {
-        super(user);
-        this.ownerName = ownerName;
-        this.groups = groups;
+    .mdc-button__label {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
 }
