@@ -51,7 +51,8 @@ public enum LimitedApi {
     CASSANDRA_QUERIES(DefaultTenantProfileConfiguration::getCassandraQueryTenantRateLimitsConfiguration),
     PASSWORD_RESET(true),
     TWO_FA_VERIFICATION_CODE_SEND(true),
-    TWO_FA_VERIFICATION_CODE_CHECK(true);
+    TWO_FA_VERIFICATION_CODE_CHECK(true),
+    REPORTS();
 
     private final BiFunction<DefaultTenantProfileConfiguration, Object, String> configExtractor;
     @Getter
@@ -69,6 +70,10 @@ public enum LimitedApi {
     LimitedApi(boolean refillRateLimitIntervally) {
         this.configExtractor = null;
         this.refillRateLimitIntervally = refillRateLimitIntervally;
+    }
+
+    LimitedApi() {
+        this(false);
     }
 
     public String getLimitConfig(DefaultTenantProfileConfiguration profileConfiguration, Object level) {
