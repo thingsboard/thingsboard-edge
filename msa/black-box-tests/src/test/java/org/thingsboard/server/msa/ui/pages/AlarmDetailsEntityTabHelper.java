@@ -34,35 +34,43 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class AssetPageElements extends OtherPageElementsHelper {
-    public AssetPageElements(WebDriver driver) {
+public class AlarmDetailsEntityTabHelper extends AlarmDetailsEntityTabElements {
+    public AlarmDetailsEntityTabHelper(WebDriver driver) {
         super(driver);
     }
 
-    private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
-    private static final String ALL_NAMES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
-    private static final String GROUPS_BTN = "//a[contains(@href,'/entities/assets/groups')]/span[@class='mdc-tab__content']";
-    private static final String ASSET_DETAILS_VIEW = "//tb-details-panel";
-    private static final String ASSET_DETAILS_ALARMS = ASSET_DETAILS_VIEW + "//span[text()='Alarms']";
-
-    public List<WebElement> allGroupNames() {
-        return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
+    public void assignAlarmTo(String alarmType, String user) {
+        jsClick(assignBtn(alarmType));
+        userFromAssignDropDown(user).click();
     }
 
-    public List<WebElement> allNames() {
-        return waitUntilElementsToBeClickable(ALL_NAMES);
+    public void unassignedAlarm(String alarmType) {
+        jsClick(assignBtn(alarmType));
+        unassignedBtn().click();
     }
 
-    public WebElement groupsBtn() {
-        return waitUntilElementToBeClickable(GROUPS_BTN);
+    public void searchAlarm(String alarmType, String emailOrName) {
+        jsClick(assignBtn(alarmType));
+        searchUserField().sendKeys(emailOrName);
     }
 
-    public WebElement assetDetailsView() {
-        return waitUntilPresenceOfElementLocated(ASSET_DETAILS_VIEW);
+    private List<String> users;
+
+    public void setUsers() {
+        users = assignUsers()
+                .stream()
+                .map(WebElement::getText)
+                .collect(Collectors.toList());
     }
 
-    public WebElement assetDetailsAlarmsBtn() {
-        return waitUntilElementToBeClickable(ASSET_DETAILS_ALARMS);
+    public List<String> getUsers() {
+        return users;
+    }
+
+    public void assertUsersForAssignIsNotPresent() {
+        sleep(1);
+        elementsIsNotPresent(ASSIGN_USERS_DISPLAY_NAME);
     }
 }

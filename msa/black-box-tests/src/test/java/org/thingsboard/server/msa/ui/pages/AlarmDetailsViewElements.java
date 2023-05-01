@@ -32,37 +32,31 @@ package org.thingsboard.server.msa.ui.pages;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.thingsboard.server.msa.ui.base.AbstractBasePage;
 
-import java.util.List;
-
-public class AssetPageElements extends OtherPageElementsHelper {
-    public AssetPageElements(WebDriver driver) {
+public class AlarmDetailsViewElements extends AbstractBasePage {
+    public AlarmDetailsViewElements(WebDriver driver) {
         super(driver);
     }
 
-    private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
-    private static final String ALL_NAMES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
-    private static final String GROUPS_BTN = "//a[contains(@href,'/entities/assets/groups')]/span[@class='mdc-tab__content']";
-    private static final String ASSET_DETAILS_VIEW = "//tb-details-panel";
-    private static final String ASSET_DETAILS_ALARMS = ASSET_DETAILS_VIEW + "//span[text()='Alarms']";
+    private static final String ASSIGN_FIELD = "//mat-label[text()='Assignee']/parent::label/parent::div//input";
+    private static final String USER_FROM_DROP_DOWN = "//div[@class='user-display-name']/span[text() = '%s']";
+    private static final String CLOSE_ALARM_DETAILS_VIEW_BTN = "//mat-dialog-container//mat-icon[contains(text(),'close')]/parent::button";
+    private static final String UNASSIGNED_BTN = "//div[@role='listbox']//mat-icon[text() = 'account_circle']/following-sibling::span";
 
-    public List<WebElement> allGroupNames() {
-        return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
+    public WebElement assignField() {
+        return waitUntilElementToBeClickable(ASSIGN_FIELD);
     }
 
-    public List<WebElement> allNames() {
-        return waitUntilElementsToBeClickable(ALL_NAMES);
+    public WebElement userFromAssignDropdown(String emailOrName) {
+        return waitUntilElementToBeClickable(String.format(USER_FROM_DROP_DOWN, emailOrName));
     }
 
-    public WebElement groupsBtn() {
-        return waitUntilElementToBeClickable(GROUPS_BTN);
+    public WebElement closeAlarmDetailsViewBtn() {
+        return waitUntilElementToBeClickable(CLOSE_ALARM_DETAILS_VIEW_BTN);
     }
 
-    public WebElement assetDetailsView() {
-        return waitUntilPresenceOfElementLocated(ASSET_DETAILS_VIEW);
-    }
-
-    public WebElement assetDetailsAlarmsBtn() {
-        return waitUntilElementToBeClickable(ASSET_DETAILS_ALARMS);
+    public WebElement unassignedBtn() {
+        return waitUntilElementToBeClickable(UNASSIGNED_BTN);
     }
 }

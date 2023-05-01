@@ -159,4 +159,20 @@ public class SideBarMenuViewHelper extends SideBarMenuViewElements {
     private boolean dropdownIsClose(WebElement dropdown) {
         return !dropdown.getAttribute("class").contains("tb-toggled");
     }
+
+    public void goToDevicesPage() {
+        openEntitiesDropdown();
+        devicesBtn().click();
+    }
+
+    public void goToAssetsPage() {
+        openEntitiesDropdown();
+        assetsBtn().click();
+    }
+
+    public void goToEntityViewsPage() {
+        openEntitiesDropdown();
+        entityViewsBtn().click();
+    }
+
 }

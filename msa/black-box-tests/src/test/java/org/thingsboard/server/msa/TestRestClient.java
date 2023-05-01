@@ -48,11 +48,17 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -61,10 +67,12 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -208,7 +216,7 @@ public class TestRestClient {
     }
 
     public JsonPath postProvisionRequest(String provisionRequest) {
-        return  given().spec(requestSpec)
+        return given().spec(requestSpec)
                 .body(provisionRequest)
                 .post("/api/v1/provision")
                 .getBody()
@@ -323,7 +331,7 @@ public class TestRestClient {
     }
 
     public DeviceProfile getDeviceProfileById(DeviceProfileId deviceProfileId) {
-        return  given().spec(requestSpec).get("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
+        return given().spec(requestSpec).get("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
                 .then()
                 .assertThat()
                 .statusCode(HTTP_OK)
@@ -348,6 +356,7 @@ public class TestRestClient {
                 .extract()
                 .as(RuleChainMetaData.class);
     }
+
     public Converter postConverter(Converter converter) {
         return given().spec(requestSpec)
                 .body(converter)
@@ -402,7 +411,8 @@ public class TestRestClient {
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(new TypeRef<PageData<EventInfo>>() {});
+                .as(new TypeRef<PageData<EventInfo>>() {
+                });
     }
 
     public PageData<EventInfo> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
@@ -418,7 +428,8 @@ public class TestRestClient {
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(new TypeRef<PageData<EventInfo>>() {});
+                .as(new TypeRef<PageData<EventInfo>>() {
+                });
     }
 
     private void addTimePageLinkToParam(Map<String, String> params, TimePageLink pageLink) {
@@ -461,7 +472,7 @@ public class TestRestClient {
     }
 
     public RuleChain saveRuleChain(RuleChain ruleChain) {
-        return  given().spec(requestSpec)
+        return given().spec(requestSpec)
                 .body(ruleChain)
                 .post("/api/ruleChain")
                 .then()
@@ -484,7 +495,8 @@ public class TestRestClient {
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(new TypeRef<Map<String, List<JsonNode>>>() {});
+                .as(new TypeRef<Map<String, List<JsonNode>>>() {
+                });
 
         return RestJsonConverter.toTimeseries(timeseries);
     }
@@ -497,7 +509,8 @@ public class TestRestClient {
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
-                .as(new TypeRef<List<String>>() {});
+                .as(new TypeRef<List<String>>() {
+                });
     }
 
     public void deleteDeviseProfile(DeviceProfileId deviceProfileId) {
@@ -608,9 +621,63 @@ public class TestRestClient {
                 .as(EntityGroupInfo.class);
     }
 
+    public List<EntityGroupInfo> getEntityGroupsByOwnerAndType(EntityType ownerType, EntityId ownerId, EntityType groupType) {
+        return given().spec(requestSpec)
+                .get("/api/entityGroups/{ownerType}/{ownerId}/{groupType}", ownerType, ownerId.getId(), groupType)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<EntityGroupInfo>>() {
+                });
+    }
+
     public void deleteEntityGroup(EntityGroupId entityGroupId) {
         given().spec(requestSpec)
                 .delete("/api/entityGroup/{entityGroupId}", entityGroupId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public Alarm postAlarm(Alarm alarm) {
+        return given().spec(requestSpec)
+                .body(alarm)
+                .post("/api/alarm")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Alarm.class);
+    }
+
+    public void deleteAlarm(AlarmId alarmId) {
+        given().spec(requestSpec)
+                .delete("/api/alarm/{alarmId}", alarmId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public User postUser(User user) {
+        return given().spec(requestSpec)
+                .body(user)
+                .post("/api/user?sendActivationMail=false")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(User.class);
+    }
+
+    public User postUser(User user, EntityGroupId entityId) {
+        return given().spec(requestSpec)
+                .body(user)
+                .post("/api/user?sendActivationMail=false&entityGroupIds={entityId}", entityId.getId())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(User.class);
+    }
+
+    public void deleteUser(UserId userId) {
+        given().spec(requestSpec)
+                .delete("/api/user/{userId}", userId.getId())
                 .then()
                 .statusCode(HTTP_OK);
     }
@@ -729,6 +796,58 @@ public class TestRestClient {
     public void deleteSmartIrrigation() {
         given().spec(requestSpec)
                 .delete("/api/solutions/templates/smart_irrigation/delete")
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public Asset postAsset(Asset asset) {
+        return given().spec(requestSpec)
+                .body(asset)
+                .post("/api/asset")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Asset.class);
+    }
+
+    public Asset getAssetById(AssetId assetId) {
+        return given().spec(requestSpec)
+                .get("/api/asset/{assetId}", assetId.getId())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Asset.class);
+    }
+
+    public void deleteAsset(AssetId assetId) {
+        given().spec(requestSpec)
+                .delete("/api/asset/{assetId}", assetId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public EntityView postEntityView(EntityView entityView) {
+        return given().spec(requestSpec)
+                .body(entityView)
+                .post("/api/entityView")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(EntityView.class);
+    }
+
+    public EntityView getEntityViewById(EntityViewId entityViewId) {
+        return given().spec(requestSpec)
+                .get("/api/entityView/{entityViewId}", entityViewId.getId())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(EntityView.class);
+    }
+
+    public void deleteEntityView(EntityViewId entityViewId) {
+        given().spec(requestSpec)
+                .delete("/api/entityView/{entityViewId}", entityViewId.getId())
                 .then()
                 .statusCode(HTTP_OK);
     }
