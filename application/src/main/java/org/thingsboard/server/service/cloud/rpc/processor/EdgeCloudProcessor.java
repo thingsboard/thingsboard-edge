@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -32,26 +34,23 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EdgeCloudProcessor extends BaseCloudProcessor {
+public class EdgeCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock edgeCreationLock = new ReentrantLock();
 
     public ListenableFuture<Void> processEdgeConfigurationMsgFromCloud(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
         EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
+        edgeCreationLock.lock();
         try {
-            edgeCreationLock.lock();
             Edge edge = edgeService.findEdgeById(tenantId, edgeId);
             if (edge == null) {
                 edge = new Edge();
                 edge.setId(edgeId);
                 edge.setTenantId(tenantId);
+                edge.setCreatedTime(Uuids.unixTimestamp(edgeId.getId()));
             }
-            if (edgeConfiguration.getCustomerIdMSB() != 0 && edgeConfiguration.getCustomerIdLSB() != 0) {
-                UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-                edge.setCustomerId(new CustomerId(customerUUID));
-            } else {
-                edge.setCustomerId(null);
-            }
+            CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+            edge.setCustomerId(customerId);
             edge.setName(edgeConfiguration.getName());
             edge.setType(edgeConfiguration.getType());
             edge.setRoutingKey(edgeConfiguration.getRoutingKey());

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,25 +23,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class CustomerCloudProcessor extends BaseCloudProcessor {
-
-    private final Lock customerCreationLock = new ReentrantLock();
+public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg,
+                                                              Long queueStartTs) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -69,16 +69,34 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                 } finally {
                     customerCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, customerId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Customer customerById = customerService.findCustomerById(tenantId, customerId);
                 if (customerById != null) {
                    customerService.deleteCustomer(tenantId, customerId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
-        return Futures.immediateFuture(null);
+    }
+
+    public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
+        CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer == null && customerId != null && !customerId.isNullUid()) {
+            customerCreationLock.lock();
+            try {
+                customer = new Customer();
+                customer.setId(customerId);
+                customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
+                customer.setTenantId(tenantId);
+                customer.setTitle("TMP_NAME_" + StringUtils.randomAlphanumeric(10));
+                customerService.saveCustomer(customer, false);
+            } finally {
+                customerCreationLock.unlock();
+            }
+        }
     }
 }

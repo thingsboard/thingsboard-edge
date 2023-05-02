@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,8 @@ import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
-import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
@@ -160,7 +160,10 @@ public class CloudManagerService {
     private RuleChainCloudProcessor ruleChainProcessor;
 
     @Autowired
-    private TenantCloudProcessor tenantCloudProcessor;
+    private TenantCloudProcessor tenantProcessor;
+
+    @Autowired
+    private CustomerCloudProcessor customerProcessor;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -244,30 +247,36 @@ public class CloudManagerService {
                 try {
                     if (initialized) {
                         queueStartTs = getQueueStartTs().get();
-                        TimePageLink pageLink =
-                                CloudEventUtils.createCloudEventTimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(), queueStartTs);
-                        PageData<CloudEvent> pageData;
-                        UUID ifOffset = null;
-                        boolean success = true;
-                        do {
-                            pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
-                            if (initialized && !pageData.getData().isEmpty()) {
-                                log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
-                                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
-                                success = sendUplinkMsgsPack(uplinkMsgsPack);
-                                ifOffset = pageData.getData().get(pageData.getData().size() - 1).getUuidId();
-                                if (success) {
-                                    pageLink = pageLink.nextPageLink();
-                                }
-                            }
-                        } while (initialized && (!success || pageData.hasNext()));
-                        if (ifOffset != null) {
-                            Long newStartTs = Uuids.unixTimestamp(ifOffset);
+                        TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                                0, null, null, queueStartTs, System.currentTimeMillis());
+                        if (newCloudEventsAvailable(pageLink)) {
                             try {
-                                updateQueueStartTs(newStartTs);
-                                log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
-                            } catch (Exception e) {
-                                log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                                // sleep 1 second to make sure that sql queue write is completed for other events
+                                Thread.sleep(TimeUnit.SECONDS.toMillis(1));
+                            } catch (Exception ignored) {}
+                            PageData<CloudEvent> pageData;
+                            UUID ifOffset = null;
+                            boolean success = true;
+                            do {
+                                pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
+                                if (initialized) {
+                                    log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
+                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
+                                    success = sendUplinkMsgsPack(uplinkMsgsPack);
+                                    ifOffset = pageData.getData().get(pageData.getData().size() - 1).getUuidId();
+                                    if (success) {
+                                        pageLink = pageLink.nextPageLink();
+                                    }
+                                }
+                            } while (initialized && (!success || pageData.hasNext()));
+                            if (ifOffset != null) {
+                                Long newStartTs = Uuids.unixTimestamp(ifOffset);
+                                try {
+                                    updateQueueStartTs(newStartTs);
+                                    log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
+                                } catch (Exception e) {
+                                    log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                                }
                             }
                         }
                         try {
@@ -285,6 +294,11 @@ public class CloudManagerService {
         });
     }
 
+    private boolean newCloudEventsAvailable(TimePageLink pageLink) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, pageLink);
+        return !cloudEvents.getData().isEmpty();
+    }
+
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
         uplinkMsgsPackLock.lock();
         try {
@@ -297,7 +311,16 @@ public class CloudManagerService {
                 latch = new CountDownLatch(pendingMsgsMap.values().size());
                 List<UplinkMsg> copy = new ArrayList<>(pendingMsgsMap.values());
                 for (UplinkMsg uplinkMsg : copy) {
-                    edgeRpcClient.sendUplinkMsg(uplinkMsg);
+                    if (edgeRpcClient.getServerMaxInboundMessageSize() != 0 && uplinkMsg.getSerializedSize() > edgeRpcClient.getServerMaxInboundMessageSize()) {
+                        log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
+                                        "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it." +
+                                        "Message {}",
+                                uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
+                        pendingMsgsMap.remove(uplinkMsg.getUplinkMsgId());
+                        latch.countDown();
+                    } else {
+                        edgeRpcClient.sendUplinkMsg(uplinkMsg);
+                    }
                 }
                 success = latch.await(10, TimeUnit.SECONDS);
                 success = success && pendingMsgsMap.isEmpty();
@@ -381,14 +404,13 @@ public class CloudManagerService {
         return result;
     }
 
-    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent)
-            throws ExecutionException, InterruptedException {
+    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
         switch (cloudEvent.getType()) {
             case DEVICE:
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
             case ALARM:
-                return alarmProcessor.convertAlarmEventToUplink(tenantId, cloudEvent);
+                return alarmProcessor.convertAlarmEventToUplink(cloudEvent);
             case RELATION:
                 return relationProcessor.convertRelationEventToUplink(cloudEvent);
             default:
@@ -460,21 +482,23 @@ public class CloudManagerService {
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
-        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-        this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
+        this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
-
-        this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
-
-        EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
-        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
-            tenantCloudProcessor.cleanUp(this.tenantId);
-            this.currentEdgeSettings = newEdgeSetting;
+        this.currentEdgeSettings = cloudEventService.findEdgeSettings(this.tenantId);
+        EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
+        if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
+            tenantProcessor.cleanUp();
+            this.currentEdgeSettings = newEdgeSettings;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
+        queueStartTs = getQueueStartTs().get();
+        tenantProcessor.createTenantIfNotExists(this.tenantId, queueStartTs);
+        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
+        if (edgeCustomerIdUpdated) {
+            customerProcessor.createCustomerIfNotExists(this.tenantId, edgeConfiguration);
+        }
         // TODO: voba - should sync be executed in some other cases ???
         log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
         edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired() | edgeCustomerIdUpdated);

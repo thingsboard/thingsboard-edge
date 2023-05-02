@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ public class QueueClientTest extends AbstractContainerTest {
         queue.setProcessingStrategy(processingStrategy);
         Queue savedQueue = cloudRestClient.saveQueue(queue, "TB_RULE_ENGINE");
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 4);
         PageData<Queue> pageData = edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100));
@@ -68,12 +69,14 @@ public class QueueClientTest extends AbstractContainerTest {
         savedQueue.setPollInterval(50);
         cloudRestClient.saveQueue(savedQueue, "TB_RULE_ENGINE");
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getQueueById(savedQueue.getId()).getPollInterval() == 50);
 
         // delete queue
         cloudRestClient.deleteQueue(savedQueue.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 3);
 

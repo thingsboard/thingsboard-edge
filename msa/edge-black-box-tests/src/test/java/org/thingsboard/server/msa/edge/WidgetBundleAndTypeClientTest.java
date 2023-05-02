@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,14 +40,16 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
     @Test
     public void testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 15);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
 
         for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
             Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
                     .atMost(30, TimeUnit.SECONDS)
                     .until(() -> {
                         List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
@@ -70,6 +72,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         widgetsBundle.setTitle("Test Widget Bundle");
         WidgetsBundle savedWidgetsBundle = cloudRestClient.saveWidgetsBundle(widgetsBundle);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isPresent());
 
@@ -82,6 +85,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         widgetType.setDescriptor(descriptor);
         WidgetTypeDetails savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isPresent());
 
@@ -89,6 +93,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         savedWidgetsBundle.setTitle("Test Widget Bundle Updated");
         cloudRestClient.saveWidgetsBundle(savedWidgetsBundle);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Test Widget Bundle Updated".equals(edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).get().getName()));
 
@@ -96,18 +101,21 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         savedWidgetType.setName("Test Widget Type Updated");
         cloudRestClient.saveWidgetType(savedWidgetType);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Test Widget Type Updated".equals(edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).get().getName()));
 
         // delete widget type
         cloudRestClient.deleteWidgetType(savedWidgetType.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isEmpty());
 
         // delete widget bundle
         cloudRestClient.deleteWidgetsBundle(savedWidgetsBundle.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
     }

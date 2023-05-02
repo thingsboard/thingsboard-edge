@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class ContainerTestSuite {
         HashMap<String, String> env = new HashMap<>();
         env.put("EDGE_DOCKER_REPO", "thingsboard");
         env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
-        env.put("TB_EDGE_VERSION", "3.4.3EDGE-SNAPSHOT");
+        env.put("TB_EDGE_VERSION", "3.5.0EDGE-SNAPSHOT");
         env.put("CLOUD_ROUTING_KEY", "280629c7-f853-ee3d-01c0-fffbb6f2ef38");
         env.put("CLOUD_ROUTING_SECRET", "g9ta4soeylw6smqkky8g");
         env.put("CLOUD_RPC_HOST", "tb-monolith");
@@ -77,16 +77,14 @@ public class ContainerTestSuite {
                 testContainer = new DockerComposeContainerImpl<>(
                         new File("./../../docker-edge/docker-compose.yml"),
                         new File("./../../docker-edge/docker-compose.postgres.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
+                        new File("./../../docker-edge/docker-compose.volumes.yml"))
                         .withPull(false)
-                        .withOptions("--compatibility")
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
-                        .withEnv("LOAD_BALANCER_NAME", "")
-                        .withExposedService("tb-edge", 8082)
-                        .withExposedService("haproxy", 80, Wait.forHttp("/swagger-ui.html").withStartupTimeout(Duration.ofSeconds(60)));
+                        .withExposedService("tb-monolith", 8080)
+                        .withExposedService("tb-edge", 8082);
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");

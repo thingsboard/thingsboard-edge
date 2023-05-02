@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,18 +44,19 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm");
         alarm.setSeverity(AlarmSeverity.CRITICAL);
         Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
         // ack alarm
         cloudRestClient.ackAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
@@ -65,6 +66,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // clear alarm
         cloudRestClient.clearAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
@@ -74,8 +76,12 @@ public class AlarmClientTest extends AbstractContainerTest {
         // delete alarm
         cloudRestClient.deleteAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromEdge(EntityId entityId) {
@@ -98,11 +104,11 @@ public class AlarmClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
-        alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm from edge");
         alarm.setSeverity(AlarmSeverity.MAJOR);
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
 
@@ -112,6 +118,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // ack alarm
         edgeRestClient.ackAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
@@ -121,6 +128,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         // clear alarm
         edgeRestClient.clearAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
@@ -130,8 +138,12 @@ public class AlarmClientTest extends AbstractContainerTest {
         // delete alarm
         edgeRestClient.deleteAlarm(savedAlarm.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromCloud(EntityId entityId) {

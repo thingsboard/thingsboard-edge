@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.Set;
 import java.util.UUID;
@@ -38,7 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardCloudProcessor extends BaseCloudProcessor {
+public class DashboardCloudProcessor extends BaseEdgeProcessor {
 
     private final Lock dashboardCreationLock = new ReentrantLock();
 
@@ -65,7 +66,6 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
                     dashboardService.saveDashboard(dashboard, false);
-
                     if (dashboardUpdateMsg.hasAssignedCustomers()) {
                         Set<ShortCustomerInfo> assignedCustomers =
                                 JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {
@@ -85,18 +85,17 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                 } finally {
                     dashboardCreationLock.unlock();
                 }
-                break;
+                return requestForAdditionalData(tenantId, dashboardId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
                 if (dashboardById != null) {
                     dashboardService.deleteDashboard(tenantId, dashboardId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
         }
-
-        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
     private void unassignCustomersFromDashboard(TenantId tenantId, Dashboard dashboard) {

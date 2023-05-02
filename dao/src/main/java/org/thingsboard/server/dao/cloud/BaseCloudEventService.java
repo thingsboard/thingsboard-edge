@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.thingsboard.server.dao.cloud;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
@@ -46,6 +46,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class BaseCloudEventService implements CloudEventService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
@@ -58,13 +59,10 @@ public class BaseCloudEventService implements CloudEventService {
                     EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST,
                     EdgeEventActionType.ENTITY_VIEW_REQUEST);
 
-    @Autowired
     public CloudEventDao cloudEventDao;
 
-    @Autowired
     public AttributesService attributesService;
 
-    @Autowired
     private DataValidator<CloudEvent> cloudEventValidator;
 
     @Override

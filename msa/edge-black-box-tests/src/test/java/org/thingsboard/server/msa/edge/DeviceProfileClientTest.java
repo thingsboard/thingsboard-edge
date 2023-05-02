@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,10 @@ import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingC
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.OtaPackageId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -46,6 +49,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 @Slf4j
 public class DeviceProfileClientTest extends AbstractContainerTest {
@@ -137,7 +143,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
                     "  }";
 
     @Test
-    public void testDeviceProfiles() {
+    public void testDeviceProfiles() throws Exception {
         verifyDeviceProfilesOnEdge(3);
 
         // create device profile
@@ -158,11 +164,34 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         verifyDeviceProfilesOnEdge(7);
 
         // update device profile
+        OtaPackageId firmwarePackageId = createOtaPackageInfo(oneMoreDeviceProfile.getId(), FIRMWARE);
+        oneMoreDeviceProfile.setFirmwareId(firmwarePackageId);
+
+        OtaPackageId softwarePackageId = createOtaPackageInfo(oneMoreDeviceProfile.getId(), SOFTWARE);
+        oneMoreDeviceProfile.setSoftwareId(softwarePackageId);
+
+        DashboardId dashboardId = createDashboardAndAssignToEdge("Device Profile Test Dashboard");
+        RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Device Profile Test RuleChain");
+        oneMoreDeviceProfile.setDefaultDashboardId(dashboardId);
         oneMoreDeviceProfile.setName("ONE_MORE_DEVICE_PROFILE_UPDATED");
+        oneMoreDeviceProfile.setDefaultEdgeRuleChainId(savedRuleChainId);
         cloudRestClient.saveDeviceProfile(oneMoreDeviceProfile);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "ONE_MORE_DEVICE_PROFILE_UPDATED".equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getName()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> dashboardId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getDefaultDashboardId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> firmwarePackageId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getFirmwareId()));
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> softwarePackageId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getSoftwareId()));
 
         // delete device profile
         cloudRestClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
@@ -171,6 +200,9 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDeviceProfile(lwm2mDeviceProfile.getId());
 
         verifyDeviceProfilesOnEdge(3);
+
+        unAssignFromEdgeAndDeleteDashboard(dashboardId);
+        unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
     private SnmpDeviceProfileTransportConfiguration createSnmpDeviceProfileTransportConfiguration() {
@@ -234,6 +266,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
     private void verifyDeviceProfilesOnEdge(int expectedDeviceProfilesCnt) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
 

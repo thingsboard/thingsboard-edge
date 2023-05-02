@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 @Component
 @Slf4j
-public class EntityCloudProcessor extends BaseCloudProcessor {
+public class EntityCloudProcessor extends BaseEdgeProcessor {
 
     public UplinkMsg convertCredentialsRequestEventToUplink(CloudEvent cloudEvent) {
         log.trace("Executing convertCredentialsRequestEventToUplink, cloudEvent [{}]", cloudEvent);

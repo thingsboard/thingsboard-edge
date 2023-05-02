@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2022 The Thingsboard Authors
+/// Copyright © 2016-2023 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -223,7 +223,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-       /* {
+        /* @voba - merge comment
+        {
           name: this.translate.instant('dashboard.make-public'),
           icon: 'share',
           isEnabled: (entity) => !isPublicDashboard(entity),
@@ -240,7 +241,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_ind',
           isEnabled: () => true,
           onAction: ($event, entity) => this.manageAssignedCustomers($event, entity)
-        }*/
+        }
+         */
       );
     }
     if (dashboardScope === 'customer') {
@@ -251,7 +253,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-       /* {
+        /* @voba - merge comment
+        {
           name: this.translate.instant('dashboard.make-private'),
           icon: 'reply',
           isEnabled: (entity) => isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
@@ -262,7 +265,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_return',
           isEnabled: (entity) => !isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity, this.config.componentsData.customerId)
-        }*/
+        }
+         */
       );
     }
     if (dashboardScope === 'edge') {
@@ -294,7 +298,8 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
   configureGroupActions(dashboardScope: string): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
-   /* if (dashboardScope === 'tenant') {
+    /* @voba - merge comment
+    if (dashboardScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('dashboard.assign-dashboards'),
@@ -332,13 +337,15 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event, entities) => this.unassignDashboardsFromEdge($event, entities)
         }
       );
-    }*/
+    }
+     */
     return actions;
   }
 
   configureAddActions(dashboardScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    /*if (dashboardScope === 'tenant') {
+    /* @voba - merge comment
+    if (dashboardScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('dashboard.create-new-dashboard'),

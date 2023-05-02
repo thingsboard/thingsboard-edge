@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,9 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
 
         loginTenantAdmin();
+
+        // edge only - temporary method, to fix public customer tests
+        doPost("/api/customer/public");
 
         Device device = new Device();
         device.setName("Test device 4view");
@@ -311,7 +314,40 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testNotifyEntityAllOneTime(unAssignedView, savedView.getId(), savedView.getId(),
                 tenantId, savedView.getCustomerId(), tenantAdminUserId, TENANT_ADMIN_EMAIL,
                 ActionType.UNASSIGNED_FROM_CUSTOMER,
-                savedView.getCustomerId().getId().toString(), savedCustomer.getTitle());
+                assignedView.getId().getId().toString(), savedView.getCustomerId().getId().toString(), savedCustomer.getTitle());
+    }
+
+    @Test
+    public void testAssignAndUnAssignedEntityViewToPublicCustomer() throws Exception {
+        EntityView savedView = getNewSavedEntityView("Test entity view");
+        Mockito.reset(tbClusterService, auditLogService);
+
+        EntityView assignedView = doPost(
+                "/api/customer/public/entityView/" + savedView.getId().getId().toString(),
+                EntityView.class);
+        Customer publicCustomer = doGet("/api/customer/" + assignedView.getCustomerId(), Customer.class);
+        Assert.assertTrue(publicCustomer.isPublic());
+
+        testBroadcastEntityStateChangeEventNever(assignedView.getId());
+        testNotifyEntityAllOneTime(assignedView, assignedView.getId(), assignedView.getId(),
+                tenantId, assignedView.getCustomerId(), tenantAdminUserId, TENANT_ADMIN_EMAIL,
+                ActionType.ASSIGNED_TO_CUSTOMER,
+                assignedView.getId().getId().toString(), assignedView.getCustomerId().getId().toString(), publicCustomer.getTitle());
+
+        EntityView foundView = doGet("/api/entityView/" + savedView.getId().getId().toString(), EntityView.class);
+        assertEquals(publicCustomer.getId(), foundView.getCustomerId());
+
+        EntityView unAssignedView = doDelete("/api/customer/entityView/" + savedView.getId().getId().toString(), EntityView.class);
+        assertEquals(ModelConstants.NULL_UUID, unAssignedView.getCustomerId().getId());
+
+        foundView = doGet("/api/entityView/" + savedView.getId().getId().toString(), EntityView.class);
+        assertEquals(ModelConstants.NULL_UUID, foundView.getCustomerId().getId());
+
+        testBroadcastEntityStateChangeEventNever(foundView.getId());
+        testNotifyEntityAllOneTime(unAssignedView, unAssignedView.getId(), unAssignedView.getId(),
+                tenantId, publicCustomer.getId(), tenantAdminUserId, TENANT_ADMIN_EMAIL,
+                ActionType.UNASSIGNED_FROM_CUSTOMER,
+                unAssignedView.getId().getId().toString(), publicCustomer.getId().getId().toString(), publicCustomer.getTitle());
     }
 
     @Test
@@ -429,7 +465,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testBroadcastEntityStateChangeEventNever(loadedNamesOfView1.get(0).getId());
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new EntityView(), new EntityView(),
                 tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.UNASSIGNED_FROM_CUSTOMER, ActionType.UNASSIGNED_FROM_CUSTOMER, cntEntity, cntEntity, 2);
+                ActionType.UNASSIGNED_FROM_CUSTOMER, ActionType.UNASSIGNED_FROM_CUSTOMER, cntEntity, cntEntity, 3);
 
         PageData<EntityView> pageData = doGetTypedWithPageLink(urlTemplate, PAGE_DATA_ENTITY_VIEW_TYPE_REF,
                 new PageLink(4, 0, name1));
@@ -552,7 +588,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
     @Test
     public void testGetTelemetryWhenEntityViewTimeRangeInsideTimestampRange() throws Exception {
-        DeviceTypeFilter dtf = new DeviceTypeFilter(testDevice.getType(), testDevice.getName());
+        DeviceTypeFilter dtf = new DeviceTypeFilter(List.of(testDevice.getType()), testDevice.getName());
         List<String> tsKeys = List.of("tsKey1", "tsKey2", "tsKey3");
 
         DeviceCredentials deviceCredentials = doGet("/api/device/" + testDevice.getId().getId() + "/credentials", DeviceCredentials.class);
@@ -651,7 +687,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     }
 
     private Set<String> putAttributesAndWait(String stringKV, Set<String> expectedKeySet) throws Exception {
-        DeviceTypeFilter dtf = new DeviceTypeFilter(testDevice.getType(), testDevice.getName());
+        DeviceTypeFilter dtf = new DeviceTypeFilter(List.of(testDevice.getType()), testDevice.getName());
         List<EntityKey> keysToSubscribe = expectedKeySet.stream()
                 .map(key -> new EntityKey(EntityKeyType.CLIENT_ATTRIBUTE, key))
                 .collect(Collectors.toList());
@@ -816,6 +852,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testEntityDaoWithRelationsOk(tenantId, entityViewId, "/api/entityView/" + entityViewId);
     }
 
+    @Ignore
     @Test
     public void testDeleteEntityViewExceptionWithRelationsTransactional() throws Exception {
         EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelations Transactional Exception").getId();

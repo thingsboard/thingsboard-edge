@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ public class AssetClientTest extends AbstractContainerTest {
         Asset savedAsset1 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset1.getId()).isPresent());
 
@@ -44,6 +45,7 @@ public class AssetClientTest extends AbstractContainerTest {
         savedAsset1.setName("Updated Asset Name");
         cloudRestClient.saveAsset(savedAsset1);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Asset Name".equals(edgeRestClient.getAssetById(savedAsset1.getId()).get().getName()));
 
@@ -51,6 +53,7 @@ public class AssetClientTest extends AbstractContainerTest {
         JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedAsset1.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> verifyAttributeOnEdge(savedAsset1.getId(),
                         DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
@@ -58,6 +61,7 @@ public class AssetClientTest extends AbstractContainerTest {
         // unassign asset #1 from edge
         cloudRestClient.unassignAssetFromEdge(edge.getId(), savedAsset1.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset1.getId()).isEmpty());
         cloudRestClient.deleteAsset(savedAsset1.getId());
@@ -66,6 +70,7 @@ public class AssetClientTest extends AbstractContainerTest {
         Asset savedAsset2 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset2.getId()).isPresent());
 
@@ -76,12 +81,14 @@ public class AssetClientTest extends AbstractContainerTest {
         assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignAssetToCustomer(savedCustomer.getId(), savedAsset2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getAssetById(savedAsset2.getId()).get().getCustomerId()));
 
         // unassign asset #2 from customer
         cloudRestClient.unassignAssetFromCustomer(savedAsset2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getAssetById(savedAsset2.getId()).get().getCustomerId().getId()));
         cloudRestClient.deleteCustomer(savedCustomer.getId());
@@ -89,12 +96,14 @@ public class AssetClientTest extends AbstractContainerTest {
         // delete asset #2
         cloudRestClient.deleteAsset(savedAsset2.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset2.getId()).isEmpty());
 
         // delete "Building" asset profile
         cloudRestClient.deleteAssetProfile(savedAsset1.getAssetProfileId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetProfileById(savedAsset1.getAssetProfileId()).isEmpty());
     }

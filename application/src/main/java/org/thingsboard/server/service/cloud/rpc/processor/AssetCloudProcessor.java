@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.UUID;
 
 @Component
 @Slf4j
-public class AssetCloudProcessor extends BaseCloudProcessor {
+public class AssetCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            CustomerId edgeCustomerId,
@@ -42,42 +43,46 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                assetCreationLock.lock();
-                try {
-                    Asset asset = assetService.findAssetById(tenantId, assetId);
-                    if (asset == null) {
-                        asset = new Asset();
-                        asset.setTenantId(tenantId);
-                        asset.setId(assetId);
-                        asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-                    }
-                    asset.setName(assetUpdateMsg.getName());
-                    asset.setType(assetUpdateMsg.getType());
-                    asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
-                    asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-                    asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
-                    if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
-                        AssetProfileId assetProfileId = new AssetProfileId(
-                                new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
-                                        assetUpdateMsg.getAssetProfileIdLSB()));
-                        asset.setAssetProfileId(assetProfileId);
-                    }
-                    assetService.saveAsset(asset, false);
-                } finally {
-                    assetCreationLock.unlock();
-                }
-                break;
+                saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId);
+                return requestForAdditionalData(tenantId, assetId, queueStartTs);
             case ENTITY_DELETED_RPC_MESSAGE:
                 Asset assetById = assetService.findAssetById(tenantId, assetId);
                 if (assetById != null) {
                     assetService.deleteAsset(tenantId, assetId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
         }
-
-        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId) {
+        CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), tenantId, edgeCustomerId);
+        assetCreationLock.lock();
+        try {
+            Asset asset = assetService.findAssetById(tenantId, assetId);
+            boolean created = false;
+            if (asset == null) {
+                asset = new Asset();
+                asset.setTenantId(tenantId);
+                asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
+                created = true;
+            }
+            asset.setName(assetUpdateMsg.getName());
+            asset.setType(assetUpdateMsg.getType());
+            asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
+            asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
+            asset.setCustomerId(customerId);
+            UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
+            asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
+            assetValidator.validate(asset, Asset::getTenantId);
+            if (created) {
+                asset.setId(assetId);
+            }
+            assetService.saveAsset(asset, false);
+        } finally {
+            assetCreationLock.unlock();
+        }
+    }
 }

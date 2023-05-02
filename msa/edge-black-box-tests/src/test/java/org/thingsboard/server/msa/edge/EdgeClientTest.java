@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,19 +28,24 @@ import java.util.concurrent.TimeUnit;
 public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
-    public void testEdge_assignToCustomer_unassignFromCustomer() {
+    public void testEdge_assignToCustomer_unassignFromCustomer() throws Exception {
         // assign edge to customer
         Customer customer = new Customer();
         customer.setTitle("Edge Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
         cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
+
+        // sleep 10 to make sure that sync process is completed
+        Thread.sleep(TimeUnit.SECONDS.toMillis(10));
 
         // unassign edge from customer
         cloudRestClient.unassignEdgeFromCustomer(edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }

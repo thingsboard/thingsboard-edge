@@ -1,6 +1,6 @@
 <!--
 
-    Copyright © 2016-2022 The Thingsboard Authors
+    Copyright © 2016-2023 The Thingsboard Authors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.3EDGE-SNAPSHOT</version>
+        <version>3.5.0EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>msa</artifactId>
@@ -40,13 +40,15 @@
     </properties>
 
     <modules>
-<!--        <module>tb</module>-->
-<!--        <module>vc-executor</module>-->
-<!--        <module>vc-executor-docker</module>-->
-<!--        <module>js-executor</module>-->
-<!--        <module>web-ui</module>-->
-<!--        <module>tb-node</module>-->
-<!--        <module>transport</module>-->
+        <!--Modules order is important to speedup parallel build and avoid yarn pgk parallel execution-->
+        <!-- <module>tb</module>
+        <module>web-ui</module>
+        <module>vc-executor</module>
+        <module>vc-executor-docker</module>
+        <module>tb-node</module>
+        <module>transport</module>
+        <module>js-executor</module>
+        <module>monitoring</module> -->
         <module>tb-edge</module>
         <module>edge-black-box-tests</module>
     </modules>
@@ -103,7 +105,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${docker.name}:latest</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>
@@ -124,7 +126,7 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>${docker.repo}/${docker.name}:${project.version}</argument>
-                                        <argument>--platform=linux/amd64,linux/arm64</argument>
+                                        <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>-o</argument>
                                         <argument>type=registry</argument>
                                         <argument>.</argument>

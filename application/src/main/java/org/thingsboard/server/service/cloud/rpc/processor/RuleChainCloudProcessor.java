@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -45,6 +44,7 @@ import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleNodeProto;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class RuleChainCloudProcessor extends BaseCloudProcessor {
+public class RuleChainCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -93,8 +93,6 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
 
                     if (ruleChainUpdateMsg.getRoot()) {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
-                    } else {
-                        setRootIfFirstRuleChain(tenantId, ruleChainId);
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -125,14 +123,6 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
-    }
-
-    private void setRootIfFirstRuleChain(TenantId tenantId, RuleChainId ruleChainId) {
-        // @voba - this is hack because of incorrect isRoot flag in the first rule chain
-        long ruleChainsCnt = ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.CORE, new PageLink(100)).getTotalElements();
-        if (ruleChainsCnt == 1) {
-            ruleChainService.setRootRuleChain(tenantId, ruleChainId);
-        }
     }
 
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.thingsboard.server.msa;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
+import org.thingsboard.server.common.data.StringUtils;
 
 import java.io.File;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         try {
             List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
                     new File("./../../docker-edge/docker-compose.postgres.yml"),
-                    new File("./../../docker-edge/docker-compose.postgres.volumes.yml"));
+                    new File("./../../docker-edge/docker-compose.volumes.yml"));
 
             String identifier = Base58.randomString(6).toLowerCase();
             String project = identifier + Base58.randomString(6).toLowerCase();
@@ -72,11 +72,11 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             env.put("TB_EDGE_DATA_VOLUME", tbEdgeDataVolume);
 
             env.put("DOCKER_REPO", "thingsboard");
-            env.put("TB_VERSION", "3.4.3-SNAPSHOT");
+            env.put("TB_VERSION", "3.5.0-SNAPSHOT");
 
             env.put("EDGE_DOCKER_REPO", "thingsboard");
             env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
-            env.put("TB_EDGE_VERSION", "3.4.3EDGE-SNAPSHOT");
+            env.put("TB_EDGE_VERSION", "3.5.0EDGE-SNAPSHOT");
 
             dockerCompose.withEnv(env);
         } catch (Exception e) {
@@ -143,7 +143,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             File tbLogsDir = new File(targetDir);
             tbLogsDir.mkdirs();
 
-            String logsContainerName = "tb-logs-container-" + RandomStringUtils.randomAlphanumeric(10);
+            String logsContainerName = "tb-logs-container-" + StringUtils.randomAlphanumeric(10);
 
             dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
             dockerCompose.invokeDocker();

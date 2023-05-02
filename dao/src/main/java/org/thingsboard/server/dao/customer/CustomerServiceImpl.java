@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -32,6 +35,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -44,7 +48,7 @@ import java.util.Optional;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
-@Service
+@Service("CustomerDaoService")
 @Slf4j
 public class CustomerServiceImpl extends AbstractEntityService implements CustomerService {
 
@@ -73,6 +77,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private DataValidator<Customer> customerValidator;
+
+    @Autowired
+    private EntityCountService countService;
 
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
@@ -113,6 +120,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         try {
             Customer savedCustomer = customerDao.save(customer.getTenantId(), customer);
             dashboardService.updateCustomerDashboards(savedCustomer.getTenantId(), savedCustomer.getId());
+            if (customer.getId() == null) {
+                countService.publishCountEntityEvictEvent(savedCustomer.getTenantId(), EntityType.CUSTOMER);
+            }
             return savedCustomer;
         } catch (Exception e) {
             checkConstraintViolation(e, "customer_external_id_unq_key", "Customer with such external id already exists!");
@@ -138,6 +148,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         deleteEntityRelations(tenantId, customerId);
         apiUsageStateService.deleteApiUsageStateByEntityId(customerId);
         customerDao.removeById(tenantId, customerId.getId());
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.CUSTOMER);
     }
 
     @Override
@@ -148,15 +159,19 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (publicCustomerOpt.isPresent()) {
             return publicCustomerOpt.get();
         } else {
-            Customer publicCustomer = new Customer();
-            publicCustomer.setTenantId(tenantId);
-            publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
-            try {
-                publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
-            } catch (IOException e) {
-                throw new IncorrectParameterException("Unable to create public customer.", e);
-            }
-            return customerDao.save(tenantId, publicCustomer);
+            throw new RuntimeException("Unable to create public customer on edge - please create it on cloud and click 'Sync Edge' button.");
+            // TODO: @voba - public customer should be created on the cloud
+            // Customer publicCustomer = new Customer();
+            // publicCustomer.setTenantId(tenantId);
+            // publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
+            // try {
+            //     publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
+            // } catch (IOException e) {
+            //     throw new IncorrectParameterException("Unable to create public customer.", e);
+            // }
+            // Customer savedCustomer = customerDao.save(tenantId, publicCustomer);
+            // countService.publishCountEntityEvictEvent(tenantId, EntityType.CUSTOMER);
+            // return savedCustomer;
         }
     }
 
@@ -188,4 +203,20 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     deleteCustomer(tenantId, new CustomerId(entity.getUuidId()));
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return customerDao.countByTenantId(tenantId);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CUSTOMER;
+    }
+
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,16 @@ public enum EdgeEventActionType {
     RPC_CALL,
     ALARM_ACK,
     ALARM_CLEAR,
+    ALARM_ASSIGN,
+    ALARM_UNASSIGN,
     ASSIGNED_TO_EDGE,
     UNASSIGNED_FROM_EDGE,
     CREDENTIALS_REQUEST,
-    ENTITY_MERGE_REQUEST,
     ATTRIBUTES_REQUEST,
     RULE_CHAIN_METADATA_REQUEST,
     RELATION_REQUEST,
     WIDGET_BUNDLE_TYPES_REQUEST,
     ENTITY_VIEW_REQUEST,
-    DEVICE_PROFILE_DEVICES_REQUEST; // DEPRECATED
+    ENTITY_MERGE_REQUEST, // deprecated
+    DEVICE_PROFILE_DEVICES_REQUEST // deprecated
 }

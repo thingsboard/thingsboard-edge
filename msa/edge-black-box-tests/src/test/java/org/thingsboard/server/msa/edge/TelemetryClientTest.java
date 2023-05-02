@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         timeseriesPayload.addProperty("doubleTelemetryToEdge", 42.0);
         timeseriesPayload.addProperty("longTelemetryToEdge", 72L);
 
-        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, timeseriesPayload, keys);
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, tbUrl, edgeRestClient, timeseriesPayload, keys);
 
         for (TsKvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals("strTelemetryToEdge")) {
@@ -98,6 +98,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
 
@@ -112,6 +113,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<TsKvEntry> latestTimeseries;
@@ -125,7 +127,12 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
         verifyDeviceIsActive(targetRestClient, device.getId());
 
-        return targetRestClient.getLatestTimeseries(device.getId(), keys);
+        List<TsKvEntry> latestTimeseries = targetRestClient.getLatestTimeseries(device.getId(), keys);
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+
+        return latestTimeseries;
     }
 
     @Test
@@ -167,7 +174,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToEdge", 42.0);
         attrPayload.addProperty("longAttrToEdge", 72L);
 
-        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, attrPayload, keys);
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, tbUrl, edgeRestClient, attrPayload, keys);
 
         for (AttributeKvEntry attributeKvEntry : kvEntries) {
             if (attributeKvEntry.getKey().equals("strAttrToEdge")) {
@@ -191,6 +198,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
         DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
@@ -203,6 +211,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == keys.size());
 
@@ -211,10 +220,14 @@ public class TelemetryClientTest extends AbstractContainerTest {
         sourceRestClient.deleteEntityAttributes(device.getId(), DataConstants.CLIENT_SCOPE, keys);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == 0);
 
         verifyDeviceIsActive(targetRestClient, device.getId());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
 
         return attributeKvEntries;
     }

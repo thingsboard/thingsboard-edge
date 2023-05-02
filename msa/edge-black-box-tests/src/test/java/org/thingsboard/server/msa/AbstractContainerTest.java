@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -51,6 +50,8 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -83,6 +84,8 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -109,27 +112,26 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
-
 @Slf4j
 public abstract class AbstractContainerTest {
 
     private static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
 
-    protected static final String CLOUD_HTTPS_URL = "https://localhost";
-    protected static final String WSS_URL = "wss://localhost";
     protected static RestClient cloudRestClient = null;
 
     protected static RestClient edgeRestClient;
 
     protected static Edge edge;
+    protected static String tbUrl;
     protected static String edgeUrl;
 
     @BeforeClass
     public static void before() throws Exception {
         if (cloudRestClient == null) {
-            cloudRestClient = new RestClient(CLOUD_HTTPS_URL);
-            cloudRestClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+            String tbHost = ContainerTestSuite.testContainer.getServiceHost("tb-monolith", 8080);
+            Integer tbPort = ContainerTestSuite.testContainer.getServicePort("tb-monolith", 8080);
+            tbUrl = "http://" + tbHost + ":" + tbPort;
+            cloudRestClient = new RestClient(tbUrl);
             cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
             String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
@@ -178,9 +180,9 @@ public abstract class AbstractContainerTest {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
-                until(() ->  {
+                until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14;
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 15;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -245,9 +247,7 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
                                                              DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
-        extendDeviceProfileData(deviceProfile);
-        return cloudRestClient.saveDeviceProfile(deviceProfile);
+        return createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
@@ -258,7 +258,7 @@ public abstract class AbstractContainerTest {
     public TestRule watcher = new TestWatcher() {
         protected void starting(Description description) {
             log.info("=================================================");
-            log.info("STARTING TEST: {}" , description.getMethodName());
+            log.info("STARTING TEST: {}", description.getMethodName());
             log.info("=================================================");
         }
 
@@ -267,7 +267,7 @@ public abstract class AbstractContainerTest {
          */
         protected void succeeded(Description description) {
             log.info("=================================================");
-            log.info("SUCCEEDED TEST: {}" , description.getMethodName());
+            log.info("SUCCEEDED TEST: {}", description.getMethodName());
             log.info("=================================================");
         }
 
@@ -276,7 +276,7 @@ public abstract class AbstractContainerTest {
          */
         protected void failed(Throwable e, Description description) {
             log.info("=================================================");
-            log.info("FAILED TEST: {}" , description.getMethodName(), e);
+            log.info("FAILED TEST: {}", description.getMethodName(), e);
             log.info("=================================================");
         }
     };
@@ -352,7 +352,7 @@ public abstract class AbstractContainerTest {
 
     protected static Edge createEdge(String name, String routingKey, String secret) {
         Edge edge = new Edge();
-        edge.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        edge.setName(name + StringUtils.randomAlphanumeric(7));
         edge.setType("DEFAULT");
         edge.setRoutingKey(routingKey);
         edge.setSecret(secret);
@@ -379,10 +379,11 @@ public abstract class AbstractContainerTest {
     }
 
     protected Asset saveAndAssignAssetToEdge(String assetType) {
-        Asset asset = saveAssetOnCloud(randomAlphanumeric(15), assetType);
+        Asset asset = saveAssetOnCloud(StringUtils.randomAlphanumeric(15), assetType);
         cloudRestClient.assignAssetToEdge(edge.getId(), asset.getId());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getAssetById(asset.getId()).isPresent());
 
@@ -450,8 +451,11 @@ public abstract class AbstractContainerTest {
             Optional<DeviceProfile> cloudDeviceProfile = cloudRestClient.getDeviceProfileById(deviceProfileId);
             DeviceProfile expected = edgeDeviceProfile.get();
             DeviceProfile actual = cloudDeviceProfile.get();
+            Assert.assertEquals(expected.getDefaultRuleChainId(), actual.getDefaultEdgeRuleChainId());
+            expected.setDefaultRuleChainId(null);
+            actual.setDefaultEdgeRuleChainId(null);
             actual.setDefaultRuleChainId(null);
-            Assert.assertEquals("Device profiles on cloud and edge are different (except defaultRuleChainId)", expected, actual);
+            Assert.assertEquals("Device profiles on cloud and edge are different", expected, actual);
         }
     }
 
@@ -462,6 +466,9 @@ public abstract class AbstractContainerTest {
             Optional<AssetProfile> cloudAssetProfile = cloudRestClient.getAssetProfileById(assetProfileId);
             AssetProfile expected = edgeAssetProfile.get();
             AssetProfile actual = cloudAssetProfile.get();
+            Assert.assertEquals(expected.getDefaultRuleChainId(), actual.getDefaultEdgeRuleChainId());
+            expected.setDefaultRuleChainId(null);
+            actual.setDefaultEdgeRuleChainId(null);
             Assert.assertEquals("Asset profiles on cloud and edge are different", expected, actual);
         }
     }
@@ -498,6 +505,7 @@ public abstract class AbstractContainerTest {
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
 
             Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
                     .atMost(30, TimeUnit.SECONDS).
                     until(() -> {
                         Optional<RuleChainMetaData> edgeRuleChainMetaData = edgeRestClient.getRuleChainMetaData(ruleChainId);
@@ -628,10 +636,11 @@ public abstract class AbstractContainerTest {
     }
 
     protected Device saveAndAssignDeviceToEdge(String deviceType) {
-        Device device = saveDeviceOnCloud(randomAlphanumeric(15), deviceType);
+        Device device = saveDeviceOnCloud(StringUtils.randomAlphanumeric(15), deviceType);
         cloudRestClient.assignDeviceToEdge(edge.getId(), device.getId());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDeviceById(device.getId()).isPresent());
 
@@ -639,13 +648,14 @@ public abstract class AbstractContainerTest {
     }
 
     protected List<AttributeKvEntry> sendAttributesUpdated(RestClient sourceRestClient, RestClient targetRestClient,
-                                                         JsonObject attributesPayload, List<String> keys, String scope) throws Exception {
+                                                           JsonObject attributesPayload, List<String> keys, String scope) throws Exception {
 
         Device device = saveAndAssignDeviceToEdge();
 
         sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()));
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), scope, keys).size() == keys.size());
 
@@ -656,11 +666,15 @@ public abstract class AbstractContainerTest {
 
         verifyDeviceIsActive(targetRestClient, device.getId());
 
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+
         return attributeKvEntries;
     }
 
     protected void verifyDeviceIsActive(RestClient restClient, DeviceId deviceId) {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     List<AttributeKvEntry> attributeKvEntries =
@@ -693,8 +707,120 @@ public abstract class AbstractContainerTest {
     protected void assignEdgeToCustomerAndValidateAssignmentOnCloud(Customer savedCustomer) {
         cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
     }
 
+    protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) throws Exception {
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName(ruleChainName);
+        ruleChain.setType(RuleChainType.EDGE);
+        RuleChain savedRuleChain = cloudRestClient.saveRuleChain(ruleChain);
+        createRuleChainMetadata(savedRuleChain);
+
+        cloudRestClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
+
+        return savedRuleChain.getId();
+    }
+
+    private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
+        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
+        ruleChainMetaData.setRuleChainId(ruleChain.getId());
+
+        RuleNode ruleNode1 = new RuleNode();
+        ruleNode1.setName("name1");
+        ruleNode1.setType("type1");
+        ruleNode1.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key1\": \"val1\""));
+
+        RuleNode ruleNode2 = new RuleNode();
+        ruleNode2.setName("name2");
+        ruleNode2.setType("type2");
+        ruleNode2.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key2\": \"val2\""));
+
+        RuleNode ruleNode3 = new RuleNode();
+        ruleNode3.setName("name3");
+        ruleNode3.setType("type3");
+        ruleNode3.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key3\": \"val3\""));
+
+        List<RuleNode> ruleNodes = new ArrayList<>();
+        ruleNodes.add(ruleNode1);
+        ruleNodes.add(ruleNode2);
+        ruleNodes.add(ruleNode3);
+        ruleChainMetaData.setFirstNodeIndex(0);
+        ruleChainMetaData.setNodes(ruleNodes);
+
+        ruleChainMetaData.addConnectionInfo(0, 1, "success");
+        ruleChainMetaData.addConnectionInfo(0, 2, "fail");
+        ruleChainMetaData.addConnectionInfo(1, 2, "success");
+
+        // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", JacksonUtil.OBJECT_MAPPER.createObjectNode());
+
+        cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+    }
+
+    protected void unAssignFromEdgeAndDeleteRuleChain(RuleChainId ruleChainId) {
+        // unassign rule chain from edge
+        cloudRestClient.unassignRuleChainFromEdge(edge.getId(), ruleChainId);
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRuleChainById(ruleChainId).isEmpty());
+
+        // delete rule chain
+        cloudRestClient.deleteRuleChain(ruleChainId);
+    }
+
+    protected DashboardId createDashboardAndAssignToEdge(String dashboardName) {
+        Dashboard dashboard = saveDashboardOnCloud(dashboardName);
+        cloudRestClient.assignDashboardToEdge(edge.getId(), dashboard.getId());
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDashboardById(dashboard.getId()).isPresent());
+        return dashboard.getId();
+    }
+
+    protected void unAssignFromEdgeAndDeleteDashboard(DashboardId dashboardId) {
+        cloudRestClient.unassignDashboardFromEdge(edge.getId(), dashboardId);
+        cloudRestClient.deleteDashboard(dashboardId);
+    }
+
+    protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) throws Exception {
+        OtaPackageInfo otaPackageInfo = new OtaPackageInfo();
+        otaPackageInfo.setDeviceProfileId(deviceProfileId);
+        otaPackageInfo.setType(otaPackageType);
+        otaPackageInfo.setTitle("My " + otaPackageType + " #2");
+        otaPackageInfo.setVersion("v2.0");
+        otaPackageInfo.setTag("My " + otaPackageType + " #2 v2.0");
+        otaPackageInfo.setHasData(false);
+        OtaPackageInfo savedOtaPackageInfo = cloudRestClient.saveOtaPackageInfo(otaPackageInfo, false);
+
+        cloudRestClient.saveOtaPackageData(savedOtaPackageInfo.getId(),
+                null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));
+                    if (otaPackages.getData().isEmpty()) {
+                        return false;
+                    }
+                    return otaPackages.getData().stream().map(OtaPackageInfo::getId).anyMatch(savedOtaPackageInfo.getId()::equals);
+                });
+
+        return savedOtaPackageInfo.getId();
+    }
+
+    protected Customer findPublicCustomer() {
+        PageData<Customer> customers = cloudRestClient.getCustomers(new PageLink(100));
+        return customers.getData().stream().filter(Customer::isPublic).findFirst().get();
+    }
 }

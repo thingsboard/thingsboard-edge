@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * Copyright © 2016-2023 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public class RelationClientTest extends AbstractContainerTest {
         cloudRestClient.saveRelation(relation);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
@@ -50,8 +51,13 @@ public class RelationClientTest extends AbstractContainerTest {
         cloudRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
+
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
+        cloudRestClient.deleteAsset(asset.getId());
     }
 
     @Test
@@ -60,6 +66,7 @@ public class RelationClientTest extends AbstractContainerTest {
 
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
@@ -71,16 +78,19 @@ public class RelationClientTest extends AbstractContainerTest {
         edgeRestClient.saveRelation(relation);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
         edgeRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
 
-        edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
+        // cleanup
+        cloudRestClient.deleteDevice(device.getId());
         cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
     }
 
