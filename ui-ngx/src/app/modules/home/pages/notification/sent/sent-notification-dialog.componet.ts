@@ -31,7 +31,6 @@
 
 import {
   NotificationDeliveryMethod,
-  NotificationDeliveryMethodTranslateMap,
   NotificationRequest,
   NotificationRequestPreview,
   NotificationTarget,
@@ -100,6 +99,8 @@ export class SentNotificationDialogComponent extends
   private authUser: AuthUser = getCurrentAuthUser(this.store);
   private authState: AuthState = getCurrentAuthState(this.store);
 
+  private allowNotificationDeliveryMethods: Array<NotificationDeliveryMethod>;
+
   constructor(protected store: Store<AppState>,
               protected router: Router,
               protected dialogRef: MatDialogRef<SentNotificationDialogComponent, NotificationRequest>,
@@ -147,6 +148,7 @@ export class SentNotificationDialogComponent extends
       } else {
         this.notificationRequestForm.get('templateId').disable({emitEvent: false});
         this.notificationRequestForm.get('template').enable({emitEvent: false});
+        this.updateDeliveryMethodsDisableState();
       }
     });
 
@@ -355,15 +357,20 @@ export class SentNotificationDialogComponent extends
 
   refreshAllowDeliveryMethod() {
     this.notificationService.getAvailableDeliveryMethods({ignoreLoading: true}).subscribe(allowMethods => {
-      this.notificationDeliveryMethods.forEach(method => {
-        if (allowMethods.includes(method)) {
-          this.getDeliveryMethodsTemplatesControl(method).enable({emitEvent: true});
-        } else {
-          this.getDeliveryMethodsTemplatesControl(method).disable({emitEvent: true});
-          this.getDeliveryMethodsTemplatesControl(method).setValue(false, {emitEvent: true}); //used for notify again
-        }
-      });
+      this.allowNotificationDeliveryMethods = allowMethods;
+      this.updateDeliveryMethodsDisableState();
       this.showRefresh = (this.notificationDeliveryMethods.length !== allowMethods.length);
+    });
+  }
+
+  private updateDeliveryMethodsDisableState() {
+    this.notificationDeliveryMethods.forEach(method => {
+      if (this.allowNotificationDeliveryMethods.includes(method)) {
+        this.getDeliveryMethodsTemplatesControl(method).enable({emitEvent: true});
+      } else {
+        this.getDeliveryMethodsTemplatesControl(method).disable({emitEvent: true});
+        this.getDeliveryMethodsTemplatesControl(method).setValue(false, {emitEvent: true}); //used for notify again
+      }
     });
   }
 }
