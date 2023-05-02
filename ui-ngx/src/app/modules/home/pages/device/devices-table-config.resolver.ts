@@ -165,7 +165,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     const columns: Array<EntityColumn<DeviceInfo>> = [
       new DateEntityTableColumn<DeviceInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<DeviceInfo>('name', 'device.name', '20%', config.entityTitle),
-      new EntityTableColumn<DeviceInfo>('type', 'device.device-type', '20%'),
+      new EntityTableColumn<DeviceInfo>('type', 'device-profile.device-profile', '20%'),
       new EntityTableColumn<DeviceInfo>('label', 'device.label', '15%')
     ];
     if (config.componentsData.includeCustomers) {
