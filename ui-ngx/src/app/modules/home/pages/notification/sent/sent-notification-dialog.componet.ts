@@ -90,9 +90,6 @@ export class SentNotificationDialogComponent extends
 
   notificationRequestForm: FormGroup;
 
-  notificationDeliveryMethods = Object.keys(NotificationDeliveryMethod) as NotificationDeliveryMethod[];
-  notificationDeliveryMethodTranslateMap = NotificationDeliveryMethodTranslateMap;
-
   selectedIndex = 0;
   preview: NotificationRequestPreview = null;
 
