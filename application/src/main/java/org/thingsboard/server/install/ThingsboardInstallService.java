@@ -256,9 +256,8 @@ public class ThingsboardInstallService {
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
-                            dataUpdateService.updateData("3.4.4");
-
                             entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+                            dataUpdateService.updateData("3.4.4");
 
                             // @voba - system widgets update is not required - uploaded from cloud
                             // log.info("Updating system data...");
