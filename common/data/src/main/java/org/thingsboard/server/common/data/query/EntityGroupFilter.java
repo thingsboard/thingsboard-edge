@@ -32,7 +32,6 @@ package org.thingsboard.server.common.data.query;
 
 import lombok.Data;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
 public class EntityGroupFilter implements EntityFilter {

@@ -58,12 +58,10 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OFF
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OFFICE_ASSET_PROFILE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.OFFICE_SENSORS_DEVICE_GROUPS;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_OFFICE_R1_EDGE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_SUPERMARKET_EDGE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_OFFICE_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_OFFICE_DASHBOARDS_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SENSOR_DEVICE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_SENSOR_DEVICE_PROFILE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METERING_DEVICE_PROFILE_SO;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.WATER_METER_DEVICE;
 

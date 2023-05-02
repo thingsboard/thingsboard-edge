@@ -50,7 +50,6 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.EVE
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.IRRIGATION_MANAGEMENT_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.MORNING_SCHEDULER_EVENT;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FARM_EDGE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_SUPERMARKET_EDGE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_1_ASSET;
@@ -82,7 +81,6 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_ASSET_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SMART_IRRIGATION_DEVICE_GROUP;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SUPERMARKET_DEVICES_REMOTE_FACILITY_RULE_CHAIN;
 
 @Feature("Installation")
 @Story("Smart Irrigation")

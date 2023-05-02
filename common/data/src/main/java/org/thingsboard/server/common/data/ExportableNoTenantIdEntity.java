@@ -31,7 +31,6 @@
 package org.thingsboard.server.common.data;
 
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 public interface ExportableNoTenantIdEntity<I extends EntityId> extends ExportableEntity<I> {
