@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.UpdateMessage;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
@@ -70,6 +71,7 @@ import org.thingsboard.server.common.data.notification.rule.trigger.AlarmNotific
 import org.thingsboard.server.common.data.notification.rule.trigger.AlarmNotificationRuleTriggerConfig.AlarmAction;
 import org.thingsboard.server.common.data.notification.rule.trigger.EntitiesLimitNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.EntityActionNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.NewPlatformVersionNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
@@ -81,9 +83,11 @@ import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.msg.notification.trigger.NewPlatformVersionTrigger;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.queue.notification.NotificationRuleProcessor;
 import org.thingsboard.server.service.apiusage.limits.LimitedApi;
 import org.thingsboard.server.service.apiusage.limits.RateLimitService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
@@ -117,6 +121,8 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
     private RateLimitService rateLimitService;
     @Autowired
     private RuleChainService ruleChainService;
+    @Autowired
+    private NotificationRuleProcessor notificationRuleProcessor;
 
     @Before
     public void beforeEach() throws Exception {
@@ -447,6 +453,34 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
 
         TimeUnit.SECONDS.sleep(3);
         assertThat(getWsClient().getLastCountUpdate().getTotalUnreadCount()).isEqualTo(notificationRequestsLimit);
+    }
+
+    @Test
+    public void testNotificationsDeduplication() throws Exception {
+        loginSysAdmin();
+        NewPlatformVersionNotificationRuleTriggerConfig triggerConfig = new NewPlatformVersionNotificationRuleTriggerConfig();
+        createNotificationRule(triggerConfig, "Test", "Test", createNotificationTarget(tenantAdminUserId).getId());
+        loginTenantAdmin();
+
+        assertThat(getMyNotifications(false, 100)).size().isZero();
+        for (int i = 1; i <= 10; i++) {
+            notificationRuleProcessor.process(NewPlatformVersionTrigger.builder()
+                    .updateInfo(new UpdateMessage(true, "test", "test",
+                            "test", "test", "test"))
+                    .build());
+            TimeUnit.MILLISECONDS.sleep(300);
+        }
+        TimeUnit.SECONDS.sleep(5);
+        assertThat(getMyNotifications(false, 100)).size().isOne();
+
+        notificationRuleProcessor.process(NewPlatformVersionTrigger.builder()
+                .updateInfo(new UpdateMessage(true, "CHANGED", "test",
+                        "test", "test", "test"))
+                .build());
+        await().atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    assertThat(getMyNotifications(false, 100)).size().isEqualTo(2);
+                });
     }
 
     private <R> R checkNotificationAfter(Callable<R> action, BiConsumer<Notification, R> check) throws Exception {
