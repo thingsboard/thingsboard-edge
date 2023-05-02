@@ -736,19 +736,19 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.5.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     try {
-                        loadSql(schemaUpdateFile, conn);
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
                         conn.createStatement().execute("ALTER TABLE customer ADD COLUMN parent_customer_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {
                     }
                     try {
                         conn.createStatement().execute("ALTER TABLE dashboard ADD COLUMN customer_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {
+                    }
+                    try {
+                        loadSql(schemaUpdateFile, conn);
+                    } catch (Exception e) {
+                    }
+                    try {
+                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {
                     }
                     try {
