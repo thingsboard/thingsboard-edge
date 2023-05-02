@@ -450,14 +450,14 @@
                 <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>thingsboard.yml</include>
+                    <include>tb-edge.yml</include>
                 </includes>
             </resource>
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>false</filtering>
                 <excludes>
-                    <exclude>thingsboard.yml</exclude>
+                    <exclude>tb-edge.yml</exclude>
                 </excludes>
             </resource>
         </resources>
