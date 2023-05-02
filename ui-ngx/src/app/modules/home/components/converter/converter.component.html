@@ -104,6 +104,7 @@
             functionName="Decoder"
             [functionArgs]="['payload', 'metadata']"
             [disableUndefinedCheck]="true"
+            [scriptLanguage]="scriptLanguage.TBEL"
             helpId="converter/tbel/decoder_fn"
             noValidate>
           </tb-js-func>
@@ -119,6 +120,7 @@
           </tb-js-func>
           <tb-js-func
             *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
+            [scriptLanguage]="scriptLanguage.TBEL"
             formControlName="tbelEncoder"
             functionName="Encoder"
             [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"

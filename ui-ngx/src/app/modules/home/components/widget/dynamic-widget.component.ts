@@ -65,6 +65,7 @@ import { TbInject } from '@shared/decorators/tb-inject';
 import { ReportService } from '@core/http/report.service';
 import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
 import { UserSettingsService } from '@core/http/user-settings.service';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
@@ -110,6 +111,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.sanitizer = $injector.get(DomSanitizer);
     this.ctx.router = $injector.get(Router);
     this.ctx.reportService = $injector.get(ReportService);
+    this.ctx.wl = $injector.get(WhiteLabelingService);
 
     this.ctx.$scope = this;
     if (this.ctx.defaultSubscription) {

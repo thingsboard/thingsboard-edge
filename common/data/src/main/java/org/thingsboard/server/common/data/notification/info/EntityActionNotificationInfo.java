@@ -52,9 +52,10 @@ public class EntityActionNotificationInfo implements RuleOriginatedNotificationI
     private EntityId entityId;
     private String entityName;
     private ActionType actionType;
-    private CustomerId entityCustomerId;
+    private CustomerId customerId;
 
     private UUID userId;
+    private String userTitle;
     private String userEmail;
     private String userFirstName;
     private String userLastName;
@@ -67,6 +68,7 @@ public class EntityActionNotificationInfo implements RuleOriginatedNotificationI
                 "entityName", entityName,
                 "actionType", actionType.name().toLowerCase(),
                 "userId", userId.toString(),
+                "userTitle", userTitle,
                 "userEmail", userEmail,
                 "userFirstName", userFirstName,
                 "userLastName", userLastName
@@ -75,7 +77,7 @@ public class EntityActionNotificationInfo implements RuleOriginatedNotificationI
 
     @Override
     public CustomerId getAffectedCustomerId() {
-        return entityCustomerId;
+        return customerId;
     }
 
     @Override

@@ -85,6 +85,7 @@ public interface ConverterDao extends Dao<Converter>, TenantEntityDao, Exportabl
      * @return the optional converter object
      */
     Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name);
+    PageData<Converter> findConverterByTenantIdAndName(UUID tenantId, String name, PageLink pageLink);
 
     /**
      * Find converter by tenantId and converter name.

@@ -171,7 +171,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             icon: descriptor.icon,
             isEnabled: entity => true,
             onAction: ($event, entity) => {
-              this.handleDescriptorAction($event, entity, descriptor);
+              this.handleDescriptorAction($event, entity, descriptor, config);
             }
           }
         );
@@ -495,7 +495,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       const descriptors = config.actionDescriptorsBySourceId.rowClick;
       if (descriptors && descriptors.length) {
         const descriptor = descriptors[0];
-        this.handleDescriptorAction(event, entity, descriptor);
+        this.handleDescriptorAction(event, entity, descriptor, config);
       } else if (config.onGroupEntityRowClick != null) {
         config.onGroupEntityRowClick(event, entity);
       }
@@ -503,7 +503,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     }
   }
 
-  private handleDescriptorAction(event: Event, entity: ShortEntityView, descriptor: WidgetActionDescriptor) {
+  private handleDescriptorAction(event: Event, entity: ShortEntityView, descriptor: WidgetActionDescriptor, config: GroupEntityTableConfig<T>) {
     if (event) {
       event.stopPropagation();
     }
@@ -535,8 +535,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         if (customFunction && customFunction.length > 0) {
           try {
             const customActionFunction = new Function('$event', '$injector', 'entityId',
-              'entityName', 'servicesMap', customFunction);
-            customActionFunction(event, this.injector, entityId, entityName, ServicesMap);
+              'entityName', 'servicesMap', 'tableConfig', customFunction);
+            const tableConfig = config.getTable();
+            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
           } catch (e) {
             console.error(e);
           }

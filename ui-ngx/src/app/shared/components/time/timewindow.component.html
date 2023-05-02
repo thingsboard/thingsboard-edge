@@ -30,10 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<button *ngIf="asButton"
+<button *ngIf="asButton && !strokedButton"
         [disabled]="timewindowDisabled"
         type="button"
         mat-raised-button color="primary"
+        (click)="toggleTimewindow($event)">
+  <mat-icon class="material-icons">query_builder</mat-icon>
+  <span>{{innerValue?.displayValue}}</span>
+</button>
+<button *ngIf="asButton && strokedButton"
+        [disabled]="timewindowDisabled"
+        type="button"
+        mat-stroked-button color="primary"
         (click)="toggleTimewindow($event)">
   <mat-icon class="material-icons">query_builder</mat-icon>
   <span>{{innerValue?.displayValue}}</span>

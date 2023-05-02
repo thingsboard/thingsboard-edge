@@ -382,7 +382,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(customerUserGroup, customerUserGroup,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, 2, 0 , 2,
+                ActionType.ADDED, ActionType.ADDED, 1, 0 , 1,
                 customerUserGroup.getType(), customerUserGroup.getId());
 
         EntityGroup tenantDashboardGroup = new EntityGroup();

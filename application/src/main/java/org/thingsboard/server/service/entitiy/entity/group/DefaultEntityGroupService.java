@@ -74,9 +74,6 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup));
             autoCommit(user, savedEntityGroup.getType(), savedEntityGroup.getId());
 
-            notificationEntityService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup,
-                    actionType, user);
-
             boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
                     savedEntityGroup, user, actionType, sendMsgToEdge, false, null);

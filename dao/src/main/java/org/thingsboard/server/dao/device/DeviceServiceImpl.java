@@ -45,6 +45,7 @@ import org.thingsboard.server.cache.device.DeviceCacheKey;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
@@ -83,6 +84,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
@@ -352,18 +354,29 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     }
 
     @Override
-    public Long countDevices() {
-        log.trace("Executing countDevices");
-        return deviceDao.countDevices();
-    }
-
-    @Override
     public PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateString(type, "Incorrect type " + type);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantIdAndType(tenantId.getId(), type, pageLink);
+    }
+
+    @Override
+    public PageData<DeviceInfo> findDeviceInfosByFilter(DeviceInfoFilter filter, PageLink pageLink) {
+        log.trace("Executing findDeviceInfosByFilter, filter [{}], pageLink [{}]", filter, pageLink);
+        if (filter == null) {
+            throw new IncorrectParameterException("Filter is empty!");
+        }
+        validateId(filter.getTenantId(), INCORRECT_TENANT_ID + filter.getTenantId());
+        validatePageLink(pageLink);
+        return deviceInfoDao.findDeviceInfosByFilter(filter, pageLink);
+    }
+
+    @Override
+    public Long countDevices() {
+        log.trace("Executing countDevices");
+        return deviceDao.countDevices();
     }
 
     @Override
@@ -653,79 +666,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
 
         return deviceDao.countByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findDeviceInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findDevicesByTenantId(tenantId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink) {
-        log.trace("Executing findDeviceInfosByTenantIdAndDeviceProfileId, tenantId [{}], deviceProfileId [{}], pageLink [{}]", tenantId, deviceProfileId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findDevicesByTenantIdAndDeviceProfileId(tenantId.getId(), deviceProfileId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findTenantDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findTenantDeviceInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findTenantDevicesByTenantId(tenantId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findTenantDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink) {
-        log.trace("Executing findTenantDeviceInfosByTenantIdAndDeviceProfileId, tenantId [{}], deviceProfileId [{}], pageLink [{}]", tenantId, deviceProfileId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findTenantDevicesByTenantIdAndDeviceProfileId(tenantId.getId(), deviceProfileId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        log.trace("Executing findDeviceInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink) {
-        log.trace("Executing findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId, tenantId [{}], customerId [{}], deviceProfileId [{}], pageLink [{}]", tenantId, customerId, deviceProfileId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findDevicesByTenantIdAndCustomerIdAndDeviceProfileId(tenantId.getId(), customerId.getId(), deviceProfileId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        log.trace("Executing findDeviceInfosByTenantIdAndCustomerIdIncludingSubsCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink) {
-        log.trace("Executing findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubsCustomers, tenantId [{}], customerId [{}], deviceProfileId [{}], pageLink [{}]",
-                tenantId, customerId, deviceProfileId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateId(deviceProfileId, INCORRECT_DEVICE_PROFILE_ID + deviceProfileId);
-        validatePageLink(pageLink);
-        return deviceInfoDao.findDevicesByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), deviceProfileId.getId(), pageLink);
     }
 
     @Override

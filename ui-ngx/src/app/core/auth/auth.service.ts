@@ -46,21 +46,14 @@ import { ActionAuthAuthenticated, ActionAuthLoadUser, ActionAuthUnauthenticated 
 import { getCurrentAuthState, getCurrentAuthUser } from './auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionSettingsChangeLanguage } from '@app/core/settings/settings.actions';
-import { AuthPayload, AuthState, SysParamsState } from '@core/auth/auth.models';
+import { AuthPayload, AuthState, SysParams, SysParamsState } from '@core/auth/auth.models';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthUser } from '@shared/models/user.model';
 import { TimeService } from '@core/services/time.service';
 import { UtilsService } from '@core/services/utils.service';
-import { DashboardService } from '@core/http/dashboard.service';
-import { PageLink } from '@shared/models/page/page-link';
-import { DashboardInfo } from '@shared/models/dashboard.models';
-import { PageData } from '@app/shared/models/page/page-data';
-import { AdminService } from '@core/http/admin.service';
-import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
-import { ReportService } from '@core/http/report.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
@@ -68,8 +61,6 @@ import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { isMobileApp } from '@core/utils';
 import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two-factor-auth.models';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
-import { UserSettings } from '@shared/models/user-settings.models';
-import { UserSettingsService } from '@core/http/user-settings.service';
 
 @Injectable({
     providedIn: 'root'
@@ -89,10 +80,7 @@ export class AuthService {
     private route: ActivatedRoute,
     private zone: NgZone,
     private utils: UtilsService,
-    private dashboardService: DashboardService,
-    private adminService: AdminService,
     private translate: TranslateService,
-    private userSettingsService: UserSettingsService,
     private dialog: MatDialog
   ) {
   }
@@ -456,7 +444,7 @@ export class AuthService {
           authPayload.forceFullscreen = true;
         }
         if (authPayload.authUser.isPublic) {
-          this.loadSystemParams(authPayload).subscribe(
+          this.loadSystemParams().subscribe(
             (sysParams) => {
               authPayload = {...authPayload, ...sysParams};
               loadUserSubject.next(authPayload);
@@ -477,7 +465,7 @@ export class AuthService {
               if (this.userForceFullscreen(authPayload)) {
                 authPayload.forceFullscreen = true;
               }
-              this.loadSystemParams(authPayload).subscribe(
+              this.loadSystemParams().subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
                   let userLang;
@@ -511,80 +499,20 @@ export class AuthService {
     return loadUserSubject;
   }
 
-  private loadIsUserTokenAccessEnabled(authUser: AuthUser): Observable<boolean> {
-    return this.http.get<boolean>('/api/user/tokenAccessEnabled', defaultHttpOptions());
-  }
-
-  private checkIsWhiteLabelingAllowed(authUser: AuthUser):
-    Observable<{whiteLabelingAllowed: boolean; customerWhiteLabelingAllowed: boolean}> {
-    if (authUser.authority === Authority.TENANT_ADMIN || authUser.authority === Authority.CUSTOMER_USER) {
-      return this.whiteLabelingService.isWhiteLabelingAllowed().pipe(
-        mergeMap((whiteLabelingAllowed) => {
-          if (authUser.authority === Authority.TENANT_ADMIN) {
-            return this.whiteLabelingService.isCustomerWhiteLabelingAllowed().pipe(
-              map((customerWhiteLabelingAllowed) => ({whiteLabelingAllowed, customerWhiteLabelingAllowed})),
-              catchError((err) => of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false}))
-            );
-          } else {
-            return of({whiteLabelingAllowed, customerWhiteLabelingAllowed: false});
-          }
-        }),
-        catchError((err) => of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false}))
-      );
-    } else {
-      return of({whiteLabelingAllowed: false, customerWhiteLabelingAllowed: false});
-    }
-  }
-
-  public loadIsEdgesSupportEnabled(): Observable<boolean> {
-    return this.http.get<boolean>('/api/edges/enabled', defaultHttpOptions());
-  }
-
-  private loadHasRepository(authUser: AuthUser): Observable<boolean> {
-    if (authUser.authority === Authority.TENANT_ADMIN) {
-      return this.http.get<boolean>('/api/admin/repositorySettings/exists', defaultHttpOptions());
-    } else {
-      return of(false);
-    }
-  }
-
-  private loadTbelEnabled(authUser: AuthUser): Observable<boolean> {
-    if (authUser.authority === Authority.TENANT_ADMIN) {
-      return this.http.get<boolean>('/api/ruleChain/tbelEnabled', defaultHttpOptions());
-    } else {
-      return of(false);
-    }
-  }
-
-  private loadUserSettings(): Observable<UserSettings> {
-    return this.userSettingsService.loadUserSettings();
-  }
-
-  private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
-    const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
-                     this.fetchAllowedDashboardIds(authPayload),
-                     this.loadIsEdgesSupportEnabled(),
-                     this.loadHasRepository(authPayload.authUser),
-                     this.loadTbelEnabled(authPayload.authUser),
-                     this.loadUserSettings(),
-                     this.checkIsWhiteLabelingAllowed(authPayload.authUser),
+  private loadSystemParams(): Observable<SysParamsState> {
+    const sources = [this.http.get<SysParams>('/api/system/params', defaultHttpOptions()),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
                      this.customTranslationService.updateCustomTranslations(true),
-                     this.userPermissionsService.loadPermissionsInfo(),
-                     this.timeService.loadMaxDatapointsLimit()];
+                     this.userPermissionsService.loadPermissionsInfo()];
     return forkJoin(sources)
       .pipe(map((data) => {
-        const userTokenAccessEnabled: boolean = data[0] as boolean;
-        const allowedDashboardIds: string[] = data[1] as string[];
-        const edgesSupportEnabled: boolean = data[2] as boolean;
-        const hasRepository: boolean = data[3] as boolean;
-        const tbelEnabled: boolean = data[4] as boolean;
-        const userSettings = data[5] as UserSettings;
-        const whiteLabelingAllowedInfo = data[6] as {whiteLabelingAllowed: boolean; customerWhiteLabelingAllowed: boolean};
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, tbelEnabled,
-          userSettings, ...whiteLabelingAllowedInfo};
-      }, catchError((err) => of({}))));
+        const sysParams: SysParams = data[0] as SysParams;
+        this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
+        return sysParams;
+      }),
+      catchError(() => of({} as SysParamsState))
+     );
   }
 
   public refreshJwtToken(loadUserElseStoreJwtToken = true): Observable<LoginResponse> {
@@ -767,22 +695,4 @@ export class AuthService {
       return false;
     }
   }
-
-  private fetchAllowedDashboardIds(authPayload: AuthPayload): Observable<string[]> {
-    if (authPayload.forceFullscreen && (authPayload.authUser.authority === Authority.TENANT_ADMIN ||
-      authPayload.authUser.authority === Authority.CUSTOMER_USER)) {
-      const pageLink = new PageLink(100);
-      const fetchDashboardsObservable: Observable<PageData<DashboardInfo>> =
-        this.dashboardService.getUserDashboards(null, null, pageLink, {ignoreLoading: true});
-      return fetchDashboardsObservable.pipe(
-        map((result) => {
-          const dashboards = result.data;
-          return dashboards.map(dashboard => dashboard.id.id);
-        })
-      );
-    } else {
-      return of([]);
-    }
-  }
-
 }

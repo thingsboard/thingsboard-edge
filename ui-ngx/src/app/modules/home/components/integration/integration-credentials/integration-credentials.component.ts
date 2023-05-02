@@ -79,10 +79,9 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   private ignoreCaCertValue = false;
   @Input()
   set ignoreCaCert(value: boolean) {
-    const newVal = coerceBooleanProperty(value);
-    if (this.ignoreCaCertValue !== newVal && this.integrationCredentialForm) {
-      this.ignoreCaCertValue = newVal;
-      if (newVal) {
+    this.ignoreCaCertValue = coerceBooleanProperty(value);
+    if (this.integrationCredentialForm) {
+      if (this.ignoreCaCertValue) {
         this.integrationCredentialForm.get('caCertFileName').clearValidators();
         this.integrationCredentialForm.get('caCert').clearValidators();
       } else {

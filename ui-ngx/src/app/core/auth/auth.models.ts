@@ -40,7 +40,12 @@ export interface SysParamsState {
   customerWhiteLabelingAllowed: boolean;
   hasRepository: boolean;
   tbelEnabled: boolean;
+  persistDeviceStateToTelemetry: boolean;
   userSettings: UserSettings;
+}
+
+export interface SysParams extends SysParamsState {
+  maxDatapointsLimit: number;
 }
 
 export interface AuthPayload extends SysParamsState {

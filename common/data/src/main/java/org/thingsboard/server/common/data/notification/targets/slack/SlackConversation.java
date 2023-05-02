@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.notification.targets.slack;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -46,23 +48,34 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SlackConversation implements NotificationRecipient {
 
+    @NotNull
+    private SlackConversationType type;
     @NotEmpty
     private String id;
     @NotEmpty
-    private String title;
+    private String name;
 
-    private String shortName;
     private String wholeName;
     private String email;
+
+    @Override
+    public String getTitle() {
+        if (type == SlackConversationType.DIRECT) {
+            return StringUtils.defaultIfEmpty(wholeName, name);
+        } else {
+            return name;
+        }
+    }
 
     @JsonIgnore
     @Override
     public String getFirstName() {
         String firstName = StringUtils.contains(wholeName, " ") ? wholeName.split(" ")[0] : wholeName;
         if (isEmpty(firstName)) {
-            firstName = shortName;
+            firstName = name;
         }
         return firstName;
     }
@@ -71,6 +84,11 @@ public class SlackConversation implements NotificationRecipient {
     @Override
     public String getLastName() {
         return StringUtils.contains(wholeName, " ") ? wholeName.split(" ")[1] : null;
+    }
+
+    @JsonIgnore
+    public String getPointer() {
+        return type == SlackConversationType.DIRECT ? "@" : "#";
     }
 
 }

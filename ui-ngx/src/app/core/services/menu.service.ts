@@ -44,7 +44,6 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { AuthState } from '@core/auth/auth.models';
 import { CustomMenuItem } from '@shared/models/custom-menu.models';
-import { guid } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -53,7 +52,9 @@ export class MenuService {
 
   private menuSections$: Subject<Array<MenuSection>> = new BehaviorSubject<Array<MenuSection>>([]);
   private homeSections$: Subject<Array<HomeSection>> = new BehaviorSubject<Array<HomeSection>>([]);
-
+  private availableMenuLinks$ = this.menuSections$.pipe(
+    map((items) => this.allMenuLinks(items))
+  );
   private currentMenuSections: Array<MenuSection> = [];
   private currentHomeSections: Array<HomeSection> = [];
 
@@ -95,20 +96,26 @@ export class MenuService {
           if (customMenu && customMenu.disabledMenuItems) {
             disabledItems = customMenu.disabledMenuItems;
           }
+          const index = disabledItems.indexOf('sms_provider');
+          if (index !== -1) {
+            disabledItems[index] = 'notification_settings';
+          }
+          let menuSections: MenuSection[] = [];
           switch (authState.authUser.authority) {
             case Authority.SYS_ADMIN:
-              this.currentMenuSections = this.buildSysAdminMenu(authState, disabledItems);
+              menuSections = this.buildSysAdminMenu();
               this.currentHomeSections = this.buildSysAdminHome(authState, disabledItems);
               break;
             case Authority.TENANT_ADMIN:
-              this.currentMenuSections = this.buildTenantAdminMenu(authState, disabledItems);
+              menuSections = this.buildTenantAdminMenu(authState);
               this.currentHomeSections = this.buildTenantAdminHome(authState, disabledItems);
               break;
             case Authority.CUSTOMER_USER:
-              this.currentMenuSections = this.buildCustomerUserMenu(authState, disabledItems);
+              menuSections = this.buildCustomerUserMenu(authState);
               this.currentHomeSections = this.buildCustomerUserHome(authState, disabledItems);
               break;
           }
+          this.currentMenuSections = this.updateDisabledItems(menuSections, disabledItems);
           let customMenuItems: CustomMenuItem[] = [];
           if (customMenu && customMenu.menuItems) {
             customMenuItems = customMenu.menuItems;
@@ -122,6 +129,16 @@ export class MenuService {
     );
   }
 
+  private updateDisabledItems(sections: Array<MenuSection>, disabledItems: string[]): Array<MenuSection> {
+    for (const section of sections) {
+      section.disabled = disabledItems.indexOf(section.id) > -1;
+      if (section.pages && section.pages.length) {
+        this.updateDisabledItems(section.pages, disabledItems);
+      }
+    }
+    return sections;
+  }
+
   private updateOpenedMenuSections() {
     const url = this.router.url;
     const openedMenuSections = getCurrentOpenedMenuSections(this.store);
@@ -131,255 +148,239 @@ export class MenuService {
     );
   }
 
-  private buildSysAdminMenu(authState: AuthState, disabledItems: string[]): Array<MenuSection> {
+  private buildSysAdminMenu(): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
     sections.push(
       {
-        id: guid(),
+        id: 'home',
         name: 'home.home',
         type: 'link',
         path: '/home',
-        icon: 'home',
-        disabled: disabledItems.indexOf('home') > -1
+        icon: 'home'
       },
       {
-        id: guid(),
+        id: 'tenants',
         name: 'tenant.tenants',
         type: 'link',
         path: '/tenants',
-        icon: 'supervisor_account',
-        disabled: disabledItems.indexOf('tenants') > -1
+        icon: 'supervisor_account'
       },
       {
-        id: guid(),
+        id: 'tenant_profiles',
         name: 'tenant-profile.tenant-profiles',
         type: 'link',
         path: '/tenantProfiles',
         icon: 'mdi:alpha-t-box',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('tenant_profiles') > -1
+        isMdiIcon: true
       },
       {
-        id: guid(),
+        id: 'resources',
         name: 'admin.resources',
         type: 'toggle',
         path: '/resources',
         icon: 'folder',
         pages: [
           {
-            id: guid(),
+            id: 'widget_library',
             name: 'widget.widget-library',
             type: 'link',
             path: '/resources/widgets-bundles',
-            icon: 'now_widgets',
-            disabled: disabledItems.indexOf('widget_library') > -1
+            icon: 'now_widgets'
           },
           {
-            id: guid(),
+            id: 'resources_library',
             name: 'resource.resources-library',
             type: 'link',
             path: '/resources/resources-library',
             icon: 'mdi:rhombus-split',
-            isMdiIcon: true,
-            disabled: disabledItems.indexOf('resources_library') > -1
+            isMdiIcon: true
           }
         ]
       }
     );
 
     const notificationPages: Array<MenuSection> = [{
-        id: guid(),
+        id: 'notification_inbox',
         name: 'notification.inbox',
+        fullName: 'notification.notification-inbox',
         type: 'link',
         path: '/notification/inbox',
-        icon: 'inbox',
-        disabled: disabledItems.indexOf('notification_inbox') > -1
+        icon: 'inbox'
       },
       {
-        id: guid(),
+        id: 'notification_sent',
         name: 'notification.sent',
+        fullName: 'notification.notification-sent',
         type: 'link',
         path: '/notification/sent',
-        icon: 'outbox',
-        disabled: disabledItems.indexOf('notification_sent') > -1
+        icon: 'outbox'
       },
       {
-        id: guid(),
+        id: 'notification_recipients',
         name: 'notification.recipients',
+        fullName: 'notification.notification-recipients',
         type: 'link',
         path: '/notification/recipients',
-        icon: 'contacts',
-        disabled: disabledItems.indexOf('notification_recipients') > -1
+        icon: 'contacts'
       },
       {
-        id: guid(),
+        id: 'notification_templates',
         name: 'notification.templates',
+        fullName: 'notification.notification-templates',
         type: 'link',
         path: '/notification/templates',
         icon: 'mdi:message-draw',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_templates') > -1
+        isMdiIcon: true
       },
       {
-        id: guid(),
+        id: 'notification_rules',
         name: 'notification.rules',
+        fullName: 'notification.notification-rules',
         type: 'link',
         path: '/notification/rules',
         icon: 'mdi:message-cog',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('notification_rules') > -1
+        isMdiIcon: true
       }
     ];
     sections.push(
       {
-        id: guid(),
+        id: 'notifications_center',
         name: 'notification.notification-center',
         type: 'link',
         path: '/notification',
         icon: 'mdi:message-badge',
         isMdiIcon: true,
-        pages: notificationPages,
-        disabled: disabledItems.indexOf('notifications_center') > -1
+        pages: notificationPages
       }
     );
 
     const whiteLabelPages: Array<MenuSection> = [
       {
-        id: guid(),
+        id: 'white_labeling_general',
         name: 'white-labeling.general',
+        fullName: 'white-labeling.white-labeling-general',
         type: 'link',
         path: '/white-labeling/whiteLabel',
-        icon: 'format_paint',
-        disabled: disabledItems.indexOf('white_labeling_general') > -1
+        icon: 'format_paint'
       },
       {
-        id: guid(),
+        id: 'login_white_labeling',
         name: 'white-labeling.login',
+        fullName: 'white-labeling.login-white-labeling',
         type: 'link',
         path: '/white-labeling/loginWhiteLabel',
-        icon: 'format_paint',
-        disabled: disabledItems.indexOf('login_white_labeling') > -1
+        icon: 'format_paint'
       },
       {
-        id: guid(),
+        id: 'mail_templates',
         name: 'admin.mail-templates',
         type: 'link',
         path: '/white-labeling/mail-template',
-        icon: 'format_shapes',
-        disabled: disabledItems.indexOf('mail_templates') > -1
+        icon: 'format_shapes'
       },
       {
-        id: guid(),
+        id: 'custom_translation',
         name: 'custom-translation.custom-translation',
         type: 'link',
         path: '/white-labeling/customTranslation',
-        icon: 'language',
-        disabled: disabledItems.indexOf('custom_translation') > -1
+        icon: 'language'
       },
       {
-        id: guid(),
+        id: 'custom_menu',
         name: 'custom-menu.custom-menu',
         type: 'link',
         path: '/white-labeling/customMenu',
-        icon: 'list',
-        disabled: disabledItems.indexOf('custom_menu') > -1
+        icon: 'list'
       }
     ];
 
     const whiteLabelSection: MenuSection = {
-      id: guid(),
+      id: 'white_labeling',
       name: 'white-labeling.white-labeling',
       type: 'link',
       path: '/white-labeling',
       icon: 'format_paint',
-      pages: whiteLabelPages,
-      disabled: disabledItems.indexOf('white_labeling') > -1
+      pages: whiteLabelPages
     };
     sections.push(whiteLabelSection);
 
     const settingPages: Array<MenuSection> = [
       {
-        id: guid(),
+        id: 'general',
         name: 'admin.general',
+        fullName: 'admin.general-settings',
         type: 'link',
         path: '/settings/general',
-        icon: 'settings_applications',
-        disabled: disabledItems.indexOf('general') > -1
+        icon: 'settings_applications'
       },
       {
-        id: guid(),
+        id: 'mail_server',
         name: 'admin.outgoing-mail',
         type: 'link',
         path: '/settings/outgoing-mail',
-        icon: 'mail',
-        disabled: disabledItems.indexOf('mail_server') > -1
+        icon: 'mail'
       },
       {
-        id: guid(),
+        id: 'notification_settings',
         name: 'admin.notifications',
+        fullName: 'admin.notifications-settings',
         type: 'link',
         path: '/settings/notifications',
-        icon: 'sms',
-        disabled: disabledItems.indexOf('sms_provider') > -1 || disabledItems.indexOf('notification_settings') > -1
+        icon: 'sms'
       },
       {
-        id: guid(),
+        id: 'queues',
         name: 'admin.queues',
         type: 'link',
         path: '/settings/queues',
-        icon: 'swap_calls',
-        disabled: disabledItems.indexOf('queues') > -1
+        icon: 'swap_calls'
       }
     ];
 
     const settingSection: MenuSection = {
-      id: guid(),
+      id: 'settings',
       name: 'admin.settings',
       type: 'link',
       path: '/settings',
       icon: 'settings',
-      pages: settingPages,
-      disabled: disabledItems.indexOf('settings') > -1
+      pages: settingPages
     };
     sections.push(settingSection);
 
     const securitySettingPages: Array<MenuSection> = [
       {
-        id: guid(),
+        id: 'security_settings_general',
         name: 'admin.general',
+        fullName: 'security.general-settings',
         type: 'link',
         path: '/security-settings/general',
-        icon: 'settings_applications',
-        disabled: disabledItems.indexOf('security_settings') > -1
+        icon: 'settings_applications'
       },
       {
-        id: guid(),
+        id: '2fa',
         name: 'admin.2fa.2fa',
         type: 'link',
         path: '/security-settings/2fa',
         icon: 'mdi:two-factor-authentication',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('2fa') > -1
+        isMdiIcon: true
       },
       {
-        id: guid(),
+        id: 'oauth2',
         name: 'admin.oauth2.oauth2',
         type: 'link',
         path: '/security-settings/oauth2',
         icon: 'mdi:shield-account',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('oauth2') > -1
+        isMdiIcon: true
       }
     ];
 
     const securitySettingSection: MenuSection = {
-      id: guid(),
+      id: 'security_settings',
       name: 'security.security',
       type: 'toggle',
       path: '/security-settings',
       icon: 'security',
-      pages: securitySettingPages,
-      disabled: disabledItems.indexOf('security_settings') > -1
+      pages: securitySettingPages
     };
     sections.push(securitySettingSection);
 
@@ -521,11 +522,11 @@ export class MenuService {
     return homeSections;
   }
 
-  private buildTenantAdminMenu(authState: AuthState, disabledItems: string[]): Array<MenuSection> {
+  private buildTenantAdminMenu(authState: AuthState): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
     const edgePages: Array<MenuSection> = [
       {
-        id: guid(),
+        id: 'edge_status',
         name: 'edge.status',
         type: 'link',
         path: '/edge/status',
@@ -533,7 +534,7 @@ export class MenuService {
         disabled: false
       },
       {
-        id: guid(),
+        id: 'edge_cloud_events',
         name: 'edge.cloud-events',
         type: 'link',
         path: '/edge/cloudEvents',
@@ -543,15 +544,14 @@ export class MenuService {
     ];
     sections.push(
       {
-        id: guid(),
+        id: 'home',
         name: 'home.home',
         type: 'link',
         path: '/home',
-        icon: 'home',
-        disabled: disabledItems.indexOf('home') > -1
+        icon: 'home'
       },
       {
-        id: guid(),
+        id: 'edge_info',
         name: 'edge.edge',
         type: 'toggle',
         path: '/edge',
@@ -562,12 +562,12 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ALARM)) {
       sections.push(
         {
-          id: guid(),
+          id: 'alarms',
           name: 'alarm.alarms',
           type: 'link',
           path: '/alarms',
-          icon: 'notifications',
-          disabled: disabledItems.indexOf('alarms') > -1
+          icon: 'mdi:alert-outline',
+          isMdiIcon: true
         }
       );
     }
@@ -575,50 +575,49 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD)) {
       dashboardPages.push(
         {
-          id: guid(),
+          id: 'dashboard_all',
           name: 'dashboard.all',
+          fullName: 'dashboard.all-dashboards',
           type: 'link',
           path: '/dashboards/all',
-          icon: 'dashboards',
-          disabled: disabledItems.indexOf('dashboard_all') > -1
+          icon: 'dashboards'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.DASHBOARD)) {
       dashboardPages.push(
         {
-          id: guid(),
+          id: 'dashboard_groups',
           name: 'dashboard.groups',
+          fullName: 'entity-group.dashboard-groups',
           type: 'link',
           path: '/dashboards/groups',
-          icon: 'dashboard',
-          disabled: disabledItems.indexOf('dashboard_groups') > -1
+          icon: 'dashboard'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DASHBOARD)) {
       dashboardPages.push(
         {
-          id: guid(),
+          id: 'dashboard_shared',
           name: 'dashboard.shared',
+          fullName: 'entity-group.shared-dashboard-groups',
           type: 'link',
           path: '/dashboards/shared',
           icon: 'dashboard',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('dashboard_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (dashboardPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'dashboards',
           name: 'dashboard.dashboards',
           type: 'link',
           path: '/dashboards',
           icon: 'dashboards',
-          pages: dashboardPages,
-          disabled: disabledItems.indexOf('dashboards') > -1
+          pages: dashboardPages
         }
       );
     }
@@ -626,12 +625,11 @@ export class MenuService {
     if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
       sections.push(
         {
-          id: guid(),
+          id: 'solution_templates',
           name: 'solution-template.solution-templates',
           type: 'link',
           path: '/solutionTemplates',
           icon: 'apps',
-          disabled: disabledItems.indexOf('solution_templates') > -1,
           isNew: true
         }
       );
@@ -642,50 +640,49 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE)) {
       devicesPages.push(
         {
-          id: guid(),
+          id: 'device_all',
           name: 'device.all',
+          fullName: 'device.all-devices',
           type: 'link',
           path: '/entities/devices/all',
-          icon: 'devices_other',
-          disabled: disabledItems.indexOf('device_all') > -1
+          icon: 'devices_other'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.DEVICE)) {
       devicesPages.push(
         {
-          id: guid(),
+          id: 'device_groups',
           name: 'device.groups',
+          fullName: 'entity-group.device-groups',
           type: 'link',
           path: '/entities/devices/groups',
-          icon: 'devices_other',
-          disabled: disabledItems.indexOf('device_groups') > -1
+          icon: 'devices_other'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DEVICE)) {
       devicesPages.push(
         {
-          id: guid(),
+          id: 'device_shared',
           name: 'device.shared',
+          fullName: 'entity-group.shared-device-groups',
           type: 'link',
           path: '/entities/devices/shared',
           icon: 'devices_other',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('device_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (devicesPages.length) {
       entityPages.push(
         {
-          id: guid(),
+          id: 'devices',
           name: 'device.devices',
           type: 'link',
           path: '/entities/devices',
           icon: 'devices_other',
-          pages: devicesPages,
-          disabled: disabledItems.indexOf('devices') > -1
+          pages: devicesPages
         }
       );
     }
@@ -693,50 +690,49 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET)) {
       assetsPages.push(
         {
-          id: guid(),
+          id: 'asset_all',
           name: 'asset.all',
+          fullName: 'asset.all-assets',
           type: 'link',
           path: '/entities/assets/all',
-          icon: 'domain',
-          disabled: disabledItems.indexOf('asset_all') > -1
+          icon: 'domain'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.ASSET)) {
       assetsPages.push(
         {
-          id: guid(),
+          id: 'asset_groups',
           name: 'asset.groups',
+          fullName: 'entity-group.asset-groups',
           type: 'link',
           path: '/entities/assets/groups',
-          icon: 'domain',
-          disabled: disabledItems.indexOf('asset_groups') > -1
+          icon: 'domain'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.ASSET)) {
       assetsPages.push(
         {
-          id: guid(),
+          id: 'asset_shared',
           name: 'asset.shared',
+          fullName: 'entity-group.shared-asset-groups',
           type: 'link',
           path: '/entities/assets/shared',
           icon: 'domain',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('asset_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (assetsPages.length) {
       entityPages.push(
         {
-          id: guid(),
+          id: 'assets',
           name: 'asset.assets',
           type: 'link',
           path: '/entities/assets',
           icon: 'domain',
-          pages: assetsPages,
-          disabled: disabledItems.indexOf('assets') > -1
+          pages: assetsPages
         }
       );
     }
@@ -744,63 +740,61 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ENTITY_VIEW)) {
       entityViewsPages.push(
         {
-          id: guid(),
+          id: 'entity_view_all',
           name: 'entity-view.all',
+          fullName: 'entity-view.all-entity-views',
           type: 'link',
           path: '/entities/entityViews/all',
-          icon: 'view_quilt',
-          disabled: disabledItems.indexOf('entity_view_all') > -1
+          icon: 'view_quilt'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       entityViewsPages.push(
         {
-          id: guid(),
+          id: 'entity_view_groups',
           name: 'entity-view.groups',
+          fullName: 'entity-group.entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/groups',
-          icon: 'view_quilt',
-          disabled: disabledItems.indexOf('entity_view_groups') > -1
+          icon: 'view_quilt'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       entityViewsPages.push(
         {
-          id: guid(),
+          id: 'entity_view_shared',
           name: 'entity-view.shared',
+          fullName: 'entity-group.shared-entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/shared',
           icon: 'view_quilt',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('entity_view_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (entityViewsPages.length) {
       entityPages.push(
         {
-          id: guid(),
+          id: 'entity_views',
           name: 'entity-view.entity-views',
           type: 'link',
           path: '/entities/entityViews',
           icon: 'view_quilt',
-          pages: entityViewsPages,
-          disabled: disabledItems.indexOf('assets') > -1
+          pages: entityViewsPages
         }
       );
     }
     if (entityPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'entities',
           name: 'entity.entities',
           type: 'toggle',
           path: '/entities',
           icon: 'category',
-          pages: entityPages,
-          disabled: disabledItems.indexOf('entities') > -1
+          pages: entityPages
         }
       );
     }
@@ -808,33 +802,31 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
       profilePages.push(
         {
-          id: guid(),
+          id: 'device_profiles',
           name: 'device-profile.device-profiles',
           type: 'link',
           path: '/profiles/deviceProfiles',
           icon: 'mdi:alpha-d-box',
-          isMdiIcon: true,
-          disabled: disabledItems.indexOf('device_profiles') > -1
+          isMdiIcon: true
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)) {
       profilePages.push(
         {
-          id: guid(),
+          id: 'asset_profiles',
           name: 'asset-profile.asset-profiles',
           type: 'link',
           path: '/profiles/assetProfiles',
           icon: 'mdi:alpha-a-box',
-          isMdiIcon: true,
-          disabled: disabledItems.indexOf('asset_profiles') > -1
+          isMdiIcon: true
         }
       );
     }
     if (profilePages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'profiles',
           name: 'profiles.profiles',
           type: 'toggle',
           path: '/profiles',
@@ -848,63 +840,62 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customer_all',
           name: 'customer.all',
+          fullName: 'customer.all-customers',
           type: 'link',
           path: '/customers/all',
-          icon: 'supervisor_account',
-          disabled: disabledItems.indexOf('customer_all') > -1
+          icon: 'supervisor_account'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customer_groups',
           name: 'customer.groups',
+          fullName: 'entity-group.customer-groups',
           type: 'link',
           path: '/customers/groups',
-          icon: 'supervisor_account',
-          disabled: disabledItems.indexOf('customer_groups') > -1
+          icon: 'supervisor_account'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customer_shared',
           name: 'customer.shared',
+          fullName: 'entity-group.shared-customer-groups',
           type: 'link',
           path: '/customers/shared',
           icon: 'supervisor_account',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('customer_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customers_hierarchy',
           name: 'customer.hierarchy',
+          fullName: 'customers-hierarchy.customers-hierarchy',
           type: 'link',
           path: '/customers/hierarchy',
           icon: 'sort',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('customers_hierarchy') > -1
+          rootOnly: true
         }
       );
     }
     if (customerPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'customers',
           name: 'customer.customers',
           type: 'link',
           path: '/customers',
           icon: 'supervisor_account',
-          pages: customerPages,
-          disabled: disabledItems.indexOf('customers') > -1
+          pages: customerPages
         }
       );
     }
@@ -912,37 +903,36 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.USER)) {
       userPages.push(
         {
-          id: guid(),
+          id: 'user_all',
           name: 'user.all',
+          fullName: 'user.all-users',
           type: 'link',
           path: '/users/all',
-          icon: 'account_circle',
-          disabled: disabledItems.indexOf('user_all') > -1
+          icon: 'account_circle'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.USER)) {
       userPages.push(
         {
-          id: guid(),
+          id: 'user_groups',
           name: 'user.groups',
+          fullName: 'entity-group.user-groups',
           type: 'link',
           path: '/users/groups',
-          icon: 'account_circle',
-          disabled: disabledItems.indexOf('user_groups') > -1
+          icon: 'account_circle'
         }
       );
     }
     if (userPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'users',
           name: 'user.users',
           type: 'link',
           path: '/users',
           icon: 'account_circle',
-          pages: userPages,
-          disabled: disabledItems.indexOf('users') > -1
+          pages: userPages
         }
       );
     }
@@ -950,49 +940,45 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
       integrationPages.push(
         {
-          id: guid(),
+          id: 'integrations',
           name: 'integration.integrations',
           type: 'link',
           path: '/integrationsCenter/integrations',
-          icon: 'input',
-          disabled: disabledItems.indexOf('integrations') > -1
+          icon: 'input'
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
       integrationPages.push(
         {
-          id: guid(),
+          id: 'converters',
           name: 'converter.converters',
           type: 'link',
           path: '/integrationsCenter/converters',
-          icon: 'transform',
-          disabled: disabledItems.indexOf('converters') > -1
+          icon: 'transform'
         }
       );
     }
     if (integrationPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'integrations_center',
           name: 'integration.integrations-center',
           type: 'toggle',
           path: '/integrationsCenter',
           icon: 'integration_instructions',
-          pages: integrationPages,
-          disabled: disabledItems.indexOf('integrations_center') > -1
+          pages: integrationPages
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       sections.push(
         {
-          id: guid(),
+          id: 'rule_chains',
           name: 'rulechain.rulechains',
           type: 'link',
           path: '/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('rule_chains') > -1
+          icon: 'settings_ethernet'
         }
       );
     }
@@ -1002,86 +988,86 @@ export class MenuService {
       if (this.userPermissionsService.hasReadGenericPermission(Resource.EDGE)) {
         edgesPages.push(
           {
-            id: guid(),
+            id: 'edge_all',
             name: 'edge.all',
+            fullName: 'edge.all-edges',
             type: 'link',
             path: '/edgeManagement/instances/all',
-            icon: 'router',
-            disabled: disabledItems.indexOf('edge_all') > -1
+            icon: 'router'
           }
         );
       }
       if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.EDGE)) {
         edgesPages.push(
           {
-            id: guid(),
+            id: 'edge_groups',
             name: 'edge.groups',
+            fullName: 'entity-group.edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/groups',
-            icon: 'router',
-            disabled: disabledItems.indexOf('edge_groups') > -1
+            icon: 'router'
           }
         );
       }
       if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.EDGE)) {
         edgesPages.push(
           {
-            id: guid(),
+            id: 'edge_shared',
             name: 'edge.shared',
+            fullName: 'entity-group.shared-edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/shared',
             icon: 'router',
-            rootOnly: true,
-            disabled: disabledItems.indexOf('edge_shared') > -1
+            rootOnly: true
           }
         );
       }
       if (edgesPages.length) {
         edgeManagementPages.push(
           {
-            id: guid(),
+            id: 'edges',
             name: 'edge.instances',
+            fullName: 'edge.edge-instances',
             type: 'link',
             path: '/edgeManagement/instances',
             icon: 'router',
-            pages: edgesPages,
-            disabled: disabledItems.indexOf('edges') > -1
+            pages: edgesPages
           }
         );
       }
       if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
         edgeManagementPages.push(
           {
-            id: guid(),
+            id: 'rulechain_templates',
             name: 'edge.rulechain-templates',
+            fullName: 'edge.edge-rulechain-templates',
             type: 'link',
             path: '/edgeManagement/ruleChains',
-            icon: 'settings_ethernet',
-            disabled: disabledItems.indexOf('rulechain_templates') > -1
+            icon: 'settings_ethernet'
           }
         );
       }
       if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
         edgeManagementPages.push(
           {
-            id: guid(),
+            id: 'integration_templates',
             name: 'edge.integration-templates',
+            fullName: 'edge.edge-integration-templates',
             type: 'link',
             path: '/edgeManagement/integrations',
-            icon: 'input',
-            disabled: disabledItems.indexOf('integration_templates') > -1
+            icon: 'input'
           }
         );
       }
       if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
         edgeManagementPages.push(
           {
-            id: guid(),
+            id: 'converter_templates',
             name: 'edge.converter-templates',
+            fullName: 'edge.edge-converter-templates',
             type: 'link',
             path: '/edgeManagement/converters',
-            icon: 'transform',
-            disabled: disabledItems.indexOf('converter_templates') > -1
+            icon: 'transform'
           }
         );
       }
@@ -1090,13 +1076,12 @@ export class MenuService {
     if (edgeManagementPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'edge_management',
           name: 'edge.management',
           type: 'toggle',
           path: '/edgeManagement',
           icon: 'settings_input_antenna',
-          pages: edgeManagementPages,
-          disabled: disabledItems.indexOf('edge_management') > -1
+          pages: edgeManagementPages
         }
       );
     }
@@ -1105,12 +1090,11 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       advancedFeaturesPages.push(
         {
-          id: guid(),
+          id: 'otaUpdates',
           name: 'ota-update.ota-updates',
           type: 'link',
           path: '/features/otaUpdates',
-          icon: 'memory',
-          disabled: disabledItems.indexOf('otaUpdates') > -1
+          icon: 'memory'
         }
       );
     }
@@ -1118,12 +1102,11 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       advancedFeaturesPages.push(
         {
-          id: guid(),
+          id: 'version_control',
           name: 'version-control.version-control',
           type: 'link',
           path: '/features/vc',
-          icon: 'history',
-          disabled: disabledItems.indexOf('version_control') > -1
+          icon: 'history'
         }
       );
     }
@@ -1131,25 +1114,23 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       advancedFeaturesPages.push(
         {
-          id: guid(),
+          id: 'scheduler',
           name: 'scheduler.scheduler',
           type: 'link',
           path: '/features/scheduler',
-          icon: 'schedule',
-          disabled: disabledItems.indexOf('scheduler') > -1
+          icon: 'schedule'
         }
       );
     }
     if (advancedFeaturesPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'features',
           name: 'feature.advanced-features',
           type: 'toggle',
           path: '/features',
           icon: 'construction',
-          pages: advancedFeaturesPages,
-          disabled: disabledItems.indexOf('features') > -1
+          pages: advancedFeaturesPages
         }
       );
     }
@@ -1157,97 +1138,94 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       resourcesPages.push(
         {
-          id: guid(),
+          id: 'widget_library',
           name: 'widget.widget-library',
           type: 'link',
           path: '/resources/widgets-bundles',
-          icon: 'now_widgets',
-          disabled: disabledItems.indexOf('widget_library') > -1
+          icon: 'now_widgets'
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
       resourcesPages.push({
-        id: guid(),
+        id: 'resources_library',
         name: 'resource.resources-library',
         type: 'link',
         path: '/resources/resources-library',
         icon: 'mdi:rhombus-split',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('resources_library') > -1
+        isMdiIcon: true
       });
     }
     if (resourcesPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'resources',
           name: 'admin.resources',
           type: 'toggle',
           path: '/resources',
           icon: 'folder',
-          pages: resourcesPages,
-          disabled: disabledItems.indexOf('resources') > -1
+          pages: resourcesPages
         }
       );
     }
     const notificationPages: Array<MenuSection> = [];
     notificationPages.push(
       {
-        id: guid(),
+        id: 'notification_inbox',
         name: 'notification.inbox',
+        fullName: 'notification.notification-inbox',
         type: 'link',
         path: '/notification/inbox',
-        icon: 'inbox',
-        disabled: disabledItems.indexOf('notification_inbox') > -1
+        icon: 'inbox'
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
       notificationPages.push(
         {
-          id: guid(),
+          id: 'notification_sent',
           name: 'notification.sent',
+          fullName: 'notification.notification-sent',
           type: 'link',
           path: '/notification/sent',
-          icon: 'outbox',
-          disabled: disabledItems.indexOf('notification_sent') > -1
+          icon: 'outbox'
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
       notificationPages.push(
         {
-          id: guid(),
+          id: 'notification_recipients',
           name: 'notification.recipients',
+          fullName: 'notification.notification-recipients',
           type: 'link',
           path: '/notification/recipients',
-          icon: 'contacts',
-          disabled: disabledItems.indexOf('notification_recipients') > -1
+          icon: 'contacts'
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
       notificationPages.push(
         {
-          id: guid(),
+          id: 'notification_templates',
           name: 'notification.templates',
+          fullName: 'notification.notification-templates',
           type: 'link',
           path: '/notification/templates',
           icon: 'mdi:message-draw',
-          isMdiIcon: true,
-          disabled: disabledItems.indexOf('notification_templates') > -1
+          isMdiIcon: true
         }
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)) {
       notificationPages.push(
         {
-          id: guid(),
+          id: 'notification_rules',
           name: 'notification.rules',
+          fullName: 'notification.notification-rules',
           type: 'link',
           path: '/notification/rules',
           icon: 'mdi:message-cog',
-          isMdiIcon: true,
-          disabled: disabledItems.indexOf('notification_rules') > -1
+          isMdiIcon: true
         }
       );
     }
@@ -1255,14 +1233,13 @@ export class MenuService {
     if (notificationPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'notifications_center',
           name: 'notification.notification-center',
           type: 'link',
           path: '/notification',
           icon: 'mdi:message-badge',
           isMdiIcon: true,
-          pages: notificationPages,
-          disabled: disabledItems.indexOf('notifications_center') > -1
+          pages: notificationPages
         }
       );
     }
@@ -1271,67 +1248,62 @@ export class MenuService {
       this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
       sections.push(
         {
-          id: guid(),
+          id: 'api_usage',
           name: 'api-usage.api-usage',
           type: 'link',
           path: '/usage',
-          icon: 'insert_chart',
-          disabled: disabledItems.indexOf('api_usage') > -1
+          icon: 'insert_chart'
         }
       );
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const whiteLabelPages: Array<MenuSection> = [
         {
-          id: guid(),
+          id: 'white_labeling_general',
           name: 'white-labeling.general',
+          fullName: 'white-labeling.white-labeling-general',
           type: 'link',
           path: '/white-labeling/whiteLabel',
-          icon: 'format_paint',
-          disabled: disabledItems.indexOf('white_labeling_general') > -1
+          icon: 'format_paint'
         },
         {
-          id: guid(),
+          id: 'login_white_labeling',
           name: 'white-labeling.login',
+          fullName: 'white-labeling.login-white-labeling',
           type: 'link',
           path: '/white-labeling/loginWhiteLabel',
-          icon: 'format_paint',
-          disabled: disabledItems.indexOf('login_white_labeling') > -1
+          icon: 'format_paint'
         },
         {
-          id: guid(),
+          id: 'mail_templates',
           name: 'admin.mail-templates',
           type: 'link',
           path: '/white-labeling/mail-template',
-          icon: 'format_shapes',
-          disabled: disabledItems.indexOf('mail_templates') > -1
+          icon: 'format_shapes'
         },
         {
-          id: guid(),
+          id: 'custom_translation',
           name: 'custom-translation.custom-translation',
           type: 'link',
           path: '/white-labeling/customTranslation',
-          icon: 'language',
-          disabled: disabledItems.indexOf('custom_translation') > -1
+          icon: 'language'
         },
         {
-          id: guid(),
+          id: 'custom_menu',
           name: 'custom-menu.custom-menu',
           type: 'link',
           path: '/white-labeling/customMenu',
-          icon: 'list',
-          disabled: disabledItems.indexOf('custom_menu') > -1
+          icon: 'list'
         }
       ];
       sections.push(
         {
-          id: guid(),
+          id: 'white_labeling',
           name: 'white-labeling.white-labeling',
           type: 'link',
           path: '/white-labeling',
           icon: 'format_paint',
-          pages: whiteLabelPages,
-          disabled: disabledItems.indexOf('white_labeling') > -1
+          pages: whiteLabelPages
         }
       );
     }
@@ -1339,61 +1311,59 @@ export class MenuService {
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       settingPages.push(
         {
-          id: guid(),
+          id: 'home_settings',
           name: 'admin.home-settings',
+          fullName: 'admin.home-settings',
           type: 'link',
           path: '/settings/home',
-          icon: 'settings_applications',
-          disabled: disabledItems.indexOf('home_settings') > -1
+          icon: 'settings_applications'
         },
         {
-          id: guid(),
+          id: 'mail_server',
           name: 'admin.outgoing-mail',
           type: 'link',
           path: '/settings/outgoing-mail',
-          icon: 'mail',
-          disabled: disabledItems.indexOf('mail_server') > -1
+          icon: 'mail'
         },
         /* @voba - merge comment - these sections should not be visible on edge
         {
-          id: guid(),
+          id: 'notification_settings',
           name: 'admin.notifications',
+          fullName: 'admin.notifications-settings',
           type: 'link',
           path: '/settings/notifications',
-          icon: 'sms',
-          disabled: disabledItems.indexOf('sms_provider') > -1 || disabledItems.indexOf('notification_settings') > -1
+          icon: 'sms'
         }
          */
       );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       settingPages.push({
-        id: guid(),
+        id: 'repository_settings',
         name: 'admin.repository-settings',
+        fullName: 'admin.repository-settings',
         type: 'link',
         path: '/settings/repository',
-        icon: 'manage_history',
-        disabled: disabledItems.indexOf('repository_settings') > -1
+        icon: 'manage_history'
       });
       settingPages.push({
-        id: guid(),
+        id: 'auto_commit_settings',
         name: 'admin.auto-commit-settings',
+        fullName: 'admin.auto-commit-settings',
         type: 'link',
         path: '/settings/auto-commit',
-        icon: 'settings_backup_restore',
-        disabled: disabledItems.indexOf('auto_commit_settings') > -1
+        icon: 'settings_backup_restore'
       });
     }
     /* @voba - merge comment - these sections should not be visible on edge
     if (settingPages.length) {
       sections.push({
-        id: guid(),
+        id: 'settings',
         name: 'admin.settings',
         type: 'link',
         path: '/settings',
         icon: 'settings',
-        pages: settingPages,
-        disabled: disabledItems.indexOf('settings') > -1
+        pages: settingPages
       });
     }
      */
@@ -1402,25 +1372,23 @@ export class MenuService {
     /* @voba - merge comment - these sections should not be visible on edge
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       securitySettingPages.push({
-        id: guid(),
+        id: '2fa',
         name: 'admin.2fa.2fa',
         type: 'link',
         path: '/security-settings/2fa',
         icon: 'mdi:two-factor-authentication',
-        isMdiIcon: true,
-        disabled: disabledItems.indexOf('2fa') > -1
+        isMdiIcon: true
       });
     }
      */
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
       securitySettingPages.push(
         {
-          id: guid(),
+          id: 'roles',
           name: 'role.roles',
           type: 'link',
           path: '/security-settings/roles',
-          icon: 'security',
-          disabled: disabledItems.indexOf('roles') > -1
+          icon: 'security'
         }
       );
     }
@@ -1428,12 +1396,11 @@ export class MenuService {
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       securitySettingPages.push(
         {
-          id: guid(),
+          id: 'self_registration',
           name: 'self-registration.self-registration',
           type: 'link',
           path: '/security-settings/selfRegistration',
-          icon: 'group_add',
-          disabled: disabledItems.indexOf('self_registration') > -1
+          icon: 'group_add'
         }
       );
     }
@@ -1441,24 +1408,22 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
       securitySettingPages.push(
         {
-          id: guid(),
+          id: 'audit_log',
           name: 'audit-log.audit-logs',
           type: 'link',
           path: '/security-settings/auditLogs',
-          icon: 'track_changes',
-          disabled: disabledItems.indexOf('audit_log') > -1
+          icon: 'track_changes'
         }
       );
     }
     if (securitySettingPages.length) {
       sections.push({
-        id: guid(),
+        id: 'security_settings',
         name: 'security.security',
         type: 'toggle',
         path: '/security-settings',
         icon: 'security',
-        pages: securitySettingPages,
-        disabled: disabledItems.indexOf('security_settings') > -1
+        pages: securitySettingPages
       });
     }
     return sections;
@@ -1942,27 +1907,26 @@ export class MenuService {
     return homeSections;
   }
 
-  private buildCustomerUserMenu(authState: AuthState, disabledItems: string[]): Array<MenuSection> {
+  private buildCustomerUserMenu(authState: AuthState): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
     sections.push(
       {
-        id: guid(),
+        id: 'home',
         name: 'home.home',
         type: 'link',
         path: '/home',
-        icon: 'home',
-        disabled: disabledItems.indexOf('home') > -1
+        icon: 'home'
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ALARM)) {
       sections.push(
         {
-          id: guid(),
+          id: 'alarms',
           name: 'alarm.alarms',
           type: 'link',
           path: '/alarms',
-          icon: 'notifications',
-          disabled: disabledItems.indexOf('alarms') > -1
+          icon: 'mdi:alert-outline',
+          isMdiIcon: true
         }
       );
     }
@@ -1970,50 +1934,49 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD)) {
       dashboardPages.push(
         {
-          id: guid(),
+          id: 'dashboard_all',
           name: 'dashboard.all',
+          fullName: 'dashboard.all-dashboards',
           type: 'link',
           path: '/dashboards/all',
-          icon: 'dashboards',
-          disabled: disabledItems.indexOf('dashboard_all') > -1
+          icon: 'dashboards'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.DASHBOARD)) {
       dashboardPages.push(
         {
-          id: guid(),
+          id: 'dashboard_groups',
           name: 'dashboard.groups',
+          fullName: 'entity-group.dashboard-groups',
           type: 'link',
           path: '/dashboards/groups',
-          icon: 'dashboard',
-          disabled: disabledItems.indexOf('dashboard_groups') > -1
+          icon: 'dashboard'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DASHBOARD)) {
       dashboardPages.push(
         {
-          id: guid(),
+          id: 'dashboard_shared',
           name: 'dashboard.shared',
+          fullName: 'entity-group.shared-dashboard-groups',
           type: 'link',
           path: '/dashboards/shared',
           icon: 'dashboard',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('dashboard_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (dashboardPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'dashboards',
           name: 'dashboard.dashboards',
           type: 'link',
           path: '/dashboards',
           icon: 'dashboards',
-          pages: dashboardPages,
-          disabled: disabledItems.indexOf('dashboards') > -1
+          pages: dashboardPages
         }
       );
     }
@@ -2022,50 +1985,49 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE)) {
       devicesPages.push(
         {
-          id: guid(),
+          id: 'device_all',
           name: 'device.all',
+          fullName: 'device.all-devices',
           type: 'link',
           path: '/entities/devices/all',
-          icon: 'devices_other',
-          disabled: disabledItems.indexOf('device_all') > -1
+          icon: 'devices_other'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.DEVICE)) {
       devicesPages.push(
         {
-          id: guid(),
+          id: 'device_groups',
           name: 'device.groups',
+          fullName: 'entity-group.device-groups',
           type: 'link',
           path: '/entities/devices/groups',
-          icon: 'devices_other',
-          disabled: disabledItems.indexOf('device_groups') > -1
+          icon: 'devices_other'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.DEVICE)) {
       devicesPages.push(
         {
-          id: guid(),
+          id: 'device_shared',
           name: 'device.shared',
+          fullName: 'entity-group.shared-device-groups',
           type: 'link',
           path: '/entities/devices/shared',
           icon: 'devices_other',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('device_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (devicesPages.length) {
       entityPages.push(
         {
-          id: guid(),
+          id: 'devices',
           name: 'device.devices',
           type: 'link',
           path: '/entities/devices',
           icon: 'devices_other',
-          pages: devicesPages,
-          disabled: disabledItems.indexOf('devices') > -1
+          pages: devicesPages
         }
       );
     }
@@ -2073,50 +2035,49 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET)) {
       assetsPages.push(
         {
-          id: guid(),
+          id: 'asset_all',
           name: 'asset.all',
+          fullName: 'asset.all-assets',
           type: 'link',
           path: '/entities/assets/all',
-          icon: 'domain',
-          disabled: disabledItems.indexOf('asset_all') > -1
+          icon: 'domain'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.ASSET)) {
       assetsPages.push(
         {
-          id: guid(),
+          id: 'asset_groups',
           name: 'asset.groups',
+          fullName: 'entity-group.asset-groups',
           type: 'link',
           path: '/entities/assets/groups',
-          icon: 'domain',
-          disabled: disabledItems.indexOf('asset_groups') > -1
+          icon: 'domain'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.ASSET)) {
       assetsPages.push(
         {
-          id: guid(),
+          id: 'asset_shared',
           name: 'asset.shared',
+          fullName: 'entity-group.shared-asset-groups',
           type: 'link',
           path: '/entities/assets/shared',
           icon: 'domain',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('asset_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (assetsPages.length) {
       entityPages.push(
         {
-          id: guid(),
+          id: 'assets',
           name: 'asset.assets',
           type: 'link',
           path: '/entities/assets',
           icon: 'domain',
-          pages: assetsPages,
-          disabled: disabledItems.indexOf('assets') > -1
+          pages: assetsPages
         }
       );
     }
@@ -2124,63 +2085,61 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ENTITY_VIEW)) {
       entityViewsPages.push(
         {
-          id: guid(),
+          id: 'entity_view_all',
           name: 'entity-view.all',
+          fullName: 'entity-view.all-entity-views',
           type: 'link',
           path: '/entities/entityViews/all',
-          icon: 'view_quilt',
-          disabled: disabledItems.indexOf('entity_view_all') > -1
+          icon: 'view_quilt'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       entityViewsPages.push(
         {
-          id: guid(),
+          id: 'entity_view_groups',
           name: 'entity-view.groups',
+          fullName: 'entity-group.entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/groups',
-          icon: 'view_quilt',
-          disabled: disabledItems.indexOf('entity_view_groups') > -1
+          icon: 'view_quilt'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       entityViewsPages.push(
         {
-          id: guid(),
+          id: 'entity_view_shared',
           name: 'entity-view.shared',
+          fullName: 'entity-group.shared-entity-view-groups',
           type: 'link',
           path: '/entities/entityViews/shared',
           icon: 'view_quilt',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('entity_view_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (entityViewsPages.length) {
       entityPages.push(
         {
-          id: guid(),
+          id: 'entity_views',
           name: 'entity-view.entity-views',
           type: 'link',
           path: '/entities/entityViews',
           icon: 'view_quilt',
-          pages: entityViewsPages,
-          disabled: disabledItems.indexOf('assets') > -1
+          pages: entityViewsPages
         }
       );
     }
     if (entityPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'entities',
           name: 'entity.entities',
           type: 'toggle',
           path: '/entities',
           icon: 'category',
-          pages: entityPages,
-          disabled: disabledItems.indexOf('entities') > -1
+          pages: entityPages
         }
       );
     }
@@ -2188,63 +2147,62 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customer_all',
           name: 'customer.all',
+          fullName: 'customer.all-customers',
           type: 'link',
           path: '/customers/all',
-          icon: 'supervisor_account',
-          disabled: disabledItems.indexOf('customer_all') > -1
+          icon: 'supervisor_account'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customer_groups',
           name: 'customer.groups',
+          fullName: 'entity-group.customer-groups',
           type: 'link',
           path: '/customers/groups',
-          icon: 'supervisor_account',
-          disabled: disabledItems.indexOf('customer_groups') > -1
+          icon: 'supervisor_account'
         }
       );
     }
     if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customer_shared',
           name: 'customer.shared',
+          fullName: 'entity-group.shared-customer-groups',
           type: 'link',
           path: '/customers/shared',
           icon: 'supervisor_account',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('customer_shared') > -1
+          rootOnly: true
         }
       );
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
       customerPages.push(
         {
-          id: guid(),
+          id: 'customers_hierarchy',
           name: 'customer.hierarchy',
+          fullName: 'customers-hierarchy.customers-hierarchy',
           type: 'link',
           path: '/customers/hierarchy',
           icon: 'sort',
-          rootOnly: true,
-          disabled: disabledItems.indexOf('customers_hierarchy') > -1
+          rootOnly: true
         }
       );
     }
     if (customerPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'customers',
           name: 'customer.customers',
           type: 'link',
           path: '/customers',
           icon: 'supervisor_account',
-          pages: customerPages,
-          disabled: disabledItems.indexOf('customers') > -1
+          pages: customerPages
         }
       );
     }
@@ -2252,37 +2210,36 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.USER)) {
       userPages.push(
         {
-          id: guid(),
+          id: 'user_all',
           name: 'user.all',
+          fullName: 'user.all-users',
           type: 'link',
           path: '/users/all',
-          icon: 'account_circle',
-          disabled: disabledItems.indexOf('user_all') > -1
+          icon: 'account_circle'
         }
       );
     }
     if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.USER)) {
       userPages.push(
         {
-          id: guid(),
+          id: 'user_groups',
           name: 'user.groups',
+          fullName: 'entity-group.user-groups',
           type: 'link',
           path: '/users/groups',
-          icon: 'account_circle',
-          disabled: disabledItems.indexOf('user_groups') > -1
+          icon: 'account_circle'
         }
       );
     }
     if (userPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'users',
           name: 'user.users',
           type: 'link',
           path: '/users',
           icon: 'account_circle',
-          pages: userPages,
-          disabled: disabledItems.indexOf('users') > -1
+          pages: userPages
         }
       );
     }
@@ -2291,37 +2248,37 @@ export class MenuService {
       if (this.userPermissionsService.hasReadGenericPermission(Resource.EDGE)) {
         edgesPages.push(
           {
-            id: guid(),
+            id: 'edge_all',
             name: 'edge.all',
+            fullName: 'edge.all-edges',
             type: 'link',
             path: '/edgeManagement/instances/all',
-            icon: 'router',
-            disabled: disabledItems.indexOf('edge_all') > -1
+            icon: 'router'
           }
         );
       }
       if (this.userPermissionsService.hasGenericReadGroupsPermission(EntityType.EDGE)) {
         edgesPages.push(
           {
-            id: guid(),
+            id: 'edge_groups',
             name: 'edge.groups',
+            fullName: 'entity-group.edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/groups',
-            icon: 'router',
-            disabled: disabledItems.indexOf('edge_groups') > -1
+            icon: 'router'
           }
         );
       }
       if (this.userPermissionsService.hasSharedReadGroupsPermission(EntityType.EDGE)) {
         edgesPages.push(
           {
-            id: guid(),
+            id: 'edge_shared',
             name: 'edge.shared',
+            fullName: 'entity-group.shared-edge-groups',
             type: 'link',
             path: '/edgeManagement/instances/shared',
             icon: 'router',
-            rootOnly: true,
-            disabled: disabledItems.indexOf('edge_shared') > -1
+            rootOnly: true
           }
         );
       }
@@ -2329,13 +2286,13 @@ export class MenuService {
       if (edgesPages.length) {
         sections.push(
           {
-            id: guid(),
+            id: 'edges',
             name: 'edge.edge-instances',
+            fullName: 'edge.edge-instances',
             type: 'link',
             path: '/edgeManagement/instances',
             icon: 'router',
-            pages: edgesPages,
-            disabled: disabledItems.indexOf('edges') > -1
+            pages: edgesPages
           }
         );
       }
@@ -2345,26 +2302,25 @@ export class MenuService {
     // TODO: permission check
     notificationPages.push(
       {
-        id: guid(),
+        id: 'notification_inbox',
         name: 'notification.inbox',
+        fullName: 'notification.notification-inbox',
         type: 'link',
         path: '/notification/inbox',
-        icon: 'inbox',
-        disabled: disabledItems.indexOf('notification_inbox') > -1
+        icon: 'inbox'
       }
     );
     /* @voba - merge comment - these sections should not be visible on edge
     if (notificationPages.length) {
       sections.push(
         {
-          id: guid(),
+          id: 'notifications_center',
           name: 'notification.notification-center',
           type: 'link',
           path: '/notification',
           icon: 'mdi:message-badge',
           isMdiIcon: true,
-          pages: notificationPages,
-          disabled: disabledItems.indexOf('notifications_center') > -1
+          pages: notificationPages
         }
       );
     }
@@ -2372,59 +2328,55 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
-          id: guid(),
+          id: 'scheduler',
           name: 'scheduler.scheduler',
           type: 'link',
           path: '/features/scheduler',
-          icon: 'schedule',
-          disabled: disabledItems.indexOf('scheduler') > -1
+          icon: 'schedule'
         }
       );
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const whiteLabelPages: Array<MenuSection> = [
         {
-          id: guid(),
+          id: 'white_labeling_general',
           name: 'white-labeling.general',
+          fullName: 'white-labeling.white-labeling-general',
           type: 'link',
           path: '/white-labeling/whiteLabel',
-          icon: 'format_paint',
-          disabled: disabledItems.indexOf('white_labeling_general') > -1
+          icon: 'format_paint'
         },
         {
-          id: guid(),
+          id: 'login_white_labeling',
           name: 'white-labeling.login',
+          fullName: 'white-labeling.login-white-labeling',
           type: 'link',
           path: '/white-labeling/loginWhiteLabel',
-          icon: 'format_paint',
-          disabled: disabledItems.indexOf('login_white_labeling') > -1
+          icon: 'format_paint'
         },
         {
-          id: guid(),
+          id: 'custom_translation',
           name: 'custom-translation.custom-translation',
           type: 'link',
           path: '/white-labeling/customTranslation',
-          icon: 'language',
-          disabled: disabledItems.indexOf('custom_translation') > -1
+          icon: 'language'
         },
         {
-          id: guid(),
+          id: 'custom_menu',
           name: 'custom-menu.custom-menu',
           type: 'link',
           path: '/white-labeling/customMenu',
-          icon: 'list',
-          disabled: disabledItems.indexOf('custom_menu') > -1
+          icon: 'list'
         }
       ];
       sections.push(
         {
-          id: guid(),
+          id: 'white_labeling',
           name: 'white-labeling.white-labeling',
           type: 'link',
           path: '/white-labeling',
           icon: 'format_paint',
-          pages: whiteLabelPages,
-          disabled: disabledItems.indexOf('white_labeling') > -1
+          pages: whiteLabelPages
         }
       );
     }
@@ -2432,60 +2384,56 @@ export class MenuService {
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       settingPages.push(
         {
-          id: guid(),
+          id: 'home_settings',
           name: 'admin.home-settings',
+          fullName: 'admin.home-settings',
           type: 'link',
           path: '/settings/home',
-          icon: 'settings_applications',
-          disabled: disabledItems.indexOf('home_settings') > -1
+          icon: 'settings_applications'
         }
       );
     }
     if (settingPages.length) {
       sections.push({
-        id: guid(),
+        id: 'settings',
         name: 'admin.settings',
         type: 'link',
         path: '/settings',
         icon: 'settings',
-        pages: settingPages,
-        disabled: disabledItems.indexOf('settings') > -1
+        pages: settingPages
       });
     }
     const securitySettingPages: Array<MenuSection> = [];
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
       securitySettingPages.push(
         {
-          id: guid(),
+          id: 'roles',
           name: 'role.roles',
           type: 'link',
           path: '/security-settings/roles',
-          icon: 'security',
-          disabled: disabledItems.indexOf('roles') > -1
+          icon: 'security'
         }
       );
     }
    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
       securitySettingPages.push(
         {
-          id: guid(),
+          id: 'audit_log',
           name: 'audit-log.audit-logs',
           type: 'link',
           path: '/security-settings/auditLogs',
-          icon: 'track_changes',
-          disabled: disabledItems.indexOf('audit_log') > -1
+          icon: 'track_changes'
         }
       );
     }
     if (securitySettingPages.length) {
       sections.push({
-        id: guid(),
+        id: 'security_settings',
         name: 'security.security',
         type: 'toggle',
         path: '/security-settings',
         icon: 'security',
-        pages: securitySettingPages,
-        disabled: disabledItems.indexOf('security_settings') > -1
+        pages: securitySettingPages
       });
     }
     return sections;
@@ -2719,6 +2667,7 @@ export class MenuService {
     for (const customMenuItem of customMenuItems) {
       const stateId = this.getCustomMenuStateId(customMenuItem.name, stateIds);
       const customMenuSection = {
+        id: stateId,
         isCustom: true,
         stateId,
         name: customMenuItem.name,
@@ -2740,7 +2689,7 @@ export class MenuService {
         for (const customMenuChildItem of customMenuItem.childMenuItems) {
           const childStateId = this.getCustomMenuStateId(customMenuChildItem.name, stateIds);
           const customMenuChildSection: MenuSection = {
-            id: guid(),
+            id: childStateId,
             isCustom: true,
             stateId: childStateId,
             name: customMenuChildItem.name,
@@ -2784,6 +2733,19 @@ export class MenuService {
     }
     stateIds[stateId] = true;
     return stateId;
+  }
+
+  private allMenuLinks(sections: Array<MenuSection>): Array<MenuSection> {
+    const result: Array<MenuSection> = [];
+    for (const section of sections) {
+      if (section.type === 'link' && !section.disabled) {
+        result.push(section);
+      }
+      if (section.pages && section.pages.length) {
+        result.push(...this.allMenuLinks(section.pages));
+      }
+    }
+    return result;
   }
 
   public menuSections(): Observable<Array<MenuSection>> {
@@ -2905,5 +2867,25 @@ export class MenuService {
       }
     }
     return null;
+  }
+
+  public availableMenuLinks(): Observable<Array<MenuSection>> {
+    return this.availableMenuLinks$;
+  }
+
+  public menuLinkById(id: string): Observable<MenuSection | undefined> {
+    return this.availableMenuLinks$.pipe(
+      map((links) => links.find(link => link.id === id))
+    );
+  }
+
+  public menuLinksByIds(ids: string[]): Observable<Array<MenuSection>> {
+    return this.availableMenuLinks$.pipe(
+      map((links) => links.filter(link => ids.includes(link.id)).sort((a, b) => {
+        const i1 = ids.indexOf(a.id);
+        const i2 = ids.indexOf(b.id);
+        return i1 - i2;
+      }))
+    );
   }
 }

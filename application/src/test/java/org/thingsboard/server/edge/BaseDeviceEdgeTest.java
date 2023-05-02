@@ -53,17 +53,12 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
@@ -434,7 +429,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         sendAttributesRequestAndVerify(device, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}",
                 "key2", "value2");
 
-        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SERVER_SCOPE, "keys","key1, inactivityTimeout");
+        doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SERVER_SCOPE, "keys", "key1, inactivityTimeout");
         doDelete("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/" + DataConstants.SHARED_SCOPE, "keys", "key2");
     }
 
@@ -509,7 +504,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(timeseriesValue, timeseries.get(timeseriesKey).get(0).get("value"));
 
         String attributeValuesUrl = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/values/attributes/" + DataConstants.SERVER_SCOPE;
-        List<Map<String, String>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {});
+        List<Map<String, String>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {
+        });
 
         Assert.assertEquals(3, attributes.size());
 
@@ -656,7 +652,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/attributes/" + scope;
-                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
+                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {
+                    });
                     return actualKeys != null && !actualKeys.isEmpty() && actualKeys.contains(expectedKey);
                 });
 
@@ -713,7 +710,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
     private Map<String, List<Map<String, String>>> loadDeviceTimeseries(Device device, String timeseriesKey) throws Exception {
         return doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/values/timeseries?keys=" + timeseriesKey,
-                new TypeReference<>() {});
+                new TypeReference<>() {
+                });
     }
 
     @Test
@@ -772,7 +770,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     String urlTemplate = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/keys/timeseries";
-                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {});
+                    List<String> actualKeys = doGetAsyncTyped(urlTemplate, new TypeReference<>() {
+                    });
                     return actualKeys != null && !actualKeys.isEmpty() && actualKeys.contains("temperature");
                 });
 

@@ -30,7 +30,10 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
@@ -38,6 +41,9 @@ import java.util.Set;
 import java.util.UUID;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class IntegrationLifecycleEventNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
     private Set<IntegrationType> integrationTypes;
