@@ -83,10 +83,10 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
   hostRegionSuffix = '.cloud.thethings.network';
   hideSelectVersion = false;
 
-  userNameLabel = 'integration.application-id';
-  userNameRequired = 'integration.application-id-required';
-  passwordLabel = 'integration.access-key';
-  passwordRequired = 'integration.access-key-required';
+  userNameLabel = 'integration.username';
+  userNameRequired = 'integration.username-required';
+  passwordLabel = 'integration.password';
+  passwordRequired = 'integration.password-required';
 
   private downlinkPattern = ttnVersionMap.get(ttnVersion.v3).downlinkPattern;
   private propagateChange = (v: any) => { };
