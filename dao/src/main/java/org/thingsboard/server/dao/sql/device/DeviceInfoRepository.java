@@ -43,94 +43,54 @@ import static org.thingsboard.server.dao.model.ModelConstants.SUB_CUSTOMERS_QUER
 
 public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UUID> {
 
-    @Query("SELECT di FROM DeviceInfoEntity di " +
-            "WHERE di.tenantId = :tenantId " +
-            "AND (LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(di.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
-    Page<DeviceInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
-                                          @Param("searchText") String searchText,
-                                          Pageable pageable);
-
-    @Query("SELECT di FROM DeviceInfoEntity di " +
-            "WHERE di.tenantId = :tenantId " +
-            "AND di.deviceProfileId = :deviceProfileId " +
-            "AND (LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(di.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
-    Page<DeviceInfoEntity> findByTenantIdAndDeviceProfileId(@Param("tenantId") UUID tenantId,
-                                                            @Param("deviceProfileId") UUID deviceProfileId,
-                                                            @Param("searchText") String searchText,
-                                                            Pageable pageable);
-
-    @Query("SELECT di FROM DeviceInfoEntity di " +
-            "WHERE di.tenantId = :tenantId AND (di.customerId IS NULL OR di.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceInfoEntity> findTenantDevicesByTenantId(@Param("tenantId") UUID tenantId,
-                                                       @Param("searchText") String searchText,
-                                                       Pageable pageable);
-
-    @Query("SELECT di FROM DeviceInfoEntity di " +
-            "WHERE di.tenantId = :tenantId AND (di.customerId IS NULL OR di.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND di.deviceProfileId = :deviceProfileId " +
-            "AND LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceInfoEntity> findTenantDevicesByTenantIdAndDeviceProfileId(@Param("tenantId") UUID tenantId,
-                                                                         @Param("deviceProfileId") UUID deviceProfileId,
-                                                                         @Param("searchText") String searchText,
-                                                                         Pageable pageable);
-
-    @Query("SELECT di FROM DeviceInfoEntity di WHERE di.tenantId = :tenantId AND di.customerId = :customerId " +
-            "AND LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
-                                                       @Param("customerId") UUID customerId,
-                                                       @Param("searchText") String searchText,
-                                                       Pageable pageable);
-
-    @Query("SELECT di FROM DeviceInfoEntity di WHERE di.tenantId = :tenantId AND di.customerId = :customerId " +
-            "AND di.deviceProfileId = :deviceProfileId " +
-            "AND LOWER(di.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<DeviceInfoEntity> findByTenantIdAndCustomerIdAndDeviceProfileId(@Param("tenantId") UUID tenantId,
-                                                                         @Param("customerId") UUID customerId,
-                                                                         @Param("deviceProfileId") UUID deviceProfileId,
-                                                                         @Param("searchText") String searchText,
-                                                                         Pageable pageable);
+    @Query("SELECT d FROM DeviceInfoEntity d " +
+            "WHERE d.tenantId = :tenantId " +
+            "AND (" +
+            "((:customerId IS NULL AND (:includeCustomers) IS TRUE)) " +
+            "OR ((:customerId IS NULL AND (:includeCustomers) IS FALSE) AND (d.customerId IS NULL OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')) " +
+            "OR (:customerId IS NOT NULL AND d.customerId = uuid(:customerId)) " +
+            ") " +
+            "AND (:deviceProfileId IS NULL OR d.deviceProfileId = uuid(:deviceProfileId)) " +
+            "AND ((:filterByActive) IS FALSE OR d.active = :deviceActive) " +
+            "AND (LOWER(d.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(d.ownerName) LIKE LOWER(CONCAT('%', :textSearch, '%')))")
+    Page<DeviceInfoEntity> findDeviceInfosByFilter(@Param("tenantId") UUID tenantId,
+                                                   @Param("includeCustomers") boolean includeCustomers,
+                                                   @Param("customerId") String customerId,
+                                                   @Param("deviceProfileId") String deviceProfileId,
+                                                   @Param("filterByActive") boolean filterByActive,
+                                                   @Param("deviceActive") boolean active,
+                                                   @Param("textSearch") String textSearch,
+                                                   Pageable pageable);
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select d.id, d.created_time, d.additional_info, d.customer_id, d.device_profile_id, " +
             "d.device_data, d.type, d.name, d.label, d.search_text, d.tenant_id, d.firmware_id, d.software_id, d.external_id, d.groups, " +
-            "c.title as owner_name from device_info_view d " +
+            "c.title as owner_name, d.active as active from device_info_view d " +
             "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
-            countQuery = "SELECT count(e.id) FROM device e " +
-                          "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
-                          "WHERE" + SUB_CUSTOMERS_QUERY +
-                          "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                          "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
-            nativeQuery = true)
-    Page<DeviceInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
-                                                                             @Param("customerId") UUID customerId,
-                                                                             @Param("searchText") String searchText,
-                                                                             Pageable pageable);
-
-    @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
-            "FROM (select d.id, d.created_time, d.additional_info, d.customer_id, d.device_profile_id, " +
-            "d.device_data, d.type, d.name, d.label, d.search_text, d.tenant_id, d.firmware_id, d.software_id, d.external_id, d.groups, " +
-            "c.title as owner_name from device_info_view d " +
-            "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
-            "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND e.device_profile_id = :deviceProfileId " +
-            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
-            countQuery = "SELECT count(e.id) FROM device e " +
+            "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
+            "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
+            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(e.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(e.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+            "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :textSearch, '%')))",
+            countQuery = "SELECT count(e.id) FROM device_info_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND e.device_profile_id = :deviceProfileId " +
-                    "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
-                    "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
+                    "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
+                    "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
+                    "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+                    "OR LOWER(e.label) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+                    "OR LOWER(e.type) LIKE LOWER(CONCAT('%', :textSearch, '%')) " +
+                    "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :textSearch, '%')))",
             nativeQuery = true)
-    Page<DeviceInfoEntity> findByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
-                                                                                               @Param("customerId") UUID customerId,
-                                                                                               @Param("deviceProfileId") UUID deviceProfileId,
-                                                                                               @Param("searchText") String searchText,
-                                                                                               Pageable pageable);
+    Page<DeviceInfoEntity> findDeviceInfosByFilterIncludingSubCustomers(@Param("tenantId") UUID tenantId,
+                                                        @Param("customerId") UUID customerId,
+                                                        @Param("deviceProfileId") String deviceProfileId,
+                                                        @Param("filterByActive") boolean filterByActive,
+                                                        @Param("deviceActive") boolean active,
+                                                        @Param("textSearch") String textSearch, Pageable pageable);
 }

@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -79,6 +80,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.dao.DaoUtil.fromUUIDs;
 
@@ -92,7 +101,28 @@ public class NotificationTargetController extends BaseController {
     private final NotificationTargetService notificationTargetService;
 
     @ApiOperation(value = "Save notification target (saveNotificationTarget)",
-            notes = "Create or update notification target." +
+            notes = "Creates or updates notification target." + NEW_LINE +
+                    "Available `configuration` types are `PLATFORM_USERS` and `SLACK`.\n" +
+                    "For `PLATFORM_USERS` the `usersFilter` must be specified. " +
+                    "For tenant, there are following users filter types available: " +
+                    "`USER_LIST`, `CUSTOMER_USERS`, `USER_GROUP_LIST`, `TENANT_ADMINISTRATORS`, `USER_ROLE`, `ALL_USERS`, " +
+                    "`ORIGINATOR_ENTITY_OWNER_USERS`, `AFFECTED_USER`.\n" +
+                    "For sysadmin: `TENANT_ADMINISTRATORS`, `AFFECTED_TENANT_ADMINISTRATORS`, " +
+                    "`SYSTEM_ADMINISTRATORS`, `ALL_USERS`." + NEW_LINE +
+                    "Here is an example of tenant-level notification target to send notification to customer's users:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"name\": \"Users of Customer A\",\n" +
+                    "  \"configuration\": {\n" +
+                    "    \"type\": \"PLATFORM_USERS\",\n" +
+                    "    \"usersFilter\": {\n" +
+                    "      \"type\": \"CUSTOMER_USERS\",\n" +
+                    "      \"customerId\": \"32499a20-d785-11ed-a06c-21dd57dd88ca\"\n" +
+                    "    },\n" +
+                    "    \"description\": \"Users of Customer A\"\n" +
+                    "  }\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/target")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
@@ -110,7 +140,7 @@ public class NotificationTargetController extends BaseController {
     }
 
     @ApiOperation(value = "Get notification target by id (getNotificationTargetById)",
-            notes = "Fetch saved notification target by id." +
+            notes = "Fetches notification target by id." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/target/{id}")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
@@ -120,12 +150,14 @@ public class NotificationTargetController extends BaseController {
     }
 
     @ApiOperation(value = "Get recipients for notification target config (getRecipientsForNotificationTargetConfig)",
-            notes = "Get the list (page) of recipients (users) for such notification target configuration." +
+            notes = "Returns the page of recipients for such notification target configuration." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/target/recipients")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public PageData<User> getRecipientsForNotificationTargetConfig(@RequestBody NotificationTarget notificationTarget,
+                                                                   @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
                                                                    @RequestParam int pageSize,
+                                                                   @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
                                                                    @RequestParam int page,
                                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
@@ -140,9 +172,13 @@ public class NotificationTargetController extends BaseController {
         return notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(), (PlatformUsersNotificationTargetConfig) notificationTarget.getConfiguration(), pageLink);
     }
 
+    @ApiOperation(value = "Get notification targets by ids (getNotificationTargetsByIds)",
+            notes = "Returns the list of notification targets found by provided ids." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/targets", params = {"ids"})
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public List<NotificationTarget> getNotificationTargetsByIds(@RequestParam("ids") UUID[] ids,
+    public List<NotificationTarget> getNotificationTargetsByIds(@ApiParam(value = "Comma-separated list of uuids representing targets ids", required = true)
+                                                                @RequestParam("ids") UUID[] ids,
                                                                 @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
         List<NotificationTargetId> targetsIds = Arrays.stream(ids).map(NotificationTargetId::new).collect(Collectors.toList());
@@ -150,14 +186,20 @@ public class NotificationTargetController extends BaseController {
     }
 
     @ApiOperation(value = "Get notification targets (getNotificationTargets)",
-            notes = "Fetch the page of notification targets owned by sysadmin or tenant." +
+            notes = "Returns the page of notification targets owned by sysadmin or tenant." + NEW_LINE +
+                    PAGE_DATA_PARAMETERS +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/targets")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public PageData<NotificationTarget> getNotificationTargets(@RequestParam int pageSize,
+    public PageData<NotificationTarget> getNotificationTargets(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+                                                               @RequestParam int pageSize,
+                                                               @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
                                                                @RequestParam int page,
+                                                               @ApiParam(value = "Case-insensitive 'substring' filed based on the target's name")
                                                                @RequestParam(required = false) String textSearch,
+                                                               @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
                                                                @RequestParam(required = false) String sortProperty,
+                                                               @ApiParam(value = SORT_ORDER_DESCRIPTION)
                                                                @RequestParam(required = false) String sortOrder,
                                                                @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
@@ -165,6 +207,10 @@ public class NotificationTargetController extends BaseController {
         return notificationTargetService.findNotificationTargetsByTenantId(user.getTenantId(), pageLink);
     }
 
+    @ApiOperation(value = "Get notification targets by supported notification type (getNotificationTargetsBySupportedNotificationType)",
+            notes = "Returns the page of notification targets filtered by notification type that they can be used for." + NEW_LINE +
+                    PAGE_DATA_PARAMETERS +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/targets", params = "notificationType")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public PageData<NotificationTarget> getNotificationTargetsBySupportedNotificationType(@RequestParam int pageSize,
@@ -179,7 +225,7 @@ public class NotificationTargetController extends BaseController {
     }
 
     @ApiOperation(value = "Delete notification target by id (deleteNotificationTargetById)",
-            notes = "Delete notification target by its id.\n\n" +
+            notes = "Deletes notification target by its id." + NEW_LINE +
                     "This target cannot be referenced by existing scheduled notification requests or any notification rules." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @DeleteMapping("/target/{id}")
