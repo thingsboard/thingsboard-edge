@@ -30,10 +30,8 @@
 ///
 
 import { Component, forwardRef } from '@angular/core';
-import { UntypedFormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
-import {
-  TtnIntegrationFormComponent
-} from './ttn-integration-form.component';
+import { FormBuilder, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { TtnIntegrationFormComponent } from './ttn-integration-form.component';
 
 @Component({
   selector: 'tb-tti-integration-form',
@@ -54,14 +52,9 @@ export class TtiIntegrationFormComponent extends TtnIntegrationFormComponent {
 
   hostRegionSuffix = '.cloud.thethings.industries';
 
-  userNameLabel = 'integration.username';
-  userNameRequired = 'integration.username-required';
-  passwordLabel = 'integration.password';
-  passwordRequired = 'integration.password-required';
-
   hideSelectVersion = true;
 
-  constructor(protected fb: UntypedFormBuilder) {
+  constructor(protected fb: FormBuilder) {
     super(fb);
     this.ttnIntegrationConfigForm.get('topicFilters').enable({emitEvent: false});
   }
