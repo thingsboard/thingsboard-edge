@@ -31,23 +31,21 @@
 package org.thingsboard.server.dao.service.validator;
 
 import lombok.AllArgsConstructor;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionDao;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 @AllArgsConstructor

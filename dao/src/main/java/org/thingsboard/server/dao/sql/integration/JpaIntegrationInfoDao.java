@@ -30,13 +30,10 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -49,7 +46,6 @@ import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 

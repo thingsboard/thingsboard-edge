@@ -32,10 +32,6 @@ package org.thingsboard.integration.rabbitmq;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-
-import java.util.List;
-import java.util.Map;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

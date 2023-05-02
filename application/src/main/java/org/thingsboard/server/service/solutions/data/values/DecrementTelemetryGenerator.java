@@ -33,9 +33,6 @@ package org.thingsboard.server.service.solutions.data.values;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
 import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.randomDouble;
 
 public class DecrementTelemetryGenerator extends IncDecTelemetryGenerator<DecrementValueStrategyDefinition> {

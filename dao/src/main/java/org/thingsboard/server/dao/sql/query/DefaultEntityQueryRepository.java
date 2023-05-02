@@ -110,7 +110,6 @@ import org.thingsboard.server.dao.sql.role.RoleRepository;
 import org.thingsboard.server.dao.sql.scheduler.SchedulerEventRepository;
 import org.thingsboard.server.dao.sql.user.UserRepository;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;

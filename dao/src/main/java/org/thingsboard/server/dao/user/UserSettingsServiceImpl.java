@@ -40,17 +40,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.ConstraintValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 

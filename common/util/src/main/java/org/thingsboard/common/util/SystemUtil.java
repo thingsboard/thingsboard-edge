@@ -35,8 +35,6 @@ import oshi.SystemInfo;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.FileStore;

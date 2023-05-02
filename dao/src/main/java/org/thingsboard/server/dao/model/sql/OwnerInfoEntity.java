@@ -41,7 +41,6 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
