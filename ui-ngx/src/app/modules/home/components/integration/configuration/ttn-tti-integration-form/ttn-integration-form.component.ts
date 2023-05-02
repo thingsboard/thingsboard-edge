@@ -32,9 +32,9 @@
 import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
-  UntypedFormBuilder,
-  UntypedFormControl,
-  UntypedFormGroup,
+  FormBuilder,
+  FormControl,
+  FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -70,10 +70,10 @@ import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integ
 })
 export class TtnIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  ttnIntegrationConfigForm: UntypedFormGroup;
+  ttnIntegrationConfigForm: FormGroup;
 
-  hostEdit: UntypedFormControl;
-  apiVersion: UntypedFormControl;
+  hostEdit: FormControl<string>;
+  apiVersion: FormControl<boolean>;
 
   ThingsStartHostType = ThingsStartHostType;
   ThingsStartHostTypes = Object.values(ThingsStartHostType).filter(v => isNumber(v));
@@ -83,15 +83,10 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
   hostRegionSuffix = '.cloud.thethings.network';
   hideSelectVersion = false;
 
-  userNameLabel = 'integration.username';
-  userNameRequired = 'integration.username-required';
-  passwordLabel = 'integration.password';
-  passwordRequired = 'integration.password-required';
-
   private downlinkPattern = ttnVersionMap.get(ttnVersion.v3).downlinkPattern;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: UntypedFormBuilder) {
+  constructor(protected fb: FormBuilder) {
     super();
     this.hostEdit = this.fb.control('', Validators.required);
     this.apiVersion = this.fb.control(true);
@@ -124,7 +119,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
 
     this.apiVersion.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value: boolean) => {
+    ).subscribe((value) => {
       this.updateTtnVersionState(Number(value));
     });
 
