@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.ui.tests.assignee;
 
 import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -44,6 +45,7 @@ import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Feature("Assign from details tab of entity")
 public class AssignFromAlarmWidgetTest extends AbstractAssignTest {
 
     private Dashboard dashboard;
