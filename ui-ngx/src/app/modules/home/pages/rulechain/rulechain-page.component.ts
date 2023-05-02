@@ -89,6 +89,7 @@ import { DebugEventType, EventType } from '@shared/models/event.models';
 import { MatMiniFabButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
+import { ComponentClusteringMode } from '@shared/models/component-descriptor.models';
 import Timeout = NodeJS.Timeout;
 
 @Component({
@@ -481,6 +482,7 @@ export class RuleChainPageComponent extends PageComponent
         component: ruleNodeComponent,
         name: '',
         nodeClass: desc.nodeClass,
+        singletonMode: ruleNodeComponent.clusteringMode !== ComponentClusteringMode.ENABLED,
         icon,
         iconUrl,
         x: 30,
@@ -566,6 +568,7 @@ export class RuleChainPageComponent extends PageComponent
         additionalInfo: ruleNode.additionalInfo,
         configuration: ruleNode.configuration,
         debugMode: ruleNode.debugMode,
+        singletonMode: ruleNode.singletonMode,
         x: Math.round(ruleNode.additionalInfo.layoutX),
         y: Math.round(ruleNode.additionalInfo.layoutY),
         component,
@@ -925,7 +928,8 @@ export class RuleChainPageComponent extends PageComponent
             name: node.name,
             configuration: deepClone(node.configuration),
             additionalInfo: node.additionalInfo ? deepClone(node.additionalInfo) : {},
-            debugMode: node.debugMode
+            debugMode: node.debugMode,
+            singletonMode: node.singletonMode
           };
           if (minX === null) {
             minX = node.x;
@@ -996,7 +1000,8 @@ export class RuleChainPageComponent extends PageComponent
             name: outputEdge.label,
             configuration: {},
             additionalInfo: {},
-            debugMode: false
+            debugMode: false,
+            singletonMode: false
           };
           outputNode.additionalInfo.layoutX = Math.round(destNode.x);
           outputNode.additionalInfo.layoutY = Math.round(destNode.y);
@@ -1042,6 +1047,7 @@ export class RuleChainPageComponent extends PageComponent
               ruleChainId: ruleChain.id.id
             },
             debugMode: false,
+            singletonMode: false,
             x: Math.round(ruleChainNodeX),
             y: Math.round(ruleChainNodeY),
             nodeClass: descriptor.nodeClass,
@@ -1435,7 +1441,8 @@ export class RuleChainPageComponent extends PageComponent
             name: node.name,
             configuration: node.configuration,
             additionalInfo: node.additionalInfo ? node.additionalInfo : {},
-            debugMode: node.debugMode
+            debugMode: node.debugMode,
+            singletonMode: node.singletonMode
           };
           ruleNode.additionalInfo.layoutX = Math.round(node.x);
           ruleNode.additionalInfo.layoutY = Math.round(node.y);

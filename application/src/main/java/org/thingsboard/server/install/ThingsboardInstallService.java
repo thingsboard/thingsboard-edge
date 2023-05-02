@@ -53,6 +53,9 @@ public class ThingsboardInstallService {
     @Value("${install.load_demo:false}")
     private Boolean loadDemo;
 
+    @Value("${state.persistToTelemetry:false}")
+    private boolean persistToTelemetry;
+
     @Autowired
     private EntityDatabaseSchemaService entityDatabaseSchemaService;
 
@@ -255,6 +258,8 @@ public class ThingsboardInstallService {
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
                             dataUpdateService.updateData("3.4.4");
 
+                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+
                             // @voba - system widgets update is not required - uploaded from cloud
                             // log.info("Updating system data...");
                             // systemDataLoaderService.updateSystemWidgets();
@@ -281,6 +286,8 @@ public class ThingsboardInstallService {
                 log.info("Installing DataBase schema for entities...");
 
                 entityDatabaseSchemaService.createDatabaseSchema();
+
+                entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
                 log.info("Installing DataBase schema for timeseries...");
 

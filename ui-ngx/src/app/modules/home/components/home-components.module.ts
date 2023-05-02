@@ -180,6 +180,10 @@ import { modulesMap } from '@modules/common/modules-map';
 import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assignee-panel.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
+import { AlarmFilterConfigComponent } from '@home/components/alarm/alarm-filter-config.component';
+import { AlarmAssigneeSelectPanelComponent } from '@home/components/alarm/alarm-assignee-select-panel.component';
+import { AlarmAssigneeSelectComponent } from '@home/components/alarm/alarm-assignee-select.component';
+import { DeviceInfoFilterComponent } from '@home/components/device/device-info-filter.component';
 
 @NgModule({
   declarations:
@@ -204,6 +208,9 @@ import { SendNotificationButtonComponent } from '@home/components/notification/s
       AlarmTableHeaderComponent,
       AlarmTableComponent,
       AlarmAssigneePanelComponent,
+      AlarmAssigneeSelectComponent,
+      AlarmAssigneeSelectPanelComponent,
+      AlarmFilterConfigComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -278,6 +285,7 @@ import { SendNotificationButtonComponent } from '@home/components/notification/s
       DeviceProfileComponent,
       DeviceProfileDialogComponent,
       AddDeviceProfileDialogComponent,
+      DeviceInfoFilterComponent,
       AssetProfileComponent,
       AssetProfileDialogComponent,
       AssetProfileAutocompleteComponent,
@@ -356,6 +364,9 @@ import { SendNotificationButtonComponent } from '@home/components/notification/s
     RelationFiltersComponent,
     AlarmTableComponent,
     AlarmAssigneePanelComponent,
+    AlarmAssigneeSelectComponent,
+    AlarmAssigneeSelectPanelComponent,
+    AlarmFilterConfigComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,
@@ -420,6 +431,7 @@ import { SendNotificationButtonComponent } from '@home/components/notification/s
     DeviceProfileComponent,
     DeviceProfileDialogComponent,
     AddDeviceProfileDialogComponent,
+    DeviceInfoFilterComponent,
     RuleChainAutocompleteComponent,
     DeviceWizardDialogComponent,
     AssetProfileComponent,
