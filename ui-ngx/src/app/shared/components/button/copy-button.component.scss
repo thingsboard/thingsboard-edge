@@ -28,10 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@use '@angular/material' as mat;
-@import "../theme/app-theme.scss";
-
-$primary-color: mat.get-color-from-palette($tb-primary);
 
 :host {
   .mini-button {
@@ -47,7 +43,7 @@ $primary-color: mat.get-color-from-palette($tb-primary);
   }
   &:hover{
     .mat-icon{
-      color: $primary-color !important;
+      color: var(--tb-primary-500) !important;
     }
   }
 }
