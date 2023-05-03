@@ -33,9 +33,9 @@ package org.thingsboard.server.dao.util;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.NoXssValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
