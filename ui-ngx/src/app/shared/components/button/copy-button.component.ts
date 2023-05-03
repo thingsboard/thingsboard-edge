@@ -34,6 +34,7 @@ import { ClipboardService } from 'ngx-clipboard';
 import { TooltipPosition } from '@angular/material/tooltip';
 import { TranslateService } from '@ngx-translate/core';
 import { ThemePalette } from '@angular/material/core';
+import { coerceBoolean } from '@shared/decorators/coerce-boolean';
 
 @Component({
   selector: 'tb-copy-button',
@@ -50,6 +51,7 @@ export class CopyButtonComponent {
   copyText: string;
 
   @Input()
+  @coerceBoolean()
   disabled = false;
 
   @Input()
@@ -69,6 +71,10 @@ export class CopyButtonComponent {
 
   @Input()
   color: ThemePalette;
+
+  @Input()
+  @coerceBoolean()
+  miniButton = true;
 
   @Output()
   successCopied = new EventEmitter<string>();
