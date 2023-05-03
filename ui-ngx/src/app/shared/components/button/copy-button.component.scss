@@ -28,20 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import "../../../../theme";
+
 :host {
-  .mat-mdc-icon-button{
+  .table-cell-action {
     height: 32px;
     width: 32px;
     line-height: 32px;
     padding: 4px;
     vertical-align: middle;
-    .mat-icon.copied{
-      color: #00C851 !important;
-    }
+  }
+
+  .mat-icon.copied{
+    color: #00C851 !important;
   }
   &:hover{
     .mat-icon{
-      color: #28567E !important;
+      color: $tb-primary-color !important;
     }
   }
 }
