@@ -57,7 +57,6 @@ import org.thingsboard.server.common.data.kv.TsKvLatestRemovingResult;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.util.KvUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -177,7 +176,6 @@ public class BaseTimeseriesService implements TimeseriesService {
 
     @Override
     public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
-        KvUtils.validate(tsKvEntry);
         validate(entityId);
         List<ListenableFuture<Integer>> futures = Lists.newArrayListWithExpectedSize(INSERTS_PER_ENTRY);
         saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, 0L);
@@ -195,7 +193,6 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     private ListenableFuture<Integer> doSave(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean saveLatest) {
-        KvUtils.validate(tsKvEntries);
         int inserts = saveLatest ? INSERTS_PER_ENTRY : INSERTS_PER_ENTRY_WITHOUT_LATEST;
         List<ListenableFuture<Integer>> futures = Lists.newArrayListWithExpectedSize(tsKvEntries.size() * inserts);
         for (TsKvEntry tsKvEntry : tsKvEntries) {
@@ -210,7 +207,6 @@ public class BaseTimeseriesService implements TimeseriesService {
 
     @Override
     public ListenableFuture<List<Void>> saveLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries) {
-        KvUtils.validate(tsKvEntries);
         List<ListenableFuture<Void>> futures = Lists.newArrayListWithExpectedSize(tsKvEntries.size());
         for (TsKvEntry tsKvEntry : tsKvEntries) {
             futures.add(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry));
