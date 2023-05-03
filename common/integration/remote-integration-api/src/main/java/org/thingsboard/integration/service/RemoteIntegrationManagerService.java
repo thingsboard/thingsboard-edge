@@ -346,7 +346,7 @@ public class RemoteIntegrationManagerService {
         converter.setName(converterProto.getName());
         converter.setType(converterType);
         converter.setDebugMode(converterProto.getDebugMode());
-        converter.setConfiguration(JacksonUtil.valueToTree(converterProto.getConfiguration()));
+        converter.setConfiguration(JacksonUtil.toJsonNode(converterProto.getConfiguration()));
         converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterProto.getAdditionalInfo()));
         return converter;
     }
