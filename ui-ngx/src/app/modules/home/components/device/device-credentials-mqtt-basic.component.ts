@@ -145,6 +145,6 @@ export class DeviceCredentialsMqttBasicComponent implements ControlValueAccessor
   }
 
   public generate(formControlName: string) {
-    this.deviceCredentialsMqttFormGroup.get(formControlName).patchValue(generateSecret(12));
+    this.deviceCredentialsMqttFormGroup.get(formControlName).patchValue(generateSecret(20));
   }
 }

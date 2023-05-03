@@ -51,6 +51,7 @@ export class CopyButtonComponent {
   copyText: string;
 
   @Input()
+  @coerceBoolean()
   disabled = false;
 
   @Input()
@@ -73,7 +74,7 @@ export class CopyButtonComponent {
 
   @Input()
   @coerceBoolean()
-  inputAction = false;
+  miniButton = true;
 
   @Output()
   successCopied = new EventEmitter<string>();
