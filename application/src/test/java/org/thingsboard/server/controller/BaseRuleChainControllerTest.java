@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.rule.RuleChainDao;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -69,7 +70,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ContextConfiguration(classes = {BaseRuleChainControllerTest.Config.class})
-public abstract class BaseRuleChainControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseRuleChainControllerTest extends AbstractControllerTest {
 
     private IdComparator<RuleChain> idComparator = new IdComparator<>();
 

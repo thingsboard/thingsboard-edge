@@ -44,7 +44,8 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.exception.DataValidationException;
 
-public abstract class BaseDeviceCredentialsServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class BaseDeviceCredentialsServiceTest extends AbstractServiceTest {
 
     @Autowired
     DeviceCredentialsService deviceCredentialsService;

@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
@@ -63,7 +64,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 
-public abstract class BaseOtaPackageControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseOtaPackageControllerTest extends AbstractControllerTest {
 
     private IdComparator<OtaPackageInfo> idComparator = new IdComparator<>();
 

@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -47,7 +48,8 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-abstract public class BaseDashboardEdgeTest extends AbstractEdgeTest {
+@DaoSqlTest
+public class BaseDashboardEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testDashboards() throws Exception {

@@ -70,6 +70,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetProfileDao;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,7 +86,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ContextConfiguration(classes = {BaseAssetProfileControllerTest.Config.class})
-public abstract class BaseAssetProfileControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseAssetProfileControllerTest extends AbstractControllerTest {
 
     private IdComparator<AssetProfile> idComparator = new IdComparator<>();
     private IdComparator<AssetProfileInfo> assetProfileInfoIdComparator = new IdComparator<>();

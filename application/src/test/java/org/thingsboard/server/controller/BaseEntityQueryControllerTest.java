@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.scheduler.MonthlyRepeat;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,7 +91,8 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseEntityQueryControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseEntityQueryControllerTest extends AbstractControllerTest {
 
     protected final String CUSTOMER_ADMIN_EMAIL = "testadmincustomer@thingsboard.org";
     protected final String CUSTOMER_ADMIN_PASSWORD = "admincustomer";

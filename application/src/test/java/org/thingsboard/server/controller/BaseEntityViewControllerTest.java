@@ -74,6 +74,8 @@ import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -100,7 +102,8 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 })
 @Slf4j
 @ContextConfiguration(classes = {BaseEntityViewControllerTest.Config.class})
-public abstract class BaseEntityViewControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseEntityViewControllerTest extends AbstractControllerTest {
     static final TypeReference<PageData<EntityView>> PAGE_DATA_ENTITY_VIEW_TYPE_REF = new TypeReference<>() {
     };
 

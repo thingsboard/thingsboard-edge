@@ -56,7 +56,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class BaseCustomerServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class BaseCustomerServiceTest extends AbstractServiceTest {
 
     @Autowired
     CustomerService customerService;

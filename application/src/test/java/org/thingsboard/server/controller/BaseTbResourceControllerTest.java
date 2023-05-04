@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -55,7 +56,8 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseTbResourceControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseTbResourceControllerTest extends AbstractControllerTest {
 
     private IdComparator<TbResourceInfo> idComparator = new IdComparator<>();
 

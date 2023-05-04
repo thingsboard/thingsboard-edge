@@ -79,6 +79,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,7 +97,8 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 @ContextConfiguration(classes = {BaseDeviceProfileControllerTest.Config.class})
-public abstract class BaseDeviceProfileControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseDeviceProfileControllerTest extends AbstractControllerTest {
 
     private IdComparator<DeviceProfile> idComparator = new IdComparator<>();
     private IdComparator<DeviceProfileInfo> deviceProfileInfoIdComparator = new IdComparator<>();

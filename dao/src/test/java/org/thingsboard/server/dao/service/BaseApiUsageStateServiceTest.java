@@ -38,7 +38,8 @@ import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 
 
-public abstract class BaseApiUsageStateServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class BaseApiUsageStateServiceTest extends AbstractServiceTest {
 
     @Autowired
     ApiUsageStateService apiUsageStateService;

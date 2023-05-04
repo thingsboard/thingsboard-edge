@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
@@ -98,7 +99,8 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
         "edges.enabled=true",
 })
 @ContextConfiguration(classes = {BaseEdgeControllerTest.Config.class})
-public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseEdgeControllerTest extends AbstractControllerTest {
 
     public static final String EDGE_HOST = "localhost";
     public static final int EDGE_PORT = 7070;

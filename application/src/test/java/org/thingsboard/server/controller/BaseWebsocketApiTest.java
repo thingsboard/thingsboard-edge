@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
 import org.thingsboard.server.service.subscription.TbAttributeSubscriptionScope;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -88,7 +89,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseWebsocketApiTest extends AbstractControllerTest {
     @Autowired
     private TelemetrySubscriptionService tsService;
 

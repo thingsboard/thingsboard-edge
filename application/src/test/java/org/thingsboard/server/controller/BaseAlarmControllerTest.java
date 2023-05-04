@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.alarm.AlarmDao;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -77,7 +78,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @ContextConfiguration(classes = {BaseAlarmControllerTest.Config.class})
-public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BaseAlarmControllerTest extends AbstractControllerTest {
 
     public static final String TEST_ALARM_TYPE = "Test";
 

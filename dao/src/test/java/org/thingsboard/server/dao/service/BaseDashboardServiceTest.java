@@ -52,7 +52,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseDashboardServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class BaseDashboardServiceTest extends AbstractServiceTest {
 
     @Autowired
     CustomerService customerService;
