@@ -28,27 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.common.data.sync.vc;
 
-import org.thingsboard.server.common.data.id.NotificationTargetId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationType;
-import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.TenantEntityDao;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
+public class VcUtils {
 
-public interface NotificationTargetDao extends Dao<NotificationTarget>, TenantEntityDao {
+    private VcUtils() {}
 
-    PageData<NotificationTarget> findByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink);
+    public static void checkBranchName(String branch) {
+        if (StringUtils.isEmpty(branch)) return;
 
-    PageData<NotificationTarget> findByTenantIdAndSupportedNotificationTypeAndPageLink(TenantId tenantId, NotificationType notificationType, PageLink pageLink);
-
-    List<NotificationTarget> findByTenantIdAndIds(TenantId tenantId, List<NotificationTargetId> ids);
-
-    void removeByTenantId(TenantId tenantId);
+        boolean invalid = StringUtils.containsWhitespace(branch) ||
+                StringUtils.containsAny(branch, "..", "~", "^", ":", "\\") ||
+                StringUtils.endsWithAny(branch, "/", ".lock");
+        if (invalid) {
+            throw new IllegalArgumentException("Branch name is invalid");
+        }
+    }
 
 }
