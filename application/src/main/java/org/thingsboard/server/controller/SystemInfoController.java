@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,20 +42,58 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.SystemParams;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.settings.UserSettings;
+import org.thingsboard.server.common.data.settings.UserSettingsType;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @ApiIgnore
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
-public class SystemInfoController {
+public class SystemInfoController extends BaseController {
+
+    @Value("${security.user_token_access_enabled}")
+    private boolean userTokenAccessEnabled;
+
+    @Value("${tbel.enabled:true}")
+    private boolean tbelEnabled;
+
+    @Value("${state.persistToTelemetry:false}")
+    private boolean persistToTelemetry;
+
+    @Value("${ui.dashboard.max_datapoints_limit}")
+    private long maxDatapointsLimit;
 
     @Autowired(required = false)
     private BuildProperties buildProperties;
+
+    @Autowired
+    private EntitiesVersionControlService versionControlService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @PostConstruct
     public void init() {
@@ -67,6 +106,69 @@ public class SystemInfoController {
     @ResponseBody
     public JsonNode getSystemVersionInfo() {
         return buildInfoObject();
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/system/params", method = RequestMethod.GET)
+    @ResponseBody
+    public SystemParams getSystemParams() throws ThingsboardException {
+        SystemParams systemParams = new SystemParams();
+        SecurityUser currentUser = getCurrentUser();
+        TenantId tenantId = currentUser.getTenantId();
+        CustomerId customerId = currentUser.getCustomerId();
+        MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+        systemParams.setUserTokenAccessEnabled(userTokenAccessEnabled);
+        boolean forceFullscreen = isForceFullscreen(currentUser);
+        if (forceFullscreen && (currentUser.isTenantAdmin() || currentUser.isCustomerUser())) {
+            PageLink pageLink = new PageLink(100);
+            PageData<DashboardInfo> dashboardsPageData = entityService.findUserEntities(tenantId, customerId, mergedUserPermissions, EntityType.DASHBOARD,
+                    Operation.READ, null, pageLink, false);
+            systemParams.setAllowedDashboardIds(dashboardsPageData.getData().stream().map(d -> d.getId().getId().toString()).collect(Collectors.toList()));
+        } else {
+            systemParams.setAllowedDashboardIds(Collections.emptyList());
+        }
+        systemParams.setEdgesSupportEnabled(edgesEnabled);
+        if (currentUser.isTenantAdmin()) {
+            systemParams.setHasRepository(versionControlService.getVersionControlSettings(tenantId) != null);
+            systemParams.setTbelEnabled(tbelEnabled);
+        } else {
+            systemParams.setHasRepository(false);
+            systemParams.setTbelEnabled(false);
+        }
+        if (currentUser.isTenantAdmin() || currentUser.isCustomerUser()) {
+            systemParams.setPersistDeviceStateToTelemetry(persistToTelemetry);
+            EntityId entityId;
+            if (currentUser.isTenantAdmin()) {
+                entityId = tenantId;
+            } else {
+                entityId = customerId;
+            }
+            systemParams.setWhiteLabelingAllowed(whiteLabelingService.isWhiteLabelingAllowed(getTenantId(), entityId));
+            if (currentUser.isTenantAdmin()) {
+                systemParams.setCustomerWhiteLabelingAllowed(whiteLabelingService.isCustomerWhiteLabelingAllowed(tenantId));
+            } else {
+                systemParams.setCustomerWhiteLabelingAllowed(false);
+            }
+        } else {
+            systemParams.setPersistDeviceStateToTelemetry(false);
+            systemParams.setWhiteLabelingAllowed(false);
+            systemParams.setCustomerWhiteLabelingAllowed(false);
+        }
+        UserSettings userSettings = userSettingsService.findUserSettings(currentUser.getTenantId(), currentUser.getId(), UserSettingsType.GENERAL);
+        ObjectNode userSettingsNode = userSettings == null ? JacksonUtil.newObjectNode() : (ObjectNode) userSettings.getSettings();
+        if (!userSettingsNode.has("openedMenuSections")) {
+            userSettingsNode.set("openedMenuSections", JacksonUtil.newArrayNode());
+        }
+        systemParams.setUserSettings(userSettingsNode);
+        systemParams.setMaxDatapointsLimit(maxDatapointsLimit);
+        return systemParams;
+    }
+
+    private boolean isForceFullscreen(SecurityUser currentUser) {
+        return UserPrincipal.Type.PUBLIC_ID.equals(currentUser.getUserPrincipal().getType()) ||
+                (currentUser.getAdditionalInfo() != null &&
+                        currentUser.getAdditionalInfo().has("defaultDashboardFullscreen") &&
+                        currentUser.getAdditionalInfo().get("defaultDashboardFullscreen").booleanValue());
     }
 
     private JsonNode buildInfoObject() {

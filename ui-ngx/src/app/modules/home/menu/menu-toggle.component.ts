@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
@@ -44,7 +44,7 @@ import { ActionPreferencesUpdateOpenedMenuSection } from '@core/auth/auth.action
   styleUrls: ['./menu-toggle.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MenuToggleComponent implements OnInit {
+export class MenuToggleComponent implements OnInit, OnChanges {
 
   @Input() section: MenuSection;
 
@@ -58,6 +58,17 @@ export class MenuToggleComponent implements OnInit {
 
   ngOnInit() {
     this.sectionPages = this.section.pages.filter((page) => !page.disabled);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'section') {
+          this.sectionPages = this.section.pages.filter((page) => !page.disabled);
+        }
+      }
+    }
   }
 
   sectionActive(): boolean {

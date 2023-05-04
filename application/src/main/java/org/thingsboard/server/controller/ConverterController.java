@@ -75,8 +75,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.converter.TbConverterService;
-import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;

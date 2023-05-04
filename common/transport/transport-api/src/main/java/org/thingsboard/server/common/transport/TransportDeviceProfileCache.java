@@ -34,8 +34,6 @@ import com.google.protobuf.ByteString;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 
-import java.util.Optional;
-
 public interface TransportDeviceProfileCache {
 
     DeviceProfile getOrCreate(DeviceProfileId id, ByteString profileBody);

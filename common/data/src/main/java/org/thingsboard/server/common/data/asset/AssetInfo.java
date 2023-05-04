@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.asset;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityInfo;
 
 import javax.validation.Valid;
@@ -40,6 +41,7 @@ import java.util.List;
 
 @ApiModel
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class AssetInfo extends Asset {
 
     @Valid

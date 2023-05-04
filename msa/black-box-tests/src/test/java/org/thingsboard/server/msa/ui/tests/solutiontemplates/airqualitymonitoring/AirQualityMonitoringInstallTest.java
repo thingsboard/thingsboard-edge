@@ -64,13 +64,7 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_REMOTE_LOCATION_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.AQI_SENSOR_RULE_CHAIN;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.LOS_ANGELES_CA_ASSET;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_FARM_EDGE;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_LOCATION_EDGE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_COUNT_ALARMS_REMOTE_FARM_RULE_CHAIN;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_FIELD_RULE_REMOTE_FARM_CHAIN;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SMART_VALVE_REMOTE_FARM_RULE_CHAIN;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_SOIL_MOISTURE_REMOTE_FARM_RULE_CHAIN;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.SI_WATER_METER_REMOTE_FARM_RULE_CHAIN;
 
 @Feature("Installation")
 @Story("Air Quality Monitoring")

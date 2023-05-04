@@ -540,7 +540,8 @@ export class MenuService {
           name: 'alarm.alarms',
           type: 'link',
           path: '/alarms',
-          icon: 'notifications'
+          icon: 'mdi:alert-outline',
+          isMdiIcon: true
         }
       );
     }
@@ -1851,7 +1852,8 @@ export class MenuService {
           name: 'alarm.alarms',
           type: 'link',
           path: '/alarms',
-          icon: 'notifications'
+          icon: 'mdi:alert-outline',
+          isMdiIcon: true
         }
       );
     }

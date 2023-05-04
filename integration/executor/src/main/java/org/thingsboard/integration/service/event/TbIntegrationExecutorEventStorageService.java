@@ -35,11 +35,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.service.api.IntegrationApiService;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.event.StatisticsEvent;
@@ -60,7 +58,6 @@ import org.thingsboard.server.service.integration.EventStorageService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service

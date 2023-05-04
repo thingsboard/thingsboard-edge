@@ -30,9 +30,9 @@
  */
 package org.thingsboard.integration.azure;
 
+import com.azure.messaging.eventhubs.EventData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.azure.messaging.eventhubs.EventData;
 import lombok.Data;
 import org.thingsboard.common.util.JacksonUtil;
 

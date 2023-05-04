@@ -81,10 +81,6 @@
       </mat-error>
     </mat-form-field>
     <tb-integration-credentials formControlName="credentials"
-                                [userNameLabel]="userNameLabel"
-                                [userNameRequired]="userNameRequired"
-                                [passwordLabel]="passwordLabel"
-                                [passwordRequired]="passwordRequired"
                                 [allowCredentialTypes]="[IntegrationCredentialType.Basic]">
       <mat-slide-toggle class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
         {{ 'integration.enable-ssl' | translate }}
