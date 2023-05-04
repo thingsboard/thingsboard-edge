@@ -185,15 +185,15 @@
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
         <module>dao</module>
-        <module>transport</module>
-        <module>integration</module>
+<!--        <module>transport</module>-->
+<!--        <module>integration</module>-->
         <module>ui-ngx</module>
         <module>tools</module>
         <module>application</module>
         <module>msa</module>
         <module>rest-client</module>
-        <module>monitoring</module>
-        <module>tenant-migrator</module>
+<!--        <module>monitoring</module>-->
+<!--        <module>tenant-migrator</module>-->
     </modules>
 
     <profiles>
