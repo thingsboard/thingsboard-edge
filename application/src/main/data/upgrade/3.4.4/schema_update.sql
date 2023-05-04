@@ -663,6 +663,7 @@ $$
 $$;
 
 CREATE TABLE IF NOT EXISTS cloud_event (
+   seq_id INT GENERATED ALWAYS AS IDENTITY,
    id uuid NOT NULL,
    created_time bigint NOT NULL,
    cloud_event_type varchar(255),

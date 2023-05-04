@@ -41,6 +41,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ACTION
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_BODY_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_SEQUENTIAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EPOCH_DIFF;
@@ -53,6 +54,9 @@ import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
 @Table(name = CLOUD_EVENT_COLUMN_FAMILY_NAME)
 @NoArgsConstructor
 public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseEntity<CloudEvent> {
+
+    @Column(name = CLOUD_EVENT_SEQUENTIAL_ID_PROPERTY)
+    protected long seqId;
 
     @Column(name = CLOUD_EVENT_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -105,6 +109,7 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
         cloudEvent.setType(cloudEventType);
         cloudEvent.setAction(cloudEventAction);
         cloudEvent.setEntityBody(entityBody);
+        cloudEvent.setSeqId(seqId);
         return cloudEvent;
     }
 

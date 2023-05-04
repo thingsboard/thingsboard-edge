@@ -31,6 +31,7 @@ import java.util.UUID;
 @ToString(callSuper = true)
 public class CloudEvent extends BaseData<CloudEventId> {
 
+    private long seqId;
     private TenantId tenantId;
     private EdgeEventActionType action;
     private UUID entityId;

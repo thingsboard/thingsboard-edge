@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.dao.service.Validator.validateId;
-
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -121,7 +119,12 @@ public class BaseCloudEventService implements CloudEventService {
 
     @Override
     public PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
-        return cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
+        return findCloudEvents(tenantId, 0L, pageLink);
+    }
+
+    @Override
+    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long startSeqId, TimePageLink pageLink) {
+        return cloudEventDao.findCloudEvents(tenantId.getId(), startSeqId, pageLink);
     }
 
     private long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(TenantId tenantId,
@@ -155,23 +158,6 @@ public class BaseCloudEventService implements CloudEventService {
             log.error("Exception while fetching edge settings", e);
             throw new RuntimeException("Exception while fetching edge settings", e);
         }
-    }
-
-    @Override
-    public void deleteCloudEventsByTenantId(TenantId tenantId) {
-        log.trace("Executing deleteCloudEventsByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        TimePageLink pageLink = new TimePageLink(100);
-        PageData<CloudEvent> pageData;
-        do {
-            pageData = findCloudEvents(tenantId, pageLink);
-            for (CloudEvent entity : pageData.getData()) {
-                cloudEventDao.removeById(tenantId, entity.getId().getId());
-            }
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
     }
 
     @Override
