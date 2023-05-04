@@ -29,21 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
-
-export const coerceBoolean = () => (target: any, key: string): void => {
-  const getter = function() {
-    return this['__' + key];
-  };
-
-  const setter = function(next: any) {
-    this['__' + key] = coerceBooleanProperty(next);
-  };
-
-  Object.defineProperty(target, key, {
-    get: getter,
-    set: setter,
-    enumerable: true,
-    configurable: true,
-  });
-};
+export * from './coercion';
+export * from './enumerable';
+export * from './tb-inject';
