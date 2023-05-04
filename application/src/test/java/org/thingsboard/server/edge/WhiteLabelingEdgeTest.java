@@ -41,11 +41,13 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
-abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
+@DaoSqlTest
+public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testWhiteLabeling() throws Exception {

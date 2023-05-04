@@ -89,7 +89,8 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public abstract class BaseEntityGroupServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class EntityGroupServiceTest extends AbstractServiceTest {
     static final int TIMEOUT = 30;
 
     @Autowired

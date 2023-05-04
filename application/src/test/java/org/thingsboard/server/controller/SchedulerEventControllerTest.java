@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,8 @@ import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseSchedulerEventControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class SchedulerEventControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
     private User tenantAdmin;

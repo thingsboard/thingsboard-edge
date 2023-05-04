@@ -49,7 +49,8 @@ import java.util.List;
 /**
  * Created by igor on 3/13/18.
  */
-public abstract class BaseSchedulerEventServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class SchedulerEventServiceTest extends AbstractServiceTest {
 
     @Autowired
     EdgeService edgeService;

@@ -67,7 +67,8 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public abstract class BaseIntegrationServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class IntegrationServiceTest extends AbstractServiceTest {
 
     @Autowired
     ConverterService converterService;

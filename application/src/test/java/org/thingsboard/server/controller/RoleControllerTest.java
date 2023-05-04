@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,7 +54,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseRoleControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class RoleControllerTest extends AbstractControllerTest {
 
     private IdComparator<Role> idComparator;
     private Tenant savedTenant;

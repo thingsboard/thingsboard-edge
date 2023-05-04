@@ -50,7 +50,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class BaseConverterServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class ConverterServiceTest extends AbstractServiceTest {
 
     @Autowired
     ConverterService converterService;

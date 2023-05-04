@@ -42,7 +42,8 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 
-public abstract class BaseWhiteLabelingServiceTest extends AbstractServiceTest {
+@DaoSqlTest
+public class WhiteLabelingServiceTest extends AbstractServiceTest {
 
     @Autowired
     CustomerService customerService;

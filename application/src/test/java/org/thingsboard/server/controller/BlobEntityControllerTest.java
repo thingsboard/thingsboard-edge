@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 
@@ -73,7 +74,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.controller.BlobEntityController.BLOB_ENTITY_ID;
 
-public abstract class BaseBlobEntityControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class BlobEntityControllerTest extends AbstractControllerTest {
 
 
     protected final String CUSTOMER_ADMIN_EMAIL = "testadmincustomer@thingsboard.org";

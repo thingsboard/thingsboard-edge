@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,7 +54,8 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseGroupPermissionControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class GroupPermissionControllerTest extends AbstractControllerTest {
 
     private IdComparator<GroupPermission> idComparator;
     private Tenant savedTenant;

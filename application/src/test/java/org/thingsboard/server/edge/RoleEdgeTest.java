@@ -37,6 +37,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
@@ -48,7 +49,8 @@ import java.util.Optional;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-abstract public class BaseRoleEdgeTest extends AbstractEdgeTest {
+@DaoSqlTest
+public class RoleEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testTenantRole() throws Exception {

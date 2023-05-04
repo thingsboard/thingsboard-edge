@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -50,7 +51,8 @@ import java.util.Optional;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-abstract public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
+@DaoSqlTest
+public class IntegrationEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testIntegrations() throws Exception {

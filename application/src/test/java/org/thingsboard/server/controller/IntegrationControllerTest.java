@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 
 import java.util.ArrayList;
@@ -69,7 +70,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "js.evaluator=local",
         "service.integrations.supported=ALL",
 })
-public abstract class BaseIntegrationControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class IntegrationControllerTest extends AbstractControllerTest {
 
     @Autowired
     IntegrationManagerService integrationManagerService;

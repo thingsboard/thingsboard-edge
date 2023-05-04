@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
@@ -54,7 +55,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public abstract class BaseSignUpControllerSqlTest extends AbstractControllerTest {
+@DaoSqlTest
+public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     public static final String SELF_REG_SETTINGS = "{\"signUpTextMessage\":null," +
             "\"captchaSiteKey\":\"6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI\"," +

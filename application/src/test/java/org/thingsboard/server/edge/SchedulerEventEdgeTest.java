@@ -43,12 +43,14 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-abstract public class BaseSchedulerEventEdgeTest extends AbstractEdgeTest {
+@DaoSqlTest
+public class SchedulerEventEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testSchedulerEvent_tenantLevel() throws Exception {

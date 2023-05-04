@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,8 @@ import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public abstract class BaseEntityGroupControllerTest extends AbstractControllerTest {
+@DaoSqlTest
+public class EntityGroupControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
     private User tenantAdmin;
