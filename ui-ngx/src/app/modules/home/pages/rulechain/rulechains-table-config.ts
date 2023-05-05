@@ -661,7 +661,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     } else if (ruleChainScope === 'edges') {
       return this.translate.instant('edge.rulechain-templates');
     } else if (ruleChainScope === 'edge') {
-      return this.tableTitle = edge.name + ': ' + this.translate.instant('edge.rulechains');
+      return this.tableTitle = edge.name + ': ' + this.translate.instant('rulechain.rulechains');
     }
   }
 }

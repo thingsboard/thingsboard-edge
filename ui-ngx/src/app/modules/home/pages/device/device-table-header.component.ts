@@ -33,7 +33,7 @@ import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
-import { Device, DeviceInfo } from '@app/shared/models/device.models';
+import { Device, DeviceInfo, DeviceInfoFilter } from '@app/shared/models/device.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileId } from '@shared/models/id/device-profile-id';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
@@ -44,7 +44,7 @@ import { Authority } from '@shared/models/authority.enum';
   templateUrl: './device-table-header.component.html',
   styleUrls: []
 })
-export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<DeviceInfo | Device> implements OnInit {
+export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<DeviceInfo> implements OnInit {
 
   entityType = EntityType;
 
@@ -60,8 +60,8 @@ export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Devic
       this.entitiesTableConfig.customerId) ? 'entity.include-sub-customer-entities' : 'entity.include-customer-entities';
   }
 
-  deviceProfileChanged(deviceProfileId: DeviceProfileId) {
-    this.entitiesTableConfig.componentsData.deviceProfileId = deviceProfileId;
+  deviceInfoFilterChanged(deviceInfoFilter: DeviceInfoFilter) {
+    this.entitiesTableConfig.componentsData.deviceInfoFilter = deviceInfoFilter;
     this.entitiesTableConfig.getTable().resetSortAndFilter(true);
   }
 

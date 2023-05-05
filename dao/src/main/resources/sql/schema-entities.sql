@@ -1037,7 +1037,7 @@ SELECT a.*,
 FROM asset a
          LEFT JOIN customer c ON c.id = a.customer_id;
 
-CREATE OR REPLACE VIEW device_info_view as
+CREATE OR REPLACE VIEW device_info_active_attribute_view as
 SELECT d.*, c.title as owner_name,
        array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
                            from relation re,
@@ -1048,9 +1048,31 @@ SELECT d.*, c.title as owner_name,
                              and re.relation_type = 'Contains'
                              and eg.id = re.from_id
                              and eg.name != 'All'
-                           order by eg.name)) as groups
+                           order by eg.name)) as groups,
+       COALESCE(da.bool_v, FALSE) as active
 FROM device d
-         LEFT JOIN customer c ON c.id = d.customer_id;
+         LEFT JOIN customer c ON c.id = d.customer_id
+         LEFT JOIN attribute_kv da ON da.entity_id = d.id and da.attribute_key = 'active';
+
+CREATE OR REPLACE VIEW device_info_active_ts_view as
+SELECT d.*, c.title as owner_name,
+       array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
+                           from relation re,
+                                entity_group eg
+                           where re.to_id = d.id
+                             and re.to_type = 'DEVICE'
+                             and re.relation_type_group = 'FROM_ENTITY_GROUP'
+                             and re.relation_type = 'Contains'
+                             and eg.id = re.from_id
+                             and eg.name != 'All'
+                           order by eg.name)) as groups,
+       COALESCE(dt.bool_v, FALSE) as active
+FROM device d
+         LEFT JOIN customer c ON c.id = d.customer_id
+         LEFT JOIN ts_kv_latest dt ON dt.entity_id = d.id and dt.key = (select key_id from ts_kv_dictionary where key = 'active');
+
+DROP VIEW IF EXISTS device_info_view CASCADE;
+CREATE OR REPLACE VIEW device_info_view AS SELECT * FROM device_info_active_attribute_view;
 
 CREATE OR REPLACE VIEW entity_view_info_view as
 SELECT e.*, c.title as owner_name,

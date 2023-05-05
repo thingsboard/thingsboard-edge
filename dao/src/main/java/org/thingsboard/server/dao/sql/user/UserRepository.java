@@ -38,8 +38,8 @@ import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 /**

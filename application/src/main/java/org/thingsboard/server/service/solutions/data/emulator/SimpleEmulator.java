@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.solutions.data.emulator;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 
 public interface SimpleEmulator extends Emulator {
 

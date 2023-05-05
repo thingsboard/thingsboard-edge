@@ -30,14 +30,14 @@
  */
 package org.thingsboard.server.controller;
 
+import org.junit.Test;
+import org.thingsboard.server.common.data.security.Authority;
+
+import java.util.concurrent.TimeUnit;
+
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.thingsboard.server.common.data.security.Authority;
-import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
 
 public abstract class BaseAuthControllerTest extends AbstractControllerTest {
 

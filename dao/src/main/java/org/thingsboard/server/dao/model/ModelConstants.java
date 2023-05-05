@@ -184,6 +184,8 @@ public class ModelConstants {
     public static final String DEVICE_FIRMWARE_ID_PROPERTY = "firmware_id";
     public static final String DEVICE_SOFTWARE_ID_PROPERTY = "software_id";
 
+    public static final String DEVICE_ACTIVE_PROPERTY = "active";
+
     public static final String DEVICE_INFO_VIEW_COLUMN_FAMILY_NAME = "device_info_view";
 
     /**

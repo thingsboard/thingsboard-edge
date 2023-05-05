@@ -51,8 +51,8 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
-import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.TenantAdministratorsFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
@@ -218,6 +218,11 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public void deleteNotificationTargetsByTenantId(TenantId tenantId) {
         notificationTargetDao.removeByTenantId(tenantId);
+    }
+
+    @Override
+    public long countNotificationTargetsByTenantId(TenantId tenantId) {
+        return notificationTargetDao.countByTenantId(tenantId);
     }
 
     @Override

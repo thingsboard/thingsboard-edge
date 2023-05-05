@@ -33,12 +33,14 @@ package org.thingsboard.server.common.data;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @ApiModel
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class EntityViewInfo extends EntityView {
 
     @Valid

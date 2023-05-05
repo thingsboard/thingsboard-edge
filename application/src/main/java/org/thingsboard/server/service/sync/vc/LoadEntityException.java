@@ -32,7 +32,6 @@ package org.thingsboard.server.service.sync.vc;
 
 import lombok.Getter;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 
 @SuppressWarnings("rawtypes")
 public class LoadEntityException extends RuntimeException {
