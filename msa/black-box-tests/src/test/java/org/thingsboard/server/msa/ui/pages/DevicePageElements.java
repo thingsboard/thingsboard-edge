@@ -65,13 +65,14 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String CHECKBOX_GATEWAY_DETAILS = "//mat-checkbox[@formcontrolname='gateway']//input";
     private static final String CHECKBOX_GATEWAY_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-gateway')]//mat-icon[text() = 'check_box']";
     private static final String CHECKBOX_OVERWRITE_ACTIVITY_TIME_DETAILS = "//mat-checkbox[@formcontrolname='overwriteActivityTime']//input";
-    private static final String CLEAR_PROFILE_FIELD_BTN = "//button[@aria-label='Clear']";
+    private static final String CLEAR_PROFILE_FIELD_BTN = "//tb-device-profile-autocomplete//button[@aria-label='Clear']";
+    private static final String CLEAR_OWNER_FIELD_BTN = "//tb-owner-autocomplete//button[@aria-label='Clear']";
     private static final String DEVICE_PROFILE_REDIRECTED_BTN = "//a[@aria-label='Open device profile']";
     private static final String DEVICE_LABEL_FIELD_CREATE = "//tb-device-wizard//input[@formcontrolname='label']";
     private static final String DEVICE_LABEL_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-label')]/span";
-    private static final String DEVICE_CUSTOMER_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-customerTitle')]/span";
-    private static final String CUSTOMER_OPTION_BNT = "//div[text() = 'Customer']/ancestor::mat-step-header";
-    private static final String ASSIGN_ON_CUSTOMER_FIELD = "//input[@formcontrolname='entity']";
+    private static final String DEVICE_OWNER_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-ownerName')]/span";
+    private static final String OWNER_AND_GROUPS_OPTION_BNT = "//div[text() = 'Owner and groups']/ancestor::mat-step-header";
+    private static final String OWNER_FIELD = "//input[@formcontrolname='owner']";
     private static final String DEVICE_LABEL_EDIT = "//input[@formcontrolname='label']";
 
     public List<WebElement> allGroupNames() {
@@ -174,6 +175,10 @@ public class DevicePageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(CLEAR_PROFILE_FIELD_BTN);
     }
 
+    public WebElement clearOwnerFieldBtn() {
+        return waitUntilElementToBeClickable(CLEAR_OWNER_FIELD_BTN);
+    }
+
     public WebElement deviceProfileRedirectedBtn() {
         return waitUntilElementToBeClickable(DEVICE_PROFILE_REDIRECTED_BTN);
     }
@@ -186,16 +191,16 @@ public class DevicePageElements extends OtherPageElementsHelper {
         return waitUntilVisibilityOfElementLocated(String.format(DEVICE_LABEL_PAGE, deviceName));
     }
 
-    public WebElement customerOptionBtn() {
-        return waitUntilElementToBeClickable(CUSTOMER_OPTION_BNT);
+    public WebElement ownerAndGroupsOptionBtn() {
+        return waitUntilElementToBeClickable(OWNER_AND_GROUPS_OPTION_BNT);
     }
 
-    public WebElement assignOnCustomerField() {
-        return waitUntilElementToBeClickable(ASSIGN_ON_CUSTOMER_FIELD);
+    public WebElement ownerField() {
+        return waitUntilElementToBeClickable(OWNER_FIELD);
     }
 
-    public WebElement deviceCustomerOnPage(String deviceName) {
-        return waitUntilVisibilityOfElementLocated(String.format(DEVICE_CUSTOMER_PAGE, deviceName));
+    public WebElement deviceOwnerOnPage(String deviceName) {
+        return waitUntilVisibilityOfElementLocated(String.format(DEVICE_OWNER_PAGE, deviceName));
     }
 
     public WebElement deviceLabelEditField() {

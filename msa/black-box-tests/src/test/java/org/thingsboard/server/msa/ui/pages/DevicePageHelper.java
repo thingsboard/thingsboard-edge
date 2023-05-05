@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 
 public class DevicePageHelper extends DevicePageElements {
@@ -102,10 +103,13 @@ public class DevicePageHelper extends DevicePageElements {
         entityFromDropdown(deviceProfileName).click();
     }
 
-    public void assignOnCustomer(String customerTitle) {
-        customerOptionBtn().click();
-        assignOnCustomerField().click();
-        entityFromList(customerTitle).click();
-        sleep(2); //waiting for the action to count
+    public void changeOwnerOn(String customerTitle) {
+        ownerAndGroupsOptionBtn().click();
+        clearOwnerFieldBtn().click();
+        ownerField().sendKeys(customerTitle);
+        sleep(0.5);
+        ownerField().sendKeys(Keys.ARROW_DOWN);
+        ownerField().sendKeys(Keys.ENTER);
+        sleep(0.5);
     }
 }

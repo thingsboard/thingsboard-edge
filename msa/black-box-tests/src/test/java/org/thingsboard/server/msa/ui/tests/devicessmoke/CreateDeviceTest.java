@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.msa.ui.tests.devicessmoke;
 
@@ -37,7 +52,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     public void createDevice() {
         deviceName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.addBtnC().click();
@@ -51,7 +66,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     public void createDeviceWithDescription() {
         deviceName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.enterDescription(deviceName);
@@ -68,7 +83,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     @Test(groups = "smoke")
     @Description("Add device without the name")
     public void createDeviceWithoutName() {
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.nameField().click();
         devicePage.addBtnC().click();
@@ -80,7 +95,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     @Test(groups = "smoke")
     @Description("Create device only with spase in name")
     public void createDeviceWithOnlySpace() {
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(" ");
         devicePage.addBtnC().click();
@@ -96,7 +111,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
         Device device = testRestClient.postDevice("", EntityPrototypes.defaultDevicePrototype(ENTITY_NAME));
         deviceName = device.getName();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.addBtnC().click();
@@ -111,7 +126,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     public void createDeviceWithoutRefresh() {
         deviceName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.addBtnC().click();
@@ -124,7 +139,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     public void createDeviceWithoutDeviceProfile() {
         deviceName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.clearProfileFieldBtn().click();
@@ -140,7 +155,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     public void createDeviceWithEnableGateway() {
         deviceName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.checkboxGatewayCreate().click();
@@ -155,7 +170,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
     public void createDeviceWithEnableOverwriteActivityTimeForConnected() {
         deviceName = ENTITY_NAME + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.checkboxGatewayCreate().click();
@@ -173,7 +188,7 @@ public class CreateDeviceTest extends AbstractDeviceTest {
         deviceName = ENTITY_NAME + random();
         String deviceLabel = "device label " + random();
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
         devicePage.enterLabel(deviceLabel);
@@ -185,27 +200,27 @@ public class CreateDeviceTest extends AbstractDeviceTest {
 
     @Test(groups = "smoke")
     @Description("Add device with assignee on customer")
-    public void createDeviceWithAssignee() {
+    public void createDeviceWithOwner() {
         deviceName = ENTITY_NAME + random();
         String customer = "Customer A";
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.openCreateDeviceView();
         devicePage.enterName(deviceName);
-        devicePage.assignOnCustomer(customer);
+        devicePage.changeOwnerOn(customer);
         devicePage.addBtnC().click();
 
-        assertIsDisplayed(devicePage.deviceCustomerOnPage(deviceName));
-        assertThat(devicePage.deviceCustomerOnPage(deviceName).getText())
-                .as("Customer added correctly").isEqualTo(customer);
+        assertIsDisplayed(devicePage.deviceOwnerOnPage(deviceName));
+        assertThat(devicePage.deviceOwnerOnPage(deviceName).getText())
+                .as("Owner changed correctly").isEqualTo(customer);
     }
 
     @Test(groups = "smoke")
     @Description("Go to devices documentation page")
     public void documentation() {
-        String urlPath = "docs/user-guide/ui/devices/";
+        String urlPath = "docs/pe/user-guide/ui/devices/";
 
-        sideBarMenuView.goToDevicesPage();
+        sideBarMenuView.goToAllDevices();
         devicePage.entity("Thermostat T1").click();
         devicePage.goToHelpPage();
 
