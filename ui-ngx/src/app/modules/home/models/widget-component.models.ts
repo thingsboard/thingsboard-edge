@@ -109,6 +109,7 @@ import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/al
 import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
 import { UserId } from '@shared/models/id/user-id';
 import { UserSettingsService } from '@core/http/user-settings.service';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 export interface IWidgetAction {
   name: string;
@@ -210,6 +211,7 @@ export class WidgetContext {
   sanitizer: DomSanitizer;
   router: Router;
   reportService: ReportService;
+  wl: WhiteLabelingService;
 
   private changeDetectorValue: ChangeDetectorRef;
   private containerChangeDetectorValue: ChangeDetectorRef;

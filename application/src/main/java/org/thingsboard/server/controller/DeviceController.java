@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
@@ -80,15 +81,15 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
-import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
-import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
-import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.service.entitiy.device.TbDeviceService;
+import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
@@ -101,6 +102,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ACTIVE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEVICE_INFO_DESCRIPTION;
@@ -385,6 +387,8 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) Boolean includeCustomers,
             @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
             @RequestParam(required = false) String deviceProfileId,
+            @ApiParam(value = DEVICE_ACTIVE_PARAM_DESCRIPTION)
+            @RequestParam(required = false) Boolean active,
             @ApiParam(value = DEVICE_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
             @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES)
@@ -394,40 +398,17 @@ public class DeviceController extends BaseController {
         accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-            if (includeCustomers != null && includeCustomers) {
-                if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                    DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndDeviceProfileId(tenantId, profileId, pageLink));
-                } else {
-                    return checkNotNull(deviceService.findDeviceInfosByTenantId(tenantId, pageLink));
-                }
-            } else {
-                if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                    DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                    return checkNotNull(deviceService.findTenantDeviceInfosByTenantIdAndDeviceProfileId(tenantId, profileId, pageLink));
-                } else {
-                    return checkNotNull(deviceService.findTenantDeviceInfosByTenantId(tenantId, pageLink));
-                }
-            }
-        } else {
-            CustomerId customerId = getCurrentUser().getCustomerId();
-            if (includeCustomers != null && includeCustomers) {
-                if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                    DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
-                } else {
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                }
-            } else {
-                if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                    DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(tenantId, customerId, profileId, pageLink));
-                } else {
-                    return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                }
-            }
+        DeviceInfoFilter.DeviceInfoFilterBuilder filter = DeviceInfoFilter.builder();
+        filter.tenantId(tenantId);
+        filter.active(active);
+        filter.includeCustomers(includeCustomers != null && includeCustomers);
+        if (deviceProfileId != null && deviceProfileId.length() > 0) {
+            filter.deviceProfileId(new DeviceProfileId(toUUID(deviceProfileId)));
         }
+        if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
+            filter.customerId(getCurrentUser().getCustomerId());
+        }
+        return checkNotNull(deviceService.findDeviceInfosByFilter(filter.build(), pageLink));
     }
 
     @ApiOperation(value = "Get Customer Device Infos (getCustomerDeviceInfos)",
@@ -448,6 +429,8 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) Boolean includeCustomers,
             @ApiParam(value = DEVICE_PROFILE_ID_PARAM_DESCRIPTION)
             @RequestParam(required = false) String deviceProfileId,
+            @ApiParam(value = DEVICE_ACTIVE_PARAM_DESCRIPTION)
+            @RequestParam(required = false) Boolean active,
             @ApiParam(value = DEVICE_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
             @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES)
@@ -460,21 +443,15 @@ public class DeviceController extends BaseController {
         CustomerId customerId = new CustomerId(toUUID(strCustomerId));
         checkCustomerId(customerId, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        if (includeCustomers != null && includeCustomers) {
-            if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(tenantId, customerId, profileId, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-            }
-        } else {
-            if (deviceProfileId != null && deviceProfileId.length() > 0) {
-                DeviceProfileId profileId = new DeviceProfileId(toUUID(deviceProfileId));
-                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(tenantId, customerId, profileId, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDeviceInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
+        DeviceInfoFilter.DeviceInfoFilterBuilder filter = DeviceInfoFilter.builder();
+        filter.tenantId(tenantId);
+        filter.active(active);
+        filter.includeCustomers(includeCustomers != null && includeCustomers);
+        filter.customerId(customerId);
+        if (deviceProfileId != null && deviceProfileId.length() > 0) {
+            filter.deviceProfileId(new DeviceProfileId(toUUID(deviceProfileId)));
         }
+        return checkNotNull(deviceService.findDeviceInfosByFilter(filter.build(), pageLink));
     }
 
     @ApiOperation(value = "Get Devices By Ids (getDevicesByIds)",

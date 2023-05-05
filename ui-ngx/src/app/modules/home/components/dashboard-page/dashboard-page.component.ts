@@ -508,7 +508,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.readonly = !this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, this.entityGroup);
       this.entityGroupId = this.entityGroup.id.id;
     } else if (this.embedded || (this.singlePageMode && !this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))
-               || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView) {
+               || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView ||
+               this.route.snapshot.queryParamMap.get('readonly') === 'true') {
       this.readonly = true;
     }
 

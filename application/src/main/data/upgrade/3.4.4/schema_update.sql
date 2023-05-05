@@ -29,6 +29,32 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- DEVICE INFO VIEW START
+
+DROP VIEW IF EXISTS device_info_active_attribute_view CASCADE;
+CREATE OR REPLACE VIEW device_info_active_attribute_view AS
+SELECT d.*
+       , c.title as customer_title
+       , COALESCE((c.additional_info::json->>'isPublic')::bool, FALSE) as customer_is_public
+       , d.type as device_profile_name
+       , COALESCE(da.bool_v, FALSE) as active
+FROM device d
+         LEFT JOIN customer c ON c.id = d.customer_id
+         LEFT JOIN attribute_kv da ON da.entity_id = d.id and da.attribute_key = 'active';
+
+DROP VIEW IF EXISTS device_info_active_ts_view CASCADE;
+CREATE OR REPLACE VIEW device_info_active_ts_view AS
+SELECT d.*
+       , c.title as customer_title
+       , COALESCE((c.additional_info::json->>'isPublic')::bool, FALSE) as customer_is_public
+       , d.type as device_profile_name
+       , COALESCE(dt.bool_v, FALSE) as active
+FROM device d
+         LEFT JOIN customer c ON c.id = d.customer_id
+         LEFT JOIN ts_kv_latest dt ON dt.entity_id = d.id and dt.key = (select key_id from ts_kv_dictionary where key = 'active');
+
+-- DEVICE INFO VIEW END
+
 -- USER CREDENTIALS START
 
 ALTER TABLE user_credentials
@@ -635,3 +661,16 @@ END
 $$;
 
 -- TTL DROP PARTITIONS FUNCTIONS UPDATE END
+
+-- RULE NODE SINGLETON MODE SUPPORT
+
+ALTER TABLE rule_node ADD COLUMN IF NOT EXISTS singleton_mode bool DEFAULT false;
+
+UPDATE rule_node SET singleton_mode = true WHERE type IN ('org.thingsboard.rule.engine.mqtt.azure.TbAzureIotHubNode', 'org.thingsboard.rule.engine.mqtt.TbMqttNode');
+
+ALTER TABLE component_descriptor ADD COLUMN IF NOT EXISTS clustering_mode varchar(255) DEFAULT 'ENABLED';
+
+UPDATE component_descriptor SET clustering_mode = 'USER_PREFERENCE' WHERE clazz = 'org.thingsboard.rule.engine.mqtt.TbMqttNode';
+
+UPDATE component_descriptor SET clustering_mode = 'SINGLETON' WHERE clazz = 'org.thingsboard.rule.engine.mqtt.azure.TbAzureIotHubNode';
+

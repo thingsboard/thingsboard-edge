@@ -58,7 +58,6 @@ import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.BUS
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FLEET_TRACKING_DASHBOARD;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.FLEET_TRACKING_DASHBOARD_GROUP;
 import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_BUS_STATION_R1_EDGE;
-import static org.thingsboard.server.msa.ui.utils.SolutionTemplatesConstants.REMOTE_OFFICE_R1_EDGE;
 
 @Feature("Installation")
 @Story("Fleet tracking")

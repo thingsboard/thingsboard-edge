@@ -38,11 +38,12 @@ import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
@@ -83,7 +84,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     @Autowired
     TenantProfileService tenantProfileService;
 
-    private IdComparator<Device> idComparator = new IdComparator<>();
+    private final IdComparator<Device> idComparator = new IdComparator<>();
     private TenantId anotherTenantId;
 
     @Before
@@ -409,7 +410,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     @Test
     public void testFindDevicesByTenantIdAndName() {
         String title1 = "Device title 1";
-        List<Device> devicesTitle1 = new ArrayList<>();
+        List<DeviceInfo> devicesTitle1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
@@ -418,10 +419,10 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
-            devicesTitle1.add(deviceService.saveDevice(device));
+            devicesTitle1.add(new DeviceInfo(deviceService.saveDevice(device), null, Collections.emptyList(), false));
         }
         String title2 = "Device title 2";
-        List<Device> devicesTitle2 = new ArrayList<>();
+        List<DeviceInfo> devicesTitle2 = new ArrayList<>();
         for (int i = 0; i < 175; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
@@ -430,15 +431,15 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
-            devicesTitle2.add(deviceService.saveDevice(device));
+            devicesTitle2.add(new DeviceInfo(deviceService.saveDevice(device), null, Collections.emptyList(), false));
         }
 
-        List<Device> loadedDevicesTitle1 = new ArrayList<>();
+        List<DeviceInfo> loadedDevicesTitle1 = new ArrayList<>();
 
         PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<Device> pageData = null;
+        PageData<DeviceInfo> pageData = null;
         do {
-            pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
+            pageData = deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).build(), pageLink);
             loadedDevicesTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -454,7 +455,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
 
         pageLink = new PageLink(4, 0, title2);
         do {
-            pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
+            pageData = deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).build(), pageLink);
             loadedDevicesTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
@@ -471,7 +472,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         }
 
         pageLink = new PageLink(4, 0, title1);
-        pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
+        pageData = deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).build(), pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -480,7 +481,7 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
         }
 
         pageLink = new PageLink(4, 0, title2);
-        pageData = deviceService.findDevicesByTenantId(tenantId, pageLink);
+        pageData = deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).build(), pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }

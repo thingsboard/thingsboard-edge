@@ -1,0 +1,67 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-card-content" fxLayout="column" fxLayoutGap="8px">
+  <div class="tb-card-header">
+    <div class="tb-title">{{ 'widgets.quick-links.title' | translate }}</div>
+    <button class="tb-title-icon"
+            matTooltip="{{ 'action.edit' | translate }}"
+            matTooltipPosition="above"
+            mat-icon-button
+            (click)="edit()">
+      <mat-icon>edit</mat-icon>
+    </button>
+  </div>
+  <mat-grid-list class="tb-links-list" fxFlex [cols]="columns" [rowHeight]="rowHeight" [gutterSize]="gutterSize">
+    <mat-grid-tile class="tb-links-tile" *ngFor="let quickLink of menuLinks$() | async">
+      <a fxFlex class="tb-link-button"
+         [routerLink]="quickLink.path"
+         [queryParams]="quickLink.queryParams">
+        <div class="tb-link-container">
+          <div class="tb-link-icon-container">
+            <mat-icon *ngIf="!quickLink.isMdiIcon" color="primary">{{ quickLink.icon }}</mat-icon>
+            <mat-icon *ngIf="quickLink.isMdiIcon" color="primary" [svgIcon]="quickLink.icon"></mat-icon>
+          </div>
+          <div class="tb-link-text">{{ (quickLink.ignoreTranslate || quickLink.isCustom) ? (quickLink.fullName || quickLink.name) : ((quickLink.fullName || quickLink.name) | translate) }}</div>
+        </div>
+      </a>
+    </mat-grid-tile>
+    <mat-grid-tile class="tb-links-tile">
+      <div fxFlex class="tb-add-link-button"
+           matTooltip="{{ 'widgets.quick-links.add-link' | translate }}"
+           matTooltipPosition="above"
+           (click)="addLink()">
+        <mat-icon class="tb-add-icon">add</mat-icon>
+      </div>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.common.data.sync.vc.request.load;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

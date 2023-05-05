@@ -30,13 +30,13 @@
  */
 package org.thingsboard.server.common.data.widget;
 
-import io.swagger.annotations.ApiModelProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.validation.Length;

@@ -32,7 +32,6 @@ package org.thingsboard.integration.service.api;
 
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.transport.service.DefaultTransportService;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 

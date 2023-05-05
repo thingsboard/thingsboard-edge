@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.audit.AuditLogDao;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.service.ttl.AuditLogsCleanUpService;
 

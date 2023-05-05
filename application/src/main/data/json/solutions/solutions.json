@@ -5,6 +5,9 @@
     "level": "MAKER",
     "installTimeoutMs": 2000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/environment-monitoring/video/environment-monitoring.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/environment-monitoring.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/environment-monitoring.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-1.png", "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-2.png", "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-3.png", "https://thingsboard.io/images/solutions/temperature_sensors/temperature-sensors-4.png"]
   },
   {
@@ -13,6 +16,9 @@
     "level": "MAKER",
     "installTimeoutMs": 2000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/smart_office/smart-office-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/smart-office/video/smart-office.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/smart-office.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/smart-office.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/smart_office/smart-office-1.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-2.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-3.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-4.png", "https://thingsboard.io/images/solutions/smart_office/smart-office-5.png"]
   },
   {
@@ -21,6 +27,9 @@
     "level": "MAKER",
     "installTimeoutMs": 2000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/fleet-tracking-v2/video/fleet-tracking-v2.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fleet-tracking-v2.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/fleet-tracking-v2.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-1.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-2.png", "https://thingsboard.io/images/solutions/fleet_tracking/fleet-tracking-3.png"]
   },
   {
@@ -29,6 +38,9 @@
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/air_quality_index/aqi-dashboard-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/air-quality/video/air-quality.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/air-quality.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/air-quality.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-2.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-1.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-3.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-4.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-5.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
@@ -39,6 +51,9 @@
     "level": "PROTOTYPE",
     "installTimeoutMs": 10000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/water_metering/water-metering-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/water-metering/video/water-metering.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/water-metering.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/water-metering.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/water_metering/water-metering-1.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-3.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-2.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-4.png", "https://thingsboard.io/images/solutions/water_metering/water-metering-5.png"],
     "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
     "tenantAttributeKeys": []
@@ -49,6 +64,9 @@
     "level": "PROTOTYPE",
     "installTimeoutMs": 10000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/smart_retail/smart-retail-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/smart-retail/video/smart-retail.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/smart-retail.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/smart-retail.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/smart_retail/smart-retail-1.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-2.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-3.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-4.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-5.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-6.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-7.png"],
     "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
     "tenantAttributeKeys": []
@@ -59,6 +77,9 @@
     "level": "PROTOTYPE",
     "installTimeoutMs": 10000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/smart-irrigation/video/smart-irrigation.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/smart-irrigation.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/smart-irrigation.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-1.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-2.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-3.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-4.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-5.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
@@ -69,6 +90,9 @@
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/assisted_living/assisted-living-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/assisted-living/video/assisted-living.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/assisted-living.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/assisted-living.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/assisted_living/assisted-living-1.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-2.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-3.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-4.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-5.png", "https://thingsboard.io/images/solutions/assisted_living/assisted-living-6.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
@@ -79,6 +103,9 @@
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png",
+    "videoPreviewImageUrl": "https://thingsboard.io/images/usecases/waste-monitoring/video/waste-monitoring.png",
+    "previewMp4Url": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/waste-monitoring.mp4",
+    "previewWebmUrl": "https://s3-us-west-1.amazonaws.com/tb-videos/usecases/waste-monitoring.webm",
     "imageUrls": ["https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-1.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-2.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-3.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-4.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-5.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-6.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []

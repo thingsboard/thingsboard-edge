@@ -207,6 +207,11 @@ public class ModelConstants {
     public static final String DEVICE_FIRMWARE_ID_PROPERTY = "firmware_id";
     public static final String DEVICE_SOFTWARE_ID_PROPERTY = "software_id";
 
+    public static final String DEVICE_CUSTOMER_TITLE_PROPERTY = "customer_title";
+    public static final String DEVICE_CUSTOMER_IS_PUBLIC_PROPERTY = "customer_is_public";
+    public static final String DEVICE_DEVICE_PROFILE_NAME_PROPERTY = "device_profile_name";
+    public static final String DEVICE_ACTIVE_PROPERTY = "active";
+
     public static final String DEVICE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_tenant_and_search_text";
     public static final String DEVICE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_tenant_by_type_and_search_text";
     public static final String DEVICE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "device_by_customer_and_search_text";
@@ -507,6 +512,7 @@ public class ModelConstants {
     public static final String COMPONENT_DESCRIPTOR_COLUMN_FAMILY_NAME = "component_descriptor";
     public static final String COMPONENT_DESCRIPTOR_TYPE_PROPERTY = "type";
     public static final String COMPONENT_DESCRIPTOR_SCOPE_PROPERTY = "scope";
+    public static final String COMPONENT_DESCRIPTOR_CLUSTERING_MODE_PROPERTY = "clustering_mode";
     public static final String COMPONENT_DESCRIPTOR_NAME_PROPERTY = "name";
     public static final String COMPONENT_DESCRIPTOR_CLASS_PROPERTY = "clazz";
     public static final String COMPONENT_DESCRIPTOR_CONFIGURATION_DESCRIPTOR_PROPERTY = "configuration_descriptor";
@@ -561,6 +567,7 @@ public class ModelConstants {
     public static final String EVENT_OUT_MSG_COLUMN_NAME = "e_out_message";
 
     public static final String DEBUG_MODE = "debug_mode";
+    public static final String SINGLETON_MODE = "singleton_mode";
 
     /**
      * Cassandra rule chain constants.

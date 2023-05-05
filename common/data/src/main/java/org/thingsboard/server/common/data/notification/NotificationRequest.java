@@ -39,7 +39,6 @@ import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
@@ -52,7 +51,6 @@ import org.thingsboard.server.common.data.notification.template.NotificationTemp
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 
@@ -72,7 +70,6 @@ public class NotificationRequest extends BaseData<NotificationRequestId> impleme
     private NotificationTemplate template;
     @Valid
     private NotificationInfo info;
-    @NotNull
     @Valid
     private NotificationRequestConfig additionalConfig;
 

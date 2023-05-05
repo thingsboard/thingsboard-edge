@@ -232,7 +232,6 @@ public class WidgetTypeController extends AutoCommitController {
         }
         WidgetType widgetType = widgetTypeService.findWidgetTypeByTenantIdBundleAliasAndAlias(tenantId, bundleAlias, alias);
         checkNotNull(widgetType);
-        accessControlService.checkPermission(getCurrentUser(), Resource.WIDGET_TYPE, Operation.READ, widgetType.getId(), widgetType);
         return widgetType;
     }
 

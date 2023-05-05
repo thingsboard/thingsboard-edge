@@ -28,53 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .tb-edit-doc-links-dialog {
-    width: 480px;
-    .mat-mdc-dialog-content {
-      max-height: 50vh;
+package org.thingsboard.server.msa.ui.pages;
+
+import org.openqa.selenium.WebDriver;
+
+public class DevicePageHelper extends DevicePageElements {
+    public DevicePageHelper(WebDriver driver) {
+        super(driver);
     }
-    .mat-toolbar-single-row {
-      padding: 0 24px;
+
+    public void openDeviceAlarms(String deviceName) {
+        if (!deviceDetailsView().isDisplayed()) {
+            device(deviceName).click();
+        }
+        deviceDetailsAlarmsBtn().click();
     }
-    h2 {
-      color: rgba(0, 0, 0, 0.76);
+
+    public void assignToCustomer(String customerTitle) {
+        chooseCustomerForAssignField().click();
+        customerFromAssignDropdown(customerTitle).click();
+        submitAssignToCustomerBtn().click();
     }
-    .mat-icon {
-      color: rgba(0, 0, 0, 0.54);
-    }
-    .mat-mdc-dialog-content {
-      padding: 24px 24px 8px 24px;
-    }
-    .mdc-dialog__actions {
-      padding: 0 24px 24px;
-    }
-  }
-  .tb-drag-handle {
-    height: 24px;
-    margin-left: 12px;
-    .mat-icon {
-      color: rgba(0, 0, 0, 0.38);
-    }
-  }
-  .tb-add-doc-button {
-    height: 55px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: #FFFFFF;
-    padding: 8px;
-    border: 2px dashed rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    .tb-add-icon {
-      color: rgba(0, 0, 0, 0.12);
-    }
-    &:hover {
-      .tb-add-icon {
-        color: rgba(0, 0, 0, 0.38);
-      }
-    }
-  }
 }

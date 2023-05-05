@@ -496,7 +496,7 @@ export const edgeEntitiesTitle = (entityType: EntityType) => {
     case EntityType.SCHEDULER_EVENT:
       return 'scheduler.scheduler';
     case EntityType.RULE_CHAIN:
-      return 'edge.rulechains';
+      return 'rulechain.rulechains';
     case EntityType.INTEGRATION:
       return 'edge.integrations';
   }

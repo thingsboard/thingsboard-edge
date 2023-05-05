@@ -28,60 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .tb-edit-doc-link {
-    padding: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.04);
-    border-radius: 10px;
-    &.edit-mode {
-      border: 1px solid rgba(48, 86, 128, 0.32);
+package org.thingsboard.server.msa.ui.pages;
+
+import org.openqa.selenium.WebDriver;
+
+public class AssetPageHelper extends AssetPageElements {
+    public AssetPageHelper(WebDriver driver) {
+        super(driver);
     }
-  }
-  .tb-doc-link {
-    height: 55px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 8px;
-    background: #FFFFFF;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.04);
-    border-radius: 10px;
-    .tb-doc-container {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      .tb-doc-icon-container {
-        position: relative;
-        height: 40px;
-        padding: 8px;
-        border-radius: 6px;
-        margin-right: 8px;
-        &:before {
-          content: "";
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          border-radius: 6px;
-          background: var(--tb-primary-500);
-          opacity: 0.04;
+
+    public void openAssetAlarms(String assetName) {
+        if (!assetDetailsView().isDisplayed()) {
+            entity(assetName).click();
         }
-      }
-      .tb-doc-text {
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 20px;
-        letter-spacing: 0.2px;
-        color: rgba(0, 0, 0, 0.87);
-      }
+        assetDetailsAlarmsBtn().click();
     }
-  }
-  .tb-edit-buttons {
-    .mat-icon {
-      color: rgba(0, 0, 0, 0.38);
-    }
-  }
+
 }

@@ -393,7 +393,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.data,
                 'event.data', entity.body.dataType)
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('metadata', 'event.metadata',
             {
               name: this.translate.instant('action.view'),
@@ -402,7 +402,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.metadata,
                 'event.metadata', ContentType.JSON, true)
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('error', 'event.error',
             {
               name: this.translate.instant('action.view'),
@@ -411,7 +411,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.error,
                 'event.error')
             },
-            '40px')
+            '48px')
         );
         break;
       case DebugEventType.DEBUG_RULE_CHAIN:
@@ -425,7 +425,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.message,
                 'event.message')
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('error', 'event.error',
             {
               name: this.translate.instant('action.view'),
@@ -434,7 +434,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.error,
                 'event.error')
             },
-            '40px')
+            '48px')
         );
         break;
     }

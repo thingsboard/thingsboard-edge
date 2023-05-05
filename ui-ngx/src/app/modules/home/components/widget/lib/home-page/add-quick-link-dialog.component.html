@@ -30,49 +30,19 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form class="tb-edit-doc-links-dialog" [formGroup]="editDocLinksFormGroup">
+<form class="tb-add-quick-link-dialog" [formGroup]="addQuickLinkFormGroup">
   <mat-toolbar style="background: transparent;">
-    <h2 translate>widgets.documentation.title</h2>
+    <h2 translate>widgets.quick-links.add-link-title</h2>
     <span fxFlex></span>
     <button mat-icon-button
-            (click)="close()"
+            (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
     </button>
   </mat-toolbar>
   <div mat-dialog-content>
-    <div class="tb-drop-list" cdkDropList cdkDropListOrientation="vertical"
-         (cdkDropListDropped)="docLinkDrop($event)" [cdkDropListDisabled]="editMode || addMode">
-      <div cdkDrag class="tb-draggable" *ngFor="let docLinkControl of docLinksFormArray().controls; trackBy: trackByDocLink;
-               let $index = index; last as isLast;"
-           fxLayout="row" fxLayoutAlign="start center" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
-        <tb-doc-link fxFlex #docLinkComponent [formControl]="docLinkControl"
-                     [disableEdit]="editMode || addMode"
-                     (editModeChanged)="editMode = $event"
-                     (docLinkUpdated)="update()"
-                     (docLinkDeleted)="deleteLink($index)">
-        </tb-doc-link>
-        <div *ngIf="!docLinkComponent.isEditing()"
-             cdkDragHandle
-             matTooltip="{{ 'action.drag' | translate }}"
-             matTooltipPosition="above"
-             class="tb-drag-handle">
-          <mat-icon>drag_indicator</mat-icon>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div mat-dialog-actions>
-    <div *ngIf="!editMode && !addMode" fxFlex class="tb-add-doc-button"
-         matTooltip="{{ 'widgets.documentation.add-link' | translate }}"
-         matTooltipPosition="above"
-         (click)="addLink()">
-      <mat-icon class="tb-add-icon">add</mat-icon>
-    </div>
-    <tb-doc-link *ngIf="addMode" fxFlex [(ngModel)]="addingDocLink"
-                 [ngModelOptions]="{standalone: true}"
-                 (docLinkAdded)="linkAdded($event)"
-                 (docLinkAddCanceled)="addMode = false">
-    </tb-doc-link>
+    <tb-quick-link formControlName="link" [addOnly]="true"
+                 (quickLinkAdded)="add($event)">
+    </tb-quick-link>
   </div>
 </form>

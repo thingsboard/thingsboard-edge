@@ -28,24 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  width: 100%;
-  height: 100%;
-  min-width: 300px;
-  overflow: hidden;
-  background: #fff;
-  border-radius: 4px;
-  box-shadow:
-    0 7px 8px -4px rgba(0, 0, 0, .2),
-    0 13px 19px 2px rgba(0, 0, 0, .14),
-    0 5px 24px 4px rgba(0, 0, 0, .12);
+package org.thingsboard.server.common.data.plugin;
 
-  .mat-content {
-    overflow: hidden;
-    background-color: #fff;
-  }
-
-  .mat-padding {
-    padding: 16px;
-  }
+/**
+ * The main idea to use this - it's adding the ability to start rule nodes in singleton mode in cluster setup
+ * (singleton rule node will start in only one Rule Engine instance)
+ * USER_PREFERENCE - user has ability to configure clustering mode (enable/disable singleton mode in rule node config)
+ * ENABLE - user doesn't have ability to configure clustering mode (singleton mode is always FALSE in rule node config)
+ * SINGLETON - user doesn't have ability to configure clustering mode (singleton mode is always TRUE in rule node config)
+ */
+public enum ComponentClusteringMode {
+    USER_PREFERENCE,
+    ENABLED,
+    SINGLETON
 }
