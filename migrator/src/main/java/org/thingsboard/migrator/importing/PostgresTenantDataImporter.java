@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.importing;
+package org.thingsboard.migrator.importing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -38,10 +38,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
-import org.thingsboard.migrator.tenant.Table;
-import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.utils.SqlPartitionService;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -55,8 +56,8 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_IMPORT")
-public class SqlTenantDataImporter extends BaseTenantMigrationService {
+@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_TENANT_DATA_IMPORT)
+public class PostgresTenantDataImporter extends BaseMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
@@ -96,6 +97,7 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
         storage.readAndProcess(table.getName(), false, row -> {
             saveRow(table, row);
         });
+        finishedProcessing(table.getName());
     }
 
     private void saveRow(Table table, Map<String, Object> row) {
@@ -127,8 +129,8 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
         }
 
         String query = format("INSERT INTO %s (%s) VALUES (%s)", table.getName(), columnsStatement, valuesStatement);
-        System.out.println("Executing query: " + query);
         jdbcTemplate.update(query, row.values().toArray());
+        reportProcessed(table.getName(), row);
         try {
             TimeUnit.MILLISECONDS.sleep(delayBetweenQueries);
         } catch (InterruptedException e) {
@@ -152,7 +154,6 @@ public class SqlTenantDataImporter extends BaseTenantMigrationService {
                     keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
                 }
                 Object oldKey = row.put("key", keyId);
-                System.out.println("Replaced old keyId " + oldKey + " with newly created " + keyId);
             }
         } else if (table == Table.GROUP_PERMISSION) {
             UUID roleId = (UUID) row.get("role_id");

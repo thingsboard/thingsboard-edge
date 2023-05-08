@@ -28,29 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.config;
+package org.thingsboard.migrator;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+@SpringBootApplication
+public class MigratorApplication {
 
-@Configuration
-public class ExecutorConfig {
-
-    private static final int MAX_TASK_QUEUE_SIZE = 5000;
-
-    /*
-    * Executor with limited task queue size
-    * */
-    @Bean
-    public ThreadPoolExecutor executor(@Value("${parallelism_level}") int parallelismLevel) {
-        return new ThreadPoolExecutor(parallelismLevel, parallelismLevel,
-                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+    public static void main(String[] args) {
+        SpringApplication.run(MigratorApplication.class, args);
     }
 
 }

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.importing;
+package org.thingsboard.migrator.importing;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -36,26 +36,27 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
-import org.thingsboard.migrator.tenant.exporting.CassandraTenantDataExporter;
-import org.thingsboard.migrator.tenant.utils.CassandraService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.exporting.CassandraTenantDataExporter;
+import org.thingsboard.migrator.utils.CassandraService;
+import org.thingsboard.migrator.utils.Storage;
 
-import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static java.lang.String.format;
+import static org.thingsboard.migrator.exporting.CassandraTenantDataExporter.TS_KV_PARTITIONS_TABLE;
+import static org.thingsboard.migrator.exporting.CassandraTenantDataExporter.TS_KV_TABLE;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "CASSANDRA_DATA_IMPORT")
-public class CassandraTenantDataImporter extends BaseTenantMigrationService {
+@ConditionalOnProperty(name = "mode", havingValue = Modes.CASSANDRA_TENANT_DATA_IMPORT)
+public class CassandraTenantDataImporter extends BaseMigrationService {
 
     private final Storage storage;
     private final CassandraService cassandraService;
@@ -64,10 +65,6 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
 
     @Value("${import.cassandra.ttl}")
     private int tsKvTtlDays;
-    @Value("${import.cassandra.stats_print_interval}")
-    private int statsPrintInterval;
-
-    private final AtomicLong records = new AtomicLong();
 
     @Override
     protected void start() throws Exception {
@@ -81,11 +78,6 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
         });
     }
 
-    @Override
-    protected void afterFinished() throws Exception {
-        System.out.println("Total processed records: " + records.get());
-    }
-
     private void saveTsKv(Map<String, Object> row) {
         String entityType = (String) row.get("entity_type");
         UUID entityId = (UUID) row.get("entity_id");
@@ -96,8 +88,7 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
         long ttl = TimeUnit.DAYS.toSeconds(tsKvTtlDays);
         boolean newPartition = partitions.computeIfAbsent(partitionKey, k -> new HashSet<>()).add(partition);
         if (newPartition) {
-            String query = "INSERT INTO ts_kv_partitions_cf " +
-                    "(entity_type, entity_id, key, partition) VALUES (?, ?, ?, ?)";
+            String query = "INSERT INTO " + TS_KV_PARTITIONS_TABLE + " (entity_type, entity_id, key, partition) VALUES (?, ?, ?, ?)";
             if (ttl > 0) {
                 query += " USING TTL " + ttl;
             }
@@ -121,18 +112,20 @@ public class CassandraTenantDataImporter extends BaseTenantMigrationService {
 
         String columnsStmt = String.join(", ", row.keySet());
         String valuesStmt = StringUtils.removeEnd("?,".repeat(row.size()), ",");
-        String query = format("INSERT INTO ts_kv_cf (%s) VALUES (%s)", columnsStmt, valuesStmt);
+        String query = format("INSERT INTO " + TS_KV_TABLE + " (%s) VALUES (%s)", columnsStmt, valuesStmt);
         if (ttl > 0) {
             query += " USING TTL " + ttl;
         }
         String finalQuery = query;
         executor.submit(() -> {
             cassandraService.execute(finalQuery, row.values().toArray());
-            long n = records.incrementAndGet();
-            if (n % statsPrintInterval == 0) {
-                System.out.println("[" + LocalTime.now() + "] Records inserted: " + n + ". Last row: " + row);
-            }
+            reportProcessed(TS_KV_TABLE, row);
         });
+    }
+
+    @Override
+    protected void afterFinished() throws Exception {
+        finishedProcessing(TS_KV_TABLE);
     }
 
     @Data(staticConstructor = "of")

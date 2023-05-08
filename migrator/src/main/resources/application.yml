@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-mode: ${MIGRATOR_MODE}  # SQL_DATA_EXPORT, CASSANDRA_DATA_EXPORT, SQL_DATA_IMPORT, CASSANDRA_DATA_IMPORT
+mode: ${MIGRATOR_MODE}  # POSTGRES_TENANT_DATA_EXPORT, CASSANDRA_TENANT_DATA_EXPORT, POSTGRES_TENANT_DATA_IMPORT, CASSANDRA_TENANT_DATA_IMPORT,
 working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant data will be stored or read from
 
 export:
@@ -45,13 +45,14 @@ import:
     update_tenant_profile: ${IMPORT_SQL_UPDATE_TENANT_PROFILE:true}
     update_ts_kv_dictionary: ${IMPORT_SQL_UPDATE_TS_KV_DICTIONARY:true}
     resolve_unknown_roles: ${IMPORT_SQL_RESOLVE_UNKNOWN_ROLES:true}
+    ignore_conflicts: ${IMPORT_SQL_IGNORE_CONFLICTS:false}
   cassandra:
     ttl: ${CASSANDRA_TS_KV_TTL:730}  # days
-    stats_print_interval: ${CASSANDRA_STATS_PRINT_INTERVAL:10000}
 
 skipped_tables: ${SKIPPED_TABLES:RULE_NODE_DEBUG_EVENT,STATS_EVENT,LC_EVENT}
 
 parallelism_level: ${PARALLELISM_LEVEL:4}
+stats_print_interval: ${STATS_PRINT_INTERVAL:1000}
 
 partition_sizes: # in hours
   event: ${EVENTS_PARTITION_SIZE:168}

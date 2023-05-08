@@ -193,7 +193,7 @@
         <module>msa</module>
         <module>rest-client</module>
         <module>monitoring</module>
-        <module>tenant-migrator</module>
+        <module>migrator</module>
     </modules>
 
     <profiles>

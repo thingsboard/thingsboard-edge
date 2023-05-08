@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.migrator.tenant.exporting;
+package org.thingsboard.migrator.exporting;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -37,10 +37,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.thingsboard.migrator.tenant.BaseTenantMigrationService;
-import org.thingsboard.migrator.tenant.Table;
-import org.thingsboard.migrator.tenant.utils.SqlPartitionService;
-import org.thingsboard.migrator.tenant.utils.Storage;
+import org.thingsboard.migrator.BaseMigrationService;
+import org.thingsboard.migrator.Table;
+import org.thingsboard.migrator.config.Modes;
+import org.thingsboard.migrator.utils.SqlPartitionService;
+import org.thingsboard.migrator.utils.Storage;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -55,8 +56,8 @@ import static java.lang.String.format;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "mode", havingValue = "SQL_DATA_EXPORT")
-public class SqlTenantDataExporter extends BaseTenantMigrationService {
+@ConditionalOnProperty(name = "mode", havingValue = Modes.POSTGRES_TENANT_DATA_EXPORT)
+public class PostgresTenantDataExporter extends BaseMigrationService {
 
     private final JdbcTemplate jdbcTemplate;
     private final Storage storage;
@@ -83,6 +84,10 @@ public class SqlTenantDataExporter extends BaseTenantMigrationService {
                 continue;
             }
             exportTableData(table, exportedTenantId);
+            finishedProcessing(table.getName());
+        }
+        for (Table relatedTable : relatedTables) {
+            finishedProcessing(relatedTable);
         }
     }
 
@@ -131,6 +136,7 @@ public class SqlTenantDataExporter extends BaseTenantMigrationService {
             Consumer<Map<String, Object>> processor = row -> {
                 try {
                     storage.addToFile(writer, row);
+                    reportProcessed(table.getName(), row);
                     for (Table relatedTable : relatedTables) {
                         if (skippedTables.contains(relatedTable)) {
                             continue;
@@ -173,7 +179,6 @@ public class SqlTenantDataExporter extends BaseTenantMigrationService {
             int offset = batchIndex * batchSize;
             String batchQuery = query + " LIMIT " + batchSize + " OFFSET " + offset;
 
-            System.out.println("Executing query: " + batchQuery);
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(batchQuery, queryParams);
             rows.forEach(rowProcessor);
             batchIndex++;
