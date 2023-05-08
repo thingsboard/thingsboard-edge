@@ -36,7 +36,6 @@ import com.amazonaws.services.iot.client.AWSIotQos;
 import com.amazonaws.services.iot.client.sample.pubSub.TestTopicListener;
 import com.amazonaws.services.iot.client.sample.sampleUtil.SampleUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -96,8 +95,8 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
             "\n" +
             "return result;";
 
-    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = mapper
-            .createObjectNode().put("encoder", "var data = {};\n" +
+    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+            .put("encoder", "var data = {};\n" +
                     "data.booleanKey = msg.booleanKey;\n" +
                     "data.stringKey = msg.stringKey;\n" +
                     "data.doubleKey = msg.doubleKey;\n" +
@@ -128,7 +127,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeMethod
     public void setUp() {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", CONFIG_CONVERTER);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", CONFIG_CONVERTER);
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
         downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
         defaultRuleChainId = getDefaultRuleChainId();
@@ -220,7 +219,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
         RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
 
         //create 4 attributes (stringKey, booleanKey, doubleKey, longKey)
-        JsonNode attributes = mapper.readTree(createPayload().toString());
+        JsonNode attributes = JacksonUtil.toJsonNode(createPayload().toString());
         testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
         RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);

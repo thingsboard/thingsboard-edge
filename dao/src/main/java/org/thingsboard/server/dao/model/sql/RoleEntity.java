@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -96,8 +95,6 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
 
     @Column(name = EXTERNAL_ID_PROPERTY)
     private UUID externalId;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     public RoleEntity() {
         super();
