@@ -30,40 +30,34 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
-public class DashboardPageHelper extends DashboardPageElements {
-    public DashboardPageHelper(WebDriver driver) {
+public class CreateWidgetPopupHelper extends CreateWidgetPopupElements {
+    public CreateWidgetPopupHelper(WebDriver driver) {
         super(driver);
     }
 
-    private String dashboardTitle;
-
-    public void setDashboardTitle() {
-        this.dashboardTitle = entityTitles().get(0).getText();
+    public void goToCreateEntityAliasPopup(String aliasName) {
+        entityAlias().sendKeys(aliasName + RandomStringUtils.randomAlphanumeric(7));
+        createNewAliasBtn().click();
     }
 
-    public String getDashboardTitle() {
-        return dashboardTitle;
+    public void selectFilterType(String filterType) {
+        filterTypeFiled().click();
+        optionFromDropdown(filterType).click();
     }
 
-    public void assignedCustomer(String title) {
-        jsClick(manageAssignedEntityListField());
-        jsClick(manageAssignedEntity(title));
-        jsClick(manageAssignedUpdateBtn());
+    public void selectType(String entityType) {
+        typeFiled().click();
+        optionFromDropdown(entityType).click();
     }
 
-    public void openSelectWidgetsBundleMenu() {
-        addBtn().click();
-        createNewDashboardBtn().click();
-    }
-
-    public void openCreateWidgetPopup() {
-        alarmWidgetBundle().click();
-        alarmTableWidget().click();
-    }
-
-    public void increaseSizeOfTheWidget() {
-        pull(widgetSECorner(), 700, 200);
+    public void selectEntity(String entityName) {
+        entityFiled().sendKeys(entityName);
+        entityFromDropdown(entityName);
+        entityFiled().sendKeys(Keys.ARROW_DOWN);
+        entityFiled().sendKeys(Keys.ENTER);
     }
 }
