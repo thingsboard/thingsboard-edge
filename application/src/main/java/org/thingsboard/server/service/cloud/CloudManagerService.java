@@ -444,7 +444,7 @@ public class CloudManagerService {
         log.trace("updateQueueStartTsAndSeqI [{}][{}]", startTs, startSeqId);
         if (startSeqId >= Integer.MAX_VALUE) {
             // reset in case seq_id column started new cycle
-            startSeqId = 1L;
+            startSeqId = 0L;
             log.info("Cloud event seq_id column started new cycle - resetting startSeqId to 1");
         }
         List<AttributeKvEntry> attributes = Arrays.asList(
