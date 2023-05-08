@@ -351,14 +351,14 @@ public class CloudManagerService {
         List<UplinkMsg> result = new ArrayList<>();
         CloudEvent previousCloudEvent = null;
         for (CloudEvent cloudEvent : cloudEvents) {
-            UplinkMsg uplinkMsg = null;
+            log.trace("Converting cloud event [{}]", cloudEvent);
             if (previousCloudEvent != null && previousCloudEvent.getSeqId() > cloudEvent.getSeqId()) {
                 // reset in case seq_id column started new cycle
                 seqIdOffset = 0L;
             }
             previousCloudEvent = cloudEvent;
-            log.trace("Converting cloud event [{}]", cloudEvent);
-            if (cloudEvent.getSeqId() > seqIdOffset) {
+            UplinkMsg uplinkMsg = null;
+            if (cloudEvent.getSeqId() == 0 || cloudEvent.getSeqId() > seqIdOffset) {
                 try {
                     switch (cloudEvent.getAction()) {
                         case UPDATED:
