@@ -5506,6 +5506,8 @@
     "self-registration": {
         "self-registration": "Self Registration",
         "self-registration-url": "Self Registration URL",
+        "captcha-version": "reCAPTCHA version",
+        "captcha-action": "reCAPTCHA log action name",
         "captcha-site-key": "reCAPTCHA site key",
         "captcha-secret-key": "reCAPTCHA secret key",
         "notification-email": "Notification email",

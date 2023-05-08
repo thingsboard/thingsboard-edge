@@ -34,7 +34,7 @@ import { SignupRoutingModule } from '@modules/signup/signup-routing.module';
 import { SignupComponent } from '@modules/signup/pages/signup/signup.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { RecaptchaModule, RecaptchaFormsModule, RECAPTCHA_BASE_URL } from 'ng-recaptcha';
+import { NgxCaptchaModule } from 'ngx-captcha';
 import { EmailVerificationComponent } from '@modules/signup/pages/signup/email-verification.component';
 import { EmailVerifiedComponent } from '@modules/signup/pages/signup/email-verified.component';
 import { SignupDialogComponent } from '@modules/signup/pages/signup/signup-dialog.component';
@@ -51,15 +51,8 @@ import { TbRecaptchaComponent } from '@modules/signup/pages/signup/tb-recaptcha.
   imports: [
     CommonModule,
     SharedModule,
-    RecaptchaModule,
-    RecaptchaFormsModule,
+    NgxCaptchaModule,
     SignupRoutingModule
-  ],
-  providers: [
-    {
-      provide: RECAPTCHA_BASE_URL,
-      useValue: 'https://recaptcha.net/recaptcha/api.js',
-    }
   ]
 })
 export class SignupModule { }
