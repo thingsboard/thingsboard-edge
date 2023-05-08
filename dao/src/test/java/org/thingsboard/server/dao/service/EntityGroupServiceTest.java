@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -40,7 +41,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -211,7 +211,8 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
                 new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
         ));
 
-        ObjectNode jsonConfiguration = JacksonUtil.OBJECT_MAPPER.valueToTree(entityGroupConfiguration);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
         jsonConfiguration.putObject("settings");
         jsonConfiguration.putObject("actions");
         testDevicesGroup.setConfiguration(jsonConfiguration);
@@ -309,7 +310,8 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
                 new ColumnConfiguration(ColumnType.SERVER_ATTRIBUTE, "emptyAttr")
         ));
 
-        ObjectNode jsonConfiguration = JacksonUtil.OBJECT_MAPPER.valueToTree(entityGroupConfiguration);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
         jsonConfiguration.putObject("settings");
         jsonConfiguration.putObject("actions");
         testDevicesWithAttributesGroup.setConfiguration(jsonConfiguration);
@@ -392,7 +394,8 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
                 new ColumnConfiguration(ColumnType.SERVER_ATTRIBUTE, "emptyAttr")
         ));
 
-        ObjectNode jsonConfiguration = JacksonUtil.OBJECT_MAPPER.valueToTree(entityGroupConfiguration);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
         jsonConfiguration.putObject("settings");
         jsonConfiguration.putObject("actions");
         testDevicesWithAttributesGroup.setConfiguration(jsonConfiguration);

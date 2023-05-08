@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.metadata;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import org.junit.runner.RunWith;
@@ -103,7 +104,8 @@ public abstract class AbstractAttributeNodeTest {
     TbEntityGetAttrNode node;
 
     void init(TbEntityGetAttrNode node) throws TbNodeException {
-        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(getTbNodeConfig()));
+        ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
+        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(getTbNodeConfig()));
 
         metaData = new HashMap<>();
         metaData.putIfAbsent("word", "temperature");
@@ -178,7 +180,8 @@ public abstract class AbstractAttributeNodeTest {
     }
 
     void deviceCustomerTelemetryFetched(Device device) throws TbNodeException {
-        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(getTbNodeConfigForTelemetry()));
+        ObjectMapper mapper = JacksonUtil.OBJECT_MAPPER;
+        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(getTbNodeConfigForTelemetry()));
 
         TbEntityGetAttrNode node = getEmptyNode();
         node.init(null, nodeConfiguration);

@@ -41,7 +41,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
@@ -173,7 +172,7 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
                         throw new RuntimeException("DevEUI is missing in the downlink metadata!");
                     }
                     String dataStr = new String(downlink.getData(), StandardCharsets.UTF_8);
-                    JsonNode dataJson = JacksonUtil.toJsonNode(dataStr);
+                    JsonNode dataJson = mapper.readTree(dataStr);
                     urlSuffixToken = dataJson.has(URL_SUFFIX_TOKEN) ? dataJson.get(URL_SUFFIX_TOKEN).asText() : DEFAULT_URL_SUFFIX_TOKEN;
                     firstParamToken = dataJson.has(FIRST_PARAM_TOKEN) ? dataJson.get(FIRST_PARAM_TOKEN).asText() : DEFAULT_FIRST_PARAM_TOKEN;
                     processGetRestToken(downlink, context, msg);
@@ -219,11 +218,11 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
     private void setTokenValue(ResponseEntity<String> responseEntity) {
         String body = responseEntity.getBody();
         try {
-            JsonNode tokenJson = JacksonUtil.toJsonNode(body);
+            JsonNode tokenJson = mapper.readTree(body);
             this.expiresInSeconds = (new Date()).getTime() + tokenJson.get("expires_in").asLong() * 1000;
             this.tokenType = tokenJson.get("token_type").asText();
             this.accessToken = tokenJson.get("access_token").asText();
-        } catch (IllegalArgumentException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -236,8 +235,8 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
             if (response.getStatusCode().is2xxSuccessful()) {
                 try {
                     String bodyStr = response.getBody();
-                    JsonNode body = JacksonUtil.toJsonNode(bodyStr);
-                    ObjectReader reader = JacksonUtil.OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {
+                    JsonNode body = mapper.readTree(bodyStr);
+                    ObjectReader reader = mapper.readerFor(new TypeReference<List<JsonNode>>() {
                     });
                     List<JsonNode> listDev = reader.readValue(body);
                     ref = (listDev.stream()

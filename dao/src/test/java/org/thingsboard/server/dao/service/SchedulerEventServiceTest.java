@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.page.PageData;
@@ -147,11 +146,11 @@ public class SchedulerEventServiceTest extends AbstractServiceTest {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setName("Scheduler Event");
         schedulerEvent.setType("Custom Type");
-        ObjectNode schedule = JacksonUtil.newObjectNode();
+        ObjectNode schedule = mapper.createObjectNode();
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
         schedulerEvent.setSchedule(schedule);
-        schedulerEvent.setConfiguration(JacksonUtil.newObjectNode());
+        schedulerEvent.setConfiguration(mapper.createObjectNode());
         return schedulerEvent;
     }
 }

@@ -37,7 +37,6 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
@@ -78,6 +77,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
 import static org.thingsboard.server.utils.LwM2mObjectModelUtils.toLwm2mResource;
 
 /**
@@ -185,8 +185,8 @@ public class InstallScripts {
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId, String newRuleChainName) {
         try {
-            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
-            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
 
             ruleChain.setTenantId(tenantId);
             if (!StringUtils.isEmpty(newRuleChainName)) {
@@ -208,7 +208,7 @@ public class InstallScripts {
     }
 
     public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) throws IOException {
-        JsonNode ruleChainJson = JacksonUtil.toJsonNode(templateFilePath.toFile());
+        JsonNode ruleChainJson = objectMapper.readTree(templateFilePath.toFile());
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }
 
@@ -223,15 +223,15 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode widgetsBundleDescriptorJson = JacksonUtil.toJsonNode(path.toFile());
+                            JsonNode widgetsBundleDescriptorJson = objectMapper.readTree(path.toFile());
                             JsonNode widgetsBundleJson = widgetsBundleDescriptorJson.get("widgetsBundle");
-                            WidgetsBundle widgetsBundle = JacksonUtil.treeToValue(widgetsBundleJson, WidgetsBundle.class);
+                            WidgetsBundle widgetsBundle = objectMapper.treeToValue(widgetsBundleJson, WidgetsBundle.class);
                             WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
                             JsonNode widgetTypesArrayJson = widgetsBundleDescriptorJson.get("widgetTypes");
                             widgetTypesArrayJson.forEach(
                                     widgetTypeJson -> {
                                         try {
-                                            WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
+                                            WidgetTypeDetails widgetTypeDetails = objectMapper.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
                                             widgetTypeDetails.setBundleAlias(savedWidgetsBundle.getAlias());
                                             widgetTypeService.saveWidgetType(widgetTypeDetails);
                                         } catch (Exception e) {
@@ -255,8 +255,8 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode dashboardJson = JacksonUtil.toJsonNode(path.toFile());
-                            Dashboard dashboard = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
+                            JsonNode dashboardJson = objectMapper.readTree(path.toFile());
+                            Dashboard dashboard = objectMapper.treeToValue(dashboardJson, Dashboard.class);
                             dashboard.setTenantId(tenantId);
                             Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
                             if (customerId != null && !customerId.isNullUid()) {
@@ -291,7 +291,7 @@ public class InstallScripts {
     public ObjectNode updateMailTemplates(JsonNode oldTemplates) throws IOException {
         JsonNode newTemplates = readMailTemplates();
 
-        ObjectNode result = JacksonUtil.newObjectNode();
+        ObjectNode result = objectMapper.createObjectNode();
         Iterator<String> fieldsIterator = newTemplates.fieldNames();
         while (fieldsIterator.hasNext()) {
             String field = fieldsIterator.next();
@@ -301,9 +301,9 @@ public class InstallScripts {
                 result.set(field, newTemplates.get(field));
             }
         }
-        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(JacksonUtil.toString(result));
+        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
         if (updated.isPresent()) {
-            result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
+            result = (ObjectNode) objectMapper.readTree(updated.get());
         }
         return result;
     }
@@ -320,7 +320,7 @@ public class InstallScripts {
 
     private JsonNode readMailTemplates() throws IOException {
         Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
-        return JacksonUtil.toJsonNode(mailTemplatesFile.toFile());
+        return objectMapper.readTree(mailTemplatesFile.toFile());
     }
 
     public void loadDemoRuleChains(TenantId tenantId) {
@@ -340,7 +340,7 @@ public class InstallScripts {
             String key = "${" + entry.getKey() + "}";
             rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
         }
-        JsonNode rootRuleChainJson = JacksonUtil.toJsonNode(rootRuleChainContent);
+        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
     }
 
@@ -350,7 +350,7 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode ruleChainJson = JacksonUtil.toJsonNode(path.toFile());
+                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
 
                             RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId, null);
                             ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
@@ -371,8 +371,8 @@ public class InstallScripts {
             dirStream.forEach(
                     path -> {
                         try {
-                            JsonNode oauth2ConfigTemplateJson = JacksonUtil.toJsonNode(path.toFile());
-                            OAuth2ClientRegistrationTemplate clientRegistrationTemplate = JacksonUtil.treeToValue(oauth2ConfigTemplateJson, OAuth2ClientRegistrationTemplate.class);
+                            JsonNode oauth2ConfigTemplateJson = objectMapper.readTree(path.toFile());
+                            OAuth2ClientRegistrationTemplate clientRegistrationTemplate = objectMapper.treeToValue(oauth2ConfigTemplateJson, OAuth2ClientRegistrationTemplate.class);
                             Optional<OAuth2ClientRegistrationTemplate> existingClientRegistrationTemplate =
                                     oAuth2TemplateService.findClientRegistrationTemplateByProviderId(clientRegistrationTemplate.getProviderId());
                             if (existingClientRegistrationTemplate.isPresent()) {

@@ -849,11 +849,11 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         schedulerEvent.setOriginatorId(originator);
         schedulerEvent.setName(name);
         schedulerEvent.setType(type);
-        ObjectNode schedule = JacksonUtil.newObjectNode();
+        ObjectNode schedule = mapper.createObjectNode();
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
         SchedulerRepeat schedulerRepeat = new MonthlyRepeat();
-        schedule.set("repeat", JacksonUtil.valueToTree(schedulerRepeat));
+        schedule.set("repeat", mapper.valueToTree(schedulerRepeat));
         schedulerEvent.setSchedule(schedule);
         return schedulerEvent;
     }

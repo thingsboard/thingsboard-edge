@@ -46,7 +46,6 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -209,7 +208,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -259,8 +258,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     public byte[] writeValueAsBytes(String msg) {
         try {
-            return JacksonUtil.writeValueAsBytes(msg);
-        } catch (IllegalArgumentException e) {
+            return mapper.writeValueAsBytes(msg);
+        } catch (JsonProcessingException e) {
             log.error("{}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -290,9 +289,9 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     public ObjectNode getJsonHexReport(byte[] hexBytes) {
         String hexString = Hex.encodeHexString(hexBytes);
-        ArrayNode reports = JacksonUtil.newArrayNode();
-        reports.add(JacksonUtil.newObjectNode().put("value", hexString));
-        ObjectNode payload = JacksonUtil.newObjectNode();
+        ArrayNode reports = mapper.createArrayNode();
+        reports.add(mapper.createObjectNode().put("value", hexString));
+        ObjectNode payload = mapper.createObjectNode();
         payload.set("reports", reports);
         return payload;
     }

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.action;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +73,8 @@ public class EntityActionService {
     private final TbClusterService tbClusterService;
     private final AuditLogService auditLogService;
     private final NotificationRuleProcessor notificationRuleProcessor;
+
+    private static final ObjectMapper json = new ObjectMapper();
 
     public <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(I entityId, E entity, TenantId tenantId, CustomerId customerId,
                                                                                      ActionType actionType, Object... additionalInfo) {
@@ -235,18 +238,18 @@ public class EntityActionService {
                     metaData.putValue("unassignedEdgeName", strEdgeName);
                 } else if (actionType == ActionType.ADDED_COMMENT || actionType == ActionType.UPDATED_COMMENT) {
                     AlarmComment comment = extractParameter(AlarmComment.class, 0, additionalInfo);
-                    metaData.putValue("comment", JacksonUtil.toString(comment));
+                    metaData.putValue("comment", json.writeValueAsString(comment));
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
-                    entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(entity);
+                    entityNode = json.valueToTree(entity);
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
                         entityNode.put("configuration", "");
                     }
                     metaData.putValue("entityName", entity.getName());
                     metaData.putValue("entityType", entityId.getEntityType().toString());
                 } else {
-                    entityNode = JacksonUtil.newObjectNode();
+                    entityNode = json.createObjectNode();
                     if (actionType == ActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
                         @SuppressWarnings("unchecked")
@@ -280,7 +283,7 @@ public class EntityActionService {
                         entityNode.put("startTs", extractParameter(Long.class, 1, additionalInfo));
                         entityNode.put("endTs", extractParameter(Long.class, 2, additionalInfo));
                     } else if (ActionType.RELATION_ADD_OR_UPDATE.equals(actionType) || ActionType.RELATION_DELETED.equals(actionType)) {
-                        entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(extractParameter(EntityRelation.class, 0, additionalInfo));
+                        entityNode = json.valueToTree(extractParameter(EntityRelation.class, 0, additionalInfo));
                     }
                 }
 
@@ -304,7 +307,7 @@ public class EntityActionService {
                             .user(user)
                             .build());
                 }
-                TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, customerId, metaData, TbMsgDataType.JSON, JacksonUtil.toString(entityNode));
+                TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, customerId, metaData, TbMsgDataType.JSON, json.writeValueAsString(entityNode));
                 tbClusterService.pushMsgToRuleEngine(tenantId, entityId, tbMsg, null);
             } catch (Exception e) {
                 log.warn("[{}] Failed to push entity action to rule engine: {}", entityId, actionType, e);
@@ -348,7 +351,7 @@ public class EntityActionService {
             Map<Long, List<TsKvEntry>> groupedTelemetry = timeseries.stream()
                     .collect(Collectors.groupingBy(TsKvEntry::getTs));
             for (Map.Entry<Long, List<TsKvEntry>> entry : groupedTelemetry.entrySet()) {
-                ObjectNode element = JacksonUtil.newObjectNode();
+                ObjectNode element = json.createObjectNode();
                 element.put("ts", entry.getKey());
                 ObjectNode values = element.putObject("values");
                 for (TsKvEntry tsKvEntry : entry.getValue()) {

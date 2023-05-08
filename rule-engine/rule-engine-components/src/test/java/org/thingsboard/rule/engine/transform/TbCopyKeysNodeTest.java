@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.transform;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +60,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class TbCopyKeysNodeTest {
+    final ObjectMapper mapper = new ObjectMapper();
+
     DeviceId deviceId;
     TbCopyKeysNode node;
     TbCopyKeysNodeConfiguration config;
@@ -74,7 +77,7 @@ public class TbCopyKeysNodeTest {
         config = new TbCopyKeysNodeConfiguration().defaultConfiguration();
         config.setKeys(Set.of("TestKey_1", "TestKey_2", "TestKey_3", "(\\w*)Data(\\w*)"));
         config.setFromMetadata(true);
-        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
         node = spy(new TbCopyKeysNode());
         node.init(ctx, nodeConfiguration);
     }
@@ -111,7 +114,7 @@ public class TbCopyKeysNodeTest {
     @Test
     void givenMsgFromMsg_whenOnMsg_thenVerifyOutput() throws Exception {
         config.setFromMetadata(false);
-        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
         node.init(ctx, nodeConfiguration);
 
         String data = "{\"DigitData\":22.5,\"TempDataValue\":10.5}";
@@ -132,7 +135,7 @@ public class TbCopyKeysNodeTest {
     @Test
     void givenEmptyKeys_whenOnMsg_thenVerifyOutput() throws Exception {
         TbCopyKeysNodeConfiguration defaultConfig = new TbCopyKeysNodeConfiguration().defaultConfiguration();
-        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(defaultConfig));
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(defaultConfig));
         node.init(ctx, nodeConfiguration);
 
         String data = "{\"DigitData\":22.5,\"TempDataValue\":10.5}";

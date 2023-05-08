@@ -32,6 +32,7 @@ package org.thingsboard.server.service.install.update;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -162,6 +163,8 @@ import static org.thingsboard.server.common.data.StringUtils.isBlank;
 @Profile("install")
 @Slf4j
 public class DefaultDataUpdateService implements DataUpdateService {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String WHITE_LABEL_PARAMS = "whiteLabelParams";
     private static final String LOGO_IMAGE = "logoImage";
@@ -1120,8 +1123,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             String json = whiteLabelParamsSettings.getJsonValue().get("value").asText();
             if (!StringUtils.isEmpty(json)) {
                 try {
-                    storedWl = JacksonUtil.valueToTree(json);
-                } catch (IllegalArgumentException e) {
+                    storedWl = objectMapper.readTree(json);
+                } catch (IOException e) {
                     log.error("Unable to read System White Labeling Params!", e);
                 }
             }
@@ -1155,7 +1158,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            JsonNode oldMailTemplates = JacksonUtil.toJsonNode(mailTemplatesJsonString);
+            JsonNode oldMailTemplates = objectMapper.readTree(mailTemplatesJsonString);
             ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
 
             if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
@@ -1285,8 +1288,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 JsonNode faviconJson = storedWl.get("favicon");
                 Favicon favicon = null;
                 try {
-                    favicon = JacksonUtil.treeToValue(faviconJson, Favicon.class);
-                } catch (IllegalArgumentException e) {
+                    favicon = objectMapper.treeToValue(faviconJson, Favicon.class);
+                } catch (JsonProcessingException e) {
                     log.error("Unable to read Favicon from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setFavicon(favicon);
@@ -1295,8 +1298,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 JsonNode paletteSettingsJson = storedWl.get("paletteSettings");
                 PaletteSettings paletteSettings = null;
                 try {
-                    paletteSettings = JacksonUtil.treeToValue(paletteSettingsJson, PaletteSettings.class);
-                } catch (IllegalArgumentException e) {
+                    paletteSettings = objectMapper.treeToValue(paletteSettingsJson, PaletteSettings.class);
+                } catch (JsonProcessingException e) {
                     log.error("Unable to read Palette Settings from previous White Labeling Params!", e);
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
@@ -1342,8 +1345,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         String value = getEntityAttributeValue(entityId, WHITE_LABEL_PARAMS);
         if (!StringUtils.isEmpty(value)) {
             try {
-                return JacksonUtil.toJsonNode(value);
-            } catch (IllegalArgumentException e) {
+                return objectMapper.readTree(value);
+            } catch (IOException e) {
                 log.error("Unable to read White Labeling Params from JSON!", e);
                 return null;
             }

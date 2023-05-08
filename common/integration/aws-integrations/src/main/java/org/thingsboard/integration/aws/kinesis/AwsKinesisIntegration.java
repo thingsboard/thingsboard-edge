@@ -44,8 +44,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -54,6 +52,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -329,7 +328,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -437,11 +436,11 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
     private void logKinesisDownlink(IntegrationContext context, KinesisProducerKey producerKey, DownlinkData data) {
         if (configuration.isDebugMode()) {
             try {
-                ObjectNode json = JacksonUtil.newObjectNode();
+                ObjectNode json = mapper.createObjectNode();
                 json.put("streamName", producerKey.getStreamName());
                 json.put("partitionKey", producerKey.getPartitionKey());
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

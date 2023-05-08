@@ -31,8 +31,8 @@
 package org.thingsboard.server.dao.sql.query;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -61,6 +61,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AlarmDataAdapter {
 
+    private final static ObjectMapper mapper = new ObjectMapper();
+
     public static PageData<AlarmData> createAlarmData(EntityDataPageLink pageLink,
                                                       List<Map<String, Object>> rows,
                                                       int totalElements, Collection<EntityId> orderedEntityIds) {
@@ -88,8 +90,8 @@ public class AlarmDataAdapter {
         Object additionalInfo = row.get(ModelConstants.ADDITIONAL_INFO_PROPERTY);
         if (additionalInfo != null) {
             try {
-                alarm.setDetails(JacksonUtil.toJsonNode(additionalInfo.toString()));
-            } catch (IllegalArgumentException e) {
+                alarm.setDetails(mapper.readTree(additionalInfo.toString()));
+            } catch (JsonProcessingException e) {
                 log.warn("Failed to parse json: {}", row.get(ModelConstants.ADDITIONAL_INFO_PROPERTY), e);
             }
         }

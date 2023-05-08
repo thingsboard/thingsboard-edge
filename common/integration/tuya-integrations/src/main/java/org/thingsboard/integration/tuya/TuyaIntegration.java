@@ -149,7 +149,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
     }
 
     private void doProcess(TuyaIntegrationMsg msg) throws Exception {
-        byte[] data = JacksonUtil.writeValueAsBytes(msg.getJson());
+        byte[] data = mapper.writeValueAsBytes(msg.getJson());
         Map<String, String> metadataMap = msg.getDeviceMetadata();
         List<UplinkData> uplinkDataList = this.convertToUplinkDataList(this.context, data, new UplinkMetaData(UplinkContentType.JSON, metadataMap));
         if (uplinkDataList != null && !uplinkDataList.isEmpty()) {

@@ -36,7 +36,6 @@ import io.restassured.path.json.JsonPath;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
@@ -73,7 +72,7 @@ public class HttpClientTest extends AbstractContainerTest {
         DeviceCredentials deviceCredentials = testRestClient.getDeviceCredentialsByDeviceId(device.getId());
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
-        testRestClient.postTelemetry(deviceCredentials.getCredentialsId(), JacksonUtil.toJsonNode(createPayload().toString()));
+        testRestClient.postTelemetry(deviceCredentials.getCredentialsId(), mapper.readTree(createPayload().toString()));
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         wsClient.closeBlocking();
@@ -91,10 +90,10 @@ public class HttpClientTest extends AbstractContainerTest {
         String accessToken = testRestClient.getDeviceCredentialsByDeviceId(device.getId()).getCredentialsId();
         assertThat(accessToken).isNotNull();
 
-        JsonNode sharedAttribute = JacksonUtil.toJsonNode(createPayload().toString());
+        JsonNode sharedAttribute = mapper.readTree(createPayload().toString());
         testRestClient.postTelemetryAttribute(DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
 
-        JsonNode clientAttribute = JacksonUtil.toJsonNode(createPayload().toString());
+        JsonNode clientAttribute = mapper.readTree(createPayload().toString());
         testRestClient.postAttribute(accessToken, clientAttribute);
 
         TimeUnit.SECONDS.sleep(3 * timeoutMultiplier);

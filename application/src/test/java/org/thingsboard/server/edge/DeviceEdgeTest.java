@@ -604,7 +604,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     public void testRpcCall() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
-        ObjectNode body = JacksonUtil.newObjectNode();
+        ObjectNode body = mapper.createObjectNode();
         body.put("requestId", new Random().nextInt());
         body.put("requestUUID", Uuids.timeBased().toString());
         body.put("oneway", false);
@@ -631,7 +631,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
     private void sendAttributesRequestAndVerify(Device device, String scope, String attributesDataStr, String expectedKey,
                                                 String expectedValue) throws Exception {
-        JsonNode attributesData = JacksonUtil.toJsonNode(attributesDataStr);
+        JsonNode attributesData = mapper.readTree(attributesDataStr);
 
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/attributes/" + scope,
                 attributesData);
@@ -747,7 +747,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     public void testVerifyDeliveryOfLatestTimeseriesOnAttributesRequest() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
-        JsonNode timeseriesData = JacksonUtil.toJsonNode("{\"temperature\":25, \"isEnabled\": true}");
+        JsonNode timeseriesData = mapper.readTree("{\"temperature\":25, \"isEnabled\": true}");
 
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/timeseries/" + DataConstants.SERVER_SCOPE,
                 timeseriesData);

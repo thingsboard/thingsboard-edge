@@ -32,6 +32,7 @@ package org.thingsboard.rest.client;
 
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.ParameterizedTypeReference;
@@ -49,7 +50,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -234,6 +234,8 @@ public class RestClient implements Closeable {
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
     private static final long AVG_REQUEST_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     protected static final String ACTIVATE_TOKEN_REGEX = "/api/noauth/activate?activateToken=";
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final ExecutorService service = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
     protected final RestTemplate restTemplate;
     protected final RestTemplate loginRestTemplate;
@@ -792,7 +794,7 @@ public class RestClient implements Closeable {
     }
 
     public void changePassword(String currentPassword, String newPassword) {
-        ObjectNode changePasswordRequest = JacksonUtil.newObjectNode();
+        ObjectNode changePasswordRequest = objectMapper.createObjectNode();
         changePasswordRequest.put("currentPassword", currentPassword);
         changePasswordRequest.put("newPassword", newPassword);
         restTemplate.postForLocation(baseURL + "/api/auth/changePassword", changePasswordRequest);
@@ -817,7 +819,7 @@ public class RestClient implements Closeable {
     }
 
     public void requestResetPasswordByEmail(String email) {
-        ObjectNode resetPasswordByEmailRequest = JacksonUtil.newObjectNode();
+        ObjectNode resetPasswordByEmailRequest = objectMapper.createObjectNode();
         resetPasswordByEmailRequest.put("email", email);
         restTemplate.postForLocation(baseURL + "/api/noauth/resetPasswordByEmail", resetPasswordByEmailRequest);
     }
@@ -827,7 +829,7 @@ public class RestClient implements Closeable {
     }
 
     public Optional<JsonNode> activateUser(UserId userId, String password, boolean sendActivationMail) {
-        ObjectNode activateRequest = JacksonUtil.newObjectNode();
+        ObjectNode activateRequest = objectMapper.createObjectNode();
         activateRequest.put("activateToken", getActivateToken(userId));
         activateRequest.put("password", password);
         try {
@@ -4092,7 +4094,7 @@ public class RestClient implements Closeable {
         Role role = new Role();
         role.setName(roleName);
         role.setType(RoleType.GROUP);
-        ArrayNode permissions = JacksonUtil.newArrayNode();
+        ArrayNode permissions = objectMapper.createArrayNode();
         operations.stream().map(Operation::name).forEach(permissions::add);
         role.setPermissions(permissions);
         return saveRole(role);

@@ -31,14 +31,14 @@
 package org.thingsboard.server.dao.translation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -58,6 +58,8 @@ import java.util.List;
 @Service
 @Slf4j
 public class BaseCustomTranslationService implements CustomTranslationService {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String CUSTOM_TRANSLATION_ATTR_NAME = "customTranslation";
 
@@ -107,13 +109,13 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         if (customTranslationSettings == null) {
             customTranslationSettings = new AdminSettings();
             customTranslationSettings.setKey(CUSTOM_TRANSLATION_ATTR_NAME);
-            ObjectNode node = JacksonUtil.newObjectNode();
+            ObjectNode node = objectMapper.createObjectNode();
             customTranslationSettings.setJsonValue(node);
         }
         String json;
         try {
-            json = JacksonUtil.toString(customTranslation);
-        } catch (IllegalArgumentException e) {
+            json = objectMapper.writeValueAsString(customTranslation);
+        } catch (JsonProcessingException e) {
             log.error("Unable to convert custom translation to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
@@ -138,8 +140,8 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         CustomTranslation result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = JacksonUtil.fromString(json, CustomTranslation.class);
-            } catch (IllegalArgumentException e) {
+                result = objectMapper.readValue(json, CustomTranslation.class);
+            } catch (IOException e) {
                 log.error("Unable to read custom translation from JSON!", e);
                 throw new IncorrectParameterException("Unable to read custom translation from JSON!");
             }
@@ -174,8 +176,8 @@ public class BaseCustomTranslationService implements CustomTranslationService {
     private void saveEntityCustomTranslation(TenantId tenantId, EntityId entityId, CustomTranslation customTranslation) {
         String json;
         try {
-            json = JacksonUtil.toString(customTranslation);
-        } catch (IllegalArgumentException e) {
+            json = objectMapper.writeValueAsString(customTranslation);
+        } catch (JsonProcessingException e) {
             log.error("Unable to convert custom translation to JSON!", e);
             throw new IncorrectParameterException("Unable to convert custom translation to JSON!");
         }
