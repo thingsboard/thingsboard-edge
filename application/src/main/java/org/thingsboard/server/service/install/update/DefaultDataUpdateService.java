@@ -260,6 +260,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EdgeEventDao edgeEventDao;
 
+    @Autowired
+    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -345,6 +348,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 updateAnalyticsRuleNode();
                 updateDuplicateMsgRuleNode();
+                integrationRateLimitsUpdater.updateEntities();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);

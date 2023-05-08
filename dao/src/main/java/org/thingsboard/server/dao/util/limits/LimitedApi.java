@@ -49,6 +49,9 @@ public enum LimitedApi {
             profileConfiguration.getCustomerServerRestLimitsConfiguration()),
     WS_UPDATES_PER_SESSION(DefaultTenantProfileConfiguration::getWsUpdatesPerSessionRateLimit),
     CASSANDRA_QUERIES(DefaultTenantProfileConfiguration::getCassandraQueryTenantRateLimitsConfiguration),
+    INTEGRATION_MSGS((profileConfiguration, level) -> ((EntityId) level).getEntityType() == EntityType.TENANT ?
+            profileConfiguration.getIntegrationMsgsPerTenantRateLimit() :
+            profileConfiguration.getIntegrationMsgsPerDeviceRateLimit()),
     PASSWORD_RESET(true),
     TWO_FA_VERIFICATION_CODE_SEND(true),
     TWO_FA_VERIFICATION_CODE_CHECK(true),
