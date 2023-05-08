@@ -32,13 +32,11 @@ public interface CloudEventRepository extends JpaRepository<CloudEventEntity, UU
     @Query("SELECT e FROM CloudEventEntity e WHERE " +
             "e.tenantId = :tenantId " +
             "AND (:startTime IS NULL OR e.createdTime >= :startTime) " +
-            "AND (:endTime IS NULL OR e.createdTime <= :endTime) " +
-            "AND e.seqId > :startSeqId"
+            "AND (:endTime IS NULL OR e.createdTime <= :endTime)"
     )
     Page<CloudEventEntity> findEventsByTenantId(@Param("tenantId") UUID tenantId,
                                                 @Param("startTime") Long startTime,
                                                 @Param("endTime") Long endTime,
-                                                @Param("startSeqId") Long startSeqId,
                                                 Pageable pageable);
 
     @Query("SELECT COUNT(e) FROM CloudEventEntity e WHERE " +

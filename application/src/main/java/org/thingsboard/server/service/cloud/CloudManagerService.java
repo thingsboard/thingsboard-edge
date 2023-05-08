@@ -29,7 +29,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
@@ -76,7 +75,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -100,7 +98,7 @@ public class CloudManagerService {
     private static final int MAX_UPLINK_ATTEMPTS = 10; // max number of attemps to send downlink message if edge connected
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
-    private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
+    private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -249,36 +247,35 @@ public class CloudManagerService {
             while (!Thread.interrupted()) {
                 try {
                     if (initialized) {
-                        queueStartTs = getQueueStartTsAndSeqId().get().getFirst();
-                        Long startSeqId = getQueueStartTsAndSeqId().get().getSecond();
+                        queueStartTs = getQueueStartTs().get();
                         TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                                 0, null, null, queueStartTs, System.currentTimeMillis());
-                        if (newCloudEventsAvailable(startSeqId, pageLink)) {
+                        if (newCloudEventsAvailable(pageLink)) {
                             PageData<CloudEvent> pageData;
-                            UUID ifOffset = null;
-                            Long seqId = null;
+                            UUID idOffset = null;
                             boolean success = true;
+                            Long seqIdOffset = getQueueSeqIdOffset().get();
                             do {
-                                pageData = cloudEventService.findCloudEvents(tenantId, startSeqId, pageLink);
+                                pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
                                 if (initialized) {
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
-                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
+                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(seqIdOffset, pageData.getData());
                                     success = sendUplinkMsgsPack(uplinkMsgsPack);
                                     CloudEvent latestCloudEvent = pageData.getData().get(pageData.getData().size() - 1);
-                                    ifOffset = latestCloudEvent.getUuidId();
-                                    seqId = latestCloudEvent.getSeqId();
+                                    idOffset = latestCloudEvent.getUuidId();
+                                    seqIdOffset = latestCloudEvent.getSeqId();
                                     if (success) {
                                         pageLink = pageLink.nextPageLink();
                                     }
                                 }
                             } while (initialized && (!success || pageData.hasNext()));
-                            if (ifOffset != null) {
-                                Long newStartTs = Uuids.unixTimestamp(ifOffset);
+                            if (idOffset != null) {
                                 try {
-                                    updateQueueStartTsAndSeqId(newStartTs, seqId);
-                                    log.debug("Queue offset was updated [{}][{}]", ifOffset, newStartTs);
+                                    Long newStartTs = Uuids.unixTimestamp(idOffset);
+                                    updateQueueStartTsSeqIdOffset(newStartTs, seqIdOffset);
+                                    log.debug("Queue offset was updated [{}][{}]", idOffset, newStartTs);
                                 } catch (Exception e) {
-                                    log.error("[{}] Failed to update queue offset [{}]", ifOffset, e);
+                                    log.error("[{}] Failed to update queue offset [{}]", idOffset, e);
                                 }
                             }
                         }
@@ -297,8 +294,8 @@ public class CloudManagerService {
         });
     }
 
-    private boolean newCloudEventsAvailable(Long startSeqId, TimePageLink pageLink) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, startSeqId, pageLink);
+    private boolean newCloudEventsAvailable(TimePageLink pageLink) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, pageLink);
         return !cloudEvents.getData().isEmpty();
     }
 
@@ -350,55 +347,63 @@ public class CloudManagerService {
         }
     }
 
-    private List<UplinkMsg> convertToUplinkMsgsPack(List<CloudEvent> cloudEvents) {
+    private List<UplinkMsg> convertToUplinkMsgsPack(Long seqIdOffset, List<CloudEvent> cloudEvents) {
         List<UplinkMsg> result = new ArrayList<>();
+        CloudEvent previousCloudEvent = null;
         for (CloudEvent cloudEvent : cloudEvents) {
-            log.trace("Converting cloud event [{}]", cloudEvent);
             UplinkMsg uplinkMsg = null;
-            try {
-                switch (cloudEvent.getAction()) {
-                    case UPDATED:
-                    case ADDED:
-                    case DELETED:
-                    case ALARM_ACK:
-                    case ALARM_CLEAR:
-                    case CREDENTIALS_UPDATED:
-                    case RELATION_ADD_OR_UPDATE:
-                    case RELATION_DELETED:
-                    case ASSIGNED_TO_CUSTOMER:
-                    case UNASSIGNED_FROM_CUSTOMER:
-                        uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
-                        break;
-                    case ATTRIBUTES_UPDATED:
-                    case POST_ATTRIBUTES:
-                    case ATTRIBUTES_DELETED:
-                    case TIMESERIES_UPDATED:
-                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
-                        break;
-                    case ATTRIBUTES_REQUEST:
-                        uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-                        break;
-                    case RELATION_REQUEST:
-                        uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                        break;
-                    case RULE_CHAIN_METADATA_REQUEST:
-                        uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
-                        break;
-                    case CREDENTIALS_REQUEST:
-                        uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
-                        break;
-                    case RPC_CALL:
-                        uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                        break;
-                    case WIDGET_BUNDLE_TYPES_REQUEST:
-                        uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                        break;
-                    case ENTITY_VIEW_REQUEST:
-                        uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
-                        break;
+            if (previousCloudEvent != null && previousCloudEvent.getSeqId() > cloudEvent.getSeqId()) {
+                // reset in case seq_id column started new cycle
+                seqIdOffset = 0L;
+            }
+            previousCloudEvent = cloudEvent;
+            log.trace("Converting cloud event [{}]", cloudEvent);
+            if (cloudEvent.getSeqId() > seqIdOffset) {
+                try {
+                    switch (cloudEvent.getAction()) {
+                        case UPDATED:
+                        case ADDED:
+                        case DELETED:
+                        case ALARM_ACK:
+                        case ALARM_CLEAR:
+                        case CREDENTIALS_UPDATED:
+                        case RELATION_ADD_OR_UPDATE:
+                        case RELATION_DELETED:
+                        case ASSIGNED_TO_CUSTOMER:
+                        case UNASSIGNED_FROM_CUSTOMER:
+                            uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
+                            break;
+                        case ATTRIBUTES_UPDATED:
+                        case POST_ATTRIBUTES:
+                        case ATTRIBUTES_DELETED:
+                        case TIMESERIES_UPDATED:
+                            uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
+                            break;
+                        case ATTRIBUTES_REQUEST:
+                            uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
+                            break;
+                        case RELATION_REQUEST:
+                            uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
+                            break;
+                        case RULE_CHAIN_METADATA_REQUEST:
+                            uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
+                            break;
+                        case CREDENTIALS_REQUEST:
+                            uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
+                            break;
+                        case RPC_CALL:
+                            uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
+                            break;
+                        case WIDGET_BUNDLE_TYPES_REQUEST:
+                            uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
+                            break;
+                        case ENTITY_VIEW_REQUEST:
+                            uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
+                            break;
+                    }
+                } catch (Exception e) {
+                    log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
                 }
-            } catch (Exception e) {
-                log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
             }
             if (uplinkMsg != null) {
                 result.add(uplinkMsg);
@@ -422,34 +427,32 @@ public class CloudManagerService {
         }
     }
 
-    private ListenableFuture<Pair<Long, Long>> getQueueStartTsAndSeqId() {
-        ListenableFuture<List<AttributeKvEntry>> future =
-                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(QUEUE_START_TS_ATTR_KEY, QUEUE_START_SEQ_ID_ATTR_KEY));
-        return Futures.transform(future, attributeKvEntries -> {
-            long queueStartTs = 0L;
-            long queueStartSeqId = 0L;
-            for (AttributeKvEntry attributeKvEntry : attributeKvEntries) {
-                if (QUEUE_START_TS_ATTR_KEY.equals(attributeKvEntry.getKey())) {
-                    queueStartTs = attributeKvEntry.getLongValue().isPresent() ? attributeKvEntry.getLongValue().get() : 0L;
-                }
-                if (QUEUE_START_SEQ_ID_ATTR_KEY.equals(attributeKvEntry.getKey())) {
-                    queueStartSeqId = attributeKvEntry.getLongValue().isPresent() ? attributeKvEntry.getLongValue().get() : 0L;
-                }
+    private ListenableFuture<Long> getQueueStartTs() {
+        return getLongAttrByKey(QUEUE_START_TS_ATTR_KEY);
+    }
+
+    private ListenableFuture<Long> getQueueSeqIdOffset() {
+        return getLongAttrByKey(QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
+    }
+
+    private ListenableFuture<Long> getLongAttrByKey(String attrKey) {
+        ListenableFuture<Optional<AttributeKvEntry>> future =
+                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKey);
+        return Futures.transform(future, attributeKvEntryOpt -> {
+            if (attributeKvEntryOpt != null && attributeKvEntryOpt.isPresent()) {
+                AttributeKvEntry attributeKvEntry = attributeKvEntryOpt.get();
+                return attributeKvEntry.getLongValue().isPresent() ? attributeKvEntry.getLongValue().get() : 0L;
+            } else {
+                return 0L;
             }
-            return Pair.of(queueStartTs, queueStartSeqId);
         }, dbCallbackExecutorService);
     }
 
-    private void updateQueueStartTsAndSeqId(Long startTs, Long startSeqId) {
-        log.trace("updateQueueStartTsAndSeqI [{}][{}]", startTs, startSeqId);
-        if (startSeqId >= Integer.MAX_VALUE) {
-            // reset in case seq_id column started new cycle
-            startSeqId = 0L;
-            log.info("Cloud event seq_id column started new cycle - resetting startSeqId to 0");
-        }
+    private void updateQueueStartTsSeqIdOffset(Long startTs, Long seqIdOffset) {
+        log.trace("updateQueueStartTsSeqIdOffset [{}][{}]", startTs, seqIdOffset);
         List<AttributeKvEntry> attributes = Arrays.asList(
                 new BaseAttributeKvEntry(new LongDataEntry(QUEUE_START_TS_ATTR_KEY, startTs), System.currentTimeMillis()),
-                new BaseAttributeKvEntry(new LongDataEntry(QUEUE_START_SEQ_ID_ATTR_KEY, startSeqId), System.currentTimeMillis()));
+                new BaseAttributeKvEntry(new LongDataEntry(QUEUE_SEQ_ID_OFFSET_ATTR_KEY, seqIdOffset), System.currentTimeMillis()));
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
     }
 
@@ -505,7 +508,7 @@ public class CloudManagerService {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
-        queueStartTs = getQueueStartTsAndSeqId().get().getFirst();
+        queueStartTs = getQueueStartTs().get();
         tenantProcessor.createTenantIfNotExists(this.tenantId, queueStartTs);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {

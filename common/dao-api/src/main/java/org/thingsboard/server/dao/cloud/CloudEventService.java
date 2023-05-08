@@ -49,8 +49,6 @@ public interface CloudEventService {
 
     PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
 
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long startSeqId, TimePageLink pageLink);
-
     EdgeSettings findEdgeSettings(TenantId tenantId);
 
     ListenableFuture<List<String>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
