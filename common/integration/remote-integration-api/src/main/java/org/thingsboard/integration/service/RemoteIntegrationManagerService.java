@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors;
 import lombok.Data;
@@ -38,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -102,6 +102,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Data
 public class RemoteIntegrationManagerService {
+
+    public static final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${rpc.client_id}")
     private String clientId;
@@ -346,8 +348,8 @@ public class RemoteIntegrationManagerService {
         converter.setName(converterProto.getName());
         converter.setType(converterType);
         converter.setDebugMode(converterProto.getDebugMode());
-        converter.setConfiguration(JacksonUtil.toJsonNode(converterProto.getConfiguration()));
-        converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterProto.getAdditionalInfo()));
+        converter.setConfiguration(mapper.readTree(converterProto.getConfiguration()));
+        converter.setAdditionalInfo(mapper.readTree(converterProto.getAdditionalInfo()));
         return converter;
     }
 
@@ -370,8 +372,8 @@ public class RemoteIntegrationManagerService {
         integration.setDebugMode(integrationConfigurationProto.getDebugMode());
         integration.setRemote(true);
         integration.setSecret(routingSecret);
-        integration.setConfiguration(JacksonUtil.toJsonNode(integrationConfigurationProto.getConfiguration()));
-        integration.setAdditionalInfo(JacksonUtil.toJsonNode(integrationConfigurationProto.getAdditionalInfo()));
+        integration.setConfiguration(mapper.readTree(integrationConfigurationProto.getConfiguration()));
+        integration.setAdditionalInfo(mapper.readTree(integrationConfigurationProto.getAdditionalInfo()));
 
         Descriptors.FieldDescriptor enabledField = integrationConfigurationProto.getDescriptorForType().findFieldByName("enabled");
         if (enabledField == null) {

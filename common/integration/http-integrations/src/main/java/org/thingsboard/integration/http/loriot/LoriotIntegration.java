@@ -42,8 +42,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.Netty4ClientHttpRequestFactory;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -57,6 +55,7 @@ import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.nio.charset.StandardCharsets;
@@ -82,7 +81,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loriotConfiguration = JacksonUtil.fromString(JacksonUtil.toString(configuration.getConfiguration()), LoriotConfiguration.class);
+        loriotConfiguration = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration()), LoriotConfiguration.class);
 
         if (loriotConfiguration.isCreateLoriotOutput() || loriotConfiguration.isSendDownlink()) {
             String domain = loriotConfiguration.getDomain();
@@ -117,9 +116,9 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
     private void createApplicationOutputIfNotExist() {
         if (!isOutputCreated()) {
-            ObjectNode newOutput = JacksonUtil.newObjectNode();
+            ObjectNode newOutput = mapper.createObjectNode();
             newOutput.put("output", "httppush");
-            ObjectNode outputSetup = JacksonUtil.newObjectNode();
+            ObjectNode outputSetup = mapper.createObjectNode();
             outputSetup.put("url", loriotConfiguration.getHttpEndpoint());
             if (loriotConfiguration.isEnableSecurity() && loriotConfiguration.getHeadersFilter() != null && loriotConfiguration.getHeadersFilter().size() > 0) {
                 outputSetup.put("auth", loriotConfiguration.getHeadersFilter().get("Authorization"));
@@ -210,7 +209,7 @@ public class LoriotIntegration extends BasicHttpIntegration<JsonHttpIntegrationM
 
                     String data = new String(downlink.getData(), StandardCharsets.UTF_8);
 
-                    ObjectNode payload = JacksonUtil.newObjectNode();
+                    ObjectNode payload = mapper.createObjectNode();
                     // must always have the value 'tx'
                     payload.put("cmd", "tx");
                     payload.put(EUI, eui);

@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.integration.rpc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -110,6 +111,7 @@ import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELE
 public final class IntegrationGrpcSession implements Closeable {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
+    public static final ObjectMapper mapper = new ObjectMapper();
     private final Gson gson = new Gson();
 
     private final UUID sessionId;
@@ -418,8 +420,8 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setRoutingKey(configuration.getRoutingKey())
                 .setType(configuration.getType().toString())
                 .setDebugMode(configuration.isDebugMode())
-                .setConfiguration(JacksonUtil.toString(configuration.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(configuration.getAdditionalInfo()))
+                .setConfiguration(mapper.writeValueAsString(configuration.getConfiguration()))
+                .setAdditionalInfo(mapper.writeValueAsString(configuration.getAdditionalInfo()))
                 .setEnabled(configuration.isEnabled())
                 .build();
     }
@@ -432,8 +434,8 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setConverterIdLSB(converter.getId().getId().getLeastSignificantBits())
                 .setName(converter.getName())
                 .setDebugMode(converter.isDebugMode())
-                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()))
+                .setConfiguration(mapper.writeValueAsString(converter.getConfiguration()))
+                .setAdditionalInfo(mapper.writeValueAsString(converter.getAdditionalInfo()))
                 .build();
     }
 

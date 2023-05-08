@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.component;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeDefinition;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -83,6 +83,8 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
     private Map<ComponentType, List<ComponentDescriptor>> coreComponentsMap = new HashMap<>();
 
     private Map<ComponentType, List<ComponentDescriptor>> edgeComponentsMap = new HashMap<>();
+
+    private ObjectMapper mapper = new ObjectMapper();
 
     private boolean isInstall() {
         return environment.acceptsProfiles(Profiles.of("install"));
@@ -170,8 +172,8 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
             scannedComponent.setScope(ruleNodeAnnotation.scope());
             scannedComponent.setClusteringMode(ruleNodeAnnotation.clusteringMode());
             NodeDefinition nodeDefinition = prepareNodeDefinition(ruleNodeAnnotation);
-            ObjectNode configurationDescriptor = JacksonUtil.newObjectNode();
-            JsonNode node = JacksonUtil.valueToTree(nodeDefinition);
+            ObjectNode configurationDescriptor = mapper.createObjectNode();
+            JsonNode node = mapper.valueToTree(nodeDefinition);
             configurationDescriptor.set("nodeDefinition", node);
             scannedComponent.setConfigurationDescriptor(configurationDescriptor);
             scannedComponent.setClazz(clazzName);
@@ -208,7 +210,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
         Class<? extends NodeConfiguration> configClazz = nodeAnnotation.configClazz();
         NodeConfiguration config = configClazz.getDeclaredConstructor().newInstance();
         NodeConfiguration defaultConfiguration = config.defaultConfiguration();
-        nodeDefinition.setDefaultConfiguration(JacksonUtil.valueToTree(defaultConfiguration));
+        nodeDefinition.setDefaultConfiguration(mapper.valueToTree(defaultConfiguration));
         nodeDefinition.setUiResources(nodeAnnotation.uiResources());
         nodeDefinition.setConfigDirective(nodeAnnotation.configDirective());
         nodeDefinition.setIcon(nodeAnnotation.icon());

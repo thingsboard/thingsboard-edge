@@ -37,6 +37,7 @@ import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -111,8 +112,8 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
             "}\n" +
             "return result;";
 
-    private final JsonNode DOWNLINK_CONVERTER_CONFIG = JacksonUtil.newObjectNode()
-            .put("encoder", "var data = {};\n" +
+    private final JsonNode DOWNLINK_CONVERTER_CONFIG = mapper
+            .createObjectNode().put("encoder", "var data = {};\n" +
                     "data.booleanKey = msg.booleanKey;\n" +
                     "data.stringKey = msg.stringKey;\n" +
                     "data.stringKey2 = msg.stringKey2;\n" +
@@ -149,7 +150,7 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeMethod
     public void setUp() {
-        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
+        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
         downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIG));
         defaultRuleChainId = getDefaultRuleChainId();
@@ -219,7 +220,7 @@ public class AzureServiceBusIntegrationTest extends AbstractIntegrationTest {
             RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
 
             //create 4 attributes (stringKey, booleanKey, doubleKey, longKey)
-            JsonNode attributes = JacksonUtil.toJsonNode(createPayload().toString());
+            JsonNode attributes = mapper.readTree(createPayload().toString());
             testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
             RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);

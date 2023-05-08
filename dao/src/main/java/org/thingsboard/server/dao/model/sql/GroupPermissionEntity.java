@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +85,8 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
 
     @Column(name = GROUP_PERMISSION_IS_PUBLIC_PROPERTY)
     private boolean isPublic;
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public GroupPermissionEntity() {
         super();

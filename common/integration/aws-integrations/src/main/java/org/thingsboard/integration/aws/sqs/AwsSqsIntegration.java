@@ -40,7 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -73,8 +72,8 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         super.init(params);
         stopped = false;
         this.context = params.getContext();
-        this.sqsConfiguration = JacksonUtil.fromString(
-                JacksonUtil.toString(configuration.getConfiguration().get("sqsConfiguration")),
+        this.sqsConfiguration = mapper.readValue(
+                mapper.writeValueAsString(configuration.getConfiguration().get("sqsConfiguration")),
                 SqsIntegrationConfiguration.class);
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(sqsConfiguration.getAccessKeyId(), sqsConfiguration.getSecretAccessKey());
         sqs = AmazonSQSClientBuilder.standard().withRegion(sqsConfiguration.getRegion())
@@ -130,7 +129,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         String unescaped = StringEscapeUtils.unescapeJson(message.getBody());
         unescaped = StringUtils.removeStart(unescaped, "\"");
         unescaped = StringUtils.removeEnd(unescaped, "\"");
-        JsonNode node = JacksonUtil.toJsonNode(unescaped);
+        JsonNode node = mapper.readTree(unescaped);
         return new SqsIntegrationMsg(node, metadataTemplate.getKvMap());
     }
 
@@ -146,7 +145,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
             }
             integrationStatistics.incMessagesProcessed();
             if (configuration.isDebugMode()) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(message.getJson()), "OK", null);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(message.getJson()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

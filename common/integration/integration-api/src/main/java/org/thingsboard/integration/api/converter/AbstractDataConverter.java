@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.api.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.util.ExceptionUtil;
@@ -47,6 +48,8 @@ import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
  */
 @Slf4j
 public abstract class AbstractDataConverter implements TBDataConverter {
+
+    protected final ObjectMapper mapper = new ObjectMapper();
     private final JsInvokeService jsInvokeService;
     private final TbelInvokeService tbelInvokeService;
     protected Converter configuration;

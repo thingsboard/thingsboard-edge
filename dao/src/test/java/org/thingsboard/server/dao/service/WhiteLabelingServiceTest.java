@@ -34,7 +34,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -181,10 +180,10 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     private void updateTenantAllowWhiteLabelingSetting(Boolean allowWhiteLabeling, Boolean allowCustomerWhiteLabeling) throws IOException {
         Tenant tenant = tenantService.findTenantById(tenantId);
         if (allowWhiteLabeling == null) {
-            tenant.setAdditionalInfo(JacksonUtil.toJsonNode("{}"));
+            tenant.setAdditionalInfo(mapper.readTree("{}"));
         } else {
             String additionalInfo = "{\"allowWhiteLabeling\":" + allowWhiteLabeling + ", \"allowCustomerWhiteLabeling\":" + allowCustomerWhiteLabeling + "}";
-            tenant.setAdditionalInfo(JacksonUtil.toJsonNode(additionalInfo));
+            tenant.setAdditionalInfo(mapper.readTree(additionalInfo));
             tenantService.saveTenant(tenant);
         }
     }
@@ -192,10 +191,10 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     private void updateCustomerAllowWhiteLabelingSetting(Boolean allowWhiteLabeling) throws IOException {
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (allowWhiteLabeling == null) {
-            customer.setAdditionalInfo(JacksonUtil.toJsonNode("{}"));
+            customer.setAdditionalInfo(mapper.readTree("{}"));
         } else {
             String additionalInfo = "{\"allowWhiteLabeling\":" + allowWhiteLabeling + "}";
-            customer.setAdditionalInfo(JacksonUtil.toJsonNode(additionalInfo));
+            customer.setAdditionalInfo(mapper.readTree(additionalInfo));
             customerService.saveCustomer(customer);
         }
     }

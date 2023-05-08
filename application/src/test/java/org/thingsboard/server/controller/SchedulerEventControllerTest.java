@@ -36,10 +36,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -171,11 +170,11 @@ public class SchedulerEventControllerTest extends AbstractControllerTest {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setName("Scheduler Event");
         schedulerEvent.setType("Custom Type");
-        ObjectNode schedule = JacksonUtil.newObjectNode();
+        ObjectNode schedule = mapper.createObjectNode();
         schedule.put("startTime", System.currentTimeMillis());
         schedule.put("timezone", "UTC");
         SchedulerRepeat schedulerRepeat = new MonthlyRepeat();
-        schedule.set("repeat", JacksonUtil.valueToTree(schedulerRepeat));
+        schedule.set("repeat", mapper.valueToTree(schedulerRepeat));
         schedulerEvent.setSchedule(schedule);
         return schedulerEvent;
     }

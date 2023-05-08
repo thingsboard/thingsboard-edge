@@ -31,11 +31,11 @@
 package org.thingsboard.integration.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import java.io.BufferedReader;
@@ -51,6 +51,8 @@ import java.util.List;
 @Data
 @Slf4j
 class EventStorageReader {
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     private EventStorageFiles files;
     private FileEventStorageSettings settings;
 
@@ -164,7 +166,7 @@ class EventStorageReader {
     private EventStorageReaderPointer readStateFile() {
         JsonNode stateDataNode = null;
         try (BufferedReader br = Files.newBufferedReader(files.getStateFile().toPath())) {
-            stateDataNode = JacksonUtil.OBJECT_MAPPER.readTree(br);
+            stateDataNode = mapper.readTree(br);
         } catch (IOException e) {
             log.warn("Failed to fetch info from state file!", e);
         }
@@ -190,10 +192,10 @@ class EventStorageReader {
 
     private void writeInfoToStateFile(EventStorageReaderPointer pointer) {
         try {
-            ObjectNode stateFileNode = JacksonUtil.newObjectNode();
+            ObjectNode stateFileNode = mapper.createObjectNode();
             stateFileNode.put("position", pointer.getLine());
             stateFileNode.put("file", pointer.getFile().getName());
-            Files.write(Paths.get(files.getStateFile().toURI()), JacksonUtil.toString(stateFileNode).getBytes(StandardCharsets.UTF_8));
+            Files.write(Paths.get(files.getStateFile().toURI()), mapper.writeValueAsString(stateFileNode).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             log.warn("Failed to update state file!", e);
         }

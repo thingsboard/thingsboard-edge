@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.grouppermission;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -38,7 +39,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -241,7 +241,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             if (entityGroup != null) {
                 JsonNode additionalInfo = entityGroup.getAdditionalInfo();
                 if (additionalInfo == null) {
-                    additionalInfo = JacksonUtil.newObjectNode();
+                    additionalInfo = new ObjectMapper().createObjectNode();
                 }
                 ((ObjectNode) additionalInfo).put("isPublic", false);
                 ((ObjectNode) additionalInfo).put("publicCustomerId", "");

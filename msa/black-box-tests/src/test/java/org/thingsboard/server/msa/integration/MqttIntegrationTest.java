@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -110,8 +111,8 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
             "}\n" +
             "return result;";
 
-    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
-            .put("encoder", "var data = {};\n" +
+    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = mapper
+            .createObjectNode().put("encoder", "var data = {};\n" +
                     "data.booleanKey = msg.booleanKey;\n" +
                     "data.stringKey = msg.stringKey;\n" +
                     "data.doubleKey = msg.doubleKey;\n" +
@@ -133,7 +134,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeMethod
     public void setUp() {
-        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
+        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
         downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
@@ -294,7 +295,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
 
-        JsonNode attributes = JacksonUtil.toJsonNode(createPayload().toString());
+        JsonNode attributes = mapper.readTree(createPayload().toString());
         testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
         RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);

@@ -30,10 +30,10 @@
  */
 package org.thingsboard.server.msa;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLParameters;
@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WsClient extends WebSocketClient {
+    private static final ObjectMapper mapper = new ObjectMapper();
     private WsTelemetryResponse message;
 
     private volatile boolean firstReplyReceived;
@@ -68,12 +69,12 @@ public class WsClient extends WebSocketClient {
             firstReply.countDown();
         } else {
             try {
-                WsTelemetryResponse response = JacksonUtil.fromString(message, WsTelemetryResponse.class);
+                WsTelemetryResponse response = mapper.readValue(message, WsTelemetryResponse.class);
                 if (!response.getData().isEmpty()) {
                     this.message = response;
                     latch.countDown();
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IOException e) {
                 log.error("ws message can't be read");
             }
         }

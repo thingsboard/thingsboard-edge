@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.api.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -47,6 +48,8 @@ import java.util.HashMap;
 
 @Slf4j
 public class ScriptUplinkEvaluator extends AbstractScriptEvaluator {
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public ScriptUplinkEvaluator(TenantId tenantId, ScriptInvokeService invokeService, EntityId entityId, String script) {
         super(tenantId, invokeService, entityId, ScriptType.UPLINK_CONVERTER_SCRIPT, script);
@@ -70,7 +73,7 @@ public class ScriptUplinkEvaluator extends AbstractScriptEvaluator {
             try {
                 String[] args = new String[2];
                 args[0] = Base64Utils.encodeToString(data);
-                args[1] = JacksonUtil.toString(metadata.getKvMap());
+                args[1] = mapper.writeValueAsString(metadata.getKvMap());
                 return args;
             } catch (Throwable th) {
                 throw new IllegalArgumentException("Cannot bind js args", th);

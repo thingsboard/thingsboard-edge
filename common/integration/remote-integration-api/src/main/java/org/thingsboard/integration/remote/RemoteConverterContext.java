@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.remote;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class RemoteConverterContext implements ConverterContext {
 
     private final EventStorage eventStorage;
     private final boolean isUplink;
+    private final ObjectMapper mapper;
     private final String clientId;
     private final int port;
 

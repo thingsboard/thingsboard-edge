@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.action;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,8 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
 public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfiguration> implements TbNode {
 
     static final String PREV_ALARM_DETAILS = "prevAlarmDetails";
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     protected C config;
     private ScriptEngine scriptEngine;
@@ -91,7 +94,7 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
             TbMsg dummyMsg = msg;
             if (previousDetails != null) {
                 TbMsgMetaData metaData = msg.getMetaData().copy();
-                metaData.putValue(PREV_ALARM_DETAILS, JacksonUtil.toString(previousDetails));
+                metaData.putValue(PREV_ALARM_DETAILS, mapper.writeValueAsString(previousDetails));
                 dummyMsg = ctx.transformMsg(msg, msg.getType(), msg.getOriginator(), metaData, msg.getData());
             }
             return scriptEngine.executeJsonAsync(dummyMsg);

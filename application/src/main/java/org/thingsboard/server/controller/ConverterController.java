@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import io.swagger.annotations.ApiOperation;
@@ -49,7 +50,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
@@ -117,6 +117,8 @@ public class ConverterController extends AutoCommitController {
     private final TbConverterService tbConverterService;
 
     public static final String CONVERTER_ID = "converterId";
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @ApiOperation(value = "Get Converter (getConverterById)",
             notes = "Fetch the Converter object based on the provided Converter Id. " +
@@ -214,7 +216,7 @@ public class ConverterController extends AutoCommitController {
             if (body.has("type")) {
                 String type = body.get("type").asText();
                 if (type.equals("Uplink") || type.equals("Downlink")) {
-                    ObjectNode debugIn = JacksonUtil.newObjectNode();
+                    ObjectNode debugIn = objectMapper.createObjectNode();
                     String inContentType = body.get("inMessageType").asText();
                     debugIn.put("inContentType", inContentType);
                     if (type.equals("Uplink")) {
@@ -227,17 +229,17 @@ public class ConverterController extends AutoCommitController {
                         String inMsgType = "";
                         String inMetadata = "";
                         String in = body.get("in").asText();
-                        JsonNode inJson = JacksonUtil.toJsonNode(in);
+                        JsonNode inJson = objectMapper.readTree(in);
                         if (inJson.isArray() && inJson.size() > 0) {
                             JsonNode msgJson = inJson.get(inJson.size() - 1);
                             JsonNode msg = msgJson.get("msg");
                             if (msg.isTextual()) {
                                 inContent = "";
                             } else if (msg.isObject()) {
-                                inContent = JacksonUtil.toString(msg);
+                                inContent = objectMapper.writeValueAsString(msg);
                             }
                             inMsgType = msgJson.get("msgType").asText();
-                            inMetadata = JacksonUtil.toString(msgJson.get("metadata"));
+                            inMetadata = objectMapper.writeValueAsString(msgJson.get("metadata"));
                         }
                         debugIn.put("inContent", inContent);
                         debugIn.put("inMsgType", inMsgType);
@@ -269,7 +271,7 @@ public class ConverterController extends AutoCommitController {
         JsonNode metadata = inputParams.get("metadata");
         String decoder = inputParams.get("decoder").asText();
 
-        Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {
+        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<>() {
         });
         UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
 
@@ -287,7 +289,7 @@ public class ConverterController extends AutoCommitController {
                 scriptUplinkEvaluator.destroy();
             }
         }
-        ObjectNode result = JacksonUtil.newObjectNode();
+        ObjectNode result = objectMapper.createObjectNode();
         result.put("output", output);
         result.put("error", errorText);
         return result;
@@ -311,10 +313,10 @@ public class ConverterController extends AutoCommitController {
         JsonNode integrationMetadata = inputParams.get("integrationMetadata");
         String encoder = inputParams.get("encoder").asText();
 
-        Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<Map<String, String>>() {
+        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
         });
 
-        Map<String, String> integrationMetadataMap = JacksonUtil.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
+        Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
         });
         IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
 
@@ -334,8 +336,8 @@ public class ConverterController extends AutoCommitController {
                 scriptDownlinkEvaluator.destroy();
             }
         }
-        ObjectNode result = JacksonUtil.newObjectNode();
-        result.put("output", JacksonUtil.toString(output));
+        ObjectNode result = objectMapper.createObjectNode();
+        result.put("output", objectMapper.writeValueAsString(output));
         result.put("error", errorText);
         return result;
     }
