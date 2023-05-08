@@ -37,8 +37,8 @@ import org.junit.jupiter.api.Disabled;
 import org.thingsboard.server.common.data.TransportPayloadType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
-import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
 
 @Slf4j
 @DaoSqlTest

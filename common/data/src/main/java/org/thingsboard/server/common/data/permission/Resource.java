@@ -33,12 +33,10 @@ package org.thingsboard.server.common.data.permission;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.security.Authority;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 public enum Resource {

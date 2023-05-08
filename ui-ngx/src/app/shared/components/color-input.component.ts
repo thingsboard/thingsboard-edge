@@ -37,7 +37,7 @@ import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_AC
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DialogService } from '@core/services/dialog.service';
-import { coerceBoolean } from '@shared/decorators/coerce-boolean';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-color-input',

@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 

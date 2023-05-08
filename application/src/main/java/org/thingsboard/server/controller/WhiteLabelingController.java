@@ -57,7 +57,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
