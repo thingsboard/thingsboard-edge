@@ -28,56 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+package org.thingsboard.server.dao.service;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.service.NoXssValidator;
-import org.thingsboard.server.exception.DataValidationException;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.ApiUsageStateValue;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-public class KvUtils {
+@DaoSqlTest
+public class ApiUsageStateServiceTest extends AbstractServiceTest {
 
-    private static final Cache<String, Boolean> validatedKeys;
+    @Autowired
+    ApiUsageStateService apiUsageStateService;
 
-    static {
-        validatedKeys = Caffeine.newBuilder()
-                .weakKeys()
-                .expireAfterAccess(24, TimeUnit.HOURS)
-                .maximumSize(100000).build();
+    @Test
+    public void testFindApiUsageStateByTenantId() {
+        ApiUsageState apiUsageState = apiUsageStateService.findTenantApiUsageState(tenantId);
+        Assert.assertNotNull(apiUsageState);
     }
 
-    public static void validate(List<? extends KvEntry> tsKvEntries) {
-        tsKvEntries.forEach(KvUtils::validate);
+    @Test
+    public void testUpdateApiUsageState(){
+        ApiUsageState apiUsageState = apiUsageStateService.findTenantApiUsageState(tenantId);
+        Assert.assertNotNull(apiUsageState);
+        Assert.assertTrue(apiUsageState.isTransportEnabled());
+        apiUsageState.setTransportState(ApiUsageStateValue.DISABLED);
+        apiUsageState = apiUsageStateService.update(apiUsageState);
+        Assert.assertNotNull(apiUsageState);
+        apiUsageState = apiUsageStateService.findTenantApiUsageState(tenantId);
+        Assert.assertNotNull(apiUsageState);
+        Assert.assertFalse(apiUsageState.isTransportEnabled());
     }
 
-    public static void validate(KvEntry tsKvEntry) {
-        if (tsKvEntry == null) {
-            throw new IncorrectParameterException("Key value entry can't be null");
-        }
-
-        String key = tsKvEntry.getKey();
-
-        if (key == null) {
-            throw new DataValidationException("Key can't be null");
-        }
-
-        if (key.length() > 255) {
-            throw new DataValidationException("Validation error: key length must be equal or less than 255");
-        }
-
-        if (validatedKeys.getIfPresent(key) != null) {
-            return;
-        }
-
-        if (!NoXssValidator.isValid(key)) {
-            throw new DataValidationException("Validation error: key is malformed");
-        }
-
-        validatedKeys.put(key, Boolean.TRUE);
-    }
 }

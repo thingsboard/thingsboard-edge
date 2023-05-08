@@ -28,56 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+package org.thingsboard.server.dao.service;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.service.NoXssValidator;
-import org.thingsboard.server.exception.DataValidationException;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.entity.EntityServiceRegistry;
+import org.thingsboard.server.dao.rule.RuleChainService;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+@Slf4j
+@DaoSqlTest
+public class EntityServiceRegistryTest extends AbstractServiceTest {
 
-public class KvUtils {
+    @Autowired
+    EntityServiceRegistry entityServiceRegistry;
 
-    private static final Cache<String, Boolean> validatedKeys;
-
-    static {
-        validatedKeys = Caffeine.newBuilder()
-                .weakKeys()
-                .expireAfterAccess(24, TimeUnit.HOURS)
-                .maximumSize(100000).build();
+    @Test
+    public void givenAllEntityTypes_whenGetServiceByEntityTypeCalled_thenAllBeansExists() {
+        for (EntityType entityType : EntityType.values()) {
+            EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityType);
+            Assert.assertNotNull("entityDaoService bean is missed for type: " + entityType.name(), entityDaoService);
+        }
     }
 
-    public static void validate(List<? extends KvEntry> tsKvEntries) {
-        tsKvEntries.forEach(KvUtils::validate);
+    @Test
+    public void givenRuleNodeEntityType_whenGetServiceByEntityTypeCalled_thenReturnedRuleChainService() {
+        Assert.assertTrue(entityServiceRegistry.getServiceByEntityType(EntityType.RULE_NODE) instanceof RuleChainService);
     }
 
-    public static void validate(KvEntry tsKvEntry) {
-        if (tsKvEntry == null) {
-            throw new IncorrectParameterException("Key value entry can't be null");
-        }
-
-        String key = tsKvEntry.getKey();
-
-        if (key == null) {
-            throw new DataValidationException("Key can't be null");
-        }
-
-        if (key.length() > 255) {
-            throw new DataValidationException("Validation error: key length must be equal or less than 255");
-        }
-
-        if (validatedKeys.getIfPresent(key) != null) {
-            return;
-        }
-
-        if (!NoXssValidator.isValid(key)) {
-            throw new DataValidationException("Validation error: key is malformed");
-        }
-
-        validatedKeys.put(key, Boolean.TRUE);
-    }
 }
