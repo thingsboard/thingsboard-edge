@@ -260,7 +260,11 @@ public class CloudManagerService {
                                 if (initialized) {
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                     List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(seqIdOffset, pageData.getData());
-                                    success = sendUplinkMsgsPack(uplinkMsgsPack);
+                                    if (!uplinkMsgsPack.isEmpty()) {
+                                        success = sendUplinkMsgsPack(uplinkMsgsPack);
+                                    } else {
+                                        success = true;
+                                    }
                                     CloudEvent latestCloudEvent = pageData.getData().get(pageData.getData().size() - 1);
                                     idOffset = latestCloudEvent.getUuidId();
                                     seqIdOffset = latestCloudEvent.getSeqId();
