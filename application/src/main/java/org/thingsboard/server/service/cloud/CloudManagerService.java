@@ -276,7 +276,7 @@ public class CloudManagerService {
                     if (initialized) {
                         queueStartTs = getQueueStartTs().get();
                         TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                                0, null, null, queueStartTs, System.currentTimeMillis());
+                                0, null, new SortOrder("seqId"), queueStartTs, System.currentTimeMillis());
                         if (newCloudEventsAvailable(pageLink)) {
                             PageData<CloudEvent> pageData;
                             UUID idOffset = null;
