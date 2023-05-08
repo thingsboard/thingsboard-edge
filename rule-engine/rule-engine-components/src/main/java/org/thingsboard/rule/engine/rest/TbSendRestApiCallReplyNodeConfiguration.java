@@ -31,8 +31,8 @@
 package org.thingsboard.rule.engine.rest;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.StringUtils;
 
 @Data
 public class TbSendRestApiCallReplyNodeConfiguration implements NodeConfiguration<TbSendRestApiCallReplyNodeConfiguration> {

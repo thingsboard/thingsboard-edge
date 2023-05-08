@@ -33,8 +33,6 @@ package org.thingsboard.integration.api;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-import java.util.Map;
-
 public interface IntegrationStatisticsService {
 
     void onIntegrationStateUpdate(IntegrationType integrationType, ComponentLifecycleEvent state, boolean success);

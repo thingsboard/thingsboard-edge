@@ -56,7 +56,9 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String MANAGE_CUSTOMERS_EDGE_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'router')]/parent::button";
     private static final String ADD_USER_EMAIL = "//tb-add-user-dialog//input[@formcontrolname='email']";
     private static final String ACTIVATE_WINDOW_OK_BTN = "//span[contains(text(),'OK')]";
-    private static final String USER_LOGIN_BTN = "//mat-icon[@data-mat-icon-name='login']";
+    private static final String USER_LOGIN_BTN = "//mat-icon[@data-mat-icon-name='login']/parent::button";
+    private static final String USER_LOGIN_BTN_BY_EMAIL = "//mat-cell[contains(@class,'email')]/span[contains(text(),'%s')]" +
+            "/ancestor::mat-row//mat-icon[@data-mat-icon-name='login']/parent::button";
     private static final String USERS_WIDGET = "//tb-widget";
     private static final String SELECT_COUNTRY_MENU = "//mat-form-field//mat-select[@formcontrolname='country']";
     private static final String COUNTRIES = "//span[@class='mdc-list-item__primary-text']";
@@ -92,6 +94,8 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String DELETE_FROM_VIEW_BTN = "//tb-customer//span[contains(text(),' Delete')]";
     private static final String HEADER_NAME_VIEW = "//span[text()='Customer details']/parent::div/div/span";
     private static final String GROUPS_BTN = "//a[@href='/customers/groups']/span[@class='mdc-tab__content']";
+    private static final String CUSTOMER_DETAILS_VIEW = "//tb-details-panel";
+    private static final String CUSTOMER_DETAILS_ALARMS = CUSTOMER_DETAILS_VIEW + "//span[text()='Alarms']";
 
     public WebElement titleFieldAddEntityView() {
         return waitUntilElementToBeClickable(ADD_ENTITY_VIEW + String.format(INPUT_FIELD, INPUT_FIELD_NAME_TITLE));
@@ -175,6 +179,10 @@ public class CustomerPageElements extends OtherPageElementsHelper {
 
     public WebElement userLoginBtn() {
         return waitUntilElementToBeClickable(USER_LOGIN_BTN);
+    }
+
+    public WebElement getUserLoginBtnByEmail(String email) {
+        return waitUntilElementToBeClickable(String.format(USER_LOGIN_BTN_BY_EMAIL, email));
     }
 
     public WebElement usersWidget() {
@@ -323,5 +331,13 @@ public class CustomerPageElements extends OtherPageElementsHelper {
 
     public WebElement groupsBtn() {
         return waitUntilElementToBeClickable(GROUPS_BTN);
+    }
+
+    public WebElement customerDetailsView() {
+        return waitUntilPresenceOfElementLocated(CUSTOMER_DETAILS_VIEW);
+    }
+
+    public WebElement customerDetailsAlarmsBtn() {
+        return waitUntilElementToBeClickable(CUSTOMER_DETAILS_ALARMS);
     }
 }

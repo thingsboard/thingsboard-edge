@@ -43,6 +43,15 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
     private static final String ALL_NAMES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
     private static final String GROUPS_BTN = "//a[contains(@href,'/entities/devices/groups')]/span[@class='mdc-tab__content']";
+    private static final String DEVICE = "//table//span[text()='%s']";
+    private static final String DEVICE_DETAILS_VIEW = "//tb-details-panel";
+    private static final String DEVICE_DETAILS_ALARMS = DEVICE_DETAILS_VIEW + "//span[text()='Alarms']";
+    private static final String ASSIGN_TO_CUSTOMER_BTN = "//mat-cell[contains(@class,'name')]/span[text()='%s']" +
+            "/ancestor::mat-row//mat-icon[contains(text(),'assignment_ind')]/parent::button";
+    private static final String CHOOSE_CUSTOMER_FOR_ASSIGN_FIELD = "//input[@formcontrolname='entity']";
+    private static final String CUSTOMER_FROM_ASSIGN_DROPDOWN = "//div[@role = 'listbox']//span[text() = '%s']";
+    private static final String CLOSE_DEVICE_DETAILS_VIEW = "//header//mat-icon[contains(text(),'close')]/parent::button";
+    private static final String SUBMIT_ASSIGN_TO_CUSTOMER_BTN = "//button[@type='submit']";
 
     public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
@@ -54,5 +63,37 @@ public class DevicePageElements extends OtherPageElementsHelper {
 
     public WebElement groupsBtn() {
         return waitUntilElementToBeClickable(GROUPS_BTN);
+    }
+
+    public WebElement device(String deviceName) {
+        return waitUntilElementToBeClickable(String.format(DEVICE, deviceName));
+    }
+
+    public WebElement deviceDetailsAlarmsBtn() {
+        return waitUntilElementToBeClickable(DEVICE_DETAILS_ALARMS);
+    }
+
+    public WebElement deviceDetailsView() {
+        return waitUntilPresenceOfElementLocated(DEVICE_DETAILS_VIEW);
+    }
+
+    public WebElement assignToCustomerBtn(String deviceName) {
+        return waitUntilElementToBeClickable(String.format(ASSIGN_TO_CUSTOMER_BTN, deviceName));
+    }
+
+    public WebElement chooseCustomerForAssignField() {
+        return waitUntilElementToBeClickable(CHOOSE_CUSTOMER_FOR_ASSIGN_FIELD);
+    }
+
+    public WebElement customerFromAssignDropdown(String customerTitle) {
+        return waitUntilElementToBeClickable(String.format(CUSTOMER_FROM_ASSIGN_DROPDOWN, customerTitle));
+    }
+
+    public WebElement closeDeviceDetailsViewBtn() {
+        return waitUntilElementToBeClickable(CLOSE_DEVICE_DETAILS_VIEW);
+    }
+
+    public WebElement submitAssignToCustomerBtn() {
+        return waitUntilElementToBeClickable(SUBMIT_ASSIGN_TO_CUSTOMER_BTN);
     }
 }

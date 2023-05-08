@@ -43,6 +43,7 @@ const emptyUserAuthState: AuthPayload = {
   customerWhiteLabelingAllowed: false,
   hasRepository: false,
   tbelEnabled: false,
+  persistDeviceStateToTelemetry: false,
   userSettings: initialUserSettings,
   allowedDashboardIds: []
 };

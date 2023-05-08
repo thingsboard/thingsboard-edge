@@ -31,27 +31,13 @@
 package org.thingsboard.server.dao.device;
 
 import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
-import java.util.UUID;
-
 public interface DeviceInfoDao extends Dao<DeviceInfo> {
 
-    PageData<DeviceInfo> findDevicesByTenantId(UUID tenantId, PageLink pageLink);
+    PageData<DeviceInfo> findDeviceInfosByFilter(DeviceInfoFilter filter, PageLink pageLink);
 
-    PageData<DeviceInfo> findDevicesByTenantIdAndDeviceProfileId(UUID tenantId, UUID deviceProfileId, PageLink pageLink);
-
-    PageData<DeviceInfo> findTenantDevicesByTenantId(UUID tenantId, PageLink pageLink);
-
-    PageData<DeviceInfo> findTenantDevicesByTenantIdAndDeviceProfileId(UUID tenantId, UUID deviceProfileId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDevicesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDevicesByTenantIdAndCustomerIdAndDeviceProfileId(UUID tenantId, UUID customerId, UUID deviceProfileId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDevicesByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(UUID tenantId, UUID customerId, UUID deviceProfileId, PageLink pageLink);
 }

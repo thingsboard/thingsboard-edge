@@ -62,8 +62,8 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.sql.relation.JpaRelationQueryExecutorService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -72,7 +72,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
