@@ -445,7 +445,7 @@ public class CloudManagerService {
         if (startSeqId >= Integer.MAX_VALUE) {
             // reset in case seq_id column started new cycle
             startSeqId = 0L;
-            log.info("Cloud event seq_id column started new cycle - resetting startSeqId to 1");
+            log.info("Cloud event seq_id column started new cycle - resetting startSeqId to 0");
         }
         List<AttributeKvEntry> attributes = Arrays.asList(
                 new BaseAttributeKvEntry(new LongDataEntry(QUEUE_START_TS_ATTR_KEY, startTs), System.currentTimeMillis()),
