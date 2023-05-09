@@ -48,12 +48,6 @@ public class DevicePageHelper extends DevicePageElements {
         deviceDetailsAlarmsBtn().click();
     }
 
-    public void assignToCustomer(String customerTitle) {
-        chooseCustomerForAssignField().click();
-        entityFromDropdown(customerTitle).click();
-        submitAssignToCustomerBtn().click();
-    }
-
     public void openCreateDeviceView() {
         plusBtn().click();
         addDeviceBtn().click();
@@ -106,10 +100,7 @@ public class DevicePageHelper extends DevicePageElements {
     public void changeOwnerOn(String customerTitle) {
         ownerAndGroupsOptionBtn().click();
         clearOwnerFieldBtn().click();
-        ownerField().sendKeys(customerTitle);
-        sleep(0.5);
-        ownerField().sendKeys(Keys.ARROW_DOWN);
-        ownerField().sendKeys(Keys.ENTER);
-        sleep(0.5);
+        entityFromDropDown(customerTitle).click();
+        sleep(2); //waiting for the action to count
     }
 }
