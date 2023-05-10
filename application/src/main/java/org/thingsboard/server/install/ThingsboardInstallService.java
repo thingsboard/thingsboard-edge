@@ -35,7 +35,6 @@ import org.thingsboard.server.service.install.migrate.EntitiesMigrateService;
 import org.thingsboard.server.service.install.migrate.TsLatestMigrateService;
 import org.thingsboard.server.service.install.update.CacheCleanupService;
 import org.thingsboard.server.service.install.update.DataUpdateService;
-import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
 
 import static org.thingsboard.server.service.install.update.DefaultDataUpdateService.getEnv;
 
@@ -256,6 +255,7 @@ public class ThingsboardInstallService {
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
+                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                             entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
                             dataUpdateService.updateData("3.4.4");
 
@@ -286,6 +286,7 @@ public class ThingsboardInstallService {
 
                 entityDatabaseSchemaService.createDatabaseSchema();
 
+                entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                 entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
                 log.info("Installing DataBase schema for timeseries...");
