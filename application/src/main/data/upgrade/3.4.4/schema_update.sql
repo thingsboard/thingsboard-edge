@@ -415,7 +415,7 @@ BEGIN
                            'FOR VALUES FROM ( %s ) TO ( %s )', p.partition_ts, p.partition_ts, partition_end_ts);
         END LOOP;
 
-    INSERT INTO cloud_event
+    INSERT INTO cloud_event (id, created_time, cloud_event_type, entity_id, cloud_event_action, entity_body, tenant_id, ts)
     SELECT id, created_time, cloud_event_type, entity_id, cloud_event_action, entity_body, tenant_id, ts
     FROM old_cloud_event
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
