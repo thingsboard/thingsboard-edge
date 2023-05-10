@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -157,30 +158,30 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
     }
 
     private byte[] msgListToJsonBytes(List<TbMsg> messages) throws IOException {
-        ArrayNode jsonArray = mapper.createArrayNode();
+        ArrayNode jsonArray = JacksonUtil.newArrayNode();
         for (TbMsg message : messages) {
-            ObjectNode msgJson = mapper.createObjectNode();
+            ObjectNode msgJson = JacksonUtil.newObjectNode();
             if (!StringUtils.isEmpty(message.getData())) {
-                msgJson.set("msg", mapper.readTree(message.getData()));
+                msgJson.set("msg", JacksonUtil.toJsonNode(message.getData()));
             } else {
                 msgJson.put("msg", "");
             }
-            msgJson.set("metadata", mapper.valueToTree(message.getMetaData().getData()));
+            msgJson.set("metadata", JacksonUtil.valueToTree(message.getMetaData().getData()));
             msgJson.put("msgType", message.getType());
             jsonArray.add(msgJson);
         }
-        return mapper.writeValueAsString(jsonArray).getBytes(StandardCharsets.UTF_8);
+        return JacksonUtil.toString(jsonArray).getBytes(StandardCharsets.UTF_8);
     }
 
     private byte[] jsonListToJson(List<JsonNode> jsons) throws IOException {
-        ArrayNode jsonArray = mapper.createArrayNode();
+        ArrayNode jsonArray = JacksonUtil.newArrayNode();
         for (JsonNode json : jsons) {
             jsonArray.add(json);
         }
-        return mapper.writeValueAsString(jsonArray).getBytes(StandardCharsets.UTF_8);
+        return JacksonUtil.toString(jsonArray).getBytes(StandardCharsets.UTF_8);
     }
 
     private String metadataToJson(IntegrationMetaData metaData) throws JsonProcessingException {
-        return mapper.writeValueAsString(metaData.getKvMap());
+        return JacksonUtil.toString(metaData.getKvMap());
     }
 }

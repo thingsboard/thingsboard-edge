@@ -32,7 +32,6 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -81,7 +81,6 @@ import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHEC
 @RequestMapping("/api")
 public class SelfRegistrationController extends BaseController {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String PRIVACY_POLICY = "privacyPolicy";
     private static final String TERMS_OF_USE = "termsOfUse";
     private static final String DOMAIN_NAME = "domainName";
@@ -118,11 +117,11 @@ public class SelfRegistrationController extends BaseController {
         SelfRegistrationParams savedSelfRegistrationParams = null;
         if (Authority.TENANT_ADMIN.equals(authority)) {
             savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
-            JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+            JsonNode privacyPolicyNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
             if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                 savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
             }
-            JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+            JsonNode termsOfUseNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
             if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
                 savedSelfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
             }
@@ -143,11 +142,11 @@ public class SelfRegistrationController extends BaseController {
         SelfRegistrationParams selfRegistrationParams = null;
         if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
             selfRegistrationParams = selfRegistrationService.getTenantSelfRegistrationParams(securityUser.getTenantId());
-            JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+            JsonNode privacyPolicyNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
             if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                 selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
             }
-            JsonNode termsOfUseNode = MAPPER.readTree(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+            JsonNode termsOfUseNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
             if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
                 selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
             }
@@ -214,7 +213,7 @@ public class SelfRegistrationController extends BaseController {
     @RequestMapping(value = "/noauth/selfRegistration/privacyPolicy", method = RequestMethod.GET)
     @ResponseBody
     public String getPrivacyPolicy(HttpServletRequest request) throws ThingsboardException, JsonProcessingException {
-        JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getPrivacyPolicy(TenantId.SYS_TENANT_ID,
+        JsonNode privacyPolicyNode = JacksonUtil.toJsonNode(selfRegistrationService.getPrivacyPolicy(TenantId.SYS_TENANT_ID,
                 request.getServerName()));
         if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
             return privacyPolicyNode.get(PRIVACY_POLICY).toString();
@@ -227,7 +226,7 @@ public class SelfRegistrationController extends BaseController {
     @RequestMapping(value = "/noauth/selfRegistration/termsOfUse", method = RequestMethod.GET)
     @ResponseBody
     public String getTermsOfUse(HttpServletRequest request) throws ThingsboardException, JsonProcessingException {
-        JsonNode termsOfUse = MAPPER.readTree(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
+        JsonNode termsOfUse = JacksonUtil.toJsonNode(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
                 request.getServerName()));
         if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
             return termsOfUse.get(TERMS_OF_USE).toString();
