@@ -44,9 +44,13 @@ public class SignUpSelfRegistrationParams {
     protected String signUpTextMessage;
     @ApiModelProperty(position = 3, name = "Captcha site key for 'I'm not a robot' validation")
     protected String captchaSiteKey;
-    @ApiModelProperty(position = 4, name = "Show or hide 'Privacy Policy'")
+    @ApiModelProperty(position = 4, name = "Captcha version ('v2' = Challenge: display checkbox, 'v3' = Score based)")
+    protected String captchaVersion;
+    @ApiModelProperty(position = 5, name = "Optional action name used for logging (for captcha version 'v3' only)")
+    protected String captchaAction;
+    @ApiModelProperty(position = 6, name = "Show or hide 'Privacy Policy'")
     protected Boolean showPrivacyPolicy;
-    @ApiModelProperty(position = 5, name = "Show or hide 'Terms of Use'")
+    @ApiModelProperty(position = 7, name = "Show or hide 'Terms of Use'")
     protected Boolean showTermsOfUse;
 
 }

@@ -60,6 +60,7 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -323,5 +324,11 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         return testRestClient.getEntityGroupsByOwnerAndType(EntityType.CUSTOMER, getCustomerByName(customerTile).getId(), EntityType.USER).stream()
                 .filter(eg -> eg.getName().equals(groupName))
                 .findFirst().orElse(null);
+    }
+
+    public void deleteDashboardById(DashboardId dashboardId) {
+        if (dashboardId != null) {
+            testRestClient.deleteDashboard(dashboardId);
+        }
     }
 }

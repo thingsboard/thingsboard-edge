@@ -31,9 +31,13 @@
 
 import { GroupPermission } from '@shared/models/group-permission.models';
 
+export type CaptchaVersion = 'v2' | 'v3';
+
 export interface SignUpSelfRegistrationParams {
   signUpTextMessage?: string;
   captchaSiteKey?: string;
+  captchaVersion?: CaptchaVersion;
+  captchaAction?: string;
   activate?: boolean;
   showPrivacyPolicy?: boolean;
   showTermsOfUse?: boolean;

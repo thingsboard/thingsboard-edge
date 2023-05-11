@@ -82,7 +82,7 @@
     "marked": "^4.0.17",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.42",
-    "ng-recaptcha": "^11.0.0",
+    "ngx-captcha": "^13.0.0",
     "ngx-clipboard": "^15.1.0",
     "ngx-daterangepicker-material": "^6.0.4",
     "ngx-drag-drop": "^15.0.1",

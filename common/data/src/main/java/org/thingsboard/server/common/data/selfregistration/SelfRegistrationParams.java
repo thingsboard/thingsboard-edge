@@ -43,29 +43,29 @@ public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
 
     @ApiModelProperty(position = 1, name = "ID of the administration settings that store this parameters")
     private String adminSettingsId;
-    @ApiModelProperty(position = 6, name = "Domain name for self registration URL. Typically this matches the domain name from the Login White Labeling page.")
+    @ApiModelProperty(position = 8, name = "Domain name for self registration URL. Typically this matches the domain name from the Login White Labeling page.")
     private String domainName;
-    @ApiModelProperty(position = 7, name = "Secret key to validate the Captcha. Should match the Captcha Site Key.")
+    @ApiModelProperty(position = 9, name = "Secret key to validate the Captcha. Should match the Captcha Site Key.")
     private String captchaSecretKey;
-    @ApiModelProperty(position = 8, name = "Privacy policy text. Supports HTML.")
+    @ApiModelProperty(position = 10, name = "Privacy policy text. Supports HTML.")
     private String privacyPolicy;
-    @ApiModelProperty(position = 9, name = "Terms of User text. Supports HTML.")
+    @ApiModelProperty(position = 11, name = "Terms of User text. Supports HTML.")
     private String termsOfUse;
-    @ApiModelProperty(position = 10, name = "Email to use for notifications when new user self-registered.")
+    @ApiModelProperty(position = 12, name = "Email to use for notifications when new user self-registered.")
     private String notificationEmail;
-    @ApiModelProperty(position = 11, name = "Default dashboard Id to assign for the new user.", example = "784f394c-42b6-435a-983c-b7beff2784f9")
+    @ApiModelProperty(position = 13, name = "Default dashboard Id to assign for the new user.", example = "784f394c-42b6-435a-983c-b7beff2784f9")
     private String defaultDashboardId;
-    @ApiModelProperty(position = 12, name = "Set default dashboard to full screen mode.")
+    @ApiModelProperty(position = 14, name = "Set default dashboard to full screen mode.")
     private boolean defaultDashboardFullscreen;
-    @ApiModelProperty(position = 13, name = "Group Permissions to assign for the new customer user.")
+    @ApiModelProperty(position = 15, name = "Group Permissions to assign for the new customer user.")
     private List<GroupPermission> permissions;
-    @ApiModelProperty(position = 14, name = "Mobile application verification settings. Package name filter. Contains id of android or iOS application.")
+    @ApiModelProperty(position = 16, name = "Mobile application verification settings. Package name filter. Contains id of android or iOS application.")
     private String pkgName;
-    @ApiModelProperty(position = 15, name = "Mobile application verification settings. Used to verify the mobile application signup request.")
+    @ApiModelProperty(position = 17, name = "Mobile application verification settings. Used to verify the mobile application signup request.")
     private String appSecret;
-    @ApiModelProperty(position = 16, name = "Mobile application verification settings. Used for callback to mobile application once user is registered.")
+    @ApiModelProperty(position = 18, name = "Mobile application verification settings. Used for callback to mobile application once user is registered.")
     private String appScheme;
-    @ApiModelProperty(position = 17, name = "Mobile application verification settings. Used for callback to mobile application once user is registered.")
+    @ApiModelProperty(position = 19, name = "Mobile application verification settings. Used for callback to mobile application once user is registered.")
     private String appHost;
 
 }

@@ -274,12 +274,13 @@ public class ThingsboardInstallService {
                         case "3.5.0": // to 3.5.0PE
                             log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
+                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
+                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
                             // reset full sync required - to upload latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
-                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
                             dataUpdateService.updateData("3.5.0");
 
                             // @voba - system widgets update is not required - uploaded from cloud
@@ -308,6 +309,7 @@ public class ThingsboardInstallService {
 
                 entityDatabaseSchemaService.createDatabaseSchema();
 
+                entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                 entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
                 log.info("Installing DataBase schema for timeseries...");
