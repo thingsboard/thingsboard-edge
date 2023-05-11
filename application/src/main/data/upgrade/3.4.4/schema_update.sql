@@ -410,6 +410,7 @@ CREATE TABLE IF NOT EXISTS cloud_event (
    cloud_event_action varchar(255),
    entity_body varchar(10000000),
    tenant_id uuid,
+   entity_group_id uuid,
    ts bigint NOT NULL
 ) PARTITION BY RANGE(created_time);
 CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_and_created_time ON cloud_event(tenant_id, created_time DESC);
@@ -430,8 +431,8 @@ BEGIN
                            'FOR VALUES FROM ( %s ) TO ( %s )', p.partition_ts, p.partition_ts, partition_end_ts);
         END LOOP;
 
-    INSERT INTO cloud_event (id, created_time, cloud_event_type, entity_id, cloud_event_action, entity_body, tenant_id, ts)
-    SELECT id, created_time, cloud_event_type, entity_id, cloud_event_action, entity_body, tenant_id, ts
+    INSERT INTO cloud_event (id, created_time, cloud_event_type, entity_id, cloud_event_action, entity_body, tenant_id, entity_group_id, ts)
+    SELECT id, created_time, cloud_event_type, entity_id, cloud_event_action, entity_body, tenant_id, entity_group_id, ts
     FROM old_cloud_event
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
 END;
