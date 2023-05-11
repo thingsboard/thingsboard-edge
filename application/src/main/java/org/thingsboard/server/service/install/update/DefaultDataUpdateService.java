@@ -354,6 +354,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping cloud events migration");
                 }
+                break;
             case "3.5.0":
                 log.info("Updating data from version 3.5.0 to 3.5.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
