@@ -34,7 +34,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +45,6 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -100,15 +98,6 @@ public class JacksonUtil {
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value: "
                     + string + " cannot be transformed to Json object", e);
-        }
-    }
-
-    public static <T> T fromString(String string, JavaType valueType) {
-        try {
-            return OBJECT_MAPPER.readValue(string, valueType);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("The given string value: "
-                    + string + " cannot be transformed to Json object");
         }
     }
 
@@ -195,23 +184,6 @@ public class JacksonUtil {
             throw new IllegalArgumentException("Can't read file: " + file, e);
         }
     }
-
-    public static <T> T readValue(File file, TypeReference<T> clazz) {
-        try {
-            return OBJECT_MAPPER.readValue(file, clazz);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Can't read file: " + file, e);
-        }
-    }
-
-    public static <T> T readValue(File file, Class<T> clazz) {
-        try {
-            return OBJECT_MAPPER.readValue(file, clazz);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Can't read file: " + file, e);
-        }
-    }
-
 
     public static JsonNode toJsonNode(Path file) {
         try {
