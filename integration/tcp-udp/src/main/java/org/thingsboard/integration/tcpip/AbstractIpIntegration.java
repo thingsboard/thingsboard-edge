@@ -50,7 +50,12 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.data.*;
+import org.thingsboard.integration.api.data.DownlinkData;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.UplinkData;
+import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.net.SocketAddress;
