@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -44,6 +45,7 @@ import org.thingsboard.server.common.data.notification.rule.EscalatedNotificatio
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
 import org.thingsboard.server.common.data.notification.rule.NotificationRuleRecipientsConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.DeviceActivityNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.IntegrationLifecycleEventNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
@@ -80,13 +82,22 @@ public class NotificationRuleExportService<I extends EntityId, E extends Exporta
                 }
                 break;
             }
-            case RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT:
+            case RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT: {
                 RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig triggerConfig = (RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig) ruleTriggerConfig;
                 Set<UUID> ruleChains = triggerConfig.getRuleChains();
                 if (ruleChains != null) {
                     triggerConfig.setRuleChains(toExternalIds(ruleChains, RuleChainId::new, ctx).collect(Collectors.toSet()));
                 }
                 break;
+            }
+            case INTEGRATION_LIFECYCLE_EVENT: {
+                IntegrationLifecycleEventNotificationRuleTriggerConfig triggerConfig = (IntegrationLifecycleEventNotificationRuleTriggerConfig) ruleTriggerConfig;
+                Set<UUID> integrations = triggerConfig.getIntegrations();
+                if (integrations != null) {
+                    triggerConfig.setIntegrations(toExternalIds(integrations, IntegrationId::new, ctx).collect(Collectors.toSet()));
+                }
+                break;
+            }
         }
 
         NotificationRuleRecipientsConfig ruleRecipientsConfig = notificationRule.getRecipientsConfig();

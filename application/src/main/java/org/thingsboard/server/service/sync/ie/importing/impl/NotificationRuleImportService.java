@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.notification.rule.EscalatedNotificatio
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
 import org.thingsboard.server.common.data.notification.rule.NotificationRuleRecipientsConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.DeviceActivityNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.IntegrationLifecycleEventNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.data.notification.rule.trigger.RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig;
@@ -101,7 +103,7 @@ public class NotificationRuleImportService extends BaseEntityImportService<Notif
                 }
                 break;
             }
-            case RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT:
+            case RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT: {
                 RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig triggerConfig = (RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig) ruleTriggerConfig;
                 Set<UUID> ruleChains = triggerConfig.getRuleChains();
                 if (ruleChains != null) {
@@ -110,6 +112,17 @@ public class NotificationRuleImportService extends BaseEntityImportService<Notif
                             .collect(Collectors.toSet()));
                 }
                 break;
+            }
+            case INTEGRATION_LIFECYCLE_EVENT: {
+                IntegrationLifecycleEventNotificationRuleTriggerConfig triggerConfig = (IntegrationLifecycleEventNotificationRuleTriggerConfig) ruleTriggerConfig;
+                Set<UUID> integrations = triggerConfig.getIntegrations();
+                if (integrations != null) {
+                    triggerConfig.setIntegrations(integrations.stream().map(IntegrationId::new)
+                            .map(idProvider::getInternalId).map(UUIDBased::getId)
+                            .collect(Collectors.toSet()));
+                }
+                break;
+            }
         }
         if (!triggerType.isTenantLevel()) {
             throw new IllegalArgumentException("Trigger type " + triggerType + " is not available for tenants");
