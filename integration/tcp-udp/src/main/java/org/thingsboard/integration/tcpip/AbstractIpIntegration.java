@@ -50,11 +50,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.data.DownlinkData;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkData;
-import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.integration.api.data.*;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.net.SocketAddress;
@@ -90,6 +86,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("ip-integration-scheduled"));
     protected ScheduledFuture bindFuture = null;
+
+    protected UplinkContentType uplinkContentType;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -208,7 +206,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson(uplinkContentType.name())), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -296,9 +294,17 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         return payload;
     }
 
+    protected void setUplinkContentTypeFromHandlerType(String handlerType) {
+        if (handlerType.equals(HEX_PAYLOAD)) {
+            uplinkContentType = UplinkContentType.JSON;
+        } else {
+            uplinkContentType = UplinkContentType.valueOf(handlerType);
+        }
+    }
+
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), metadataMap));
+        return convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.toJson(uplinkContentType.name())), new UplinkMetaData(getDefaultUplinkContentType(), metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {

@@ -45,8 +45,11 @@ public class IpIntegrationMsg {
     private final byte[] payload;
 
     public JsonNode toJson() {
+        return toJson("JSON");
+    }
+    public JsonNode toJson(String messageType) {
         ObjectNode json = JacksonUtil.newObjectNode();
-        ConvertUtil.putJson(json, payload);
+        ConvertUtil.putJson(json, payload, messageType);
         return json;
     }
 }
