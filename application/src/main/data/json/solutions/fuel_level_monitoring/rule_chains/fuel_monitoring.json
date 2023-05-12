@@ -1,0 +1,337 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Fuel Monitoring",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 6,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 822,
+          "layoutY": 294
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 824,
+          "layoutY": 221
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 494,
+          "layoutY": 309
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 824,
+          "layoutY": 383
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 823,
+          "layoutY": 444
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 822,
+          "layoutY": 507
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 209,
+          "layoutY": 307
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 182,
+          "layoutY": 523
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count alarms",
+        "debugMode": false,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "lowBatteryAlarmsCount",
+              "typesList": [
+                "Low Battery Level"
+              ],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            },
+            {
+              "target": "lowFuelLevelAlarmsCount",
+              "typesList": [
+                "Low Fuel Level"
+              ],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            },
+            {
+              "target": "lowTemperatureAlarmsCount",
+              "typesList": [
+                "Low Temperature"
+              ],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            },
+            {
+              "target": "highTemperatureAlarmsCount",
+              "typesList": [
+                "High Temperature"
+              ],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": false,
+          "propagationEntityTypes": null,
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 533,
+          "layoutY": 639
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "JS",
+          "jsScript": "\nif (msgType === \"POST_TELEMETRY_REQUEST\") {\n    msg.isLowBattery = msg.lowBatteryAlarmsCount > 0 ? true : false;\n    msg.isLowFuel = msg.lowFuelLevelAlarmsCount > 0 ? true : false;\n    msg.isLowTemperature = msg.lowTemperatureAlarmsCount > 0 ? true : false;\n    msg.isHighTemperature = msg.highTemperatureAlarmsCount > 0 ? true : false;\n    msg.isNoAlarms = (!msg.isLowBattery && !msg.isLowFuel && !msg.isLowTemperature && !msg.isHighTemperature);\n} else {\n    metadata.isLowBattery = metadata.ss_lowBatteryAlarmsCount > 0 ? true : false;\n    metadata.isLowFuel = metadata.ss_lowFuelLevelAlarmsCount > 0 ? true : false;\n    metadata.isLowTemperature = metadata.ss_lowTemperatureAlarmsCount > 0 ? true : false;\n    metadata.isHighTemperature = metadata.ss_highTemperatureAlarmsCount > 0 ? true : false;\n    metadata.isNoAlarms = (!metadata.isLowBattery && !metadata.isLowFuel && !metadata.isLowTemperature && !metadata.isHighTemperature);\n}\n\nvar alarmFilter = \"\";\n\nif (\n    (metadata.ss_active === false || metadata.ss_active === \"false\") || \n    (msg.active === false || msg.active === \"false\")\n   ) {\n    alarmFilter += \"offline \";\n}\n\nif (msg.isLowBattery || metadata.isLowBattery) {\n    alarmFilter += \"lowBattery \";\n}\n\nif (msg.isLowFuel || metadata.isLowFuel) {\n    alarmFilter += \"lowFuel \";\n}\n\nif (msg.isLowTemperature || metadata.isLowTemperature) {\n   alarmFilter += \"lowTemperature \"; \n}\n\nif (msg.isHighTemperature || metadata.isHighTemperature) {\n    alarmFilter += \"highTemperature \";\n}\n\nif (msg.isNoAlarms || metadata.isNoAlarms) {\n    alarmFilter += \"noAlarms \";\n}\n\nmsg.alarmFilter = alarmFilter;\n\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};",
+          "tbelScript": "msg.isLowBattery = msg.lowBatteryAlarmsCount > 0 ? true : false;\nmsg.isLowFuel = msg.lowFuelLevelAlarmsCount > 0 ? true : false;\nmsg.isLowTemperature = msg.lowTemperatureAlarmsCount > 0 ? true : false;\nmsg.isHighTemperature = msg.highTemperatureAlarmsCount > 0 ? true : false;\nmsg.isNoAlarms = !(msg.isLowBattery && msg.isLowFuel && msg.isLowTemperature && msg.isHighTemperature);\n\nlet alarmFilter = \"\";\n\nif (msg.isLowBattery) {\n    alarmFilter += \"lowBattery \"\n}\n\nif (msg.isLowFuel) {\n    alarmFilter += \"lowFuel \"\n}\n\nif (msg.isLowTemperature) {\n    \n}\nmsg.isLowBattery ? alarmFilter += \"lowBattery \": null;\nmsg.isLowFuel ? alarmFilter += \"lowFuel \": null;\nmsg.isLowTemperature ? alarmFilter += \"lowTemperature \": null;\nmsg.isHighTemperature ? alarmFilter += \"highTemperature \": null;\nmsg.isNoAlarms ? alarmFilter += \"noAlarms \": null;\nmsg.alarmFilter = alarmFilter;\n\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 824,
+          "layoutY": 582
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 184,
+          "layoutY": 640
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Add active metadata",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "fetchToData": false,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "active"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 522,
+          "layoutY": 512
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Get alarms count attributes",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "fetchToData": false,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "highTemperatureAlarmsCount",
+            "lowBatteryAlarmsCount",
+            "lowFuelLevelAlarmsCount",
+            "lowTemperatureAlarmsCount"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 11,
+        "type": "Activity Event"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 11,
+        "type": "Inactivity Event"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 8,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}
