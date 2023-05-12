@@ -30,47 +30,41 @@
  */
 package org.thingsboard.server.service.sync.ie.exporting.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.common.util.JacksonUtil;
+import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
+import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
-import java.util.Collection;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
-public abstract class BaseEntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> extends DefaultEntityExportService<I, E, D> {
+@Service
+@TbCoreComponent
+public class NotificationTargetExportService extends BaseEntityExportService<NotificationTargetId, NotificationTarget, EntityExportData<NotificationTarget>> {
 
     @Override
-    protected void setAdditionalExportData(EntitiesExportCtx<?> ctx, E entity, D exportData) throws ThingsboardException {
-        setRelatedEntities(ctx, entity, (D) exportData);
-        super.setAdditionalExportData(ctx, entity, exportData);
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, NotificationTarget notificationTarget, EntityExportData<NotificationTarget> exportData) {
+        if (notificationTarget.getConfiguration().getType() == NotificationTargetType.PLATFORM_USERS) {
+            UsersFilter usersFilter = ((PlatformUsersNotificationTargetConfig) notificationTarget.getConfiguration()).getUsersFilter();
+            switch (usersFilter.getType()) {
+                case CUSTOMER_USERS:
+                    CustomerUsersFilter customerUsersFilter = (CustomerUsersFilter) usersFilter;
+                    customerUsersFilter.setCustomerId(getExternalIdOrElseInternal(ctx, new CustomerId(customerUsersFilter.getCustomerId())).getId());
+                    break;
+            }
+        }
     }
 
-    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, E mainEntity, D exportData) {
-    }
-
-    protected D newExportData() {
-        return (D) new EntityExportData<E>();
-    }
-
-    public abstract Set<EntityType> getSupportedEntityTypes();
-
-    protected void replaceUuidsRecursively(EntitiesExportCtx<?> ctx, JsonNode node, Set<String> skipFieldsSet) {
-        JacksonUtil.replaceUuidsRecursively(node, skipFieldsSet, uuid -> getExternalIdOrElseInternalByUuid(ctx, uuid));
-    }
-
-    protected Stream<UUID> toExternalIds(Collection<UUID> internalIds, Function<UUID, EntityId> entityIdCreator,
-                                         EntitiesExportCtx<?> ctx) {
-        return internalIds.stream().map(entityIdCreator)
-                .map(entityId -> getExternalIdOrElseInternal(ctx, entityId))
-                .map(EntityId::getId);
+    @Override
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.NOTIFICATION_TARGET);
     }
 
 }

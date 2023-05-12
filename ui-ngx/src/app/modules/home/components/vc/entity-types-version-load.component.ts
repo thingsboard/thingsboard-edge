@@ -46,7 +46,8 @@ import { PageComponent } from '@shared/components/page.component';
 import {
   EntityTypeVersionLoadConfig,
   exportableEntityTypes,
-  overrideEntityTypeTranslations
+  overrideEntityTypeTranslations,
+  entityTypesWithNoRelatedData,
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -86,6 +87,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   public entityTypesVersionLoadFormGroup: UntypedFormGroup;
 
   entityTypes = EntityType;
+  entityTypesWithNoRelatedData = entityTypesWithNoRelatedData
 
   loading = true;
 

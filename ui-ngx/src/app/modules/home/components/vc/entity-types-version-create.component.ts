@@ -45,7 +45,9 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import {
   EntityTypeVersionCreateConfig,
-  exportableEntityTypes, overrideEntityTypeTranslations,
+  exportableEntityTypes,
+  overrideEntityTypeTranslations,
+  entityTypesWithNoRelatedData,
   SyncStrategy,
   syncStrategyTranslationMap
 } from '@shared/models/vc.models';
@@ -89,6 +91,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   syncStrategyTranslations = syncStrategyTranslationMap;
 
   entityTypes = EntityType;
+  entityTypesWithNoRelatedData = entityTypesWithNoRelatedData
 
   loading = true;
 
