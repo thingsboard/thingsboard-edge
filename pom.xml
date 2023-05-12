@@ -175,7 +175,7 @@
         <allure-testng.version>2.21.0</allure-testng.version>
         <allure-maven.version>2.12.0</allure-maven.version>
         <slack-api.version>1.12.1</slack-api.version>
-        <oshi.version>3.4.0</oshi.version>
+        <oshi.version>6.4.2</oshi.version>
         <azure-sdk-bom.version>1.2.11</azure-sdk-bom.version>
     </properties>
 
@@ -193,7 +193,7 @@
         <module>msa</module>
         <module>rest-client</module>
         <module>monitoring</module>
-        <module>tenant-migrator</module>
+        <module>migrator</module>
     </modules>
 
     <profiles>
@@ -2227,7 +2227,7 @@
                 <version>${exp4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.github.dblock</groupId>
+                <groupId>com.github.oshi</groupId>
                 <artifactId>oshi-core</artifactId>
                 <version>${oshi.version}</version>
             </dependency>

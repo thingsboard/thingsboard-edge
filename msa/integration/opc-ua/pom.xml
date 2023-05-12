@@ -55,7 +55,7 @@
         <docker.name>tb-${tb.docker.id}-opc-ua-integration</docker.name>
         <pkg.logFolder>/var/log/${pkg.name}</pkg.logFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <docker.push-integraion-arm-amd-image.phase>pre-integration-test</docker.push-integraion-arm-amd-image.phase>
+        <docker.push-integration-arm-amd-image.phase>pre-integration-test</docker.push-integration-arm-amd-image.phase>
     </properties>
 
     <dependencies>
