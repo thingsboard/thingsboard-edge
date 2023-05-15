@@ -211,7 +211,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson(uplinkContentType.name())), status, exception);
+                persistDebug(context, "Uplink", uplinkContentType, mapper.writeValueAsString(msg.toJson(uplinkContentType.name())), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -301,7 +301,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     protected void setUplinkContentTypeFromHandlerType(String handlerType) {
         if (handlerType.equals(HEX_PAYLOAD)) {
-            uplinkContentType = UplinkContentType.JSON;
+            uplinkContentType = UplinkContentType.TEXT;
         } else {
             uplinkContentType = UplinkContentType.valueOf(handlerType);
         }
@@ -309,7 +309,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.toJson(uplinkContentType.name())), new UplinkMetaData(getDefaultUplinkContentType(), metadataMap));
+        return convertToUplinkDataList(context, mapper.writeValueAsBytes(msg.toJson(uplinkContentType.name())), new UplinkMetaData(uplinkContentType, metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {
