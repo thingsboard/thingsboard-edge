@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -178,6 +179,22 @@ public class JacksonUtil {
     }
 
     public static <T> T readValue(String file, CollectionType clazz) {
+        try {
+            return OBJECT_MAPPER.readValue(file, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static <T> T readValue(File file, TypeReference<T> clazz) {
+        try {
+            return OBJECT_MAPPER.readValue(file, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static <T> T readValue(File file, Class<T> clazz) {
         try {
             return OBJECT_MAPPER.readValue(file, clazz);
         } catch (IOException e) {

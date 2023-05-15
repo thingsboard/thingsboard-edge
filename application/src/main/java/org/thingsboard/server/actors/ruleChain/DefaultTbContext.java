@@ -157,9 +157,6 @@ import java.util.function.Consumer;
 class DefaultTbContext implements TbContext, TbPeContext {
 
     public final static ObjectMapper mapper = new ObjectMapper();
-
-    public final static ObjectMapper mapper = new ObjectMapper();
-
     private final ActorSystemContext mainCtx;
     private final String ruleChainName;
     private final RuleNodeCtx nodeCtx;
