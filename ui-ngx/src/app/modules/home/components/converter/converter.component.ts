@@ -43,10 +43,10 @@ import {
   converterTypeTranslationMap
 } from '@shared/models/converter.models';
 
-import jsDecoderTemplate from '!raw-loader!./js-decoder.raw';
-import tbelDecoderTemplate from '!raw-loader!./tbel-decoder.raw';
-import jsEncoderTemplate from '!raw-loader!./js-encoder.raw';
-import tbelEncoderTemplate from '!raw-loader!./tbel-encoder.raw';
+import jsDecoderTemplate from '!raw-loader!src/assets/converters/js-decoder.raw';
+import tbelDecoderTemplate from '!raw-loader!src/assets/converters/tbel-decoder.raw';
+import jsEncoderTemplate from '!raw-loader!src/assets/converters/js-encoder.raw';
+import tbelEncoderTemplate from '!raw-loader!src/assets/converters/tbel-encoder.raw';
 import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { MatDialog } from '@angular/material/dialog';
