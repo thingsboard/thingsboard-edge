@@ -1,13 +1,13 @@
 [
   {
-    "name": "001291",
-    "label": "Tank 1291",
+    "name": "001491",
+    "label": "Tank 1491",
     "type": "Tank",
     "group": "Tanks",
     "emulator": "Tank Emulator",
     "attributes": {
-      "latitude": 33.8936843,
-      "longitude": -118.396573,
+      "latitude": 34.032805,
+      "longitude": -118.334398,
       "inactivityTimeout": 720000,
       "isHighTemperature": false,
       "isLowBattery": false,
@@ -32,15 +32,15 @@
     "group": "Tanks",
     "emulator": "Tank Emulator",
     "attributes": {
-      "latitude": 33.888286,
-      "longitude": -118.38513,
+      "latitude": 34.032803,
+      "longitude": -118.334699,
       "inactivityTimeout": 720000,
       "isHighTemperature": false,
       "isLowBattery": false,
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Petrol",
+      "liquidType": "Diesel",
       "sizeMeasure": {
         "length": 100,
         "diameter": 150
@@ -58,8 +58,30 @@
     "group": "Tanks",
     "emulator": "Tank Emulator",
     "attributes": {
-      "latitude": 33.89108,
-      "longitude": -118.38962,
+      "latitude": 34.032998,
+      "longitude": -118.334712,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Gas",
+      "tankCapacity": 2000,
+      "tankShape": "Unspecified",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001471",
+    "label": "Tank 1471",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.035507,
+      "longitude": -118.284661,
       "inactivityTimeout": 720000,
       "isHighTemperature": false,
       "isLowBattery": false,
@@ -67,8 +89,163 @@
       "isLowTemperature": false,
       "isNoAlarms": true,
       "liquidType": "Petrol",
+      "sizeMeasure": {
+        "height": 200,
+        "diameter": 225
+      },
+      "tankCapacity": 7952.16,
+      "tankShape": "Vertical Cylinder",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001311",
+    "label": "Tank 1311",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.035233,
+      "longitude": -118.284330,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Diesel",
+      "sizeMeasure": {
+        "length": 225,
+        "diameter": 300
+      },
+      "tankCapacity": 3976,
+      "tankShape": "Horizontal Cylinder",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001123",
+    "label": "Tank 1123",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.035522,
+      "longitude": -118.284731,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Gas",
+      "sizeMeasure": {
+        "length": 500,
+        "width": 100,
+        "height": 100
+      },
+      "tankCapacity": 5000,
+      "tankShape": "Rectangle",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001288",
+    "label": "Tank 1288",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.033674,
+      "longitude": -118.262370,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Gas",
       "tankCapacity": 2000,
       "tankShape": "Unspecified",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001289",
+    "label": "Tank 1289",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.033611,
+      "longitude": -118.262327,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Gas",
+      "tankCapacity": 2000,
+      "tankShape": "Unspecified",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001113",
+    "label": "Tank 1113",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.033724,
+      "longitude": -118.261862,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Petrol",
+      "sizeMeasure": {
+        "length": 500,
+        "width": 100,
+        "height": 100
+      },
+      "tankCapacity": 5000,
+      "tankShape": "Rectangle",
+      "alarmFilter": "noAlarms offline"
+    },
+    "relations": []
+  },
+  {
+    "name": "001133",
+    "label": "Tank 1133",
+    "type": "Tank",
+    "group": "Tanks",
+    "emulator": "Tank Emulator",
+    "attributes": {
+      "latitude": 34.034031,
+      "longitude": -118.262053,
+      "inactivityTimeout": 720000,
+      "isHighTemperature": false,
+      "isLowBattery": false,
+      "isLowFuel": false,
+      "isLowTemperature": false,
+      "isNoAlarms": true,
+      "liquidType": "Petrol",
+      "sizeMeasure": {
+        "length": 500,
+        "width": 100,
+        "height": 100
+      },
+      "tankCapacity": 5000,
+      "tankShape": "Rectangle",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
