@@ -114,8 +114,7 @@
           <button [fxShow]="currentDashboardId && !isMobileApp && displayExport() && !isEdit" mat-icon-button
                   [matMenuTriggerFor]="exportMenu"
                   matTooltip="{{'dashboard.export' | translate}}"
-                  matTooltipPosition="below"
-                  (click)="exportDashboard($event)">
+                  matTooltipPosition="below">
             <mat-icon>file_download</mat-icon>
           </button>
           <mat-menu #exportMenu="matMenu" xPosition="before">
