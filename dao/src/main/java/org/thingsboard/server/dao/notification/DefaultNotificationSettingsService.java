@@ -113,7 +113,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
             defaultNotifications.create(tenantId, DefaultNotifications.apiFeatureDisabledForSysadmin, sysAdmins.getId());
             defaultNotifications.create(tenantId, DefaultNotifications.apiFeatureDisabledForTenant, affectedTenantAdmins.getId());
 
-            defaultNotifications.create(tenantId, DefaultNotifications.newPlatformVersion, sysAdmins.getId(), tenantAdmins.getId());
+            defaultNotifications.create(tenantId, DefaultNotifications.newPlatformVersion, sysAdmins.getId());
             return;
         }
 

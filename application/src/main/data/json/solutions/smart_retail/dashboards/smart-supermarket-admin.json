@@ -511,7 +511,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\nvar entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nvar supermarketDevicesGroup = null;\nvar unassignedDevicesGroup = null;\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket will be deleted and all related devices will be unassigned!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var customerId;\n  if (widgetContext.currentUser.authority === 'TENANT_ADMIN') {\n       customerId = widgetContext.stateController.getStateParams().entityId;\n  } else {\n       customerId = { id: widgetContext.currentUser.customerId, entityType: 'CUSTOMER'};\n  }\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var removeDevicesObservables = [];\n      relatedDevicesRelations.forEach((deviceRelation) => {\n          removeDevicesObservables.push(removeDevice(deviceRelation.to, customerId));\n      });\n      var removeDevicesObservable = removeDevicesObservables.length ? widgetContext.rxjs.forkJoin(removeDevicesObservables) : widgetContext.rxjs.of(null);\n      removeDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n}\n\nfunction removeDevice(deviceId, customerId) {\n    return getCustomerDeviceGroups(customerId).pipe(\n        widgetContext.rxjs.switchMap((groups) => {\n            var supermarketDevices = groups[0];\n            var unassignedDevices = groups[1];\n            return widgetContext.rxjs.forkJoin([\n                entityGroupService.removeEntityFromEntityGroup(supermarketDevices.id.id, deviceId.id),\n                entityGroupService.addEntityToEntityGroup(unassignedDevices.id.id, deviceId.id),\n                deleteSupermarketToDeviceRelation(deviceId),\n                removePositionAttributes(deviceId)\n            ]);\n        })\n    );\n}\n\nfunction getCustomerDeviceGroups(customerId) {\n    if (supermarketDevicesGroup === null) {\n        return entityGroupService.getEntityGroupsByOwnerId(customerId.entityType, customerId.id, 'DEVICE').pipe(\n            widgetContext.rxjs.switchMap((deviceEntityGroups) => {\n                return getUnassignedDevicesGroup(customerId, deviceEntityGroups).pipe(\n                    widgetContext.rxjs.switchMap((_unassignedDevicesGroup) => {\n                        supermarketDevicesGroup = getSupermarketDevicesGroup(deviceEntityGroups);\n                        unassignedDevicesGroup = _unassignedDevicesGroup;\n                        return widgetContext.rxjs.of([supermarketDevicesGroup, unassignedDevicesGroup]);\n                    })\n                );\n            })\n        );\n    } else {\n        return widgetContext.rxjs.of([supermarketDevicesGroup, unassignedDevicesGroup]);\n    }\n}\n\nfunction getSupermarketDevicesGroup(groups) {\n  return groups.find(group => group.name === 'Supermarket Devices');\n}\n\nfunction getUnassignedDevicesGroup(customerId, groups) {\n  var unassignedDevicesGroup = groups.find(group => group.name === 'Unassigned Supermarket Devices');\n  if (unassignedDevicesGroup) {\n      return widgetContext.rxjs.of(unassignedDevicesGroup);\n  } else {\n      unassignedDevicesGroup = {\n          type: 'DEVICE',\n          name: 'Unassigned Supermarket Devices',\n          ownerId: customerId\n      };\n      return entityGroupService.saveEntityGroup(unassignedDevicesGroup);\n  }\n}\n\nfunction deleteSupermarketToDeviceRelation(deviceId) {\n    return entityRelationService.deleteRelation(entityId, 'Contains', deviceId);\n}\n\nfunction removePositionAttributes(entityId) {\n    return attributeService.deleteEntityAttributes(entityId, \"SERVER_SCOPE\", [{key: 'xPos'},{key: 'yPos'}]);\n}",
+                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\nvar entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket will be deleted and all related devices will be unassigned!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var customerId;\n  if (widgetContext.currentUser.authority === 'TENANT_ADMIN') {\n       customerId = widgetContext.stateController.getStateParams().entityId;\n  } else {\n       customerId = { id: widgetContext.currentUser.customerId, entityType: 'CUSTOMER'};\n  }\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var removeDevicesObservable;\n      if (relatedDevicesRelations.length) {\n          removeDevicesObservable = getUnassignedDevicesGroup(customerId).pipe(\n              widgetContext.rxjs.switchMap((unassignedDevicesGroup) => {\n                  var removeDevicesObservables = [];\n                  relatedDevicesRelations.forEach((deviceRelation) => {\n                     removeDevicesObservables.push(removeDevice(deviceRelation.to, unassignedDevicesGroup.id.id));\n                  });\n                  return widgetContext.rxjs.forkJoin(removeDevicesObservables);\n              })\n          );\n      } else {\n          removeDevicesObservable = widgetContext.rxjs.of(null);\n      }\n      removeDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n}\n\nfunction removeDevice(deviceId, unassignedDevicesGroupId) {\n    return widgetContext.rxjs.forkJoin([\n        entityGroupService.addEntityToEntityGroup(unassignedDevicesGroupId, deviceId.id),\n        deleteSupermarketToDeviceRelation(deviceId),\n        removePositionAttributes(deviceId)\n    ]);\n}\n\nfunction getUnassignedDevicesGroup(customerId) {\n    return entityGroupService.getEntityGroupsByOwnerId(customerId.entityType, customerId.id, 'DEVICE').pipe(\n        widgetContext.rxjs.switchMap((deviceEntityGroups) => {\n            return getOrCreateUnassignedDevicesGroup(customerId, deviceEntityGroups);\n        })\n    );\n}\n\nfunction getOrCreateUnassignedDevicesGroup(customerId, groups) {\n  var unassignedDevicesGroup = groups.find(group => group.name === 'Unassigned Supermarket Devices');\n  if (unassignedDevicesGroup) {\n      return widgetContext.rxjs.of(unassignedDevicesGroup);\n  } else {\n      unassignedDevicesGroup = {\n          type: 'DEVICE',\n          name: 'Unassigned Supermarket Devices',\n          ownerId: customerId\n      };\n      return entityGroupService.saveEntityGroup(unassignedDevicesGroup);\n  }\n}\n\nfunction deleteSupermarketToDeviceRelation(deviceId) {\n    return entityRelationService.deleteRelation(entityId, 'Contains', deviceId);\n}\n\nfunction removePositionAttributes(entityId) {\n    return attributeService.deleteEntityAttributes(entityId, \"SERVER_SCOPE\", [{key: 'xPos'},{key: 'yPos'}]);\n}",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "338d9fd7-c752-eb0e-4687-2c2e32ca1a32"
@@ -648,7 +648,7 @@
                 "useShowWidgetActionFunction": null,
                 "showWidgetActionFunction": "return true;",
                 "type": "custom",
-                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\nvar entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket will be deleted and all related devices will be unassigned!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var customerId;\n  if (widgetContext.currentUser.authority === 'TENANT_ADMIN') {\n       customerId = widgetContext.stateController.getStateParams().entityId;\n  } else {\n       customerId = { id: widgetContext.currentUser.customerId, entityType: 'CUSTOMER'};\n  }\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var removeDevicesObservable;\n      if (relatedDevicesRelations.length) {\n          removeDevicesObservable = getUnassignedDevicesGroup(customerId).pipe(\n              widgetContext.rxjs.switchMap((unassignedDevicesGroup) => {\n                  var removeDevicesObservables = [];\n                  relatedDevicesRelations.forEach((deviceRelation) => {\n                     removeDevicesObservables.push(removeDevice(deviceRelation.to, customerId, unassignedDevicesGroup.id.id));\n                  });\n                  return widgetContext.rxjs.forkJoin(removeDevicesObservables);\n              })\n          );\n      } else {\n          removeDevicesObservable = widgetContext.rxjs.of(null);\n      }\n      removeDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n}\n\nfunction removeDevice(deviceId, customerId, unassignedDevicesGroupId) {\n    return widgetContext.rxjs.forkJoin([\n        entityGroupService.addEntityToEntityGroup(unassignedDevicesGroupId, deviceId.id),\n        deleteSupermarketToDeviceRelation(deviceId),\n        removePositionAttributes(deviceId)\n    ]);\n}\n\nfunction getUnassignedDevicesGroup(customerId) {\n    return entityGroupService.getEntityGroupsByOwnerId(customerId.entityType, customerId.id, 'DEVICE').pipe(\n        widgetContext.rxjs.switchMap((deviceEntityGroups) => {\n            return getOrCreateUnassignedDevicesGroup(customerId, deviceEntityGroups);\n        })\n    );\n}\n\nfunction getOrCreateUnassignedDevicesGroup(customerId, groups) {\n  var unassignedDevicesGroup = groups.find(group => group.name === 'Unassigned Supermarket Devices');\n  if (unassignedDevicesGroup) {\n      return widgetContext.rxjs.of(unassignedDevicesGroup);\n  } else {\n      unassignedDevicesGroup = {\n          type: 'DEVICE',\n          name: 'Unassigned Supermarket Devices',\n          ownerId: customerId\n      };\n      return entityGroupService.saveEntityGroup(unassignedDevicesGroup);\n  }\n}\n\nfunction deleteSupermarketToDeviceRelation(deviceId) {\n    return entityRelationService.deleteRelation(entityId, 'Contains', deviceId);\n}\n\nfunction removePositionAttributes(entityId) {\n    return attributeService.deleteEntityAttributes(entityId, \"SERVER_SCOPE\", [{key: 'xPos'},{key: 'yPos'}]);\n}",
+                "customFunction": "var $injector = widgetContext.$scope.$injector;\nvar dialogs = $injector.get(widgetContext.servicesMap.get('dialogs'));\nvar assetService = $injector.get(widgetContext.servicesMap.get('assetService'));\nvar entityRelationService = $injector.get(widgetContext.servicesMap.get('entityRelationService'));\nvar entityGroupService = $injector.get(widgetContext.servicesMap.get('entityGroupService'));\nlet attributeService = $injector.get(widgetContext.servicesMap.get('attributeService'));\n\nopenDeleteSupermarketDialog();\n\nfunction openDeleteSupermarketDialog() {\n  var title = 'Are you sure you want to delete the supermarket ' + entityName + '?';\n  var content = 'Be careful, after the confirmation, the supermarket will be deleted and all related devices will be unassigned!';\n  dialogs.confirm(title, content, 'Cancel', 'Delete').subscribe(\n    function(result) {\n      if (result) {\n        deleteSupermarket();\n      }\n    }\n  );\n}\n\nfunction deleteSupermarket() {\n  var customerId;\n  if (widgetContext.currentUser.authority === 'TENANT_ADMIN') {\n       customerId = widgetContext.stateController.getStateParams().entityId;\n  } else {\n       customerId = { id: widgetContext.currentUser.customerId, entityType: 'CUSTOMER'};\n  }\n  var relatedDevicesQuery = {\n      parameters: {\n          rootId: entityId.id,\n          rootType: entityId.entityType,\n          direction: 'FROM'\n      },\n      filters: [{ relationType: 'Contains', entityTypes: ['DEVICE'] }]\n  };\n  entityRelationService.findByQuery(relatedDevicesQuery).subscribe((relatedDevicesRelations) => {\n      var removeDevicesObservable;\n      if (relatedDevicesRelations.length) {\n          removeDevicesObservable = getUnassignedDevicesGroup(customerId).pipe(\n              widgetContext.rxjs.switchMap((unassignedDevicesGroup) => {\n                  var removeDevicesObservables = [];\n                  relatedDevicesRelations.forEach((deviceRelation) => {\n                     removeDevicesObservables.push(removeDevice(deviceRelation.to, unassignedDevicesGroup.id.id));\n                  });\n                  return widgetContext.rxjs.forkJoin(removeDevicesObservables);\n              })\n          );\n      } else {\n          removeDevicesObservable = widgetContext.rxjs.of(null);\n      }\n      removeDevicesObservable.subscribe(() => {\n          assetService.deleteAsset(entityId.id).subscribe(\n            function() {\n                widgetContext.updateAliases();\n            }\n          );\n      });\n  });\n}\n\nfunction removeDevice(deviceId, unassignedDevicesGroupId) {\n    return widgetContext.rxjs.forkJoin([\n        entityGroupService.addEntityToEntityGroup(unassignedDevicesGroupId, deviceId.id),\n        deleteSupermarketToDeviceRelation(deviceId),\n        removePositionAttributes(deviceId)\n    ]);\n}\n\nfunction getUnassignedDevicesGroup(customerId) {\n    return entityGroupService.getEntityGroupsByOwnerId(customerId.entityType, customerId.id, 'DEVICE').pipe(\n        widgetContext.rxjs.switchMap((deviceEntityGroups) => {\n            return getOrCreateUnassignedDevicesGroup(customerId, deviceEntityGroups);\n        })\n    );\n}\n\nfunction getOrCreateUnassignedDevicesGroup(customerId, groups) {\n  var unassignedDevicesGroup = groups.find(group => group.name === 'Unassigned Supermarket Devices');\n  if (unassignedDevicesGroup) {\n      return widgetContext.rxjs.of(unassignedDevicesGroup);\n  } else {\n      unassignedDevicesGroup = {\n          type: 'DEVICE',\n          name: 'Unassigned Supermarket Devices',\n          ownerId: customerId\n      };\n      return entityGroupService.saveEntityGroup(unassignedDevicesGroup);\n  }\n}\n\nfunction deleteSupermarketToDeviceRelation(deviceId) {\n    return entityRelationService.deleteRelation(entityId, 'Contains', deviceId);\n}\n\nfunction removePositionAttributes(entityId) {\n    return attributeService.deleteEntityAttributes(entityId, \"SERVER_SCOPE\", [{key: 'xPos'},{key: 'yPos'}]);\n}",
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "1af63269-0a95-b82e-0703-86bd8daf9356"
@@ -1951,7 +1951,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -1977,7 +1978,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2009,7 +2011,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2035,7 +2038,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2061,7 +2065,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2087,7 +2092,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": false,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2113,7 +2119,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2139,7 +2146,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2165,7 +2173,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2191,7 +2200,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2217,7 +2227,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2243,7 +2254,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2269,7 +2281,8 @@
               "autoFillHeight": true,
               "backgroundImageUrl": null,
               "mobileAutoFillHeight": true,
-              "mobileRowHeight": 70
+              "mobileRowHeight": 70,
+              "outerMargin": true
             }
           }
         }
@@ -2403,7 +2416,7 @@
       "hideToolbar": false,
       "showFilters": false,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}"
     }
   },
   "externalId": null,
