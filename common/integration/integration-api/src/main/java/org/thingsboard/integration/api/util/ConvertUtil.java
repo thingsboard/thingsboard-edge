@@ -58,16 +58,13 @@ public class ConvertUtil {
                 throw new RuntimeException("Message type: " + messageType + " is not supported!");
         }
     }
-    public static void putJson(ObjectNode root, byte[] payload) {
-        putJson(root, payload, "JSON");
-    }
 
-    public static void putJson(ObjectNode root, byte[] payload, String onFailMessageType) {
+    public static void putJson(ObjectNode root, byte[] payload) {
         try {
             JsonNode payloadJson = JacksonUtil.fromBytes(payload);
             root.set("payload", payloadJson);
         } catch (IllegalArgumentException e) {
-            root.put("payload", toDebugMessage(onFailMessageType, payload));
+            root.put("payload", toDebugMessage("JSON", payload));
         }
     }
 
