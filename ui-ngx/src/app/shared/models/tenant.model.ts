@@ -72,6 +72,7 @@ export interface DefaultTenantProfileConfiguration {
   maxRuleNodeExecutionsPerMessage: number;
   maxEmails: number;
   maxSms: number;
+  smsEnabled: boolean;
   maxCreatedAlarms: number;
 
   tenantServerRestLimitsConfiguration: string;
@@ -126,6 +127,7 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxRuleNodeExecutionsPerMessage: 0,
           maxEmails: 0,
           maxSms: 0,
+          smsEnabled: true,
           maxCreatedAlarms: 0,
           tenantServerRestLimitsConfiguration: '',
           customerServerRestLimitsConfiguration: '',

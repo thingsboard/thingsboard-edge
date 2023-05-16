@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.LicenseUsageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -82,6 +83,7 @@ import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettingsInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.common.data.sync.vc.VcUtils;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
@@ -123,6 +125,7 @@ public class AdminController extends BaseController {
     private final TbAutoCommitSettingsService autoCommitSettingsService;
     private final UpdateService updateService;
     private final SystemInfoService systemInfoService;
+    private final AuditLogService auditLogService;
 
     protected static final String RESOURCE_READ_CHECK = "\n\nSecurity check is performed to verify that " +
             "the user has 'READ' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
@@ -271,13 +274,20 @@ public class AdminController extends BaseController {
     public void sendTestSms(
             @ApiParam(value = "A JSON value representing the Test SMS request.")
             @RequestBody TestSmsRequest testSmsRequest) throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
+        SecurityUser currentUser = getCurrentUser();
+        Authority authority = currentUser.getAuthority();
         if (Authority.SYS_ADMIN.equals(authority)) {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            accessControlService.checkPermission(currentUser, Resource.ADMIN_SETTINGS, Operation.READ);
         } else {
-            accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
+            accessControlService.checkPermission(currentUser, Resource.WHITE_LABELING, Operation.READ);
         }
-        smsService.sendTestSms(testSmsRequest);
+        try {
+            smsService.sendTestSms(testSmsRequest);
+            auditLogService.logEntityAction(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId(), currentUser.getName(), currentUser.getId(), currentUser, ActionType.SMS_SENT, null, testSmsRequest.getNumberTo());
+        } catch (ThingsboardException e) {
+            auditLogService.logEntityAction(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId(), currentUser.getName(), currentUser.getId(), currentUser, ActionType.SMS_SENT, e, testSmsRequest.getNumberTo());
+            throw e;
+        }
     }
 
     @ApiOperation(value = "Get repository settings (getRepositorySettings)",

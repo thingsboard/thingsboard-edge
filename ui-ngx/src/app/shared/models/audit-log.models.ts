@@ -83,7 +83,8 @@ export enum ActionType {
   TIMESERIES_DELETED = 'TIMESERIES_DELETED',
   CHANGE_OWNER = 'CHANGE_OWNER',
   ASSIGNED_TO_EDGE = 'ASSIGNED_TO_EDGE',
-  UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE'
+  UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE',
+  SMS_SENT = 'SMS_SENT'
 }
 
 export enum ActionStatus {
@@ -132,7 +133,8 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.TIMESERIES_DELETED, 'audit-log.type-timeseries-deleted'],
     [ActionType.CHANGE_OWNER, 'audit-log.type-owner-changed'],
     [ActionType.ASSIGNED_TO_EDGE, 'audit-log.type-assigned-to-edge'],
-    [ActionType.UNASSIGNED_FROM_EDGE, 'audit-log.type-unassigned-from-edge']
+    [ActionType.UNASSIGNED_FROM_EDGE, 'audit-log.type-unassigned-from-edge'],
+    [ActionType.SMS_SENT, 'audit-log.type-sms-sent'],
   ]
 );
 
