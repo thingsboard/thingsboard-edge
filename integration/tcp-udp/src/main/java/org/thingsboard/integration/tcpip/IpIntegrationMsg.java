@@ -31,23 +31,12 @@
 package org.thingsboard.integration.tcpip;
 
 import lombok.Data;
-import org.thingsboard.common.util.JacksonUtil;
 
 import java.net.SocketAddress;
-
-import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
 
 @Data
 public class IpIntegrationMsg {
 
     private final SocketAddress address;
     private final byte[] payload;
-
-    public Object toJson(String messageType) {
-        try {
-            return JacksonUtil.fromBytes(payload);
-        } catch (IllegalArgumentException e) {
-            return toDebugMessage(messageType, payload);
-        }
-    }
 }
