@@ -60,8 +60,6 @@ import {
   TimewindowPanelComponent,
   TimewindowPanelData
 } from '@shared/components/time/timewindow-panel.component';
-import { MediaBreakpoints } from '@shared/models/constants';
-import { BreakpointObserver } from '@angular/cdk/layout';
 import { TimeService } from '@core/services/time.service';
 import { TooltipPosition } from '@angular/material/tooltip';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
@@ -150,17 +148,6 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
     return this.timezoneValue;
   }
 
-  isToolbarValue = false;
-
-  @Input()
-  set isToolbar(val) {
-    this.isToolbarValue = coerceBooleanProperty(val);
-  }
-
-  get isToolbar() {
-    return this.isToolbarValue;
-  }
-
   asButtonValue = false;
 
   @Input()
@@ -175,6 +162,18 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
   @Input()
   @coerceBoolean()
   strokedButton = false;
+
+  @Input()
+  @coerceBoolean()
+  flatButton = false;
+
+  @Input()
+  @coerceBoolean()
+  displayTimewindowValue = true;
+
+  @Input()
+  @coerceBoolean()
+  hideLabel = false;
 
   isEditValue = false;
 
@@ -209,8 +208,7 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
               private datePipe: DatePipe,
               private cd: ChangeDetectorRef,
               private nativeElement: ElementRef,
-              public viewContainerRef: ViewContainerRef,
-              public breakpointObserver: BreakpointObserver) {
+              public viewContainerRef: ViewContainerRef) {
   }
 
   ngOnInit(): void {
@@ -315,6 +313,10 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
     this.propagateChange(cloneSelectedTimewindow(this.innerValue));
   }
 
+  displayValue(): string {
+    return this.displayTimewindowValue ? this.innerValue?.displayValue : this.translate.instant('timewindow.timewindow');
+  }
+
   updateDisplayValue() {
     if (this.innerValue.selectedTab === TimewindowType.REALTIME && !this.historyOnly) {
       this.innerValue.displayValue = this.translate.instant('timewindow.realtime') + ' - ';
@@ -347,10 +349,6 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
       this.innerValue.displayTimezoneAbbr = '';
     }
     this.cd.detectChanges();
-  }
-
-  hideLabel() {
-    return this.isToolbar && !this.breakpointObserver.isMatched(MediaBreakpoints['gt-md']);
   }
 
   private isTimewindowDisabled(): boolean {
