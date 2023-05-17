@@ -301,14 +301,6 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         return payload;
     }
 
-    protected void setUplinkContentTypeFromHandlerType(String handlerType) {
-        if (handlerType.equals(HEX_PAYLOAD)) {
-            uplinkContentType = UplinkContentType.JSON;
-        } else {
-            uplinkContentType = UplinkContentType.valueOf(handlerType);
-        }
-    }
-
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
         return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(uplinkContentType, metadataMap));
