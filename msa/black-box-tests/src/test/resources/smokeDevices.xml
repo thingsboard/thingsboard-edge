@@ -33,51 +33,11 @@
 -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="UI smoke tests">
+<suite name="Devices Smoke Tests">
     <listeners>
         <listener class-name="org.thingsboard.server.msa.ui.listeners.RetryTestListener"/>
     </listeners>
-    <test name="Smoke rule chains tests">
-        <groups>
-            <run>
-                <exclude name="broken"/>
-            </run>
-        </groups>
-        <packages>
-            <package name="org.thingsboard.server.msa.ui.tests.rulechainssmoke"/>
-        </packages>
-    </test>
-    <test name="Smoke customers tests">
-        <groups>
-            <run>
-                <exclude name="broken"/>
-            </run>
-        </groups>
-        <packages>
-            <package name="org.thingsboard.server.msa.ui.tests.customerSmoke"/>
-        </packages>
-    </test>
-    <test name="Smoke device profile tests">
-        <groups>
-            <run>
-                <exclude name="broken"/>
-            </run>
-        </groups>
-        <packages>
-            <package name="org.thingsboard.server.msa.ui.tests.deviceProfileSmoke"/>
-        </packages>
-    </test>
-    <test name="Smoke asset profile tests">
-        <groups>
-            <run>
-                <exclude name="broken"/>
-            </run>
-        </groups>
-        <packages>
-            <package name="org.thingsboard.server.msa.ui.tests.assetProfileSmoke"/>
-        </packages>
-    </test>
-    <test name="Smoke devices tests">
+    <test name="Devices ui smoke tests">
         <groups>
             <run>
                 <exclude name="broken"/>
