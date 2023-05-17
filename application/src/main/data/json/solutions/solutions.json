@@ -99,7 +99,7 @@
   },
   {
     "id": "waste_monitoring",
-    "title": "Waste Monitoring",
+    "title": "Waste Management",
     "level": "PROTOTYPE",
     "installTimeoutMs": 5000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png",
