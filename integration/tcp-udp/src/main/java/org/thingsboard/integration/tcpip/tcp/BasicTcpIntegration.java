@@ -75,7 +75,7 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
         super.init(params);
         try {
             tcpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")), TcpConfigurationParameters.class);
-            setUplinkContentTypeFromHandlerType(tcpConfigurationParameters.getHandlerConfiguration().getHandlerType());
+            uplinkContentType = tcpConfigurationParameters.getHandlerConfiguration().getUplinkContentType();
             bossGroup = new NioEventLoopGroup();
             workerGroup = new NioEventLoopGroup();
             startServer();

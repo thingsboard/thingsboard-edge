@@ -68,7 +68,7 @@ public class BasicUdpIntegration extends AbstractIpIntegration {
         super.init(params);
         try {
             udpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")), UdpConfigurationParameters.class);
-            setUplinkContentTypeFromHandlerType(udpConfigurationParameters.getHandlerConfiguration().getHandlerType());
+            uplinkContentType = udpConfigurationParameters.getHandlerConfiguration().getUplinkContentType();
             workerGroup = new NioEventLoopGroup();
             startServer();
             log.info("UDP Server of [{}] started, BIND_PORT: [{}]", configuration.getName().toUpperCase(), udpConfigurationParameters.getPort());
