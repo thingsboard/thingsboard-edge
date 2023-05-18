@@ -856,6 +856,21 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed to update schema!!!");
                 }
                 break;
+            case "3.5.1":
+                log.info("Updating schema ...");
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    try {
+//                        String [] entityNames = new String [] {"device", "component_descriptor", "customer", "dashboard", "rule_chain", "rule_node", "ota_package", "asset_profile", "asset", "device_profile", "tb_user", "tenant_profile", "tenant", "widgets_bundle", "ntity_view", "resource", "edge"};
+                        String[] entityNames = new String[]{"device"};
+                        for (String entityName : entityNames) {
+                            conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN search_text CASCADE");
+                        }
+                    } catch (Exception e) {}
+                    log.info("Schema updated.");
+                } catch (Exception e) {
+                    log.error("Failed to update schema!!!");
+                }
+                break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }

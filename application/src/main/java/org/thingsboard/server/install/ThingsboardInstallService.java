@@ -283,6 +283,11 @@ public class ThingsboardInstallService {
                             }
                             installScripts.loadSystemLwm2mResources();
                             break;
+                        case "3.5.1": // to 3.5.1PE
+                            log.info("Upgrading ThingsBoard from version 3.5.1 to 3.5.1PE ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
+                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
+                            break;
                         //TODO update CacheCleanupService on the next version upgrade
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
