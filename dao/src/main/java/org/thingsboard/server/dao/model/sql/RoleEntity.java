@@ -66,7 +66,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.ROLE_TABLE_FAMILY_NAME)
+@Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
 public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<Role> {
 
