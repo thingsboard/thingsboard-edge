@@ -62,6 +62,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     private IdComparator<TbResourceInfo> idComparator = new IdComparator<>();
 
     private static final String DEFAULT_FILE_NAME = "test.jks";
+    private static final String DEFAULT_FILE_NAME_2 = "test2.jks";
 
     private Tenant savedTenant;
     private User tenantAdmin;
@@ -258,6 +259,54 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testFindTenantTbResourcesByType() throws Exception {
+        Mockito.reset(tbClusterService, auditLogService);
+
+        List<TbResourceInfo> resources = new ArrayList<>();
+        int jksCntEntity = 17;
+        for (int i = 0; i < jksCntEntity; i++) {
+            TbResource resource = new TbResource();
+            resource.setTitle("JKS Resource" + i);
+            resource.setResourceType(ResourceType.JKS);
+            resource.setFileName(i + DEFAULT_FILE_NAME);
+            resource.setData("Test Data");
+            resources.add(new TbResourceInfo(save(resource)));
+        }
+
+        int lwm2mCntEntity = 19;
+        for (int i = 0; i < lwm2mCntEntity; i++) {
+            TbResource resource = new TbResource();
+            resource.setTitle("LWM2M Resource" + i);
+            resource.setResourceType(ResourceType.PKCS_12);
+            resource.setFileName(i + DEFAULT_FILE_NAME_2);
+            resource.setData("Test Data");
+            save(resource);
+        }
+
+        List<TbResourceInfo> loadedResources = new ArrayList<>();
+        PageLink pageLink = new PageLink(5);
+        PageData<TbResourceInfo> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/resource?resourceType=" + ResourceType.JKS.name() + "&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedResources.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new TbResource(), new TbResource(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, jksCntEntity + lwm2mCntEntity);
+
+        Collections.sort(resources, idComparator);
+        Collections.sort(loadedResources, idComparator);
+
+        Assert.assertEquals(resources, loadedResources);
+    }
+
+    @Test
     public void testFindSystemTbResources() throws Exception {
         loginSysAdmin();
 
@@ -313,6 +362,86 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         } while (pageData.hasNext());
 
         Assert.assertTrue(loadedResources.isEmpty());
+    }
+
+    @Test
+    public void testFindSystemTbResourcesByType() throws Exception {
+        loginSysAdmin();
+
+        List<TbResourceInfo> jksResources = new ArrayList<>();
+        List<TbResourceInfo> lwm2mesources = new ArrayList<>();
+        int jksCntEntity = 17;
+        for (int i = 0; i < jksCntEntity; i++) {
+            TbResource resource = new TbResource();
+            resource.setTitle("JKS Resource" + i);
+            resource.setResourceType(ResourceType.JKS);
+            resource.setFileName(i + DEFAULT_FILE_NAME);
+            resource.setData("Test Data");
+            TbResourceInfo saved = new TbResourceInfo(save(resource));
+            jksResources.add(saved);
+        }
+
+        int lwm2mCntEntity = 19;
+        for (int i = 0; i < lwm2mCntEntity; i++) {
+            TbResource resource = new TbResource();
+            resource.setTitle("LWM2M Resource" + i);
+            resource.setResourceType(ResourceType.PKCS_12);
+            resource.setFileName(i + DEFAULT_FILE_NAME_2);
+            resource.setData("Test Data");
+            TbResource saved = save(resource);
+            lwm2mesources.add(saved);
+        }
+
+        List<TbResourceInfo> loadedResources = new ArrayList<>();
+        PageLink pageLink = new PageLink(30);
+        PageData<TbResourceInfo> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/resource?resourceType=" + ResourceType.JKS + "&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedResources.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(jksResources, idComparator);
+        Collections.sort(loadedResources, idComparator);
+
+        Assert.assertEquals(jksResources, loadedResources);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        int cntEntity = jksResources.size();
+        for (TbResourceInfo resource : jksResources) {
+            doDelete("/api/resource/" + resource.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new TbResource(), new TbResource(),
+                jksResources.get(0).getTenantId(), null, null, SYS_ADMIN_EMAIL,
+                ActionType.DELETED, cntEntity, 1);
+
+        pageLink = new PageLink(27);
+        loadedResources.clear();
+        do {
+            pageData = doGetTypedWithPageLink("/api/resource?resourceType=" + ResourceType.JKS + "&",
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedResources.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Assert.assertTrue(loadedResources.isEmpty());
+
+        loginSysAdmin();
+
+        for (TbResourceInfo resource : lwm2mesources) {
+            doDelete("/api/resource/" + resource.getId().getId().toString())
+                    .andExpect(status().isOk());
+        }
     }
 
     @Test
