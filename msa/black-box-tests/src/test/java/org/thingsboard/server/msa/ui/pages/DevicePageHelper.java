@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 
 public class DevicePageHelper extends DevicePageElements {
@@ -51,18 +50,6 @@ public class DevicePageHelper extends DevicePageElements {
     public void openCreateDeviceView() {
         plusBtn().click();
         addDeviceBtn().click();
-    }
-
-    public void enterName(String deviceName) {
-        enterText(nameField(), deviceName);
-    }
-
-    public void enterDescription(String description) {
-        enterText(descriptionFieldCreateField(), description);
-    }
-
-    public void enterLabel(String label) {
-        enterText(deviceLabelFieldCreate(), label);
     }
 
     public void deleteDeviceByRightSideBtn(String deviceName) {
@@ -97,10 +84,30 @@ public class DevicePageHelper extends DevicePageElements {
         entityFromDropdown(deviceProfileName).click();
     }
 
-    public void changeOwnerOn(String customerTitle) {
-        ownerAndGroupsOptionBtn().click();
-        clearOwnerFieldBtn().click();
-        entityFromDropDown(customerTitle).click();
-        sleep(2); //waiting for the action to count
+    public void unassignedDeviceByRightSideBtn(String deviceName) {
+        unassignBtn(deviceName).click();
+        warningPopUpYesBtn().click();
+    }
+
+    public void unassignedDeviceFromDetailsTab() {
+        unassignBtnDetailsTab().click();
+        warningPopUpYesBtn().click();
+    }
+
+    public void selectDevices(String... deviceNames) {
+        for (String deviceName : deviceNames) {
+            checkBox(deviceName).click();
+        }
+    }
+
+    public void assignSelectedDevices(String... deviceNames) {
+        selectDevices(deviceNames);
+        assignMarkedDeviceBtn().click();
+    }
+
+    public void deleteSelectedDevices(String... deviceNames) {
+        selectDevices(deviceNames);
+        deleteSelectedBtn().click();
+        warningPopUpYesBtn().click();
     }
 }
