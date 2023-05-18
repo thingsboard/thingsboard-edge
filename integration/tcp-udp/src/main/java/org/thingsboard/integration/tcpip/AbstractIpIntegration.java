@@ -54,6 +54,7 @@ import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -70,6 +71,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
 
 @Slf4j
 public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegrationMsg> {
@@ -91,6 +94,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("ip-integration-scheduled"));
     protected ScheduledFuture bindFuture = null;
+
+    protected UplinkContentType uplinkContentType;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -209,7 +214,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", uplinkContentType, toDebugMessage(uplinkContentType.name(), msg.getPayload()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -299,7 +304,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), metadataMap));
+        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(uplinkContentType, metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {

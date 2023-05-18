@@ -54,15 +54,18 @@ public class Const {
     public static final String EMPTY_DEVICE_PROFILE_MESSAGE = "Device profile name should be specified!";
     public static final String EMPTY_ASSET_PROFILE_MESSAGE = "Asset profile name should be specified!";
     public static final String EMPTY_GROUP_NAME_MESSAGE = "Entity group name should be specified!";
+    public static final String EMPTY_DEVICE_MESSAGE = "Device name should be specified!";
     public static final String DELETE_RULE_CHAIN_WITH_PROFILE_MESSAGE = "The rule chain referenced by the device profiles cannot be deleted!";
     public static final String SAME_NAME_WARNING_CUSTOMER_MESSAGE = "Customer with such title already exists!";
     public static final String SAME_NAME_WARNING_DEVICE_PROFILE_MESSAGE = "Device profile with such name already exists!";
     public static final String SAME_NAME_WARNING_ASSET_PROFILE_MESSAGE = "Asset profile with such name already exists!";
     public static final String SAME_NAME_WARNING_ENTITY_GROUP_MESSAGE = "Entity Group with such name, type and owner already exists!";
+    public static final String SAME_NAME_WARNING_DEVICE_MESSAGE = "Device with such name already exists!";
     public static final String PHONE_NUMBER_ERROR_MESSAGE = "Phone number is invalid or not possible";
     public static final String NAME_IS_REQUIRED_MESSAGE = "Name is required.";
     public static final String COPY_ENTITY_GROUP_ID_MESSAGE = "Entity group Id has been copied to clipboard";
     public static final String OWNER_NOT_SELECTED_ERROR = "Target owner is required.";
+    public static final String DEVICE_PROFILE_IS_REQUIRED_MESSAGE = "Device profile is required";
 
     //Docs URLs
     public static final String DASHBOARD_GIDE_DOCS_URL = "https://thingsboard.io/docs/user-guide/dashboards/";
