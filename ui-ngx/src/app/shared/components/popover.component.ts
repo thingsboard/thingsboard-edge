@@ -73,6 +73,7 @@ import {
 import { distinctUntilChanged, take, takeUntil } from 'rxjs/operators';
 import { isNotEmptyStr, onParentScrollOrWindowResize } from '@core/utils';
 import { animate, AnimationBuilder, AnimationMetadata, style } from '@angular/animations';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 export type TbPopoverTrigger = 'click' | 'focus' | 'hover' | null;
 
@@ -87,10 +88,12 @@ export class TbPopoverDirective implements OnChanges, OnDestroy, AfterViewInit {
 
   /* eslint-disable @angular-eslint/no-input-rename */
   @Input('tbPopoverContent') content?: string | TemplateRef<void>;
+  @Input('tbPopoverContext') context?: any | null = null;
   @Input('tbPopoverTrigger') trigger?: TbPopoverTrigger = 'hover';
   @Input('tbPopoverPlacement') placement?: string | string[] = 'top';
   @Input('tbPopoverOrigin') origin?: ElementRef<HTMLElement>;
   @Input('tbPopoverVisible') visible?: boolean;
+  @Input('tbPopoverShowCloseButton') @coerceBoolean() showCloseButton = true;
   @Input('tbPopoverMouseEnterDelay') mouseEnterDelay?: number;
   @Input('tbPopoverMouseLeaveDelay') mouseLeaveDelay?: number;
   @Input('tbPopoverOverlayClassName') overlayClassName?: string;
@@ -235,9 +238,11 @@ export class TbPopoverDirective implements OnChanges, OnDestroy, AfterViewInit {
     const mappingProperties: PropertyMapping = {
       // common mappings
       content: ['tbContent', () => this.content],
+      context: ['tbComponentContext', () => this.context],
       trigger: ['tbTrigger', () => this.trigger],
       placement: ['tbPlacement', () => this.placement],
       visible: ['tbVisible', () => this.visible],
+      showCloseButton: ['tbShowCloseButton', () => this.showCloseButton],
       mouseEnterDelay: ['tbMouseEnterDelay', () => this.mouseEnterDelay],
       mouseLeaveDelay: ['tbMouseLeaveDelay', () => this.mouseLeaveDelay],
       overlayClassName: ['tbOverlayClassName', () => this.overlayClassName],
@@ -335,7 +340,9 @@ export class TbPopoverDirective implements OnChanges, OnDestroy, AfterViewInit {
               <div style="width: 100%; height: 100%;">
                 <div class="tb-popover-inner-content">
                   <ng-container *ngIf="tbContent">
-                    <ng-container *tbStringTemplateOutlet="tbContent">{{ tbContent }}</ng-container>
+                    <ng-container *tbStringTemplateOutlet="tbContent; context: tbComponentContext">
+                      {{ tbContent }}
+                    </ng-container>
                   </ng-container>
                   <ng-container *ngIf="tbComponentFactory"
                                 [tbComponentOutlet]="tbComponentFactory"
@@ -519,6 +526,7 @@ export class TbPopoverComponent implements OnDestroy, OnInit {
       });
       this.intersectionObserver.observe(el);
     }
+    this.tbAnimationState = 'active';
   }
 
   hide(): void {

@@ -33,8 +33,6 @@ package org.thingsboard.integration.aws.sqs;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.util.concurrent.TimeUnit;
-
 /*
  * Created by Valerii Sosliuk on 03.06.19
  */

@@ -33,12 +33,14 @@ package org.thingsboard.server.common.data;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.Valid;
 import java.util.List;
 
 @ApiModel
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class DeviceInfo extends Device {
 
     @Valid
@@ -49,13 +51,17 @@ public class DeviceInfo extends Device {
     @ApiModelProperty(position = 15, value = "Groups", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private List<EntityInfo> groups;
 
+    @ApiModelProperty(position = 16, value = "Device active flag.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private boolean active;
+
     public DeviceInfo() {
         super();
     }
 
-    public DeviceInfo(Device device, String ownerName, List<EntityInfo> groups) {
+    public DeviceInfo(Device device, String ownerName, List<EntityInfo> groups, boolean active) {
         super(device);
         this.ownerName = ownerName;
         this.groups = groups;
+        this.active = active;
     }
 }

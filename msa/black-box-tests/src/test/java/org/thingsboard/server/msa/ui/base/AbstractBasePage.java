@@ -254,4 +254,8 @@ abstract public class AbstractBasePage {
                     new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
         }
     }
+
+    public void pull(WebElement element, int xOffset, int yOffset) {
+        actions.clickAndHold(element).moveByOffset(xOffset, yOffset).release().perform();
+    }
 }

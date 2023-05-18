@@ -51,8 +51,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
-
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")

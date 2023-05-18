@@ -3122,11 +3122,6 @@
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.8.tgz#30744afdb385e2945e22f3b033f897f76b1f12ca"
   integrity sha512-1rkryxURpr6aWP7R786/UQOkJ3PcpQiWkAXBmdWc7ryFWqN6a4xfK7BtjXvFBKO9LjQ+MWQSWxYeZX1OApnArA==
 
-"@types/grecaptcha@^3.0.3":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@types/grecaptcha/-/grecaptcha-3.0.4.tgz#3de601f3b0cd0298faf052dd5bd62aff64c2be2e"
-  integrity sha512-7l1Y8DTGXkx/r4pwU1nMVAR+yD/QC+MCHKXAyEX/7JZhwcN1IED09aZ9vCjjkcGdhSQiu/eJqcXInpl6eEEEwg==
-
 "@types/hammerjs@^2.0.40":
   version "2.0.41"
   resolved "https://registry.yarnpkg.com/@types/hammerjs/-/hammerjs-2.0.41.tgz#f6ecf57d1b12d2befcce00e928a6a097c22980aa"
@@ -8424,20 +8419,19 @@ neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-ng-recaptcha@^11.0.0:
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/ng-recaptcha/-/ng-recaptcha-11.0.0.tgz#858686cd377ec42a47aa9362e230d31dcff3d982"
-  integrity sha512-DS0ESI9ODmAW2ToBU5EuizusAmGcJCmYCKGB5CYWntPQOHDEcCWLxkQ6RJrF2USLtq9vooN5KVV45pNUpmPhNw==
-  dependencies:
-    "@types/grecaptcha" "^3.0.3"
-    tslib "^2.2.0"
-
 ngrx-store-freeze@^0.2.4:
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/ngrx-store-freeze/-/ngrx-store-freeze-0.2.4.tgz#146687cdf7e21244eb9003c7e883f2125847076c"
   integrity sha512-90awpbbMa/x2H81eWWYniyli3LJ1PZU/FaztL10d9Rp/4kw2+97pqyLjdxSPxcOv9St//m9kfuWZ7gyoVDjgcg==
   dependencies:
     deep-freeze-strict "^1.1.1"
+
+ngx-captcha@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/ngx-captcha/-/ngx-captcha-13.0.0.tgz#3d00970a4d9f1eed69f71261903e39bbad865388"
+  integrity sha512-WmT0p0C1iaR4PT7etFdpuQ5rS8EILkizBJhgbP9Prc14jfwYsLTfAsevYPxZPwlU4Dd02osH1//a37Qb93wTWg==
+  dependencies:
+    tslib "^2.3.0"
 
 ngx-clipboard@^15.1.0:
   version "15.1.0"

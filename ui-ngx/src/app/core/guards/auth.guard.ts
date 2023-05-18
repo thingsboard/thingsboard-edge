@@ -119,7 +119,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
           } else {
             const tasks: Observable<any>[] = [];
             tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
-            if (path === 'login' || path === 'signup') {
+            if (path === 'login' || path === 'signup' || path === 'signup.recaptcha') {
               tasks.push(this.selfRegistrationService.loadSelfRegistrationParams());
               if (path === 'login') {
                 tasks.push(this.authService.loadOAuth2Clients());

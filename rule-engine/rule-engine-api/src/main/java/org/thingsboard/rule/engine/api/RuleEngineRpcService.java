@@ -30,10 +30,10 @@
  */
 package org.thingsboard.rule.engine.api;
 
-import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.Rpc;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
 import java.util.function.Consumer;

@@ -69,7 +69,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -204,6 +203,8 @@ public class SelfRegistrationController extends BaseController {
         SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
         result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
         result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
+        result.setCaptchaVersion(selfRegistrationParams.getCaptchaVersion());
+        result.setCaptchaAction(selfRegistrationParams.getCaptchaAction());
         result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
         result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
 

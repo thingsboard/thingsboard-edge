@@ -150,7 +150,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     const columns: Array<EntityColumn<AssetInfo>> = [
       new DateEntityTableColumn<AssetInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<AssetInfo>('name', 'asset.name', '20%', config.entityTitle),
-      new EntityTableColumn<AssetInfo>('type', 'asset.asset-type', '20%'),
+      new EntityTableColumn<AssetInfo>('type', 'asset-profile.asset-profile', '20%'),
       new EntityTableColumn<AssetInfo>('label', 'asset.label', '15%'),
     ];
     if (config.componentsData.includeCustomers) {

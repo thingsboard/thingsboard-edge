@@ -31,6 +31,8 @@
 
 import { Inject, Injectable, NgZone } from '@angular/core';
 import {
+  AlarmCountCmd, AlarmCountUnsubscribeCmd,
+  AlarmCountUpdate,
   AlarmDataCmd,
   AlarmDataUnsubscribeCmd,
   AlarmDataUpdate,
@@ -41,7 +43,7 @@ import {
   EntityDataCmd,
   EntityDataUnsubscribeCmd,
   EntityDataUpdate,
-  GetHistoryCmd,
+  GetHistoryCmd, isAlarmCountUpdateMsg,
   isAlarmDataUpdateMsg,
   isEntityCountUpdateMsg,
   isEntityDataUpdateMsg,
@@ -97,6 +99,8 @@ export class TelemetryWebsocketService extends WebsocketService<TelemetrySubscri
           this.cmdWrapper.alarmDataCmds.push(subscriptionCommand);
         } else if (subscriptionCommand instanceof EntityCountCmd) {
           this.cmdWrapper.entityCountCmds.push(subscriptionCommand);
+        } else if (subscriptionCommand instanceof AlarmCountCmd) {
+          this.cmdWrapper.alarmCountCmds.push(subscriptionCommand);
         }
       }
     );
@@ -142,6 +146,10 @@ export class TelemetryWebsocketService extends WebsocketService<TelemetrySubscri
             const entityCountUnsubscribeCmd = new EntityCountUnsubscribeCmd();
             entityCountUnsubscribeCmd.cmdId = subscriptionCommand.cmdId;
             this.cmdWrapper.entityCountUnsubscribeCmds.push(entityCountUnsubscribeCmd);
+          } else if (subscriptionCommand instanceof AlarmCountCmd) {
+            const alarmCountUnsubscribeCmd = new AlarmCountUnsubscribeCmd();
+            alarmCountUnsubscribeCmd.cmdId = subscriptionCommand.cmdId;
+            this.cmdWrapper.alarmCountUnsubscribeCmds.push(alarmCountUnsubscribeCmd);
           }
           const cmdId = subscriptionCommand.cmdId;
           if (cmdId) {
@@ -173,6 +181,11 @@ export class TelemetryWebsocketService extends WebsocketService<TelemetrySubscri
       subscriber = this.subscribersMap.get(message.cmdId);
       if (subscriber) {
         subscriber.onEntityCount(new EntityCountUpdate(message));
+      }
+    } else if (isAlarmCountUpdateMsg(message)) {
+      subscriber = this.subscribersMap.get(message.cmdId);
+      if (subscriber) {
+        subscriber.onAlarmCount(new AlarmCountUpdate(message));
       }
     } else if (message.subscriptionId) {
       subscriber = this.subscribersMap.get(message.subscriptionId);

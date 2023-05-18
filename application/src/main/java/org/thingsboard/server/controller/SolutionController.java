@@ -56,7 +56,6 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static org.thingsboard.server.controller.ControllerConstants.ASSET_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;

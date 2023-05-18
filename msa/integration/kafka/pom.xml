@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard.msa</groupId>
-        <version>3.5.0PE-SNAPSHOT</version>
+        <version>3.5.1PE-SNAPSHOT</version>
         <artifactId>integration</artifactId>
     </parent>
 
@@ -55,7 +55,7 @@
         <docker.name>tb-${tb.docker.id}-kafka-integration</docker.name>
         <pkg.logFolder>/var/log/${pkg.name}</pkg.logFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <docker.push-integraion-arm-amd-image.phase>pre-integration-test</docker.push-integraion-arm-amd-image.phase>
+        <docker.push-integration-arm-amd-image.phase>pre-integration-test</docker.push-integration-arm-amd-image.phase>
     </properties>
 
     <dependencies>

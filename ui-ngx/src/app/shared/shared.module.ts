@@ -221,6 +221,7 @@ import {
 } from '@shared/layout/layout.directives';
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
+import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -237,11 +238,11 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     FileSizePipe,
     DateAgoPipe,
     SafePipe,
-    DateAgoPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
     HasGroupEntityOrGenericPermissionPipe,
+    ShortNumberPipe,
     {
       provide: FlowInjectionToken,
       useValue: Flow
@@ -372,7 +373,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     FileSizePipe,
     DateAgoPipe,
     SafePipe,
-    DateAgoPipe,
+    ShortNumberPipe,
     SelectableColumnsPipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
@@ -400,7 +401,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    DateAgoPipe,
     MdLgLayoutDirective,
     MdLgLayoutAlignDirective,
     MdLgLayoutGapDirective,
@@ -616,7 +616,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     FileSizePipe,
     DateAgoPipe,
     SafePipe,
-    DateAgoPipe,
+    ShortNumberPipe,
     SelectableColumnsPipe,
     RouterModule,
     HasGenericPermissionPipe,
@@ -644,7 +644,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    DateAgoPipe,
     MdLgLayoutDirective,
     MdLgLayoutAlignDirective,
     MdLgLayoutGapDirective,
