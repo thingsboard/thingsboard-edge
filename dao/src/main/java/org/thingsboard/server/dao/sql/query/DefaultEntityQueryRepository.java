@@ -1936,9 +1936,11 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (!StringUtils.isEmpty(filter.getEntityNameFilter())) {
             ctx.addStringParameter("entity_filter_name_filter", filter.getEntityNameFilter());
             if (filter.getEntityNameFilter().startsWith("%") || filter.getEntityNameFilter().endsWith("%")) {
-                return "(lower(e.name) or lower(e.label)) like lower(:entity_filter_name_filter)";
+                return "(lower(e.name) like lower(:entity_filter_name_filter) or " +
+                        "lower(e.label) like lower(:entity_filter_name_filter))";
             }
-            return "(lower(e.name) or lower(e.label)) like lower(concat(:entity_filter_name_filter, '%%'))";
+            return "(lower(e.name) like lower(concat(:entity_filter_name_filter, '%%')) or " +
+                    "lower(e.label) like lower(concat(:entity_filter_name_filter, '%%')))";
         } else {
             return "";
         }
@@ -1980,9 +1982,11 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (!StringUtils.isEmpty(name)) {
             ctx.addStringParameter("entity_filter_type_query_name", name);
             if (name.startsWith("%") || name.endsWith("%")) {
-                return typesFilter + " and (lower(e.name) or lower(e.label)) like lower(:entity_filter_type_query_name)";
+                return typesFilter + " and (lower(e.name) like lower(:entity_filter_type_query_name) " +
+                                      "or lower(e.label) like lower(:entity_filter_type_query_name))";
             }
-            return typesFilter + " and (lower(e.name) or lower(e.label)) like lower(concat(:entity_filter_type_query_name, '%%'))";
+            return typesFilter + " and (lower(e.name) like lower(concat(:entity_filter_type_query_name, '%%')) " +
+                                   "or lower(e.label) like lower(concat(:entity_filter_type_query_name, '%%')))";
         } else {
             return typesFilter;
         }
