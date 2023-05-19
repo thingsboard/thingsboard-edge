@@ -67,7 +67,7 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String DEVICE_OWNER_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-ownerName')]/span";
     private static final String OWNER_FIELD = "//input[@formcontrolname='owner']";
     private static final String DEVICE_LABEL_EDIT = "//input[@formcontrolname='label']";
-    private static final String DEVICE_DEVICE_PROFILE_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-deviceProfileName')]/span";
+    private static final String DEVICE_DEVICE_PROFILE_PAGE = DEVICE + "/ancestor::mat-row//mat-cell[contains(@class,'cdk-column-type')]/span";
     protected static final String ASSIGN_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),'assignment_ind')]/ancestor::button";
     protected static final String UNASSIGN_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' assignment_return')]/ancestor::button";
     protected static final String ASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Assign to customer')]/parent::button";
