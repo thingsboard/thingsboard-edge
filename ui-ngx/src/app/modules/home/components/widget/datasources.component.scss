@@ -28,8 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../theme";
-
 .tb-datasource-list-item {
   &.mat-mdc-list-item {
     height: auto;
@@ -59,7 +57,7 @@
   font-weight: 400;
   font-size: 16px;
   text-align: center;
-  color: $tb-primary-color;
+  color: var(--tb-primary-500);
   &:before {
     content: "";
     display: block;
@@ -68,7 +66,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    background-color: $tb-primary-color;
+    background-color: var(--tb-primary-500);
     opacity: 0.06;
     border-radius: 100%;
   }
