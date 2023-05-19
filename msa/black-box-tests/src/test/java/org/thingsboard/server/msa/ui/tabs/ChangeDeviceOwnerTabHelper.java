@@ -32,14 +32,23 @@ package org.thingsboard.server.msa.ui.tabs;
 
 import org.openqa.selenium.WebDriver;
 
-public class AssignDeviceTabHelper extends AssignDeviceTabElements {
-    public AssignDeviceTabHelper(WebDriver driver) {
+public class ChangeDeviceOwnerTabHelper extends ChangeDeviceOwnerTabElements {
+    public ChangeDeviceOwnerTabHelper(WebDriver driver) {
         super(driver);
     }
 
-    public void assignOnCustomer(String customerTitle) {
-        assignOnCustomerField().click();
+    public void selectOwner(String customerTitle) {
+        changeOwnerField().sendKeys(customerTitle);
+        if (changeOwnerField().getAttribute("value").isEmpty()) {
+            changeOwnerField().sendKeys(customerTitle);
+        }
         customerFromDropDown(customerTitle).click();
-        assignBtn().click();
     }
+
+    public void changeOwnerOn(String customerTitle) {
+        selectOwner(customerTitle);
+        changeOwnerBtn().click();
+        yesBtnConfirmChangeOwner().click();
+    }
+
 }

@@ -72,8 +72,7 @@ public class DevicePageElements extends OtherPageElementsHelper {
     protected static final String UNASSIGN_BTN = ENTITY + "/ancestor::mat-row//mat-icon[contains(text(),' assignment_return')]/ancestor::button";
     protected static final String ASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Assign to customer')]/parent::button";
     protected static final String UNASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Unassign from customer')]/parent::button";
-    protected static final String ASSIGNED_FIELD_DETAILS_TAB = "//mat-label[text() = 'Assigned to customer']/parent::label/parent::div/input";
-    protected static final String ASSIGN_MARKED_DEVICE_BTN = "//mat-icon[text() = 'assignment_ind']/parent::button";
+    protected static final String CHANGE_OWNER_BTN = "//mat-icon[text() = 'assignment_ind']/parent::button";
 
     public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
@@ -207,11 +206,7 @@ public class DevicePageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(UNASSIGN_BTN_DETAILS_TAB);
     }
 
-    public WebElement assignFieldDetailsTab() {
-        return waitUntilVisibilityOfElementLocated(ASSIGNED_FIELD_DETAILS_TAB);
-    }
-
-    public WebElement assignMarkedDeviceBtn() {
-        return waitUntilVisibilityOfElementLocated(ASSIGN_MARKED_DEVICE_BTN);
+    public WebElement changeOwnerDeviceBtn() {
+        return waitUntilVisibilityOfElementLocated(CHANGE_OWNER_BTN);
     }
 }

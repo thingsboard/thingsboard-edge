@@ -100,9 +100,9 @@ public class DevicePageHelper extends DevicePageElements {
         }
     }
 
-    public void assignSelectedDevices(String... deviceNames) {
+    public void changeOwnerSelectedDevices(String... deviceNames) {
         selectDevices(deviceNames);
-        assignMarkedDeviceBtn().click();
+        changeOwnerDeviceBtn().click();
     }
 
     public void deleteSelectedDevices(String... deviceNames) {
