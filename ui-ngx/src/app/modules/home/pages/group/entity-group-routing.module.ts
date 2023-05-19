@@ -159,7 +159,7 @@ const redirectDashboardGroupsRoutes: Routes = [
   },
   {
     path: 'dashboardGroups/:entityGroupId/:dashboardId',
-    redirectTo: '/dashboards/groups/:entityGroupId/:dashboardId'
+    redirectTo: 'dashboards/groups/:entityGroupId/:dashboardId'
   }
 ];
 
