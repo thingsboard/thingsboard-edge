@@ -50,7 +50,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.DASHBOARD_TABLE_NAME)
 public final class DashboardEntity extends AbstractDashboardEntity<Dashboard> {
 
     @Type(type = "json")

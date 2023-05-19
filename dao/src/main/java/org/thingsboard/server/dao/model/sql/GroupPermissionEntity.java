@@ -62,7 +62,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.GROUP_PERMISSION_U
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.GROUP_PERMISSION_TABLE_FAMILY_NAME)
+@Table(name = ModelConstants.GROUP_PERMISSION_TABLE_NAME)
 @Slf4j
 public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
 

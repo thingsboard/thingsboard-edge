@@ -53,7 +53,7 @@ import java.util.List;
 @Entity
 @TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
-@Table(name = ModelConstants.DASHBOARD_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.DASHBOARD_INFO_VIEW_TABLE_NAME)
 public class DashboardFullInfoEntity extends AbstractDashboardEntity<DashboardInfo> {
 
     @Type(type = "json")

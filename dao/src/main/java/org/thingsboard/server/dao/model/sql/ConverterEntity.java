@@ -51,7 +51,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
@@ -64,7 +64,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = CONVERTER_COLUMN_FAMILY_NAME)
+@Table(name = CONVERTER_TABLE_NAME)
 public final class ConverterEntity extends BaseSqlEntity<Converter> implements SearchTextEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
