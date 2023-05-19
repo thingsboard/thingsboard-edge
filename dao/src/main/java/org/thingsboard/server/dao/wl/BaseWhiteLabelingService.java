@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.wl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -40,6 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -75,8 +75,6 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class BaseWhiteLabelingService implements WhiteLabelingService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String LOGIN_WHITE_LABEL_PARAMS = "loginWhiteLabelParams";
 
@@ -213,13 +211,13 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         if (whiteLabelParamsSettings == null) {
             whiteLabelParamsSettings = new AdminSettings();
             whiteLabelParamsSettings.setKey(WHITE_LABEL_PARAMS);
-            ObjectNode node = objectMapper.createObjectNode();
+            ObjectNode node = JacksonUtil.newObjectNode();
             whiteLabelParamsSettings.setJsonValue(node);
         }
         String json;
         try {
-            json = objectMapper.writeValueAsString(whiteLabelingParams);
-        } catch (JsonProcessingException e) {
+            json = JacksonUtil.toString(whiteLabelingParams);
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert White Labeling Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert White Labeling Params to JSON!");
         }
@@ -235,13 +233,13 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         if (loginWhiteLabelParamsSettings == null) {
             loginWhiteLabelParamsSettings = new AdminSettings();
             loginWhiteLabelParamsSettings.setKey(LOGIN_WHITE_LABEL_PARAMS);
-            ObjectNode node = objectMapper.createObjectNode();
+            ObjectNode node = JacksonUtil.newObjectNode();
             loginWhiteLabelParamsSettings.setJsonValue(node);
         }
         String json;
         try {
-            json = objectMapper.writeValueAsString(loginWhiteLabelingParams);
-        } catch (JsonProcessingException e) {
+            json = JacksonUtil.toString(loginWhiteLabelingParams);
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert Login White Labeling Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert Login White Labeling Params to JSON!");
         }
@@ -339,7 +337,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     private AdminSettings saveLoginWhiteLabelSettings(TenantId tenantId, EntityId currentEntityId, String loginWhiteLabelKey) {
         AdminSettings loginWhiteLabelSettings = new AdminSettings();
         loginWhiteLabelSettings.setKey(loginWhiteLabelKey);
-        ObjectNode node = objectMapper.createObjectNode();
+        ObjectNode node = JacksonUtil.newObjectNode();
         loginWhiteLabelSettings.setJsonValue(node);
         ((ObjectNode) loginWhiteLabelSettings.getJsonValue()).put("entityType", currentEntityId.getEntityType().name());
         ((ObjectNode) loginWhiteLabelSettings.getJsonValue()).put("entityId", currentEntityId.getId().toString());
@@ -401,9 +399,9 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         WhiteLabelingParams result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = objectMapper.readValue(json, WhiteLabelingParams.class);
+                result = JacksonUtil.fromString(json, WhiteLabelingParams.class);
                 if (isSystem) {
-                    JsonNode jsonNode = objectMapper.readTree(json);
+                    JsonNode jsonNode = JacksonUtil.toJsonNode(json);
                     if (!jsonNode.has("helpLinkBaseUrl")) {
                         result.setHelpLinkBaseUrl("https://thingsboard.io");
                     }
@@ -414,7 +412,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
                         result.setEnableHelpLinks(true);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read White Labeling Params from JSON!");
             }
@@ -444,8 +442,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         LoginWhiteLabelingParams result = null;
         if (!StringUtils.isEmpty(json)) {
             try {
-                result = objectMapper.readValue(json, LoginWhiteLabelingParams.class);
-            } catch (IOException e) {
+                result = JacksonUtil.fromString(json, LoginWhiteLabelingParams.class);
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read Login White Labeling Params from JSON!", e);
                 throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
             }
@@ -544,8 +542,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     private ListenableFuture<List<String>> saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
         String json;
         try {
-            json = objectMapper.writeValueAsString(whiteLabelingParams);
-        } catch (JsonProcessingException e) {
+            json = JacksonUtil.toString(whiteLabelingParams);
+        } catch (IllegalArgumentException e) {
             log.error("Unable to convert White Labeling Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert White Labeling Params to JSON!");
         }

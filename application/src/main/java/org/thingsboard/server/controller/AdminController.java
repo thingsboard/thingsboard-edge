@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -109,8 +109,6 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHO
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController extends BaseController {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final AttributesService attributesService;
     private final MailService mailService;
@@ -471,7 +469,7 @@ public class AdminController extends BaseController {
         JsonNode jsonValue = null;
         if (!StringUtils.isEmpty(jsonString)) {
             try {
-                jsonValue = objectMapper.readTree(jsonString);
+                jsonValue = JacksonUtil.toJsonNode(jsonString);
             } catch (Exception e) {
             }
         }
@@ -480,7 +478,7 @@ public class AdminController extends BaseController {
                 AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(getTenantId(), key));
                 jsonValue = systemAdminSettings.getJsonValue();
             } else {
-                jsonValue = objectMapper.createObjectNode();
+                jsonValue = JacksonUtil.newObjectNode();
             }
         }
         AdminSettings adminSettings = new AdminSettings();
@@ -493,7 +491,7 @@ public class AdminController extends BaseController {
         accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
         if (adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
-            JsonNode oldMailSettings = objectMapper.readTree(getEntityAttributeValue(getTenantId(), "mail"));
+            JsonNode oldMailSettings = JacksonUtil.toJsonNode(getEntityAttributeValue(getTenantId(), "mail"));
             if (oldMailSettings != null) {
                 if (oldMailSettings.has("password")) {
                     ((ObjectNode) jsonValue).put("password", oldMailSettings.get("password").asText());
@@ -503,7 +501,7 @@ public class AdminController extends BaseController {
         String jsonString = null;
         if (jsonValue != null) {
             try {
-                jsonString = objectMapper.writeValueAsString(jsonValue);
+                jsonString = JacksonUtil.toString(jsonValue);
             } catch (Exception e) {
             }
         }

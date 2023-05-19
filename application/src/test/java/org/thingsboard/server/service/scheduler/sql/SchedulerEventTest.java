@@ -118,7 +118,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setName("TestRpc");
         schedulerEvent.setType("sendRpcRequest");
-        ObjectNode schedule = mapper.createObjectNode();
+        ObjectNode schedule = JacksonUtil.newObjectNode();
         schedule.put("startTime", Long.MAX_VALUE);
         schedule.put("timezone", "UTC");
         schedulerEvent.setSchedule(schedule);

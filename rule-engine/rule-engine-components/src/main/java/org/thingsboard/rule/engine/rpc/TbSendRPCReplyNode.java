@@ -113,7 +113,7 @@ public class TbSendRPCReplyNode implements TbNode {
             return;
         }
 
-        ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        ObjectNode body = JacksonUtil.newObjectNode();
         body.put("serviceId", serviceIdStr);
         body.put("sessionId", sessionIdStr);
         body.put("requestId", requestIdStr);

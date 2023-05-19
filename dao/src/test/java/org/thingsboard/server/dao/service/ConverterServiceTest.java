@@ -32,11 +32,11 @@ package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -56,8 +56,8 @@ public class ConverterServiceTest extends AbstractServiceTest {
     @Autowired
     ConverterService converterService;
 
-    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = new ObjectMapper()
-            .createObjectNode().put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = JacksonUtil.newObjectNode()
+            .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
     private IdComparator<Converter> idComparator = new IdComparator<>();
 
     @Test
