@@ -50,7 +50,10 @@ var telemetryData = toFlatMap(data.uplink_message, excludeFromTelemetryList, fal
 var attributesData = toFlatMap(data, excludeFromAttributesList, false);
 
 // Passing incoming bytes to decodeFrmPayload function, to get custom decoding
-var customDecoding = decodeFrmPayload(base64ToBytes(data.uplink_message.frm_payload));
+var customDecoding = {};
+if (data.uplink_message.get("frm_payload") != null) {
+  customDecoding = decodeFrmPayload(base64ToBytes(data.uplink_message.frm_payload));
+}
 
 // Collecting data to result
 if (customDecoding.?telemetry.size() > 0) {
