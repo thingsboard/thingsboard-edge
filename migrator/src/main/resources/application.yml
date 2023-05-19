@@ -1,0 +1,81 @@
+#
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+#
+# Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+#
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
+#
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+#
+
+mode: ${MIGRATOR_MODE}  # POSTGRES_TENANT_DATA_EXPORT, CASSANDRA_TENANT_DATA_EXPORT, POSTGRES_TENANT_DATA_IMPORT, CASSANDRA_TENANT_DATA_IMPORT,
+working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant data will be stored or read from
+
+export:
+  tenant_id: ${EXPORTED_TENANT_ID:}
+  sql:
+    batch_size: ${EXPORT_SQL_BATCH_SIZE:500}
+    delay_between_queries: ${EXPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
+
+import:
+  sql:
+    delay_between_queries: ${IMPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
+    enable_partition_creation: ${IMPORT_SQL_ENABLE_PARTITION_CREATION:true}
+    update_tenant_profile: ${IMPORT_SQL_UPDATE_TENANT_PROFILE:true}
+    update_ts_kv_dictionary: ${IMPORT_SQL_UPDATE_TS_KV_DICTIONARY:true}
+    resolve_unknown_roles: ${IMPORT_SQL_RESOLVE_UNKNOWN_ROLES:true}
+    ignore_conflicts: ${IMPORT_SQL_IGNORE_CONFLICTS:false}
+  cassandra:
+    ttl: ${CASSANDRA_TS_KV_TTL:730}  # days
+
+skipped_tables: ${SKIPPED_TABLES:RULE_NODE_DEBUG_EVENT,STATS_EVENT,LC_EVENT}
+
+parallelism_level: ${PARALLELISM_LEVEL:4}
+stats_print_interval: ${STATS_PRINT_INTERVAL:1000}
+
+partition_sizes: # in hours
+  event: ${EVENTS_PARTITION_SIZE:168}
+  debug_event: ${DEBUG_EVENTS_PARTITION_SIZE:1}
+  edge_event: ${EDGE_EVENTS_PARTITION_SIZE:168}
+  audit_log: ${AUDIT_LOGS_PARTITION_SIZE:168}
+  blob_entity: ${BLOB_ENTITIES_PARTITION_SIZE:168}
+
+spring:
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/thingsboard}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+
+  data:
+    cassandra:
+      keyspace-name: ${CASSANDRA_KEYSPACE_NAME:thingsboard}
+      contact-points: ${CASSANDRA_URL:127.0.0.1:9042}
+      local-datacenter: ${CASSANDRA_LOCAL_DATACENTER:datacenter1}
+      request:
+        page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}
+        timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+      connection:
+        connect-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+        init-query-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}

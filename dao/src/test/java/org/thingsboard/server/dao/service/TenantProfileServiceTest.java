@@ -1,0 +1,359 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.dao.service;
+
+import com.fasterxml.jackson.databind.node.NullNode;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.queue.ProcessingStrategy;
+import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
+import org.thingsboard.server.common.data.queue.SubmitStrategy;
+import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
+import org.thingsboard.server.exception.DataValidationException;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@DaoSqlTest
+public class TenantProfileServiceTest extends AbstractServiceTest {
+
+    @Autowired
+    TenantProfileService tenantProfileService;
+
+    private IdComparator<TenantProfile> idComparator = new IdComparator<>();
+    private IdComparator<EntityInfo> tenantProfileInfoIdComparator = new IdComparator<>();
+
+    @Before
+    public void before() {
+        //this test requires no Tenants in the database
+        tenantId = null;
+        tenantService.deleteTenants();
+        tenantProfileService.deleteTenantProfiles(TenantId.SYS_TENANT_ID);
+    }
+
+    @After
+    public void after() {
+        tenantProfileService.deleteTenantProfiles(TenantId.SYS_TENANT_ID);
+    }
+
+    @Test
+    public void testSaveTenantProfile() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+
+        tenantProfile.setIsolatedTbRuleEngine(true);
+
+        TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
+        mainQueueConfiguration.setName(DataConstants.MAIN_QUEUE_NAME);
+        mainQueueConfiguration.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
+        mainQueueConfiguration.setPollInterval(25);
+        mainQueueConfiguration.setPartitions(10);
+        mainQueueConfiguration.setConsumerPerPartition(true);
+        mainQueueConfiguration.setPackProcessingTimeout(2000);
+        SubmitStrategy mainQueueSubmitStrategy = new SubmitStrategy();
+        mainQueueSubmitStrategy.setType(SubmitStrategyType.BURST);
+        mainQueueSubmitStrategy.setBatchSize(1000);
+        mainQueueConfiguration.setSubmitStrategy(mainQueueSubmitStrategy);
+        ProcessingStrategy mainQueueProcessingStrategy = new ProcessingStrategy();
+        mainQueueProcessingStrategy.setType(ProcessingStrategyType.SKIP_ALL_FAILURES);
+        mainQueueProcessingStrategy.setRetries(3);
+        mainQueueProcessingStrategy.setFailurePercentage(0);
+        mainQueueProcessingStrategy.setPauseBetweenRetries(3);
+        mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
+        mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
+        mainQueueConfiguration.setAdditionalInfo(NullNode.getInstance());
+        tenantProfile.getProfileData().setQueueConfiguration(Collections.singletonList(mainQueueConfiguration));
+
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        Assert.assertNotNull(savedTenantProfile);
+        Assert.assertNotNull(savedTenantProfile.getId());
+        Assert.assertTrue(savedTenantProfile.getCreatedTime() > 0);
+        Assert.assertEquals(tenantProfile.getName(), savedTenantProfile.getName());
+        Assert.assertEquals(tenantProfile.getDescription(), savedTenantProfile.getDescription());
+        Assert.assertEquals(tenantProfile.getProfileData(), savedTenantProfile.getProfileData());
+        Assert.assertEquals(tenantProfile.isDefault(), savedTenantProfile.isDefault());
+        Assert.assertEquals(tenantProfile.isIsolatedTbRuleEngine(), savedTenantProfile.isIsolatedTbRuleEngine());
+
+        savedTenantProfile.setName("New tenant profile");
+        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile);
+        TenantProfile foundTenantProfile = tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+        Assert.assertEquals(foundTenantProfile.getName(), savedTenantProfile.getName());
+    }
+
+    @Test
+    public void testFindTenantProfileById() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        TenantProfile foundTenantProfile = tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+        Assert.assertNotNull(foundTenantProfile);
+        Assert.assertEquals(savedTenantProfile, foundTenantProfile);
+    }
+
+    @Test
+    public void testFindTenantProfileInfoById() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        EntityInfo foundTenantProfileInfo = tenantProfileService.findTenantProfileInfoById(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+        Assert.assertNotNull(foundTenantProfileInfo);
+        Assert.assertEquals(savedTenantProfile.getId(), foundTenantProfileInfo.getId());
+        Assert.assertEquals(savedTenantProfile.getName(), foundTenantProfileInfo.getName());
+    }
+
+    @Test
+    public void testFindDefaultTenantProfile() {
+        TenantProfile tenantProfile = this.createTenantProfile("Default Tenant Profile");
+        tenantProfile.setDefault(true);
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        TenantProfile foundDefaultTenantProfile = tenantProfileService.findDefaultTenantProfile(TenantId.SYS_TENANT_ID);
+        Assert.assertNotNull(foundDefaultTenantProfile);
+        Assert.assertEquals(savedTenantProfile, foundDefaultTenantProfile);
+    }
+
+    @Test
+    public void testFindDefaultTenantProfileInfo() {
+        TenantProfile tenantProfile = this.createTenantProfile("Default Tenant Profile");
+        tenantProfile.setDefault(true);
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        EntityInfo foundDefaultTenantProfileInfo = tenantProfileService.findDefaultTenantProfileInfo(TenantId.SYS_TENANT_ID);
+        Assert.assertNotNull(foundDefaultTenantProfileInfo);
+        Assert.assertEquals(savedTenantProfile.getId(), foundDefaultTenantProfileInfo.getId());
+        Assert.assertEquals(savedTenantProfile.getName(), foundDefaultTenantProfileInfo.getName());
+    }
+
+    @Test
+    public void testSetDefaultTenantProfile() {
+        TenantProfile tenantProfile1 = this.createTenantProfile("Tenant Profile 1");
+        TenantProfile tenantProfile2 = this.createTenantProfile("Tenant Profile 2");
+
+        TenantProfile savedTenantProfile1 = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile1);
+        TenantProfile savedTenantProfile2 = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile2);
+
+        boolean result = tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile1.getId());
+        Assert.assertTrue(result);
+        TenantProfile defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(TenantId.SYS_TENANT_ID);
+        Assert.assertNotNull(defaultTenantProfile);
+        Assert.assertEquals(savedTenantProfile1.getId(), defaultTenantProfile.getId());
+        result = tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile2.getId());
+        Assert.assertTrue(result);
+        defaultTenantProfile = tenantProfileService.findDefaultTenantProfile(TenantId.SYS_TENANT_ID);
+        Assert.assertNotNull(defaultTenantProfile);
+        Assert.assertEquals(savedTenantProfile2.getId(), defaultTenantProfile.getId());
+    }
+
+    @Test
+    public void testSaveTenantProfileWithEmptyName() {
+        TenantProfile tenantProfile = new TenantProfile();
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        });
+    }
+
+    @Test
+    public void testSaveTenantProfileWithSameName() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        TenantProfile tenantProfile2 = this.createTenantProfile("Tenant Profile");
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile2);
+        });
+    }
+
+    @Test
+    public void testSaveSameTenantProfileWithDifferentIsolatedTbRuleEngine() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        savedTenantProfile.setIsolatedTbRuleEngine(true);
+        addMainQueueConfig(savedTenantProfile);
+        Assertions.assertThrows(DataValidationException.class, () -> {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile);
+        });
+    }
+
+    @Test
+    public void testDeleteTenantProfileWithExistingTenant() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        Tenant tenant = new Tenant();
+        tenant.setTitle("Test tenant");
+        tenant.setTenantProfileId(savedTenantProfile.getId());
+        tenant = tenantService.saveTenant(tenant);
+        try {
+            Assertions.assertThrows(DataValidationException.class, () -> {
+                tenantProfileService.deleteTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+            });
+        } finally {
+            tenantService.deleteTenant(tenant.getId());
+        }
+    }
+
+    @Test
+    public void testDeleteTenantProfile() {
+        TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile");
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+        tenantProfileService.deleteTenantProfile(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+        TenantProfile foundTenantProfile = tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, savedTenantProfile.getId());
+        Assert.assertNull(foundTenantProfile);
+    }
+
+    @Test
+    public void testFindTenantProfiles() {
+
+        List<TenantProfile> tenantProfiles = new ArrayList<>();
+        PageLink pageLink = new PageLink(17);
+        PageData<TenantProfile> pageData = tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertTrue(pageData.getData().isEmpty());
+        tenantProfiles.addAll(pageData.getData());
+
+        for (int i = 0; i < 28; i++) {
+            TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile" + i);
+            tenantProfiles.add(tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile));
+        }
+
+        List<TenantProfile> loadedTenantProfiles = new ArrayList<>();
+        pageLink = new PageLink(17);
+        do {
+            pageData = tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink);
+            loadedTenantProfiles.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(tenantProfiles, idComparator);
+        Collections.sort(loadedTenantProfiles, idComparator);
+
+        Assert.assertEquals(tenantProfiles, loadedTenantProfiles);
+
+        for (TenantProfile tenantProfile : loadedTenantProfiles) {
+            tenantProfileService.deleteTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile.getId());
+        }
+
+        pageLink = new PageLink(17);
+        pageData = tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertTrue(pageData.getData().isEmpty());
+
+    }
+
+    @Test
+    public void testFindTenantProfileInfos() {
+
+        List<TenantProfile> tenantProfiles = new ArrayList<>();
+
+        for (int i = 0; i < 28; i++) {
+            TenantProfile tenantProfile = this.createTenantProfile("Tenant Profile" + i);
+            tenantProfiles.add(tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile));
+        }
+
+        List<EntityInfo> loadedTenantProfileInfos = new ArrayList<>();
+        PageLink pageLink = new PageLink(17);
+        PageData<EntityInfo> pageData;
+        do {
+            pageData = tenantProfileService.findTenantProfileInfos(TenantId.SYS_TENANT_ID, pageLink);
+            loadedTenantProfileInfos.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(tenantProfiles, idComparator);
+        Collections.sort(loadedTenantProfileInfos, tenantProfileInfoIdComparator);
+
+        List<EntityInfo> tenantProfileInfos = tenantProfiles.stream().map(tenantProfile -> new EntityInfo(tenantProfile.getId(),
+                tenantProfile.getName())).collect(Collectors.toList());
+
+        Assert.assertEquals(tenantProfileInfos, loadedTenantProfileInfos);
+
+        for (EntityInfo tenantProfile : loadedTenantProfileInfos) {
+            tenantProfileService.deleteTenantProfile(TenantId.SYS_TENANT_ID, new TenantProfileId(tenantProfile.getId().getId()));
+        }
+
+        pageLink = new PageLink(17);
+        pageData = tenantProfileService.findTenantProfileInfos(TenantId.SYS_TENANT_ID, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertTrue(pageData.getData().isEmpty());
+
+    }
+
+    public static TenantProfile createTenantProfile(String name) {
+        TenantProfile tenantProfile = new TenantProfile();
+        tenantProfile.setName(name);
+        tenantProfile.setDescription(name + " Test");
+        TenantProfileData profileData = new TenantProfileData();
+        profileData.setConfiguration(new DefaultTenantProfileConfiguration());
+        tenantProfile.setProfileData(profileData);
+        tenantProfile.setDefault(false);
+        tenantProfile.setIsolatedTbRuleEngine(false);
+        return tenantProfile;
+    }
+
+    public static void addMainQueueConfig(TenantProfile tenantProfile) {
+        TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
+        mainQueueConfiguration.setName(DataConstants.MAIN_QUEUE_NAME);
+        mainQueueConfiguration.setTopic(DataConstants.MAIN_QUEUE_TOPIC);
+        mainQueueConfiguration.setPollInterval(25);
+        mainQueueConfiguration.setPartitions(10);
+        mainQueueConfiguration.setConsumerPerPartition(true);
+        mainQueueConfiguration.setPackProcessingTimeout(2000);
+        SubmitStrategy mainQueueSubmitStrategy = new SubmitStrategy();
+        mainQueueSubmitStrategy.setType(SubmitStrategyType.BURST);
+        mainQueueSubmitStrategy.setBatchSize(1000);
+        mainQueueConfiguration.setSubmitStrategy(mainQueueSubmitStrategy);
+        ProcessingStrategy mainQueueProcessingStrategy = new ProcessingStrategy();
+        mainQueueProcessingStrategy.setType(ProcessingStrategyType.SKIP_ALL_FAILURES);
+        mainQueueProcessingStrategy.setRetries(3);
+        mainQueueProcessingStrategy.setFailurePercentage(0);
+        mainQueueProcessingStrategy.setPauseBetweenRetries(3);
+        mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
+        mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
+        TenantProfileData profileData = tenantProfile.getProfileData();
+        profileData.setQueueConfiguration(Collections.singletonList(mainQueueConfiguration));
+        tenantProfile.setProfileData(profileData);
+    }
+}
