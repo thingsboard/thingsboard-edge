@@ -67,7 +67,7 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select d.id, d.created_time, d.additional_info, d.customer_id, d.device_profile_id, " +
-            "d.device_data, d.type, d.name, d.label, d.search_text, d.tenant_id, d.firmware_id, d.software_id, d.external_id, d.groups, " +
+            "d.device_data, d.type, d.name, d.label, d.tenant_id, d.firmware_id, d.software_id, d.external_id, d.groups, " +
             "c.title as owner_name, d.active as active from device_info_view d " +
             "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
