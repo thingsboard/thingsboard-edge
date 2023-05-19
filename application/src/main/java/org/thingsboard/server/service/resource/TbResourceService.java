@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.TbResourceInfoFilter;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
@@ -57,9 +58,9 @@ public interface TbResourceService {
 
     TbResourceInfo findResourceInfoById(TenantId tenantId, TbResourceId resourceId);
 
-    PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TenantId tenantId, ResourceType resourceType, PageLink pageLink);
+    PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TbResourceInfoFilter tbResourceInfoFilter, PageLink pageLink);
 
-    PageData<TbResourceInfo> findTenantResourcesByTenantId(TenantId tenantId, ResourceType resourceType, PageLink pageLink);
+    PageData<TbResourceInfo> findTenantResourcesByTenantId(TbResourceInfoFilter tbResourceInfoFilter, PageLink pageLink);
 
     List<LwM2mObject> findLwM2mObject(TenantId tenantId,
                                       String sortOrder,
