@@ -267,18 +267,16 @@ export interface LegendConfig {
   showLatest: boolean;
 }
 
-export function defaultLegendConfig(wType: widgetType): LegendConfig {
-  return {
-    direction: LegendDirection.column,
-    position: LegendPosition.bottom,
-    sortDataKeys: false,
-    showMin: false,
-    showMax: false,
-    showAvg: wType === widgetType.timeseries,
-    showTotal: false,
-    showLatest: false
-  };
-}
+export const defaultLegendConfig = (wType: widgetType): LegendConfig => ({
+  direction: LegendDirection.column,
+  position: LegendPosition.bottom,
+  sortDataKeys: false,
+  showMin: false,
+  showMax: false,
+  showAvg: wType === widgetType.timeseries,
+  showTotal: false,
+  showLatest: false
+});
 
 export enum ComparisonResultType {
   PREVIOUS_VALUE = 'PREVIOUS_VALUE',
@@ -379,7 +377,7 @@ export interface Datasource {
   [key: string]: any;
 }
 
-export function datasourcesHasAggregation(datasources?: Array<Datasource>): boolean {
+export const datasourcesHasAggregation = (datasources?: Array<Datasource>): boolean => {
   if (datasources) {
     const foundDatasource = datasources.find(datasource => {
       const found = datasource.dataKeys && datasource.dataKeys.find(key => key.type === DataKeyType.timeseries &&
@@ -391,9 +389,9 @@ export function datasourcesHasAggregation(datasources?: Array<Datasource>): bool
     }
   }
   return false;
-}
+};
 
-export function datasourcesHasOnlyComparisonAggregation(datasources?: Array<Datasource>): boolean {
+export const datasourcesHasOnlyComparisonAggregation = (datasources?: Array<Datasource>): boolean => {
   if (!datasourcesHasAggregation(datasources)) {
     return false;
   }
@@ -408,7 +406,7 @@ export function datasourcesHasOnlyComparisonAggregation(datasources?: Array<Data
     }
   }
   return true;
-}
+};
 
 export interface FormattedData {
   $datasource: Datasource;
@@ -654,8 +652,6 @@ export interface WidgetConfig {
   enableDataExport?: boolean;
   useDashboardTimewindow?: boolean;
   displayTimewindow?: boolean;
-  showLegend?: boolean;
-  legendConfig?: LegendConfig;
   timewindow?: Timewindow;
   desktopHide?: boolean;
   mobileHide?: boolean;
@@ -740,7 +736,7 @@ export interface IWidgetSettingsComponent {
   [key: string]: any;
 }
 
-function removeEmptyWidgetSettings(settings: WidgetSettings): WidgetSettings {
+const removeEmptyWidgetSettings = (settings: WidgetSettings): WidgetSettings => {
   if (settings) {
     const keys = Object.keys(settings);
     for (const key of keys) {
@@ -751,7 +747,7 @@ function removeEmptyWidgetSettings(settings: WidgetSettings): WidgetSettings {
     }
   }
   return settings;
-}
+};
 
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix

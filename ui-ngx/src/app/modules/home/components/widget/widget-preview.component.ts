@@ -29,77 +29,51 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  AfterContentInit,
-  AfterViewInit,
-  ChangeDetectorRef,
-  Component,
-  ContentChildren, EventEmitter,
-  Input,
-  OnInit, Output,
-  QueryList,
-  ViewChild
-} from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
+import { IAliasController, IStateController } from '@core/api/widget-api.models';
+import { Widget, WidgetConfig } from '@shared/models/widget.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AdminService } from '@core/http/admin.service';
-import { UpdateMessage } from '@shared/models/settings.models';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
-import { of, Subscription } from 'rxjs';
-import { MatStepper } from '@angular/material/stepper';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { MediaBreakpoints } from '@shared/models/constants';
-import { coerceBoolean } from '@shared/decorators/coercion';
-
-export interface ToggleHeaderOption {
-  name: string;
-  value: any;
-}
+import { deepClone } from '@core/utils';
 
 @Component({
-  selector: 'tb-toggle-header',
-  templateUrl: './toggle-header.component.html',
-  styleUrls: ['./toggle-header.component.scss']
+  selector: 'tb-widget-preview',
+  templateUrl: './widget-preview.component.html',
+  styleUrls: ['./widget-preview.component.scss']
 })
-export class ToggleHeaderComponent extends PageComponent implements OnInit {
+export class WidgetPreviewComponent extends PageComponent implements OnInit {
 
   @Input()
-  value: any;
-
-  @Output()
-  valueChange = new EventEmitter<any>();
+  aliasController: IAliasController;
 
   @Input()
-  options: ToggleHeaderOption[];
+  stateController: IStateController;
 
   @Input()
-  name: string;
+  widget: Widget;
 
   @Input()
-  @coerceBoolean()
-  useSelectOnMdLg = true;
+  widgetConfig: WidgetConfig;
 
-  isMdLg: boolean;
+  widgets: Widget[];
 
-  private observeBreakpointSubscription: Subscription;
-
-  constructor(protected store: Store<AppState>,
-              private cd: ChangeDetectorRef,
-              private breakpointObserver: BreakpointObserver) {
+  constructor(protected store: Store<AppState>) {
     super(store);
   }
 
-  ngOnInit() {
-    this.isMdLg = this.breakpointObserver.isMatched(MediaBreakpoints['md-lg']);
-    this.observeBreakpointSubscription = this.breakpointObserver
-      .observe(MediaBreakpoints['md-lg'])
-      .subscribe((state: BreakpointState) => {
-          this.isMdLg = state.matches;
-          this.cd.markForCheck();
-        }
-      );
+  ngOnInit(): void {
+    const sizeX = this.widget.sizeX * 2;
+    const sizeY = this.widget.sizeY * 2;
+    const col = Math.floor(Math.max(0, (20 - sizeX) / 2));
+    const widget = deepClone(this.widget);
+    widget.sizeX = sizeX;
+    widget.sizeY = sizeY;
+    widget.row = 0;
+    widget.col = col;
+    widget.config = this.widgetConfig;
+    this.widgets = [widget];
   }
+
 }

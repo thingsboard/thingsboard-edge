@@ -44,7 +44,6 @@ import {
   GettingStartedCompletedDialogComponent
 } from '@home/components/widget/lib/home-page/getting-started-completed-dialog.component';
 import { LicenseUsageInfoComponent } from '@home/components/widget/lib/home-page/license-usage-info.component';
-import { ToggleHeaderComponent } from '@home/components/widget/lib/home-page/toggle-header.component';
 import { UsageInfoWidgetComponent } from '@home/components/widget/lib/home-page/usage-info-widget.component';
 import { QuickLinksWidgetComponent } from '@home/components/widget/lib/home-page/quick-links-widget.component';
 import { QuickLinkComponent } from '@home/components/widget/lib/home-page/quick-link.component';
@@ -72,7 +71,6 @@ import {
       GettingStartedWidgetComponent,
       GettingStartedCompletedDialogComponent,
       LicenseUsageInfoComponent,
-      ToggleHeaderComponent,
       UsageInfoWidgetComponent,
       QuickLinksWidgetComponent,
       QuickLinkComponent,
@@ -96,7 +94,6 @@ import {
     GettingStartedWidgetComponent,
     GettingStartedCompletedDialogComponent,
     LicenseUsageInfoComponent,
-    ToggleHeaderComponent,
     UsageInfoWidgetComponent,
     QuickLinksWidgetComponent,
     QuickLinkComponent,

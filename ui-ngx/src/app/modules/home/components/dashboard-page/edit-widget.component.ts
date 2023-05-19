@@ -29,13 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { MatDialog } from '@angular/material/dialog';
 import { Dashboard, WidgetLayout } from '@shared/models/dashboard.models';
-import { IAliasController } from '@core/api/widget-api.models';
+import { IAliasController, IStateController } from '@core/api/widget-api.models';
 import { Widget } from '@shared/models/widget.models';
 import { WidgetComponentService } from '@home/components/widget/widget-component.service';
 import { WidgetConfigComponentData } from '../../models/widget-component.models';
@@ -56,6 +65,9 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
   aliasController: IAliasController;
 
   @Input()
+  stateController: IStateController;
+
+  @Input()
   widgetEditMode: boolean;
 
   @Input()
@@ -64,9 +76,17 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
   @Input()
   widgetLayout: WidgetLayout;
 
+  @Output()
+  applyWidgetConfig = new EventEmitter<void>();
+
+  @Output()
+  revertWidgetConfig = new EventEmitter<void>();
+
   widgetFormGroup: UntypedFormGroup;
 
   widgetConfig: WidgetConfigComponentData;
+
+  previewMode = false;
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,
@@ -93,8 +113,19 @@ export class EditWidgetComponent extends PageComponent implements OnInit, OnChan
       }
     }
     if (reloadConfig) {
+      this.previewMode = false;
       this.loadWidgetConfig();
     }
+  }
+
+  onApplyWidgetConfig() {
+    if (this.widgetFormGroup.valid) {
+      this.applyWidgetConfig.emit();
+    }
+  }
+
+  onRevertWidgetConfig() {
+    this.revertWidgetConfig.emit();
   }
 
   private loadWidgetConfig() {

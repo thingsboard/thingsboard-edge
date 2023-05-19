@@ -28,49 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-@import "../../../../../theme";
-@import '../../../../../scss/constants';
-
-.tb-widget-config {
+.tb-datasource-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  .tb-widget-config-header {
-    padding: 24px 24px 8px;
-    height: 56px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .tb-widget-config-content {
-    flex: 1;
-    overflow: auto;
-    & > div {
-      padding: 16px;
-    }
-    .mat-content {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-  }
+  align-items: stretch;
+  flex: 1;
 }
 
 :host ::ng-deep {
-  .tb-widget-config {
-    .tb-widget-config-header {
-      .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
-        padding: 0 20px;
+  .tb-datasource-section {
+    tb-alarm-filter-config {
+      .mdc-button {
+        width: 100%;
+        height: 100%;
+        justify-content: flex-start;
       }
-    }
-    .mat-mdc-tab-body-wrapper {
-      position: absolute;
-      top: 49px;
-      left: 0;
-      right: 0;
-      bottom: 0;
     }
   }
 }

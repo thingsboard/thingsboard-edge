@@ -30,14 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-button-toggle-group *ngIf="!isMdLg || !useSelectOnMdLg; else select" class="tb-toggle-header" [name]="name" [(ngModel)]="value"
-                         (ngModelChange)="valueChange.emit(value)">
-  <mat-button-toggle *ngFor="let option of options" [value]="option.value">{{ option.name }}</mat-button-toggle>
-</mat-button-toggle-group>
-<ng-template #select>
-  <mat-form-field appearance="outline" class="tb-toggle-header-select" subscriptSizing="dynamic">
-    <mat-select [(ngModel)]="value" (ngModelChange)="valueChange.emit($event)">
-      <mat-option *ngFor="let option of options" [value]="option.value"> {{ option.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
-</ng-template>
+<tb-dashboard class="tb-preview-dashboard"
+              [aliasController]="aliasController"
+              [stateController]="stateController"
+              [widgets]="widgets"
+              [autofillHeight]="true"
+              [columns]="20"
+              [isEdit]="false"
+              [isMobileDisabled]="true"
+              [isEditActionEnabled]="false"
+              [isRemoveActionEnabled]="false">
+</tb-dashboard>
+<span class="tb-preview-title" translate>widget-config.preview</span>
+<div class="tb-preview-panel">
+  <ng-content select=".tb-preview-panel-content"></ng-content>
+</div>

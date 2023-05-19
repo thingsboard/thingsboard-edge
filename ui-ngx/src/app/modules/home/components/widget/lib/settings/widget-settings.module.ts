@@ -289,6 +289,7 @@ import {
 import {
   SchedulerEventsWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/scheduler/scheduler-events-widget-settings.component';
+import { LegendConfigComponent } from '@home/components/widget/lib/settings/common/legend-config.component';
 
 @NgModule({
   declarations: [
@@ -314,6 +315,7 @@ import {
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
     ValueSourceComponent,
+    LegendConfigComponent,
     FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
@@ -422,6 +424,7 @@ import {
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
     ValueSourceComponent,
+    LegendConfigComponent,
     FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,

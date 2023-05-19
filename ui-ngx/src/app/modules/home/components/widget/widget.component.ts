@@ -54,10 +54,6 @@ import {
 } from '@angular/core';
 import { DashboardWidget } from '@home/models/dashboard-component.models';
 import {
-  defaultLegendConfig,
-  LegendConfig,
-  LegendData,
-  LegendPosition,
   Widget,
   WidgetActionDescriptor,
   widgetActionSources,
@@ -171,13 +167,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   displayNoData = false;
   noDataDisplayMessageText: string;
 
-  displayLegend: boolean;
-  legendConfig: LegendConfig;
-  legendData: LegendData;
-  isLegendFirst: boolean;
-  legendContainerLayoutType: string;
-  legendStyle: {[klass: string]: any};
-
   dynamicWidgetComponentRef: ComponentRef<IDynamicWidgetComponent>;
   dynamicWidgetComponent: IDynamicWidgetComponent;
 
@@ -240,57 +229,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     this.loadingData = true;
 
     this.widget = this.dashboardWidget.widget;
-
-    this.displayLegend = isDefined(this.widget.config.showLegend) ? this.widget.config.showLegend
-      : this.widget.type === widgetType.timeseries;
-
-    this.legendContainerLayoutType = 'column';
-
-    if (this.displayLegend) {
-      this.legendConfig = this.widget.config.legendConfig || defaultLegendConfig(this.widget.type);
-      this.legendData = {
-        keys: [],
-        data: []
-      };
-      if (this.legendConfig.position === LegendPosition.top ||
-        this.legendConfig.position === LegendPosition.bottom) {
-        this.legendContainerLayoutType = 'column';
-        this.isLegendFirst = this.legendConfig.position === LegendPosition.top;
-      } else {
-        this.legendContainerLayoutType = 'row';
-        this.isLegendFirst = this.legendConfig.position === LegendPosition.left;
-      }
-      switch (this.legendConfig.position) {
-        case LegendPosition.top:
-          this.legendStyle = {
-            paddingBottom: '8px',
-            maxHeight: '50%',
-            overflowY: 'auto'
-          };
-          break;
-        case LegendPosition.bottom:
-          this.legendStyle = {
-            paddingTop: '8px',
-            maxHeight: '50%',
-            overflowY: 'auto'
-          };
-          break;
-        case LegendPosition.left:
-          this.legendStyle = {
-            paddingRight: '0px',
-            maxWidth: '50%',
-            overflowY: 'auto'
-          };
-          break;
-        case LegendPosition.right:
-          this.legendStyle = {
-            paddingLeft: '0px',
-            maxWidth: '50%',
-            overflowY: 'auto'
-          };
-          break;
-      }
-    }
 
     const actionDescriptorsBySourceId: {[actionSourceId: string]: Array<WidgetActionDescriptor>} = {};
     if (this.widget.config.actions) {
@@ -484,13 +422,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       if (!subscription.useDashboardTimewindow) {
         subscription.updateTimewindowConfig(subscription.onTimewindowChangeFunction(timewindow));
       }
-    }
-  }
-
-  public onLegendKeyHiddenChange(index: number) {
-    for (const id of Object.keys(this.widgetContext.subscriptions)) {
-      const subscription = this.widgetContext.subscriptions[id];
-      subscription.updateDataVisibility(index);
     }
   }
 
@@ -896,9 +827,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     }
     this.createSubscription(options, subscribe).subscribe(
       (subscription) => {
-        if (useDefaultComponents) {
-          this.defaultSubscriptionOptions(subscription, options);
-        }
         createSubscriptionSubject.next(subscription);
         createSubscriptionSubject.complete();
       },
@@ -916,8 +844,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       ? this.widget.config.displayTimewindow : !options.useDashboardTimewindow;
     options.timeWindowConfig = options.useDashboardTimewindow ? this.widgetContext.dashboardTimewindow : this.widget.config.timewindow;
     options.legendConfig = null;
-    if (this.displayLegend) {
-      options.legendConfig = this.legendConfig;
+    if (this.widget.config.settings.showLegend === true) {
+      options.legendConfig = this.widget.config.settings.legendConfig;
     }
     options.decimals = this.widgetContext.decimals;
     options.units = this.widgetContext.units;
@@ -986,13 +914,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         });
       }
     };
-
-  }
-
-  private defaultSubscriptionOptions(subscription: IWidgetSubscription, options: WidgetSubscriptionOptions) {
-    if (this.displayLegend) {
-      this.legendData = subscription.legendData;
-    }
   }
 
   private createDefaultSubscription(): Observable<any> {
@@ -1023,7 +944,6 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
 
       this.createSubscription(options).subscribe(
         (subscription) => {
-          this.defaultSubscriptionOptions(subscription, options);
 
           // backward compatibility
           this.widgetContext.datasources = subscription.datasources;
@@ -1503,7 +1423,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     }
   }
 
-  private loadCustomActionResources(actionNamespace: string, customCss: string, customResources: Array<WidgetResource>, actionDescriptor: WidgetActionDescriptor): Observable<any> {
+  private loadCustomActionResources(actionNamespace: string, customCss: string, customResources: Array<WidgetResource>,
+                                    actionDescriptor: WidgetActionDescriptor): Observable<any> {
     const resourceTasks: Observable<string>[] = [];
     const modulesTasks: Observable<ModulesWithFactories | string>[] = [];
 

@@ -1,0 +1,110 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-datasource-section" [formGroup]="datasourceFormGroup">
+  <mat-form-field class="tb-datasource-type" hideRequiredMarker>
+    <mat-label translate>widget-config.datasource-type</mat-label>
+    <mat-select formControlName="type">
+      <mat-option *ngFor="let datasourceType of datasourceTypes" [value]="datasourceType">
+        {{ datasourceTypesTranslations.get(datasourceType) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <section fxLayout="column" class="tb-datasource" [ngSwitch]="datasourceFormGroup.get('type').value">
+    <ng-template [ngSwitchCase]="datasourceType.function">
+      <mat-form-field fxFlex>
+        <mat-label translate>datasource.label</mat-label>
+        <input matInput
+               formControlName="name">
+      </mat-form-field>
+    </ng-template>
+    <ng-template [ngSwitchCase]="datasourceFormGroup.get('type').value === datasourceType.entity ||
+                                                   datasourceFormGroup.get('type').value === datasourceType.entityCount ||
+                                                   datasourceFormGroup.get('type').value === datasourceType.alarmCount ? datasourceFormGroup.get('type').value : ''">
+      <tb-alarm-filter-config *ngIf="datasourceFormGroup.get('type').value === datasourceType.alarmCount"
+                              propagatedFilter="false"
+                              style="height: 56px; margin-bottom: 22px;"
+                              formControlName="alarmFilterConfig"></tb-alarm-filter-config>
+      <tb-entity-alias-select
+        *ngIf="datasourceFormGroup.get('type').value !== datasourceType.alarmCount"
+        [showLabel]="true"
+        [tbRequired]="true"
+        [aliasController]="aliasController"
+        formControlName="entityAliasId"
+        [callbacks]="entityAliasSelectCallbacks">
+      </tb-entity-alias-select>
+      <tb-filter-select
+        *ngIf="datasourceFormGroup.get('type').value !== datasourceType.alarmCount"
+        [showLabel]="true"
+        [aliasController]="aliasController"
+        formControlName="filterId"
+        [callbacks]="filterSelectCallbacks">
+      </tb-filter-select>
+      <mat-form-field *ngIf="[datasourceType.entityCount, datasourceType.alarmCount].includes(datasourceFormGroup.get('type').value)"
+                      fxFlex>
+        <input matInput
+               placeholder="{{ 'datasource.label' | translate }}"
+               formControlName="name">
+      </mat-form-field>
+    </ng-template>
+  </section>
+  <section fxLayout="column" fxLayoutAlign="stretch" fxFlex>
+    <tb-data-keys class="tb-data-keys" fxFlex
+                  [widgetType]="widgetType"
+                  [datasourceType]="datasourceFormGroup.get('type').value"
+                  [maxDataKeys]="maxDataKeys"
+                  [optDataKeys]="isDataKeysOptional(datasourceFormGroup.get('type').value)"
+                  [simpleDataKeysLabel]="!hasAdditionalLatestDataKeys"
+                  [aliasController]="aliasController"
+                  [datakeySettingsSchema]="dataKeySettingsSchema"
+                  [dataKeySettingsDirective]="dataKeySettingsDirective"
+                  [dashboard]="dashboard"
+                  [widget]="widget"
+                  [callbacks]="dataKeysCallbacks"
+                  [entityAliasId]="datasourceFormGroup.get('entityAliasId').value"
+                  formControlName="dataKeys">
+    </tb-data-keys>
+    <tb-data-keys *ngIf="hasAdditionalLatestDataKeys" class="tb-data-keys" fxFlex
+                  [widgetType]="widgetTypes.latest"
+                  [datasourceType]="datasourceFormGroup.get('type').value"
+                  [optDataKeys]="true"
+                  [aliasController]="aliasController"
+                  [datakeySettingsSchema]="latestDataKeySettingsSchema"
+                  [dataKeySettingsDirective]="latestDataKeySettingsDirective"
+                  [dashboard]="dashboard"
+                  [widget]="widget"
+                  [callbacks]="dataKeysCallbacks"
+                  [entityAliasId]="datasourceFormGroup.get('entityAliasId').value"
+                  formControlName="latestDataKeys">
+    </tb-data-keys>
+  </section>
+</section>

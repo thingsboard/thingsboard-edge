@@ -28,49 +28,71 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
 @import "../../../../../theme";
-@import '../../../../../scss/constants';
 
-.tb-widget-config {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  .tb-widget-config-header {
-    padding: 24px 24px 8px;
-    height: 56px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .tb-widget-config-content {
-    flex: 1;
-    overflow: auto;
-    & > div {
-      padding: 16px;
+.tb-datasource-list-item {
+  &.mat-mdc-list-item {
+    height: auto;
+    display: block;
+    padding: 0;
+    &.bordered {
+      padding-top: 16px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
     }
-    .mat-content {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+  }
+  &.tb-draggable {
+    &.cdk-drag-preview {
+      background: #fff;
     }
   }
 }
 
-:host ::ng-deep {
-  .tb-widget-config {
-    .tb-widget-config-header {
-      .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
-        padding: 0 20px;
-      }
+.tb-datasource-list-item + .tb-datasource-list-item {
+  margin-top: 16px;
+}
+
+.tb-datasource-index {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+  color: $tb-primary-color;
+  &:before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: $tb-primary-color;
+    opacity: 0.06;
+    border-radius: 100%;
+  }
+}
+
+.tb-datasource-params {
+  position: relative;
+  tb-error.tb-datasource-error {
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+  }
+}
+
+:host {
+  .tb-datasources {
+
+    .handle {
+      cursor: move;
     }
-    .mat-mdc-tab-body-wrapper {
-      position: absolute;
-      top: 49px;
-      left: 0;
-      right: 0;
-      bottom: 0;
+
+    .mat-mdc-list {
+      min-height: 68px;
+      padding-left: 0;
     }
   }
 }

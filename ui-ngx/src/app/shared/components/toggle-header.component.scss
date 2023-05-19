@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../../../scss/constants";
+@import "../../../scss/constants";
 
 :host ::ng-deep {
   .mat-button-toggle-group.mat-button-toggle-group-appearance-standard.tb-toggle-header {
@@ -85,9 +85,22 @@
         }
       }
     }
+    &.tb-fill {
+      .mat-button-toggle.mat-button-toggle-appearance-standard {
+        &.mat-button-toggle-checked {
+          .mat-button-toggle-button {
+            background: var(--tb-primary-500);
+            color: #FFFFFF;
+            &:before {
+              content: none;
+            }
+          }
+        }
+      }
+    }
   }
   @media #{$mat-md-lg} {
-    .mat-button-toggle-group.mat-button-toggle-group-appearance-standard.tb-toggle-header {
+    .mat-button-toggle-group.mat-button-toggle-group-appearance-standard.tb-toggle-header:not(.tb-ignore-md-lg) {
       height: 24px;
       .mat-button-toggle.mat-button-toggle-appearance-standard {
         .mat-button-toggle-button {
