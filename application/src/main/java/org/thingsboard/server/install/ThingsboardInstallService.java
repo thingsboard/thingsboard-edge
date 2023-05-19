@@ -268,27 +268,25 @@ public class ThingsboardInstallService {
                         case "3.4.4":
                             log.info("Upgrading ThingsBoard from version 3.4.4 to 3.5.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
-                        case "3.5.0": // to 3.5.0PE
-                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
-                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
-                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-                            dataUpdateService.updateData("3.5.0");
-                            log.info("Updating system data...");
-                            systemDataLoaderService.updateSystemWidgets();
                             if (!getEnv("SKIP_DEFAULT_NOTIFICATION_CONFIGS_CREATION", false)) {
                                 systemDataLoaderService.createDefaultNotificationConfigs();
                             } else {
                                 log.info("Skipping default notification configs creation");
                             }
-                            installScripts.loadSystemLwm2mResources();
-                            break;
+                        case "3.5.0":
+                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
                         case "3.5.1": // to 3.5.1PE
                             log.info("Upgrading ThingsBoard from version 3.5.1 to 3.5.1PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
                             entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
+                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+                            dataUpdateService.updateData("3.5.1");
+                            log.info("Updating system data...");
+                            systemDataLoaderService.updateSystemWidgets();
+                            installScripts.loadSystemLwm2mResources();
                             break;
-                        //TODO update CacheCleanupService on the next version upgrade
+                            //TODO update CacheCleanupService on the next version upgrade
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 

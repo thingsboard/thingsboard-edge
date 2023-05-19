@@ -31,7 +31,6 @@
 package org.thingsboard.integration.http.controller.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -44,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegrationMsg;
 import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
@@ -90,7 +90,7 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
                                                      Map<String, String> requestHeaders, String routingKey, JsonNode msg) {
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        JsonNode jsonNode = new ObjectMapper().convertValue(allRequestParams, JsonNode.class);
+        JsonNode jsonNode = JacksonUtil.convertValue(allRequestParams, JsonNode.class);
         String asId = jsonNode.has("AS_ID") ? jsonNode.get("AS_ID").asText() : "false";
         String lrnDevEui = jsonNode.has("LrnDevEui") ? jsonNode.get("LrnDevEui").asText() : "false";
         String lrnFPort = jsonNode.has("LrnFPort") ? jsonNode.get("LrnFPort").asText() : "false";
