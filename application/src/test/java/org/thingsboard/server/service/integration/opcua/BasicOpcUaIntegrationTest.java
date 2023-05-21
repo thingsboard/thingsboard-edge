@@ -88,7 +88,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         startServer();
 
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(OPCUA_UPLINK_CONVERTER_FILEPATH);
-        ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
+        ObjectNode jsonFile = JacksonUtil.fromBytes(resourceAsStream.readAllBytes(), ObjectNode.class);
         Assert.assertNotNull(jsonFile);
 
         if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {

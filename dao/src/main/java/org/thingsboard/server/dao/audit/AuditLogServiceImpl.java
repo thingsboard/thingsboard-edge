@@ -371,6 +371,10 @@ public class AuditLogServiceImpl implements AuditLogService {
                 String msgBody = extractParameter(String.class, 0, additionalInfo);
                 actionData.set("body", JacksonUtil.toJsonNode(msgBody));
                 break;
+            case SMS_SENT:
+                String number = extractParameter(String.class, 0, additionalInfo);
+                actionData.put("recipientNumber", number);
+                break;
         }
         return actionData;
     }

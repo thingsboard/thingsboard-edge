@@ -32,7 +32,6 @@ package org.thingsboard.server.service.report;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -49,6 +48,8 @@ import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRequestCallback;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -56,7 +57,6 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientResponseException;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -102,7 +102,6 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class DefaultReportService implements ReportService {
 
-    private static ObjectMapper mapper = new ObjectMapper();
     private static final Pattern reportNameDatePattern = Pattern.compile("%d\\{([^\\}]*)\\}");
 
     @Value("${reports.server.endpointUrl}")
@@ -174,7 +173,7 @@ public class DefaultReportService implements ReportService {
         String token = accessToken.getToken();
         long expiration = accessToken.getClaims().getExpiration().getTime();
 
-        ObjectNode dashboardReportRequest = mapper.createObjectNode();
+        ObjectNode dashboardReportRequest = JacksonUtil.newObjectNode();
         dashboardReportRequest.put("baseUrl", baseUrl);
         dashboardReportRequest.put("dashboardId", dashboardId.toString());
         dashboardReportRequest.set("reportParams", reportParams);
@@ -230,7 +229,7 @@ public class DefaultReportService implements ReportService {
         long expiration = accessToken.getClaims().getExpiration().getTime();
         TimeZone tz = TimeZone.getTimeZone(reportConfig.getTimezone());
         String reportName = prepareReportName(reportConfig.getNamePattern(), new Date(), tz);
-        ObjectNode dashboardReportRequest = mapper.createObjectNode();
+        ObjectNode dashboardReportRequest = JacksonUtil.newObjectNode();
         dashboardReportRequest.put("baseUrl", reportConfig.getBaseUrl());
         dashboardReportRequest.put("dashboardId", reportConfig.getDashboardId());
         dashboardReportRequest.put("token", token);
@@ -241,7 +240,7 @@ public class DefaultReportService implements ReportService {
     }
 
     private JsonNode createReportParams(ReportConfig reportConfig) {
-        ObjectNode reportParams = mapper.createObjectNode();
+        ObjectNode reportParams = JacksonUtil.newObjectNode();
         reportParams.put("type", reportConfig.getType());
         reportParams.put("state", reportConfig.getState());
         if (!reportConfig.isUseDashboardTimewindow()) {
@@ -335,7 +334,7 @@ public class DefaultReportService implements ReportService {
         }
 
         byte[] getRequestBytes() throws JsonProcessingException {
-            return mapper.writeValueAsBytes(body);
+            return JacksonUtil.writeValueAsBytes(body);
         }
 
     }

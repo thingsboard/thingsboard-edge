@@ -44,7 +44,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.CUSTOMER_TABLE_NAME)
 public final class CustomerEntity extends AbstractCustomerEntity<Customer> {
 
     public CustomerEntity() {

@@ -50,7 +50,7 @@ public interface NotificationRuleDao extends Dao<NotificationRule> {
 
     boolean existsByTenantIdAndTargetId(TenantId tenantId, NotificationTargetId targetId);
 
-    List<NotificationRule> findByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType);
+    List<NotificationRule> findByTenantIdAndTriggerTypeAndEnabled(TenantId tenantId, NotificationRuleTriggerType triggerType, boolean enabled);
 
     NotificationRuleInfo findInfoById(TenantId tenantId, NotificationRuleId id);
 
