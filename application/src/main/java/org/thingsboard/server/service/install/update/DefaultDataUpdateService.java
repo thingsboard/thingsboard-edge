@@ -324,6 +324,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping blob entities migration");
                 }
                 break;
+            case "3.5.0":
+                integrationRateLimitsUpdater.updateEntities();
+                break;
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.5.1PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
@@ -345,7 +348,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 updateAnalyticsRuleNode();
                 updateDuplicateMsgRuleNode();
-                integrationRateLimitsUpdater.updateEntities();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
