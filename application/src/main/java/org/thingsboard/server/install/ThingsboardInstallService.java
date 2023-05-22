@@ -275,14 +275,15 @@ public class ThingsboardInstallService {
                             }
                         case "3.5.0":
                             log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
-                            dataUpdateService.updateData("3.5.0");
-                        case "3.5.1": // to 3.5.1PE
-                            log.info("Upgrading ThingsBoard from version 3.5.1 to 3.5.1PE ...");
+                        case "3.5.1":
+                            log.info("Upgrading ThingsBoard from version 3.5.1 to 3.5.2 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
+                        case "3.5.2": // to 3.5.2PE
+                            log.info("Upgrading ThingsBoard from version 3.5.2 to 3.5.2PE ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.2");
                             entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                             entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-                            dataUpdateService.updateData("3.5.1");
+                            dataUpdateService.updateData("3.5.2");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
                             installScripts.loadSystemLwm2mResources();
