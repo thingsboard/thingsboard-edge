@@ -276,6 +276,7 @@ public class ThingsboardInstallService {
                         case "3.5.0":
                             log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
+                            dataUpdateService.updateData("3.5.0");
                         case "3.5.1": // to 3.5.1PE
                             log.info("Upgrading ThingsBoard from version 3.5.1 to 3.5.1PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");

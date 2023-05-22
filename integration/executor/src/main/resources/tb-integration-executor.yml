@@ -63,10 +63,6 @@ integrations:
   reinit:
     enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
     frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
-  rate_limits:
-    enabled: "${TB_INTEGRATION_RATE_LIMITS_ENABLED:false}"
-    tenant: "${TB_INTEGRATION_RATE_LIMITS_TENANT:1000:1,20000:60}"
-    device: "${TB_INTEGRATION_RATE_LIMITS_DEVICE:10:1,300:60}"
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
 
 queue:

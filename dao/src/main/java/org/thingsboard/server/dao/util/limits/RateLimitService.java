@@ -28,25 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.apiusage.limits;
+package org.thingsboard.server.dao.util.limits;
 
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.function.Function;
+public interface RateLimitService {
 
-@RequiredArgsConstructor
-public enum LimitedApi {
+    boolean checkRateLimit(LimitedApi api, TenantId tenantId);
 
-    ENTITY_EXPORT(DefaultTenantProfileConfiguration::getTenantEntityExportRateLimit),
-    ENTITY_IMPORT(DefaultTenantProfileConfiguration::getTenantEntityImportRateLimit),
-    NOTIFICATION_REQUESTS(DefaultTenantProfileConfiguration::getTenantNotificationRequestsRateLimit),
-    NOTIFICATION_REQUESTS_PER_RULE(DefaultTenantProfileConfiguration::getTenantNotificationRequestsPerRuleRateLimit);
+    boolean checkRateLimit(LimitedApi api, TenantId tenantId, Object level);
 
-    private final Function<DefaultTenantProfileConfiguration, String> configExtractor;
+    boolean checkRateLimit(LimitedApi api, Object level, String rateLimitConfig);
 
-    public String getLimitConfig(DefaultTenantProfileConfiguration profileConfiguration) {
-        return configExtractor.apply(profileConfiguration);
-    }
+    void cleanUp(LimitedApi api, Object level);
 
 }
