@@ -257,6 +257,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EdgeEventDao edgeEventDao;
 
+    @Autowired
+    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -320,6 +323,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping blob entities migration");
                 }
+                break;
+            case "3.5.0":
+                integrationRateLimitsUpdater.updateEntities();
                 break;
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.5.1PE ...");
