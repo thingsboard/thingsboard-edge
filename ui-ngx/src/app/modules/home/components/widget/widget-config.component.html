@@ -243,7 +243,7 @@
         <mat-slide-toggle class="mat-slide slide-block" formControlName="enableFullscreen">
           {{ 'widget-config.enable-fullscreen' | translate }}
         </mat-slide-toggle>
-        <mat-slide-toggle formControlName="enableDataExport"
+        <mat-slide-toggle class="mat-slide slide-block" formControlName="enableDataExport"
                           [fxShow]="widgetType !== widgetTypes.rpc">
           {{ 'widget-config.enable-data-export' | translate }}
         </mat-slide-toggle>
