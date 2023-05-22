@@ -257,6 +257,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EdgeEventDao edgeEventDao;
 
+    @Autowired
+    private IntegrationRateLimitsUpdater integrationRateLimitsUpdater;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 

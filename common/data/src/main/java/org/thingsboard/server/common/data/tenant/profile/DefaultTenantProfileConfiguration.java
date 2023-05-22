@@ -63,6 +63,9 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private String transportDeviceTelemetryMsgRateLimit;
     private String transportDeviceTelemetryDataPointsRateLimit;
 
+    private String integrationMsgsPerTenantRateLimit;
+    private String integrationMsgsPerDeviceRateLimit;
+
     private String tenantEntityExportRateLimit;
     private String tenantEntityImportRateLimit;
     private String tenantNotificationRequestsRateLimit;
