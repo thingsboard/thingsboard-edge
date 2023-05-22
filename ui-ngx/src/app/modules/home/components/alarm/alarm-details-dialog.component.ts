@@ -51,6 +51,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import { AlarmCommentComponent } from '@home/components/alarm/alarm-comment.component';
 import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface AlarmDetailsDialogData {
   alarmId?: string;
@@ -96,6 +97,7 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
               private translate: TranslateService,
               @Inject(MAT_DIALOG_DATA) public data: AlarmDetailsDialogData,
               private alarmService: AlarmService,
+              private utils: UtilsService,
               public dialogRef: MatDialogRef<AlarmDetailsDialogComponent, boolean>,
               public fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
@@ -153,7 +155,7 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
       }
       this.alarmFormGroup.get('duration').patchValue(duration);
     }
-    this.alarmFormGroup.get('type').patchValue(alarm.type);
+    this.alarmFormGroup.get('type').patchValue(this.utils.customTranslation(alarm.type, alarm.type));
     this.alarmFormGroup.get('alarmStatus')
       .patchValue(this.translate.instant(alarmStatusTranslations.get(alarm.status)));
     if (alarm.details) {
