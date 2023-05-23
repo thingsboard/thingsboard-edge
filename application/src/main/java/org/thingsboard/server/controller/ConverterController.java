@@ -281,13 +281,13 @@ public class ConverterController extends AutoCommitController {
             }
             if ((converter == null && "UPLINK".equalsIgnoreCase(converterType)) ||
                     (converter != null && ConverterType.UPLINK.equals(converter.getType()))) {
-                if (converter != null && targetIntegrationType == null) {
+                if (converter != null && (targetIntegrationType == null || integrationName == null)) {
                     List<Integration> relatedIntegrations = integrationService.findIntegrationsByConverterId(tenantId, converterId);
-                    if (relatedIntegrations.stream().distinct().count() == 1) {
-                        Integration relatedintegration = relatedIntegrations.get(0);
-                        targetIntegrationType = relatedintegration.getType();
+                    if (relatedIntegrations.size() > 0) {
+                        Integration relatedIntegration = relatedIntegrations.get(0);
+                        targetIntegrationType = relatedIntegration.getType();
                         if (StringUtils.isEmpty(integrationName)) {
-                            integrationName = relatedintegration.getName();
+                            integrationName = relatedIntegration.getName();
                         }
                     }
                 }
