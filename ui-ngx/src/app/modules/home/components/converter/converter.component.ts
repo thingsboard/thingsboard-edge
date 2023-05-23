@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, Optional } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
@@ -70,7 +70,7 @@ import { Observable, Subject } from 'rxjs';
   templateUrl: './converter.component.html',
   styleUrls: []
 })
-export class ConverterComponent extends EntityComponent<Converter> implements OnDestroy{
+export class ConverterComponent extends EntityComponent<Converter> implements OnDestroy {
 
   private _integrationType: IntegrationType;
 
@@ -103,7 +103,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   scriptLanguage = ScriptLanguage;
 
-  private destroy$ = new Subject<void>();
+  private destroy$: Subject<void>;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -126,6 +126,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   buildForm(entity: Converter): FormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
+    this.destroy$ = new Subject<void>();
     this.form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
@@ -147,10 +148,14 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         )
       }
     );
-    this.form.get('type').valueChanges.subscribe(() => {
+    this.form.get('type').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.converterTypeChanged(this.form);
     });
-    this.form.get('configuration').get('scriptLang').valueChanges.subscribe(() => {
+    this.form.get('configuration').get('scriptLang').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.converterScriptLangChanged( this.form);
     });
     this.checkIsNewConverter(entity,  this.form);
