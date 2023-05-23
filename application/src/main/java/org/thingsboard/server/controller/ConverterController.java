@@ -281,7 +281,7 @@ public class ConverterController extends AutoCommitController {
             }
             if ((converter == null && "UPLINK".equalsIgnoreCase(converterType)) ||
                     (converter != null && ConverterType.UPLINK.equals(converter.getType()))) {
-                if (targetIntegrationType == null) {
+                if (converter != null && targetIntegrationType == null) {
                     List<Integration> relatedIntegrations = integrationService.findIntegrationsByConverterId(tenantId, converterId);
                     if (relatedIntegrations.stream().distinct().count() == 1) {
                         Integration relatedintegration = relatedIntegrations.get(0);
@@ -290,34 +290,34 @@ public class ConverterController extends AutoCommitController {
                             integrationName = relatedintegration.getName();
                         }
                     }
-                    if (targetIntegrationType == null) {
-                        return null;
-                    }
-                    ObjectNode debugIn = objectMapper.createObjectNode();
-                    ObjectNode metadata = objectMapper.createObjectNode();
-                    metadata.put(INTEGRATION_NAME, integrationName);
-                    debugIn.put("inMetadata", metadata.asText());
-                    String inContent;
-                    switch (targetIntegrationType) {
-                        case TTN:
-                            inContent = DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
-                            break;
-                        case TTI:
-                            inContent = DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
-                            break;
-                        case LORIOT:
-                            inContent = DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
-                            break;
-                        case CHIRPSTACK:
-                            inContent = DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
-                            break;
-                        default:
-                            return null;
-                    }
-                    debugIn.put("inContent", inContent);
-                    debugIn.put("inContentType", UplinkContentType.JSON.name());
-                    result = debugIn;
                 }
+                if (targetIntegrationType == null) {
+                    return null;
+                }
+                ObjectNode debugIn = objectMapper.createObjectNode();
+                ObjectNode metadata = objectMapper.createObjectNode();
+                metadata.put(INTEGRATION_NAME, integrationName);
+                debugIn.put("inMetadata", objectMapper.writeValueAsString(metadata));
+                String inContent;
+                switch (targetIntegrationType) {
+                    case TTN:
+                        inContent = DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
+                        break;
+                    case TTI:
+                        inContent = DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
+                        break;
+                    case LORIOT:
+                        inContent = DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+                        break;
+                    case CHIRPSTACK:
+                        inContent = DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+                        break;
+                    default:
+                        return null;
+                }
+                debugIn.put("inContent", inContent);
+                debugIn.put("inContentType", UplinkContentType.JSON.name());
+                result = debugIn;
             }
         }
         return result;
