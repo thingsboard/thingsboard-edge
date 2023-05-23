@@ -47,7 +47,7 @@ import {
   entityTypesWithoutRelatedData,
   EntityTypeVersionLoadConfig,
   exportableEntityTypes,
-  overrideEntityTypeTranslations,
+  overrideEntityTypeTranslations
 } from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
