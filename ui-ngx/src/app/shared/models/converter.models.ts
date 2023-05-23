@@ -61,12 +61,12 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
 
 export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId> {
   tenantId?: TenantId;
-  name: string;
+  name?: string;
   type: ConverterType;
-  debugMode: boolean;
-  configuration: any;
+  debugMode?: boolean;
+  configuration?: any;
   additionalInfo?: any;
-  edgeTemplate: boolean;
+  edgeTemplate?: boolean;
 }
 
 export interface TestUpLinkInputParams {
@@ -83,7 +83,7 @@ export interface TestDownLinkInputParams {
   encoder: string;
 }
 
-export interface DebugInParameters {
+export interface LatestConverterParameters {
   converterType: ConverterType;
   integrationType: IntegrationType;
   integrationName: string;

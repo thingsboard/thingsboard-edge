@@ -33,14 +33,15 @@ import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, Optional } from
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
-import { FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import {
   Converter,
   ConverterDebugInput,
   ConverterType,
-  converterTypeTranslationMap, DecoderMap
+  converterTypeTranslationMap,
+  DecoderMap
 } from '@shared/models/converter.models';
 
 import jsDecoderTemplate from '!raw-loader!src/assets/converters/js-decoder.raw';
@@ -115,10 +116,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
-  ngOnInit() {
-    super.ngOnInit();
-  }
-
   hideDelete() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.deleteEnabled(this.entity);
@@ -127,9 +124,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  buildForm(entity: Converter): UntypedFormGroup {
+  buildForm(entity: Converter): FormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
-     this.form = this.fb.group(
+    this.form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [entity ? entity.type : null, [Validators.required]],
@@ -150,21 +147,17 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         )
       }
     );
-    this.form.get('type').valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
+    this.form.get('type').valueChanges.subscribe(() => {
       this.converterTypeChanged(this.form);
     });
-    this.form.get('configuration').get('scriptLang').valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
+    this.form.get('configuration').get('scriptLang').valueChanges.subscribe(() => {
       this.converterScriptLangChanged( this.form);
     });
     this.checkIsNewConverter(entity,  this.form);
     return this.form;
   }
 
-  private checkIsNewConverter(entity: Converter, form: UntypedFormGroup) {
+  private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
       form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
       form.get('configuration').get('scriptLang').patchValue(
@@ -180,7 +173,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  private converterTypeChanged(form: UntypedFormGroup) {
+  private converterTypeChanged(form: FormGroup) {
     const converterType: ConverterType = form.get('type').value;
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
@@ -194,12 +187,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  private converterScriptLangChanged(form: UntypedFormGroup) {
+  private converterScriptLangChanged(form: FormGroup) {
     const converterType: ConverterType = form.get('type').value;
     this.setupDefaultScriptBody(form, converterType, this.integrationType);
   }
 
-  private setupDefaultScriptBody(form: UntypedFormGroup, converterType: ConverterType, integtationType) {
+  private setupDefaultScriptBody(form: FormGroup, converterType: ConverterType, integrationType) {
     const scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
     let targetField: string;
     let targetTemplate: string;
@@ -209,8 +202,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     } else {
       targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
       if(converterType === ConverterType.UPLINK) {
-        if (integtationType && DecoderMap.has(integtationType)) {
-          targetTemplate = DecoderMap.get(integtationType);
+        if (integrationType && DecoderMap.has(integrationType)) {
+          targetTemplate = DecoderMap.get(integrationType);
         } else {
           targetTemplate = tbelDecoderTemplate;
         }
@@ -223,8 +216,10 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   updateForm(entity: Converter) {
     const scriptLang = entity.configuration && entity.configuration.scriptLang ? entity.configuration.scriptLang : ScriptLanguage.JS;
-    this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
+    if (isDefinedAndNotNull(entity?.name)) {
+      this.entityForm.patchValue({name: entity.name});
+    }
     if (isDefinedAndNotNull(entity?.debugMode)) {
       this.entityForm.patchValue({debugMode: entity.debugMode});
     }
