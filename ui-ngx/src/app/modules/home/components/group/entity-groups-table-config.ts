@@ -300,7 +300,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
     return this.homeDialogs.createEntityGroup(this.groupType, '', ownerId).pipe(
       map((result) => {
-        if (result && result.shared) {
+        if (result) {
           this.notifyEntityGroupUpdated();
         }
         return result?.entityGroup;
