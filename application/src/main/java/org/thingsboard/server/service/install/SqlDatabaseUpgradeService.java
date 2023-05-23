@@ -750,7 +750,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.5.1pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     try {
-//                        String [] entityNames = new String [] {"device", "component_descriptor", "customer", "dashboard", "rule_chain", "rule_node", "ota_package", "asset_profile", "asset", "device_profile", "tb_user", "tenant_profile", "tenant", "widgets_bundle", "ntity_view", "resource", "edge"};
                         String[] entityNames = new String[]{"device"};
                         for (String entityName : entityNames) {
                             conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN search_text CASCADE");
