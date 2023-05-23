@@ -52,7 +52,7 @@ import java.util.List;
 @Entity
 @TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
-@Table(name = ModelConstants.EDGE_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.EDGE_INFO_VIEW_TABLE_NAME)
 public class EdgeInfoEntity extends AbstractEdgeEntity<EdgeInfo> {
 
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)

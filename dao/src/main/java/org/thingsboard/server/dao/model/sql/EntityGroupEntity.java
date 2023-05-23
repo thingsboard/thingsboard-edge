@@ -45,7 +45,7 @@ import javax.persistence.Transient;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.ENTITY_GROUP_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.ENTITY_GROUP_TABLE_NAME)
 public class EntityGroupEntity extends AbstractEntityGroupEntity<EntityGroup> {
 
     @Transient

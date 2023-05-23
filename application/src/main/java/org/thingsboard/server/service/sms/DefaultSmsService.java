@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+import org.thingsboard.server.service.transport.DefaultTransportApiService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -126,9 +127,11 @@ public class DefaultSmsService implements SmsService {
         }
     }
 
-    private int sendSms(SmsSender smsSender, String numberTo, String message) throws ThingsboardException {
+    protected int sendSms(SmsSender smsSender, String numberTo, String message) throws ThingsboardException {
         try {
-            return smsSender.sendSms(numberTo, message);
+            int sentSms = smsSender.sendSms(numberTo, message);
+            log.trace("Successfully sent sms to number: {}", numberTo);
+            return sentSms;
         } catch (Exception e) {
             throw handleException(e);
         }

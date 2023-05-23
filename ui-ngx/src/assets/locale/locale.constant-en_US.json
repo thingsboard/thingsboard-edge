@@ -867,7 +867,8 @@
         "type-provision-failure": "Device provisioning was failed",
         "type-timeseries-updated": "Telemetry updated",
         "type-timeseries-deleted": "Telemetry deleted",
-        "type-owner-changed": "Owner changed"
+        "type-owner-changed": "Owner changed",
+        "type-sms-sent": "SMS sent"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
@@ -4947,6 +4948,8 @@
         "tenant-entity-import-rate-limit": "Entity version load",
         "tenant-notification-request-rate-limit": "Notification requests",
         "tenant-notification-requests-per-rule-rate-limit": "Notification requests per notification rule",
+        "integration-msgs-per-tenant-rate-limit": "Tenant integration messages",
+        "integration-msgs-per-device-rate-limit": "Device integration messages",
         "max-transport-messages": "Transport messages maximum number",
         "max-transport-messages-required": "Transport messages maximum number is required.",
         "max-transport-messages-range": "Transport messages maximum number can't be negative",
@@ -5022,6 +5025,8 @@
             "edit-tenant-entity-import-rate-limit-title": "Edit entity version load rate limits",
             "edit-tenant-notification-request-rate-limit-title": "Edit notification requests rate limits",
             "edit-tenant-notification-requests-per-rule-rate-limit-title": "Edit notification requests per notification rule rate limits",
+            "edit-integration-msgs-per-tenant-rate-limit-title": "Edit integration messages per tenant rate limits",
+            "edit-integration-msgs-per-device-rate-limit-title": "Edit integration messages per device rate limits",
             "messages-per": "messages per",
             "not-set": "Not set",
             "number-of-messages": "Number of messages",

@@ -51,7 +51,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_CONTENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_DATA_PROPERTY;
@@ -64,7 +64,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = BLOB_ENTITY_COLUMN_FAMILY_NAME)
+@Table(name = BLOB_ENTITY_TABLE_NAME)
 public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements SearchTextEntity<BlobEntity> {
 
     @Column(name = BLOB_ENTITY_TENANT_ID_PROPERTY)

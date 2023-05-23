@@ -604,7 +604,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     public void testRpcCall() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
-        ObjectNode body = mapper.createObjectNode();
+        ObjectNode body = JacksonUtil.newObjectNode();
         body.put("requestId", new Random().nextInt());
         body.put("requestUUID", Uuids.timeBased().toString());
         body.put("oneway", false);
@@ -631,7 +631,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
     private void sendAttributesRequestAndVerify(Device device, String scope, String attributesDataStr, String expectedKey,
                                                 String expectedValue) throws Exception {
-        JsonNode attributesData = mapper.readTree(attributesDataStr);
+        JsonNode attributesData = JacksonUtil.toJsonNode(attributesDataStr);
 
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/attributes/" + scope,
                 attributesData);
@@ -737,7 +737,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
         Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(30, TimeUnit.SECONDS));
 
-        Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.createObjectNode().put(attrKey, attrValue),
+        Assert.assertEquals(JacksonUtil.newObjectNode().put(attrKey, attrValue),
                 JacksonUtil.fromBytes(onUpdateCallback.getPayloadBytes()));
 
         client.disconnect();
@@ -747,7 +747,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     public void testVerifyDeliveryOfLatestTimeseriesOnAttributesRequest() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
-        JsonNode timeseriesData = mapper.readTree("{\"temperature\":25, \"isEnabled\": true}");
+        JsonNode timeseriesData = JacksonUtil.toJsonNode("{\"temperature\":25, \"isEnabled\": true}");
 
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/timeseries/" + DataConstants.SERVER_SCOPE,
                 timeseriesData);

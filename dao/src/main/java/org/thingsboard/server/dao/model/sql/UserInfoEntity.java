@@ -50,7 +50,7 @@ import java.util.List;
 @Entity
 @TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
-@Table(name = ModelConstants.USER_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.USER_INFO_VIEW_TABLE_NAME)
 public class UserInfoEntity extends AbstractUserEntity<UserInfo> {
 
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)

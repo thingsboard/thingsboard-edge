@@ -177,14 +177,14 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         newRuleChain.setName("testRuleChain");
         RuleChain ruleChain = testRestClient.saveRuleChain(newRuleChain);
 
-        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("DownlinkRuleChainMetadata.json"));
+        JsonNode configuration = JacksonUtil.OBJECT_MAPPER.readTree(this.getClass().getClassLoader().getResourceAsStream("DownlinkRuleChainMetadata.json"));
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
-        ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        ruleChainMetaData.setNodes(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("nodes"), RuleNode[].class)));
         RuleNode integrationNode  = ruleChainMetaData.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
-        integrationNode.setConfiguration(mapper.createObjectNode().put("integrationId", integrationId.toString()));
-        ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+        integrationNode.setConfiguration(JacksonUtil.newObjectNode().put("integrationId", integrationId.toString()));
+        ruleChainMetaData.setConnections(Arrays.asList(JacksonUtil.OBJECT_MAPPER.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
 
         testRestClient.postRuleChainMetadata(ruleChainMetaData);
 
