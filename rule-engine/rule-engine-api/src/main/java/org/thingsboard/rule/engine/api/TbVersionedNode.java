@@ -28,38 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.rule.engine.api;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.data.RelationsQuery;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.util.TbPair;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+public interface TbVersionedNode extends TbNode {
 
-@Data
-public class TbGetRelatedAttrNodeConfiguration extends TbGetEntityAttrNodeConfiguration {
+    TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException;
 
-    private RelationsQuery relationsQuery;
+    int getCurrentVersion();
 
-    @Override
-    public TbGetRelatedAttrNodeConfiguration defaultConfiguration() {
-        TbGetRelatedAttrNodeConfiguration configuration = new TbGetRelatedAttrNodeConfiguration();
-        Map<String, String> attrMapping = new HashMap<>();
-        attrMapping.putIfAbsent("temperature", "tempo");
-        configuration.setAttrMapping(attrMapping);
-        configuration.setTelemetry(false);
-
-        RelationsQuery relationsQuery = new RelationsQuery();
-        relationsQuery.setDirection(EntitySearchDirection.FROM);
-        relationsQuery.setMaxLevel(1);
-        RelationEntityTypeFilter relationEntityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
-        relationsQuery.setFilters(Collections.singletonList(relationEntityTypeFilter));
-        configuration.setRelationsQuery(relationsQuery);
-
-        return configuration;
-    }
 }

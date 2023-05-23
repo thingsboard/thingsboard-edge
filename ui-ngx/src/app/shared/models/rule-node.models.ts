@@ -52,6 +52,7 @@ export interface RuleNode extends BaseData<RuleNodeId> {
   name: string;
   debugMode: boolean;
   singletonMode: boolean;
+  configurationVersion?: number;
   configuration: RuleNodeConfiguration;
   additionalInfo?: any;
 }

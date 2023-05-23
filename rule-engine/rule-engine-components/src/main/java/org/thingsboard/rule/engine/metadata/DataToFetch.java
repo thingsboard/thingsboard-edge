@@ -28,10 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.util;
+package org.thingsboard.rule.engine.metadata;
 
-public enum EntityDetails {
+public enum DataToFetch {
 
-    ID, TITLE, COUNTRY, CITY, STATE, ZIP, ADDRESS, ADDRESS2, PHONE, EMAIL, ADDITIONAL_INFO
+    ATTRIBUTES, LATEST_TELEMETRY, FIELDS
 
 }
