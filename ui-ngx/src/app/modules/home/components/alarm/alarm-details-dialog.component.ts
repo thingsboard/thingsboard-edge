@@ -48,7 +48,6 @@ import { AlarmService } from '@core/http/alarm.service';
 import { tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
-import { UtilsService } from '@core/services/utils.service';
 import { AlarmCommentComponent } from '@home/components/alarm/alarm-comment.component';
 import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
 import { UtilsService } from '@core/services/utils.service';
@@ -92,7 +91,6 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
   constructor(protected store: Store<AppState>,
               protected router: Router,
               private datePipe: DatePipe,
-              private utils: UtilsService,
               private millisecondsToTimeStringPipe: MillisecondsToTimeStringPipe,
               private translate: TranslateService,
               @Inject(MAT_DIALOG_DATA) public data: AlarmDetailsDialogData,
@@ -201,7 +199,7 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
 
   onReassign(): void {
     this.alarmUpdated = true;
-    this.loadAlarm()
+    this.loadAlarm();
     this.alarmCommentComponent.loadAlarmComments();
   }
 }
