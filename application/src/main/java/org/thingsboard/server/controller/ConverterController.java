@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -60,11 +60,16 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -83,6 +88,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
@@ -90,6 +96,14 @@ import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_DE
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_TYPE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_NAME_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_TYPE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -202,12 +216,24 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
     public JsonNode getLatestConverterDebugInput(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
-                                                 @PathVariable(CONVERTER_ID) String strConverterId) throws Exception {
+                                                 @PathVariable(CONVERTER_ID) String strConverterId,
+                                                 @ApiParam(required = false, value = CONVERTER_TYPE_DESCRIPTION)
+                                                 @RequestParam(required = false) String converterType,
+                                                 @ApiParam(required = false, value = INTEGRATION_TYPE_DESCRIPTION)
+                                                 @RequestParam(required = false) String integrationType,
+                                                 @ApiParam(required = false, value = INTEGRATION_NAME_PARAM_DESCRIPTION)
+                                                 @RequestParam(required = false) String integrationName) throws Exception {
         checkParameter(CONVERTER_ID, strConverterId);
-        ConverterId converterId = new ConverterId(toUUID(strConverterId));
-        checkConverterId(converterId, Operation.READ);
-        List<EventInfo> events = eventService.findLatestEvents(getTenantId(), converterId, EventType.DEBUG_CONVERTER, 1);
+        UUID uuid = toUUID(strConverterId);
+        ConverterId converterId = new ConverterId(uuid);
         JsonNode result = null;
+        TenantId tenantId = getTenantId();
+        List<EventInfo> events = new ArrayList<>();
+        if (!EntityId.NULL_UUID.equals(uuid)) {
+            checkConverterId(converterId, Operation.READ);
+            events = eventService.findLatestEvents(tenantId, converterId, EventType.DEBUG_CONVERTER, 1);
+        }
+        Converter converter = converterService.findConverterById(tenantId, converterId);
         if (events != null && !events.isEmpty()) {
             EventInfo event = events.get(0);
             JsonNode body = event.getBody();
@@ -245,6 +271,51 @@ public class ConverterController extends AutoCommitController {
                         String inIntegrationMetadata = body.get("metadata").asText();
                         debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
                     }
+                    result = debugIn;
+                }
+            }
+        } else {
+            IntegrationType targetIntegrationType = null;
+            if (StringUtils.isNotBlank(integrationType)) {
+                targetIntegrationType = toIntegrationType(integrationType);
+            }
+            if ((converter == null && "UPLINK".equalsIgnoreCase(converterType)) ||
+                    (converter != null && ConverterType.UPLINK.equals(converter.getType()))) {
+                if (targetIntegrationType == null) {
+                    List<Integration> relatedIntegrations = integrationService.findIntegrationsByConverterId(tenantId, converterId);
+                    if (relatedIntegrations.stream().distinct().count() == 1) {
+                        Integration relatedintegration = relatedIntegrations.get(0);
+                        targetIntegrationType = relatedintegration.getType();
+                        if (StringUtils.isEmpty(integrationName)) {
+                            integrationName = relatedintegration.getName();
+                        }
+                    }
+                    if (targetIntegrationType == null) {
+                        return null;
+                    }
+                    ObjectNode debugIn = objectMapper.createObjectNode();
+                    ObjectNode metadata = objectMapper.createObjectNode();
+                    metadata.put(INTEGRATION_NAME, integrationName);
+                    debugIn.put("inMetadata", metadata.asText());
+                    String inContent;
+                    switch (targetIntegrationType) {
+                        case TTN:
+                            inContent = DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE;
+                            break;
+                        case TTI:
+                            inContent = DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE;
+                            break;
+                        case LORIOT:
+                            inContent = DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE;
+                            break;
+                        case CHIRPSTACK:
+                            inContent = DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE;
+                            break;
+                        default:
+                            return null;
+                    }
+                    debugIn.put("inContent", inContent);
+                    debugIn.put("inContentType", UplinkContentType.JSON.name());
                     result = debugIn;
                 }
             }
