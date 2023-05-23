@@ -52,7 +52,7 @@ import java.util.List;
 @Entity
 @TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
-@Table(name = ModelConstants.ASSET_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.ASSET_INFO_VIEW_TABLE_NAME)
 public class AssetInfoEntity extends AbstractAssetEntity<AssetInfo> {
 
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.coap;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.server.resources.CoapExchange;
@@ -38,8 +37,6 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 
 @Data
 public class CoapIntegrationMsg {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final CoapExchange exchange;
 

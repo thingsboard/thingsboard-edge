@@ -67,7 +67,7 @@ public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity,
     @Value("${sql.ttl.blob_entities.ttl:0}")
     private int ttlInSec;
 
-    private static final String TABLE_NAME = ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME;
+    private static final String TABLE_NAME = ModelConstants.BLOB_ENTITY_TABLE_NAME;
 
     @Override
     protected Class<BlobEntityEntity> getEntityClass() {

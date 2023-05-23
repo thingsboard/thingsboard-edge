@@ -90,9 +90,9 @@ export class SwitchControlWidgetSettingsComponent extends WidgetSettingsComponen
 
   protected prepareOutputSettings(settings: any): WidgetSettings {
     return {
+      ...settings.switchRpcSettings,
       title: settings.title,
-      showOnOffLabels: settings.showOnOffLabels,
-      ...settings.switchRpcSettings
+      showOnOffLabels: settings.showOnOffLabels
     };
   }
 }

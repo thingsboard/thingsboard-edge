@@ -32,8 +32,8 @@
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value ? value : 'ENABLED';"
                 },
                 {
                   "name": "jsExecutionLimit",
@@ -72,7 +72,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return value ? value.toLowerCase() : '';"
+                  "postFuncBody": "return value ? value.toLowerCase() : 'enabled';"
                 },
                 {
                   "name": "jsExecutionApiState",
@@ -191,8 +191,8 @@
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value ? value : 'ENABLED';"
                 },
                 {
                   "name": "storageDataPointsLimit",
@@ -231,7 +231,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return value ? value.toLowerCase() : '';"
+                  "postFuncBody": "return value ? value.toLowerCase() : 'enabled';"
                 },
                 {
                   "name": "dbApiState",
@@ -350,8 +350,8 @@
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value ? value : 'ENABLED';"
                 },
                 {
                   "name": "ruleEngineExecutionLimit",
@@ -390,7 +390,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return value ? value.toLowerCase() : '';"
+                  "postFuncBody": "return value ? value.toLowerCase() : 'enabled';"
                 },
                 {
                   "name": "ruleEngineApiState",
@@ -519,8 +519,8 @@
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value ? value : 'ENABLED';"
                 },
                 {
                   "name": "transportMsgLimit",
@@ -559,7 +559,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return value ? value.toLowerCase() : '';"
+                  "postFuncBody": "return value ? value.toLowerCase() : 'enabled';"
                 },
                 {
                   "name": "transportApiState",
@@ -691,8 +691,8 @@
                   "units": null,
                   "decimals": null,
                   "funcBody": null,
-                  "usePostProcessing": null,
-                  "postFuncBody": null
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value ? value : 'ENABLED';"
                 },
                 {
                   "name": "createdAlarmsLimit",
@@ -731,7 +731,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return value ? value.toLowerCase() : '';"
+                  "postFuncBody": "return value ? value.toLowerCase() : 'enabled';"
                 },
                 {
                   "name": "alarmApiState",
