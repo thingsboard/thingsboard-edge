@@ -34,11 +34,23 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
+import { IntegrationType } from '@shared/models/integration.models';
+import tbelChirpstackDecoderTemplate from '!raw-loader!src/assets/converters/tbel-chirpstack-decoder.raw';
+import tbelLoriotDecoderTemplate from '!raw-loader!src/assets/converters/tbel-loriot-decoder.raw';
+import tbelTtiDecoderTemplate from '!raw-loader!src/assets/converters/tbel-tti-decoder.raw';
+import tbelTtnDecoderTemplate from '!raw-loader!src/assets/converters/tbel-ttn-decoder.raw';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
   DOWNLINK = 'DOWNLINK'
 }
+
+export const DecoderMap = new Map<string, string>([
+  [IntegrationType.CHIRPSTACK, tbelChirpstackDecoderTemplate],
+  [IntegrationType.LORIOT, tbelLoriotDecoderTemplate],
+  [IntegrationType.TTI, tbelTtiDecoderTemplate],
+  [IntegrationType.TTN, tbelTtnDecoderTemplate]
+]);
 
 export const converterTypeTranslationMap = new Map<ConverterType, string>(
   [
@@ -71,6 +83,12 @@ export interface TestDownLinkInputParams {
   encoder: string;
 }
 
+export interface DebugInParameters {
+  converterType: ConverterType;
+  integrationType: IntegrationType;
+  integrationName: string;
+}
+
 export type TestConverterInputParams = TestUpLinkInputParams & TestDownLinkInputParams;
 
 export interface TestConverterResult {
@@ -86,7 +104,7 @@ export interface ConverterDebugInput {
   inIntegrationMetadata: string;
 }
 
-export function getConverterHelpLink (converter: Converter) {
+export function getConverterHelpLink(converter: Converter) {
   let link = 'converters';
   if (converter && converter.type) {
     if (converter.type === ConverterType.UPLINK) {

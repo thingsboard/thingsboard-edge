@@ -107,6 +107,7 @@
             <tb-converter #uplinkDataConverter
                           [fxShow]="uplinkConverterForm.get('converterType').value === 'new'"
                           hideType="true"
+                          [integrationType]="integrationWizardForm.get('type').value"
                           isEdit="true"
                           [entity]="uplinkConverter"
             ></tb-converter>
@@ -137,6 +138,7 @@
             </mat-radio-button>
             <tb-converter #downlinkDataConverter
               [fxShow]="downlinkConverterForm.get('converterType').value === 'new'"
+              [integrationType]="integrationWizardForm.get('type').value"
               hideType="true"
               isEdit="true"
               [entity]="downlinkConverter"

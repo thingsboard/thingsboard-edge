@@ -37,7 +37,7 @@ import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import {
   Converter,
-  ConverterDebugInput,
+  ConverterDebugInput, DebugInParameters,
   TestConverterResult,
   TestDownLinkInputParams,
   TestUpLinkInputParams
@@ -101,8 +101,14 @@ export class ConverterService {
     return this.http.post<TestConverterResult>(url, inputParams, defaultHttpOptionsFromConfig(config));
   }
 
-  public getLatestConverterDebugInput(converterId: string, config?: RequestConfig): Observable<ConverterDebugInput> {
-    return this.http.get<ConverterDebugInput>(`/api/converter/${converterId}/debugIn`, defaultHttpOptionsFromConfig(config));
+  public getLatestConverterDebugInput(converterId: string, parameters?: DebugInParameters,
+                                      config?: RequestConfig): Observable<ConverterDebugInput> {
+    let url = `/api/converter/${converterId}/debugIn`;
+    if (parameters) {
+      url += `?converterType=${parameters.converterType}&integrationType=${parameters.integrationType}&integrationName=${
+        parameters.integrationName}`;
+    }
+    return this.http.get<ConverterDebugInput>(url, defaultHttpOptionsFromConfig(config));
   }
 
 }

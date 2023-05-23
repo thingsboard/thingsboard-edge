@@ -131,6 +131,8 @@ export class IntegrationWizardDialogComponent extends
     ).subscribe((value: IntegrationType) => {
       if (integrationTypeInfoMap.has(value)) {
         this.integrationType = this.translate.instant(integrationTypeInfoMap.get(value).name);
+        this.integrationWizardForm.get('name').patchValue(`${this.translate.instant(integrationTypeInfoMap.get(value).name)} integration`,
+          {emitEvent: false});
         this.checkConnectionAllow = integrationTypeInfoMap.get(value).checkConnection || false;
         this.showDownlinkStep = !integrationTypeInfoMap.get(value).hideDownlink;
         if (integrationTypeInfoMap.get(value).remote) {
@@ -141,20 +143,18 @@ export class IntegrationWizardDialogComponent extends
           this.integrationConfigurationForm.get('remote').setValue(false, {emitEvent: true});
         }
       } else {
+        this.integrationWizardForm.get('name').patchValue('', {emitEvent: false});
         this.integrationType = '';
       }
       this.integrationConfigurationForm.get('configuration').setValue(null);
     });
 
     this.uplinkConverterForm = this.fb.group({
-      uplinkConverterId: [null, [Validators.required]],
-      converterType: ['exist'],
+      uplinkConverterId: [{value: null, disabled: true}, Validators.required],
+      converterType: ['new'],
       newUplinkConverter: [{
-        value: {
           type: ConverterType.UPLINK
-        },
-        disable: true
-      }]
+        }]
     });
 
     this.downlinkConverterForm = this.fb.group({
@@ -209,7 +209,6 @@ export class IntegrationWizardDialogComponent extends
   ngAfterViewInit() {
     setTimeout(() => {
       this.uplinkConverterForm.setControl('newUplinkConverter', this.uplinkDataConverterComponent.entityForm, {emitEvent: false});
-      this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
       this.downlinkConverterForm.setControl('newDownlinkConverter', this.downlinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
     }, 0);
