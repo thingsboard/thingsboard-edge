@@ -245,7 +245,9 @@ public class EventController extends BaseController {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
         EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-        checkEntityId(entityId, Operation.WRITE);
+        // TODO: voba - merge comment
+        // checkEntityId(entityId, Operation.WRITE);
+        checkEntityId(entityId, Operation.READ);
 
         eventService.removeEvents(getTenantId(), entityId, eventFilter, startTime, endTime);
     }
