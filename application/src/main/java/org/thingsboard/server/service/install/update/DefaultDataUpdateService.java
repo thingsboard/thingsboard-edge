@@ -42,10 +42,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2;
-import org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode;
 import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
@@ -112,7 +108,6 @@ import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -350,7 +345,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
-                updateAnalyticsRuleNode();
+                // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
             default:
@@ -567,33 +562,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } catch (Exception e) {
             log.error("Unable to update Tenant", e);
         }
-    }
-
-    private void updateAnalyticsRuleNode() {
-        List<String> ruleNodeNames = new ArrayList<>();
-        ruleNodeNames.add(TbSimpleAggMsgNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNodeV2.class.getName());
-        ruleNodeNames.add(TbAggLatestTelemetryNode.class.getName());
-
-        ruleNodeNames.forEach(ruleNodeName -> {
-            PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
-            ruleNodesIterator.forEach(ruleNode -> {
-                JsonNode json = ruleNode.getConfiguration();
-                if (json != null && json.isObject()) {
-                    ObjectNode configNode = (ObjectNode) json;
-                    if (!configNode.has("outMsgType")) {
-                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                        if (targetRuleChain != null) {
-                            TenantId tenantId = targetRuleChain.getTenantId();
-                            configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
-                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                            ruleChainService.saveRuleNode(tenantId, ruleNode);
-                        }
-                    }
-                }
-            });
-        });
     }
 
     private void updateDuplicateMsgRuleNode() {

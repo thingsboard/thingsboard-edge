@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -43,14 +45,15 @@ import org.thingsboard.rule.engine.analytics.incoming.state.TbIntervalState;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesQuery;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
+import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
@@ -81,7 +84,7 @@ import java.util.function.Consumer;
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
 )
-public class TbSimpleAggMsgNode implements TbNode {
+public class TbSimpleAggMsgNode implements TbVersionedNode {
 
     private static final String TB_REPORT_TICK_MSG = "TbIntervalTickMsg";
     private static final String TB_PERSIST_TICK_MSG = "TbPersistTickMsg";
@@ -305,6 +308,23 @@ public class TbSimpleAggMsgNode implements TbNode {
             throw new IllegalArgumentException("Found JSON null for [" + config.getInputValueKey() + "] key!");
         }
         return je;
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        if (fromVersion == 0) {
+            if (!oldConfiguration.hasNonNull("outMsgType")) {
+                ObjectNode newConfig = (ObjectNode) oldConfiguration;
+                newConfig.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                return new TbPair<>(true, newConfig);
+            }
+        }
+        return new TbPair<>(false, oldConfiguration);
+    }
+
+    @Override
+    public int getCurrentVersion() {
+        return 1;
     }
 
 }

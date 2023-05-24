@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.analytics.latest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -37,11 +39,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -57,7 +60,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
-public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfiguration> implements TbNode {
+public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfiguration> implements TbVersionedNode {
 
     private final Gson gson = new Gson();
 
@@ -154,4 +157,22 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
             ctx.checkTenantEntity(((ParentEntitiesRelationsQuery) parentEntitiesQuery).getRootEntityId());
         }
     }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        if (fromVersion == 0) {
+            if (!oldConfiguration.hasNonNull("outMsgType")) {
+                ObjectNode newConfig = (ObjectNode) oldConfiguration;
+                newConfig.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                return new TbPair<>(true, newConfig);
+            }
+        }
+        return new TbPair<>(false, oldConfiguration);
+    }
+
+    @Override
+    public int getCurrentVersion() {
+        return 1;
+    }
+
 }
