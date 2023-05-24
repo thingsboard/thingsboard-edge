@@ -28,41 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.ui.tests.devicessmoke;
+package org.thingsboard.server.msa.ui.tabs;
 
-import io.qameta.allure.Epic;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
-import org.thingsboard.server.msa.ui.pages.DevicePageHelper;
-import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
-import org.thingsboard.server.msa.ui.tabs.CreateDeviceTabHelper;
+import org.openqa.selenium.WebDriver;
 
-@Epic("Device smoke tests")
-abstract public class AbstractDeviceTest extends AbstractDriverBaseTest {
-
-    protected SideBarMenuViewHelper sideBarMenuView;
-    protected DevicePageHelper devicePage;
-    protected CreateDeviceTabHelper createDeviceTab;
-    protected String deviceName;
-    protected String deviceProfileTitle;
-
-    @BeforeClass
-    public void login() {
-        new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewHelper(driver);
-        devicePage = new DevicePageHelper(driver);
-        createDeviceTab = new CreateDeviceTabHelper(driver);
+public class CreateDeviceTabHelper extends CreateDeviceTabElements {
+    public CreateDeviceTabHelper(WebDriver driver) {
+        super(driver);
     }
 
-    @AfterMethod
-    public void delete() {
-        deleteDeviceByName(deviceName);
-        deviceName = null;
-        if (deviceProfileTitle != null) {
-            deleteDeviceProfileByTitle(deviceProfileTitle);
-            deviceProfileTitle = null;
+    public void enterName(String deviceName) {
+        enterText(nameField(), deviceName);
+    }
+
+    public void createNewDeviceProfile(String deviceProfileTitle) {
+        if (!createNewDeviceProfileRadioBtn().getAttribute("class").contains("checked")) {
+            createNewDeviceProfileRadioBtn().click();
         }
+        deviceProfileTitleField().sendKeys(deviceProfileTitle);
+    }
+
+    public void changeDeviceProfile(String deviceProfileName) {
+        if (!selectExistingDeviceProfileRadioBtn().getAttribute("class").contains("checked")) {
+            selectExistingDeviceProfileRadioBtn().click();
+        }
+        clearProfileFieldBtn().click();
+        entityFromDropdown(deviceProfileName).click();
+    }
+
+    public void changeOwnerOn(String customerTitle) {
+        ownerAndGroupsOptionBtn().click();
+        clearOwnerFieldBtn().click();
+        customerFromDropDown(customerTitle).click();
+        sleep(2); //waiting for the action to count
+    }
+
+    public void enterLabel(String label) {
+        enterText(deviceLabelField(), label);
+    }
+
+    public void enterDescription(String description) {
+        enterText(descriptionField(), description);
     }
 }

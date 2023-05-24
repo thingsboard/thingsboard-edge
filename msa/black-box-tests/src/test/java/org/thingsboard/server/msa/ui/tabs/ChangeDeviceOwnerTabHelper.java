@@ -28,41 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.ui.tests.devicessmoke;
+package org.thingsboard.server.msa.ui.tabs;
 
-import io.qameta.allure.Epic;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
-import org.thingsboard.server.msa.ui.pages.DevicePageHelper;
-import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
-import org.thingsboard.server.msa.ui.tabs.CreateDeviceTabHelper;
+import org.openqa.selenium.WebDriver;
 
-@Epic("Device smoke tests")
-abstract public class AbstractDeviceTest extends AbstractDriverBaseTest {
-
-    protected SideBarMenuViewHelper sideBarMenuView;
-    protected DevicePageHelper devicePage;
-    protected CreateDeviceTabHelper createDeviceTab;
-    protected String deviceName;
-    protected String deviceProfileTitle;
-
-    @BeforeClass
-    public void login() {
-        new LoginPageHelper(driver).authorizationTenant();
-        sideBarMenuView = new SideBarMenuViewHelper(driver);
-        devicePage = new DevicePageHelper(driver);
-        createDeviceTab = new CreateDeviceTabHelper(driver);
+public class ChangeDeviceOwnerTabHelper extends ChangeDeviceOwnerTabElements {
+    public ChangeDeviceOwnerTabHelper(WebDriver driver) {
+        super(driver);
     }
 
-    @AfterMethod
-    public void delete() {
-        deleteDeviceByName(deviceName);
-        deviceName = null;
-        if (deviceProfileTitle != null) {
-            deleteDeviceProfileByTitle(deviceProfileTitle);
-            deviceProfileTitle = null;
+    public void selectOwner(String customerTitle) {
+        changeOwnerField().sendKeys(customerTitle);
+        if (changeOwnerField().getAttribute("value").isEmpty()) {
+            changeOwnerField().sendKeys(customerTitle);
         }
+        customerFromDropDown(customerTitle).click();
     }
+
+    public void changeOwnerOn(String customerTitle) {
+        selectOwner(customerTitle);
+        changeOwnerBtn().click();
+        yesBtnConfirmChangeOwner().click();
+    }
+
 }
