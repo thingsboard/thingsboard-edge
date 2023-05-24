@@ -32,6 +32,7 @@ package org.thingsboard.server.service.install.update;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.SearchTextBased;
@@ -57,7 +58,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D extends SearchTextBased<I>
+public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D extends BaseData<I>
         & TenantEntity & HasCustomerId> extends PaginatedUpdater<TenantId,D> {
 
     protected final EntityGroup groupAll;
