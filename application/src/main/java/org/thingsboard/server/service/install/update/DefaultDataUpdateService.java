@@ -325,7 +325,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 break;
             case "ce":
-                log.info("Updating data to PE ...");
+                log.info("Updating data ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
