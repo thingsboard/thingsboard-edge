@@ -279,21 +279,23 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.5.1 to 3.5.2 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
                             dataUpdateService.updateData("3.5.1");
-                        case "3.5.2": // to 3.5.2PE
-                            log.info("Upgrading ThingsBoard from version 3.5.2 to 3.5.2PE ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.2");
-                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
-                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-                            dataUpdateService.updateData("3.5.2");
-                            log.info("Updating system data...");
-                            systemDataLoaderService.updateSystemWidgets();
-                            installScripts.loadSystemLwm2mResources();
                             break;
-                            //TODO update CacheCleanupService on the next version upgrade
+                        case "CE":
+                            log.info("Upgrading ThingsBoard from version CE to PE ...");
+                            //TODO: check CE schema version before launch of the update.
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
+                            break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
-
                     }
+                    // We always run the CE to PE update script, just in case..
+                    databaseEntitiesUpgradeService.upgradeDatabase("ce");
+                    entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
+                    entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+                    dataUpdateService.updateData("ce");
+                    log.info("Updating system data...");
+                    systemDataLoaderService.updateSystemWidgets();
+                    installScripts.loadSystemLwm2mResources();
                 }
                 log.info("Upgrade finished successfully!");
 

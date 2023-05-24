@@ -753,9 +753,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed updating schema!!!", e);
                 }
                 break;
-            case "3.5.2":
+            case "ce":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.5.2pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     try {
                         String[] entityNames = new String[]{"device"};
