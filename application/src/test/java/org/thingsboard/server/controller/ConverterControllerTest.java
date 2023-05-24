@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,6 +68,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.controller.ControllerConstants.*;
 
 @TestPropertySource(properties = {
         "js.evaluator=local",
@@ -409,6 +411,32 @@ public class ConverterControllerTest extends AbstractControllerTest {
         testNotifyEntityIsNullOneTimeEdgeServiceNeverError(downlinkConverter,
                 savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, new DataValidationException(msgError), downlinkConverter.getId().getId().toString());
+    }
+
+    @Test
+    public void testGettingDefaultPayloadForConverters() throws Exception {
+        Map<IntegrationType, String> expectedPayloads = Map.of(
+        IntegrationType.LORIOT,DEFAULT_LORIOT_UPLINK_CONVERTER_MESSAGE,
+        IntegrationType.CHIRPSTACK, DEFAULT_CHIRPSTACK_UPLINK_CONVERTER_MESSAGE,
+        IntegrationType.TTN, DEFAULT_TTN_UPLINK_CONVERTER_MESSAGE,
+        IntegrationType.TTI, DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE);
+
+        for(IntegrationType integrationType : expectedPayloads.keySet()) {
+            String integrationName = "TEST_" + integrationType;
+            String urlTemplate = "/api/converter/{converterId}/debugIn?integrationName={integrationName}&integrationType={integrationType}&converterType={converterType}";
+            ObjectNode resultNode = doGet(urlTemplate, ObjectNode.class, EntityId.NULL_UUID, integrationName, integrationType.name(), ConverterType.UPLINK.name());
+
+            Assert.assertNotNull(resultNode);
+            String metadataStr = resultNode.get("inMetadata").asText();
+            Assert.assertFalse(String.format("Returned metadata is empty for integration: %s", integrationType.name()), StringUtils.isBlank(metadataStr));
+            ObjectNode inMetadata = JacksonUtil.fromString(metadataStr, ObjectNode.class);
+
+            Assert.assertNotNull(inMetadata);
+            Assert.assertEquals(String.format("Unexpected payload %s for integration %s, expected is: %s", resultNode.get("inContent").asText(), integrationType.name(), expectedPayloads.get(integrationType)), expectedPayloads.get(integrationType), resultNode.get("inContent").asText());
+            Assert.assertEquals(integrationName, inMetadata.get("integrationName").asText());
+            Assert.assertEquals("JSON", resultNode.get("inContentType").asText());
+
+        }
     }
 
     @Test
