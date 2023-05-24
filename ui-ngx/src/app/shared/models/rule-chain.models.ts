@@ -86,6 +86,7 @@ export const unknownNodeComponent: RuleNodeComponentDescriptor = {
   type: RuleNodeType.UNKNOWN,
   name: 'unknown',
   clusteringMode: ComponentClusteringMode.ENABLED,
+  configurationVersion: 0,
   clazz: 'tb.internal.Unknown',
   configurationDescriptor: {
     nodeDefinition: {
@@ -102,6 +103,7 @@ export const unknownNodeComponent: RuleNodeComponentDescriptor = {
 
 export const inputNodeComponent: RuleNodeComponentDescriptor = {
   type: RuleNodeType.INPUT,
+  configurationVersion: 0,
   clusteringMode: ComponentClusteringMode.ENABLED,
   name: 'Input',
   clazz: 'tb.internal.Input'
