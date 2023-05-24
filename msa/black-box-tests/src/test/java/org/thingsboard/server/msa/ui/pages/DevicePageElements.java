@@ -77,7 +77,7 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String DEVICE_PROFILE_FIELD = "(//input[@formcontrolname='deviceProfile'])[2]";
     private static final String DEVICE_STATE_SELECT = "//div[contains(@class,'tb-filter-panel')]//mat-select[@role='combobox']";
     private static final String LIST_OF_DEVICES_STATE = "//div[@class='status']";
-    private static final String LIST_OF_DEVICES_PROFILE = "//mat-cell[contains(@class,'deviceProfileName')]";
+    private static final String LIST_OF_DEVICES_PROFILE = "//mat-cell[contains(@class,'type')]";
 
     public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
