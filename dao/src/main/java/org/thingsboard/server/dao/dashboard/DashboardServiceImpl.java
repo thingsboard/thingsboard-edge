@@ -401,6 +401,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteDashboard(tenantId, (DashboardId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.DASHBOARD;
     }

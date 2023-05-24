@@ -28,23 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.service.sync.ie.exporting.impl;
 
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
-import java.util.List;
+import java.util.Set;
 
-public interface NotificationTemplateDao extends Dao<NotificationTemplate>, ExportableEntityDao<NotificationTemplateId, NotificationTemplate> {
+@Service
+@TbCoreComponent
+public class NotificationTemplateExportService extends BaseEntityExportService<NotificationTemplateId, NotificationTemplate, EntityExportData<NotificationTemplate>> {
 
-    PageData<NotificationTemplate> findByTenantIdAndNotificationTypesAndPageLink(TenantId tenantId, List<NotificationType> notificationTypes, PageLink pageLink);
+    @Override
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, NotificationTemplate notificationTemplate, EntityExportData<NotificationTemplate> exportData) {
 
-    void removeByTenantId(TenantId tenantId);
+    }
+
+    @Override
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.NOTIFICATION_TEMPLATE);
+    }
 
 }

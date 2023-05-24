@@ -316,6 +316,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteRole(tenantId, (RoleId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;
     }

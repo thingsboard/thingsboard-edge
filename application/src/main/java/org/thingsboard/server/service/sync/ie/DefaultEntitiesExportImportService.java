@@ -82,7 +82,8 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     protected static final List<EntityType> SUPPORTED_ENTITY_TYPES = List.of(
             EntityType.CUSTOMER, EntityType.ROLE, EntityType.ENTITY_GROUP, EntityType.ASSET_PROFILE, EntityType.ASSET, EntityType.RULE_CHAIN,
             EntityType.DASHBOARD, EntityType.DEVICE_PROFILE, EntityType.DEVICE, EntityType.ENTITY_VIEW, EntityType.CONVERTER,
-            EntityType.INTEGRATION, EntityType.WIDGETS_BUNDLE
+            EntityType.INTEGRATION, EntityType.WIDGETS_BUNDLE,
+            EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_RULE
     );
 
     @Override
