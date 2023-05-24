@@ -1952,82 +1952,79 @@ public class ControllerConstants {
     // Default converter uplinks messages
 
     static final String DEFAULT_TTI_UPLINK_CONVERTER_MESSAGE = "{\n" +
-    "        \"topic\": \"v3/application-tti-name@tenant/devices/eui-1000000000000001/up\",\n" +
-    "        \"payload\": {\n" +
-    "        \"end_device_ids\": {\n" +
-    "        \"device_id\": \"eui-1000000000000001\",\n" +
-    "            \"application_ids\": {\n" +
-    "                \"application_id\": \"application-tti-name\"\n" +
-    "            },\n" +
-    "            \"dev_eui\": \"1000000000000001\",\n" +
-    "            \"join_eui\": \"2000000000000001\",\n" +
-    "            \"dev_addr\": \"20000001\"\n" +
+    "    \"end_device_ids\": {\n" +
+    "    \"device_id\": \"eui-1000000000000001\",\n" +
+    "        \"application_ids\": {\n" +
+    "            \"application_id\": \"application-tti-name\"\n" +
     "        },\n" +
-    "        \"correlation_ids\": [\"as:up:01H0PZDGB1NW6NAPD815NGHPF6\", \"gs:conn:01H0FJRSXSYT7VKNYXJ89F95XT\", \"gs:up:host:01H0FJRSY3MZMGPPFBQ4FZV4T8\", \"gs:uplink:01H0PZDG4HHGFRTXRTXD4PFTH7\", \"ns:uplink:01H0PZDG4JZ3BM0K6J89EQK1J7\", \"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0PZDG4J02F85RYFPCNSNXCR\", \"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0PZDGB081PMP806BJHNHX1A\"],\n" +
-    "        \"received_at\": \"2023-05-18T08:25:26.112483370Z\",\n" +
-    "        \"uplink_message\": {\n" +
-    "        \"session_key_id\": \"AYfg8rhha5n+FWx0ZaAprA==\",\n" +
-    "        \"f_port\": 85,\n" +
-    "        \"f_cnt\": 5017,\n" +
-    "        \"frm_payload\": \"A2fiAARoUwUAAQbLAgd9BwMIfWQACXNFJwt9EAAMfRAAAXVe\",\n" +
-    "        \"rx_metadata\": [{\n" +
-    "            \"gateway_ids\": {\n" +
-    "                \"gateway_id\": \"eui-6A7E111A10000000\",\n" +
-    "                \"eui\": \"6A7E111A10000000\"\n" +
+    "        \"dev_eui\": \"1000000000000001\",\n" +
+    "        \"join_eui\": \"2000000000000001\",\n" +
+    "        \"dev_addr\": \"20000001\"\n" +
+    "    },\n" +
+    "    \"correlation_ids\": [\"as:up:01H0PZDGB1NW6NAPD815NGHPF6\", \"gs:conn:01H0FJRSXSYT7VKNYXJ89F95XT\", \"gs:up:host:01H0FJRSY3MZMGPPFBQ4FZV4T8\", \"gs:uplink:01H0PZDG4HHGFRTXRTXD4PFTH7\", \"ns:uplink:01H0PZDG4JZ3BM0K6J89EQK1J7\", \"rpc:/ttn.lorawan.v3.GsNs/HandleUplink:01H0PZDG4J02F85RYFPCNSNXCR\", \"rpc:/ttn.lorawan.v3.NsAs/HandleUplink:01H0PZDGB081PMP806BJHNHX1A\"],\n" +
+    "    \"received_at\": \"2023-05-18T08:25:26.112483370Z\",\n" +
+    "    \"uplink_message\": {\n" +
+    "    \"session_key_id\": \"AYfg8rhha5n+FWx0ZaAprA==\",\n" +
+    "    \"f_port\": 85,\n" +
+    "    \"f_cnt\": 5017,\n" +
+    "    \"frm_payload\": \"A2fiAARoUwUAAQbLAgd9BwMIfWQACXNFJwt9EAAMfRAAAXVe\",\n" +
+    "    \"rx_metadata\": [{\n" +
+    "        \"gateway_ids\": {\n" +
+    "            \"gateway_id\": \"eui-6A7E111A10000000\",\n" +
+    "            \"eui\": \"6A7E111A10000000\"\n" +
+    "        },\n" +
+    "        \"time\": \"2023-05-18T08:25:25.885310Z\",\n" +
+    "        \"timestamp\": 818273765,\n" +
+    "        \"rssi\": -24,\n" +
+    "        \"channel_rssi\": -24,\n" +
+    "        \"snr\": 12,\n" +
+    "        \"frequency_offset\": \"671\",\n" +
+    "        \"uplink_token\": \"CiIKIAoUZXVpLTZBN0UxMTFBMTAwMDAwMDASCCThJP/+9k6eEOW7l4YDGgwI9cGXowYQ5KPhrwMgiI2rp+jpOA=\",\n" +
+    "        \"channel_index\": 2,\n" +
+    "        \"received_at\": \"2023-05-18T08:25:25.869324983Z\"\n" +
+    "    }, {\n" +
+    "        \"gateway_ids\": {\n" +
+    "        \"gateway_id\": \"packetbroker\"\n" +
+    "    },\n" +
+    "        \"packet_broker\": {\n" +
+    "            \"message_id\": \"01H0PZDG4MF9AYSMNY44MAVTDH\",\n" +
+    "            \"forwarder_net_id\": \"000013\",\n" +
+    "            \"forwarder_tenant_id\": \"ttn\",\n" +
+    "            \"forwarder_cluster_id\": \"eu1.cloud.thethings.network\",\n" +
+    "            \"forwarder_gateway_eui\": \"6A7E111A10000000\",\n" +
+    "            \"forwarder_gateway_id\": \"eui-6a7e111a10000000\",\n" +
+    "            \"home_network_net_id\": \"000013\",\n" +
+    "            \"home_network_tenant_id\": \"tenant\",\n" +
+    "            \"home_network_cluster_id\": \"eu1.cloud.thethings.industries\"\n" +
+    "        },\n" +
+    "        \"time\": \"2023-05-18T08:25:25.885310Z\",\n" +
+    "        \"rssi\": -24,\n" +
+    "        \"channel_rssi\": -24,\n" +
+    "        \"snr\": 12,\n" +
+    "        \"frequency_offset\": \"671\",\n" +
+    "        \"uplink_token\": \"eyJnIjoiWlhsS2FHSkhZMmxQYVVwQ1RWUkpORkl3VGs1VE1XTnBURU5LYkdKdFRXbFBhVXBDVFZSSk5GSXdUazVKYVhkcFlWaFphVTlwU201a01uaGhWVlJvZDFSWFVuRmlSM1JtVFcxT2RVbHBkMmxrUjBadVNXcHZhV05ZY0RKT1IyeExaREpSZVZwR1pIUmpNRXBLVlVoR2RFNVZkR3BWVTBvNUxua3paVVJTWVRaM1lXOU1kbTQwVm5sdmIyWmlPWGN1ZUhCZmVrcElaa3hIWlZadGRVUlFVeTVuYlRaVlZXRXdkakpHV0VKMGJUUjZaMjVXUkVoeGVHRjRaMlJKTlVkS1VsbERhemc1VDNCbk5rVk1iM1JDUkVZM1VWbHdZbEJDTkdOblNqWjBlbkphYUV4MFRVMHhZMVZFTTFac01XdExURUo0YURaMFExTnhhMVJsWWw4eE5FdHlVVXcyZUhsRWFFbEhlakJITXpoTE0xaFdlRzR5VUVjMk4wNUViME5WTkhoTmRrazFZVk5oWkUwd2FXVnFjR294VGtoMFduZHlZMDFxVlVGNmRsbERUazlNY2s5eFdVeFpWMk5XTG1WVFFYVkpNVkptT1U5NWRqUTNhSEoxTUZoalYxRT0iLCJhIjp7ImZuaWQiOiIwMDAwMTMiLCJmdGlkIjoidHRuIiwiZmNpZCI6ImV1MS5jbG91ZC50aGV0aGluZ3MubmV0d29yayJ9fQ==\",\n" +
+    "        \"received_at\": \"2023-05-18T08:25:25.906038642Z\"\n" +
+    "    }],\n" +
+    "        \"settings\": {\n" +
+    "            \"data_rate\": {\n" +
+    "                \"lora\": {\n" +
+    "                    \"bandwidth\": 125000,\n" +
+    "                    \"spreading_factor\": 7,\n" +
+    "                    \"coding_rate\": \"4/5\"\n" +
+    "                }\n" +
     "            },\n" +
-    "            \"time\": \"2023-05-18T08:25:25.885310Z\",\n" +
+    "            \"frequency\": \"868500000\",\n" +
     "            \"timestamp\": 818273765,\n" +
-    "            \"rssi\": -24,\n" +
-    "            \"channel_rssi\": -24,\n" +
-    "            \"snr\": 12,\n" +
-    "            \"frequency_offset\": \"671\",\n" +
-    "            \"uplink_token\": \"CiIKIAoUZXVpLTZBN0UxMTFBMTAwMDAwMDASCCThJP/+9k6eEOW7l4YDGgwI9cGXowYQ5KPhrwMgiI2rp+jpOA=\",\n" +
-    "            \"channel_index\": 2,\n" +
-    "            \"received_at\": \"2023-05-18T08:25:25.869324983Z\"\n" +
-    "        }, {\n" +
-    "            \"gateway_ids\": {\n" +
-    "            \"gateway_id\": \"packetbroker\"\n" +
+    "            \"time\": \"2023-05-18T08:25:25.885310Z\"\n" +
     "        },\n" +
-    "            \"packet_broker\": {\n" +
-    "                \"message_id\": \"01H0PZDG4MF9AYSMNY44MAVTDH\",\n" +
-    "                \"forwarder_net_id\": \"000013\",\n" +
-    "                \"forwarder_tenant_id\": \"ttn\",\n" +
-    "                \"forwarder_cluster_id\": \"eu1.cloud.thethings.network\",\n" +
-    "                \"forwarder_gateway_eui\": \"6A7E111A10000000\",\n" +
-    "                \"forwarder_gateway_id\": \"eui-6a7e111a10000000\",\n" +
-    "                \"home_network_net_id\": \"000013\",\n" +
-    "                \"home_network_tenant_id\": \"tenant\",\n" +
-    "                \"home_network_cluster_id\": \"eu1.cloud.thethings.industries\"\n" +
-    "            },\n" +
-    "            \"time\": \"2023-05-18T08:25:25.885310Z\",\n" +
-    "            \"rssi\": -24,\n" +
-    "            \"channel_rssi\": -24,\n" +
-    "            \"snr\": 12,\n" +
-    "            \"frequency_offset\": \"671\",\n" +
-    "            \"uplink_token\": \"eyJnIjoiWlhsS2FHSkhZMmxQYVVwQ1RWUkpORkl3VGs1VE1XTnBURU5LYkdKdFRXbFBhVXBDVFZSSk5GSXdUazVKYVhkcFlWaFphVTlwU201a01uaGhWVlJvZDFSWFVuRmlSM1JtVFcxT2RVbHBkMmxrUjBadVNXcHZhV05ZY0RKT1IyeExaREpSZVZwR1pIUmpNRXBLVlVoR2RFNVZkR3BWVTBvNUxua3paVVJTWVRaM1lXOU1kbTQwVm5sdmIyWmlPWGN1ZUhCZmVrcElaa3hIWlZadGRVUlFVeTVuYlRaVlZXRXdkakpHV0VKMGJUUjZaMjVXUkVoeGVHRjRaMlJKTlVkS1VsbERhemc1VDNCbk5rVk1iM1JDUkVZM1VWbHdZbEJDTkdOblNqWjBlbkphYUV4MFRVMHhZMVZFTTFac01XdExURUo0YURaMFExTnhhMVJsWWw4eE5FdHlVVXcyZUhsRWFFbEhlakJITXpoTE0xaFdlRzR5VUVjMk4wNUViME5WTkhoTmRrazFZVk5oWkUwd2FXVnFjR294VGtoMFduZHlZMDFxVlVGNmRsbERUazlNY2s5eFdVeFpWMk5XTG1WVFFYVkpNVkptT1U5NWRqUTNhSEoxTUZoalYxRT0iLCJhIjp7ImZuaWQiOiIwMDAwMTMiLCJmdGlkIjoidHRuIiwiZmNpZCI6ImV1MS5jbG91ZC50aGV0aGluZ3MubmV0d29yayJ9fQ==\",\n" +
-    "            \"received_at\": \"2023-05-18T08:25:25.906038642Z\"\n" +
-    "        }],\n" +
-    "            \"settings\": {\n" +
-    "                \"data_rate\": {\n" +
-    "                    \"lora\": {\n" +
-    "                        \"bandwidth\": 125000,\n" +
-    "                        \"spreading_factor\": 7,\n" +
-    "                        \"coding_rate\": \"4/5\"\n" +
-    "                    }\n" +
-    "                },\n" +
-    "                \"frequency\": \"868500000\",\n" +
-    "                \"timestamp\": 818273765,\n" +
-    "                \"time\": \"2023-05-18T08:25:25.885310Z\"\n" +
-    "            },\n" +
-    "            \"received_at\": \"2023-05-18T08:25:25.906399073Z\",\n" +
-    "            \"consumed_airtime\": \"0.097536s\",\n" +
-    "            \"network_ids\": {\n" +
-    "                \"net_id\": \"000013\",\n" +
-    "                \"tenant_id\": \"tenant\",\n" +
-    "                \"cluster_id\": \"eu1\",\n" +
-    "                \"cluster_address\": \"eu1.cloud.thethings.industries\",\n" +
-    "                \"tenant_address\": \"tenant.eu1.cloud.thethings.industries\"\n" +
-    "            }\n" +
+    "        \"received_at\": \"2023-05-18T08:25:25.906399073Z\",\n" +
+    "        \"consumed_airtime\": \"0.097536s\",\n" +
+    "        \"network_ids\": {\n" +
+    "            \"net_id\": \"000013\",\n" +
+    "            \"tenant_id\": \"tenant\",\n" +
+    "            \"cluster_id\": \"eu1\",\n" +
+    "            \"cluster_address\": \"eu1.cloud.thethings.industries\",\n" +
+    "            \"tenant_address\": \"tenant.eu1.cloud.thethings.industries\"\n" +
     "        }\n" +
     "    }\n" +
     "}";
