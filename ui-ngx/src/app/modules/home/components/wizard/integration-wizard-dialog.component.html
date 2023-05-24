@@ -108,6 +108,7 @@
                           [fxShow]="uplinkConverterForm.get('converterType').value === 'new'"
                           hideType="true"
                           [integrationType]="integrationWizardForm.get('type').value"
+                          [integrationName]="integrationWizardForm.get('name').value"
                           isEdit="true"
                           [entity]="uplinkConverter"
             ></tb-converter>
@@ -139,6 +140,7 @@
             <tb-converter #downlinkDataConverter
               [fxShow]="downlinkConverterForm.get('converterType').value === 'new'"
               [integrationType]="integrationWizardForm.get('type').value"
+              [integrationName]="integrationWizardForm.get('name').value"
               hideType="true"
               isEdit="true"
               [entity]="downlinkConverter"

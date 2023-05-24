@@ -29,11 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, Optional } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../entity/entity.component';
-import { FormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -58,7 +58,7 @@ import {
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import {
-  IntegrationType, integrationTypeInfoMap
+  IntegrationType
 } from '@shared/models/integration.models';
 import { isDefinedAndNotNull } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
@@ -73,23 +73,33 @@ import { Observable, Subject } from 'rxjs';
 export class ConverterComponent extends EntityComponent<Converter> implements OnDestroy {
 
   private _integrationType: IntegrationType;
+  private _integrationName: string;
 
   @Input()
   hideType = false;
 
   @Input()
-  set integrationType(value) {
+  set integrationType(value: IntegrationType) {
     this._integrationType  = value;
-    const type = this.form.get('type').value;
-    const name = (type && value) ? `${type.charAt(0) + type.slice(1).toLowerCase()} data convertor for ${
-      this.translate.instant(integrationTypeInfoMap.get(value).name)}` : '';
-    this.form.get('name').patchValue(name, {emitEvent: false});
     this.setupDefaultScriptBody(this.form, this.form.get('type').value, value);
   }
 
   get integrationType() {
     return  this._integrationType;
   }
+
+  @Input()
+  set integrationName(value: string) {
+    this._integrationName  = value;
+    const type = this.form.get('type').value;
+    const name = (type && value) ? `${type.charAt(0) + type.slice(1).toLowerCase()} data convertor for ${value}` : '';
+    this.form.get('name').patchValue(name, {emitEvent: false});
+  }
+
+  get integrationName() {
+    return  this._integrationName;
+  }
+
 
   converterType = ConverterType;
 
@@ -111,7 +121,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
               private dialog: MatDialog,
               @Optional() @Inject('entity') protected entityValue: Converter,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
-              protected fb: UntypedFormBuilder,
+              protected fb: FormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
@@ -258,7 +268,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       request = this.converterService.getLatestConverterDebugInput(this.entity.id.id);
     } else {
       request = this.converterService.getLatestConverterDebugInput(NULL_UUID, {
-        integrationName: this.form.get('name').value,
+        integrationName: this.integrationName,
         integrationType: this.integrationType,
         converterType: this.form.get('type').value
       });
