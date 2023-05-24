@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.query;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -126,7 +127,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private static final Map<EntityType, String> entityTableMap = new HashMap<>();
-    private static final Map<EntityType, TbNamesColumnFilter> entityNameColumns = new HashMap<>();
+    private static final Map<EntityType, String> entityNameColumns = new HashMap<>();
     private static final String SELECT_PHONE = " CASE WHEN entity.entity_type = 'TENANT' THEN (select phone from tenant where id = entity_id)" +
             " WHEN entity.entity_type = 'CUSTOMER' THEN (select phone from customer where id = entity_id) END as phone";
     private static final String SELECT_ZIP = " CASE WHEN entity.entity_type = 'TENANT' THEN (select zip from tenant where id = entity_id)" +
@@ -360,22 +361,29 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.ASSET_PROFILE, "asset_profile");
         entityTableMap.put(EntityType.TENANT_PROFILE, "tenant_profile");
 
-        entityNameColumns.put(EntityType.DEVICE, new TbNamesColumnFilter("name", "label"));
-        entityNameColumns.put(EntityType.CUSTOMER, new TbNamesColumnFilter("title", "email"));
-        entityNameColumns.put(EntityType.DASHBOARD, new TbNamesColumnFilter("title", "title"));
-        entityNameColumns.put(EntityType.RULE_CHAIN, new TbNamesColumnFilter("name", "type"));
-        entityNameColumns.put(EntityType.RULE_NODE, new TbNamesColumnFilter("name", "type"));
-        entityNameColumns.put(EntityType.OTA_PACKAGE, new TbNamesColumnFilter("title", "type"));
-        entityNameColumns.put(EntityType.ASSET_PROFILE, new TbNamesColumnFilter("name", "default_queue_name"));
-        entityNameColumns.put(EntityType.ASSET, new TbNamesColumnFilter("name", "label"));
-        entityNameColumns.put(EntityType.DEVICE_PROFILE, new TbNamesColumnFilter("name", "type"));
-        entityNameColumns.put(EntityType.USER, new TbNamesColumnFilter("first_name", "last_name"));
-        entityNameColumns.put(EntityType.TENANT_PROFILE, new TbNamesColumnFilter("name", "description"));
-        entityNameColumns.put(EntityType.TENANT, new TbNamesColumnFilter("title", "email"));
-        entityNameColumns.put(EntityType.WIDGETS_BUNDLE, new TbNamesColumnFilter("title", "description"));
-        entityNameColumns.put(EntityType.ENTITY_VIEW, new TbNamesColumnFilter("name", "type"));
-        entityNameColumns.put(EntityType.TB_RESOURCE, new TbNamesColumnFilter("file_name", "type"));
-        entityNameColumns.put(EntityType.EDGE, new TbNamesColumnFilter("name", "label"));
+        entityNameColumns.put(EntityType.DEVICE, "name");
+        entityNameColumns.put(EntityType.CUSTOMER, "title");
+        entityNameColumns.put(EntityType.DASHBOARD, "title");
+        entityNameColumns.put(EntityType.RULE_CHAIN, "name");
+        entityNameColumns.put(EntityType.RULE_NODE, "name");
+        entityNameColumns.put(EntityType.OTA_PACKAGE, "title");
+        entityNameColumns.put(EntityType.ASSET_PROFILE, "name");
+        entityNameColumns.put(EntityType.ASSET, "name");
+        entityNameColumns.put(EntityType.DEVICE_PROFILE, "name");
+        entityNameColumns.put(EntityType.USER, "email");
+        entityNameColumns.put(EntityType.TENANT_PROFILE, "name");
+        entityNameColumns.put(EntityType.TENANT, "title");
+        entityNameColumns.put(EntityType.WIDGETS_BUNDLE, "title");
+        entityNameColumns.put(EntityType.WIDGET_TYPE, "name");
+        entityNameColumns.put(EntityType.ENTITY_VIEW, "name");
+        entityNameColumns.put(EntityType.TB_RESOURCE, "search_text");
+        entityNameColumns.put(EntityType.EDGE, "name");
+        entityNameColumns.put(EntityType.ENTITY_GROUP, "name");
+        entityNameColumns.put(EntityType.CONVERTER, "name");
+        entityNameColumns.put(EntityType.INTEGRATION, "name");
+        entityNameColumns.put(EntityType.SCHEDULER_EVENT, "name");
+        entityNameColumns.put(EntityType.BLOB_ENTITY, "name");
+        entityNameColumns.put(EntityType.ROLE, "name");
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
@@ -1952,16 +1960,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private String entityNameQuery(QueryContext ctx, EntityNameFilter filter) {
         ctx.addStringParameter("entity_filter_name_filter", filter.getEntityNameFilter());
-        TbNamesColumnFilter namesColumnFilter = entityNameColumns.get(filter.getEntityType());
+        String nameColumn = getNameColumn(filter.getEntityType());
         if (filter.getEntityNameFilter().startsWith("%") || filter.getEntityNameFilter().endsWith("%")) {
-            return String.format("(lower(e.%s) like lower(:entity_filter_name_filter) or " +
-                            "lower(e.%s) like lower(:entity_filter_name_filter))", namesColumnFilter.getFirstNameColumnFilter(),
-                    namesColumnFilter.getSecondNameColumnFilter());
+            return String.format("lower(e.%s) like lower(:entity_filter_name_filter)", nameColumn);
         }
 
-        return String.format("(lower(e.%s) like lower(concat(:entity_filter_name_filter, '%%')) or " +
-                        "lower(%s) like lower(concat(:entity_filter_name_filter, '%%')))", namesColumnFilter.getFirstNameColumnFilter(),
-                namesColumnFilter.getSecondNameColumnFilter());
+        return String.format("lower(e.%s) like lower(concat(:entity_filter_name_filter, '%%'))", nameColumn);
     }
 
     private String entityGroupNameQuery(QueryContext ctx, EntityGroupNameFilter filter) {
@@ -1975,22 +1979,27 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private String typeQuery(QueryContext ctx, EntityFilter filter) {
         List<String> types;
         String name;
+        String nameColumn;
         switch (filter.getType()) {
             case ASSET_TYPE:
                 types = ((AssetTypeFilter) filter).getAssetTypes();
                 name = ((AssetTypeFilter) filter).getAssetNameFilter();
+                nameColumn = getNameColumn(EntityType.ASSET);
                 break;
             case DEVICE_TYPE:
                 types = ((DeviceTypeFilter) filter).getDeviceTypes();
                 name = ((DeviceTypeFilter) filter).getDeviceNameFilter();
+                nameColumn = getNameColumn(EntityType.DEVICE);
                 break;
             case ENTITY_VIEW_TYPE:
                 types = ((EntityViewTypeFilter) filter).getEntityViewTypes();
                 name = ((EntityViewTypeFilter) filter).getEntityViewNameFilter();
+                nameColumn = getNameColumn(EntityType.ENTITY_VIEW);
                 break;
             case EDGE_TYPE:
                 types = ((EdgeTypeFilter) filter).getEdgeTypes();
                 name = ((EdgeTypeFilter) filter).getEdgeNameFilter();
+                nameColumn = getNameColumn(EntityType.EDGE);
                 break;
             default:
                 throw new RuntimeException("Not supported!");
@@ -2000,14 +2009,21 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (!StringUtils.isEmpty(name)) {
             ctx.addStringParameter("entity_filter_type_query_name", name);
             if (name.startsWith("%") || name.endsWith("%")) {
-                return typesFilter + " and (lower(e.name) like lower(:entity_filter_type_query_name) " +
-                                      "or lower(e.label) like lower(:entity_filter_type_query_name))";
+                return typesFilter + " and lower(e." + nameColumn + ") like lower(:entity_filter_type_query_name)";
             }
-            return typesFilter + " and (lower(e.name) like lower(concat(:entity_filter_type_query_name, '%%')) " +
-                                   "or lower(e.label) like lower(concat(:entity_filter_type_query_name, '%%')))";
+            return typesFilter + " and lower(e." + nameColumn + ") like lower(concat(:entity_filter_type_query_name, '%%'))";
         } else {
             return typesFilter;
         }
+    }
+
+    private String getNameColumn(EntityType entityType) {
+        String nameColumn = entityNameColumns.get(entityType);
+        if (nameColumn == null) {
+            log.error("Name column is not defined in the entityNameColumns map for entity type {}.", entityType);
+            throw new RuntimeException("Name column is not defined for entity type: " + entityType);
+        }
+        return nameColumn;
     }
 
     public static EntityType resolveEntityType(EntityFilter entityFilter) {
