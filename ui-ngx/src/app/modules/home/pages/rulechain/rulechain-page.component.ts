@@ -178,7 +178,6 @@ export class RuleChainPageComponent extends PageComponent
   hotKeys: Hotkey[] = [];
 
   enableHotKeys = true;
-  isLibraryOpen = true;
 
   ruleNodeSearch = '';
   ruleNodeTypeSearch = '';
@@ -327,6 +326,13 @@ export class RuleChainPageComponent extends PageComponent
   ngOnDestroy() {
     super.ngOnDestroy();
     this.rxSubscription.unsubscribe();
+  }
+
+  currentRuleChainIdChanged(ruleChainId: string) {
+    if (this.isEditingRuleNode) {
+      return;
+    }
+    this.router.navigateByUrl(`ruleChains/${ruleChainId}`);
   }
 
   onSearchTextUpdated(searchText: string) {

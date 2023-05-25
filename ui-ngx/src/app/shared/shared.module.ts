@@ -222,6 +222,7 @@ import {
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
+import { RuleChainSelectComponent } from '@shared/components/rule-chain/rule-chain-select.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -410,7 +411,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgLayoutGapDirective,
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
-    ColorPickerComponent
+    ColorPickerComponent,
+    RuleChainSelectComponent
   ],
   imports: [
     CommonModule,
@@ -653,7 +655,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgLayoutGapDirective,
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
-    ColorPickerComponent
+    ColorPickerComponent,
+    RuleChainSelectComponent
   ]
 })
 export class SharedModule { }
