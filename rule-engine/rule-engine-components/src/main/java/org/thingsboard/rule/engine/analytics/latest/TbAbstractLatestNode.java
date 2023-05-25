@@ -170,9 +170,4 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         return new TbPair<>(false, oldConfiguration);
     }
 
-    @Override
-    public int getCurrentVersion() {
-        return 1;
-    }
-
 }

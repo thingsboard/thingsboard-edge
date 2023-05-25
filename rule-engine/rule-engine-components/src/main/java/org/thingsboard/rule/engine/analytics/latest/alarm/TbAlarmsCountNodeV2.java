@@ -69,6 +69,7 @@ import java.util.Set;
         type = ComponentType.ANALYTICS,
         name = "alarms count",
         configClazz = TbAlarmsCountNodeV2Configuration.class,
+        version = 1,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
                 "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
@@ -199,11 +200,6 @@ public class TbAlarmsCountNodeV2 implements TbVersionedNode {
             }
         }
         return new TbPair<>(false, oldConfiguration);
-    }
-
-    @Override
-    public int getCurrentVersion() {
-        return 1;
     }
 
 }

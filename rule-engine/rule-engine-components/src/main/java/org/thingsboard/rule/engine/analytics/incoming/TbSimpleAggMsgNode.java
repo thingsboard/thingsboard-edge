@@ -70,6 +70,7 @@ import java.util.function.Consumer;
         type = ComponentType.ANALYTICS,
         name = "aggregate stream",
         configClazz = TbSimpleAggMsgNodeConfiguration.class,
+        version = 1,
         nodeDescription = "Aggregates incoming data stream grouped by originator Entity Id",
         nodeDetails = "Calculates MIN/MAX/SUM/AVG/COUNT/UNIQUE based on the incoming data stream. " +
                 "Groups incoming data stream based on originator id of the message (i.e. particular device, asset, customer) and <b>\"aggregation interval value\"</b> into Intervals.<br/><br/>" +
@@ -320,11 +321,6 @@ public class TbSimpleAggMsgNode implements TbVersionedNode {
             }
         }
         return new TbPair<>(false, oldConfiguration);
-    }
-
-    @Override
-    public int getCurrentVersion() {
-        return 1;
     }
 
 }
