@@ -28,23 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.dao.sql.query;
 
-import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationType;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import java.util.List;
+@Data
+@AllArgsConstructor
+public class TbNamesColumnFilter {
 
-public interface NotificationTemplateDao extends Dao<NotificationTemplate>, ExportableEntityDao<NotificationTemplateId, NotificationTemplate> {
+    String firstNameColumnFilter;
 
-    PageData<NotificationTemplate> findByTenantIdAndNotificationTypesAndPageLink(TenantId tenantId, List<NotificationType> notificationTypes, PageLink pageLink);
-
-    void removeByTenantId(TenantId tenantId);
-
+    String secondNameColumnFilter;
 }
+

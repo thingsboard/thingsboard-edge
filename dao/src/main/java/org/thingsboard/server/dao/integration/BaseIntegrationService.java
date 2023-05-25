@@ -300,6 +300,12 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteIntegration(tenantId, (IntegrationId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;
     }
