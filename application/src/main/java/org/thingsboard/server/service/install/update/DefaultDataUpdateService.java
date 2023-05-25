@@ -322,9 +322,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 break;
             case "3.5.1":
-                log.info("Updating data from version 3.5.0 to 3.5.1 ...");
+                log.info("Updating data from version 3.5.1 to 3.5.2 ...");
                 integrationRateLimitsUpdater.updateEntities();
-                upgradeRuleNodes();
                 break;
             case "ce":
                 log.info("Updating data ...");
@@ -353,7 +352,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private void upgradeRuleNodes() {
+    @Override
+    public void upgradeRuleNodes() {
         try {
             log.info("Lookup rule nodes to upgrade ...");
             var nodeClassToVersionMap = getNodeClassToVersionMap();
