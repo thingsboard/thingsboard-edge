@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -39,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -76,6 +78,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -253,6 +256,26 @@ public class TbAlarmsCountNodeTest {
     @Test
     public void childEntitiesFailedByRelationQueryAlarmsCount() throws TbNodeException {
         performAlarmsCountTest(true);
+    }
+
+    @Test
+    public void givenOldConfig_whenUpgrade_thenShouldReturnTrueResultWithNewConfig() throws Exception {
+        var node = new TbAlarmsCountNode();
+        var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
+        String oldConfig = "{\"parentEntitiesQuery\":{\"type\":\"group\",\"entityGroupId\":null},\"periodTimeUnit\":\"MINUTES\",\"periodValue\":5,\"queueName\":null,\"countAlarmsForChildEntities\":false,\"alarmsCountMappings\":[{\"target\":\"alarmsCount\",\"typesList\":null,\"severityList\":null,\"statusList\":null,\"latestInterval\":0}]}";
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, JacksonUtil.toJsonNode(oldConfig));
+        Assertions.assertTrue(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), TbAlarmsCountNodeConfiguration.class));
+    }
+
+    @Test
+    public void givenNewConfigWithOldVersion_whenUpgrade_thenShouldReturnFalseResultWithTheSameConfig() throws Exception {
+        var node = new TbAlarmsCountNode();
+        var defaultConfig = new TbAlarmsCountNodeConfiguration().defaultConfiguration();
+        JsonNode expectedConfig = JacksonUtil.valueToTree(defaultConfig);
+        TbPair<Boolean, JsonNode> upgrade = node.upgrade(0, expectedConfig);
+        Assertions.assertFalse(upgrade.getFirst());
+        Assertions.assertEquals(defaultConfig, JacksonUtil.treeToValue(upgrade.getSecond(), defaultConfig.getClass()));
     }
 
     private void performAlarmsCountTest(boolean genFailures) throws TbNodeException {

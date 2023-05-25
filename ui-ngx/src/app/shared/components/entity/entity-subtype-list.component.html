@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="entitySubtypeListFormGroup" class="mat-block tb-chip-list">
+<mat-form-field [formGroup]="entitySubtypeListFormGroup" class="mat-block">
+  <mat-label *ngIf="label">{{ label | translate }}</mat-label>
   <mat-chip-grid #chipList formControlName="entitySubtypeList">
     <mat-chip-row
       *ngFor="let entitySubtype of entitySubtypeList"
@@ -52,6 +53,14 @@
            [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
            (matChipInputTokenEnd)="chipAdd($event)">
   </mat-chip-grid>
+  <button *ngIf="entitySubtypeListFormGroup.get('entitySubtypeList').value?.length > 1"
+          type="button"
+          style="margin-right: 3px"
+          matTooltip="{{'entity.clear-selected-profiles' | translate}}"
+          matSuffix mat-icon-button
+          (click)="clearChipGrid()">
+    <mat-icon color="primary" class="material-icons">close</mat-icon>
+  </button>
   <mat-autocomplete #entitySubtypeAutocomplete="matAutocomplete"
                     class="tb-autocomplete"
                     (optionSelected)="selected($event)"

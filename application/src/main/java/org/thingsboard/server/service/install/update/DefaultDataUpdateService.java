@@ -30,9 +30,9 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -42,10 +42,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode;
-import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2;
-import org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode;
+import org.thingsboard.rule.engine.api.TbVersionedNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
@@ -107,10 +104,10 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -139,9 +136,9 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.service.bean.BeanDiscoveryService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
-import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -244,7 +241,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private QueueService queueService;
 
     @Autowired
-    private TbRuleEngineQueueConfigService queueConfig;
+    private BeanDiscoveryService beanDiscoveryService;
 
     @Autowired
     private EventService eventService;
@@ -325,7 +322,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 break;
             case "3.5.1":
+                log.info("Updating data from version 3.5.0 to 3.5.1 ...");
                 integrationRateLimitsUpdater.updateEntities();
+                upgradeRuleNodes();
                 break;
             case "ce":
                 log.info("Updating data ...");
@@ -346,12 +345,76 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
-                updateAnalyticsRuleNode();
+                // todo: update TbDuplicateMsgToGroupNode to use TbVersionedNode interface.
                 updateDuplicateMsgRuleNode();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }
+    }
+
+    private void upgradeRuleNodes() {
+        try {
+            log.info("Lookup rule nodes to upgrade ...");
+            var nodeClassToVersionMap = getNodeClassToVersionMap();
+            log.info("Found {} versioned nodes to check for upgrade!", nodeClassToVersionMap.size());
+            nodeClassToVersionMap.forEach((clazz, toVersion) -> {
+                var ruleNodeType = clazz.getName();
+                var ruleNodeTypeForLogs = clazz.getSimpleName();
+                log.info("Going to check for nodes with type: {} to upgrade to version: {}.", ruleNodeTypeForLogs, toVersion);
+                var ruleNodesToUpdate = new PageDataIterable<>(
+                        pageLink -> ruleChainService.findAllRuleNodesByTypeAndVersionLessThan(ruleNodeType, toVersion, pageLink), 1024
+                );
+                if (Iterables.isEmpty(ruleNodesToUpdate)) {
+                    log.info("There are no active nodes with type: {}, or all nodes with this type already set to latest version!", ruleNodeTypeForLogs);
+                } else {
+                    for (var ruleNode : ruleNodesToUpdate) {
+                        var ruleNodeId = ruleNode.getId();
+                        var oldConfiguration = ruleNode.getConfiguration();
+                        int fromVersion = ruleNode.getConfigurationVersion();
+                        log.info("Going to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                        try {
+                            var tbVersionedNode = (TbVersionedNode) clazz.getDeclaredConstructor().newInstance();
+                            TbPair<Boolean, JsonNode> upgradeRuleNodeConfigurationResult = tbVersionedNode.upgrade(fromVersion, oldConfiguration);
+                            if (upgradeRuleNodeConfigurationResult.getFirst()) {
+                                ruleNode.setConfiguration(upgradeRuleNodeConfigurationResult.getSecond());
+                            }
+                            ruleNode.setConfigurationVersion(toVersion);
+                            ruleChainService.saveRuleNode(TenantId.SYS_TENANT_ID, ruleNode);
+                            log.info("Successfully upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {}",
+                                    ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion);
+                        } catch (Exception e) {
+                            log.warn("Failed to upgrade rule node with id: {} type: {} fromVersion: {} toVersion: {} due to: ",
+                                    ruleNodeId, ruleNodeTypeForLogs, fromVersion, toVersion, e);
+                        }
+                    }
+                }
+            });
+            log.info("Finished rule nodes upgrade!");
+        } catch (Exception e) {
+            log.error("Unexpected error during rule nodes upgrade: ", e);
+        }
+    }
+
+    private Map<Class<?>, Integer> getNodeClassToVersionMap() {
+        var ruleNodeDefinitions = beanDiscoveryService.discoverBeansByAnnotationType(
+                org.thingsboard.rule.engine.api.RuleNode.class
+        );
+        var tbVersionedNodes = new HashMap<Class<?>, Integer>();
+        for (var def : ruleNodeDefinitions) {
+            String clazzName = def.getBeanClassName();
+            try {
+                var clazz = Class.forName(clazzName);
+                if (TbVersionedNode.class.isAssignableFrom(clazz)) {
+                    TbVersionedNode tbVersionedNode = (TbVersionedNode) clazz.getDeclaredConstructor().newInstance();
+                    tbVersionedNodes.put(clazz, tbVersionedNode.getCurrentVersion());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to create instance of rule node type: {} due to: ", clazzName, e);
+            }
+        }
+        return tbVersionedNodes;
     }
 
     private final PaginatedUpdater<String, DeviceProfileEntity> deviceProfileEntityDynamicConditionsUpdater =
@@ -499,33 +562,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } catch (Exception e) {
             log.error("Unable to update Tenant", e);
         }
-    }
-
-    private void updateAnalyticsRuleNode() {
-        List<String> ruleNodeNames = new ArrayList<>();
-        ruleNodeNames.add(TbSimpleAggMsgNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNode.class.getName());
-        ruleNodeNames.add(TbAlarmsCountNodeV2.class.getName());
-        ruleNodeNames.add(TbAggLatestTelemetryNode.class.getName());
-
-        ruleNodeNames.forEach(ruleNodeName -> {
-            PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
-            ruleNodesIterator.forEach(ruleNode -> {
-                JsonNode json = ruleNode.getConfiguration();
-                if (json != null && json.isObject()) {
-                    ObjectNode configNode = (ObjectNode) json;
-                    if (!configNode.has("outMsgType")) {
-                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                        if (targetRuleChain != null) {
-                            TenantId tenantId = targetRuleChain.getTenantId();
-                            configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
-                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                            ruleChainService.saveRuleNode(tenantId, ruleNode);
-                        }
-                    }
-                }
-            });
-        });
     }
 
     private void updateDuplicateMsgRuleNode() {
