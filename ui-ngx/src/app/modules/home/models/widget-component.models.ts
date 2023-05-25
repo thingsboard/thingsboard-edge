@@ -472,6 +472,7 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
 }
 
 export interface WidgetConfigComponentData {
+  widgetName: string;
   config: WidgetConfig;
   layout: WidgetLayout;
   widgetType: widgetType;
@@ -576,6 +577,8 @@ export function toWidgetInfo(widgetTypeEntity: WidgetType): WidgetInfo {
     settingsDirective: widgetTypeEntity.descriptor.settingsDirective,
     dataKeySettingsDirective: widgetTypeEntity.descriptor.dataKeySettingsDirective,
     latestDataKeySettingsDirective: widgetTypeEntity.descriptor.latestDataKeySettingsDirective,
+    hasBasicMode: widgetTypeEntity.descriptor.hasBasicMode,
+    basicModeDirective: widgetTypeEntity.descriptor.basicModeDirective,
     defaultConfig: widgetTypeEntity.descriptor.defaultConfig
   };
 }
@@ -606,6 +609,8 @@ export function toWidgetType(widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     settingsDirective: widgetInfo.settingsDirective,
     dataKeySettingsDirective: widgetInfo.dataKeySettingsDirective,
     latestDataKeySettingsDirective: widgetInfo.latestDataKeySettingsDirective,
+    hasBasicMode: widgetInfo.hasBasicMode,
+    basicModeDirective: widgetInfo.basicModeDirective,
     defaultConfig: widgetInfo.defaultConfig
   };
   return {

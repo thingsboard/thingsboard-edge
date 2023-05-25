@@ -42,7 +42,13 @@ import {
   AlarmFilter,
   AlarmFilterConfig,
   createDefaultEntityDataPageLink,
-  Filter, FilterInfo, filterInfoToKeyFilters, Filters, KeyFilter, singleEntityDataPageLink,
+  Filter,
+  FilterInfo,
+  filterInfoToKeyFilters,
+  Filters,
+  KeyFilter,
+  singleEntityDataPageLink,
+  singleEntityFilterFromDeviceId,
   updateDatasourceFromEntityInfo
 } from '@shared/models/query/query.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -261,6 +267,9 @@ export class AliasController implements IAliasController {
 
   private resolveDatasource(datasource: Datasource, forceFilter = false): Observable<Datasource> {
     const newDatasource = deepClone(datasource);
+    if (newDatasource.type === DatasourceType.device) {
+      newDatasource.type = DatasourceType.entity;
+    }
     if (newDatasource.type === DatasourceType.entity || newDatasource.type === DatasourceType.entityCount
       || newDatasource.type === DatasourceType.alarmCount) {
       if (newDatasource.filterId) {
@@ -269,7 +278,22 @@ export class AliasController implements IAliasController {
       if (newDatasource.type === DatasourceType.alarmCount) {
         newDatasource.alarmFilter = this.entityService.resolveAlarmFilter(newDatasource.alarmFilterConfig, false);
       }
-      if (newDatasource.entityAliasId) {
+      if (newDatasource.deviceId) {
+        newDatasource.entityFilter = singleEntityFilterFromDeviceId(newDatasource.deviceId);
+        if (forceFilter) {
+          return this.entityService.findSingleEntityInfoByEntityFilter(newDatasource.entityFilter,
+            {ignoreLoading: true, ignoreErrors: true}).pipe(
+            map((entity) => {
+              if (entity) {
+                updateDatasourceFromEntityInfo(newDatasource, entity, true);
+              }
+              return newDatasource;
+            })
+          );
+        } else {
+          return of(newDatasource);
+        }
+      } else if (newDatasource.entityAliasId) {
         return this.getAliasInfo(newDatasource.entityAliasId).pipe(
           mergeMap((aliasInfo) => {
             newDatasource.aliasName = aliasInfo.alias;

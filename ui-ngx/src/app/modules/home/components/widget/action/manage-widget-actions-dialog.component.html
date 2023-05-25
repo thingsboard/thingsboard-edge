@@ -30,17 +30,39 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-button-toggle-group *ngIf="!isMdLg || !useSelectOnMdLg; else select" class="tb-toggle-header"
-                         [ngClass]="{'tb-fill': (appearance === 'fill' || appearance === 'fill-invert'),
-                                     'tb-invert': appearance === 'fill-invert',
-                                     'tb-ignore-md-lg': ignoreMdLgSize}" [name]="name" [(ngModel)]="value"
-                         (ngModelChange)="valueChange.emit(value)">
-  <mat-button-toggle *ngFor="let option of options; trackBy: trackByHeaderOption" [value]="option.value">{{ option.name }}</mat-button-toggle>
-</mat-button-toggle-group>
-<ng-template #select>
-  <mat-form-field appearance="outline" class="tb-toggle-header-select" subscriptSizing="dynamic">
-    <mat-select [(ngModel)]="value" (ngModelChange)="valueChange.emit($event)">
-      <mat-option *ngFor="let option of options" [value]="option.value"> {{ option.name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
-</ng-template>
+<form [formGroup]="actionsSettings" style="width: 900px;">
+  <mat-toolbar color="primary">
+    <h2>{{ data.widgetTitle }}: {{ 'widget-config.actions' | translate }}</h2>
+    <span fxFlex></span>
+    <button mat-icon-button
+            (click)="cancel()"
+            type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+  </mat-progress-bar>
+  <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+  <div mat-dialog-content style="position: relative; height: 500px;">
+    <tb-manage-widget-actions
+      [callbacks]="data.callbacks"
+      [actionTypes]="widgetActionTypesList"
+      [customFunctionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+      [widgetType] = "data.widgetType"
+      formControlName="actionsData">
+    </tb-manage-widget-actions>
+  </div>
+  <div mat-dialog-actions fxLayoutAlign="end center">
+    <button mat-button color="primary"
+            type="button"
+            [disabled]="(isLoading$ | async)"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button color="primary"
+            (click)="save()"
+            [disabled]="(isLoading$ | async) || actionsSettings.invalid || !actionsSettings.dirty">
+      {{ 'action.save' | translate }}
+    </button>
+  </div>
+</form>

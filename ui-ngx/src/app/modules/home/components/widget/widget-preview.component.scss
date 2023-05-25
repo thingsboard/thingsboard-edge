@@ -38,20 +38,10 @@
     left: 0;
     right: 0;
   }
-  .tb-preview-title {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    font-weight: 500;
-    font-size: 13px;
-    line-height: 16px;
-    letter-spacing: normal;
-    color: rgba(0, 0, 0, 0.38);
-  }
   .tb-preview-panel {
     position: absolute;
     top: 16px;
-    right: 24px;
+    left: 24px;
   }
 }
 

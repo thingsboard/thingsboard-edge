@@ -97,6 +97,17 @@
           }
         }
       }
+      &.tb-invert {
+        .mat-button-toggle.mat-button-toggle-appearance-standard {
+          color: rgba(255, 255, 255, 0.8);
+          &.mat-button-toggle-checked {
+            .mat-button-toggle-button {
+              background: #FFFFFF;
+              color: var(--tb-primary-500);
+            }
+          }
+        }
+      }
     }
   }
   @media #{$mat-md-lg} {

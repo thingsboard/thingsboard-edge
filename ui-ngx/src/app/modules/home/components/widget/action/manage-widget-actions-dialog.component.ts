@@ -29,69 +29,59 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { PageComponent } from '@shared/components/page.component';
-import { IAliasController, IStateController } from '@core/api/widget-api.models';
-import { Widget, WidgetConfig } from '@shared/models/widget.models';
+import { widgetActionTypes, widgetType } from '@shared/models/widget.models';
+import {
+  WidgetActionCallbacks,
+  WidgetActionsData
+} from '@home/components/widget/action/manage-widget-actions.component.models';
+import { Component, Inject, OnInit } from '@angular/core';
+import { DialogComponent } from '@shared/components/dialog.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { deepClone } from '@core/utils';
+import { Router } from '@angular/router';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+
+export interface ManageWidgetActionsDialogData {
+  widgetTitle: string;
+  actionsData: WidgetActionsData;
+  callbacks: WidgetActionCallbacks;
+  widgetType: widgetType;
+}
 
 @Component({
-  selector: 'tb-widget-preview',
-  templateUrl: './widget-preview.component.html',
-  styleUrls: ['./widget-preview.component.scss']
+  selector: 'tb-manage-widget-actions-dialog',
+  templateUrl: './manage-widget-actions-dialog.component.html',
+  providers: [],
+  styleUrls: []
 })
-export class WidgetPreviewComponent extends PageComponent implements OnInit, OnChanges {
+export class ManageWidgetActionsDialogComponent extends DialogComponent<ManageWidgetActionsDialogComponent,
+  WidgetActionsData> implements OnInit {
 
-  @Input()
-  aliasController: IAliasController;
+  widgetActionTypesList = widgetActionTypes;
 
-  @Input()
-  stateController: IStateController;
+  actionsSettings: UntypedFormGroup;
 
-  @Input()
-  widget: Widget;
-
-  @Input()
-  widgetConfig: WidgetConfig;
-
-  widgets: Widget[];
-
-  constructor(protected store: Store<AppState>) {
-    super(store);
+  constructor(protected store: Store<AppState>,
+              protected router: Router,
+              @Inject(MAT_DIALOG_DATA) public data: ManageWidgetActionsDialogData,
+              private fb: UntypedFormBuilder,
+              public dialogRef: MatDialogRef<ManageWidgetActionsDialogComponent, WidgetActionsData>) {
+    super(store, router, dialogRef);
   }
 
-  ngOnInit(): void {
-    this.loadPreviewWidget();
+  ngOnInit() {
+    this.actionsSettings = this.fb.group({
+      actionsData: [this.data.actionsData, []]
+    });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    let reloadPreviewWidget = false;
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (['widget', 'widgetConfig'].includes(propName)) {
-          reloadPreviewWidget = true;
-        }
-      }
-    }
-    if (reloadPreviewWidget) {
-      this.loadPreviewWidget();
-    }
+  cancel(): void {
+    this.dialogRef.close(null);
   }
 
-  private loadPreviewWidget() {
-    const sizeX = this.widget.sizeX * 2;
-    const sizeY = this.widget.sizeY * 2;
-    const col = Math.floor(Math.max(0, (20 - sizeX) / 2));
-    const widget = deepClone(this.widget);
-    widget.sizeX = sizeX;
-    widget.sizeY = sizeY;
-    widget.row = 0;
-    widget.col = col;
-    widget.config = this.widgetConfig;
-    this.widgets = [widget];
+  save(): void {
+    this.dialogRef.close(this.actionsSettings.get('actionsData').value);
   }
 
 }

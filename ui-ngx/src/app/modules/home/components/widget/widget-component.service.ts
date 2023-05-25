@@ -116,6 +116,8 @@ export class WidgetComponentService {
             settingsDirective: this.utils.editWidgetInfo.settingsDirective,
             dataKeySettingsDirective: this.utils.editWidgetInfo.dataKeySettingsDirective,
             latestDataKeySettingsDirective: this.utils.editWidgetInfo.latestDataKeySettingsDirective,
+            hasBasicMode: this.utils.editWidgetInfo.hasBasicMode,
+            basicModeDirective: this.utils.editWidgetInfo.basicModeDirective,
             defaultConfig: this.utils.editWidgetInfo.defaultConfig
           }, new WidgetTypeId('1'), new TenantId( NULL_UUID ), 'customWidgetBundle', undefined
         );
@@ -423,6 +425,9 @@ export class WidgetComponentService {
     }
     if (widgetInfo.latestDataKeySettingsDirective && widgetInfo.latestDataKeySettingsDirective.length) {
       directives.push(widgetInfo.latestDataKeySettingsDirective);
+    }
+    if (widgetInfo.basicModeDirective && widgetInfo.basicModeDirective.length) {
+      directives.push(widgetInfo.basicModeDirective);
     }
     if (directives.length) {
       factories.filter((factory) => directives.includes(factory.selector))
