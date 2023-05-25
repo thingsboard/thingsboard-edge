@@ -1047,6 +1047,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteEntityGroup(tenantId, (EntityGroupId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
     }

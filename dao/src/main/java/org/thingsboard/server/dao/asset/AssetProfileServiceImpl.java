@@ -301,6 +301,12 @@ public class AssetProfileServiceImpl extends AbstractCachedEntityService<AssetPr
     }
 
     @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteAssetProfile(tenantId, (AssetProfileId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ASSET_PROFILE;
     }

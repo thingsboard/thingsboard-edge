@@ -882,4 +882,11 @@ public class TestRestClient {
                 .as(new TypeRef<PageData<DashboardInfo>>() {
                 }).getData();
     }
+
+    public void setDevicePublic(DeviceId deviceId) {
+        given().spec(requestSpec)
+                .post("/api/customer/public/device/{deviceId}", deviceId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
 }

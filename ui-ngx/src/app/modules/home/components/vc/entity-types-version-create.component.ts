@@ -44,8 +44,10 @@ import {
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import {
+  entityTypesWithoutRelatedData,
   EntityTypeVersionCreateConfig,
-  exportableEntityTypes, overrideEntityTypeTranslations,
+  exportableEntityTypes,
+  overrideEntityTypeTranslations,
   SyncStrategy,
   syncStrategyTranslationMap
 } from '@shared/models/vc.models';
@@ -89,6 +91,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   syncStrategyTranslations = syncStrategyTranslationMap;
 
   entityTypes = EntityType;
+  entityTypesWithoutRelatedData = entityTypesWithoutRelatedData;
 
   loading = true;
 

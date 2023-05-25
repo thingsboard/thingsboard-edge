@@ -51,8 +51,17 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.WIDGETS_BUNDLE,
   EntityType.CONVERTER,
   EntityType.INTEGRATION,
-  EntityType.ROLE
+  EntityType.ROLE,
+  EntityType.NOTIFICATION_TEMPLATE,
+  EntityType.NOTIFICATION_TARGET,
+  EntityType.NOTIFICATION_RULE
 ];
+
+export const entityTypesWithoutRelatedData: Set<EntityType> = new Set([
+  EntityType.NOTIFICATION_TEMPLATE,
+  EntityType.NOTIFICATION_TARGET,
+  EntityType.NOTIFICATION_RULE
+]);
 
 export interface VersionCreateConfig {
   saveRelations: boolean;
