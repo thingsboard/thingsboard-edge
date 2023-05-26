@@ -47,6 +47,7 @@ import {
 import { isDefined, isDefinedAndNotNull, isString, isUndefined } from '@core/utils';
 import {
   Datasource,
+  datasourcesHasOnlyComparisonAggregation,
   DatasourceType,
   defaultLegendConfig,
   Widget,
@@ -268,7 +269,8 @@ export class DashboardUtilsService {
       }
     });
     if (type === widgetType.latest) {
-      widgetConfig.timewindow = initModelFromDefaultTimewindow(widgetConfig.timewindow, true, this.timeService);
+      const onlyHistoryTimewindow = datasourcesHasOnlyComparisonAggregation(widgetConfig.datasources);
+      widgetConfig.timewindow = initModelFromDefaultTimewindow(widgetConfig.timewindow, true, onlyHistoryTimewindow, this.timeService);
     }
     if (type === widgetType.alarm) {
       if (!widgetConfig.alarmFilterConfig) {
