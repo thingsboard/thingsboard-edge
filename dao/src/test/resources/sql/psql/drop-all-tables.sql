@@ -39,8 +39,6 @@ DROP TABLE IF EXISTS ts_kv_dictionary;
 DROP TABLE IF EXISTS user_credentials;
 DROP TABLE IF EXISTS widget_type;
 DROP TABLE IF EXISTS widgets_bundle;
-DROP TABLE IF EXISTS device_group_ota_package;
-DROP TABLE IF EXISTS entity_group;
 DROP TABLE IF EXISTS entity_view;
 DROP TABLE IF EXISTS device_profile;
 DROP TABLE IF EXISTS tenant_profile;
@@ -73,3 +71,17 @@ DROP TABLE IF EXISTS notification_target;
 DROP TABLE IF EXISTS user_settings;
 DROP TABLE IF EXISTS user_auth_settings;
 DROP TABLE IF EXISTS tb_user;
+
+-- PE schema
+
+DROP TABLE IF EXISTS raw_data_event;
+DROP TABLE IF EXISTS integration_debug_event;
+DROP TABLE IF EXISTS converter_debug_event;
+DROP TABLE IF EXISTS device_group_ota_package;
+DROP TABLE IF EXISTS group_permission;
+DROP TABLE IF EXISTS role;
+DROP TABLE IF EXISTS blob_entity;
+DROP TABLE IF EXISTS scheduler_event;
+DROP TABLE IF EXISTS integration;
+DROP TABLE IF EXISTS converter;
+DROP TABLE IF EXISTS entity_group;
