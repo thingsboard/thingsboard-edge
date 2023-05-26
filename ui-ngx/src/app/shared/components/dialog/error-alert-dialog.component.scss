@@ -29,61 +29,24 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  display: inline-block;
-  pointer-events: all;
-  &.toast-panel {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    display: flex;
-    &.left {
-      justify-content: flex-start;
-    }
-    &.right {
-      justify-content: flex-end;
-    }
-    &.top {
-      align-items: flex-start;
-    }
-    &.bottom {
-      align-items: flex-end;
-    }
-    &.h-center {
-      justify-content: center;
-    }
-    &.v-center {
-      align-items: center;
-    }
+  .mat-mdc-dialog-content {
+    padding: 0 24px 24px;
   }
-  .tb-toast {
-    box-shadow: 0 3px 5px -1px rgba(0, 0, 0, 0.2), 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12);
-    color: #fff;
-    font-size: 18px;
-    border-radius: 4px;
-    padding: 0 18px;
-    margin: 8px;
-    .toast-text {
+  .tb-error-alert-dialog-content {
+    .error-message-title {
+      font-style: italic;
+    }
+    .error-message-content {
+      color: red;
+    }
+    .error-details-content {
+      display: block;
+      border: solid 1px #d3d3d3;
       padding: 8px;
-      width: 100%;
+      border-radius: 4px;
     }
-    button {
-      margin: 6px 0 6px 12px;
-      color: inherit;
-    }
-    &.info-toast {
-      background: #323232;
-    }
-    &.warn-toast {
-      background: #dc6d1b;
-    }
-    &.error-toast {
-      background: #800000;
-    }
-    &.success-toast {
-      background: #008000;
+    & > *:not(:last-child) {
+      padding-bottom: 16px;
     }
   }
 }
