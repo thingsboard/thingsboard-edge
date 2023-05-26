@@ -100,6 +100,10 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   @coerceBoolean()
   isEntityGroup = false;
 
+  @Input()
+  @coerceBoolean()
+  outlinedBorder = false;
+
   innerValue: WidgetActionsData;
 
   displayedColumns: string[];

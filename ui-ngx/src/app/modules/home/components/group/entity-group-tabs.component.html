@@ -54,6 +54,7 @@
     [disabled]="!isEdit"
     [actionTypes]="entityGroupActionTypesList"
     isEntityGroup
+    outlinedBorder
     [customFunctionArgs]="['$event', '$injector', 'entityId', 'entityName', 'servicesMap', 'tableConfig']"
     [(ngModel)]="actionsData"
     (ngModelChange)="detailsForm.markAsDirty()">
