@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @import './rule-node-colors';
+@import "../../../../../scss/constants";
 
 .tb-rulechain {
   width: 100%;
@@ -92,7 +93,7 @@
       content: "";
       pointer-events: none;
       border-radius: 0 0 0 15px;
-      box-shadow: -10px 0px 0 0px #305680;
+      box-shadow: -10px 0px 0 0px var(--tb-primary-500);
       border: none;
     }
     &:after {
@@ -104,7 +105,7 @@
       content: "";
       pointer-events: none;
       border-top-left-radius: 15px;
-      box-shadow: -10px 0px 0px 0px #305680;
+      box-shadow: -10px 0px 0px 0px var(--tb-primary-500);
       border: none;
     }
   }

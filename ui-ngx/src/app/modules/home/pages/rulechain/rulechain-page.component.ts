@@ -30,7 +30,8 @@
 ///
 
 import {
-  AfterViewInit,
+  AfterViewChecked,
+  AfterViewInit, ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -108,6 +109,7 @@ import { ComponentClusteringMode } from '@shared/models/component-descriptor.mod
 import Timeout = NodeJS.Timeout;
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { MatDrawer } from '@angular/material/sidenav';
 
 @Component({
   selector: 'tb-rulechain-page',
@@ -116,7 +118,7 @@ import { Operation, Resource } from '@shared/models/security.models';
   encapsulation: ViewEncapsulation.None
 })
 export class RuleChainPageComponent extends PageComponent
-  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent {
+  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent, AfterViewChecked {
 
   get isDirty(): boolean {
     return this.isDirtyValue || this.isImport;
@@ -137,6 +139,8 @@ export class RuleChainPageComponent extends PageComponent
     {read: MatExpansionPanel}) expansionPanels: QueryList<MatExpansionPanel>;
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
+
+  @ViewChild('drawer') drawer: MatDrawer;
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE);
 
@@ -285,6 +289,7 @@ export class RuleChainPageComponent extends PageComponent
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
+              private changeDetector : ChangeDetectorRef,
               public dialog: MatDialog,
               public dialogService: DialogService,
               public fb: UntypedFormBuilder) {
@@ -298,6 +303,10 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngOnInit() {
+  }
+
+  ngAfterViewChecked(){
+    this.changeDetector.detectChanges();
   }
 
   ngAfterViewInit() {
@@ -332,7 +341,11 @@ export class RuleChainPageComponent extends PageComponent
     if (this.isEditingRuleNode) {
       return;
     }
-    this.router.navigateByUrl(`ruleChains/${ruleChainId}`);
+    if (this.ruleChainType === RuleChainType.CORE) {
+      this.router.navigateByUrl(`ruleChains/${ruleChainId}`);
+    } else {
+      this.router.navigateByUrl(`edgeManagement/ruleChains/${ruleChainId}`);
+    }
   }
 
   onSearchTextUpdated(searchText: string) {
