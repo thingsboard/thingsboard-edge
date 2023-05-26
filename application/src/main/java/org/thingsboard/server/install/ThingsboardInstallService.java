@@ -275,6 +275,7 @@ public class ThingsboardInstallService {
                             }
                         case "3.5.0":
                             log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");
@@ -309,7 +310,7 @@ public class ThingsboardInstallService {
                 log.info("Installing DataBase schema for timeseries...");
 
                 if (noSqlKeyspaceService != null) {
-                    noSqlKeyspaceService.createDatabaseSchema();
+                   noSqlKeyspaceService.createDatabaseSchema();
                 }
 
                 tsDatabaseSchemaService.createDatabaseSchema();
