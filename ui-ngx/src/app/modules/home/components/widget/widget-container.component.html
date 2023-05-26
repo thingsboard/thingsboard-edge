@@ -65,6 +65,7 @@
                      historyOnly="{{widget.onlyHistoryTimewindow}}"
                      alwaysDisplayTypePrefix
                      timezone="true"
+                     isNgModel
                      [isEdit]="isEdit"
                      [(ngModel)]="widgetComponent.widget.config.timewindow"
                      (ngModelChange)="widgetComponent.onTimewindowChanged($event)">

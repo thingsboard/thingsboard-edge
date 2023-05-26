@@ -62,9 +62,11 @@
               </button>
               <span *ngIf="entitiesTableConfig.tableTitle" class="tb-entity-table-title">{{ entitiesTableConfig.tableTitle }}</span>
               <tb-anchor #entityTableHeader></tb-anchor>
-              <tb-timewindow *ngIf="entitiesTableConfig.useTimePageLink" [(ngModel)]="timewindow"
-                              (ngModelChange)="onTimewindowChange()"
-                              asButton strokedButton historyOnly [forAllTimeEnabled]="entitiesTableConfig.forAllTimeEnabled"></tb-timewindow>
+              <tb-timewindow *ngIf="entitiesTableConfig.useTimePageLink"
+                             [(ngModel)]="timewindow" (ngModelChange)="onTimewindowChange()"
+                             asButton strokedButton historyOnly isNgModel
+                             [forAllTimeEnabled]="entitiesTableConfig.forAllTimeEnabled">
+              </tb-timewindow>
             </div>
             <span fxFlex></span>
             <div [fxShow]="addEnabled()">
