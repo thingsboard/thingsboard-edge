@@ -30,32 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-absolute-fill" [fxLayout]="legendContainerLayoutType" tb-toast
-     toastTarget="{{ toastTargetId }}">
-  <tb-legend *ngIf="displayLegend && isLegendFirst"
-             [ngStyle]="legendStyle"
-             [legendConfig]="legendConfig"
-             [legendData]="legendData"
-             (legendKeyHiddenChange)="onLegendKeyHiddenChange($event)">
-  </tb-legend>
-  <div fxFlex id="widget-container">
-    <ng-container #widgetContent></ng-container>
-  </div>
-  <tb-legend *ngIf="displayLegend && !isLegendFirst"
-             [ngStyle]="legendStyle"
-             [legendConfig]="legendConfig"
-             [legendData]="legendData"
-             (legendKeyHiddenChange)="onLegendKeyHiddenChange($event)">
-  </tb-legend>
+<h2 mat-dialog-title>{{title}}</h2>
+<div mat-dialog-content class="tb-error-alert-dialog-content">
+  <div>{{ message }}</div>
+  <div class="error-message-title" translate>dialog.error-message-title</div>
+  <div class="error-message-content"> {{ errorMessage }} </div>
+  <mat-expansion-panel *ngIf="errorDetails">
+    <mat-expansion-panel-header>{{ 'dialog.error-details-title' | translate }}</mat-expansion-panel-header>
+    <small class="error-details-content" [innerHTML]="errorDetails"></small>
+  </mat-expansion-panel>
 </div>
-<div class="tb-absolute-fill tb-widget-error" *ngIf="widgetErrorData">
-  <span [innerHtml]="('Widget Error:<br/><br/>' + widgetErrorData.message) | safe:'html'"></span>
-</div>
-<div class="tb-absolute-fill tb-widget-no-data" *ngIf="displayNoData">
-  <span fxLayoutAlign="center center"
-        style="display: flex;"
-        class="tb-absolute-fill">{{ noDataDisplayMessageText }}</span>
-</div>
-<div class="tb-absolute-fill tb-widget-loading" [fxShow]="loadingData" fxLayout="column" fxLayoutAlign="center center">
-  <mat-spinner color="accent" md-mode="indeterminate" diameter="40"></mat-spinner>
+<div mat-dialog-actions fxLayoutAlign="end center">
+  <button mat-button color="primary" [mat-dialog-close]="true" cdkFocusInitial>{{data.ok}}</button>
 </div>

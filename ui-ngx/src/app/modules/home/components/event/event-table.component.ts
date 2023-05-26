@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -47,7 +56,7 @@ import { Subscription } from 'rxjs';
   templateUrl: './event-table.component.html',
   styleUrls: ['./event-table.component.scss']
 })
-export class EventTableComponent implements OnInit, AfterViewInit {
+export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   tenantId: string;
