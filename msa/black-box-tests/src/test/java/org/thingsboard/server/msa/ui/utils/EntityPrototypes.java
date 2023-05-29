@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -257,6 +258,14 @@ public class EntityPrototypes {
         device.setAdditionalInfo(JacksonUtil.newObjectNode()
                 .put("gateway", gateway)
                 .put("overwriteActivityTime", overwriteActivityTime));
+        return device;
+    }
+
+    public static Device defaultDevicePrototype(String name, DeviceProfileId deviceProfileId) {
+        Device device = new Device();
+        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        device.setType("DEFAULT");
+        device.setDeviceProfileId(deviceProfileId);
         return device;
     }
 
