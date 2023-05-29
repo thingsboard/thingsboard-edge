@@ -43,6 +43,7 @@ import com.microsoft.azure.sdk.iot.service.Message;
 import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -118,7 +119,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -265,11 +266,11 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private void logEventHubDownlink(IntegrationContext context, Message message, String deviceId, String contentType) {
         if (configuration.isDebugMode()) {
             try {
-                ObjectNode json = mapper.createObjectNode();
+                ObjectNode json = JacksonUtil.newObjectNode();
                 json.put("deviceId", deviceId);
                 json.set("payload", getDownlinkPayloadJson(message, contentType));
-                json.set("properties", mapper.valueToTree(message.getProperties()));
-                persistDebug(context, "Downlink", "JSON", mapper.writeValueAsString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                json.set("properties", JacksonUtil.valueToTree(message.getProperties()));
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -278,7 +279,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
     private JsonNode getDownlinkPayloadJson(Message message, String contentType) throws IOException {
         if ("JSON".equals(contentType)) {
-            return mapper.readTree(message.getBytes());
+            return JacksonUtil.fromBytes(message.getBytes());
         } else if ("TEXT".equals(contentType)) {
             return new TextNode(new String(message.getBytes(), StandardCharsets.UTF_8));
         } else { //BINARY

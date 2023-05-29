@@ -46,6 +46,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -53,6 +54,7 @@ import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
+import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -69,6 +71,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
 
 @Slf4j
 public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegrationMsg> {
@@ -90,6 +94,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("ip-integration-scheduled"));
     protected ScheduledFuture bindFuture = null;
+
+    protected UplinkContentType uplinkContentType;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -208,7 +214,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(msg.toJson()), status, exception);
+                persistDebug(context, "Uplink", uplinkContentType, toDebugMessage(uplinkContentType.name(), msg.getPayload()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -258,8 +264,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     public byte[] writeValueAsBytes(String msg) {
         try {
-            return mapper.writeValueAsBytes(msg);
-        } catch (JsonProcessingException e) {
+            return JacksonUtil.writeValueAsBytes(msg);
+        } catch (IllegalArgumentException e) {
             log.error("{}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -289,16 +295,16 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     public ObjectNode getJsonHexReport(byte[] hexBytes) {
         String hexString = Hex.encodeHexString(hexBytes);
-        ArrayNode reports = mapper.createArrayNode();
-        reports.add(mapper.createObjectNode().put("value", hexString));
-        ObjectNode payload = mapper.createObjectNode();
+        ArrayNode reports = JacksonUtil.newArrayNode();
+        reports.add(JacksonUtil.newObjectNode().put("value", hexString));
+        ObjectNode payload = JacksonUtil.newObjectNode();
         payload.set("reports", reports);
         return payload;
     }
 
     private List<UplinkData> getUplinkDataList(IntegrationContext context, IpIntegrationMsg msg) throws Exception {
         Map<String, String> metadataMap = new HashMap<>(metadataTemplate.getKvMap());
-        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), metadataMap));
+        return convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(uplinkContentType, metadataMap));
     }
 
     private void processUplinkData(IntegrationContext context, List<UplinkData> uplinkDataList) throws Exception {

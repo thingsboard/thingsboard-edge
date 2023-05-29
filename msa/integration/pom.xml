@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.5.2PE-SNAPSHOT</version>
+        <version>3.6.0PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
 
@@ -48,7 +48,7 @@
 
     <properties>
         <main.dir>${basedir}/../..</main.dir>
-        <docker.push-integraion-arm-amd-image.phase>none</docker.push-integraion-arm-amd-image.phase>
+        <docker.push-integration-arm-amd-image.phase>none</docker.push-integration-arm-amd-image.phase>
     </properties>
 
     <modules>
@@ -82,8 +82,8 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>push-latest-docker-amd-arm-images</id>
-                                <phase>${docker.push-integraion-arm-amd-image.phase}</phase>
+                                <id>push-integration-latest-docker-amd-arm-images</id>
+                                <phase>${docker.push-integration-arm-amd-image.phase}</phase>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -103,8 +103,8 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>push-version-docker-amd-arm-images</id>
-                                <phase>${docker.push-integraion-arm-amd-image.phase}</phase>
+                                <id>push-integration-version-docker-amd-arm-images</id>
+                                <phase>${docker.push-integration-arm-amd-image.phase}</phase>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>

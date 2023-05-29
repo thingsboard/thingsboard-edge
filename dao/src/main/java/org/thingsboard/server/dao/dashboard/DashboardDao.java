@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableCustomerEntityDao;
-import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
@@ -55,5 +54,7 @@ public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, Exportabl
     Dashboard save(TenantId tenantId, Dashboard dashboard);
 
     List<Dashboard> findByTenantIdAndTitle(UUID tenantId, String title);
+
+    Long countDashboards();
 
 }

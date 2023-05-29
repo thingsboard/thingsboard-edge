@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +65,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.ROLE_TABLE_FAMILY_NAME)
+@Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
 public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<Role> {
 
@@ -96,8 +95,6 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
 
     @Column(name = EXTERNAL_ID_PROPERTY)
     private UUID externalId;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     public RoleEntity() {
         super();

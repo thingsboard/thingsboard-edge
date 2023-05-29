@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -82,6 +83,9 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Autowired
     private DataValidator<Integration> integrationValidator;
 
+    @Autowired
+    private EntityCountService entityCountService;
+
     @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(IntegrationCacheEvictEvent event) {
@@ -95,6 +99,9 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         try {
             var result = integrationDao.save(integration.getTenantId(), integration);
             publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+            if (integration.getId() == null) {
+                entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
+            }
             return result;
         } catch (Exception t) {
             checkConstraintViolation(t,
@@ -190,6 +197,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         deleteEntityRelations(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
+        entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
     }
 
     @Override
@@ -198,6 +206,12 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public Long countCoreIntegrations() {
+        log.trace("Executing countCoreIntegrations");
+        return integrationDao.countCoreIntegrations();
     }
 
     public List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
@@ -278,6 +292,17 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findIntegrationById(tenantId, new IntegrationId(entityId.getId())));
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return integrationDao.countByTenantId(tenantId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteIntegration(tenantId, (IntegrationId) id);
     }
 
     @Override

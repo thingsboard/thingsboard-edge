@@ -49,6 +49,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
@@ -74,7 +75,8 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         try {
-            tcpConfigurationParameters = mapper.readValue(mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")), TcpConfigurationParameters.class);
+            tcpConfigurationParameters = JacksonUtil.fromString(JacksonUtil.toString(configuration.getConfiguration().get("clientConfiguration")), TcpConfigurationParameters.class);
+            uplinkContentType = tcpConfigurationParameters.getHandlerConfiguration().getUplinkContentType();
             bossGroup = new NioEventLoopGroup();
             workerGroup = new NioEventLoopGroup();
             startServer();
@@ -107,13 +109,13 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
         TcpConfigurationParameters tcpConfiguration;
         try {
-            String stringTcpConfiguration = mapper.writeValueAsString(configuration.get("clientConfiguration"));
-            tcpConfiguration = mapper.readValue(stringTcpConfiguration, TcpConfigurationParameters.class);
+            String stringTcpConfiguration = JacksonUtil.toString(configuration.get("clientConfiguration"));
+            tcpConfiguration = JacksonUtil.fromString(stringTcpConfiguration, TcpConfigurationParameters.class);
             HandlerConfiguration handlerConfiguration = tcpConfiguration.getHandlerConfiguration();
             if (handlerConfiguration == null) {
                 throw new IllegalArgumentException("Handler Configuration is empty");
             }
-        } catch (IOException e) {
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid TCP Integration Configuration structure! " + e.getMessage());
         }
         if (!allowLocalNetworkHosts) {

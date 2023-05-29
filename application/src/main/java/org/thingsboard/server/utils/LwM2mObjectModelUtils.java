@@ -31,8 +31,6 @@
 package org.thingsboard.server.utils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.leshan.core.model.DDFFileParser;
-import org.eclipse.leshan.core.model.DefaultDDFFileValidator;
 import org.eclipse.leshan.core.model.InvalidDDFFileException;
 import org.eclipse.leshan.core.model.ObjectModel;
 import org.thingsboard.server.common.data.ResourceType;
@@ -42,6 +40,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.lwm2m.LwM2mInstance;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
 import org.thingsboard.server.common.data.lwm2m.LwM2mResourceObserve;
+import org.thingsboard.server.common.data.util.TbDDFFileParser;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.ByteArrayInputStream;
@@ -56,8 +55,8 @@ import static org.thingsboard.server.common.data.lwm2m.LwM2mConstants.LWM2M_SEPA
 @Slf4j
 public class LwM2mObjectModelUtils {
     
-    private static final DDFFileParser ddfFileParser = new DDFFileParser(new DefaultDDFFileValidator());
-    
+    private static final TbDDFFileParser ddfFileParser = new TbDDFFileParser();
+
     public static void toLwm2mResource (TbResource resource) throws ThingsboardException {
         try {
             List<ObjectModel> objectModels =

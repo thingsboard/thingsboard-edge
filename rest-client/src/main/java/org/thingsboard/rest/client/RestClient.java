@@ -32,7 +32,6 @@ package org.thingsboard.rest.client;
 
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.core.ParameterizedTypeReference;
@@ -50,6 +49,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -70,8 +70,8 @@ import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.TbResource;
@@ -110,9 +110,9 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmCommentId;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -125,8 +125,8 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OAuth2ClientRegistrationTemplateId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
-import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.QueueId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -191,7 +191,6 @@ import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistratio
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.common.data.sync.vc.AutoCommitSettings;
@@ -205,6 +204,7 @@ import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
@@ -215,7 +215,6 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.io.Closeable;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -235,8 +234,6 @@ public class RestClient implements Closeable {
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
     private static final long AVG_REQUEST_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     protected static final String ACTIVATE_TOKEN_REGEX = "/api/noauth/activate?activateToken=";
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final ExecutorService service = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
     protected final RestTemplate restTemplate;
     protected final RestTemplate loginRestTemplate;
@@ -795,7 +792,7 @@ public class RestClient implements Closeable {
     }
 
     public void changePassword(String currentPassword, String newPassword) {
-        ObjectNode changePasswordRequest = objectMapper.createObjectNode();
+        ObjectNode changePasswordRequest = JacksonUtil.newObjectNode();
         changePasswordRequest.put("currentPassword", currentPassword);
         changePasswordRequest.put("newPassword", newPassword);
         restTemplate.postForLocation(baseURL + "/api/auth/changePassword", changePasswordRequest);
@@ -820,7 +817,7 @@ public class RestClient implements Closeable {
     }
 
     public void requestResetPasswordByEmail(String email) {
-        ObjectNode resetPasswordByEmailRequest = objectMapper.createObjectNode();
+        ObjectNode resetPasswordByEmailRequest = JacksonUtil.newObjectNode();
         resetPasswordByEmailRequest.put("email", email);
         restTemplate.postForLocation(baseURL + "/api/noauth/resetPasswordByEmail", resetPasswordByEmailRequest);
     }
@@ -830,7 +827,7 @@ public class RestClient implements Closeable {
     }
 
     public Optional<JsonNode> activateUser(UserId userId, String password, boolean sendActivationMail) {
-        ObjectNode activateRequest = objectMapper.createObjectNode();
+        ObjectNode activateRequest = JacksonUtil.newObjectNode();
         activateRequest.put("activateToken", getActivateToken(userId));
         activateRequest.put("password", password);
         try {
@@ -4013,11 +4010,19 @@ public class RestClient implements Closeable {
     }
 
     public void changeOwnerToTenant(EntityId ownerId, EntityId entityId) {
-        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
+        changeOwnerToTenant(ownerId, entityId, new String[]{});
+    }
+
+    public void changeOwnerToTenant(EntityId ownerId, EntityId entityId, String[] strEntityGroupIds) {
+        restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", strEntityGroupIds, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }
 
     public void changeOwnerToCustomer(EntityId ownerId, EntityId entityId) {
-        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
+        changeOwnerToCustomer(ownerId, entityId, new String[]{});
+    }
+
+    public void changeOwnerToCustomer(EntityId ownerId, EntityId entityId, String[] strEntityGroupIds) {
+        restTemplate.postForEntity(baseURL + "/api/owner/CUSTOMER/{ownerId}/{entityType}/{entityId}", strEntityGroupIds, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }
 
     public JsonNode downloadDashboardReport(DashboardId dashboardId, JsonNode reportParams) {
@@ -4087,7 +4092,7 @@ public class RestClient implements Closeable {
         Role role = new Role();
         role.setName(roleName);
         role.setType(RoleType.GROUP);
-        ArrayNode permissions = objectMapper.createArrayNode();
+        ArrayNode permissions = JacksonUtil.newArrayNode();
         operations.stream().map(Operation::name).forEach(permissions::add);
         role.setPermissions(permissions);
         return saveRole(role);
@@ -4122,6 +4127,19 @@ public class RestClient implements Closeable {
                 },
                 entityId.getEntityType(),
                 entityId.getId(),
+                timeout).getBody();
+    }
+
+    public JsonNode handleRuleEngineRequest(EntityId entityId, String queueName, int timeout, JsonNode requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/api/rule-engine/{entityType}/{entityId}/{queueName}/{timeout}",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<JsonNode>() {
+                },
+                entityId.getEntityType(),
+                entityId.getId(),
+                queueName,
                 timeout).getBody();
     }
 

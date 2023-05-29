@@ -33,19 +33,21 @@ import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
   UntypedFormArray,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
   Validator,
   Validators
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import {
+  entityTypesWithoutRelatedData,
   EntityTypeVersionCreateConfig,
-  exportableEntityTypes, overrideEntityTypeTranslations,
+  exportableEntityTypes,
+  overrideEntityTypeTranslations,
   SyncStrategy,
   syncStrategyTranslationMap
 } from '@shared/models/vc.models';
@@ -89,6 +91,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   syncStrategyTranslations = syncStrategyTranslationMap;
 
   entityTypes = EntityType;
+  entityTypesWithoutRelatedData = entityTypesWithoutRelatedData;
 
   loading = true;
 
@@ -122,6 +125,9 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       this.entityTypesVersionCreateFormGroup.disable({emitEvent: false});
     } else {
       this.entityTypesVersionCreateFormGroup.enable({emitEvent: false});
+      (this.entityTypesVersionCreateFormGroup.get('entityTypes') as UntypedFormArray).controls.forEach(
+        control => this.updateEntityTypeValidators(control)
+      );
     }
   }
 
@@ -167,7 +173,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       }
     );
     this.updateEntityTypeValidators(entityTypeControl);
-    entityTypeControl.get('config').get('allEntities').valueChanges.subscribe(() => {
+    entityTypeControl.get('config.allEntities').valueChanges.subscribe(() => {
       this.updateEntityTypeValidators(entityTypeControl);
     });
     entityTypeControl.get('entityType').valueChanges.subscribe(() => {
@@ -256,7 +262,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   allowedEntityTypes(entityTypeControl?: AbstractControl): Array<EntityType> {
     let res = [...exportableEntityTypes];
     const currentEntityType: EntityType = entityTypeControl?.get('entityType')?.value;
-    const value: [{entityType: string, config: EntityTypeVersionCreateConfig}] =
+    const value: [{entityType: string; config: EntityTypeVersionCreateConfig}] =
       this.entityTypesVersionCreateFormGroup.get('entityTypes').value || [];
     const usedEntityTypes = value.map(val => val.entityType).filter(val => val);
     res = res.filter(entityType => !usedEntityTypes.includes(entityType) || entityType === currentEntityType);
@@ -268,7 +274,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   }
 
   private updateModel() {
-    const value: [{entityType: string, config: EntityTypeVersionCreateConfig}] =
+    const value: [{entityType: string; config: EntityTypeVersionCreateConfig}] =
       this.entityTypesVersionCreateFormGroup.get('entityTypes').value || [];
     let modelValue: {[entityType: string]: EntityTypeVersionCreateConfig} = null;
     if (value && value.length) {

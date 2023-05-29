@@ -44,7 +44,7 @@
             </run>
         </groups>
         <packages>
-            <package name="org.thingsboard.server.msa.ui.tests.ruleChainsSmoke"/>
+            <package name="org.thingsboard.server.msa.ui.tests.rulechainssmoke"/>
         </packages>
     </test>
     <test name="Smoke customers tests">
@@ -75,6 +75,16 @@
         </groups>
         <packages>
             <package name="org.thingsboard.server.msa.ui.tests.assetProfileSmoke"/>
+        </packages>
+    </test>
+    <test name="Smoke devices tests">
+        <groups>
+            <run>
+                <exclude name="broken"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="org.thingsboard.server.msa.ui.tests.devicessmoke"/>
         </packages>
     </test>
 </suite>

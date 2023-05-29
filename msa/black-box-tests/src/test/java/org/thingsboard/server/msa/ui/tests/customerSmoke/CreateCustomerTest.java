@@ -140,8 +140,10 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomerWithoutName() {
         sideBarMenuView.goToAllCustomers();
         customerPage.plusBtn().click();
+        customerPage.addBtnC().click();
 
-        Assert.assertFalse(customerPage.addBtnV().isEnabled());
+        Assert.assertTrue(customerPage.addEntityView().isDisplayed(), "Add entity view steel open");
+        Assert.assertEquals(customerPage.errorMessage().getText(), "Title is required.", "Error message");
     }
 
     @Epic("Customers smoke tests")
@@ -210,5 +212,25 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         customerPage.goToHelpPage();
 
         Assert.assertTrue(urlContains(urlPath), "URL contains " + urlPath);
+    }
+
+    @Epic("Customers smoke tests")
+    @Feature("Create customer")
+    @Test(groups = "smoke")
+    @Description("Go to customer documentation page")
+    public void createCustomerAddAndRemovePhoneNumber() {
+        String customerName = ENTITY_NAME;
+        String number = "12015550123";
+
+        sideBarMenuView.goToAllCustomers();
+        customerPage.plusBtn().click();
+        customerPage.titleFieldAddEntityView().sendKeys(customerName);
+        customerPage.phoneNumberAddEntityView().sendKeys(number);
+        customerPage.phoneNumberAddEntityView().sendKeys(Keys.CONTROL + "A" + Keys.BACK_SPACE);
+        customerPage.addBtnC().click();
+        this.customerName = customerName;
+        customerPage.entity(customerName).click();
+
+        Assert.assertTrue(customerPage.phoneNumberEntityView().getAttribute("value").isEmpty(), "Phone field is empty");
     }
 }

@@ -30,13 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import io.swagger.annotations.ApiParam;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +45,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -152,7 +150,6 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.settings.UserDashboardAction;
 import org.thingsboard.server.common.data.util.ThrowingBiFunction;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -187,12 +184,12 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.user.UserSettingsService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.DataValidationException;
@@ -226,24 +223,26 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
 import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
 import static org.thingsboard.server.controller.UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -252,8 +251,6 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 public abstract class BaseController {
 
     /*Swagger UI description*/
-
-    private static final ObjectMapper json = new ObjectMapper();
 
     @Autowired
     private ThingsboardErrorResponseHandler errorResponseHandler;
@@ -509,16 +506,19 @@ public abstract class BaseController {
      * Handles validation error for controller method arguments annotated with @{@link javax.validation.Valid}
      * */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public void handleValidationError(MethodArgumentNotValidException e, HttpServletResponse response) {
-        String errorMessage = "Validation error: " + e.getFieldErrors().stream()
+    public void handleValidationError(MethodArgumentNotValidException validationError, HttpServletResponse response) {
+        List<ConstraintViolation<Object>> constraintsViolations = validationError.getFieldErrors().stream()
                 .map(fieldError -> {
-                    String property = fieldError.getField();
-                    if (property.equals("valid") || StringUtils.endsWith(property, ".valid")) { // when custom @AssertTrue is used
-                        property = "";
+                    try {
+                        return (ConstraintViolation<Object>) fieldError.unwrap(ConstraintViolation.class);
+                    } catch (Exception e) {
+                        log.warn("FieldError source is not of type ConstraintViolation");
+                        return null; // should not happen
                     }
-                    return (!property.isEmpty() ? (property + " ") : "") + fieldError.getDefaultMessage();
                 })
-                .collect(Collectors.joining(", "));
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        String errorMessage = "Validation error: " + ConstraintValidator.getErrorMessage(constraintsViolations);
         ThingsboardException thingsboardException = new ThingsboardException(errorMessage, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         handleControllerException(thingsboardException, response);
     }
@@ -1151,8 +1151,10 @@ public abstract class BaseController {
 
     protected <E extends HasName & HasId<? extends EntityId>> void logEntityAction(SecurityUser user, EntityType entityType, E entity, E savedEntity, ActionType actionType, Exception e) {
         EntityId entityId = savedEntity != null ? savedEntity.getId() : emptyId(entityType);
-        entityActionService.logEntityAction(user, entityId, savedEntity != null ? savedEntity : entity,
-                user.getCustomerId(), actionType, e);
+        if (!user.isSystemAdmin()) {
+            entityActionService.logEntityAction(user, entityId, savedEntity != null ? savedEntity : entity,
+                    user.getCustomerId(), actionType, e);
+        }
     }
 
     protected MergedUserPermissions getMergedUserPermissions(User user, boolean isPublic) {
@@ -1223,7 +1225,7 @@ public abstract class BaseController {
                 String body = null;
                 if (EntityType.EDGE.equals(entityId.getEntityType())) {
                     try {
-                        body = json.writeValueAsString(previousOwnerId);
+                        body = JacksonUtil.toString(previousOwnerId);
                     } catch (Exception e) {
                         log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
                     }

@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,6 +69,14 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 
 @RestController
@@ -81,19 +90,44 @@ public class NotificationTemplateController extends BaseController {
     private final SlackService slackService;
 
     @ApiOperation(value = "Save notification template (saveNotificationTemplate)",
-            notes = "Create or update notification template.\n\n" +
-                    "Example:\n" +
-                    "```\n{\n  \"name\": \"Hello to all my users\",\n" +
-                    "  \"notificationType\": \"Message from administrator\",\n" +
+            notes = "Creates or updates notification template." + NEW_LINE +
+                    "Here is an example of template to send notification via Web, SMS and Slack:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"name\": \"Greetings\",\n" +
+                    "  \"notificationType\": \"GENERAL\",\n" +
                     "  \"configuration\": {\n" +
-                    "    \"defaultTextTemplate\": \"Hello everyone\",  # required if any of the templates' bodies is not set\n" +
-                    "    \"templates\": {\n" +
-                    "      \"PUSH\": {\n        \"method\": \"PUSH\",\n        \"body\": null  # defaultTextTemplate will be used if body is not set\n      },\n" +
-                    "      \"SMS\": {\n        \"method\": \"SMS\",\n        \"body\": null\n      },\n" +
-                    "      \"EMAIL\": {\n        \"method\": \"EMAIL\",\n        \"body\": \"Non-default value for email notification: <body>Hello everyone</body>\",\n        \"subject\": \"Message from administrator\"\n      },\n" +
-                    "      \"SLACK\": {\n        \"method\": \"SLACK\",\n        \"body\": null,\n        \"conversationType\": \"PUBLIC_CHANNEL\",\n        \"conversationId\": \"U02LD7BJOU2\"  # received from listSlackConversations API method\n      }\n" +
+                    "    \"deliveryMethodsTemplates\": {\n" +
+                    "      \"WEB\": {\n" +
+                    "        \"enabled\": true,\n" +
+                    "        \"subject\": \"Greetings\",\n" +
+                    "        \"body\": \"Hi there, ${recipientTitle}\",\n" +
+                    "        \"additionalConfig\": {\n" +
+                    "          \"icon\": {\n" +
+                    "            \"enabled\": true,\n" +
+                    "            \"icon\": \"back_hand\",\n" +
+                    "            \"color\": \"#757575\"\n" +
+                    "          },\n" +
+                    "          \"actionButtonConfig\": {\n" +
+                    "            \"enabled\": false\n" +
+                    "          }\n" +
+                    "        },\n" +
+                    "        \"method\": \"WEB\"\n" +
+                    "      },\n" +
+                    "      \"SMS\": {\n" +
+                    "        \"enabled\": true,\n" +
+                    "        \"body\": \"Hi there, ${recipientTitle}\",\n" +
+                    "        \"method\": \"SMS\"\n" +
+                    "      },\n" +
+                    "      \"SLACK\": {\n" +
+                    "        \"enabled\": true,\n" +
+                    "        \"body\": \"Hi there, @${recipientTitle}\",\n" +
+                    "        \"method\": \"SLACK\"\n" +
+                    "      }\n" +
                     "    }\n" +
-                    "  }\n}\n```" +
+                    "  }\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/template")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
@@ -104,7 +138,7 @@ public class NotificationTemplateController extends BaseController {
     }
 
     @ApiOperation(value = "Get notification template by id (getNotificationTemplateById)",
-            notes = "Fetch notification template by id." +
+            notes = "Fetches notification template by id." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/template/{id}")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
@@ -114,15 +148,22 @@ public class NotificationTemplateController extends BaseController {
     }
 
     @ApiOperation(value = "Get notification templates (getNotificationTemplates)",
-            notes = "Fetch the page of notification templates owned by sysadmin or tenant." +
+            notes = "Returns the page of notification templates owned by sysadmin or tenant." + NEW_LINE +
+                    PAGE_DATA_PARAMETERS +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/templates")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public PageData<NotificationTemplate> getNotificationTemplates(@RequestParam int pageSize,
+    public PageData<NotificationTemplate> getNotificationTemplates(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+                                                                   @RequestParam int pageSize,
+                                                                   @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
                                                                    @RequestParam int page,
+                                                                   @ApiParam(value = "Case-insensitive 'substring' filter based on template's name and notification type")
                                                                    @RequestParam(required = false) String textSearch,
+                                                                   @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
                                                                    @RequestParam(required = false) String sortProperty,
+                                                                   @ApiParam(value = SORT_ORDER_DESCRIPTION)
                                                                    @RequestParam(required = false) String sortOrder,
+                                                                   @ApiParam(value = "Comma-separated list of notification types to filter the templates")
                                                                    @RequestParam(required = false) NotificationType[] notificationTypes,
                                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
@@ -135,7 +176,7 @@ public class NotificationTemplateController extends BaseController {
     }
 
     @ApiOperation(value = "Delete notification template by id (deleteNotificationTemplateById",
-            notes = "Delete notification template by its id.\n\n" +
+            notes = "Deletes notification template by its id." + NEW_LINE +
                     "This template cannot be referenced by existing scheduled notification requests or any notification rules." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @DeleteMapping("/template/{id}")
@@ -147,12 +188,12 @@ public class NotificationTemplateController extends BaseController {
     }
 
     @ApiOperation(value = "List Slack conversations (listSlackConversations)",
-            notes = "List available Slack conversations by type to use in notification template.\n\n" +
-                    "Slack must be configured in notification settings." +
+            notes = "List available Slack conversations by type." +
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/slack/conversations")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public List<SlackConversation> listSlackConversations(@RequestParam SlackConversationType type,
+                                                          @ApiParam(value = "Slack bot token. If absent - system Slack settings will be used")
                                                           @RequestParam(required = false) String token,
                                                           @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);

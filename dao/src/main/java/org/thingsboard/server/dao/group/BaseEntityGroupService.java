@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.group;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -123,7 +122,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String UNABLE_TO_FIND_ENTITY_GROUP_BY_ID = "Unable to find entity group by id ";
     public static final String EDGE_ENTITY_GROUP_RELATION_PREFIX = "EDGE_ENTITY_GROUP_";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final ReentrantLock roleCreationLock = new ReentrantLock();
 
     @Autowired
@@ -252,7 +250,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityGroup.setType(groupType);
                 JsonNode additionalInfo = entityGroup.getAdditionalInfo();
                 if (additionalInfo == null) {
-                    additionalInfo = mapper.createObjectNode();
+                    additionalInfo = JacksonUtil.newObjectNode();
                 }
                 ((ObjectNode) additionalInfo).put("description", description);
                 if (publicCustomerId != null && !publicCustomerId.isNullUid()) {
@@ -832,7 +830,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             String key;
             switch (type) {
                 case ENTITY_FIELD:
-                    key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
+                    EntityType entityType = entityData.getEntityId().getEntityType();
+                    if (k.equals("type") && (entityType.equals(EntityType.DEVICE) || entityType.equals(EntityType.ASSET))) {
+                        key = getProfileColumnKeyByType(entityType);
+                    } else {
+                        key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
+                    }
                     break;
                 case CLIENT_ATTRIBUTE:
                     key = "client_" + k;
@@ -874,12 +877,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         columnToEntityKeyMap.put("first_name", "firstName");
         columnToEntityKeyMap.put("last_name", "lastName");
         columnToEntityKeyMap.put("device_profile", "type");
+        columnToEntityKeyMap.put("asset_profile", "type");
 
         entityDataKeyToShortEntityViewKeyMap.put("createdTime", "created_time");
         entityDataKeyToShortEntityViewKeyMap.put("assignedCustomer", "assigned_customer");
         entityDataKeyToShortEntityViewKeyMap.put("firstName", "first_name");
         entityDataKeyToShortEntityViewKeyMap.put("lastName", "last_name");
-        entityDataKeyToShortEntityViewKeyMap.put("type", "device_profile");
     }
 
     @Override
@@ -1044,6 +1047,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteEntityGroup(tenantId, (EntityGroupId) id);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
     }
@@ -1087,5 +1095,16 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                     deleteEntityGroup(tenantId, new EntityGroupId(entity.getId().getId()));
                 }
             };
+
+    private String getProfileColumnKeyByType(EntityType entityType) {
+        switch (entityType) {
+            case ASSET:
+                return "asset_profile";
+            case DEVICE:
+                return "device_profile";
+            default:
+                throw new IllegalArgumentException("Wrong entity type: " + entityType);
+        }
+    }
 
 }

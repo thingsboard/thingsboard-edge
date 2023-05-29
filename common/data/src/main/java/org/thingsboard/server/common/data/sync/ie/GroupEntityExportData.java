@@ -34,10 +34,7 @@ import lombok.Data;
 import lombok.ToString;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-
-import java.util.List;
 
 @Data
 @ToString(callSuper = true)

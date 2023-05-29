@@ -47,6 +47,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import {
   AlarmInfo,
   AlarmQuery,
+  AlarmQueryV2,
   AlarmSearchStatus,
   alarmSeverityColors,
   alarmSeverityTranslations,
@@ -62,7 +63,7 @@ import {
 } from '@home/components/alarm/alarm-details-dialog.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { DAY, historyInterval } from '@shared/models/time/time.models';
+import { DAY, forAllTimeInterval, historyInterval } from '@shared/models/time/time.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
@@ -78,14 +79,17 @@ import {
 import { ComponentPortal } from '@angular/cdk/portal';
 import { isDefinedAndNotNull } from '@core/utils';
 import { UtilsService } from '@core/services/utils.service';
+import { AlarmFilterConfig } from '@shared/models/query/query.models';
+import { EntityService } from '@core/http/entity.service';
 
 export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink> {
 
   private authUser = getCurrentAuthUser(this.store);
 
-  searchStatus: AlarmSearchStatus;
+  alarmFilterConfig: AlarmFilterConfig;
 
   constructor(private alarmService: AlarmService,
+              private entityService: EntityService,
               private dialogService: DialogService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
@@ -93,7 +97,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private dialog: MatDialog,
               private alarmsMode: AlarmsMode = AlarmsMode.ALL,
               public entityId: EntityId = null,
-              private defaultSearchStatus: AlarmSearchStatus = AlarmSearchStatus.ANY,
+              private defaultAlarmFilterConfig: AlarmFilterConfig = {statusList: [AlarmSearchStatus.ACTIVE]},
               private store: Store<AppState>,
               private viewContainerRef: ViewContainerRef,
               private overlay: Overlay,
@@ -105,8 +109,9 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     this.loadDataOnInit = false;
     this.tableTitle = '';
     this.useTimePageLink = true;
+    this.forAllTimeEnabled = true;
     this.pageMode = pageMode;
-    this.defaultTimewindowInterval = historyInterval(DAY * 30);
+    this.defaultTimewindowInterval = forAllTimeInterval();
     this.detailsPanelEnabled = false;
     this.selectionEnabled = false;
     this.searchEnabled = true;
@@ -117,7 +122,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     this.entityTranslations = entityTypeTranslations.get(EntityType.ALARM);
     this.entityResources = {
     } as EntityTypeResource<AlarmInfo>;
-    this.searchStatus = defaultSearchStatus;
+    this.alarmFilterConfig = defaultAlarmFilterConfig;
 
     this.headerComponent = AlarmTableHeaderComponent;
 
@@ -131,7 +136,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       new EntityTableColumn<AlarmInfo>('originatorName', 'alarm.originator', '25%',
         (entity) => entity.originatorName, entity => ({}), false));
     this.columns.push(
-      new EntityTableColumn<AlarmInfo>('type', 'alarm.type', '25%'));
+      new EntityTableColumn<AlarmInfo>('type', 'alarm.type', '25%',
+          entity => this.utilsService.customTranslation(entity.type, entity.type)));
     this.columns.push(
       new EntityTableColumn<AlarmInfo>('severity', 'alarm.severity', '25%',
         (entity) => this.translate.instant(alarmSeverityTranslations.get(entity.severity)),
@@ -140,18 +146,11 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
           color: alarmSeverityColors.get(entity.severity)
         })));
     this.columns.push(
-      new EntityTableColumn<AlarmInfo>('assignee', 'alarm.assignee', '200px',
+      new EntityTableColumn<AlarmInfo>('assignee', 'alarm.assignee', '240px',
         (entity) => {
           return this.getAssigneeTemplate(entity)
         },
-        (entity) => {
-          return {
-            display: 'flex',
-            justifyContent: 'start',
-            alignItems: 'center',
-            height: 'inherit'
-          }
-        },
+        () => ({}),
         false,
         () => ({}),
         (entity) => undefined,
@@ -183,12 +182,13 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
   }
 
   fetchAlarms(pageLink: TimePageLink): Observable<PageData<AlarmInfo>> {
-    const query = new AlarmQuery(this.entityId, pageLink, this.searchStatus, null, true, null);
+    const alarmFilter = this.entityService.resolveAlarmFilter(this.alarmFilterConfig, false);
+    const query = new AlarmQueryV2(this.entityId, pageLink, alarmFilter);
     switch (this.alarmsMode) {
       case AlarmsMode.ALL:
-        return this.alarmService.getAllAlarms(query);
+        return this.alarmService.getAllAlarmsV2(query);
       case AlarmsMode.ENTITY:
-        return this.alarmService.getAlarms(query);
+        return this.alarmService.getAlarmsV2(query);
     }
   }
 
@@ -226,8 +226,10 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
           <span class="user-display-name">${this.getUserDisplayName(entity)}</span>
         </span>`
         :
-        `<mat-icon class="material-icons unassigned-icon">account_circle</mat-icon>
-        <span>${this.translate.instant('alarm.unassigned')}</span>`
+        `<span class="unassigned-container">
+          <mat-icon class="material-icons unassigned-icon">account_circle</mat-icon>
+          <span>${this.translate.instant('alarm.unassigned')}</span>
+        </span>`
       }
       </span>`
   }

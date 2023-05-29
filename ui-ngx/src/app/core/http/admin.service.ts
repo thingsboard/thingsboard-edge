@@ -36,7 +36,8 @@ import { HttpClient } from '@angular/common/http';
 import {
   AdminSettings,
   AutoCommitSettings,
-  JwtSettings,
+  FeaturesInfo,
+  JwtSettings, LicenseUsageInfo,
   MailServerSettings,
   RepositorySettings,
   RepositorySettingsInfo,
@@ -146,5 +147,13 @@ export class AdminService {
 
   public checkUpdates(config?: RequestConfig): Observable<UpdateMessage> {
     return this.http.get<UpdateMessage>(`/api/admin/updates`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getFeaturesInfo(config?: RequestConfig): Observable<FeaturesInfo> {
+    return this.http.get<FeaturesInfo>('/api/admin/featuresInfo', defaultHttpOptionsFromConfig(config));
+  }
+
+  public getLicenseUsageInfo(config?: RequestConfig): Observable<LicenseUsageInfo> {
+    return this.http.get<LicenseUsageInfo>('/api/admin/licenseUsageInfo', defaultHttpOptionsFromConfig(config));
   }
 }

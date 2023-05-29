@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +42,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -82,8 +82,6 @@ import java.util.concurrent.TimeoutException;
 @Service
 @Slf4j
 public class DefaultMailService implements MailService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     public static final String MAIL_PROP = "mail.";
     public static final String TARGET_EMAIL = "targetEmail";
     public static final String UTF_8 = "UTF-8";
@@ -373,6 +371,18 @@ public class DefaultMailService implements MailService {
         mailSender.testConnection();
     }
 
+    @Override
+    public boolean isConfigured(TenantId tenantId) {
+        try {
+            ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+            JsonNode jsonConfig = configEntry.jsonConfig;
+            createMailSender(jsonConfig);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void sendTemplateEmail(TenantId tenantId, String email, String template, Map<String, Object> templateModel) throws ThingsboardException {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, template);
@@ -580,7 +590,7 @@ public class DefaultMailService implements MailService {
                 String jsonString = getEntityAttributeValue(tenantId, tenantId, key);
                 if (!StringUtils.isEmpty(jsonString)) {
                     try {
-                        jsonConfig = objectMapper.readTree(jsonString);
+                        jsonConfig = JacksonUtil.toJsonNode(jsonString);
                     } catch (Exception e) {
                     }
                 }

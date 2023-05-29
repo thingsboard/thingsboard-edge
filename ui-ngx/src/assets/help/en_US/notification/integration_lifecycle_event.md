@@ -3,20 +3,22 @@
 <div class="divider"></div>
 <br/>
 
-Notification subject and message fields support templatization. The list of available templatization parameters depends on the template type.
+Notification subject and message fields support templatization.
+The list of available templatization parameters depends on the template type.
 See the available types and parameters below:
 
 Available template parameters:
 
-* *recipientEmail* - email of the recipient;
-* *recipientFirstName* - first name of the recipient;
-* *recipientLastName* - last name of the recipient;
-* *integrationType* - type of the integration;
-* *integrationName* - name of the integration;
-* *integrationId* - id of the integration as uuid string;
-* *eventType* - one of: 'started', 'updated', 'stopped';
-* *action* - one of: 'start', 'update', 'stop';
-* *error* - the error text;
+* `integrationType` - type of the integration;
+* `integrationName` - name of the integration;
+* `integrationId` - id of the integration as uuid string;
+* `eventType` - one of: 'started', 'updated', 'stopped';
+* `action` - one of: 'start', 'update', 'stop';
+* `error` - the error text;
+* `recipientTitle` - title of the recipient (first and last name if specified, email otherwise);
+* `recipientEmail` - email of the recipient;
+* `recipientFirstName` - first name of the recipient;
+* `recipientLastName` - last name of the recipient;
 
 Parameter names must be wrapped using `${...}`. For example: `${recipientFirstName}`.
 You may also modify the value of the parameter with one of the suffixes:
@@ -40,7 +42,6 @@ will be transformed to:
 
 ```text
 MQTT integration 'My integration' - start failure: failed to connect to MQTT broker
-{:copy-code}
 ```
 
 <br>

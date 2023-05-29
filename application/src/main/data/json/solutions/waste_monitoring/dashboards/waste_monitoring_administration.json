@@ -1,5 +1,5 @@
 {
-  "title": "Waste Monitoring Administration",
+  "title": "Waste Management Administration",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -2055,7 +2055,7 @@
     },
     "states": {
       "default": {
-        "name": "Waste Monitoring Administration",
+        "name": "Waste Management Administration",
         "root": true,
         "layouts": {
           "main": {
@@ -2520,5 +2520,5 @@
     }
   },
   "externalId": null,
-  "name": "Waste Monitoring Administration"
+  "name": "Waste Management Administration"
 }

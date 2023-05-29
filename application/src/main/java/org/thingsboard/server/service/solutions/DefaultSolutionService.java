@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -256,6 +255,9 @@ public class DefaultSolutionService implements SolutionService {
             templateInfo.setInstallTimeoutMs(descriptor.getInstallTimeoutMs());
             templateInfo.setShortDescription(readFile(resolve(descriptor.getId(), "short.md")));
             templateInfo.setPreviewImageUrl(descriptor.getPreviewImageUrl());
+            templateInfo.setVideoPreviewImageUrl(descriptor.getVideoPreviewImageUrl());
+            templateInfo.setPreviewMp4Url(descriptor.getPreviewMp4Url());
+            templateInfo.setPreviewWebmUrl(descriptor.getPreviewWebmUrl());
             templateInfo.setTenantTelemetryKeys(descriptor.getTenantTelemetryKeys());
             templateInfo.setTenantAttributeKeys(descriptor.getTenantAttributeKeys());
             solutions.add(templateInfo);
@@ -813,7 +815,6 @@ public class DefaultSolutionService implements SolutionService {
         });
     }
 
-    @NotNull
     private SchedulerEvent getSchedulerEvent(SolutionInstallContext ctx, SchedulerEventDefinition entityDef) {
         SchedulerEvent schedulerEvent = new SchedulerEvent();
         schedulerEvent.setTenantId(ctx.getTenantId());
@@ -1228,6 +1229,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setRootRuleChainId(rootRuleChainId);
             RuleChain rootRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), rootRuleChainId);
             entity = tbEdgeService.save(entity, rootRuleChain, Collections.emptyList(), user);
+            ctx.register(entityDef, entity);
             assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
@@ -1236,7 +1238,6 @@ public class DefaultSolutionService implements SolutionService {
             assignAssetsToEdge(ctx, entityDef.getAssetIds(), entity);
             assignDevicesToEdge(ctx, entityDef.getDeviceIds(), entity);
             assignSchedulerEventsToEdge(ctx, entityDef.getSchedulerEventIds(), entity);
-            ctx.register(entityDef, entity);
             log.info("[{}] Saved edge: {}", entity.getId(), entity);
             EdgeId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);

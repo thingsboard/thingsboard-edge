@@ -56,8 +56,8 @@ public enum ActionType {
     ALARM_ACK (false),
     ALARM_CLEAR (false),
     ALARM_DELETE(false),
-    ALARM_ASSIGN(false),
-    ALARM_UNASSIGN(false),
+    ALARM_ASSIGNED(false),
+    ALARM_UNASSIGNED(false),
     ADDED_TO_ENTITY_GROUP(false), // log entity group name
     REMOVED_FROM_ENTITY_GROUP(false), // log entity group name
     REST_API_RULE_ENGINE_CALL(false), // log call to rule engine from REST API
@@ -74,7 +74,8 @@ public enum ActionType {
     UNASSIGNED_FROM_EDGE(false),
     ADDED_COMMENT(false),
     UPDATED_COMMENT(false),
-    DELETED_COMMENT(false);
+    DELETED_COMMENT(false),
+    SMS_SENT(false);
 
     private final boolean isRead;
 

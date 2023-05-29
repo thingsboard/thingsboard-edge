@@ -39,10 +39,8 @@ import { Router } from '@angular/router';
 import { Palette } from '@shared/models/white-labeling.models';
 import { ColorPalette, getContrastColor, materialColorPalette } from '@shared/models/material.models';
 import { TranslateService } from '@ngx-translate/core';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { DialogService } from '@core/services/dialog.service';
-
-const tinycolor = tinycolor_;
 
 export interface PaletteDialogData {
   palette: Palette;

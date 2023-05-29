@@ -32,12 +32,10 @@ package org.thingsboard.integration.azure;
 
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import org.thingsboard.common.util.JacksonUtil;
 
-import java.io.IOException;
 import java.util.Map;
 
 @Data

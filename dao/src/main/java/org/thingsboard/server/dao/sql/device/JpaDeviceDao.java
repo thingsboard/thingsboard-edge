@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
@@ -68,7 +68,7 @@ import java.util.UUID;
 @Component
 @SqlDao
 @Slf4j
-public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device> implements DeviceDao {
+public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implements DeviceDao {
 
     @Autowired
     private DeviceRepository deviceRepository;
@@ -108,6 +108,11 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                             Objects.toString(pageLink.getTextSearch(), ""),
                             DaoUtil.toPageable(pageLink)));
         }
+    }
+
+    @Override
+    public Long countDevices() {
+        return deviceRepository.count();
     }
 
     @Override

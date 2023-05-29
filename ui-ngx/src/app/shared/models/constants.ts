@@ -82,7 +82,8 @@ export const MediaBreakpoints = {
   'gt-sm': 'screen and (min-width: 960px)',
   'gt-md': 'screen and (min-width: 1280px)',
   'gt-lg': 'screen and (min-width: 1920px)',
-  'gt-xl': 'screen and (min-width: 5001px)'
+  'gt-xl': 'screen and (min-width: 5001px)',
+  'md-lg': 'screen and (min-width: 960px) and (max-width: 1819px)'
 };
 
 export const helpBaseUrl = 'https://thingsboard.io';
@@ -148,6 +149,7 @@ export const HelpLinks = {
     ruleNodeSendEmail: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
     ruleNodeSendSms: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
     ruleNodeMath: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#math-function-node',
+    ruleNodeCalculateDelta: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/enrichment-nodes/#calculate-delta',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#remove-from-group-node',
@@ -174,7 +176,7 @@ export const HelpLinks = {
     entitiesImport: helpBaseUrl + '/docs/pe/user-guide/bulk-provisioning',
     rulechains: helpBaseUrl + '/docs/pe/user-guide/ui/rule-chains',
     dashboards: helpBaseUrl + '/docs/pe/user-guide/ui/dashboards',
-    resources: helpBaseUrl + '/docs/pe/user-guide/ui/resources',
+    lwm2mResourceLibrary: helpBaseUrl + '/docs/pe/reference/lwm2m-api',
     otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ota-updates',
     widgetsBundles: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library#bundles',
     widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#widget-configuration',
@@ -224,7 +226,11 @@ export const HelpLinks = {
     queue: helpBaseUrl + '/docs/pe/user-guide/queue',
     repositorySettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#git-settings-configuration',
     autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#auto-commit',
-    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication'
+    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication',
+    sentNotification: helpBaseUrl + '/docs/pe/user-guide/notifications/#send-notification',
+    templateNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#templates',
+    recipientNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#recipients',
+    ruleNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#rules',
   }
 };
 

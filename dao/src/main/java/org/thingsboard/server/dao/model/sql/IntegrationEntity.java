@@ -54,7 +54,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY;
@@ -71,7 +71,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = INTEGRATION_COLUMN_FAMILY_NAME)
+@Table(name = INTEGRATION_TABLE_NAME)
 public class IntegrationEntity extends BaseSqlEntity<Integration> implements SearchTextEntity<Integration> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)

@@ -88,7 +88,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         startServer();
 
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(OPCUA_UPLINK_CONVERTER_FILEPATH);
-        ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
+        ObjectNode jsonFile = JacksonUtil.fromBytes(resourceAsStream.readAllBytes(), ObjectNode.class);
         Assert.assertNotNull(jsonFile);
 
         if (jsonFile.has("configuration") && jsonFile.get("configuration").has("decoder")) {
@@ -311,7 +311,7 @@ public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         return !eventsList.isEmpty();
     }
 
-    private Device createDevice(String deviceName, String deviceType) {
+    protected Device createDevice(String deviceName, String deviceType) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(deviceType);

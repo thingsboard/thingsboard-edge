@@ -53,7 +53,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.RULE_NODE_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.RULE_NODE_TABLE_NAME)
 public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTextEntity<RuleNode> {
 
     @Column(name = ModelConstants.RULE_NODE_CHAIN_ID_PROPERTY)
@@ -79,6 +79,9 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
     @Column(name = ModelConstants.DEBUG_MODE)
     private boolean debugMode;
 
+    @Column(name = ModelConstants.SINGLETON_MODE)
+    private boolean singletonMode;
+
     @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
@@ -96,6 +99,7 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
         this.type = ruleNode.getType();
         this.name = ruleNode.getName();
         this.debugMode = ruleNode.isDebugMode();
+        this.singletonMode = ruleNode.isSingletonMode();
         this.searchText = ruleNode.getName();
         this.configuration = ruleNode.getConfiguration();
         this.additionalInfo = ruleNode.getAdditionalInfo();
@@ -124,6 +128,7 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
         ruleNode.setType(type);
         ruleNode.setName(name);
         ruleNode.setDebugMode(debugMode);
+        ruleNode.setSingletonMode(singletonMode);
         ruleNode.setConfiguration(configuration);
         ruleNode.setAdditionalInfo(additionalInfo);
         if (externalId != null) {

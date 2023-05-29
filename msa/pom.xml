@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.5.2PE-SNAPSHOT</version>
+        <version>3.6.0PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>msa</artifactId>
@@ -63,6 +63,7 @@
         <module>tb-node</module>
         <module>transport</module>
         <module>js-executor</module>
+        <module>monitoring</module>
         <!-- PE -->
         <module>integration</module>
         <module>web-report</module>

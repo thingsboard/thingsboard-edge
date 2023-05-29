@@ -66,10 +66,16 @@ export class CustomMenuComponent extends PageComponent implements OnInit, HasDir
     '******* Example of custom menu ******** \n*\n' +
     '* menuItems - array of custom menu items\n' +
     '* disabledMenuItems - array of ThingsBoard menu items to be disabled, available menu items names:\n*\n' +
-    '* "home", "tenants", "widget_library", "mail_server", "mail_templates", "white_labeling", "login_white_labeling",\n' +
-    '* "custom_translation", "custom_menu", "rule_chains", "converters", "integrations", "roles", "customers_hierarchy",\n' +
-    '* "user_groups", "customer_groups", "asset_groups", "device_groups", "entity_view_groups",\n' +
-    '* "dashboard_groups", "scheduler", "audit_log"\n\n' +
+    '* "home", "tenants", "alarms", "rule_chains", "dashboards", "dashboard_all", "dashboard_groups", "solution_templates",\n' +
+    '* "entities", "devices", "assets", "entity_views", "profiles", "device_profiles", "asset_profiles", "tenant_profiles",\n' +
+    '* "customers", "customer_all", "customer_groups", "customers_hierarchy", "users", "user_all", "user_groups",\n' +
+    '* "edge_management", "edges", "rulechain_templates", "integration_templates", "converter_templates",\n' +
+    '* "integrations_center", "integrations", "converters", "features", "otaUpdates", "version_control", "scheduler",\n' +
+    '* "white_labeling", "white_labeling_general", "login_white_labeling", "mail_templates", "custom_translation", "custom_menu",\n' +
+    '* "notifications_center", "notification_inbox", "notification_sent", "notification_recipients", "notification_templates",\n' +
+    '* "notification_rules", "settings", "general", "home_settings", "mail_server", "notification_settings", "repository_settings",\n' +
+    '* "auto_commit_settings", "queues", "security_settings", "security_settings_general", "oauth2", "roles", "self_registration",\n' +
+    '* "2fa", "resources", "widget_library", "resources_library", "api_usage", "audit_log"\n\n' +
     JSON.stringify(
       {
         disabledMenuItems: ['home'],

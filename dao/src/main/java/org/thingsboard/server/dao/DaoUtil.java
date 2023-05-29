@@ -37,7 +37,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -141,6 +140,14 @@ public abstract class DaoUtil {
         return uuids.stream().map(mapper).collect(Collectors.toList());
     }
 
+    public static <I> I toEntityId(UUID uuid, Function<UUID, I> creator) {
+        if (uuid != null) {
+            return creator.apply(uuid);
+        } else {
+            return null;
+        }
+    }
+
     public static <T> void processInBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<T> processor) {
         processBatches(finder, batchSize, batch -> batch.getData().forEach(processor));
     }
@@ -157,6 +164,14 @@ public abstract class DaoUtil {
             hasNextBatch = batch.hasNext();
             pageLink = pageLink.nextPageLink();
         } while (hasNextBatch);
+    }
+
+    public static String getStringId(UUIDBased id) {
+        if (id != null) {
+            return id.toString();
+        } else {
+            return null;
+        }
     }
 
     public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds,

@@ -52,7 +52,7 @@ import java.util.function.Function;
 public class EntitiesFieldsAsyncLoader {
 
     public static ListenableFuture<EntityFieldsData> findAsync(TbContext ctx, EntityId original) {
-        switch (original.getEntityType()) {
+        switch (original.getEntityType()) { // TODO: use EntityServiceRegistry
             case TENANT:
                 return getAsync(ctx.getTenantService().findTenantByIdAsync(ctx.getTenantId(), (TenantId) original),
                         EntityFieldsData::new);
@@ -66,7 +66,7 @@ public class EntitiesFieldsAsyncLoader {
                 return getAsync(ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), (AssetId) original),
                         EntityFieldsData::new);
             case DEVICE:
-                return getAsync(ctx.getDeviceService().findDeviceByIdAsync(ctx.getTenantId(), (DeviceId) original),
+                return getAsync(Futures.immediateFuture(ctx.getDeviceService().findDeviceById(ctx.getTenantId(), (DeviceId) original)),
                         EntityFieldsData::new);
             case ALARM:
                 return getAsync(ctx.getAlarmService().findAlarmByIdAsync(ctx.getTenantId(), (AlarmId) original),

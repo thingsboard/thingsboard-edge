@@ -1,6 +1,6 @@
 ### Solution description
 
-Smart waste monitoring solutions can accurately track the amount of waste generated, which can help plan for proper collection and disposal. This can reduce the likelihood of overflowing bins, leading to health and environmental hazards. In addition, smart waste monitoring systems can help identify areas where waste generation is high, allowing waste management companies to focus on those areas to reduce waste generation.
+Smart waste management solutions can accurately track the amount of waste generated, which can help plan for proper collection and disposal. This can reduce the likelihood of overflowing bins, leading to health and environmental hazards. In addition, smart waste management systems can help identify areas where waste generation is high, allowing waste management companies to focus on those areas to reduce waste generation.
 
 #### Benefits
 

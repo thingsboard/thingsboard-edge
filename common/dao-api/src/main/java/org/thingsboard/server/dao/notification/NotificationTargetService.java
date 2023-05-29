@@ -37,7 +37,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
-import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -65,5 +64,7 @@ public interface NotificationTargetService {
     void deleteNotificationTargetById(TenantId tenantId, NotificationTargetId id);
 
     void deleteNotificationTargetsByTenantId(TenantId tenantId);
+
+    long countNotificationTargetsByTenantId(TenantId tenantId);
 
 }

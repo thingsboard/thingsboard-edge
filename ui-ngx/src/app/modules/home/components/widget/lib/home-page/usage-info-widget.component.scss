@@ -1,0 +1,128 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../../../scss/constants";
+
+:host {
+  .tb-card-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    @media #{$mat-lt-md} {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  }
+
+  .tb-usage-list {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    overflow-y: auto;
+  }
+
+  .tb-usage-items, .tb-usage-items-counts, .tb-usage-items-progress {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+
+  .tb-usage-items-progress {
+    width: 34px;
+    @media #{$mat-md} {
+      display: none;
+    }
+    .mdc-linear-progress {
+      height: 8px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      border-radius: 2px;
+      @media #{$mat-md-lg} {
+        margin-top: 4px;
+        margin-bottom: 4px;
+      }
+    }
+  }
+
+  .tb-usage-items-values {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .tb-usage-item, .tb-usage-item-counts {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    @media #{$mat-md-lg} {
+      font-size: 11px;
+      line-height: 16px;
+    }
+    &.critical {
+      color: #D12730;
+    }
+  }
+
+  .tb-usage-item {
+    color: rgba(0, 0, 0, 0.38);
+  }
+
+  .tb-usage-item-counts {
+    color: rgba(0, 0, 0, 0.76);
+  }
+}
+
+:host ::ng-deep {
+  .tb-usage-items-progress {
+    .mat-mdc-progress-bar {
+      .mdc-linear-progress__bar-inner {
+        border-top-width: 8px;
+      }
+      &.critical {
+        .mdc-linear-progress__buffer-bar {
+          background: rgba(209, 39, 48, 0.06);
+        }
+        .mdc-linear-progress__bar-inner {
+          border-top-color: #D12730;
+        }
+      }
+    }
+  }
+}

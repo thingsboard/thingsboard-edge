@@ -32,7 +32,6 @@ package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
@@ -44,19 +43,19 @@ import org.apache.http.ssl.SSLContexts;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.CheckPreProvisionedDevicesDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
@@ -74,7 +73,6 @@ public abstract class AbstractContainerTest {
     protected final static String TEST_PROVISION_DEVICE_KEY = "test_provision_key";
     protected final static String TEST_PROVISION_DEVICE_SECRET = "test_provision_secret";
     protected static long timeoutMultiplier = 1;
-    protected ObjectMapper mapper = new ObjectMapper();
     protected static final String TELEMETRY_KEY = "temperature";
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;
@@ -215,7 +213,7 @@ public abstract class AbstractContainerTest {
         values.addProperty("deviceName", device.getName());
         values.addProperty("deviceType", device.getType());
         values.addProperty(TELEMETRY_KEY, temperatureValue);
-        return mapper.readTree(values.toString());
+        return JacksonUtil.toJsonNode(values.toString());
     }
 
     protected JsonNode createPayloadForUplink() {

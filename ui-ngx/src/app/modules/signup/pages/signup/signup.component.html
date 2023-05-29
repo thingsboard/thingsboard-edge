@@ -77,7 +77,7 @@
                 <mat-icon matPrefix>lock</mat-icon>
               </mat-form-field>
               <div class="tb-recaptcha" fxLayout="column">
-                <re-captcha #recaptcha formControlName="recaptchaResponse" [siteKey]="signupParams.captchaSiteKey"></re-captcha>
+                <ngx-recaptcha2 *ngIf="signupParams?.captchaVersion === 'v2'" #recaptcha formControlName="recaptchaResponse" [useGlobalDomain]="true" [siteKey]="signupParams?.captchaSiteKey"></ngx-recaptcha2>
               </div>
               <mat-checkbox class="tb-accept-privacy-policy"
                             *ngIf="signupParams.showPrivacyPolicy"

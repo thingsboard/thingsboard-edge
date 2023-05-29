@@ -164,6 +164,7 @@ message PostTelemetryMsg {
 
 message PostAttributeMsg {
   repeated KeyValueProto kv = 1;
+  bool shared = 2;
 }
 
 message GetAttributeRequestMsg {
@@ -193,6 +194,10 @@ message ValidateDeviceTokenRequestMsg {
 
 message ValidateDeviceX509CertRequestMsg {
   string hash = 1;
+}
+
+message ValidateOrCreateDeviceX509CertRequestMsg {
+  string certificateChain = 1;
 }
 
 message ValidateBasicMqttCredRequestMsg {
@@ -1028,6 +1033,7 @@ message TransportApiRequestMsg {
   GetDeviceRequestMsg deviceRequestMsg = 12;
   GetDeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 13;
   GetAllQueueRoutingInfoRequestMsg getAllQueueRoutingInfoRequestMsg = 14;
+  ValidateOrCreateDeviceX509CertRequestMsg validateOrCreateX509CertRequestMsg = 15;
 }
 
 /* Response from ThingsBoard Core Service to Transport Service */
@@ -1055,7 +1061,6 @@ message ToCoreMsg {
   EdgeNotificationMsgProto edgeNotificationMsg = 7;
   DeviceActivityProto deviceActivityMsg = 8;
   NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 9;
-  NotificationRuleProcessorMsg notificationRuleProcessorMsg = 10;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -1073,6 +1078,7 @@ message ToCoreNotificationMsg {
   bytes toEdgeSyncRequestMsg = 11;
   bytes fromEdgeSyncResponseMsg = 12;
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 13;
+  NotificationRuleProcessorMsg notificationRuleProcessorMsg = 14;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
@@ -1124,6 +1130,7 @@ message ToUsageStatsServiceMsg {
   repeated UsageStatsKVProto values = 5;
   int64 customerIdMSB = 6;
   int64 customerIdLSB = 7;
+  string serviceId = 8;
 }
 
 message ToOtaPackageStateServiceMsg {

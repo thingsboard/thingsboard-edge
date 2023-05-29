@@ -32,7 +32,6 @@ package org.thingsboard.server.service.integration.downlink;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -42,8 +41,6 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import static org.thingsboard.server.common.data.CacheConstants.DOWNLINK_CACHE;
 
 /**
  * Created by ashvayka on 22.02.18.

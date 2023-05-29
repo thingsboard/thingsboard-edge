@@ -309,7 +309,22 @@
     <legend class="group-title">
       {{ 'tenant-profile.alarms-and-notifications' | translate }} <span translate>tenant-profile.unlimited</span>
     </legend>
-    <div class="fields-element" fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
+    <mat-slide-toggle class="slide-toggle-element" fxFlex formControlName="smsEnabled">
+      {{ 'tenant-profile.sms-enabled' | translate }}
+    </mat-slide-toggle>
+    <mat-form-field *ngIf="defaultTenantProfileConfigurationFormGroup.get('smsEnabled').value" fxFlex class="mat-block" appearance="fill">
+      <mat-label translate>tenant-profile.max-sms</mat-label>
+      <input matInput required min="0" step="1"
+             formControlName="maxSms"
+             type="number">
+      <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxSms').hasError('required')">
+        {{ 'tenant-profile.max-sms-required' | translate}}
+      </mat-error>
+      <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxSms').hasError('min')">
+        {{ 'tenant-profile.max-sms-range' | translate}}
+      </mat-error>
+    </mat-form-field>
+    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
       <mat-form-field fxFlex class="mat-block" appearance="fill">
         <mat-label translate>tenant-profile.max-emails</mat-label>
         <input matInput required min="0" step="1"
@@ -335,21 +350,6 @@
         </mat-error>
       </mat-form-field>
     </div>
-    <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
-      <mat-form-field fxFlex class="mat-block" appearance="fill">
-        <mat-label translate>tenant-profile.max-sms</mat-label>
-        <input matInput required min="0" step="1"
-               formControlName="maxSms"
-               type="number">
-        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxSms').hasError('required')">
-          {{ 'tenant-profile.max-sms-required' | translate}}
-        </mat-error>
-        <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxSms').hasError('min')">
-          {{ 'tenant-profile.max-sms-range' | translate}}
-        </mat-error>
-      </mat-form-field>
-      <div fxFlex></div>
-  </div>
   </fieldset>
 
   <fieldset class="fields-group">
@@ -466,6 +466,9 @@
             <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('wsMsgQueueLimitPerSession').hasError('min')">
               {{ 'tenant-profile.too-small-value-one' | translate}}
             </mat-error>
+            <mat-hint>
+              {{ 'tenant-profile.queue-size-is-limited-by-system-configuration' | translate}}
+            </mat-hint>
           </mat-form-field>
           <div fxFlex></div>
         </div>
@@ -509,6 +512,14 @@
           </tb-rate-limits>
         </div>
         <div fxFlex fxLayout="row"  fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
+          <tb-rate-limits fxFlex formControlName="integrationMsgsPerTenantRateLimit"
+                          [type]="rateLimitsType.INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT">
+          </tb-rate-limits>
+          <tb-rate-limits fxFlex formControlName="integrationMsgsPerDeviceRateLimit"
+                          [type]="rateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT">
+          </tb-rate-limits>
+        </div>
+        <div fxFlex fxLayout="row"  fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
           <tb-rate-limits fxFlex formControlName="tenantServerRestLimitsConfiguration"
                           [type]="rateLimitsType.TENANT_SERVER_REST_LIMITS_CONFIGURATION">
           </tb-rate-limits>
@@ -535,6 +546,9 @@
         <div fxFlex fxLayout="row"  fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
           <tb-rate-limits fxFlex="50" formControlName="tenantNotificationRequestsRateLimit"
                           [type]="rateLimitsType.TENANT_NOTIFICATION_REQUEST_RATE_LIMIT">
+          </tb-rate-limits>
+          <tb-rate-limits fxFlex="50" formControlName="tenantNotificationRequestsPerRuleRateLimit"
+                          [type]="rateLimitsType.TENANT_NOTIFICATION_REQUESTS_PER_RULE_RATE_LIMIT">
           </tb-rate-limits>
         </div>
       </ng-template>

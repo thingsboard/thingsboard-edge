@@ -49,7 +49,10 @@ export enum RateLimitsType {
   CASSANDRA_QUERY_TENANT_RATE_LIMITS_CONFIGURATION = 'CASSANDRA_QUERY_TENANT_RATE_LIMITS_CONFIGURATION',
   TENANT_ENTITY_EXPORT_RATE_LIMIT = 'TENANT_ENTITY_EXPORT_RATE_LIMIT',
   TENANT_ENTITY_IMPORT_RATE_LIMIT = 'TENANT_ENTITY_IMPORT_RATE_LIMIT',
-  TENANT_NOTIFICATION_REQUEST_RATE_LIMIT = 'TENANT_NOTIFICATION_REQUEST_RATE_LIMIT'
+  TENANT_NOTIFICATION_REQUEST_RATE_LIMIT = 'TENANT_NOTIFICATION_REQUEST_RATE_LIMIT',
+  TENANT_NOTIFICATION_REQUESTS_PER_RULE_RATE_LIMIT = 'TENANT_NOTIFICATION_REQUESTS_PER_RULE_RATE_LIMIT',
+  INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT = 'INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT',
+  INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT = 'INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT',
 }
 
 export const rateLimitsLabelTranslationMap = new Map<RateLimitsType, string>(
@@ -67,6 +70,9 @@ export const rateLimitsLabelTranslationMap = new Map<RateLimitsType, string>(
     [RateLimitsType.TENANT_ENTITY_EXPORT_RATE_LIMIT, 'tenant-profile.tenant-entity-export-rate-limit'],
     [RateLimitsType.TENANT_ENTITY_IMPORT_RATE_LIMIT, 'tenant-profile.tenant-entity-import-rate-limit'],
     [RateLimitsType.TENANT_NOTIFICATION_REQUEST_RATE_LIMIT, 'tenant-profile.tenant-notification-request-rate-limit'],
+    [RateLimitsType.TENANT_NOTIFICATION_REQUESTS_PER_RULE_RATE_LIMIT, 'tenant-profile.tenant-notification-requests-per-rule-rate-limit'],
+    [RateLimitsType.INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT, 'tenant-profile.integration-msgs-per-tenant-rate-limit'],
+    [RateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT, 'tenant-profile.integration-msgs-per-device-rate-limit'],
   ]
 );
 
@@ -85,6 +91,9 @@ export const rateLimitsDialogTitleTranslationMap = new Map<RateLimitsType, strin
     [RateLimitsType.TENANT_ENTITY_EXPORT_RATE_LIMIT, 'tenant-profile.rate-limits.edit-tenant-entity-export-rate-limit-title'],
     [RateLimitsType.TENANT_ENTITY_IMPORT_RATE_LIMIT, 'tenant-profile.rate-limits.edit-tenant-entity-import-rate-limit-title'],
     [RateLimitsType.TENANT_NOTIFICATION_REQUEST_RATE_LIMIT, 'tenant-profile.rate-limits.edit-tenant-notification-request-rate-limit-title'],
+    [RateLimitsType.TENANT_NOTIFICATION_REQUESTS_PER_RULE_RATE_LIMIT, 'tenant-profile.rate-limits.edit-tenant-notification-requests-per-rule-rate-limit-title'],
+    [RateLimitsType.INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT, 'tenant-profile.rate-limits.edit-integration-msgs-per-tenant-rate-limit-title'],
+    [RateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT, 'tenant-profile.rate-limits.edit-integration-msgs-per-device-rate-limit-title'],
   ]
 );
 

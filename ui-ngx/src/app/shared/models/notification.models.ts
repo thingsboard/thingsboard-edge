@@ -32,7 +32,7 @@
 import { NotificationId } from '@shared/models/id/notification-id';
 import { NotificationRequestId } from '@shared/models/id/notification-request-id';
 import { UserId } from '@shared/models/id/user-id';
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { NotificationTargetId } from '@shared/models/id/notification-target-id';
 import { NotificationTemplateId } from '@shared/models/id/notification-template-id';
@@ -50,7 +50,7 @@ export interface Notification {
   readonly type: NotificationType;
   readonly subject: string;
   readonly text: string;
-  readonly info: NotificationInfo;
+  readonly info?: NotificationInfo;
   readonly status: NotificationStatus;
   readonly createdTime: number;
   readonly additionalConfig?: WebDeliveryMethodAdditionalConfig;
@@ -116,13 +116,15 @@ interface SlackNotificationDeliveryMethodConfig {
 export interface SlackConversation {
   id: string;
   title: string;
-  shortName: string;
+  name: string;
   wholeName: string;
   email: string;
+  type: string;
 }
 
-export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'label'>{
+export interface NotificationRule extends Omit<BaseData<NotificationRuleId>, 'label'>, ExportableEntity<NotificationRuleId> {
   tenantId: TenantId;
+  enabled: boolean;
   templateId: NotificationTemplateId;
   triggerType: TriggerType;
   triggerConfig: NotificationRuleTriggerConfig;
@@ -255,7 +257,7 @@ export interface NonConfirmedNotificationEscalation {
   targets: Array<string>;
 }
 
-export interface NotificationTarget extends Omit<BaseData<NotificationTargetId>, 'label'>{
+export interface NotificationTarget extends Omit<BaseData<NotificationTargetId>, 'label'>, ExportableEntity<NotificationTargetId> {
   tenantId: TenantId;
   configuration: NotificationTargetConfig;
 }
@@ -308,7 +310,7 @@ export const NotificationTargetTypeTranslationMap = new Map<NotificationTargetTy
   [NotificationTargetType.SLACK, 'notification.delivery-method.slack']
 ]);
 
-export interface NotificationTemplate extends Omit<BaseData<NotificationTemplateId>, 'label'>{
+export interface NotificationTemplate extends Omit<BaseData<NotificationTemplateId>, 'label'>, ExportableEntity<NotificationTemplateId> {
   tenantId: TenantId;
   notificationType: NotificationType;
   configuration: NotificationTemplateConfig;
@@ -484,7 +486,8 @@ export enum NotificationType {
   RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT = 'RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT',
   ENTITIES_LIMIT = 'ENTITIES_LIMIT',
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
-  RULE_ENGINE = 'RULE_ENGINE',
+  NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
+  RULE_NODE = 'RULE_NODE',
   INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT'
 }
 
@@ -580,10 +583,16 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       helpId: 'notification/api_usage_limit'
     }
   ],
-  [NotificationType.RULE_ENGINE,
+  [NotificationType.NEW_PLATFORM_VERSION,
     {
-      name: 'notification.template-type.rule-engine',
-      helpId: 'notification/rule_engine'
+      name: 'notification.template-type.new-platform-version',
+      helpId: 'notification/new_platform_version'
+    }
+  ],
+  [NotificationType.RULE_NODE,
+    {
+      name: 'notification.template-type.rule-node',
+      helpId: 'notification/rule_node'
     }
   ],
   [NotificationType.INTEGRATION_LIFECYCLE_EVENT,
@@ -603,7 +612,8 @@ export enum TriggerType {
   RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT = 'RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT',
   ENTITIES_LIMIT = 'ENTITIES_LIMIT',
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
-  INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT'
+  INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
+  NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION'
 }
 
 export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
@@ -616,4 +626,5 @@ export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
   [TriggerType.ENTITIES_LIMIT, 'notification.trigger.entities-limit'],
   [TriggerType.API_USAGE_LIMIT, 'notification.trigger.api-usage-limit'],
   [TriggerType.INTEGRATION_LIFECYCLE_EVENT, 'notification.trigger.integration-lifecycle-event'],
+  [TriggerType.NEW_PLATFORM_VERSION, 'notification.trigger.new-platform-version'],
 ]);

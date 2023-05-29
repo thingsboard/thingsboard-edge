@@ -67,7 +67,7 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
 
   isSysAdmin$ = this.store.pipe(
     select(selectAuthUser),
-    map((auth) => auth.authority === Authority.SYS_ADMIN)
+    map((auth) => auth?.authority === Authority.SYS_ADMIN)
   );
 
   constructor(protected store: Store<AppState>,

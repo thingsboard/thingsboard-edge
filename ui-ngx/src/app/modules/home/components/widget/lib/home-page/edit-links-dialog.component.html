@@ -1,0 +1,110 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<form class="tb-edit-links-dialog" [formGroup]="editLinksFormGroup">
+  <mat-toolbar style="background: transparent;">
+    <h2>{{ (mode === 'docs' ? 'widgets.documentation.title' : 'widgets.quick-links.title') | translate }}</h2>
+    <span fxFlex></span>
+    <button mat-icon-button
+            (click)="close()"
+            type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <div mat-dialog-content>
+    <div class="tb-drop-list" cdkDropList cdkDropListOrientation="vertical"
+         (cdkDropListDropped)="linkDrop($event)" [cdkDropListDisabled]="editMode || addMode">
+      <div cdkDrag class="tb-draggable" *ngFor="let linkControl of linksFormArray().controls; trackBy: trackByLink;
+               let $index = index; last as isLast;"
+           fxLayout="row" fxLayoutAlign="start center" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
+        <ng-container [ngSwitch]="mode">
+          <ng-template [ngSwitchCase]="'docs'">
+            <tb-doc-link fxFlex #docLink [formControl]="linkControl"
+                         [disableEdit]="editMode || addMode"
+                         (editModeChanged)="editMode = $event"
+                         (docLinkUpdated)="update()"
+                         (docLinkDeleted)="deleteLink($index)">
+            </tb-doc-link>
+            <ng-container *ngIf="!docLink.isEditing()">
+              <ng-container *ngTemplateOutlet="dragHandle"></ng-container>
+            </ng-container>
+          </ng-template>
+          <ng-template [ngSwitchCase]="'quickLinks'">
+            <tb-quick-link fxFlex #quickLink [formControl]="linkControl"
+                           [disableEdit]="editMode || addMode"
+                           (editModeChanged)="editMode = $event"
+                           (quickLinkUpdated)="update()"
+                           (quickLinkDeleted)="deleteLink($index)">
+            </tb-quick-link>
+            <ng-container *ngIf="!quickLink.isEditing()">
+              <ng-container *ngTemplateOutlet="dragHandle"></ng-container>
+            </ng-container>
+          </ng-template>
+        </ng-container>
+        <ng-template #dragHandle>
+          <div cdkDragHandle
+               matTooltip="{{ 'action.drag' | translate }}"
+               matTooltipPosition="above"
+               class="tb-drag-handle">
+            <mat-icon>drag_indicator</mat-icon>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <div mat-dialog-actions>
+    <div *ngIf="!editMode && !addMode" fxFlex class="tb-add-link-button"
+         matTooltip="{{ (mode === 'docs' ? 'widgets.documentation.add-link' : 'widgets.quick-links.add-link') | translate }}"
+         matTooltipPosition="above"
+         (click)="addLink()">
+      <mat-icon class="tb-add-icon">add</mat-icon>
+    </div>
+    <ng-container *ngIf="addMode">
+      <ng-container [ngSwitch]="mode">
+        <ng-template [ngSwitchCase]="'docs'">
+          <tb-doc-link fxFlex [(ngModel)]="addingLink"
+                       [ngModelOptions]="{standalone: true}"
+                       (docLinkAdded)="linkAdded($event)"
+                       (docLinkAddCanceled)="addMode = false">
+          </tb-doc-link>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'quickLinks'">
+          <tb-quick-link fxFlex [(ngModel)]="addingLink"
+                       [ngModelOptions]="{standalone: true}"
+                       (quickLinkAdded)="linkAdded($event)"
+                       (quickLinkAddCanceled)="addMode = false">
+          </tb-quick-link>
+        </ng-template>
+      </ng-container>
+    </ng-container>
+  </div>
+</form>

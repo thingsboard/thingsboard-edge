@@ -48,6 +48,7 @@ import org.thingsboard.server.common.msg.notification.trigger.RuleEngineMsgTrigg
 import java.util.Set;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.thingsboard.server.common.data.util.CollectionsUtil.emptyOrContains;
 
 @Service
 public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRuleTriggerProcessor<AlarmCommentNotificationRuleTriggerConfig> {
@@ -68,8 +69,8 @@ public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRu
             }
         }
         Alarm alarm = JacksonUtil.fromString(msg.getData(), Alarm.class);
-        return (isEmpty(triggerConfig.getAlarmTypes()) || triggerConfig.getAlarmTypes().contains(alarm.getType())) &&
-                (isEmpty(triggerConfig.getAlarmSeverities()) || triggerConfig.getAlarmSeverities().contains(alarm.getSeverity())) &&
+        return emptyOrContains(triggerConfig.getAlarmTypes(), alarm.getType()) &&
+                emptyOrContains(triggerConfig.getAlarmSeverities(), alarm.getSeverity()) &&
                 (isEmpty(triggerConfig.getAlarmStatuses()) || AlarmStatusFilter.from(triggerConfig.getAlarmStatuses()).matches(alarm));
     }
 
@@ -81,9 +82,9 @@ public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRu
         return AlarmCommentNotificationInfo.builder()
                 .comment(comment.getComment().get("text").asText())
                 .action(msg.getType().equals(DataConstants.COMMENT_CREATED) ? "added" : "updated")
-                .userEmail(trigger.getMsg().getMetaData().getValue("userEmail"))
-                .userFirstName(trigger.getMsg().getMetaData().getValue("userFirstName"))
-                .userLastName(trigger.getMsg().getMetaData().getValue("userLastName"))
+                .userEmail(msg.getMetaData().getValue("userEmail"))
+                .userFirstName(msg.getMetaData().getValue("userFirstName"))
+                .userLastName(msg.getMetaData().getValue("userLastName"))
                 .alarmId(alarmInfo.getUuidId())
                 .alarmType(alarmInfo.getType())
                 .alarmOriginator(alarmInfo.getOriginator())

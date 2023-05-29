@@ -1,0 +1,249 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-title" translate>widgets.getting-started.get-started</div>
+<div class="tb-get-started-container">
+  <mat-stepper #matStepper class="tb-get-started" orientation="vertical" [linear]="false"
+               (selectionChange)="updateSelectedIndex($event)">
+    <ng-template matStepperIcon="edit" let-index="index">
+      {{ index + 1 }}
+    </ng-template>
+    <ng-container [ngSwitch]="authUser.authority">
+      <ng-template [ngSwitchCase]="authority.SYS_ADMIN">
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > -1">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step1.title</div>
+              <a *ngIf="matStepper.selectedIndex === 0" mat-button color="primary" routerLink="/tenants">{{ 'tenant.tenants' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step1.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/ui/tenants/'}}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step1.how-to-create-tenant' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 0">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step2.title</div>
+              <a *ngIf="matStepper.selectedIndex === 1" mat-button color="primary" routerLink="/settings/outgoing-mail">{{ 'admin.settings' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step2.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/ui/mail-settings/' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step2.how-to-configure-mail-server' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 1">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step3.title</div>
+              <a *ngIf="matStepper.selectedIndex === 2" mat-button color="primary" routerLink="/settings/notifications">{{ 'admin.settings' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step3.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/ui/sms-provider-settings/' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step3.how-to-configure-sms-provider' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 2">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step4.title</div>
+              <a *ngIf="matStepper.selectedIndex === 3" mat-button color="primary" routerLink="/white-labeling/whiteLabel">{{ 'admin.settings' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step4.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/white-labeling/' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step4.how-to-configure-white-labeling' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 3">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step5.title</div>
+              <a *ngIf="matStepper.selectedIndex === 4" mat-button color="primary" routerLink="/security-settings/2fa">{{ 'admin.settings' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step5.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication/' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step5.how-to-configure-2fa' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 4">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step6.title</div>
+              <a *ngIf="matStepper.selectedIndex === 5" mat-button color="primary" routerLink="/security-settings/oauth2">{{ 'admin.settings' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step6.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/oauth-2-support/' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step6.how-to-configure-oauth2' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 5">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.sys-admin.step7.title</div>
+              <a *ngIf="matStepper.selectedIndex === 6" mat-button color="primary" routerLink="/settings/notifications">{{ 'admin.settings' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.sys-admin.step7.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/pe/user-guide/ui/slack-settings/' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.sys-admin.step7.how-to-configure-notifications' | translate }}</a>
+        </mat-step>
+      </ng-template>
+      <ng-template [ngSwitchCase]="authority.TENANT_ADMIN">
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > -1">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.tenant-admin.step1.title</div>
+              <a *ngIf="matStepper.selectedIndex === 0" mat-button color="primary" routerLink="/entities/devices/all">{{ 'device.devices' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step1.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/getting-started-guides/helloworld-pe/#step-1-provision-device' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.tenant-admin.step1.how-to-create-device' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 0">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.tenant-admin.step2.title</div>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step2.content-before' | translate | safe: 'html'"></div>
+          <div class="tb-bordered-content">
+            <tb-toggle-header #publishCommandSteps value="ubuntu" name="publishCommandSteps" useSelectOnMdLg="false"
+                              [options]="[
+                                {
+                                  name: 'Ubuntu',
+                                  value: 'ubuntu'
+                                },
+                                {
+                                  name: 'MacOS',
+                                  value: 'macos'
+                                },
+                                {
+                                  name: 'Windows',
+                                  value: 'windows'
+                                }
+                              ]">
+            </tb-toggle-header>
+            <ng-container [ngSwitch]="publishCommandSteps.value">
+              <ng-template [ngSwitchCase]="'ubuntu'">
+                <p [innerHTML]="'widgets.getting-started.tenant-admin.step2.ubuntu.install-curl' | translate | safe: 'html'"></p>
+                <tb-markdown usePlainMarkdown containerClass="tb-getting-started-code" data="
+                    ```bash
+                    sudo apt-get install curl
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+              </ng-template>
+              <ng-template [ngSwitchCase]="'macos'">
+                <p [innerHTML]="'widgets.getting-started.tenant-admin.step2.macos.install-curl' | translate | safe: 'html'"></p>
+                <tb-markdown usePlainMarkdown containerClass="tb-getting-started-code" data="
+                    ```bash
+                    brew install curl
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+              </ng-template>
+              <ng-template [ngSwitchCase]="'windows'">
+                <p [innerHTML]="'widgets.getting-started.tenant-admin.step2.windows.install-curl' | translate | safe: 'html'"></p>
+              </ng-template>
+            </ng-container>
+            <p [innerHTML]="'widgets.getting-started.tenant-admin.step2.replace-access-token' | translate | safe: 'html'"></p>
+            <tb-markdown usePlainMarkdown containerClass="tb-getting-started-code" data="
+                    ```bash
+                    curl -v -X POST -d &quot;{\&quot;temperature\&quot;: 25}&quot; {{baseUrl}}/api/v1/$ACCESS_TOKEN/telemetry --header &quot;Content-Type:application/json&quot;
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+          </div>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step2.content-after' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/getting-started-guides/helloworld-pe/#step-2-connect-device' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.tenant-admin.step2.how-to-connect-device' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 1">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.tenant-admin.step3.title</div>
+              <a *ngIf="matStepper.selectedIndex === 2" mat-button color="primary" routerLink="/dashboards/all">{{ 'dashboard.dashboards' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step3.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/getting-started-guides/helloworld-pe/#step-3-create-dashboard' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.tenant-admin.step3.how-to-create-dashboard' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 2">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.tenant-admin.step4.title</div>
+              <a *ngIf="matStepper.selectedIndex === 3" mat-button color="primary" routerLink="/profiles/deviceProfiles">{{ 'widgets.getting-started.tenant-admin.step4.alarm-rules' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step4.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/getting-started-guides/helloworld-pe/#step-4-configure-alarm-rules' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.tenant-admin.step4.how-to-configure-alarm-rules' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 3">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.tenant-admin.step5.title</div>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step5.content-before' | translate | safe: 'html'"></div>
+          <p [innerHTML]="'widgets.getting-started.tenant-admin.step5.replace-access-token' | translate | safe: 'html'"></p>
+          <tb-markdown usePlainMarkdown containerClass="tb-getting-started-code" data="
+                    ```bash
+                    curl -v -X POST -d &quot;{\&quot;temperature\&quot;: 26}&quot; {{baseUrl}}/api/v1/$ACCESS_TOKEN/telemetry --header &quot;Content-Type:application/json&quot;
+                    {:copy-code}
+                    ```
+                "></tb-markdown>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step5.content-after' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/getting-started-guides/helloworld-pe/#step-5-create-alarm' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.tenant-admin.step5.how-to-create-alarm' | translate }}</a>
+        </mat-step>
+        <mat-step [completed]="gettingStarted.maxSelectedIndex > 4">
+          <ng-template matStepLabel>
+            <div style="width: 100%;" fxLayout="row" fxLayoutAlign="space-between center">
+              <div translate>widgets.getting-started.tenant-admin.step6.title</div>
+              <a *ngIf="matStepper.selectedIndex === 5" mat-button color="primary" routerLink="/customers/all">{{ 'customer.customers' | translate }}</a>
+            </div>
+          </ng-template>
+          <div [innerHTML]="'widgets.getting-started.tenant-admin.step6.content' | translate | safe: 'html'"></div>
+          <a mat-stroked-button color="primary" href="{{ helpBaseUrl + '/docs/getting-started-guides/helloworld-pe/#step-7-share-dashboard-with-customers' }}" target="_blank">
+            <mat-icon>description</mat-icon>{{ 'widgets.getting-started.tenant-admin.step6.how-to-create-customer-and-share-dashboard' | translate }}</a>
+        </mat-step>
+      </ng-template>
+    </ng-container>
+  </mat-stepper>
+  <div *ngIf="allCompleted" fxLayout="column" fxLayoutAlign="center center" style="padding-top: 24px;">
+    <button (click)="gettingStartedCompleted()" mat-flat-button color="primary">
+      <mat-icon>rocket_launch</mat-icon>{{ 'widgets.getting-started.finish' | translate }}</button>
+  </div>
+</div>

@@ -39,10 +39,11 @@ import org.thingsboard.server.common.data.notification.rule.trigger.Notification
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableEntityDao;
 
 import java.util.List;
 
-public interface NotificationRuleDao extends Dao<NotificationRule> {
+public interface NotificationRuleDao extends Dao<NotificationRule>, ExportableEntityDao<NotificationRuleId, NotificationRule> {
 
     PageData<NotificationRule> findByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink);
 
@@ -50,7 +51,7 @@ public interface NotificationRuleDao extends Dao<NotificationRule> {
 
     boolean existsByTenantIdAndTargetId(TenantId tenantId, NotificationTargetId targetId);
 
-    List<NotificationRule> findByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType);
+    List<NotificationRule> findByTenantIdAndTriggerTypeAndEnabled(TenantId tenantId, NotificationRuleTriggerType triggerType, boolean enabled);
 
     NotificationRuleInfo findInfoById(TenantId tenantId, NotificationRuleId id);
 

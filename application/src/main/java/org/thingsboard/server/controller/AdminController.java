@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,14 +53,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.FeaturesInfo;
+import org.thingsboard.server.common.data.LicenseInfo;
+import org.thingsboard.server.common.data.LicenseUsageInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.SystemInfo;
 import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -79,6 +82,8 @@ import org.thingsboard.server.common.data.sync.vc.AutoCommitSettings;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettingsInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.common.data.sync.vc.VcUtils;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
@@ -105,8 +110,6 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHO
 @RequiredArgsConstructor
 public class AdminController extends BaseController {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     private final AttributesService attributesService;
     private final MailService mailService;
     private final SmsService smsService;
@@ -120,6 +123,7 @@ public class AdminController extends BaseController {
     private final TbAutoCommitSettingsService autoCommitSettingsService;
     private final UpdateService updateService;
     private final SystemInfoService systemInfoService;
+    private final AuditLogService auditLogService;
 
     protected static final String RESOURCE_READ_CHECK = "\n\nSecurity check is performed to verify that " +
             "the user has 'READ' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
@@ -268,13 +272,20 @@ public class AdminController extends BaseController {
     public void sendTestSms(
             @ApiParam(value = "A JSON value representing the Test SMS request.")
             @RequestBody TestSmsRequest testSmsRequest) throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
+        SecurityUser currentUser = getCurrentUser();
+        Authority authority = currentUser.getAuthority();
         if (Authority.SYS_ADMIN.equals(authority)) {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            accessControlService.checkPermission(currentUser, Resource.ADMIN_SETTINGS, Operation.READ);
         } else {
-            accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
+            accessControlService.checkPermission(currentUser, Resource.WHITE_LABELING, Operation.READ);
         }
-        smsService.sendTestSms(testSmsRequest);
+        try {
+            smsService.sendTestSms(testSmsRequest);
+            auditLogService.logEntityAction(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId(), currentUser.getName(), currentUser.getId(), currentUser, ActionType.SMS_SENT, null, testSmsRequest.getNumberTo());
+        } catch (ThingsboardException e) {
+            auditLogService.logEntityAction(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId(), currentUser.getName(), currentUser.getId(), currentUser, ActionType.SMS_SENT, e, testSmsRequest.getNumberTo());
+            throw e;
+        }
     }
 
     @ApiOperation(value = "Get repository settings (getRepositorySettings)",
@@ -383,6 +394,7 @@ public class AdminController extends BaseController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @PostMapping("/autoCommitSettings")
     public AutoCommitSettings saveAutoCommitSettings(@RequestBody AutoCommitSettings settings) throws ThingsboardException {
+        settings.values().forEach(config -> VcUtils.checkBranchName(config.getBranch()));
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
         return autoCommitSettingsService.save(getTenantId(), settings);
     }
@@ -406,6 +418,29 @@ public class AdminController extends BaseController {
     @ResponseBody
     public UpdateMessage checkUpdates() throws ThingsboardException {
         return updateService.checkUpdates();
+    }
+
+    @ApiOperation(value = "Get license usage info (getLicenseUsageInfo)",
+            notes = "Get license usage info. " + SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/licenseUsageInfo", method = RequestMethod.GET)
+    @ResponseBody
+    public LicenseUsageInfo getLicenseUsageInfo() throws ThingsboardException {
+        // LicenseInfo licenseInfo = subscriptionService.getLicenseInfo();
+
+        LicenseInfo licenseInfo = new LicenseInfo();
+        licenseInfo.setMaxDevices(0L);
+        licenseInfo.setMaxAssets(0L);
+        licenseInfo.setWhiteLabelingEnabled(true);
+        licenseInfo.setDevelopment(true);
+        licenseInfo.setPlan("Development env");
+        //
+        LicenseUsageInfo licenseUsageInfo = new LicenseUsageInfo(licenseInfo);
+        licenseUsageInfo.setDevicesCount(deviceService.countDevices());
+        licenseUsageInfo.setAssetsCount(assetService.countAssets());
+        licenseUsageInfo.setDashboardsCount(dashboardService.countDashboards());
+        licenseUsageInfo.setIntegrationsCount(integrationService.countCoreIntegrations());
+        return licenseUsageInfo;
     }
 
     @ApiOperation(value = "Get system info (getSystemInfo)",
@@ -434,7 +469,7 @@ public class AdminController extends BaseController {
         JsonNode jsonValue = null;
         if (!StringUtils.isEmpty(jsonString)) {
             try {
-                jsonValue = objectMapper.readTree(jsonString);
+                jsonValue = JacksonUtil.toJsonNode(jsonString);
             } catch (Exception e) {
             }
         }
@@ -443,7 +478,7 @@ public class AdminController extends BaseController {
                 AdminSettings systemAdminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(getTenantId(), key));
                 jsonValue = systemAdminSettings.getJsonValue();
             } else {
-                jsonValue = objectMapper.createObjectNode();
+                jsonValue = JacksonUtil.newObjectNode();
             }
         }
         AdminSettings adminSettings = new AdminSettings();
@@ -456,7 +491,7 @@ public class AdminController extends BaseController {
         accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE);
         JsonNode jsonValue = adminSettings.getJsonValue();
         if (adminSettings.getKey().equals("mail") && !jsonValue.has("password")) {
-            JsonNode oldMailSettings = objectMapper.readTree(getEntityAttributeValue(getTenantId(), "mail"));
+            JsonNode oldMailSettings = JacksonUtil.toJsonNode(getEntityAttributeValue(getTenantId(), "mail"));
             if (oldMailSettings != null) {
                 if (oldMailSettings.has("password")) {
                     ((ObjectNode) jsonValue).put("password", oldMailSettings.get("password").asText());
@@ -466,7 +501,7 @@ public class AdminController extends BaseController {
         String jsonString = null;
         if (jsonValue != null) {
             try {
-                jsonString = objectMapper.writeValueAsString(jsonValue);
+                jsonString = JacksonUtil.toString(jsonValue);
             } catch (Exception e) {
             }
         }

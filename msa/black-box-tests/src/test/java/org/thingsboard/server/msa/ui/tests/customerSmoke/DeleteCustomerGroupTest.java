@@ -41,7 +41,6 @@ import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.RuleChainsPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.EntityPrototypes;
 
@@ -74,7 +73,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String deletedCustomerGroup = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
-        Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomerGroup));
+        Assert.assertTrue(customerPage.assertEntityIsNotPresent(deletedCustomerGroup));
     }
 
     @Epic("Customers smoke tests")
@@ -89,7 +88,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String deletedCustomer = customerPage.deleteSelected(customerGroupName);
         ruleChainsPage.refreshBtn().click();
 
-        Assert.assertTrue(ruleChainsPage.entityIsNotPresent(deletedCustomer));
+        Assert.assertTrue(ruleChainsPage.assertEntityIsNotPresent(deletedCustomer));
     }
 
     @Epic("Customers smoke tests")
@@ -106,7 +105,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage.warningPopUpYesBtn().click();
         customerPage.refreshBtn().click();
 
-        Assert.assertTrue(customerPage.entityIsNotPresent(customerGroupName));
+        Assert.assertTrue(customerPage.assertEntityIsNotPresent(customerGroupName));
     }
 
     @Epic("Customers smoke tests")
@@ -121,6 +120,6 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         String deletedCustomer = customerPage.deleteRuleChainTrash(customerGroupName);
         customerPage.refreshBtn().click();
 
-        Assert.assertTrue(customerPage.entityIsNotPresent(deletedCustomer));
+        Assert.assertTrue(customerPage.assertEntityIsNotPresent(deletedCustomer));
     }
 }

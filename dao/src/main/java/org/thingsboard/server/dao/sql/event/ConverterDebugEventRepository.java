@@ -38,9 +38,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.event.ConverterDebugEvent;
-import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
 import org.thingsboard.server.dao.model.sql.ConverterDebugEventEntity;
-import org.thingsboard.server.dao.model.sql.RuleNodeDebugEventEntity;
 
 import java.util.List;
 import java.util.UUID;

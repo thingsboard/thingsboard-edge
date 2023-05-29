@@ -115,7 +115,7 @@ export class IntegrationWizardDialogComponent extends
 
     this.isEdgeTemplate = this.data.edgeTemplate;
 
-    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
+    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
     this.integrationWizardForm = this.fb.group({

@@ -275,6 +275,12 @@ import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
 import {
+  DocLinksWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/home-page/doc-links-widget-settings.component';
+import {
+  QuickLinksWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/home-page/quick-links-widget-settings.component';
+import {
   BlobEntitiesWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/files/blob-entities-widget-settings.component';
 import {
@@ -382,6 +388,8 @@ import {
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
+    DocLinksWidgetSettingsComponent,
+    QuickLinksWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -488,6 +496,8 @@ import {
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
     TripAnimationWidgetSettingsComponent,
+    DocLinksWidgetSettingsComponent,
+    QuickLinksWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -558,6 +568,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
   'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
+  'tb-doc-links-widget-settings': DocLinksWidgetSettingsComponent,
+  'tb-quick-links-widget-settings': QuickLinksWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

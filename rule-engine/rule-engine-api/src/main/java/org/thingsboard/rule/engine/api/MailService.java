@@ -71,4 +71,6 @@ public interface MailService {
 
     void testConnection(TenantId tenantId) throws Exception;
 
+    boolean isConfigured(TenantId tenantId);
+
 }
