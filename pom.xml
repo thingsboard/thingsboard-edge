@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.5.1PE-SNAPSHOT</version>
+    <version>3.5.1EDGEPE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard Edge PE</name>
