@@ -28,21 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.config.transport;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.TransportType;
 
 @Component
-@ConditionalOnProperty(name = "monitoring.transports.lwm2m.enabled", havingValue = "true")
-@ConfigurationProperties(prefix = "monitoring.transports.lwm2m")
-public class Lwm2mTransportMonitoringConfig extends TransportMonitoringConfig {
+@ConditionalOnProperty(name = "monitoring.transports.coap.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.transports.coap")
+public class CoapTransportMonitoringConfig extends TransportMonitoringConfig {
 
     @Override
     public TransportType getTransportType() {
-        return TransportType.LWM2M;
+        return TransportType.COAP;
     }
 
 }

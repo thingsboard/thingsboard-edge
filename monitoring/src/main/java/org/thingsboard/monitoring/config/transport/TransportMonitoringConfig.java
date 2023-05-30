@@ -28,14 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config;
+package org.thingsboard.monitoring.config.transport;
 
 import lombok.Data;
+import org.thingsboard.monitoring.config.MonitoringConfig;
+
+import java.util.List;
 
 @Data
-public class MonitoringTargetConfig {
+public abstract class TransportMonitoringConfig implements MonitoringConfig<TransportMonitoringTarget> {
 
-    private String baseUrl;
-    private DeviceConfig device;
+    private int requestTimeoutMs;
+
+    private List<TransportMonitoringTarget> targets;
+
+    public abstract TransportType getTransportType();
 
 }

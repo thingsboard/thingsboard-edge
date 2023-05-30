@@ -67,8 +67,8 @@ public class MonitoringReporter {
 
     @Value("${monitoring.failures_threshold}")
     private int failuresThreshold;
-    @Value("${monitoring.send_repeated_failure_notification}")
-    private boolean sendRepeatedFailureNotification;
+    @Value("${monitoring.repeated_failure_notification}")
+    private int repeatedFailureNotification;
 
     @Value("${monitoring.latency.enabled}")
     private boolean latencyReportingEnabled;
@@ -90,7 +90,7 @@ public class MonitoringReporter {
             return;
         }
         log.info("Latencies:\n{}", latencies.stream().map(latency -> latency.getKey() + ": " + latency.getAvg() + " ms")
-                .collect(Collectors.joining("\n")));
+                .collect(Collectors.joining("\n")) + "\n");
 
         if (!latencyReportingEnabled) return;
 
@@ -101,7 +101,7 @@ public class MonitoringReporter {
 
         try {
             if (StringUtils.isBlank(reportingAssetId)) {
-                String assetName = "Monitoring";
+                String assetName = "[Monitoring] Latencies";
                 Asset monitoringAsset = tbClient.findAsset(assetName).orElseGet(() -> {
                     Asset asset = new Asset();
                     asset.setType("Monitoring");
@@ -137,7 +137,7 @@ public class MonitoringReporter {
         int failuresCount = failuresCounters.computeIfAbsent(serviceKey, k -> new AtomicInteger()).incrementAndGet();
         ServiceFailureNotification notification = new ServiceFailureNotification(serviceKey, error, failuresCount);
         log.error(notification.getText());
-        if (failuresCount == failuresThreshold || (sendRepeatedFailureNotification && failuresCount % failuresThreshold == 0)) {
+        if (failuresCount == failuresThreshold || (repeatedFailureNotification != 0 && failuresCount % repeatedFailureNotification == 0)) {
             notificationService.sendNotification(notification);
         }
     }

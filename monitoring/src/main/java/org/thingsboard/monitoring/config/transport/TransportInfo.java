@@ -28,20 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.transport;
 
 import lombok.Data;
-import org.thingsboard.monitoring.config.TransportType;
 
 @Data
 public class TransportInfo {
 
     private final TransportType transportType;
-    private final String url;
+    private final String baseUrl;
 
     @Override
     public String toString() {
-        return String.format("%s (%s)", transportType, url);
+        return String.format("%s transport (%s)", transportType, baseUrl);
     }
 
 }

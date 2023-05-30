@@ -28,21 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.config.transport;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.TransportType;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 
-@Component
-@ConditionalOnProperty(name = "monitoring.transports.http.enabled", havingValue = "true")
-@ConfigurationProperties(prefix = "monitoring.transports.http")
-public class HttpTransportMonitoringConfig extends TransportMonitoringConfig {
+import java.util.UUID;
 
-    @Override
-    public TransportType getTransportType() {
-        return TransportType.HTTP;
+@Data
+public class DeviceConfig {
+
+    private UUID id;
+    private String name;
+    private DeviceCredentials credentials;
+
+    public void setId(String id) {
+        this.id = StringUtils.isNotEmpty(id) ? UUID.fromString(id) : null;
     }
 
 }
