@@ -256,47 +256,56 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.4");
                             dataUpdateService.updateData("3.3.4");
                         case "3.4.0":
-                            log.info("Upgrading ThingsBoard from version 3.4.0 to 3.4.1 ...");
+                            log.info("Upgrading ThingsBoard Edge from version 3.4.0 to 3.4.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.0");
 
                             dataUpdateService.updateData("3.4.0");
                         case "3.4.1":
                         case "3.4.2":
-                            log.info("Upgrading ThingsBoard from version 3.4.1 to 3.4.3 ...");
+                            log.info("Upgrading ThingsBoard Edge from version 3.4.1 to 3.4.3 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.1");
                             dataUpdateService.updateData("3.4.1");
                         case "3.4.3":
-                            log.info("Upgrading ThingsBoard from version 3.4.3 to 3.4.4 ...");
+                            log.info("Upgrading ThingsBoard Edge from version 3.4.3 to 3.4.4 ...");
                         case "3.4.4":
-                            log.info("Upgrading ThingsBoard from version 3.4.4 to 3.5.0 ...");
+                            log.info("Upgrading ThingsBoard Edge from version 3.4.4 to 3.5.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
                             dataUpdateService.updateData("3.4.4");
-                        case "3.5.0": // to 3.5.0PE
-                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
-                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
-                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
-                            // reset full sync required - to upload latest widgets from cloud
-                            // fromVersion must be updated per release
-                            // DefaultDataUpdateService must be updated as well
-                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
-                            dataUpdateService.updateData("3.5.0");
-
-                            // @voba - system widgets update is not required - uploaded from cloud
-                            // log.info("Updating system data...");
-                            // systemDataLoaderService.updateSystemWidgets();
                             if (!getEnv("SKIP_DEFAULT_NOTIFICATION_CONFIGS_CREATION", false)) {
                                 systemDataLoaderService.createDefaultNotificationConfigs();
                             } else {
                                 log.info("Skipping default notification configs creation");
                             }
-                            // installScripts.loadSystemLwm2mResources();
+                        case "3.5.0":
+                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
+
+                            // reset full sync required - to upload the latest widgets from cloud
+                            // fromVersion must be updated per release
+                            // DefaultDataUpdateService must be updated as well
+                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
+                            dataUpdateService.updateData("3.5.0");
                             break;
-                        //TODO update CacheCleanupService on the next version upgrade
+                        case "CE":
+                            log.info("Upgrading ThingsBoard from version CE to PE ...");
+                            //TODO: check CE schema version before launch of the update.
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
+                            break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
                     }
+                    // We always run the CE to PE update script, just in case..
+                    databaseEntitiesUpgradeService.upgradeDatabase("ce");
+                    entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
+                    entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+                    dataUpdateService.updateData("ce");
+
+                    // @voba - system widgets update is not required - uploaded from cloud
+                    // log.info("Updating system data...");
+                    // systemDataLoaderService.updateSystemWidgets();
+
+                    installScripts.loadSystemLwm2mResources();
                 }
 
                 log.info("Upgrade finished successfully!");
@@ -315,7 +324,7 @@ public class ThingsboardInstallService {
                 log.info("Installing DataBase schema for timeseries...");
 
                 if (noSqlKeyspaceService != null) {
-                    noSqlKeyspaceService.createDatabaseSchema();
+                   noSqlKeyspaceService.createDatabaseSchema();
                 }
 
                 tsDatabaseSchemaService.createDatabaseSchema();

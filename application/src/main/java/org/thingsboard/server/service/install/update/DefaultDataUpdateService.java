@@ -355,8 +355,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping cloud events migration");
                 }
                 break;
-            case "3.5.0":
-                log.info("Updating data from version 3.5.0 to 3.5.0PE ...");
+            case "edge":
+                // remove this line in 4+ release
+                fixDuplicateSystemWidgetsBundles();
+
+                // reset full sync required - to upload latest widgets from cloud
+                tenantsFullSyncRequiredUpdater.updateEntities(null);
+                break;
+            case "ce":
+                log.info("Updating data ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 // tenantIntegrationUpdater.updateEntities();
@@ -378,12 +385,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 updateAnalyticsRuleNode();
                 updateDuplicateMsgRuleNode();
-
-                // remove this line in 4+ release
-                fixDuplicateSystemWidgetsBundles();
-
-                // reset full sync required - to upload latest widgets from cloud
-                tenantsFullSyncRequiredUpdater.updateEntities(null);
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);

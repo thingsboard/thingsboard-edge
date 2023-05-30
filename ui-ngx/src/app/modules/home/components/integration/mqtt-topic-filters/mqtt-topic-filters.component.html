@@ -49,6 +49,7 @@
         </mat-select>
       </mat-form-field>
       <button mat-icon-button color="primary" [fxShow]="!mqttFiltersFromArray.disabled"
+              type="button"
               [ngClass]="{'invisibility': mqttFiltersFromArray.length === 1}"
               (click)="mqttFiltersFromArray.removeAt(i)"
               [matTooltip]="'integration.remove-topic-filter' | translate" matTooltipPosition="above">
@@ -63,6 +64,7 @@
   </section>
   <span *ngIf="!mqttFiltersFromArray.length" fxLayoutAlign="center center" class="no-data-found" translate>integration.add-topic-filter-prompt</span>
   <button mat-stroked-button color="primary" *ngIf="!mqttFiltersFromArray.disabled"
+          type="button"
           class="add-button"
           (click)="addTopicFilter()"
           [matTooltip]="'integration.add-topic-filter' | translate" matTooltipPosition="above">

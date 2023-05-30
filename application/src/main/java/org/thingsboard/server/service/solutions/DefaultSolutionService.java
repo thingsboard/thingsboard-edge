@@ -1229,6 +1229,7 @@ public class DefaultSolutionService implements SolutionService {
             entity.setRootRuleChainId(rootRuleChainId);
             RuleChain rootRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), rootRuleChainId);
             entity = tbEdgeService.save(entity, rootRuleChain, Collections.emptyList(), user);
+            ctx.register(entityDef, entity);
             assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
@@ -1237,7 +1238,6 @@ public class DefaultSolutionService implements SolutionService {
             assignAssetsToEdge(ctx, entityDef.getAssetIds(), entity);
             assignDevicesToEdge(ctx, entityDef.getDeviceIds(), entity);
             assignSchedulerEventsToEdge(ctx, entityDef.getSchedulerEventIds(), entity);
-            ctx.register(entityDef, entity);
             log.info("[{}] Saved edge: {}", entity.getId(), entity);
             EdgeId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
