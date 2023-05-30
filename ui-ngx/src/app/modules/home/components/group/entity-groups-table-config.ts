@@ -128,7 +128,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.entitiesFetchFunction = pageLink => {
       if (this.customerId && !this.isEdgeGroup()) {
-        return this.entityGroupService.getEntityGroupsByOwnerIdAndPageLink(pageLink, EntityType.CUSTOMER, this.customerId, this.groupType);
+        return this.entityGroupService.getEntityGroupsByOwnerIdAndPageLink(EntityType.CUSTOMER, this.customerId, this.groupType, pageLink);
       } else if (this.isEdgeGroup()) {
         return this.entityGroupService.getEdgeEntityGroups(pageLink, this.edgeId, this.groupType);
       } else if (this.shared) {
