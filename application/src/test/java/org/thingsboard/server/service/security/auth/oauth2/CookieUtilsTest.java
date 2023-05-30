@@ -30,52 +30,44 @@
  */
 package org.thingsboard.server.service.security.auth.oauth2;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.thingsboard.server.service.security.auth.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME;
 
-public class HttpCookieOAuth2AuthorizationRequestRepositoryTest {
-
-    private static final String SERIALIZED_ATTACK_STRING =
-            "rO0ABXNyAHVvcmcudGhpbmdzYm9hcmQuc2VydmVyLnNlcnZpY2Uuc2VjdXJpdHkuYXV0aC5vYXV0aDIuSHR0cENvb2tpZU9BdXRoMkF1dGhvcml6YXRpb25SZXF1ZXN0UmVwb3NpdG9yeVRlc3QkTWFsaWNpb3VzQ2xhc3MAAAAAAAAAAAIAAHhw";
-
-    private static int maliciousMethodInvocationCounter;
-
-    @Before
-    public void resetInvocationCounter() {
-        maliciousMethodInvocationCounter = 0;
-    }
+public class CookieUtilsTest {
 
     @Test
-    public void whenLoadAuthorizationRequest_thenMaliciousMethodNotInvoked() {
+    public void serializeDeserializeOAuth2AuthorizationRequestTest() {
         HttpCookieOAuth2AuthorizationRequestRepository cookieRequestRepo = new HttpCookieOAuth2AuthorizationRequestRepository();
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Cookie cookie = new Cookie(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, SERIALIZED_ATTACK_STRING);
-        Mockito.when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
 
-        cookieRequestRepo.loadAuthorizationRequest(request);
+        Map<String, Object> additionalParameters = new LinkedHashMap<>();
+        additionalParameters.put("param1", "value1");
+        additionalParameters.put("param2", "value2");
+        var request = OAuth2AuthorizationRequest.authorizationCode()
+                .authorizationUri("testUri").clientId("testId")
+                .scope("read", "write")
+                .additionalParameters(additionalParameters).build();
 
-        assertEquals(0, maliciousMethodInvocationCounter);
+
+        Cookie cookie = new Cookie(OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, CookieUtils.serialize(request));
+        Mockito.when(servletRequest.getCookies()).thenReturn(new Cookie[]{cookie});
+
+        OAuth2AuthorizationRequest deserializedRequest = cookieRequestRepo.loadAuthorizationRequest(servletRequest);
+
+        assertNotNull(deserializedRequest);
+        assertEquals(request.getGrantType(), deserializedRequest.getGrantType());
+        assertEquals(request.getAuthorizationUri(), deserializedRequest.getAuthorizationUri());
+        assertEquals(request.getClientId(), deserializedRequest.getClientId());
     }
 
-    private static class MaliciousClass implements Serializable {
-        private static final long serialVersionUID = 0L;
-
-        public void maliciousMethod() {
-            maliciousMethodInvocationCounter++;
-        }
-
-        private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-            maliciousMethod();
-        }
-    }
 }
