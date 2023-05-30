@@ -260,13 +260,14 @@ public class ThingsboardInstallService {
                         case "3.5.0":
                             log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
-                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
 
-                            // reset full sync required - to upload latest widgets from cloud
+                            // reset full sync required - to upload the latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
-                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
-                            dataUpdateService.updateData("3.5.0");
+                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
+                            dataUpdateService.updateData("edge");
+
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
@@ -277,7 +278,8 @@ public class ThingsboardInstallService {
                     // @voba - system widgets update is not required - uploaded from cloud
                     // log.info("Updating system data...");
                     // systemDataLoaderService.updateSystemWidgets();
-                    // installScripts.loadSystemLwm2mResources();
+
+                    installScripts.loadSystemLwm2mResources();
                 }
 
                 log.info("Upgrade finished successfully!");

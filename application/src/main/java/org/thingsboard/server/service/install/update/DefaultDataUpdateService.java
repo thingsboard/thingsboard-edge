@@ -232,9 +232,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping cloud events migration");
                 }
                 break;
-            case "3.5.0":
-                log.info("Updating data from version 3.5.0 to 3.5.1 ...");
-
+            case "edge":
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 
