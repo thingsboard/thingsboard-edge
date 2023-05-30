@@ -86,13 +86,6 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
             env.put("TB_EDGE_DATA_VOLUME", tbEdgeDataVolume);
 
-            env.put("DOCKER_REPO", "thingsboard");
-            env.put("TB_VERSION", "3.5.0PE-SNAPSHOT");
-
-            env.put("EDGE_DOCKER_REPO", "thingsboard");
-            env.put("TB_EDGE_DOCKER_NAME", "tb-edge-pe");
-            env.put("TB_EDGE_VERSION", "3.5.1PE-SNAPSHOT");
-
             dockerCompose.withEnv(env);
         } catch (Exception e) {
             log.error("Failed to create ThingsBoardDbInstaller", e);

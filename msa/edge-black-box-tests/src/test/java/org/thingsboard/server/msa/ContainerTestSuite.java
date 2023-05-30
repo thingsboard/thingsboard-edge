@@ -41,9 +41,13 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
+
+import static org.thingsboard.server.msa.AbstractContainerTest.CLOUD_ROUTING_KEY;
+import static org.thingsboard.server.msa.AbstractContainerTest.CLOUD_ROUTING_SECRET;
+import static org.thingsboard.server.msa.AbstractContainerTest.TB_EDGE_SERVICE_NAME;
+import static org.thingsboard.server.msa.AbstractContainerTest.TB_MONOLITH_SERVICE_NAME;
 
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.*Test"})
@@ -60,15 +64,11 @@ public class ContainerTestSuite {
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         HashMap<String, String> env = new HashMap<>();
-        env.put("EDGE_DOCKER_REPO", "thingsboard");
-        env.put("TB_EDGE_DOCKER_NAME", "tb-edge-pe");
-        env.put("TB_EDGE_VERSION", "3.5.1PE-SNAPSHOT");
-        env.put("CLOUD_ROUTING_KEY", "280629c7-f853-ee3d-01c0-fffbb6f2ef38");
-        env.put("CLOUD_ROUTING_SECRET", "g9ta4soeylw6smqkky8g");
-        env.put("CLOUD_RPC_HOST", "tb-monolith");
+        env.put("CLOUD_ROUTING_KEY", CLOUD_ROUTING_KEY);
+        env.put("CLOUD_ROUTING_SECRET", CLOUD_ROUTING_SECRET);
+        env.put("CLOUD_RPC_HOST", TB_MONOLITH_SERVICE_NAME);
 
         if (testContainer == null) {
-            boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("edgeBlackBoxTests.skipTailChildContainers"));
             try {
                 final String targetDir = FileUtils.getTempDirectoryPath() + "/" + "ContainerTestSuite-" + UUID.randomUUID() + "/";
                 log.info("targetDir {}", targetDir);
@@ -95,11 +95,10 @@ public class ContainerTestSuite {
                         new File("./../../docker-edge/docker-compose.volumes.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
-                        .withTailChildContainers(!skipTailChildContainers)
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
-                        .withExposedService("tb-monolith", 8080)
-                        .withExposedService("tb-edge", 8082);
+                        .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080)
+                        .withExposedService(TB_EDGE_SERVICE_NAME, 8082);
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");

@@ -142,8 +142,8 @@ public class BaseCloudEventService implements CloudEventService {
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
-        return cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
+    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdOffset, TimePageLink pageLink) {
+        return cloudEventDao.findCloudEvents(tenantId.getId(), seqIdOffset, pageLink);
     }
 
     private long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(TenantId tenantId,

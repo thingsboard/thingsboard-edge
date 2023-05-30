@@ -763,7 +763,7 @@ public class EdgeController extends BaseController {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
-            return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
+            return checkNotNull(cloudEventService.findCloudEvents(tenantId, 0L, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

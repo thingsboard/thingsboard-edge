@@ -65,7 +65,7 @@ public interface CloudEventService {
                                                EntityGroupId entityGroupId,
                                                Long queueStartTs);
 
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
+    PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdOffset, TimePageLink pageLink);
 
     EdgeSettings findEdgeSettings(TenantId tenantId);
 

@@ -285,7 +285,7 @@ public class ThingsboardInstallService {
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
-                            dataUpdateService.updateData("3.5.0");
+                            dataUpdateService.updateData("edge");
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");

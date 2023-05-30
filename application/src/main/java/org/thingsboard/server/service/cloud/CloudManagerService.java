@@ -284,10 +284,14 @@ public class CloudManagerService {
                             boolean success = true;
                             Long seqIdOffset = getQueueSeqIdOffset().get();
                             do {
-                                pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
+                                pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, pageLink);
                                 if (initialized) {
+                                    if (pageData.getData().isEmpty()) {
+                                        // reset in case seq_id column started new cycle
+                                        pageData = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
+                                    }
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
-                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(seqIdOffset, pageData.getData());
+                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
                                     if (!uplinkMsgsPack.isEmpty()) {
                                         success = sendUplinkMsgsPack(uplinkMsgsPack);
                                     } else {
@@ -327,7 +331,7 @@ public class CloudManagerService {
     }
 
     private boolean newCloudEventsAvailable(TimePageLink pageLink) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, pageLink);
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
         return !cloudEvents.getData().isEmpty();
     }
 
@@ -379,71 +383,62 @@ public class CloudManagerService {
         }
     }
 
-    private List<UplinkMsg> convertToUplinkMsgsPack(Long seqIdOffset, List<CloudEvent> cloudEvents) {
+    private List<UplinkMsg> convertToUplinkMsgsPack(List<CloudEvent> cloudEvents) {
         List<UplinkMsg> result = new ArrayList<>();
-        CloudEvent previousCloudEvent = null;
         for (CloudEvent cloudEvent : cloudEvents) {
             log.trace("Converting cloud event [{}]", cloudEvent);
-            if (previousCloudEvent != null && previousCloudEvent.getSeqId() > cloudEvent.getSeqId()) {
-                // reset in case seq_id column started new cycle
-                seqIdOffset = 0L;
-            }
-            previousCloudEvent = cloudEvent;
             UplinkMsg uplinkMsg = null;
-            if (cloudEvent.getSeqId() == 0 || cloudEvent.getSeqId() > seqIdOffset) {
-                try {
-                    switch (cloudEvent.getAction()) {
-                        case UPDATED:
-                        case ADDED:
-                        case DELETED:
-                        case ALARM_ACK:
-                        case ALARM_CLEAR:
-                        case CREDENTIALS_UPDATED:
-                        case RELATION_ADD_OR_UPDATE:
-                        case RELATION_DELETED:
-                        case ADDED_TO_ENTITY_GROUP:
-                        case REMOVED_FROM_ENTITY_GROUP:
-                            uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
-                            break;
-                        case ATTRIBUTES_UPDATED:
-                        case POST_ATTRIBUTES:
-                        case ATTRIBUTES_DELETED:
-                        case TIMESERIES_UPDATED:
-                            uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
-                            break;
-                        case ATTRIBUTES_REQUEST:
-                            uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-                            break;
-                        case RELATION_REQUEST:
-                            uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                            break;
-                        case RULE_CHAIN_METADATA_REQUEST:
-                            uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
-                            break;
-                        case CREDENTIALS_REQUEST:
-                            uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
-                            break;
-                        case GROUP_ENTITIES_REQUEST:
-                            uplinkMsg = entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
-                            break;
-                        case GROUP_PERMISSIONS_REQUEST:
-                            uplinkMsg = groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
-                            break;
-                        case RPC_CALL:
-                            uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                            break;
-                        case WIDGET_BUNDLE_TYPES_REQUEST:
-                            uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                            break;
-                        case ENTITY_VIEW_REQUEST:
-                            uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
-                            break;
-                    }
-                } catch (Exception e) {
-                    log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
+            try {
+                switch (cloudEvent.getAction()) {
+                    case UPDATED:
+                    case ADDED:
+                    case DELETED:
+                    case ALARM_ACK:
+                    case ALARM_CLEAR:
+                    case CREDENTIALS_UPDATED:
+                    case RELATION_ADD_OR_UPDATE:
+                    case RELATION_DELETED:
+                    case ADDED_TO_ENTITY_GROUP:
+                    case REMOVED_FROM_ENTITY_GROUP:
+                        uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
+                        break;
+                    case ATTRIBUTES_UPDATED:
+                    case POST_ATTRIBUTES:
+                    case ATTRIBUTES_DELETED:
+                    case TIMESERIES_UPDATED:
+                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
+                        break;
+                    case ATTRIBUTES_REQUEST:
+                        uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
+                        break;
+                    case RELATION_REQUEST:
+                        uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
+                        break;
+                    case RULE_CHAIN_METADATA_REQUEST:
+                        uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
+                        break;
+                    case CREDENTIALS_REQUEST:
+                        uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
+                        break;
+                    case GROUP_ENTITIES_REQUEST:
+                        uplinkMsg = entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
+                        break;
+                    case GROUP_PERMISSIONS_REQUEST:
+                        uplinkMsg = groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
+                        break;
+                    case RPC_CALL:
+                        uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
+                        break;
+                    case WIDGET_BUNDLE_TYPES_REQUEST:
+                        uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
+                        break;
+                    case ENTITY_VIEW_REQUEST:
+                        uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
+                        break;
                 }
-            }
-            if (uplinkMsg != null) {
+            } catch (Exception e) {
+                log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
+            }            if (uplinkMsg != null) {
                 result.add(uplinkMsg);
             }
         }
