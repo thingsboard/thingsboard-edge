@@ -60,6 +60,7 @@ export class ManageWidgetActionsDialogComponent extends DialogComponent<ManageWi
 
   widgetActionTypesList = widgetActionTypes;
 
+  actionSources = this.data.actionsData.actionSources;
   actionsSettings: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
@@ -72,7 +73,7 @@ export class ManageWidgetActionsDialogComponent extends DialogComponent<ManageWi
 
   ngOnInit() {
     this.actionsSettings = this.fb.group({
-      actionsData: [this.data.actionsData, []]
+      actions: [this.data.actionsData.actionsMap, []]
     });
   }
 
@@ -81,7 +82,7 @@ export class ManageWidgetActionsDialogComponent extends DialogComponent<ManageWi
   }
 
   save(): void {
-    this.dialogRef.close(this.actionsSettings.get('actionsData').value);
+    this.dialogRef.close(this.actionsSettings.get('actions').value);
   }
 
 }

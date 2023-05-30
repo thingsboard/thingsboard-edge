@@ -45,7 +45,7 @@ import {
   DatasourceType,
   datasourceTypeTranslationMap,
   JsonSettingsSchema,
-  Widget,
+  Widget, WidgetConfigMode,
   widgetType
 } from '@shared/models/widget.models';
 import { AlarmSearchStatus } from '@shared/models/alarm.models';
@@ -75,6 +75,10 @@ import { EntityType } from '@shared/models/entity-type.models';
   ]
 })
 export class DatasourceComponent implements ControlValueAccessor, OnInit, Validator {
+
+  public get basicMode(): boolean {
+    return !this.widgetConfigComponent.widgetEditMode && this.widgetConfigComponent.widgetConfigMode === WidgetConfigMode.basic;
+  }
 
   public get widgetType(): widgetType {
     return this.widgetConfigComponent.widgetType;

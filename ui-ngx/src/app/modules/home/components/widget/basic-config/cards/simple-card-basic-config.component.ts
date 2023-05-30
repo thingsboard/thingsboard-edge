@@ -30,38 +30,44 @@
 ///
 
 import { Component } from '@angular/core';
-import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { BasicWidgetConfigComponent } from '@home/components/widget/widget-config.component.models';
+import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 
 @Component({
-  selector: 'tb-simple-card-widget-settings',
-  templateUrl: './simple-card-widget-settings.component.html',
-  styleUrls: ['../../../widget-config.scss']
+  selector: 'tb-simple-card-basic-config',
+  templateUrl: './simple-card-basic-config.component.html',
+  styleUrls: ['../basic-config.scss', '../../widget-config.scss']
 })
-export class SimpleCardWidgetSettingsComponent extends WidgetSettingsComponent {
+export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
 
-  simpleCardWidgetSettingsForm: UntypedFormGroup;
+  simpleCardWidgetConfigForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
     super(store);
   }
 
-  protected settingsForm(): UntypedFormGroup {
-    return this.simpleCardWidgetSettingsForm;
+  protected configForm(): UntypedFormGroup {
+    return this.simpleCardWidgetConfigForm;
   }
 
-  protected defaultSettings(): WidgetSettings {
-    return {
-      labelPosition: 'left'
-    };
-  }
-
-  protected onSettingsSet(settings: WidgetSettings) {
-    this.simpleCardWidgetSettingsForm = this.fb.group({
-      labelPosition: [settings.labelPosition, []]
+  protected onConfigSet(configData: WidgetConfigComponentData) {
+    this.simpleCardWidgetConfigForm = this.fb.group({
+      datasources: [configData.config.datasources, []],
+      labelPosition: [configData.config.settings?.labelPosition, []],
+      actions: [configData.config.actions || {}, []]
     });
   }
+
+  protected prepareOutputConfig(config: any): WidgetConfigComponentData {
+    this.widgetConfig.config.datasources = this.simpleCardWidgetConfigForm.value.datasources;
+    this.widgetConfig.config.actions = this.simpleCardWidgetConfigForm.value.actions;
+    this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
+    this.widgetConfig.config.settings.labelPosition = this.simpleCardWidgetConfigForm.value.labelPosition;
+    return this.widgetConfig;
+  }
+
 }

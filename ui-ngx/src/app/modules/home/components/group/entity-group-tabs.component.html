@@ -53,10 +53,11 @@
   <tb-manage-widget-actions
     [disabled]="!isEdit"
     [actionTypes]="entityGroupActionTypesList"
+    [actionSources]="entityGroupActionSourcesList"
     isEntityGroup
     outlinedBorder
     [customFunctionArgs]="['$event', '$injector', 'entityId', 'entityName', 'servicesMap', 'tableConfig']"
-    [(ngModel)]="actionsData"
+    [(ngModel)]="entity.configuration.actions"
     (ngModelChange)="detailsForm.markAsDirty()">
   </tb-manage-widget-actions>
 </mat-tab>

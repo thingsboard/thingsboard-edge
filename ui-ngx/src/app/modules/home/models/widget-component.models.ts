@@ -485,6 +485,7 @@ export interface WidgetConfigComponentData {
   settingsDirective: string;
   dataKeySettingsDirective: string;
   latestDataKeySettingsDirective: string;
+  basicModeDirective: string;
 }
 
 export const MissingWidgetType: WidgetInfo = {

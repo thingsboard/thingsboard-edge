@@ -31,7 +31,7 @@
 
 -->
 <section class="tb-datasource-section" [formGroup]="datasourceFormGroup">
-  <mat-form-field class="tb-datasource-type" hideRequiredMarker>
+  <mat-form-field *ngIf="!basicMode" class="tb-datasource-type" hideRequiredMarker>
     <mat-label translate>widget-config.datasource-type</mat-label>
     <mat-select formControlName="type">
       <mat-option *ngFor="let datasourceType of datasourceTypes" [value]="datasourceType">
@@ -39,7 +39,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <section fxLayout="column" class="tb-datasource" [ngSwitch]="datasourceFormGroup.get('type').value">
+  <section fxLayout="column" [ngSwitch]="datasourceFormGroup.get('type').value">
     <ng-template [ngSwitchCase]="datasourceType.function">
       <mat-form-field fxFlex>
         <mat-label translate>datasource.label</mat-label>
@@ -68,13 +68,6 @@
         formControlName="entityAliasId"
         [callbacks]="entityAliasSelectCallbacks">
       </tb-entity-alias-select>
-      <tb-filter-select
-        *ngIf="datasourceFormGroup.get('type').value !== datasourceType.alarmCount"
-        [showLabel]="true"
-        [aliasController]="aliasController"
-        formControlName="filterId"
-        [callbacks]="filterSelectCallbacks">
-      </tb-filter-select>
       <mat-form-field *ngIf="[datasourceType.entityCount, datasourceType.alarmCount].includes(datasourceFormGroup.get('type').value)"
                       fxFlex>
         <input matInput
@@ -115,4 +108,11 @@
                   formControlName="latestDataKeys">
     </tb-data-keys>
   </section>
+  <tb-filter-select
+    *ngIf="!basicMode && ![datasourceType.function, datasourceType.alarmCount].includes(datasourceFormGroup.get('type').value)"
+    [showLabel]="true"
+    [aliasController]="aliasController"
+    formControlName="filterId"
+    [callbacks]="filterSelectCallbacks">
+  </tb-filter-select>
 </section>

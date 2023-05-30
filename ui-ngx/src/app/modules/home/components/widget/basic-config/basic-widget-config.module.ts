@@ -29,39 +29,36 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
+import { NgModule, Type } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { IBasicWidgetConfigComponent } from '@home/components/widget/widget-config.component.models';
+import { WidgetConfigComponentsModule } from '@home/components/widget/widget-config-components.module';
+import {
+  SimpleCardBasicConfigComponent
+} from '@home/components/widget/basic-config/cards/simple-card-basic-config.component';
+import {
+  WidgetActionsPanelComponent
+} from '@home/components/widget/basic-config/action/widget-actions-panel.component';
 
-@Component({
-  selector: 'tb-simple-card-widget-settings',
-  templateUrl: './simple-card-widget-settings.component.html',
-  styleUrls: ['../../../widget-config.scss']
+@NgModule({
+  declarations: [
+    WidgetActionsPanelComponent,
+    SimpleCardBasicConfigComponent
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    WidgetConfigComponentsModule
+  ],
+  exports: [
+    WidgetActionsPanelComponent,
+    SimpleCardBasicConfigComponent
+  ]
 })
-export class SimpleCardWidgetSettingsComponent extends WidgetSettingsComponent {
-
-  simpleCardWidgetSettingsForm: UntypedFormGroup;
-
-  constructor(protected store: Store<AppState>,
-              private fb: UntypedFormBuilder) {
-    super(store);
-  }
-
-  protected settingsForm(): UntypedFormGroup {
-    return this.simpleCardWidgetSettingsForm;
-  }
-
-  protected defaultSettings(): WidgetSettings {
-    return {
-      labelPosition: 'left'
-    };
-  }
-
-  protected onSettingsSet(settings: WidgetSettings) {
-    this.simpleCardWidgetSettingsForm = this.fb.group({
-      labelPosition: [settings.labelPosition, []]
-    });
-  }
+export class BasicWidgetConfigModule {
 }
+
+export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetConfigComponent>} = {
+  'tb-simple-card-basic-config': SimpleCardBasicConfigComponent
+};
