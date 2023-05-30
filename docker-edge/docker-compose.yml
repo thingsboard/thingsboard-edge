@@ -20,7 +20,7 @@ version: '3.0'
 services:
   tb-edge:
     restart: always
-    image: "${EDGE_DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
+    image: "${DOCKER_REPO}/${TB_EDGE_DOCKER_NAME}:${TB_EDGE_VERSION}"
     ports:
       - "8082"
       - "1883"
