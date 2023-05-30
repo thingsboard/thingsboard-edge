@@ -45,7 +45,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query("SELECT ai FROM AssetInfoEntity ai " +
             "WHERE ai.tenantId = :tenantId " +
-            "AND (LOWER(ai.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(ai.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
     Page<AssetInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                          @Param("searchText") String searchText,
@@ -54,7 +54,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
     @Query("SELECT ai FROM AssetInfoEntity ai " +
             "WHERE ai.tenantId = :tenantId " +
             "AND ai.assetProfileId = :assetProfileId " +
-            "AND (LOWER(ai.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(ai.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
     Page<AssetInfoEntity> findByTenantIdAndAssetProfileId(@Param("tenantId") UUID tenantId,
                                                           @Param("assetProfileId") UUID assetProfileId,
@@ -63,7 +63,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query("SELECT ai FROM AssetInfoEntity ai " +
             "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(ai.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<AssetInfoEntity> findTenantAssetsByTenantId(@Param("tenantId") UUID tenantId,
                                                      @Param("searchText") String searchText,
                                                      Pageable pageable);
@@ -71,14 +71,14 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
     @Query("SELECT ai FROM AssetInfoEntity ai " +
             "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
             "AND ai.assetProfileId = :assetProfileId " +
-            "AND LOWER(ai.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<AssetInfoEntity> findTenantAssetsByTenantIdAndAssetProfileId(@Param("tenantId") UUID tenantId,
                                                                       @Param("assetProfileId") UUID assetProfileId,
                                                                       @Param("searchText") String searchText,
                                                                       Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai WHERE ai.tenantId = :tenantId AND ai.customerId = :customerId " +
-            "AND LOWER(ai.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<AssetInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                       @Param("customerId") UUID customerId,
                                                       @Param("searchText") String searchText,
@@ -86,7 +86,7 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query("SELECT ai FROM AssetInfoEntity ai WHERE ai.tenantId = :tenantId AND ai.customerId = :customerId " +
             "AND ai.assetProfileId = :assetProfileId " +
-            "AND LOWER(ai.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ai.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<AssetInfoEntity> findByTenantIdAndCustomerIdAndAssetProfileId(@Param("tenantId") UUID tenantId,
                                                                        @Param("customerId") UUID customerId,
                                                                        @Param("assetProfileId") UUID assetProfileId,
@@ -95,16 +95,16 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select a.id, a.created_time, a.additional_info, a.customer_id, a.name, a.label, " +
-            "a.search_text, a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
+            "a.name, a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
             "c.title as owner_name from asset_info_view a " +
             "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             countQuery = "SELECT count(e.id) FROM asset e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             nativeQuery = true)
     Page<AssetInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
@@ -114,18 +114,18 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select a.id, a.created_time, a.additional_info, a.customer_id, a.name, a.label, " +
-            "a.search_text, a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
+            "a.name, a.tenant_id, a.type, a.external_id, a.asset_profile_id, a.groups, " +
             "c.title as owner_name from asset_info_view a " +
             "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.asset_profile_id = :assetProfileId " +
-            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             countQuery = "SELECT count(e.id) FROM asset e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.asset_profile_id = :assetProfileId " +
-                    "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "AND (LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             nativeQuery = true)
     Page<AssetInfoEntity> findByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,

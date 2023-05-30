@@ -37,6 +37,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
@@ -52,7 +53,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> implements HasName, TenantEntity, ExportableEntity<RuleChainId> {
+public class RuleChain extends BaseDataWithAdditionalInfo<RuleChainId> implements HasName, TenantEntity, ExportableEntity<RuleChainId> {
 
     private static final long serialVersionUID = -5656679015121935465L;
 
@@ -98,11 +99,6 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
     }
 
     @Override
-    public String getSearchText() {
-        return getName();
-    }
-
-    @Override
     public String getName() {
         return name;
     }
@@ -123,7 +119,7 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
     }
 
     public JsonNode getConfiguration() {
-        return SearchTextBasedWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
+        return BaseDataWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
     }
 
     public void setConfiguration(JsonNode data) {

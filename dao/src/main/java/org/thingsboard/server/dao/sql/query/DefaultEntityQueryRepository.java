@@ -2018,7 +2018,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private String getNameColumn(EntityType entityType) {
+    public static String getNameColumn(EntityType entityType) {
         String nameColumn = entityNameColumns.get(entityType);
         if (nameColumn == null) {
             log.error("Name column is not defined in the entityNameColumns map for entity type {}.", entityType);

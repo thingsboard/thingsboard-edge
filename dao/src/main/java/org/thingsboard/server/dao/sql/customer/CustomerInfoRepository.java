@@ -45,7 +45,7 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
 
     @Query("SELECT ci FROM CustomerInfoEntity ci " +
             "WHERE ci.tenantId = :tenantId " +
-            "AND (LOWER(ci.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(ci.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
     Page<CustomerInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                             @Param("searchText") String searchText,
@@ -53,13 +53,13 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
 
     @Query("SELECT ci FROM CustomerInfoEntity ci " +
             "WHERE ci.tenantId = :tenantId AND (ci.parentCustomerId IS NULL OR ci.parentCustomerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(ci.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<CustomerInfoEntity> findTenantCustomersByTenantId(@Param("tenantId") UUID tenantId,
                                                            @Param("searchText") String searchText,
                                                            Pageable pageable);
 
     @Query("SELECT ci FROM CustomerInfoEntity ci WHERE ci.tenantId = :tenantId AND ci.parentCustomerId = :customerId " +
-            "AND LOWER(ci.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ci.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<CustomerInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                          @Param("customerId") UUID customerId,
                                                          @Param("searchText") String searchText,

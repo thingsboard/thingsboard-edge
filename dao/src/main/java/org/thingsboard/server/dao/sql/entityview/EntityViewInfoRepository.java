@@ -45,7 +45,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId " +
-            "AND (LOWER(evi.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(evi.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
     Page<EntityViewInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                               @Param("searchText") String searchText,
@@ -54,7 +54,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId " +
             "AND evi.type = :type " +
-            "AND (LOWER(evi.searchText) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(evi.ownerName) LIKE LOWER(CONCAT('%', :searchText, '%')))")
     Page<EntityViewInfoEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                      @Param("type") String type,
@@ -63,7 +63,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
-            "AND LOWER(evi.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewInfoEntity> findTenantEntityViewsByTenantId(@Param("tenantId") UUID tenantId,
                                                                @Param("searchText") String searchText,
                                                                Pageable pageable);
@@ -71,14 +71,14 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
             "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
             "AND evi.type = :type " +
-            "AND LOWER(evi.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewInfoEntity> findTenantEntityViewsByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                                       @Param("type") String type,
                                                                       @Param("searchText") String searchText,
                                                                       Pageable pageable);
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi WHERE evi.tenantId = :tenantId AND evi.customerId = :customerId " +
-            "AND LOWER(evi.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                            @Param("customerId") UUID customerId,
                                                            @Param("searchText") String searchText,
@@ -86,7 +86,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi WHERE evi.tenantId = :tenantId AND evi.customerId = :customerId " +
             "AND evi.type = :type " +
-            "AND LOWER(evi.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(evi.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewInfoEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                                   @Param("customerId") UUID customerId,
                                                                   @Param("type") String type,
