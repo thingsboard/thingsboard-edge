@@ -28,22 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.transport;
+package org.thingsboard.monitoring.config.integration;
 
-import lombok.Data;
-import org.thingsboard.monitoring.config.MonitoringTarget;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.thingsboard.monitoring.service.integration.IntegrationHealthChecker;
+import org.thingsboard.monitoring.service.integration.impl.CoapIntegrationHealthChecker;
+import org.thingsboard.monitoring.service.integration.impl.HttpIntegrationHealthChecker;
 
-import java.util.UUID;
+@AllArgsConstructor
+@Getter
+public enum IntegrationType {
 
-@Data
-public class TransportMonitoringTarget implements MonitoringTarget {
+    HTTP(HttpIntegrationHealthChecker.class),
+    COAP(CoapIntegrationHealthChecker.class);
 
-    private String baseUrl;
-    private DeviceConfig device; // set manually during initialization
-
-    @Override
-    public UUID getDeviceId() {
-        return device.getId();
-    }
+    private final Class<? extends IntegrationHealthChecker<?>> serviceClass;
 
 }

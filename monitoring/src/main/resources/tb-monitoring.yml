@@ -104,6 +104,24 @@ monitoring:
         # To add more targets, use following environment variables:
         # monitoring.transports.lwm2m.targets[1].base_url, monitoring.transports.lwm2m.targets[2].base_url, etc.
 
+  integrations:
+    http:
+      # Enable HTTP integration checks
+      enabled: '${HTTP_INTEGRATION_MONITORING_ENABLED:false}'
+      # HTTP request timeout in milliseconds
+      request_timeout_ms: '${HTTP_REQUEST_TIMEOUT_MS:4000}'
+      target:
+        # HTTP integration base url, http://DOMAIN by default
+        base_url: '${HTTP_INTEGRATION_BASE_URL:http://${monitoring.domain}}'
+    coap:
+      # Enable CoAP integration checks
+      enabled: '${COAP_INTEGRATION_MONITORING_ENABLED:false}'
+      # CoAP request timeout in milliseconds
+      request_timeout_ms: '${COAP_REQUEST_TIMEOUT_MS:4000}'
+      target:
+        # CoAP integration base url, coap://DOMAIN by default
+        base_url: '${COAP_INTEGRATION_BASE_URL:coap://${monitoring.domain}}'
+
   notification_channels:
     slack:
       # Enable notifying via Slack

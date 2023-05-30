@@ -28,22 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.transport;
+package org.thingsboard.monitoring.config.integration;
 
 import lombok.Data;
-import org.thingsboard.monitoring.config.MonitoringTarget;
+import org.thingsboard.monitoring.config.MonitoringConfig;
 
-import java.util.UUID;
+import java.util.List;
 
 @Data
-public class TransportMonitoringTarget implements MonitoringTarget {
+public abstract class IntegrationMonitoringConfig implements MonitoringConfig<IntegrationMonitoringTarget> {
 
-    private String baseUrl;
-    private DeviceConfig device; // set manually during initialization
+    private int requestTimeoutMs;
+    private IntegrationMonitoringTarget target;
 
     @Override
-    public UUID getDeviceId() {
-        return device.getId();
+    public List<IntegrationMonitoringTarget> getTargets() {
+        return List.of(target);
     }
+
+    public abstract IntegrationType getIntegrationType();
 
 }

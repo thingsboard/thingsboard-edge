@@ -28,22 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.transport;
+package org.thingsboard.monitoring.config.integration;
 
 import lombok.Data;
-import org.thingsboard.monitoring.config.MonitoringTarget;
-
-import java.util.UUID;
 
 @Data
-public class TransportMonitoringTarget implements MonitoringTarget {
+public class IntegrationInfo {
 
-    private String baseUrl;
-    private DeviceConfig device; // set manually during initialization
+    private final IntegrationType integrationType;
+    private final String baseUrl;
 
     @Override
-    public UUID getDeviceId() {
-        return device.getId();
+    public String toString() {
+        return String.format("%s integration (%s)", integrationType, baseUrl);
     }
 
 }

@@ -28,22 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.transport;
+package org.thingsboard.monitoring.config.integration;
 
-import lombok.Data;
-import org.thingsboard.monitoring.config.MonitoringTarget;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
-@Data
-public class TransportMonitoringTarget implements MonitoringTarget {
-
-    private String baseUrl;
-    private DeviceConfig device; // set manually during initialization
+@Component
+@ConditionalOnProperty(name = "monitoring.integrations.http.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.integrations.http")
+public class HttpIntegrationMonitoringConfig extends IntegrationMonitoringConfig {
 
     @Override
-    public UUID getDeviceId() {
-        return device.getId();
+    public IntegrationType getIntegrationType() {
+        return IntegrationType.HTTP;
     }
 
 }

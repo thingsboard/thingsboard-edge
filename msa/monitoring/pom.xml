@@ -51,7 +51,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>tb-monitoring</pkg.name>
-        <docker.name>tb-monitoring</docker.name>
+        <docker.name>tb-${tb.docker.id}-monitoring</docker.name>
         <pkg.logFolder>/var/log/${pkg.name}</pkg.logFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <docker.push-arm-amd-image.phase>pre-integration-test</docker.push-arm-amd-image.phase>
