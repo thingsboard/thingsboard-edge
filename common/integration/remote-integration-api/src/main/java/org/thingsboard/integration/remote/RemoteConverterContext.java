@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
@@ -67,7 +67,7 @@ public class RemoteConverterContext implements ConverterContext {
         eventStorage.write(UplinkMsg.newBuilder()
                 .addEventsData(TbEventProto.newBuilder()
                         .setSource(source)
-                        .setEvent(ByteString.copyFrom(FSTUtils.encode(event)))
+                        .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(event)))
                         .build()
                 ).build(), callback);
     }

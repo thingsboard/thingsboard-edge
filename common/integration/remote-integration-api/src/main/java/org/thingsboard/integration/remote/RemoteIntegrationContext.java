@@ -42,7 +42,7 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
@@ -188,7 +188,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
     private void doSaveEvent(TbEventSource tbEventSource, Event event, String deviceName, IntegrationCallback<Void> callback) {
         var builder = TbEventProto.newBuilder()
                 .setSource(tbEventSource)
-                .setEvent(ByteString.copyFrom(FSTUtils.encode(event)));
+                .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(event)));
         if (deviceName != null) {
             builder.setDeviceName(deviceName);
         }

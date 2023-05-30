@@ -29,11 +29,11 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM thingsboard/openjdk11:bullseye-slim
+FROM thingsboard/openjdk17:bullseye-slim
 
 COPY start-tb-node.sh ${pkg.name}.deb /tmp/
 
-RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-11-openjdk/security/java.security \
+RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-17-openjdk/security/java.security \
     && chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-node.sh /usr/bin && \
     (yes | dpkg -i /tmp/${pkg.name}.deb) && \

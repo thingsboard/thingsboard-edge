@@ -46,7 +46,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.Event;
@@ -353,7 +353,7 @@ public final class IntegrationGrpcSession implements Closeable {
         try {
             Event event;
             if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
-                event = FSTUtils.decode(proto.getEvent().toByteArray());
+                event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
                 event.setTenantId(tenantId);
                 event.setEntityId(entityId.getId());
             } else {

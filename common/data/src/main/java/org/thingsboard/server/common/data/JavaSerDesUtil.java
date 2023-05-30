@@ -28,36 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.common.data;
 
 import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.FSTUtils;
 
-import java.util.Optional;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 @Slf4j
-@Service
-public class ProtoWithFSTService implements DataDecodingEncodingService {
+public class JavaSerDesUtil {
 
-    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
-
-    @Override
-    public <T> Optional<T> decode(byte[] byteArray) {
-        try {
-            return Optional.ofNullable(FSTUtils.decode(byteArray));
-        } catch (IllegalArgumentException e) {
+    @SuppressWarnings("unchecked")
+    public static <T> T decode(byte[] byteArray) {
+        if (byteArray == null || byteArray.length == 0) {
+            return null;
+        }
+        InputStream is = new ByteArrayInputStream(byteArray);
+        try (ObjectInputStream ois = new ObjectInputStream(is)) {
+            return (T) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
             log.error("Error during deserialization message, [{}]", e.getMessage());
-            return Optional.empty();
+            return null;
         }
     }
 
-
-    @Override
-    public <T> byte[] encode(T msq) {
-        return FSTUtils.encode(msq);
+    public static <T> byte[] encode(T msq) {
+        if (msq == null) {
+            return null;
+        }
+        ByteArrayOutputStream boas = new ByteArrayOutputStream();
+        try (ObjectOutputStream ois = new ObjectOutputStream(boas)) {
+            ois.writeObject(msq);
+            return boas.toByteArray();
+        } catch (IOException e) {
+            log.error("Error during serialization message, [{}]", e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
-
-
 }

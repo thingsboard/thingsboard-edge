@@ -33,9 +33,9 @@ package org.thingsboard.server.transport.lwm2m.server.store;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
 import org.eclipse.leshan.server.security.SecurityInfo;
-import org.nustaq.serialization.FSTConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.integration.redis.util.RedisLockRegistry;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
 
 import java.util.concurrent.locks.Lock;
@@ -46,13 +46,11 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
     private static final String PSKID_SEC = "PSKID#SEC";
 
     private final RedisConnectionFactory connectionFactory;
-    private final FSTConfiguration serializer;
     private final RedisLockRegistry redisLock;
 
     public TbLwM2mRedisSecurityStore(RedisConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
         redisLock = new RedisLockRegistry(connectionFactory, "Security");
-        serializer = FSTConfiguration.createDefaultConfiguration();
     }
 
     @Override
@@ -65,12 +63,11 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
             if (data == null || data.length == 0) {
                 return null;
             } else {
-                if (SecurityMode.NO_SEC.equals(((TbLwM2MSecurityInfo) serializer.asObject(data)).getSecurityMode())) {
+                if (SecurityMode.NO_SEC.equals(((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(data)).getSecurityMode())) {
                     return SecurityInfo.newPreSharedKeyInfo(SecurityMode.NO_SEC.toString(), SecurityMode.NO_SEC.toString(),
                             SecurityMode.NO_SEC.toString().getBytes());
-                }
-                else {
-                    return ((TbLwM2MSecurityInfo) serializer.asObject(data)).getSecurityInfo();
+                } else {
+                    return ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(data)).getSecurityInfo();
                 }
             }
         } finally {
@@ -94,7 +91,7 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
                 if (data == null || data.length == 0) {
                     return null;
                 } else {
-                    return ((TbLwM2MSecurityInfo) serializer.asObject(data)).getSecurityInfo();
+                    return ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(data)).getSecurityInfo();
                 }
             }
         } finally {
@@ -107,7 +104,7 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
     @Override
     public void put(TbLwM2MSecurityInfo tbSecurityInfo) throws NonUniqueSecurityInfoException {
         SecurityInfo info = tbSecurityInfo.getSecurityInfo();
-        byte[] tbSecurityInfoSerialized = serializer.asByteArray(tbSecurityInfo);
+        byte[] tbSecurityInfoSerialized = JavaSerDesUtil.encode(tbSecurityInfo);
         Lock lock = null;
         try (var connection = connectionFactory.getConnection()) {
             lock = redisLock.obtain(tbSecurityInfo.getEndpoint());
@@ -125,7 +122,7 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
 
             byte[] previousData = connection.getSet((SEC_EP + tbSecurityInfo.getEndpoint()).getBytes(), tbSecurityInfoSerialized);
             if (previousData != null && info != null) {
-                String previousIdentity = ((TbLwM2MSecurityInfo) serializer.asObject(previousData)).getSecurityInfo().getIdentity();
+                String previousIdentity = ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(previousData)).getSecurityInfo().getIdentity();
                 if (previousIdentity != null && !previousIdentity.equals(info.getIdentity())) {
                     connection.hDel(PSKID_SEC.getBytes(), previousIdentity.getBytes());
                 }
@@ -145,7 +142,7 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
             lock.lock();
             byte[] data = connection.get((SEC_EP + endpoint).getBytes());
             if (data != null && data.length > 0) {
-                return (TbLwM2MSecurityInfo) serializer.asObject(data);
+                return JavaSerDesUtil.decode(data);
             } else {
                 return null;
             }
@@ -164,7 +161,7 @@ public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
             lock.lock();
             byte[] data = connection.get((SEC_EP + endpoint).getBytes());
             if (data != null && data.length > 0) {
-                SecurityInfo info = ((TbLwM2MSecurityInfo) serializer.asObject(data)).getSecurityInfo();
+                SecurityInfo info = ((TbLwM2MSecurityInfo) JavaSerDesUtil.decode(data)).getSecurityInfo();
                 if (info != null && info.getIdentity() != null) {
                     connection.hDel(PSKID_SEC.getBytes(), info.getIdentity().getBytes());
                 }

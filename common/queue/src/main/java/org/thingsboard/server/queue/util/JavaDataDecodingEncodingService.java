@@ -28,23 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.queue.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
+
+import java.util.Optional;
 
 @Slf4j
-public class FSTUtils {
-
-    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
-
-    @SuppressWarnings("unchecked")
-    public static <T> T decode(byte[] byteArray) {
-        return byteArray != null && byteArray.length > 0 ? (T) CONFIG.asObject(byteArray) : null;
+@Service
+public class JavaDataDecodingEncodingService implements DataDecodingEncodingService {
+    @Override
+    public <T> Optional<T> decode(byte[] byteArray) {
+        return Optional.ofNullable(JavaSerDesUtil.decode(byteArray));
     }
 
-    public static <T> byte[] encode(T msq) {
-        return CONFIG.asByteArray(msq);
+    @Override
+    public <T> byte[] encode(T msq) {
+        return JavaSerDesUtil.encode(msq);
     }
-
 }
