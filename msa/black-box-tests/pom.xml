@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.5.0EDGEPE-SNAPSHOT</version>
+        <version>3.5.1PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
