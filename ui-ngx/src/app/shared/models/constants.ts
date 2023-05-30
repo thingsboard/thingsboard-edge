@@ -231,6 +231,7 @@ export const HelpLinks = {
     templateNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#templates',
     recipientNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#recipients',
     ruleNotifications: helpBaseUrl + '/docs/pe/user-guide/notifications/#rules',
+    jwtSecuritySettings: helpBaseUrl + '/docs/pe/user-guide/ui/jwt-security-settings/',
   }
 };
 
