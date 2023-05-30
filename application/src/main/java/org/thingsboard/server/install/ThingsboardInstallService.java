@@ -250,30 +250,34 @@ public class ThingsboardInstallService {
                         case "3.4.4":
                             log.info("Upgrading ThingsBoard from version 3.4.4 to 3.5.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.4");
-                            entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
-                            entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-
-                            // reset full sync required - to upload latest widgets from cloud
-                            // fromVersion must be updated per release
-                            // DefaultDataUpdateService must be updated as well
-                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
                             dataUpdateService.updateData("3.4.4");
 
-                            // @voba - system widgets update is not required - uploaded from cloud
-                            // log.info("Updating system data...");
-                            // systemDataLoaderService.updateSystemWidgets();
                             if (!getEnv("SKIP_DEFAULT_NOTIFICATION_CONFIGS_CREATION", false)) {
                                 systemDataLoaderService.createDefaultNotificationConfigs();
                             } else {
                                 log.info("Skipping default notification configs creation");
                             }
-                            // installScripts.loadSystemLwm2mResources();
+                        case "3.5.0":
+                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.1 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
+                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
+
+                            // reset full sync required - to upload latest widgets from cloud
+                            // fromVersion must be updated per release
+                            // DefaultDataUpdateService must be updated as well
+                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
+                            dataUpdateService.updateData("3.5.0");
                             break;
-                        //TODO update CacheCleanupService on the next version upgrade
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
-
                     }
+                    entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
+                    entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+
+                    // @voba - system widgets update is not required - uploaded from cloud
+                    // log.info("Updating system data...");
+                    // systemDataLoaderService.updateSystemWidgets();
+                    // installScripts.loadSystemLwm2mResources();
                 }
 
                 log.info("Upgrade finished successfully!");
