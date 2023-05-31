@@ -261,6 +261,7 @@ public class CloudManagerService {
                                 if (initialized) {
                                     if (pageData.getData().isEmpty()) {
                                         // reset in case seq_id column started new cycle
+                                        log.info("Resetting seqIdOffset - new cycle started");
                                         pageData = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
                                     }
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
@@ -305,7 +306,8 @@ public class CloudManagerService {
 
     private boolean newCloudEventsAvailable(Long seqIdOffset, TimePageLink pageLink) {
         PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
-        return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() != seqIdOffset);
+        // next seq_id available or new cycle started (seq_id starts from '1')
+        return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() > seqIdOffset || ce.getSeqId() == 1);
     }
 
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
