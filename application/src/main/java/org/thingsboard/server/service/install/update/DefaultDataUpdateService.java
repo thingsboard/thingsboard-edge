@@ -231,7 +231,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping cloud events migration");
                 }
-
+                break;
+            case "edge":
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 

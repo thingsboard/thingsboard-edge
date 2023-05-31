@@ -115,6 +115,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractContainerTest {
 
+    public static final String CLOUD_ROUTING_KEY = "280629c7-f853-ee3d-01c0-fffbb6f2ef38";
+    public static final String CLOUD_ROUTING_SECRET = "g9ta4soeylw6smqkky8g";
+    public static final String TB_MONOLITH_SERVICE_NAME = "tb-monolith";
+    public static final String TB_EDGE_SERVICE_NAME = "tb-edge";
+
     private static final String CUSTOM_DEVICE_PROFILE_NAME = "Custom Device Profile";
 
     protected static RestClient cloudRestClient = null;
@@ -128,21 +133,21 @@ public abstract class AbstractContainerTest {
     @BeforeClass
     public static void before() throws Exception {
         if (cloudRestClient == null) {
-            String tbHost = ContainerTestSuite.testContainer.getServiceHost("tb-monolith", 8080);
-            Integer tbPort = ContainerTestSuite.testContainer.getServicePort("tb-monolith", 8080);
+            String tbHost = ContainerTestSuite.testContainer.getServiceHost(TB_MONOLITH_SERVICE_NAME, 8080);
+            Integer tbPort = ContainerTestSuite.testContainer.getServicePort(TB_MONOLITH_SERVICE_NAME, 8080);
             tbUrl = "http://" + tbHost + ":" + tbPort;
             cloudRestClient = new RestClient(tbUrl);
             cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
-            String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
-            Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
+            String edgeHost = ContainerTestSuite.testContainer.getServiceHost(TB_EDGE_SERVICE_NAME, 8082);
+            Integer edgePort = ContainerTestSuite.testContainer.getServicePort(TB_EDGE_SERVICE_NAME, 8082);
             edgeUrl = "http://" + edgeHost + ":" + edgePort;
             edgeRestClient = new RestClient(edgeUrl);
 
             updateRootRuleChain();
             updateEdgeRootRuleChain();
 
-            edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
+            edge = createEdge("test", CLOUD_ROUTING_KEY, CLOUD_ROUTING_SECRET);
 
             loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
 
