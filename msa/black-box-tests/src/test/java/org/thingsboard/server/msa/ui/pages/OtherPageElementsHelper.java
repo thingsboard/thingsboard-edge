@@ -31,7 +31,9 @@
 package org.thingsboard.server.msa.ui.pages;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class OtherPageElementsHelper extends OtherPageElements {
     public OtherPageElementsHelper(WebDriver driver) {
@@ -65,13 +67,22 @@ public class OtherPageElementsHelper extends OtherPageElements {
         return elementIsNotPresent(getEntity(entityName));
     }
 
+    private void clickHelpButton(WebElement helpBtn) {
+        helpBtn.click();
+        try {
+            wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+        } catch (WebDriverException e) {
+            helpBtn.click();
+        }
+    }
+
     public void goToHelpPage() {
-        helpBtn().click();
+        clickHelpButton(helpBtn());
         goToNextTab(2);
     }
 
     public void goToHelpEntityGroupPage() {
-        helpBtnEntityGroup().click();
+        clickHelpButton(helpBtnEntityGroup());
         goToNextTab(2);
     }
 

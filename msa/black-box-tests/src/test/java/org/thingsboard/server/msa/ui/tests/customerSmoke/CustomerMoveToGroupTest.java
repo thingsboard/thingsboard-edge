@@ -139,7 +139,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
-        customerPage.selectGroupViewNewGroupField().sendKeys(newGroupName);
+        customerPage.enterText(customerPage.selectGroupViewNewGroupField(), newGroupName);
         customerPage.selectGroupViewSubmitBtn().click();
         groupName2 = newGroupName;
         sideBarMenuView.goToCustomerGroups();

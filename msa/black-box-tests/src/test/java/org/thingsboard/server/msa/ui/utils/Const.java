@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.msa.ui.utils;
 
-import static org.thingsboard.server.msa.TestProperties.getBaseUrl;
+import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 
 public class Const {
 
-    public static final String URL = getBaseUrl();
+    public static final String URL = getBaseUiUrl();
     public static final String TENANT_EMAIL = "tenant@thingsboard.org";
     public static final String TENANT_PASSWORD = "tenant";
     public static final String ENTITY_NAME = "Aaz!@#$%^&*()_-+=~`";

@@ -103,4 +103,14 @@
             <package name="org.thingsboard.server.msa.ui.tests.alarmassignee.*"/>
         </packages>
     </test>
+    <test name="Solution templates install">
+        <groups>
+            <run>
+                <exclude name="broken"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="org.thingsboard.server.msa.ui.tests.solutiontemplates.*"/>
+        </packages>
+    </test>
 </suite>
