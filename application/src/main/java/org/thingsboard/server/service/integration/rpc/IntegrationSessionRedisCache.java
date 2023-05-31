@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.CacheSpecsMap;
 import org.thingsboard.server.cache.RedisTbTransactionalCache;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
-import org.thingsboard.server.cache.TbFSTRedisSerializer;
+import org.thingsboard.server.cache.TbJavaRedisSerializer;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.IntegrationId;
 
@@ -45,6 +45,6 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 public class IntegrationSessionRedisCache extends RedisTbTransactionalCache<IntegrationId, IntegrationSession> {
 
     public IntegrationSessionRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.REMOTE_INTEGRATIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
+        super(CacheConstants.REMOTE_INTEGRATIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJavaRedisSerializer<>());
     }
 }

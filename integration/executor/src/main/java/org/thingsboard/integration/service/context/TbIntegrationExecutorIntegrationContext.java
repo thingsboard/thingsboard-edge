@@ -44,7 +44,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
@@ -211,7 +211,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     private void doSaveEvent(TbEventSource tbEventSource, EntityId entityId, Event event, String deviceName, IntegrationCallback<Void> callback) {
         var builder = TbIntegrationEventProto.newBuilder()
                 .setSource(tbEventSource)
-                .setEvent(ByteString.copyFrom(FSTUtils.encode(event)));
+                .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(event)));
         builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
         builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
         if (event.getEntityId() != null) {

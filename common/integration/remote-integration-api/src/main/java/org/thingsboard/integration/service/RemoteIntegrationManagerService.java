@@ -58,7 +58,7 @@ import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.coapserver.CoapServerService;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -435,7 +435,7 @@ public class RemoteIntegrationManagerService {
             eventStorage.write(UplinkMsg.newBuilder()
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
-                            .setEvent(ByteString.copyFrom(FSTUtils.encode(statsEvent)))
+                            .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(statsEvent)))
                             .build())
                     .build(), null);
 
@@ -479,7 +479,7 @@ public class RemoteIntegrationManagerService {
         eventStorage.write(UplinkMsg.newBuilder()
                 .addEventsData(TbEventProto.newBuilder()
                         .setSource(TbEventSource.INTEGRATION)
-                        .setEvent(ByteString.copyFrom(FSTUtils.encode(lcEvent.build())))
+                        .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(lcEvent.build())))
                         .build())
                 .build(), null);
     }

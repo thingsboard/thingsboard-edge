@@ -58,7 +58,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -391,7 +391,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
-            Event event = FSTUtils.decode(proto.getEvent().toByteArray());
+            Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
             event.setTenantId(tenantId);
             event.setEntityId(entityId.getId());
 
