@@ -249,13 +249,13 @@ public class CloudManagerService {
                 try {
                     if (initialized) {
                         queueStartTs = getQueueStartTs().get();
+                        Long seqIdOffset = getQueueSeqIdOffset().get();
                         TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                                 0, null, new SortOrder("seqId"), queueStartTs, System.currentTimeMillis());
-                        if (newCloudEventsAvailable(pageLink)) {
+                        if (newCloudEventsAvailable(seqIdOffset, pageLink)) {
                             PageData<CloudEvent> pageData;
                             UUID idOffset = null;
                             boolean success = true;
-                            Long seqIdOffset = getQueueSeqIdOffset().get();
                             do {
                                 pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, pageLink);
                                 if (initialized) {
@@ -303,9 +303,9 @@ public class CloudManagerService {
         });
     }
 
-    private boolean newCloudEventsAvailable(TimePageLink pageLink) {
+    private boolean newCloudEventsAvailable(Long seqIdOffset, TimePageLink pageLink) {
         PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
-        return !cloudEvents.getData().isEmpty();
+        return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() != seqIdOffset);
     }
 
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
