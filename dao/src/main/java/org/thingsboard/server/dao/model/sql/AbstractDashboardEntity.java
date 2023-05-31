@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,12 +44,11 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -59,7 +57,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
+public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
 
     private static final JavaType assignedCustomersType =
             JacksonUtil.constructCollectionType(HashSet.class, ShortCustomerInfo.class);
@@ -75,9 +73,6 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
 
     @Column(name = ModelConstants.DASHBOARD_IMAGE_PROPERTY)
     private String image;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY)
     private String assignedCustomers;
@@ -125,11 +120,6 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
     @Override
     public String getSearchTextSource() {
         return title;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     protected Dashboard toDashboard() {

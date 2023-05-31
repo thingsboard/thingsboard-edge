@@ -40,16 +40,15 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetInfoDao;
 import org.thingsboard.server.dao.model.sql.AssetInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
-
 import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
 @Component
 @SqlDao
-public class JpaAssetInfoDao extends JpaAbstractSearchTextDao<AssetInfoEntity, AssetInfo> implements AssetInfoDao {
+public class JpaAssetInfoDao extends JpaAbstractDao<AssetInfoEntity, AssetInfo> implements AssetInfoDao {
 
     @Autowired
     private AssetInfoRepository assetInfoRepository;

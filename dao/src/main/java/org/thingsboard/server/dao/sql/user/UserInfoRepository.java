@@ -67,16 +67,16 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, UUID> 
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select u.id, u.created_time, u.additional_info, u.authority, u.customer_id, u.email, " +
-            "u.first_name, u.last_name, u.phone, u.search_text, u.tenant_id, u.groups, " +
+            "u.first_name, u.last_name, u.phone, u.tenant_id, u.groups, " +
             "c.title as owner_name from user_info_view u " +
             "LEFT JOIN customer c on c.id = u.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+            "AND (LOWER(e.email) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
             "OR LOWER(e.owner_name) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             countQuery = "SELECT count(e.id) FROM tb_user e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (LOWER(e.search_text) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
+                    "AND (LOWER(e.email) LIKE LOWER(CONCAT('%', :searchText, '%')) " +
                     "OR LOWER(c.title) LIKE LOWER(CONCAT('%', :searchText, '%')))",
             nativeQuery = true)
     Page<UserInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,

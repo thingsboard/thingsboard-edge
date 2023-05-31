@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -61,14 +61,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_P
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_VIEW_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Immutable
 @Table(name = INTEGRATION_VIEW_NAME)
-public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implements SearchTextEntity<IntegrationInfo> {
+public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implements SearchTextSourceEntity<IntegrationInfo> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -91,9 +90,6 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
 
     @Column(name = INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS)
     private Boolean allowCreateDevicesOrAssets;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
     private Boolean edgeTemplate;
@@ -142,18 +138,9 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         this.edgeTemplate = integration.isEdgeTemplate();
     }
 
-    public String getSearchText() {
-        return searchText;
-    }
-
     @Override
     public String getSearchTextSource() {
         return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override

@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -51,13 +51,12 @@ import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TABLE_NAM
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TENANT_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TITLE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TYPE_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = RESOURCE_TABLE_NAME)
-public class TbResourceEntity extends BaseSqlEntity<TbResource> implements SearchTextEntity<TbResource> {
+public class TbResourceEntity extends BaseSqlEntity<TbResource> implements SearchTextSourceEntity<TbResource> {
 
     @Column(name = RESOURCE_TENANT_ID_COLUMN, columnDefinition = "uuid")
     private UUID tenantId;
@@ -70,9 +69,6 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
 
     @Column(name = RESOURCE_KEY_COLUMN)
     private String resourceKey;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = RESOURCE_FILE_NAME_COLUMN)
     private String fileName;
@@ -94,7 +90,6 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
         this.title = resource.getTitle();
         this.resourceType = resource.getResourceType().name();
         this.resourceKey = resource.getResourceKey();
-        this.searchText = resource.getSearchText();
         this.fileName = resource.getFileName();
         this.data = resource.getData();
     }
@@ -107,7 +102,6 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
         resource.setTitle(title);
         resource.setResourceType(ResourceType.valueOf(resourceType));
         resource.setResourceKey(resourceKey);
-        resource.setSearchText(searchText);
         resource.setFileName(fileName);
         resource.setData(data);
         return resource;
@@ -115,6 +109,6 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
 
     @Override
     public String getSearchTextSource() {
-        return this.searchText;
+        return this.title;
     }
 }

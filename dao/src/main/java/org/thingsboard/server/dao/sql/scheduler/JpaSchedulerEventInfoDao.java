@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerIn
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.SchedulerEventInfoEntity;
 import org.thingsboard.server.dao.scheduler.SchedulerEventInfoDao;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
@@ -53,7 +53,7 @@ import java.util.UUID;
 @Component
 @Slf4j
 @SqlDao
-public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<SchedulerEventInfoEntity, SchedulerEventInfo> implements SchedulerEventInfoDao {
+public class JpaSchedulerEventInfoDao extends JpaAbstractDao<SchedulerEventInfoEntity, SchedulerEventInfo> implements SchedulerEventInfoDao {
 
     @Autowired
     SchedulerEventInfoRepository schedulerEventInfoRepository;

@@ -273,7 +273,6 @@ CREATE TABLE IF NOT EXISTS ota_package (
     data oid,
     data_size bigint,
     additional_info varchar,
-    search_text varchar(255),
     CONSTRAINT ota_package_tenant_title_version_unq_key UNIQUE (tenant_id, title, version)
 );
 
@@ -860,7 +859,6 @@ CREATE TABLE IF NOT EXISTS resource (
     title varchar(255) NOT NULL,
     resource_type varchar(32) NOT NULL,
     resource_key varchar(255) NOT NULL,
-    search_text varchar(255),
     file_name varchar(255) NOT NULL,
     data varchar,
     CONSTRAINT resource_unq_key UNIQUE (tenant_id, resource_type, resource_key)

@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -58,13 +58,12 @@ import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_OR
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventInfo> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
+public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventInfo> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
 
     @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -84,9 +83,6 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
 
     @Column(name = SCHEDULER_EVENT_TYPE_PROPERTY)
     private String type;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Type(type = "json")
     @Column(name = ModelConstants.SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY)
@@ -130,7 +126,6 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.originatorType = schedulerEventInfoEntity.getOriginatorType();
         this.type = schedulerEventInfoEntity.getType();
         this.name = schedulerEventInfoEntity.getName();
-        this.searchText = schedulerEventInfoEntity.getSearchText();
         this.schedule = schedulerEventInfoEntity.getSchedule();
         this.additionalInfo = schedulerEventInfoEntity.getAdditionalInfo();
     }
@@ -138,15 +133,6 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
     @Override
     public String getSearchTextSource() {
         return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
     }
 
     protected SchedulerEventInfo toSchedulerEventInfo() {

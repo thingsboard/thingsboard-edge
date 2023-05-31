@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
+import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -57,7 +57,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
+public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
 
     public static final Map<String,String> userColumnMap = new HashMap<>();
     static {
@@ -76,9 +76,6 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
 
     @Column(name = ModelConstants.USER_EMAIL_PROPERTY, unique = true)
     private String email;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.USER_FIRST_NAME_PROPERTY)
     private String firstName;
@@ -132,11 +129,6 @@ public abstract class AbstractUserEntity<T extends User> extends BaseSqlEntity<T
     @Override
     public String getSearchTextSource() {
         return email;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     protected User toUser() {

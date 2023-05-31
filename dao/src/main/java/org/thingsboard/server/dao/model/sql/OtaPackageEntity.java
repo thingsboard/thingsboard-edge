@@ -68,7 +68,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_TILE_C
 import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_TYPE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_URL_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_VERSION_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -122,9 +121,6 @@ public class OtaPackageEntity extends BaseSqlEntity<OtaPackage> {
     @Type(type = "json")
     @Column(name = ModelConstants.OTA_PACKAGE_ADDITIONAL_INFO_COLUMN)
     private JsonNode additionalInfo;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     public OtaPackageEntity() {
         super();
