@@ -48,13 +48,12 @@ public class DashboardPageElements extends OtherPageElementsHelper {
     private static final String OPEN_DASHBOARD_GROUP_BTN = "//mat-icon[contains(text(),'view_list')]";
     private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
     private static final String GROUPS_BTN = "//a[@href='/dashboards/groups']/span[@class='mdc-tab__content']";
-    private static final String EDIT_BTN = "//mat-icon[text() = 'edit']/parent::button";
-    private static final String ADD_BTN = "//tb-footer-fab-buttons//button";
-    private static final String CREAT_NEW_DASHBOARD_BTN = "//mat-icon[text() = 'insert_drive_file']/parent::button";
+    private static final String EDIT_BTN = "//mat-icon[text() = 'edit']/parent::button[@mat-stroked-button]";
+    private static final String ADD_BTN = "//mat-fab-actions//mat-icon[text() = 'add']/parent::button";
     private static final String ALARM_WIDGET_BUNDLE = "//mat-card-title[text() = 'Alarm widgets']/ancestor::mat-card";
     private static final String ALARM_TABLE_WIDGET = "//img[@alt='Alarms table']/ancestor::mat-card";
     private static final String WIDGET_SE_CORNER = "//div[contains(@class,'handle-se')]";
-    private static final String DONE_BTN = "//tb-footer-fab-buttons/following-sibling::button//mat-icon[text() = 'done']/parent::button";
+    private static final String SAVE_BTN = "//mat-icon[text() = 'done']/parent::button[@fxhide.lt-lg]";
 
     public List<WebElement> entityTitles() {
         return waitUntilVisibilityOfElementsLocated(TITLES);
@@ -97,10 +96,6 @@ public class DashboardPageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(ADD_BTN);
     }
 
-    public WebElement createNewDashboardBtn() {
-        return waitUntilElementToBeClickable(CREAT_NEW_DASHBOARD_BTN);
-    }
-
     public WebElement alarmWidgetBundle() {
         return waitUntilElementToBeClickable(ALARM_WIDGET_BUNDLE);
     }
@@ -113,7 +108,7 @@ public class DashboardPageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(WIDGET_SE_CORNER);
     }
 
-    public WebElement doneBtn() {
-        return waitUntilVisibilityOfElementLocated(DONE_BTN);
+    public WebElement saveBtn() {
+        return waitUntilVisibilityOfElementLocated(SAVE_BTN);
     }
 }
