@@ -51,14 +51,12 @@ import javax.validation.Valid;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.mapper;
-
 @ApiModel
 @Data
 @ToString(exclude = {"image", "profileDataBytes"})
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class DeviceProfile extends BaseDataWithAdditionalInfo<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, HasRuleEngineProfile, ExportableEntity<DeviceProfileId> {
+public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, HasRuleEngineProfile, ExportableEntity<DeviceProfileId> {
 
     private static final long serialVersionUID = 6998485460273302018L;
 
