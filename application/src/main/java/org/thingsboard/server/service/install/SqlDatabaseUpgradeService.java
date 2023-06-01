@@ -656,7 +656,8 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                                 futures.add(dbUpgradeExecutor.submit(() -> {
                                     try {
                                         assetProfileService.createDefaultAssetProfile(tenantId);
-                                    } catch (Exception e) {}
+                                    } catch (Exception e) {
+                                    }
                                 }));
                             }
                             Futures.allAsList(futures).get();
@@ -675,7 +676,8 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                                     futures.add(dbUpgradeExecutor.submit(() -> {
                                         try {
                                             assetProfileService.findOrCreateAssetProfile(tenantId, assetType);
-                                        } catch (Exception e) {}
+                                        } catch (Exception e) {
+                                        }
                                     }));
                                 }
                             }
@@ -752,12 +754,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.5.1", SCHEMA_UPDATE_SQL);
                         loadSql(schemaUpdateFile, conn);
 
-                        try {
-                            String [] entityNames = new String [] {"converter", "integration", "device", "component_descriptor", "customer", "dashboard", "rule_chain", "rule_node", "asset_profile", "asset", "device_profile", "tb_user", "tenant_profile", "tenant", "widgets_bundle", "scheduler_event", "blob_entity", "entity_view", "role", "edge", "ota_package", "resource"};
-                            for (String entityName : entityNames) {
+                        String[] entityNames = new String[]{"converter", "integration", "device", "component_descriptor", "customer", "dashboard",
+                                "rule_chain", "rule_node", "asset_profile", "asset", "device_profile", "tb_user", "tenant_profile", "tenant",
+                                "widgets_bundle", "scheduler_event", "blob_entity", "entity_view", "role", "edge", "ota_package", "resource"};
+                        for (String entityName : entityNames) {
+                            try {
                                 conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN " + SEARCH_TEXT + " CASCADE");
+                            } catch (Exception e) {
                             }
-                        } catch (Exception e) {}
+                        }
 
                         conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3005002;");
                     }
