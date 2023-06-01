@@ -114,7 +114,7 @@
     "id": "fuel_level_monitoring",
     "title": "Fuel Level Monitoring",
     "level": "PROTOTYPE",
-    "installTimeoutMs": 5000,
+    "installTimeoutMs": 10000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png",
     "imageUrls": ["https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png", "https://thingsboard.io/images/solutions/waste_monitoring/waste-monitoring-preview.png"],
     "tenantTelemetryKeys": [],

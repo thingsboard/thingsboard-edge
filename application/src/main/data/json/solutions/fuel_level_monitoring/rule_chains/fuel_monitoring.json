@@ -12,17 +12,18 @@
     "externalId": null
   },
   "metadata": {
-    "firstNodeIndex": 6,
+    "firstNodeIndex": 14,
     "nodes": [
       {
         "additionalInfo": {
           "description": null,
-          "layoutX": 822,
-          "layoutY": 294
+          "layoutX": 1216,
+          "layoutY": 372
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "defaultTTL": 0
         },
@@ -30,12 +31,13 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 221
+          "layoutX": 1217,
+          "layoutY": 477
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"
         },
@@ -43,12 +45,13 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 494,
-          "layoutY": 309
+          "layoutX": 737,
+          "layoutY": 489
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "version": 0
         },
@@ -56,12 +59,13 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 383
+          "layoutX": 1216,
+          "layoutY": 552
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -71,12 +75,13 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 823,
-          "layoutY": 444
+          "layoutX": 1217,
+          "layoutY": 617
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -86,12 +91,13 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 822,
-          "layoutY": 507
+          "layoutX": 1216,
+          "layoutY": 684
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "timeoutInSeconds": 60
         },
@@ -100,12 +106,13 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 209,
-          "layoutY": 307
+          "layoutX": 359,
+          "layoutY": 491
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
@@ -115,12 +122,13 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 182,
-          "layoutY": 523
+          "layoutX": 357,
+          "layoutY": 638
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Count alarms",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "alarmsCountMappings": [
             {
@@ -178,12 +186,13 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 533,
-          "layoutY": 639
+          "layoutX": 737,
+          "layoutY": 787
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To Active Telemetry",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "scriptLang": "JS",
           "jsScript": "\nif (msgType === \"POST_TELEMETRY_REQUEST\") {\n    msg.isLowBattery = msg.lowBatteryAlarmsCount > 0 ? true : false;\n    msg.isLowFuel = msg.lowFuelLevelAlarmsCount > 0 ? true : false;\n    msg.isLowTemperature = msg.lowTemperatureAlarmsCount > 0 ? true : false;\n    msg.isHighTemperature = msg.highTemperatureAlarmsCount > 0 ? true : false;\n    msg.isNoAlarms = (!msg.isLowBattery && !msg.isLowFuel && !msg.isLowTemperature && !msg.isHighTemperature);\n} else {\n    metadata.isLowBattery = metadata.ss_lowBatteryAlarmsCount > 0 ? true : false;\n    metadata.isLowFuel = metadata.ss_lowFuelLevelAlarmsCount > 0 ? true : false;\n    metadata.isLowTemperature = metadata.ss_lowTemperatureAlarmsCount > 0 ? true : false;\n    metadata.isHighTemperature = metadata.ss_highTemperatureAlarmsCount > 0 ? true : false;\n    metadata.isNoAlarms = (!metadata.isLowBattery && !metadata.isLowFuel && !metadata.isLowTemperature && !metadata.isHighTemperature);\n}\n\nvar alarmFilter = \"\";\n\nif (\n    (metadata.ss_active === false || metadata.ss_active === \"false\") || \n    (msg.active === false || msg.active === \"false\")\n   ) {\n    alarmFilter += \"offline \";\n}\n\nif (msg.isLowBattery || metadata.isLowBattery) {\n    alarmFilter += \"lowBattery \";\n}\n\nif (msg.isLowFuel || metadata.isLowFuel) {\n    alarmFilter += \"lowFuel \";\n}\n\nif (msg.isLowTemperature || metadata.isLowTemperature) {\n   alarmFilter += \"lowTemperature \"; \n}\n\nif (msg.isHighTemperature || metadata.isHighTemperature) {\n    alarmFilter += \"highTemperature \";\n}\n\nif (msg.isNoAlarms || metadata.isNoAlarms) {\n    alarmFilter += \"noAlarms \";\n}\n\nmsg.alarmFilter = alarmFilter;\n\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};",
@@ -194,12 +203,13 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 824,
-          "layoutY": 582
+          "layoutX": 1217,
+          "layoutY": 786
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "scope": "SERVER_SCOPE",
           "notifyDevice": false,
@@ -210,12 +220,13 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 184,
-          "layoutY": 640
+          "layoutX": 358,
+          "layoutY": 787
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Add active metadata",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "fetchToData": false,
@@ -232,12 +243,13 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 522,
-          "layoutY": 512
+          "layoutX": 738,
+          "layoutY": 639
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Get alarms count attributes",
         "debugMode": false,
+        "singletonMode": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "fetchToData": false,
@@ -251,6 +263,90 @@
           ],
           "latestTsKeyNames": [],
           "getLatestValueWithTs": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 724,
+          "layoutY": 270
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Get tank shape params",
+        "debugMode": false,
+        "singletonMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "fetchToData": false,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [
+            "sizeMeasure",
+            "tankShape",
+            "tankCapacity",
+            "tankDimensionUnits",
+            "sensorGap",
+            "tankCapacityOutput",
+            "sensorDimensionUnits",
+            "tankMeasurementSystem",
+            "sensorMeasurementSystem"
+          ],
+          "latestTsKeyNames": [],
+          "getLatestValueWithTs": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 729,
+          "layoutY": 378
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Calculate fuelLevel",
+        "debugMode": false,
+        "singletonMode": false,
+        "configuration": {
+          "scriptLang": "JS",
+          "jsScript": "var sizeMeasure = JSON.parse(metadata.ss_sizeMeasure);\nvar tankCapacity = Number(metadata.ss_tankCapacity);\nvar tankMeasurementSystem = metadata.ss_tankMeasurementSystem;\nvar tankDimensionUnits = metadata.ss_tankDimensionUnits;\nvar sensorGap = Number(metadata.ss_sensorGap);\nvar tankCapacityOutput = metadata.ss_tankCapacityOutput;\nvar sensorMeasurementSystem = metadata.ss_sensorMeasurementSystem;\nvar sensorDimensionUnits = metadata.ss_sensorDimensionUnits;\nvar fuelLevel;\nvar volume;\n\nvar imperial = {\n    dimension: {\n        inches: \"in\",\n        feets: \"ft\"\n    },\n    output: {\n        gallons: \"Gal\",\n        cubicIn: \"in^3\",\n        cubicFt: \"ft^3\"\n    }\n};\n\nvar metric = {\n    dimension: {\n        milimeters: \"mm\",\n        centimeters: \"cm\",\n        meters: \"m\"\n    },\n    output: {\n        liters: \"L\",\n        cubicMm: \"mm^3\",\n        cubicCm: \"cm^3\",\n        cubicM: \"m^3\"\n    }\n};\n\nvar absoluteSensorHeight = convertInput(msg.fuelHeight, sensorDimensionUnits) - convertInput(sensorGap, tankDimensionUnits);\nvar h;\nvar d;\nvar l;\nvar w;\nvar θ;\nvar m;\nvar capacitySegment;\n\nswitch (metadata.ss_tankShape) {\n    case \"Vertical Cylinder\": \n        h = absoluteSensorHeight;\n        d = convertInput(sizeMeasure.diameter, tankDimensionUnits);\n\n        volume = convertOutput(((Math.PI * Math.pow((d / 2), 2) * h) / 1000));\n        break;\n        \n    case \"Horizontal Cylinder\":\n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        d = convertInput(sizeMeasure.diameter, tankDimensionUnits);\n        m = (d / 2) - (d - absoluteSensorHeight);\n        θ = 2 * Math.acos(m / (d / 2));\n        \n        volume = tankCapacity - convertOutput(((Math.pow((d / 2), 2) * (θ - Math.sin(θ)) * l) / 2) / 1000);\n        break;\n        \n    case \"Rectangle\":\n        h = absoluteSensorHeight;\n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        w = convertInput(sizeMeasure.width, tankDimensionUnits);\n\n        volume = convertOutput(((h * l * w) / 1000));\n        break;\n        \n    case \"Horizontal Oval\":\n        h = convertInput(sizeMeasure.height, tankDimensionUnits);\n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        w = convertInput(sizeMeasure.width, tankDimensionUnits);\n        \n        // w>h must always be true\n        \n        var horizontalCylinderPartCapacity = (Math.PI * Math.pow((h / 2), 2) * l);\n        m = (h / 2) - (h - absoluteSensorHeight);\n        θ = 2 * Math.acos(m / (h / 2));\n        var horizontalCylinderPartSegment = ((Math.pow((h / 2), 2) * (θ - Math.sin(θ)) * l) / 2);\n        var filledVolumeOfHorizontalCylinderPart = horizontalCylinderPartCapacity - horizontalCylinderPartSegment;\n        var filledVolumeOfRectanglePart = absoluteSensorHeight * l * (w - h);\n        volume = convertOutput((filledVolumeOfRectanglePart + filledVolumeOfHorizontalCylinderPart)  / 1000);\n        break;\n        \n    case \"Vertical Oval\":\n        h = convertInput(sizeMeasure.height, tankDimensionUnits);\n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        w = convertInput(sizeMeasure.width, tankDimensionUnits);\n        // h>w must always be true\n        \n        if (absoluteSensorHeight <= (w / 2)) {\n            m = (w / 2) - (w - absoluteSensorHeight);\n            θ = 2 * Math.acos(m / (w / 2));\n            \n            var horizontalPartCapacity = ((Math.PI * Math.pow((w / 2), 2) * l) / 1000);\n            volume = horizontalPartCapacity - ((Math.pow((w / 2), 2) * (θ - Math.sin(θ)) * l) / 2) / 1000;\n        } else if (absoluteSensorHeight > (w / 2) && absoluteSensorHeight <= (w / 2 + (h - w))) {\n            var halfOfCylinderPortion = ((Math.PI * Math.pow(w / 2, 2) * l) / 1000) / 2;\n            var filledVolumeOfRectanglePart = (absoluteSensorHeight - (w / 2)) * l *  w / 1000;\n            volume = convertOutput(halfOfCylinderPortion + filledVolumeOfRectanglePart);\n        } else if (absoluteSensorHeight > (w / 2 + (h - w)) && absoluteSensorHeight <= h) {\n            m = (w / 2) - (w - (absoluteSensorHeight - (h - w)));\n            θ = 2 * Math.acos(m / (w / 2));\n            \n            volume = tankCapacity - convertOutput(((Math.pow((w / 2), 2) * (θ - Math.sin(θ)) * l) / 2) / 1000);\n        }\n        \n        break;\n        \n    case \"Horizontal Capsule\":\n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        d = convertInput(sizeMeasure.diameter, tankDimensionUnits);\n        m = (d / 2) - (d - absoluteSensorHeight);\n        θ = 2 * Math.acos(m / (d / 2));\n        var horizontalCylinderCapacity = ((Math.PI * Math.pow((d / 2), 2) * l) / 1000);\n        var horizontalCylinderVolume = horizontalCylinderCapacity - ((Math.pow((d / 2), 2) * (θ - Math.sin(θ)) * l) / 2) / 1000;\n                // var sphereCapacity = (4 / 3) * Math.PI * Math.pow((d / 2), 3) / 1000;\n        var sphereVolume = 1/3 * Math.PI * Math.pow(absoluteSensorHeight, 2) * (3 * (d / 2) - absoluteSensorHeight) / 1000;\n        volume = convertOutput(horizontalCylinderVolume + sphereVolume);\n        break;\n        \n    case \"Vertical Capsule\": \n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        d = convertInput(sizeMeasure.diameter, tankDimensionUnits);\n                \n        if (absoluteSensorHeight <= (d / 2)) {\n            volume = convertOutput(1/3 * Math.PI * Math.pow(absoluteSensorHeight, 2) * (3 * (d / 2) -absoluteSensorHeight) / 1000);\n        } else if (absoluteSensorHeight > (d / 2) && absoluteSensorHeight <= (d / 2 + l)) {\n            var spherePortion = ((4/3) * Math.PI * Math.pow((d / 2), 3)) / 2 / 1000;\n            var verticalCylinderPortion = ((Math.PI * Math.pow((d / 2), 2) *\n                (absoluteSensorHeight - d / 2)) / 1000);\n            \n            volume = convertOutput(spherePortion + verticalCylinderPortion);\n        } else if (absoluteSensorHeight > (d / 2 + l) && absoluteSensorHeight <= (l + d)) {\n            var spherePortion = 1/3 * Math.PI * Math.pow((absoluteSensorHeight - l), 2) * (3 * (d / 2) -\n                (absoluteSensorHeight - l)) / 1000;\n            var verticalCylinderCapacity = ((Math.PI * Math.pow((d / 2), 2) * l) / 1000);\n            \n            volume = convertOutput(spherePortion + verticalCylinderCapacity);\n        }\n        break;\n        \n    case \"Horizontal 2:1 Elliptical\": \n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        d = convertInput(sizeMeasure.diameter, tankDimensionUnits);\n        \n        θ = Math.acos((d / 2 - absoluteSensorHeight) / (d / 2));\n        var cylinderVolume = l * (Math.pow((d / 2), 2) * θ - ((d / 2) - absoluteSensorHeight) *\n            Math.sqrt(d * absoluteSensorHeight - Math.pow(absoluteSensorHeight, 2)));\n\n        var headsVolume = 0.2618 * Math.pow(absoluteSensorHeight, 2) * (3 * (d / 2) - absoluteSensorHeight) * 2;\n        volume = convertOutput((cylinderVolume + headsVolume) / 1000);\n        \n        break;\n    // Could not be verified based on the tests results (there is no way to check and verify the real results in web because formulas from different sources differ the result)\n    // case \"Horizontal Dish Ends\": \n    //     l = convertInput(sizeMeasure.length, tankDimensionUnits);\n    //     d = convertInput(sizeMeasure.diameter, tankDimensionUnits);\n\n    //     // V = V_cylinder + V_spherical_heads\n\n    //     // Where:\n        \n    //     // V is the partial volume of the horizontal cylinder with spherical heads.\n    //     // V_cylinder = π * R^2 * (L - 2r) is the volume of the cylindrical portion.\n    //     // V_spherical_heads = (4/3) * π * r^3 is the volume of the two spherical heads.\n    //     // m = (d / 2) - (d - absoluteSensorHeight);\n    //     // θ = 2 * Math.acos(m / (d / 2));\n        \n    //     // volume = tankCapacity - convertOutput(((Math.pow((d / 2), 2) * (θ - Math.sin(θ)) * l) / 2) / 1000);\n    //     var z = d - l / ;\n    //     tankSegment = 1 / 3 * Math.PI\n        \n    \n    //     break;\n    case \"Horizontal Ellipse\": \n        h = convertInput(sizeMeasure.height, tankDimensionUnits);\n        l = convertInput(sizeMeasure.length, tankDimensionUnits);\n        w = convertInput(sizeMeasure.width, tankDimensionUnits);\n        \n        var ellipseSegment = (h * w / 4) * (Math.acos(1 - 2 * absoluteSensorHeight / h) -\n            (1 - 2 * absoluteSensorHeight / h) * Math.sqrt(4 * absoluteSensorHeight / h - 4 * Math.pow(absoluteSensorHeight, 2) / (h * h)));\n        volume = convertOutput((ellipseSegment * l) / 1000);\n        \n}\n\nfunction convertInput(value, dimensionUnits) {\n    switch (dimensionUnits) {\n        case imperial.dimension.inches:\n            return value * 2.54;\n        case imperial.dimension.feets:\n            return value * 30.48\n        case metric.dimension.milimeters:\n            return value / 10;\n        case metric.dimension.centimeters:\n            return value;\n        case metric.dimension.meters:\n            return value * 100;\n    }\n}\n    \nfunction convertOutput(value) {\n    switch (tankCapacityOutput) {\n        case imperial.output.gallons:\n            return value * 0.264172;\n        case imperial.output.cubicIn:\n            return value * 61.0237;\n        case imperial.output.cubicFt:\n            return value * 0.0353147;\n        case metric.output.liters:\n            return value;\n        case metric.output.cubicMm:\n            return value * 1000000;\n        case metric.output.cubicCm:\n            return value * 1000;\n        case metric.output.cubicM:\n            return value * 0.001;\n    }\n}\n\nfuelLevel = ((volume / tankCapacity) * 100).toFixed(0);\n\nmsg.fuelLevel = Number(fuelLevel);\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var sizeMeasure = metadata.ss_sizeMeasure\nvar tankCapacity = metadata.ss_tankCapacity;\nvar fuelLevel;\nswitch (metadata.ss_tankShape) {\n    case \"Vertical Cylinder\": \n        var h = msg.fuelHeight / 10;\n        var d = sizeMeasure.diameter;\n\n        capacity = ((Math.PI * Math.pow((d / 2), 2) * h) / 1000);\n        fuelLevel = ((capacity / tankCapacity) * 100).toFixed(0);\n        break;\n    case \"Horizontal Cylinder\":\n        var l = sizeMeasure.length;\n        var d = msg.fuelHeight / 10;\n        \n        capacity = (((Math.PI / 4) * Math.pow((d / 2), 2) * l) / 1000);\n        fuelLevel = ((capacity / tankCapacity) * 100).toFixed(0);\n        break;\n    case \"Rectangle\":\n        var h = msg.fuelHeight / 10;\n        var l = sizeMeasure.length;\n        var w = sizeMeasure.width;\n\n        capacity = ((h * l * w) / 1000);\n        fuelLevel = ((capacity / tankCapacity) * 100).toFixed(0);\n}\n\nmsg.fuelLevel = fuelLevel;\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 53,
+          "layoutY": 265
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
+        "name": "If post telemetry",
+        "debugMode": false,
+        "singletonMode": false,
+        "configuration": {
+          "messageTypes": [
+            "POST_TELEMETRY_REQUEST"
+          ]
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 398,
+          "layoutY": 268
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
+        "name": "If fuelHeight exists",
+        "debugMode": false,
+        "singletonMode": false,
+        "configuration": {
+          "messageNames": [
+            "fuelHeight"
+          ],
+          "metadataNames": [],
+          "checkAllKeys": true
         },
         "externalId": null
       }
@@ -280,11 +376,6 @@
         "fromIndex": 2,
         "toIndex": 5,
         "type": "RPC Request to Device"
-      },
-      {
-        "fromIndex": 2,
-        "toIndex": 7,
-        "type": "Alarm Cleared"
       },
       {
         "fromIndex": 2,
@@ -330,6 +421,36 @@
         "fromIndex": 11,
         "toIndex": 8,
         "type": "Success"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 13,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 6,
+        "type": "False"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 15,
+        "type": "True"
+      },
+      {
+        "fromIndex": 15,
+        "toIndex": 6,
+        "type": "False"
+      },
+      {
+        "fromIndex": 15,
+        "toIndex": 12,
+        "type": "True"
       }
     ],
     "ruleChainConnections": null

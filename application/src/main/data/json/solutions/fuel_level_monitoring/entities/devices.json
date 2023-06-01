@@ -4,7 +4,7 @@
     "label": "Tank 1491",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Vertical Capsule Tank Emulator",
     "attributes": {
       "latitude": 34.032805,
       "longitude": -118.334398,
@@ -14,13 +14,19 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Petrol",
+      "liquidType": "Flex Fuel (E85)",
       "sizeMeasure": {
-        "height": 100,
-        "diameter": 150
+        "diameter": 300,
+        "length": 550
       },
-      "tankCapacity": 1767.15,
-      "tankShape": "Vertical Cylinder",
+      "tankCapacity": 53014.38,
+      "tankShape": "Vertical Capsule",
+      "sensorGap": 15,
+      "sensorMeasurementSystem": "Metric",
+      "tankCapacityOutput": "L",
+      "tankDimensionUnits": "cm",
+      "tankMeasurementSystem": "Metric",
+      "sensorDimensionUnits": "mm",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -30,7 +36,7 @@
     "label": "Tank 1305",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Horizontal 2:1 Elliptical Tank Emulator",
     "attributes": {
       "latitude": 34.032803,
       "longitude": -118.334699,
@@ -42,11 +48,17 @@
       "isNoAlarms": true,
       "liquidType": "Diesel",
       "sizeMeasure": {
-        "length": 100,
-        "diameter": 150
+        "length": 500,
+        "diameter": 250
       },
-      "tankCapacity": 1767.15,
-      "tankShape": "Horizontal Cylinder",
+      "tankCapacity": 28634.31,
+      "tankShape": "Horizontal 2:1 Elliptical",
+      "sensorGap": 15,
+      "sensorMeasurementSystem": "Metric",
+      "tankCapacityOutput": "L",
+      "tankDimensionUnits": "cm",
+      "tankMeasurementSystem": "Metric",
+      "sensorDimensionUnits": "mm",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -56,7 +68,7 @@
     "label": "Tank 1273",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Horizontal Ellipse Tank Emulator",
     "attributes": {
       "latitude": 34.032998,
       "longitude": -118.334712,
@@ -66,9 +78,20 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Gas",
-      "tankCapacity": 2000,
-      "tankShape": "Unspecified",
+      "liquidType": "Biodiesel B20 (20%)",
+      "sizeMeasure": {
+        "height": 8,
+        "length": 18,
+        "width": 11
+      },
+      "tankCapacity": 9306.29,
+      "tankShape": "Horizontal Ellipse",
+      "sensorGap": 2,
+      "sensorMeasurementSystem": "Imperial",
+      "tankCapacityOutput": "Gal",
+      "tankDimensionUnits": "ft",
+      "tankMeasurementSystem": "Imperial",
+      "sensorDimensionUnits": "in",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -78,7 +101,7 @@
     "label": "Tank 1471",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Vertical Cylinder Tank Emulator",
     "attributes": {
       "latitude": 34.035507,
       "longitude": -118.284661,
@@ -88,13 +111,19 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Petrol",
+      "liquidType": "Biodiesel B20 (20%)",
       "sizeMeasure": {
-        "height": 200,
-        "diameter": 225
+        "height": 500,
+        "diameter": 250
       },
-      "tankCapacity": 7952.16,
+      "tankCapacity": 24543.69,
       "tankShape": "Vertical Cylinder",
+      "sensorGap": 20,
+      "sensorMeasurementSystem": "Metric",
+      "tankCapacityOutput": "L",
+      "tankDimensionUnits": "cm",
+      "tankMeasurementSystem": "Metric",
+      "sensorDimensionUnits": "cm",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -104,7 +133,7 @@
     "label": "Tank 1311",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Horizontal Cylinder Tank Emulator",
     "attributes": {
       "latitude": 34.035233,
       "longitude": -118.284330,
@@ -114,40 +143,19 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Diesel",
+      "liquidType": "Flex Fuel (E85)",
       "sizeMeasure": {
-        "length": 225,
-        "diameter": 300
+        "length": 750,
+        "diameter": 548
       },
-      "tankCapacity": 3976,
+      "tankCapacity": 765773.26,
       "tankShape": "Horizontal Cylinder",
-      "alarmFilter": "noAlarms offline"
-    },
-    "relations": []
-  },
-  {
-    "name": "001123",
-    "label": "Tank 1123",
-    "type": "Tank",
-    "group": "Tanks",
-    "emulator": "Tank Emulator",
-    "attributes": {
-      "latitude": 34.035522,
-      "longitude": -118.284731,
-      "inactivityTimeout": 720000,
-      "isHighTemperature": false,
-      "isLowBattery": false,
-      "isLowFuel": false,
-      "isLowTemperature": false,
-      "isNoAlarms": true,
-      "liquidType": "Gas",
-      "sizeMeasure": {
-        "length": 500,
-        "width": 100,
-        "height": 100
-      },
-      "tankCapacity": 5000,
-      "tankShape": "Rectangle",
+      "sensorGap": 12,
+      "sensorMeasurementSystem": "Imperial",
+      "tankCapacityOutput": "Gal",
+      "tankDimensionUnits": "in",
+      "tankMeasurementSystem": "Imperial",
+      "sensorDimensionUnits": "in",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -157,7 +165,7 @@
     "label": "Tank 1288",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Horizontal Capsule Tank Emulator temperature alarm",
     "attributes": {
       "latitude": 34.033674,
       "longitude": -118.262370,
@@ -167,9 +175,19 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Gas",
-      "tankCapacity": 2000,
-      "tankShape": "Unspecified",
+      "liquidType": "Gasoline mid-grade (89 octane)",
+      "sizeMeasure": {
+        "length": 500,
+        "diameter": 250
+      },
+      "tankCapacity": 32724.92,
+      "tankShape": "Horizontal Capsule",
+      "sensorGap": 10,
+      "sensorMeasurementSystem": "Imperial",
+      "tankCapacityOutput": "L",
+      "tankDimensionUnits": "cm",
+      "tankMeasurementSystem": "Metric",
+      "sensorDimensionUnits": "in",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -179,7 +197,7 @@
     "label": "Tank 1289",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Vertical Oval Tank Emulator",
     "attributes": {
       "latitude": 34.033611,
       "longitude": -118.262327,
@@ -189,9 +207,20 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Gas",
-      "tankCapacity": 2000,
-      "tankShape": "Unspecified",
+      "liquidType": "Gasoline mid-grade (89 octane)",
+      "sizeMeasure": {
+        "height": 220,
+        "length": 320,
+        "width": 210
+      },
+      "tankCapacity": 50889.77,
+      "tankShape": "Vertical Oval",
+      "sensorGap": 10,
+      "sensorMeasurementSystem": "Imperial",
+      "tankCapacityOutput": "Gal",
+      "tankDimensionUnits": "in",
+      "tankMeasurementSystem": "Imperial",
+      "sensorDimensionUnits": "in",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -201,7 +230,7 @@
     "label": "Tank 1113",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Horizontal Oval Tank Emulator battery alarm",
     "attributes": {
       "latitude": 34.033724,
       "longitude": -118.261862,
@@ -211,14 +240,20 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Petrol",
+      "liquidType": "Biodiesel B5 (5%)",
       "sizeMeasure": {
-        "length": 500,
-        "width": 100,
-        "height": 100
+        "height": 1050,
+        "length": 900,
+        "width": 1200
       },
-      "tankCapacity": 5000,
-      "tankShape": "Rectangle",
+      "tankCapacity": 921061.33,
+      "tankShape": "Horizontal Oval",
+      "sensorGap": 10,
+      "sensorMeasurementSystem": "Metric",
+      "tankCapacityOutput": "L",
+      "tankDimensionUnits": "cm",
+      "tankMeasurementSystem": "Metric",
+      "sensorDimensionUnits": "mm",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []
@@ -228,7 +263,7 @@
     "label": "Tank 1133",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Tank Emulator",
+    "emulator": "Rectangle Tank Emulator fuel level alarm",
     "attributes": {
       "latitude": 34.034031,
       "longitude": -118.262053,
@@ -238,14 +273,20 @@
       "isLowFuel": false,
       "isLowTemperature": false,
       "isNoAlarms": true,
-      "liquidType": "Petrol",
+      "liquidType": "Gasoline premium (91-93 octane)",
       "sizeMeasure": {
         "length": 500,
-        "width": 100,
-        "height": 100
+        "width": 600,
+        "height": 500
       },
-      "tankCapacity": 5000,
+      "tankCapacity": 165000,
       "tankShape": "Rectangle",
+      "sensorGap": 10,
+      "sensorMeasurementSystem": "Metric",
+      "tankCapacityOutput": "L",
+      "tankDimensionUnits": "cm",
+      "tankMeasurementSystem": "Metric",
+      "sensorDimensionUnits": "mm",
       "alarmFilter": "noAlarms offline"
     },
     "relations": []

@@ -41,7 +41,7 @@
                     "type": "NUMERIC",
                     "operation": "LESS_OR_EQUAL",
                     "value": {
-                      "defaultValue": 30,
+                      "defaultValue": 20,
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_TENANT",
@@ -75,7 +75,7 @@
                   "type": "NUMERIC",
                   "operation": "GREATER",
                   "value": {
-                    "defaultValue": 0,
+                    "defaultValue": 20,
                     "userValue": null,
                     "dynamicValue": {
                       "sourceType": "CURRENT_TENANT",
@@ -118,7 +118,7 @@
                     "type": "NUMERIC",
                     "operation": "LESS_OR_EQUAL",
                     "value": {
-                      "defaultValue": -12,
+                      "defaultValue": 0,
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_TENANT",
@@ -195,7 +195,7 @@
                     "type": "NUMERIC",
                     "operation": "LESS_OR_EQUAL",
                     "value": {
-                      "defaultValue": 0,
+                      "defaultValue": 10,
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_TENANT",
@@ -229,7 +229,7 @@
                   "type": "NUMERIC",
                   "operation": "GREATER",
                   "value": {
-                    "defaultValue": 0,
+                    "defaultValue": 10,
                     "userValue": null,
                     "dynamicValue": {
                       "sourceType": "CURRENT_TENANT",
@@ -272,7 +272,7 @@
                     "type": "NUMERIC",
                     "operation": "GREATER_OR_EQUAL",
                     "value": {
-                      "defaultValue": 0,
+                      "defaultValue": 80,
                       "userValue": null,
                       "dynamicValue": {
                         "sourceType": "CURRENT_TENANT",
@@ -306,7 +306,7 @@
                   "type": "NUMERIC",
                   "operation": "LESS",
                   "value": {
-                    "defaultValue": 0,
+                    "defaultValue": 80,
                     "userValue": null,
                     "dynamicValue": {
                       "sourceType": "CURRENT_TENANT",
