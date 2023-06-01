@@ -78,6 +78,12 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String DEVICE_STATE_SELECT = "//div[contains(@class,'tb-filter-panel')]//mat-select[@role='combobox']";
     private static final String LIST_OF_DEVICES_STATE = "//div[@class='status']";
     private static final String LIST_OF_DEVICES_PROFILE = "//mat-cell[contains(@class,'type')]";
+    private static final String MAKE_DEVICE_PUBLIC_BTN = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'share')]/parent::button";
+    private static final String DEVICE_IS_PUBLIC_CHECKBOX = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'check_box')]";
+    private static final String MAKE_DEVICE_PUBLIC_BTN_DETAILS_TAB = "//span[contains(text(),'Make device public')]/parent::button";
+    private static final String MAKE_DEVICE_PRIVATE_BTN = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'reply')]/parent::button";
+    private static final String DEVICE_IS_PRIVATE_CHECKBOX = DEVICE + "/ancestor::mat-row//mat-icon[contains(text(),'check_box_outline_blank')]";
+    private static final String MAKE_DEVICE_PRIVATE_BTN_DETAILS_TAB = "//span[contains(text(),'Make device private')]/parent::button";
 
     public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
@@ -233,5 +239,29 @@ public class DevicePageElements extends OtherPageElementsHelper {
 
     public List<WebElement> listOfDevicesProfile() {
         return waitUntilVisibilityOfElementsLocated(LIST_OF_DEVICES_PROFILE);
+    }
+
+    public WebElement makeDevicePublicBtn(String deviceName) {
+        return waitUntilElementToBeClickable(String.format(MAKE_DEVICE_PUBLIC_BTN, deviceName));
+    }
+
+    public WebElement deviceIsPublicCheckbox(String deviceName) {
+        return waitUntilVisibilityOfElementLocated(String.format(DEVICE_IS_PUBLIC_CHECKBOX, deviceName));
+    }
+
+    public WebElement makeDevicePublicBtnDetailsTab() {
+        return waitUntilElementToBeClickable(MAKE_DEVICE_PUBLIC_BTN_DETAILS_TAB);
+    }
+
+    public WebElement makeDevicePrivateBtn(String deviceName) {
+        return waitUntilElementToBeClickable(String.format(MAKE_DEVICE_PRIVATE_BTN, deviceName));
+    }
+
+    public WebElement deviceIsPrivateCheckbox(String deviceName) {
+        return waitUntilVisibilityOfElementLocated(String.format(DEVICE_IS_PRIVATE_CHECKBOX, deviceName));
+    }
+
+    public WebElement makeDevicePrivateBtnDetailsTab() {
+        return waitUntilElementToBeClickable(MAKE_DEVICE_PRIVATE_BTN_DETAILS_TAB);
     }
 }

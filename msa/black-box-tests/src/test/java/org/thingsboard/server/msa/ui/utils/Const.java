@@ -48,6 +48,7 @@ public class Const {
     public static final String IMPORT_TXT_FILE_NAME = "forImport.txt";
     public static final String DEVICE_ACTIVE_STATE = "Active";
     public static final String DEVICE_INACTIVE_STATE = "Inactive";
+    public static final String PUBLIC_CUSTOMER_NAME = "Public";
 
     //Massages
     public static final String EMPTY_IMPORT_MESSAGE = "No file selected";
