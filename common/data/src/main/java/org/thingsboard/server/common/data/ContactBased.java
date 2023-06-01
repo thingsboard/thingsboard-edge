@@ -147,8 +147,4 @@ public abstract class ContactBased<I extends UUIDBased> extends BaseDataWithAddi
         this.email = email;
     }
 
-    public String getSearchText() {
-        return this.getName();
-    }
-
 }

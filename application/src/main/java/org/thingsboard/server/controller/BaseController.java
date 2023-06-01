@@ -65,7 +65,6 @@ import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
@@ -1187,7 +1186,7 @@ public abstract class BaseController {
     }
 
     protected Comparator<ContactBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
-        int result = e1.getSearchText().compareToIgnoreCase(e2.getSearchText());
+        int result = e1.getName().compareToIgnoreCase(e2.getName());
         if (result == 0) {
             result = (int) (e2.getCreatedTime() - e1.getCreatedTime());
         }
@@ -1209,7 +1208,7 @@ public abstract class BaseController {
         @Override
         public boolean test(ContactBased<? extends UUIDBased> searchTextBased) {
             if (textSearch.length() > 0) {
-                return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
+                return searchTextBased.getName().toLowerCase().startsWith(textSearch);
             } else {
                 return true;
             }
