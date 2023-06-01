@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModelProperty;
 import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
@@ -49,6 +50,7 @@ public class RoleId extends UUIDBased implements EntityId {
         return new RoleId(UUID.fromString(roleId));
     }
 
+    @ApiModelProperty(position = 2, required = true, value = "string", example = "ROLE", allowableValues = "ROLE")
     @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;
