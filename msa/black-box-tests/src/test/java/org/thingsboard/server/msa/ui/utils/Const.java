@@ -70,10 +70,10 @@ public class Const {
     public static final String DEVICE_PROFILE_IS_REQUIRED_MESSAGE = "Device profile is required";
 
     //Docs URLs
-    public static final String DASHBOARD_GIDE_DOCS_URL = "https://thingsboard.io/docs/user-guide/dashboards/";
-    public static final String HTTP_API_DOCS_URL = "https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api";
-    public static final String CONNECTIVITY_DOCS_URL = "https://thingsboard.io/docs/getting-started-guides/connectivity/";
-    public static final String ALARM_RULES_DOCS_URL = "https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules";
+    public static final String DASHBOARD_GIDE_DOCS_URL = "https://thingsboard.io/docs/pe/user-guide/dashboards/";
+    public static final String HTTP_API_DOCS_URL = "https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api";
+    public static final String CONNECTIVITY_DOCS_URL = "https://thingsboard.io/docs/pe/getting-started-guides/connectivity/";
+    public static final String ALARM_RULES_DOCS_URL = "https://thingsboard.io/docs/pe/user-guide/device-profiles/#alarm-rules";
     public static final String THINGSBOARD_IOT_GATEWAY_DOCS_URL = "https://thingsboard.io/docs/iot-gateway/what-is-iot-gateway/";
     public static final String THINGSBOARD_MQTT_GATEWAY_DOCS_URL = "https://thingsboard.io/docs/paas/reference/gateway-mqtt-api/";
     public static final String THINGSBOARD_INTEGRATION_DOCS_URL = "https://thingsboard.io/docs/user-guide/integrations/";
