@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.install.update;
 
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.UUIDBased;
 

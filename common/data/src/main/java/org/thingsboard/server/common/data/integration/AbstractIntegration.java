@@ -35,9 +35,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public abstract class AbstractIntegration extends SearchTextBased<IntegrationId> implements HasName, TenantEntity {
+public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = 1934983577296873728L;
 
@@ -169,11 +169,6 @@ public abstract class AbstractIntegration extends SearchTextBased<IntegrationId>
 
     public void setEdgeTemplate(boolean edgeTemplate) {
         this.isEdgeTemplate = edgeTemplate;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @Override

@@ -36,8 +36,8 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,12 +49,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TABLE_NAM
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TENANT_ID_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TITLE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = RESOURCE_TABLE_NAME)
-public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implements SearchTextSourceEntity<TbResourceInfo> {
+public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implements BaseEntity<TbResourceInfo> {
 
     @Column(name = RESOURCE_TENANT_ID_COLUMN, columnDefinition = "uuid")
     private UUID tenantId;
@@ -68,6 +69,9 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
     @Column(name = RESOURCE_KEY_COLUMN)
     private String resourceKey;
 
+    @Column(name = SEARCH_TEXT_PROPERTY)
+    private String searchText;
+
     public TbResourceInfoEntity() {
     }
 
@@ -80,6 +84,7 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
         this.title = resource.getTitle();
         this.resourceType = resource.getResourceType().name();
         this.resourceKey = resource.getResourceKey();
+        this.searchText = resource.getSearchText();
     }
 
     @Override
@@ -90,11 +95,7 @@ public class TbResourceInfoEntity extends BaseSqlEntity<TbResourceInfo> implemen
         resource.setTitle(title);
         resource.setResourceType(ResourceType.valueOf(resourceType));
         resource.setResourceKey(resourceKey);
+        resource.setSearchText(searchText);
         return resource;
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return title;
     }
 }

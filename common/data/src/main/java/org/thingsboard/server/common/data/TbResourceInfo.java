@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class TbResourceInfo extends SearchTextBased<TbResourceId> implements HasName, TenantEntity {
+public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, TenantEntity {
 
     private static final long serialVersionUID = 7282664529021651736L;
 
@@ -102,7 +102,7 @@ public class TbResourceInfo extends SearchTextBased<TbResourceId> implements Has
         return title;
     }
 
-    @Override
+    @JsonIgnore
     public String getSearchText() {
         return searchText != null ? searchText : title;
     }

@@ -36,7 +36,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 
 @Data
@@ -65,7 +65,7 @@ public class SchedulerEvent extends SchedulerEventInfo {
     }
 
     public JsonNode getConfiguration() {
-        return SearchTextBasedWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
+        return BaseDataWithAdditionalInfo.getJson(() -> configuration, () -> configurationBytes);
     }
 
     public void setConfiguration(JsonNode data) {

@@ -62,6 +62,7 @@ public class ModelConstants {
     public static final String NAME_PROPERTY = "name";
     public static final String ALIAS_PROPERTY = "alias";
     public static final String CONFIGURATION_PROPERTY = "configuration";
+    public static final String SEARCH_TEXT_PROPERTY = "search_text";
     public static final String ADDITIONAL_INFO_PROPERTY = "additional_info";
     public static final String ENTITY_TYPE_PROPERTY = "entity_type";
 

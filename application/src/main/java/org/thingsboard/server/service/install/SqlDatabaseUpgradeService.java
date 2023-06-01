@@ -756,7 +756,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 
                         String[] entityNames = new String[]{"converter", "integration", "device", "component_descriptor", "customer", "dashboard",
                                 "rule_chain", "rule_node", "asset_profile", "asset", "device_profile", "tb_user", "tenant_profile", "tenant",
-                                "widgets_bundle", "scheduler_event", "blob_entity", "entity_view", "role", "edge", "ota_package", "resource"};
+                                "widgets_bundle", "scheduler_event", "blob_entity", "entity_view", "role", "edge", "ota_package"};
                         for (String entityName : entityNames) {
                             try {
                                 conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN " + SEARCH_TEXT + " CASCADE");
