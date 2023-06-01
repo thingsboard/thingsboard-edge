@@ -39,8 +39,8 @@ import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -58,7 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TYPE_P
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
+public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
     @Column(name = BLOB_ENTITY_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -109,11 +109,6 @@ public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> ext
         this.name = blobEntityInfoEntity.getName();
         this.contentType = blobEntityInfoEntity.getContentType();
         this.additionalInfo = blobEntityInfoEntity.getAdditionalInfo();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
     }
 
     protected BlobEntityInfo toBlobEntityInfo() {

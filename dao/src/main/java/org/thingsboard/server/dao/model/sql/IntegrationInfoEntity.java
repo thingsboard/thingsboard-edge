@@ -42,9 +42,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -67,7 +67,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_VIEW_N
 @Entity
 @Immutable
 @Table(name = INTEGRATION_VIEW_NAME)
-public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implements SearchTextSourceEntity<IntegrationInfo> {
+public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implements BaseEntity<IntegrationInfo> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -136,11 +136,6 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.edgeTemplate = integration.isEdgeTemplate();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
     }
 
     @Override

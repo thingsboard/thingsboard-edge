@@ -38,9 +38,9 @@ import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -53,7 +53,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
+public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
     public static final Map<String,String> customerColumnMap = new HashMap<>();
     static {
@@ -144,11 +144,6 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         this.email = customerEntity.getEmail();
         this.additionalInfo = customerEntity.getAdditionalInfo();
         this.externalId = customerEntity.getExternalId();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return title;
     }
 
     protected Customer toCustomer() {

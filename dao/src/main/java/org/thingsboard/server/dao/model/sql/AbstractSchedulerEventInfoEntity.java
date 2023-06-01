@@ -41,9 +41,9 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -63,7 +63,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TY
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventInfo> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
+public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventInfo> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
     @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -128,11 +128,6 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         this.name = schedulerEventInfoEntity.getName();
         this.schedule = schedulerEventInfoEntity.getSchedule();
         this.additionalInfo = schedulerEventInfoEntity.getAdditionalInfo();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
     }
 
     protected SchedulerEventInfo toSchedulerEventInfo() {

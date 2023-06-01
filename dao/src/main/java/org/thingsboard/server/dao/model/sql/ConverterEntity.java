@@ -39,9 +39,9 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -64,7 +64,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = CONVERTER_TABLE_NAME)
-public final class ConverterEntity extends BaseSqlEntity<Converter> implements SearchTextSourceEntity<Converter> {
+public final class ConverterEntity extends BaseSqlEntity<Converter> implements BaseEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -114,11 +114,6 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
             this.externalId = converter.getExternalId().getId();
         }
         this.edgeTemplate = converter.isEdgeTemplate();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
     }
 
     @Override

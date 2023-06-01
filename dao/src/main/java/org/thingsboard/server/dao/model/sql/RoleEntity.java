@@ -41,9 +41,9 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -66,7 +66,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
-public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextSourceEntity<Role> {
+public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> {
 
     @Column(name = ROLE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -114,11 +114,6 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextSourceE
         if (role.getExternalId() != null) {
             this.externalId = role.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
     }
 
     @Override

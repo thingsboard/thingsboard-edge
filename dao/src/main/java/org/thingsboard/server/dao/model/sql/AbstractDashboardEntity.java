@@ -42,9 +42,9 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -57,7 +57,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
-public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements SearchTextSourceEntity<T> {
+public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
     private static final JavaType assignedCustomersType =
             JacksonUtil.constructCollectionType(HashSet.class, ShortCustomerInfo.class);
@@ -115,11 +115,6 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
         if (dashboard.getExternalId() != null) {
             this.externalId = dashboard.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return title;
     }
 
     protected Dashboard toDashboard() {

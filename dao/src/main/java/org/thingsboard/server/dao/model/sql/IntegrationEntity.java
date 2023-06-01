@@ -40,9 +40,9 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextSourceEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -71,7 +71,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TYPE_P
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = INTEGRATION_TABLE_NAME)
-public class IntegrationEntity extends BaseSqlEntity<Integration> implements SearchTextSourceEntity<Integration> {
+public class IntegrationEntity extends BaseSqlEntity<Integration> implements BaseEntity<Integration> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -153,11 +153,6 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
             this.externalId = integration.getExternalId().getId();
         }
         this.edgeTemplate = integration.isEdgeTemplate();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
     }
 
     @Override
