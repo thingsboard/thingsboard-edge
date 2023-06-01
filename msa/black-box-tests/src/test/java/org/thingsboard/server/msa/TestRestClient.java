@@ -883,9 +883,9 @@ public class TestRestClient {
                 }).getData();
     }
 
-    public void setDevicePublic(DeviceId deviceId) {
+    public void setEntityGroupPublic(EntityGroupId entityGroupId) {
         given().spec(requestSpec)
-                .post("/api/customer/public/device/{deviceId}", deviceId.getId())
+                .post("/api/entityGroup/{entityGroupId}/makePublic", entityGroupId.getId())
                 .then()
                 .statusCode(HTTP_OK);
     }

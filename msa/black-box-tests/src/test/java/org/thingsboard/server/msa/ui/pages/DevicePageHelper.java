@@ -84,16 +84,6 @@ public class DevicePageHelper extends DevicePageElements {
         entityFromDropdown(deviceProfileName).click();
     }
 
-    public void unassignedDeviceByRightSideBtn(String deviceName) {
-        unassignBtn(deviceName).click();
-        warningPopUpYesBtn().click();
-    }
-
-    public void unassignedDeviceFromDetailsTab() {
-        unassignBtnDetailsTab().click();
-        warningPopUpYesBtn().click();
-    }
-
     public void selectDevices(String... deviceNames) {
         for (String deviceName : deviceNames) {
             checkBox(deviceName).click();
@@ -133,23 +123,23 @@ public class DevicePageHelper extends DevicePageElements {
         submitBtn().click();
     }
 
-    public void makeDevicePublicByRightSideBtn(String deviceName) {
-        makeDevicePublicBtn(deviceName).click();
+    public void makeDeviceGroupPublicByRightSideBtn(String deviceName) {
+        makeDeviceGroupPublicBtn(deviceName).click();
         warningPopUpYesBtn().click();
     }
 
-    public void makeDevicePublicFromDetailsTab() {
-        makeDevicePublicBtnDetailsTab().click();
+    public void makeDeviceGroupPublicFromDetailsTab() {
+        makeDeviceGroupPublicBtnDetailsTab().click();
         warningPopUpYesBtn().click();
     }
 
-    public void makeDevicePrivateByRightSideBtn(String deviceName) {
-        makeDevicePrivateBtn(deviceName).click();
+    public void makeDeviceGroupPrivateByRightSideBtn(String deviceName) {
+        makeDeviceGroupPrivateBtn(deviceName).click();
         warningPopUpYesBtn().click();
     }
 
-    public void makeDevicePrivateFromDetailsTab() {
-        makeDevicePrivateBtnDetailsTab().click();
+    public void makeDeviceGroupPrivateFromDetailsTab() {
+        makeDeviceGroupPrivateBtnDetailsTab().click();
         warningPopUpYesBtn().click();
     }
 }

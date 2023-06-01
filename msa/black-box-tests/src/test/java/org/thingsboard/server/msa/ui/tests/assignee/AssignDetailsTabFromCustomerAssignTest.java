@@ -124,7 +124,7 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(deviceName);
         alarmPage.assignAlarmTo(assignedTenantAlarmType, Const.TENANT_EMAIL);
-        devicePage.closeDeviceDetailsViewBtn().click();
+        devicePage.closeDetailsViewBtn().click();
         loginByUser(userWithNameEmail);
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(deviceName);
@@ -139,7 +139,7 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.assignAlarmTo(tenantAlarmType, Const.TENANT_EMAIL);
-        devicePage.closeDeviceDetailsViewBtn().click();
+        devicePage.closeDetailsViewBtn().click();
         devicePage.checkBox(tenantDeviceName).click();
         devicePage.changeOwnerBtn().click();
         devicePage.changeOwner(customerTitle);
@@ -156,7 +156,7 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.assignAlarmTo(tenantAlarmType, Const.TENANT_EMAIL);
-        devicePage.closeDeviceDetailsViewBtn().click();
+        devicePage.closeDetailsViewBtn().click();
         devicePage.checkBox(tenantDeviceName).click();
         devicePage.changeOwnerBtn().click();
         devicePage.changeOwner(customerTitle);
@@ -174,7 +174,7 @@ public class AssignDetailsTabFromCustomerAssignTest extends AbstractAssignTest {
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(tenantDeviceName);
         alarmPage.assignAlarmTo(tenantAlarmType, Const.TENANT_EMAIL);
-        devicePage.closeDeviceDetailsViewBtn().click();
+        devicePage.closeDetailsViewBtn().click();
         devicePage.checkBox(tenantDeviceName).click();
         devicePage.changeOwnerBtn().click();
         devicePage.changeOwner(customerTitle);

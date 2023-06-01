@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -217,13 +218,10 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
     }
 
     public EntityGroupInfo getEntityGroupByName(EntityType entityType, String name) {
-        try {
-            return testRestClient.getEntityGroups(entityType).stream()
-                    .filter(x -> x.getName().equals(name)).collect(Collectors.toList()).get(0);
-        } catch (Exception e) {
-            log.error("No such " + entityType.name() + " with name: " + name);
-            return null;
-        }
+        return testRestClient.getEntityGroups(entityType).stream()
+                .filter(x -> x.getName().equals(name))
+                .findFirst()
+                .orElse(null);
     }
 
     public Dashboard getDashboardByName(EntityType entityType, String entityGroupName, String name) {
@@ -371,6 +369,13 @@ abstract public class AbstractDriverBaseTest extends AbstractContainerTest {
         DeviceProfile deviceProfile = getDeviceProfileByName(deviceProfileTitle);
         if (deviceProfile != null) {
             testRestClient.deleteDeviseProfile(deviceProfile.getId());
+        }
+    }
+
+    public void deleteEntityGroupByName(EntityType entityType, String entityGroupName) {
+        EntityGroup entityGroup = getEntityGroupByName(entityType, entityGroupName);
+        if (entityGroup != null) {
+            testRestClient.deleteEntityGroup(entityGroup.getId());
         }
     }
 }
