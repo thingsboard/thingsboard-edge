@@ -842,39 +842,6 @@
         "row": 0,
         "col": 0,
         "id": "7ac20b6a-dc40-b18e-9f5f-bca20bc693bb"
-      },
-      "c007f42d-23eb-c0c2-9708-2fd380ce0b21": {
-        "isSystemType": true,
-        "bundleAlias": "home_page_widgets",
-        "typeAlias": "solution_templates",
-        "type": "static",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 7.5,
-        "sizeY": 3,
-        "config": {
-          "showTitle": false,
-          "backgroundColor": "rgb(255, 255, 255)",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "16px",
-          "settings": {
-            "columns": 3
-          },
-          "title": "Solution templates",
-          "dropShadow": false,
-          "enableFullscreen": false,
-          "widgetStyle": {},
-          "widgetCss": "",
-          "pageSize": 1024,
-          "noDataDisplayMessage": "",
-          "showLegend": false,
-          "enableDataExport": true,
-          "datasources": []
-        },
-        "row": 0,
-        "col": 0,
-        "id": "c007f42d-23eb-c0c2-9708-2fd380ce0b21"
       }
     },
     "states": {
@@ -886,16 +853,16 @@
             "widgets": {
               "d70cc256-4c7b-ee06-9905-b8c5e546605f": {
                 "sizeX": 42,
-                "sizeY": 19,
-                "row": 25,
+                "sizeY": 29,
+                "row": 13,
                 "col": 43,
-                "mobileOrder": 5,
+                "mobileOrder": 4,
                 "mobileHeight": 10
               },
               "867f82cf-ecf2-2d5c-35cb-08c6f2edc3a4": {
                 "sizeX": 29,
-                "sizeY": 14,
-                "row": 44,
+                "sizeY": 16,
+                "row": 42,
                 "col": 28,
                 "mobileHide": true
               },
@@ -908,50 +875,42 @@
               },
               "ebbd0a6e-8a47-e770-5086-7f4974250f2d": {
                 "sizeX": 28,
-                "sizeY": 14,
-                "row": 44,
+                "sizeY": 16,
+                "row": 42,
                 "col": 57,
-                "mobileOrder": 4,
+                "mobileOrder": 3,
                 "mobileHeight": 10
               },
               "9e3ef045-d8bc-1640-a3f4-2dd10b19d50e": {
                 "sizeX": 28,
-                "sizeY": 14,
-                "row": 44,
+                "sizeY": 16,
+                "row": 42,
                 "col": 0,
                 "mobileHide": true
               },
               "6d6e2b1d-6ce7-4678-3745-c6b0897b2674": {
                 "sizeX": 43,
-                "sizeY": 19,
-                "row": 25,
+                "sizeY": 29,
+                "row": 13,
                 "col": 0,
                 "mobileOrder": 2,
                 "mobileHeight": 10
               },
               "35d3ac3b-f1af-dc3d-a1d1-11f351d16fc6": {
                 "sizeX": 43,
-                "sizeY": 12,
-                "row": 13,
+                "sizeY": 13,
+                "row": 0,
                 "col": 0,
                 "mobileHeight": 9,
                 "mobileOrder": 1
               },
               "7ac20b6a-dc40-b18e-9f5f-bca20bc693bb": {
                 "sizeX": 42,
-                "sizeY": 12,
+                "sizeY": 13,
                 "mobileHeight": 9,
-                "row": 13,
+                "row": 0,
                 "col": 43,
                 "mobileOrder": 0
-              },
-              "c007f42d-23eb-c0c2-9708-2fd380ce0b21": {
-                "sizeX": 85,
-                "sizeY": 13,
-                "row": 0,
-                "col": 0,
-                "mobileOrder": 3,
-                "mobileHeight": 7
               }
             },
             "gridSettings": {
