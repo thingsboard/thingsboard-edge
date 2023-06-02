@@ -33,7 +33,6 @@ package org.thingsboard.rule.engine.transform;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -134,8 +133,7 @@ public class TbChangeOriginatorNode extends TbAbstractTransformNode<TbChangeOrig
 
         if (conf.getOriginatorSource().equals(RELATED_SOURCE)) {
             if (conf.getRelationsQuery() == null) {
-                log.error("Related source for TbChangeOriginatorNode should have relations query. Actual [{}]",
-                        conf.getRelationsQuery());
+                log.error("Related source for TbChangeOriginatorNode should have relations query. Actual value is null!");
                 throw new IllegalArgumentException("Wrong config for RElated Source in TbChangeOriginatorNode" + conf.getOriginatorSource());
             }
         }

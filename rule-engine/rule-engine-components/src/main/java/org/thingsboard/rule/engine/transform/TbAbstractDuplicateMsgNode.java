@@ -30,65 +30,37 @@
  */
 package org.thingsboard.rule.engine.transform;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
-import org.thingsboard.rule.engine.api.TbNodeConfiguration;
-import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.rule.engine.api.TbRelationTypes;
-import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.RuleEngineException;
-import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.FAILURE;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
 @Slf4j
-public abstract class TbAbstractDuplicateMsgNode implements TbNode {
+public abstract class TbAbstractDuplicateMsgNode<C> extends TbAbstractTransformNode<C> {
 
-    private TbDuplicateMsgNodeConfiguration config;
-
-    @Override
-    public void init(TbContext context, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbDuplicateMsgNodeConfiguration.class);
+    protected ListenableFuture<List<TbMsg>> duplicate(TbContext ctx, TbMsg msg) {
+        ListenableFuture<List<EntityId>> newOriginators = getNewOriginators(ctx, msg.getOriginator());
+        return Futures.transform(newOriginators, entityIds -> {
+            if (entityIds == null || entityIds.isEmpty()) {
+                return null;
+            }
+            List<TbMsg> messages = new ArrayList<>();
+            if (entityIds.size() == 1) {
+                messages.add(ctx.transformMsg(msg, msg.getType(), entityIds.get(0), msg.getMetaData(), msg.getData()));
+            } else {
+                for (EntityId entityId : entityIds) {
+                    messages.add(ctx.newMsg(msg.getQueueName(), msg.getType(), entityId, msg.getCustomerId(), msg.getMetaData(), msg.getData()));
+                }
+            }
+            return messages;
+        }, ctx.getDbCallbackExecutor());
     }
 
-    @Override
-    public void onMsg(TbContext ctx, TbMsg msg) {
-        withCallback(duplicate(ctx, msg),
-                messages -> {
-                    if (messages != null && !messages.isEmpty()) {
-                        if (messages.size() == 1) {
-                            ctx.tellNext(messages.get(0), SUCCESS);
-                        } else {
-                            TbMsgCallbackWrapper wrapper = new MultipleTbMsgsCallbackWrapper(messages.size(), new TbMsgCallback() {
-                                @Override
-                                public void onSuccess() {
-                                    ctx.ack(msg);
-                                }
+    protected abstract ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original);
 
-                                @Override
-                                public void onFailure(RuleEngineException e) {
-                                    ctx.tellFailure(msg, e);
-                                }
-                            });
-                            messages.forEach(newMsg -> ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS, wrapper::onSuccess, wrapper::onFailure));
-                        }
-                    } else {
-                        ctx.tellNext(msg, FAILURE);
-                    }
-                },
-                t -> ctx.tellFailure(msg, t));
-    }
-
-    protected abstract ListenableFuture<List<TbMsg>> duplicate(TbContext ctx, TbMsg msg);
-
-    public void setConfig(TbDuplicateMsgNodeConfiguration config) {
-        this.config = config;
-    }
 }

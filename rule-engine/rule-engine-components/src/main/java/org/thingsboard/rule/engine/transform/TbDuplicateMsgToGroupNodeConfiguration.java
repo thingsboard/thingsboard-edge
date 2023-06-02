@@ -36,7 +36,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
-public class TbDuplicateMsgToGroupNodeConfiguration extends TbDuplicateMsgNodeConfiguration implements NodeConfiguration {
+public class TbDuplicateMsgToGroupNodeConfiguration implements NodeConfiguration<TbDuplicateMsgToGroupNodeConfiguration> {
 
     private EntityGroupId entityGroupId;
 
@@ -45,7 +45,7 @@ public class TbDuplicateMsgToGroupNodeConfiguration extends TbDuplicateMsgNodeCo
 
     @Override
     public TbDuplicateMsgToGroupNodeConfiguration defaultConfiguration() {
-        TbDuplicateMsgToGroupNodeConfiguration configuration = new TbDuplicateMsgToGroupNodeConfiguration();
+        var configuration = new TbDuplicateMsgToGroupNodeConfiguration();
         configuration.setEntityGroupIsMessageOriginator(true);
         return configuration;
     }

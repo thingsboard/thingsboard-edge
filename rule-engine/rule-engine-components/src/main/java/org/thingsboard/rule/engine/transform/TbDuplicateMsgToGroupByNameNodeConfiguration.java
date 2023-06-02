@@ -33,9 +33,10 @@ package org.thingsboard.rule.engine.transform;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 
 @Data
-public class TbDuplicateMsgToGroupByNameNodeConfiguration extends TbDuplicateMsgNodeConfiguration implements NodeConfiguration {
+public class TbDuplicateMsgToGroupByNameNodeConfiguration implements NodeConfiguration<TbDuplicateMsgToGroupByNameNodeConfiguration> {
 
     private boolean searchEntityGroupForTenantOnly;
     private EntityType groupType;
@@ -43,10 +44,10 @@ public class TbDuplicateMsgToGroupByNameNodeConfiguration extends TbDuplicateMsg
 
     @Override
     public TbDuplicateMsgToGroupByNameNodeConfiguration defaultConfiguration() {
-        TbDuplicateMsgToGroupByNameNodeConfiguration configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration();
+        var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration();
         configuration.setSearchEntityGroupForTenantOnly(false);
         configuration.setGroupType(EntityType.USER);
-        configuration.setGroupName("All");
+        configuration.setGroupName(EntityGroup.GROUP_ALL_NAME);
         return configuration;
     }
 }
