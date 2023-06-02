@@ -61,9 +61,12 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.common.msg.notification.trigger.RateLimitsTrigger;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -193,6 +196,7 @@ public class DefaultTransportService implements TransportService {
     private final SchedulerComponent scheduler;
     private final ApplicationEventPublisher eventPublisher;
     private final TransportResourceCache transportResourceCache;
+    private final NotificationRuleProcessor notificationRuleProcessor;
 
     protected TbQueueRequestTemplate<TbProtoQueueMsg<TransportApiRequestMsg>, TbProtoQueueMsg<TransportApiResponseMsg>> transportApiRequestTemplate;
     protected TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> ruleEngineMsgProducer;
@@ -225,7 +229,8 @@ public class DefaultTransportService implements TransportService {
                                    DataDecodingEncodingService dataDecodingEncodingService,
                                    SchedulerComponent scheduler,
                                    TransportResourceCache transportResourceCache,
-                                   ApplicationEventPublisher eventPublisher) {
+                                   ApplicationEventPublisher eventPublisher,
+                                   NotificationRuleProcessor notificationRuleProcessor) {
         this.partitionService = partitionService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.queueProvider = queueProvider;
@@ -240,6 +245,7 @@ public class DefaultTransportService implements TransportService {
         this.scheduler = scheduler;
         this.transportResourceCache = transportResourceCache;
         this.eventPublisher = eventPublisher;
+        this.notificationRuleProcessor = notificationRuleProcessor;
     }
 
     @PostConstruct
@@ -896,6 +902,14 @@ public class DefaultTransportService implements TransportService {
         } else {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(rateLimitedEntityType));
+            }
+            if (rateLimitedEntityType == EntityType.DEVICE || rateLimitedEntityType == EntityType.TENANT) {
+                notificationRuleProcessor.process(RateLimitsTrigger.builder()
+                        .tenantId(tenantId)
+                        .api(rateLimitedEntityType == EntityType.DEVICE ? LimitedApi.TRANSPORT_MESSAGES_PER_DEVICE : LimitedApi.TRANSPORT_MESSAGES_PER_TENANT)
+                        .limitLevel(rateLimitedEntityType == EntityType.DEVICE ? deviceId : tenantId)
+                        .limitLevelEntityName(rateLimitedEntityType == EntityType.DEVICE ? sessionInfo.getDeviceName() : null)
+                        .build());
             }
             return false;
         }

@@ -3789,6 +3789,7 @@
         "api-feature-hint": "If the field is empty, the trigger will be applied to all api features",
         "api-usage-trigger-settings": "API usage trigger settings",
         "new-platform-version-trigger-settings": "New platform version trigger settings",
+        "rate-limits-trigger-settings": "Exceeded rate limits trigger settings",
         "at-least-one-should-be-selected": "At least one should be selected",
         "basic-settings": "Basic settings",
         "button-text": "Button text",
@@ -3990,7 +3991,8 @@
             "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "rule-node": "Rule node",
-            "new-platform-version": "New platform version"
+            "new-platform-version": "New platform version",
+            "rate-limits": "Exceeded rate limits"
         },
         "templates": "Templates",
         "notification-templates": "Notifications / Templates",
@@ -4010,6 +4012,7 @@
             "integration-lifecycle-event": "Integration lifecycle event",
             "rule-engine-lifecycle-event": "Rule engine lifecycle event",
             "new-platform-version": "New platform version",
+            "rate-limits": "Exceeded rate limits",
             "trigger": "Trigger",
             "trigger-required": "Trigger is required"
         },

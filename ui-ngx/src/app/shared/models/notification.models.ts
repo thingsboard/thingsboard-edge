@@ -488,7 +488,8 @@ export enum NotificationType {
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
   NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
   RULE_NODE = 'RULE_NODE',
-  INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT'
+  INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
+  RATE_LIMITS = 'RATE_LIMITS'
 }
 
 export const NotificationTypeIcons = new Map<NotificationType, string | null>([
@@ -600,6 +601,12 @@ export const NotificationTemplateTypeTranslateMap = new Map<NotificationType, No
       name: 'notification.template-type.integration-lifecycle-event',
       helpId: 'notification/integration_lifecycle_event'
     }
+  ],
+  [NotificationType.RATE_LIMITS,
+    {
+      name: 'notification.template-type.rate-limits',
+      helpId: 'notification/rate_limits'
+    }
   ]
 ]);
 
@@ -613,7 +620,8 @@ export enum TriggerType {
   ENTITIES_LIMIT = 'ENTITIES_LIMIT',
   API_USAGE_LIMIT = 'API_USAGE_LIMIT',
   INTEGRATION_LIFECYCLE_EVENT = 'INTEGRATION_LIFECYCLE_EVENT',
-  NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION'
+  NEW_PLATFORM_VERSION = 'NEW_PLATFORM_VERSION',
+  RATE_LIMITS = 'RATE_LIMITS'
 }
 
 export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
@@ -627,4 +635,5 @@ export const TriggerTypeTranslationMap = new Map<TriggerType, string>([
   [TriggerType.API_USAGE_LIMIT, 'notification.trigger.api-usage-limit'],
   [TriggerType.INTEGRATION_LIFECYCLE_EVENT, 'notification.trigger.integration-lifecycle-event'],
   [TriggerType.NEW_PLATFORM_VERSION, 'notification.trigger.new-platform-version'],
+  [TriggerType.RATE_LIMITS, 'notification.trigger.rate-limits'],
 ]);
