@@ -43,7 +43,6 @@ import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -69,14 +68,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_TILE_C
 import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_TYPE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_URL_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.OTA_PACKAGE_VERSION_COLUMN;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = OTA_PACKAGE_TABLE_NAME)
-public class OtaPackageEntity extends BaseSqlEntity<OtaPackage> implements SearchTextEntity<OtaPackage> {
+public class OtaPackageEntity extends BaseSqlEntity<OtaPackage> {
 
     @Column(name = OTA_PACKAGE_TENANT_ID_COLUMN)
     private UUID tenantId;
@@ -124,9 +122,6 @@ public class OtaPackageEntity extends BaseSqlEntity<OtaPackage> implements Searc
     @Column(name = ModelConstants.OTA_PACKAGE_ADDITIONAL_INFO_COLUMN)
     private JsonNode additionalInfo;
 
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
     public OtaPackageEntity() {
         super();
     }
@@ -150,16 +145,6 @@ public class OtaPackageEntity extends BaseSqlEntity<OtaPackage> implements Searc
         this.data = otaPackage.getData().array();
         this.dataSize = otaPackage.getDataSize();
         this.additionalInfo = otaPackage.getAdditionalInfo();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return title;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override

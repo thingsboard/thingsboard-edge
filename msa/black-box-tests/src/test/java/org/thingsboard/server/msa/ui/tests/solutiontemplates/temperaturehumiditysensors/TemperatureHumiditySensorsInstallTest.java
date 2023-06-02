@@ -275,7 +275,7 @@ public class TemperatureHumiditySensorsInstallTest extends AbstractSolutionTempl
         testRestClient.postTemperatureHumidity();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.temperatureHumiditySensorsInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP, TEMPERATURE_HUMIDITY_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, CUSTOMER_DASHBOARD_GROUP).getUuidId().toString();
 

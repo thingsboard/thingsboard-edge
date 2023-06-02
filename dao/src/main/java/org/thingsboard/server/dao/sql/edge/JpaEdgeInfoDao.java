@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.edge.EdgeInfoDao;
 import org.thingsboard.server.dao.model.sql.EdgeInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Objects;
@@ -49,7 +49,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaEdgeInfoDao extends JpaAbstractSearchTextDao<EdgeInfoEntity, EdgeInfo> implements EdgeInfoDao {
+public class JpaEdgeInfoDao extends JpaAbstractDao<EdgeInfoEntity, EdgeInfo> implements EdgeInfoDao {
 
     @Autowired
     private EdgeInfoRepository EdgeInfoRepository;

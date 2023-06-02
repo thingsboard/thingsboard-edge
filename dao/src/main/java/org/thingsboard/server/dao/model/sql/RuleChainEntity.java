@@ -43,7 +43,6 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -58,7 +57,7 @@ import java.util.UUID;
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.RULE_CHAIN_TABLE_NAME)
-public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchTextEntity<RuleChain> {
+public class RuleChainEntity extends BaseSqlEntity<RuleChain> {
 
     @Column(name = ModelConstants.RULE_CHAIN_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -69,9 +68,6 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
     @Enumerated(EnumType.STRING)
     @Column(name = ModelConstants.RULE_CHAIN_TYPE_PROPERTY)
     private RuleChainType type;
-
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = ModelConstants.RULE_CHAIN_FIRST_RULE_NODE_ID_PROPERTY)
     private UUID firstRuleNodeId;
@@ -104,7 +100,6 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
         this.tenantId = DaoUtil.getId(ruleChain.getTenantId());
         this.name = ruleChain.getName();
         this.type = ruleChain.getType();
-        this.searchText = ruleChain.getName();
         if (ruleChain.getFirstRuleNodeId() != null) {
             this.firstRuleNodeId = ruleChain.getFirstRuleNodeId().getId();
         }
@@ -115,16 +110,6 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
         if (ruleChain.getExternalId() != null) {
             this.externalId = ruleChain.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return searchText;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override

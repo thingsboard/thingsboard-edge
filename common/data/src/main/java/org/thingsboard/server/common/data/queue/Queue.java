@@ -32,9 +32,9 @@ package org.thingsboard.server.common.data.queue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
-public class Queue extends SearchTextBasedWithAdditionalInfo<QueueId> implements HasName, TenantEntity {
+public class Queue extends BaseDataWithAdditionalInfo<QueueId> implements HasName, TenantEntity {
     private TenantId tenantId;
     @NoXss
     @Length(fieldName = "name")
@@ -76,11 +76,6 @@ public class Queue extends SearchTextBasedWithAdditionalInfo<QueueId> implements
         this.submitStrategy = queueConfiguration.getSubmitStrategy();
         this.processingStrategy = queueConfiguration.getProcessingStrategy();
         setAdditionalInfo(queueConfiguration.getAdditionalInfo());
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @Override
