@@ -28,15 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.settings;
 
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerConfig;
-import org.thingsboard.server.common.msg.notification.trigger.RuleEngineMsgTrigger;
+import lombok.Data;
 
-import java.util.Set;
-
-public interface RuleEngineMsgNotificationRuleTriggerProcessor<C extends NotificationRuleTriggerConfig> extends NotificationRuleTriggerProcessor<RuleEngineMsgTrigger, C> {
-
-    Set<String> getSupportedMsgTypes();
-
+@Data
+public class TriggerTypeConfig {
+    private long deduplicationDuration;
 }
