@@ -43,11 +43,12 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      * Find cloud events by tenantId and pageLink.
      *
      * @param tenantId the tenantId
-     * @param seqIdOffset  the seq id offset
+     * @param seqIdStart  the seq id start
+     * @param seqIdEnd  the seq id end
      * @param pageLink the pageLink
      * @return the event list
      */
-    PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdOffset, TimePageLink pageLink);
+    PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
     long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
                                                                                 UUID entityId,
