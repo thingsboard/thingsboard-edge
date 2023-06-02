@@ -261,7 +261,8 @@ public class CloudManagerService {
                                 if (initialized) {
                                     if (pageData.getData().isEmpty()) {
                                         log.info("Resetting seqIdOffset - new cycle started");
-                                        pageData = cloudEventService.findCloudEvents(tenantId, 0L,  seqIdOffset, pageLink);
+                                        Long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
+                                        pageData = cloudEventService.findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
                                     }
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                     List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
