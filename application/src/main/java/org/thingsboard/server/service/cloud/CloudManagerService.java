@@ -260,7 +260,7 @@ public class CloudManagerService {
                                 pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, null, pageLink);
                                 if (initialized) {
                                     if (pageData.getData().isEmpty()) {
-                                        log.info("Resetting seqIdOffset - new cycle started");
+                                        log.info("seqId column of cloud_event table started new cycle");
                                         pageData = cloudEventService.findCloudEvents(tenantId, 0L,  seqIdOffset, pageLink);
                                     }
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
