@@ -103,7 +103,7 @@ public class TbTransportQueueProducerProvider implements TbQueueProducerProvider
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> getTbVersionControlMsgProducer() {
-        throw new RuntimeException("Not Implemented! Should not be used by Transport!");
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
