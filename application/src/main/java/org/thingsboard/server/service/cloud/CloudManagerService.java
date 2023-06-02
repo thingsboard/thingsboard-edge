@@ -260,7 +260,7 @@ public class CloudManagerService {
                                 pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, null, pageLink);
                                 if (initialized) {
                                     if (pageData.getData().isEmpty()) {
-                                        log.info("Resetting seqIdOffset - new cycle started");
+                                        log.info("seqId column of cloud_event table started new cycle");
                                         Long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
                                         pageData = cloudEventService.findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
                                     }
