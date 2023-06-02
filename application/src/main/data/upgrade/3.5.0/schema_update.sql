@@ -21,3 +21,5 @@ UPDATE dashboard SET configuration = REPLACE(configuration, 'mat-button mat-icon
 
 UPDATE widget_type SET descriptor = REPLACE(descriptor, 'mat-button mat-icon-button', 'mat-icon-button')
         WHERE descriptor like '%mat-button mat-icon-button%';
+
+ALTER TABLE IF EXISTS cloud_event ALTER COLUMN seq_id SET CYCLE;

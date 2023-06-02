@@ -769,6 +769,8 @@ CREATE TABLE IF NOT EXISTS cloud_event (
     ts bigint NOT NULL
 ) PARTITION BY RANGE(created_time);
 
+ALTER TABLE IF EXISTS cloud_event ALTER COLUMN seq_id SET CYCLE;
+
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
 $$
 BEGIN

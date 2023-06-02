@@ -257,12 +257,11 @@ public class CloudManagerService {
                             UUID idOffset = null;
                             boolean success = true;
                             do {
-                                pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, pageLink);
+                                pageData = cloudEventService.findCloudEvents(tenantId, seqIdOffset, null, pageLink);
                                 if (initialized) {
                                     if (pageData.getData().isEmpty()) {
-                                        // reset in case seq_id column started new cycle
                                         log.info("Resetting seqIdOffset - new cycle started");
-                                        pageData = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
+                                        pageData = cloudEventService.findCloudEvents(tenantId, 0L,  seqIdOffset, pageLink);
                                     }
                                     log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                     List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
@@ -283,7 +282,7 @@ public class CloudManagerService {
                                 try {
                                     Long newStartTs = Uuids.unixTimestamp(idOffset);
                                     updateQueueStartTsSeqIdOffset(newStartTs, seqIdOffset);
-                                    log.debug("Queue offset was updated [{}][{}]", idOffset, newStartTs);
+                                    log.debug("Queue offset was updated [{}][{}][{}]", idOffset, newStartTs, seqIdOffset);
                                 } catch (Exception e) {
                                     log.error("[{}] Failed to update queue offset [{}]", idOffset, e);
                                 }
@@ -305,7 +304,7 @@ public class CloudManagerService {
     }
 
     private boolean newCloudEventsAvailable(Long seqIdOffset, TimePageLink pageLink) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, pageLink);
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, 0L, null, pageLink);
         // next seq_id available or new cycle started (seq_id starts from '1')
         return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() > seqIdOffset || ce.getSeqId() == 1);
     }
