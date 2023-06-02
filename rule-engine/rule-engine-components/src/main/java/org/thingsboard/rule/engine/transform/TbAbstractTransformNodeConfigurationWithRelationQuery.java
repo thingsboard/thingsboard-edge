@@ -30,36 +30,26 @@
  */
 package org.thingsboard.rule.engine.transform;
 
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.msg.TbMsg;
+import lombok.Data;
+import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
-public abstract class TbAbstractDuplicateMsgToOriginatorsNode extends TbAbstractDuplicateMsgNode {
+@Data
+public abstract class TbAbstractTransformNodeConfigurationWithRelationQuery {
 
-    @Override
-    protected ListenableFuture<List<TbMsg>> duplicate(TbContext ctx, TbMsg msg) {
-        ListenableFuture<List<EntityId>> newOriginators = getNewOriginators(ctx, msg.getOriginator());
-        return Futures.transform(newOriginators, entityIds -> {
-            if (entityIds == null || entityIds.isEmpty()) {
-                return null;
-            }
-            List<TbMsg> messages = new ArrayList<>();
-            if (entityIds.size() == 1) {
-                messages.add(ctx.transformMsg(msg, msg.getType(), entityIds.get(0), msg.getMetaData(), msg.getData()));
-            } else {
-                for (EntityId entityId : entityIds) {
-                    messages.add(ctx.newMsg(msg.getQueueName(), msg.getType(), entityId, msg.getCustomerId(), msg.getMetaData(), msg.getData()));
-                }
-            }
-            return messages;
-        }, ctx.getDbCallbackExecutor());
+    private RelationsQuery relationsQuery;
+
+    protected RelationsQuery getDefaultRelationQuery() {
+        var relationsQuery = new RelationsQuery();
+        relationsQuery.setDirection(EntitySearchDirection.FROM);
+        relationsQuery.setMaxLevel(1);
+        var entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
+        relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
+        return relationsQuery;
     }
-
-    protected abstract ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original);
-
+    
 }
