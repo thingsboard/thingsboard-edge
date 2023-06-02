@@ -368,22 +368,6 @@ public abstract class AbstractContainerTest {
         profileData.setProvisionConfiguration(new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("123"));
     }
 
-    private static HttpComponentsClientHttpRequestFactory getRequestFactoryForSelfSignedCert() throws Exception {
-        SSLContextBuilder builder = SSLContexts.custom();
-        builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        SSLContext sslContext = builder.build();
-        SSLConnectionSocketFactory sslSelfSigned = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
-
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
-                .<ConnectionSocketFactory>create()
-                .register("https", sslSelfSigned)
-                .build();
-
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
-        return new HttpComponentsClientHttpRequestFactory(httpClient);
-    }
-
     protected static Edge createEdge(String name, String routingKey, String secret) {
         Edge edge = new Edge();
         edge.setName(name + StringUtils.randomAlphanumeric(7));
