@@ -297,7 +297,7 @@
             "condition": [
               {
                 "key": {
-                  "type": "ATTRIBUTE",
+                  "type": "TIME_SERIES",
                   "key": "temperature"
                 },
                 "valueType": "NUMERIC",
