@@ -99,7 +99,7 @@ SELECT d.*, c.title as owner_name,
        COALESCE(da.bool_v, FALSE) as active
 FROM device d
          LEFT JOIN customer c ON c.id = d.customer_id
-         LEFT JOIN attribute_kv da ON da.entity_id = d.id and da.attribute_key = 'active';
+         LEFT JOIN attribute_kv da ON da.entity_type = 'DEVICE' AND da.entity_id = d.id AND da.attribute_type = 'SERVER_SCOPE' AND da.attribute_key = 'active';
 
 DROP VIEW IF EXISTS device_info_active_ts_view CASCADE;
 CREATE OR REPLACE VIEW device_info_active_ts_view as

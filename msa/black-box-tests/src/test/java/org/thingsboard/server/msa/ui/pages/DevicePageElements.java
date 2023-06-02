@@ -51,7 +51,7 @@ public class DevicePageElements extends OtherPageElementsHelper {
     private static final String CHOOSE_CUSTOMER_FOR_ASSIGN_FIELD = "//input[@formcontrolname='entity']";
     private static final String ENTITY_FROM_DROPDOWN = "//div[@role = 'listbox']//span[text() = '%s']";
     private static final String CLOSE_DEVICE_DETAILS_VIEW = "//header//mat-icon[contains(text(),'close')]/parent::button";
-    private static final String SUBMIT_ASSIGN_TO_CUSTOMER_BTN = "//button[@type='submit']";
+    private static final String SUBMIT_BTN = "//button[@type='submit']";
     private static final String ADD_DEVICE_BTN = "//mat-icon[text() = 'insert_drive_file']/parent::button";
     private static final String HEADER_NAME_VIEW = "//header//div[@class='tb-details-title']/span";
     private static final String ADD_DEVICE_VIEW = "//tb-device-wizard";
@@ -73,6 +73,11 @@ public class DevicePageElements extends OtherPageElementsHelper {
     protected static final String ASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Assign to customer')]/parent::button";
     protected static final String UNASSIGN_BTN_DETAILS_TAB = "//span[contains(text(),'Unassign from customer')]/parent::button";
     protected static final String CHANGE_OWNER_BTN = "//mat-icon[text() = 'assignment_ind']/parent::button";
+    private static final String FILTER_BTN = "//tb-device-info-filter/button";
+    private static final String DEVICE_PROFILE_FIELD = "(//input[@formcontrolname='deviceProfile'])[2]";
+    private static final String DEVICE_STATE_SELECT = "//div[contains(@class,'tb-filter-panel')]//mat-select[@role='combobox']";
+    private static final String LIST_OF_DEVICES_STATE = "//div[@class='status']";
+    private static final String LIST_OF_DEVICES_PROFILE = "//mat-cell[contains(@class,'type')]";
 
     public List<WebElement> allGroupNames() {
         return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
@@ -114,8 +119,8 @@ public class DevicePageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(CLOSE_DEVICE_DETAILS_VIEW);
     }
 
-    public WebElement submitAssignToCustomerBtn() {
-        return waitUntilElementToBeClickable(SUBMIT_ASSIGN_TO_CUSTOMER_BTN);
+    public WebElement submitBtn() {
+        return waitUntilElementToBeClickable(SUBMIT_BTN);
     }
 
     public WebElement addDeviceBtn() {
@@ -208,5 +213,25 @@ public class DevicePageElements extends OtherPageElementsHelper {
 
     public WebElement changeOwnerDeviceBtn() {
         return waitUntilVisibilityOfElementLocated(CHANGE_OWNER_BTN);
+    }
+
+    public WebElement filterBtn() {
+        return waitUntilElementToBeClickable(FILTER_BTN);
+    }
+
+    public WebElement deviceProfileField() {
+        return waitUntilElementToBeClickable(DEVICE_PROFILE_FIELD);
+    }
+
+    public WebElement deviceStateSelect() {
+        return waitUntilElementToBeClickable(DEVICE_STATE_SELECT);
+    }
+
+    public List<WebElement> listOfDevicesState() {
+        return waitUntilVisibilityOfElementsLocated(LIST_OF_DEVICES_STATE);
+    }
+
+    public List<WebElement> listOfDevicesProfile() {
+        return waitUntilVisibilityOfElementsLocated(LIST_OF_DEVICES_PROFILE);
     }
 }
