@@ -70,6 +70,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -166,7 +167,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
 
         AlarmComment createdComment = createAlarmComment(alarm.getId());
 
-        testLogEntityAction(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.ADDED_COMMENT, 1, createdComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.ADDED_COMMENT, 1, createdComment);
     }
 
     @Test
@@ -191,7 +192,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         AlarmComment createdComment = createAlarmComment(alarm.getId());
         Assert.assertEquals(AlarmCommentType.OTHER, createdComment.getType());
 
-        testLogEntityAction(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ADDED_COMMENT, 1, createdComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ADDED_COMMENT, 1, createdComment);
     }
 
     @Test
@@ -210,7 +211,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         Assert.assertEquals("true", updatedAlarmComment.getComment().get("edited").asText());
         Assert.assertNotNull(updatedAlarmComment.getComment().get("editedOn"));
 
-        testLogEntityAction(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.UPDATED_COMMENT, 1, updatedAlarmComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.UPDATED_COMMENT, 1, updatedAlarmComment);
     }
 
     @Test
@@ -240,7 +241,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         Assert.assertEquals("true", updatedAlarmComment.getComment().get("edited").asText());
         Assert.assertNotNull(updatedAlarmComment.getComment().get("editedOn"));
 
-        testLogEntityAction(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.UPDATED_COMMENT, 1, savedComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.UPDATED_COMMENT, 1, savedComment);
     }
 
     @Test
@@ -255,8 +256,8 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         savedComment.setComment(newComment);
 
         doPost("/api/alarm/" + alarm.getId() + "/comment", savedComment)
-                .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(equalTo(msgErrorNoFound("Alarm", alarm.getId().toString()))));
 
         testNotifyEntityNever(alarm.getId(), savedComment);
     }
@@ -301,7 +302,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
                 .comment(JacksonUtil.newObjectNode().put("text", String.format("User %s deleted his comment",
                         CUSTOMER_USER_EMAIL)))
                 .build();
-        testLogEntityAction(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
     }
 
     @Test
@@ -331,7 +332,7 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
                 .comment(JacksonUtil.newObjectNode().put("text", String.format("User %s deleted his comment",
                         TENANT_ADMIN_EMAIL)))
                 .build();
-        testLogEntityAction(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
     }
 
     @Test
@@ -421,16 +422,18 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgErrorPermissionRead + classNameAlarm)));
     }
 
-    private AlarmComment createAlarmComment(AlarmId alarmId, String text)  {
+    private AlarmComment createAlarmComment(AlarmId alarmId, String text) {
         AlarmComment alarmComment = AlarmComment.builder()
                 .comment(JacksonUtil.newObjectNode().set("text", new TextNode(text)))
                 .build();
 
         return saveAlarmComment(alarmId, alarmComment);
     }
-    private AlarmComment createAlarmComment(AlarmId alarmId)  {
+
+    private AlarmComment createAlarmComment(AlarmId alarmId) {
         return createAlarmComment(alarmId, "Please take a look");
     }
+
     private AlarmComment saveAlarmComment(AlarmId alarmId, AlarmComment alarmComment) {
         alarmComment = doPost("/api/alarm/" + alarmId + "/comment", alarmComment, AlarmComment.class);
         Assert.assertNotNull(alarmComment);
