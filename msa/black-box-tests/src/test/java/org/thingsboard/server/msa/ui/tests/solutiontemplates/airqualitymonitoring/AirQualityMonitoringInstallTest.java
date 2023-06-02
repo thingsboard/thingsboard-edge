@@ -308,7 +308,7 @@ public class AirQualityMonitoringInstallTest extends AbstractSolutionTemplateTes
         testRestClient.postAirQualityMonitoring();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.airQualityMonitoringInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP, AIR_QUALITY_MONITORING_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, AIR_QUALITY_MONITORING_DASHBOARD_GROUP).getUuidId().toString();
 
