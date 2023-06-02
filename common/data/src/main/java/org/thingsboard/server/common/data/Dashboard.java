@@ -57,7 +57,7 @@ import java.util.stream.Collectors;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Dashboard extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId> {
+public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId> {
 
     private static final long serialVersionUID = 872682138346187503L;
 
@@ -205,11 +205,6 @@ public class Dashboard extends SearchTextBased<DashboardId> implements GroupEnti
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return title;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getTitle();
     }
 
     @ApiModelProperty(position = 12, value = "JSON object with main configuration of the dashboard: layouts, widgets, aliases, etc. " +

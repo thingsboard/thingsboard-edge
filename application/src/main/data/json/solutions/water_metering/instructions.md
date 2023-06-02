@@ -104,7 +104,7 @@ Edge is going to process data in case there is no network connection to the cent
 Eventually, required data is going to be pushed to the cloud, once network connection is established. 
 Configuration of edge computing business logic is centralized in a single place - ThingsBoard server.
 
-In the scope of this solution, new edge entity <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">Remote Facility R1</a> was added to a customer "Water Metering Customer A".
+In the scope of this solution, new edge entity <a href="${Remote Facility W1EDGE_DETAILS_URL}" target="_blank">Remote Facility W1</a> was added to a customer "Water Metering Customer A".
 
 Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
 
@@ -113,13 +113,13 @@ Additionally, particular entity groups were already assigned to the edge entity 
 * **"Water Metering"** *DASHBOARD* group of your tenant.
 * **"Water Metering Shared"** *DASHBOARD* group of your tenant.
 
-To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
+To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Facility W1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
 
 Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant or users of customer "Water Metering Customer A" credentials.
 
 #### Push data to device on edge
 
-**"Water Meters"** *DEVICE* group of customer "Water Metering Customer A" was assigned to the edge entity "Remote Facility R1".
+**"Water Meters"** *DEVICE* group of customer "Water Metering Customer A" was assigned to the edge entity "Remote Facility W1".
 This means that all devices from this group will be automatically provisioned to the edge.
 
 You can see devices from this group once you log in into edge and navigate to the **Entities -> Devices** page.
