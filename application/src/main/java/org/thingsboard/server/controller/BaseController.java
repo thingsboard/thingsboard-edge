@@ -50,6 +50,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.Dashboard;
@@ -64,7 +65,6 @@ import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
@@ -1185,15 +1185,15 @@ public abstract class BaseController {
         return new PageData<>(entities, totalPages, totalElements, hasNext);
     }
 
-    protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
-        int result = e1.getSearchText().compareToIgnoreCase(e2.getSearchText());
+    protected Comparator<ContactBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
+        int result = e1.getName().compareToIgnoreCase(e2.getName());
         if (result == 0) {
             result = (int) (e2.getCreatedTime() - e1.getCreatedTime());
         }
         return result;
     };
 
-    protected class EntityPageLinkFilter implements Predicate<SearchTextBased<? extends UUIDBased>> {
+    protected class EntityPageLinkFilter implements Predicate<ContactBased<? extends UUIDBased>> {
 
         private final String textSearch;
 
@@ -1206,9 +1206,9 @@ public abstract class BaseController {
         }
 
         @Override
-        public boolean test(SearchTextBased<? extends UUIDBased> searchTextBased) {
+        public boolean test(ContactBased<? extends UUIDBased> searchTextBased) {
             if (textSearch.length() > 0) {
-                return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
+                return searchTextBased.getName().toLowerCase().startsWith(textSearch);
             } else {
                 return true;
             }

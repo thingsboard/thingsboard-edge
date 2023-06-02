@@ -41,9 +41,9 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -59,7 +59,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.ROLE_NAME_PROPERTY
 import static org.thingsboard.server.dao.model.ModelConstants.ROLE_PERMISSIONS_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -67,7 +66,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
-public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<Role> {
+public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> {
 
     @Column(name = ROLE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -85,9 +84,6 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
     @Type(type = "json")
     @Column(name = ROLE_PERMISSIONS_PROPERTY)
     private JsonNode permissions;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Type(type = "json")
     @Column(name = ModelConstants.ENTITY_VIEW_ADDITIONAL_INFO_PROPERTY)
@@ -114,21 +110,10 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         this.type = role.getType();
         this.name = role.getName();
         this.permissions = role.getPermissions();
-        this.searchText = role.getSearchText();
         this.additionalInfo = role.getAdditionalInfo();
         if (role.getExternalId() != null) {
             this.externalId = role.getExternalId().getId();
         }
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
     }
 
     @Override

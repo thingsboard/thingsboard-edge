@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
@@ -55,7 +55,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationInfoEntity, IntegrationInfo> implements IntegrationInfoDao {
+public class JpaIntegrationInfoDao extends JpaAbstractDao<IntegrationInfoEntity, IntegrationInfo> implements IntegrationInfoDao {
 
     @Autowired
     private IntegrationInfoRepository integrationInfoRepository;

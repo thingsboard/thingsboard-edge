@@ -53,13 +53,13 @@ import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
 import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -1393,7 +1393,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> {
+    private abstract static class WhiteLabelingPaginatedUpdater<I, D extends BaseDataWithAdditionalInfo<? extends UUIDBased>> {
 
         private static final int DEFAULT_LIMIT = 100;
         private int updated = 0;

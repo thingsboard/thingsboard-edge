@@ -47,14 +47,14 @@ import java.util.UUID;
 public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UUID>, ExportableEntityRepository<EntityViewEntity> {
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityViewEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                           @Param("textSearch") String textSearch,
                                           Pageable pageable);
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +
             "AND e.type = :type " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityViewEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                  @Param("type") String type,
                                                  @Param("textSearch") String textSearch,
@@ -62,7 +62,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +
             "AND e.customerId = :customerId " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                        @Param("customerId") UUID customerId,
                                                        @Param("searchText") String searchText,
@@ -71,7 +71,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +
             "AND e.customerId = :customerId " +
             "AND e.type = :type " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                               @Param("customerId") UUID customerId,
                                                               @Param("type") String type,
@@ -91,7 +91,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityViewEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                            @Param("textSearch") String textSearch,
                                            Pageable pageable);
@@ -102,7 +102,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
             "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityViewEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                             @Param("textSearch") String textSearch,
                                             Pageable pageable);
@@ -114,7 +114,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
             "AND e.type = :type " +
-            "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
     Page<EntityViewEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<UUID> groupIds,
                                                    @Param("type") String type,
                                                    @Param("textSearch") String textSearch,
@@ -125,7 +125,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
     @Query("SELECT ev FROM EntityViewEntity ev, RelationEntity re WHERE ev.tenantId = :tenantId " +
             "AND ev.id = re.toId AND re.toType = 'ENTITY_VIEW' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
-            "AND LOWER(ev.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ev.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
                                                @Param("edgeId") UUID edgeId,
                                                @Param("searchText") String searchText,
@@ -135,7 +135,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
             "AND ev.id = re.toId AND re.toType = 'ENTITY_VIEW' AND re.relationTypeGroup = 'EDGE' " +
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
             "AND ev.type = :type " +
-            "AND LOWER(ev.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ev.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<EntityViewEntity> findByTenantIdAndEdgeIdAndType(@Param("tenantId") UUID tenantId,
                                                    @Param("edgeId") UUID edgeId,
                                                    @Param("type") String type,

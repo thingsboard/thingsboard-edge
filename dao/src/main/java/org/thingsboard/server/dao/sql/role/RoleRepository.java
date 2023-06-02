@@ -48,7 +48,7 @@ public interface RoleRepository extends JpaRepository<RoleEntity, UUID>, Exporta
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId " +
-            "AND LOWER(r.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(r.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<RoleEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                  @Param("customerId") UUID customerId,
                                                  @Param("searchText") String searchText,
@@ -56,7 +56,7 @@ public interface RoleRepository extends JpaRepository<RoleEntity, UUID>, Exporta
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId AND r.type = :type " +
-            "AND LOWER(r.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(r.name) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
                                                         @Param("customerId") UUID customerId,
                                                         @Param("type") RoleType type,

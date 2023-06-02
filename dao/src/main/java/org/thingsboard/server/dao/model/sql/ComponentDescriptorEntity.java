@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -56,7 +55,7 @@ import javax.persistence.Table;
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.COMPONENT_DESCRIPTOR_TABLE_NAME)
-public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor> implements SearchTextEntity<ComponentDescriptor> {
+public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor> {
 
     @Enumerated(EnumType.STRING)
     @Column(name = ModelConstants.COMPONENT_DESCRIPTOR_TYPE_PROPERTY)
@@ -83,9 +82,6 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
     @Column(name = ModelConstants.COMPONENT_DESCRIPTOR_ACTIONS_PROPERTY)
     private String actions;
 
-    @Column(name = ModelConstants.SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
     public ComponentDescriptorEntity() {
     }
 
@@ -101,7 +97,6 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         this.name = component.getName();
         this.clazz = component.getClazz();
         this.configurationDescriptor = component.getConfigurationDescriptor();
-        this.searchText = component.getName();
     }
 
     @Override
@@ -116,19 +111,5 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
         data.setActions(this.getActions());
         data.setConfigurationDescriptor(configurationDescriptor);
         return data;
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return getSearchText();
     }
 }

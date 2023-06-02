@@ -41,7 +41,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.customer.CustomerInfoDao;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 import org.thingsboard.server.dao.model.sql.CustomerInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Objects;
@@ -50,7 +50,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaCustomerInfoDao extends JpaAbstractSearchTextDao<CustomerInfoEntity, CustomerInfo> implements CustomerInfoDao {
+public class JpaCustomerInfoDao extends JpaAbstractDao<CustomerInfoEntity, CustomerInfo> implements CustomerInfoDao {
 
     @Autowired
     private CustomerInfoRepository customerInfoRepository;
