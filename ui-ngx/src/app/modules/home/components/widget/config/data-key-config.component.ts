@@ -67,6 +67,7 @@ import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { aggregationTranslations, AggregationType, ComparisonDuration } from '@shared/models/time/time.models';
 import { genNextLabel } from '@core/utils';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-data-key-config',
@@ -134,6 +135,22 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
 
   @Input()
   showPostProcessing = true;
+
+  @Input()
+  @coerceBoolean()
+  hideDataKeyLabel = false;
+
+  @Input()
+  @coerceBoolean()
+  hideDataKeyColor = false;
+
+  @Input()
+  @coerceBoolean()
+  hideDataKeyUnits = false;
+
+  @Input()
+  @coerceBoolean()
+  hideDataKeyDecimals = false;
 
   @ViewChild('keyInput') keyInput: ElementRef;
 

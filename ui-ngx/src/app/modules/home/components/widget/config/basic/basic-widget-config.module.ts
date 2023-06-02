@@ -29,48 +29,36 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
+import { NgModule, Type } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SharedModule } from '@app/shared/shared.module';
-import { AlarmFilterConfigComponent } from '@home/components/alarm/alarm-filter-config.component';
-import { DataKeysComponent } from '@home/components/widget/data-keys.component';
-import { DataKeyConfigDialogComponent } from '@home/components/widget/data-key-config-dialog.component';
-import { DataKeyConfigComponent } from '@home/components/widget/data-key-config.component';
-import { DatasourceComponent } from '@home/components/widget/datasource.component';
-import { DatasourcesComponent } from '@home/components/widget/datasources.component';
-import { EntityAliasSelectComponent } from '@home/components/alias/entity-alias-select.component';
-import { FilterSelectComponent } from '@home/components/filter/filter-select.component';
-import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widget-settings.module';
-import { WidgetSettingsComponent } from '@home/components/widget/widget-settings.component';
+import { SharedModule } from '@shared/shared.module';
+import { IBasicWidgetConfigComponent } from '@home/components/widget/widget-config.component.models';
+import { WidgetConfigComponentsModule } from '@home/components/widget/widget-config-components.module';
+import {
+  SimpleCardBasicConfigComponent
+} from '@home/components/widget/basic-config/cards/simple-card-basic-config.component';
+import {
+  WidgetActionsPanelComponent
+} from '@home/components/widget/basic-config/common/widget-actions-panel.component';
 
 @NgModule({
-  declarations:
-    [
-      AlarmFilterConfigComponent,
-      DataKeysComponent,
-      DataKeyConfigDialogComponent,
-      DataKeyConfigComponent,
-      DatasourceComponent,
-      DatasourcesComponent,
-      EntityAliasSelectComponent,
-      FilterSelectComponent,
-      WidgetSettingsComponent
-    ],
+  declarations: [
+    WidgetActionsPanelComponent,
+    SimpleCardBasicConfigComponent
+  ],
   imports: [
     CommonModule,
     SharedModule,
-    WidgetSettingsModule
+    WidgetConfigComponentsModule
   ],
   exports: [
-    AlarmFilterConfigComponent,
-    DataKeysComponent,
-    DataKeyConfigDialogComponent,
-    DataKeyConfigComponent,
-    DatasourceComponent,
-    DatasourcesComponent,
-    EntityAliasSelectComponent,
-    FilterSelectComponent,
-    WidgetSettingsComponent
+    WidgetActionsPanelComponent,
+    SimpleCardBasicConfigComponent
   ]
 })
-export class WidgetConfigComponentsModule { }
+export class BasicWidgetConfigModule {
+}
+
+export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetConfigComponent>} = {
+  'tb-simple-card-basic-config': SimpleCardBasicConfigComponent
+};

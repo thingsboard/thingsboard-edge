@@ -83,6 +83,7 @@ import { AggregationType } from '@shared/models/time/time.models';
 import { DndDropEvent } from 'ngx-drag-drop/lib/dnd-dropzone.directive';
 import { moveItemInArray } from '@angular/cdk/drag-drop';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { DatasourceComponent } from '@home/components/widget/datasource.component';
 
 @Component({
   selector: 'tb-data-keys',
@@ -102,6 +103,22 @@ import { coerceBoolean } from '@shared/decorators/coercion';
   encapsulation: ViewEncapsulation.None
 })
 export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChanges, ErrorStateMatcher {
+
+  public get hideDataKeyLabel(): boolean {
+    return this.datasourceComponent.hideDataKeyLabel;
+  }
+
+  public get hideDataKeyColor(): boolean {
+    return this.datasourceComponent.hideDataKeyColor;
+  }
+
+  public get hideDataKeyUnits(): boolean {
+    return this.datasourceComponent.hideDataKeyUnits;
+  }
+
+  public get hideDataKeyDecimals(): boolean {
+    return this.datasourceComponent.hideDataKeyDecimals;
+  }
 
   datasourceTypes = DatasourceType;
   widgetTypes = widgetType;
@@ -203,6 +220,7 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
 
   constructor(private store: Store<AppState>,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
+              private datasourceComponent: DatasourceComponent,
               public translate: TranslateService,
               private utils: UtilsService,
               private dialogs: DialogService,
@@ -495,7 +513,11 @@ export class DataKeysComponent implements ControlValueAccessor, OnInit, OnChange
           deviceId: this.deviceId,
           entityAliasId: this.entityAliasId,
           showPostProcessing: this.widgetType !== widgetType.alarm,
-          callbacks: this.callbacks
+          callbacks: this.callbacks,
+          hideDataKeyLabel: this.hideDataKeyLabel,
+          hideDataKeyColor: this.hideDataKeyColor,
+          hideDataKeyUnits: this.hideDataKeyUnits,
+          hideDataKeyDecimals: this.hideDataKeyDecimals
         }
       }).afterClosed().subscribe((updatedDataKey) => {
         if (updatedDataKey) {
