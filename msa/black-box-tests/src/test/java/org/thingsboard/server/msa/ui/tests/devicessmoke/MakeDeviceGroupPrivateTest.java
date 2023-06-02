@@ -31,7 +31,7 @@
 package org.thingsboard.server.msa.ui.tests.devicessmoke;
 
 import io.qameta.allure.Description;
-import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -44,7 +44,7 @@ import static org.thingsboard.server.msa.ui.base.AbstractBasePage.random;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.PUBLIC_CUSTOMER_NAME;
 
-@Epic("Make device group private")
+@Feature("Make device group private")
 public class MakeDeviceGroupPrivateTest extends AbstractDeviceTest {
 
     private String deviceGroupName;
