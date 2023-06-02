@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.msa.ui.utils;
 
-import static org.thingsboard.server.msa.TestProperties.getBaseUrl;
+import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 
 public class Const {
 
-    public static final String URL = getBaseUrl();
+    public static final String URL = getBaseUiUrl();
     public static final String TENANT_EMAIL = "tenant@thingsboard.org";
     public static final String TENANT_PASSWORD = "tenant";
     public static final String ENTITY_NAME = "Aaz!@#$%^&*()_-+=~`";
@@ -46,6 +46,8 @@ public class Const {
     public static final String IMPORT_DEVICE_PROFILE_FILE_NAME = "deviceProfileForImport.json";
     public static final String IMPORT_ASSET_PROFILE_FILE_NAME = "assetProfileForImport.json";
     public static final String IMPORT_TXT_FILE_NAME = "forImport.txt";
+    public static final String DEVICE_ACTIVE_STATE = "Active";
+    public static final String DEVICE_INACTIVE_STATE = "Inactive";
 
     //Massages
     public static final String EMPTY_IMPORT_MESSAGE = "No file selected";
@@ -68,10 +70,10 @@ public class Const {
     public static final String DEVICE_PROFILE_IS_REQUIRED_MESSAGE = "Device profile is required";
 
     //Docs URLs
-    public static final String DASHBOARD_GIDE_DOCS_URL = "https://thingsboard.io/docs/user-guide/dashboards/";
-    public static final String HTTP_API_DOCS_URL = "https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api";
-    public static final String CONNECTIVITY_DOCS_URL = "https://thingsboard.io/docs/getting-started-guides/connectivity/";
-    public static final String ALARM_RULES_DOCS_URL = "https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules";
+    public static final String DASHBOARD_GIDE_DOCS_URL = "https://thingsboard.io/docs/pe/user-guide/dashboards/";
+    public static final String HTTP_API_DOCS_URL = "https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api";
+    public static final String CONNECTIVITY_DOCS_URL = "https://thingsboard.io/docs/pe/getting-started-guides/connectivity/";
+    public static final String ALARM_RULES_DOCS_URL = "https://thingsboard.io/docs/pe/user-guide/device-profiles/#alarm-rules";
     public static final String THINGSBOARD_IOT_GATEWAY_DOCS_URL = "https://thingsboard.io/docs/iot-gateway/what-is-iot-gateway/";
     public static final String THINGSBOARD_MQTT_GATEWAY_DOCS_URL = "https://thingsboard.io/docs/paas/reference/gateway-mqtt-api/";
     public static final String THINGSBOARD_INTEGRATION_DOCS_URL = "https://thingsboard.io/docs/user-guide/integrations/";

@@ -32,6 +32,7 @@ package org.thingsboard.server.msa.ui.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class ProfilesPageHelper extends ProfilesPageElements {
@@ -178,6 +179,11 @@ public class ProfilesPageHelper extends ProfilesPageElements {
 
     public void goToProfileHelpPage() {
         jsClick(profileViewHelpBtn());
+        try {
+            wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+        } catch (WebDriverException e) {
+            jsClick(profileViewHelpBtn());
+        }
         goToNextTab(2);
     }
 

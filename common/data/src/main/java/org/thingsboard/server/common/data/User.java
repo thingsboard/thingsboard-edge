@@ -49,7 +49,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
+public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -190,11 +190,6 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
-    }
-
-    @Override
-    public String getSearchText() {
-        return getEmail();
     }
 
     @JsonIgnore

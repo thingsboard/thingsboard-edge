@@ -318,8 +318,8 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getEntityGroupsByOwnerIdAndPageLink(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
-                                  config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
+  public getEntityGroupsByOwnerIdAndPageLink(ownerType: EntityType, ownerId: string, groupType: EntityType, pageLink: PageLink,
+                                             config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
     return this.http.get<PageData<EntityGroupInfo>>(`/api/entityGroups/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
@@ -349,7 +349,7 @@ export class EntityGroupService {
       );
     } else {
       const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
-        this.getEntityGroupsByOwnerIdAndPageLink(pageLink, ownerType, ownerId, groupType, config);
+        this.getEntityGroupsByOwnerIdAndPageLink(ownerType, ownerId, groupType, pageLink, config);
       if (entityGroupsObservable) {
         return entityGroupsObservable.pipe(
           map((data) => data && data.data.length ? data.data : null)
@@ -363,13 +363,13 @@ export class EntityGroupService {
   private getAllEntityGroupsByOwnerIdAndPageLink(pageLink: PageLink, ownerType: EntityType, ownerId: string, groupType: EntityType,
                                                  config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
     const entityGroupsObservable: Observable<PageData<EntityGroupInfo>> =
-      this.getEntityGroupsByOwnerIdAndPageLink(pageLink, ownerType, ownerId, groupType, config);
+      this.getEntityGroupsByOwnerIdAndPageLink(ownerType, ownerId, groupType, pageLink, config);
     if (entityGroupsObservable) {
       return entityGroupsObservable.pipe(
         expand((data) => {
           if (data.hasNext) {
             pageLink.page += 1;
-            return this.getEntityGroupsByOwnerIdAndPageLink(pageLink, ownerType, ownerId, groupType, config);
+            return this.getEntityGroupsByOwnerIdAndPageLink(ownerType, ownerId, groupType, pageLink, config);
           } else {
             return EMPTY;
           }

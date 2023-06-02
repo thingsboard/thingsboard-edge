@@ -43,7 +43,7 @@ import java.util.UUID;
 public interface OtaPackageInfoRepository extends JpaRepository<OtaPackageInfoEntity, UUID> {
     @Query("SELECT new OtaPackageInfoEntity(f.id, f.createdTime, f.tenantId, f.deviceProfileId, f.type, f.title, f.version, f.tag, f.url, f.fileName, f.contentType, f.checksumAlgorithm, f.checksum, f.dataSize, f.additionalInfo, CASE WHEN (f.data IS NOT NULL OR f.url IS NOT NULL)  THEN true ELSE false END) FROM OtaPackageEntity f WHERE " +
             "f.tenantId = :tenantId " +
-            "AND LOWER(f.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(f.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantId(@Param("tenantId") UUID tenantId,
                                                  @Param("searchText") String searchText,
                                                  Pageable pageable);
@@ -53,7 +53,7 @@ public interface OtaPackageInfoRepository extends JpaRepository<OtaPackageInfoEn
             "AND f.deviceProfileId = :deviceProfileId " +
             "AND f.type = :type " +
             "AND (f.data IS NOT NULL OR f.url IS NOT NULL) " +
-            "AND LOWER(f.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(f.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantIdAndTypeAndDeviceProfileIdAndHasData(@Param("tenantId") UUID tenantId,
                                                                                     @Param("deviceProfileId") UUID deviceProfileId,
                                                                                     @Param("type") OtaPackageType type,
@@ -101,7 +101,7 @@ public interface OtaPackageInfoRepository extends JpaRepository<OtaPackageInfoEn
             "WHERE r.fromId = :groupId AND r.fromType = 'ENTITY_GROUP' AND r.relationTypeGroup = 'FROM_ENTITY_GROUP')) " +
             "AND ota.type = :type " +
             "AND (ota.data IS NOT NULL OR ota.url IS NOT NULL) " +
-            "AND LOWER(ota.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+            "AND LOWER(ota.title) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<OtaPackageInfoEntity> findAllByTenantIdAndDeviceGroupAndTypeAndHasData(@Param("groupId") UUID groupId,
                                                                                 @Param("type") OtaPackageType type,
                                                                                 @Param("searchText") String searchText,

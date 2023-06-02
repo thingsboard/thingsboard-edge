@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.ui.tests.assignee;
+package org.thingsboard.server.msa.ui.tests.alarmassignee;
 
 import io.qameta.allure.Description;
 import io.qameta.allure.Feature;
@@ -176,15 +176,13 @@ public class AssignDetailsTabAssignTest extends AbstractAssignTest {
     }
 
     @Description("Search by name")
-    @Test(groups = "broken")
+    @Test
     public void searchByName() {
         sideBarMenuView.goToDevicesPage();
         devicePage.openDeviceAlarms(deviceName);
         alarmPage.searchAlarm(alarmType, userName);
-        alarmPage.setUsers();
 
-        assertThat(alarmPage.getUsers()).hasSize(1).as("Search result contains search input").contains(userName);
-        alarmPage.assignUsers().forEach(this::assertIsDisplayed);
+        assertIsDisplayed(alarmPage.noUsersFoundMessage());
     }
 
     @Description("Assign alarm to yourself from details of alarm")

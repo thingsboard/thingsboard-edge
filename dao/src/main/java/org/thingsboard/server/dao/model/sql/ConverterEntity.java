@@ -39,9 +39,9 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -58,14 +58,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PRO
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = CONVERTER_TABLE_NAME)
-public final class ConverterEntity extends BaseSqlEntity<Converter> implements SearchTextEntity<Converter> {
+public final class ConverterEntity extends BaseSqlEntity<Converter> implements BaseEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -79,9 +78,6 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
 
     @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
     private boolean debugMode;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Type(type = "json")
     @Column(name = ModelConstants.CONVERTER_CONFIGURATION_PROPERTY)
@@ -118,20 +114,6 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
             this.externalId = converter.getExternalId().getId();
         }
         this.edgeTemplate = converter.isEdgeTemplate();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
     }
 
     @Override
