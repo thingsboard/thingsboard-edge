@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
@@ -181,7 +182,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     private void scheduleClearLastMsgMapMsg(TbContext ctx) {
         ctx.tellSelf(ctx.newMsg(null, TB_CLEAR_LAST_MSG_MAP_NODE_MSG, ctx.getSelfId(), null, new TbMsgMetaData(), ""),
-                config.getDeduplicationInSec() * 1000 * 10);
+                TimeUnit.HOURS.toMillis(1));
     }
 
     private void doCalculate(TbContext ctx, TbMsg msg, long ts) {
