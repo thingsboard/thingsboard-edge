@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -58,14 +58,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_DATA_P
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = BLOB_ENTITY_TABLE_NAME)
-public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements SearchTextEntity<BlobEntity> {
+public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements BaseEntity<BlobEntity> {
 
     @Column(name = BLOB_ENTITY_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -81,9 +80,6 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
 
     @Column(name = BLOB_ENTITY_CONTENT_TYPE_PROPERTY)
     private String contentType;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
 
     @Column(name = BLOB_ENTITY_DATA_PROPERTY)
     private String data;
@@ -112,20 +108,6 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
         this.contentType = blobEntity.getContentType();
         this.additionalInfo = blobEntity.getAdditionalInfo();
         this.data = Base64Utils.encodeToString(blobEntity.getData().array());
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
     }
 
     @Override

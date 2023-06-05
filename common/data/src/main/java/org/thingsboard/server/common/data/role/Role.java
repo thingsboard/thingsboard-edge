@@ -36,12 +36,12 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,7 +53,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, ExportableEntity<RoleId> {
+public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, ExportableEntity<RoleId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -95,11 +95,6 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
         super(role);
         setPermissions(role.getPermissions());
         externalId = role.getExternalId();
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)

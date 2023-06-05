@@ -87,4 +87,9 @@ abstract public class AbstractSolutionTemplateTest extends AbstractDriverBaseTes
         instancesPage = new InstancesPageElements(driver);
         ruleChainTemplatesPage = new RuleChainTemplatesPageElements(driver);
     }
+
+    @BeforeClass
+    public void deletePublicCustomer() {
+        deleteCustomerByName("Public");
+    }
 }

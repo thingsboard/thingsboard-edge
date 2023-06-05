@@ -37,11 +37,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -54,7 +54,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<SchedulerEventId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEventId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807343040519549363L;
 
@@ -93,11 +93,6 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
         this.setSchedule(schedulerEventInfo.getSchedule());
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the scheduler event Id. " +
@@ -142,7 +137,7 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
     }
 
     public JsonNode getSchedule() {
-        return SearchTextBasedWithAdditionalInfo.getJson(() -> schedule, () -> scheduleBytes);
+        return BaseDataWithAdditionalInfo.getJson(() -> schedule, () -> scheduleBytes);
     }
 
     public void setSchedule(JsonNode data) {

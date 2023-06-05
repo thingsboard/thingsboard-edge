@@ -51,7 +51,7 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.mapper;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.mapper;
 
 @RunWith(SpringRunner.class)
 public class DefaultSolutionServiceTest {

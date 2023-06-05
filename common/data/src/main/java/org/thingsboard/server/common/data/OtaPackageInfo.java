@@ -49,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class OtaPackageInfo extends SearchTextBasedWithAdditionalInfo<OtaPackageId> implements TenantEntity, HasName, HasTitle {
+public class OtaPackageInfo extends BaseDataWithAdditionalInfo<OtaPackageId> implements TenantEntity, HasName, HasTitle {
 
     private static final long serialVersionUID = 3168391583570815419L;
 
@@ -131,11 +131,6 @@ public class OtaPackageInfo extends SearchTextBasedWithAdditionalInfo<OtaPackage
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
-    }
-
-    @Override
-    public String getSearchText() {
-        return title;
     }
 
     @Override

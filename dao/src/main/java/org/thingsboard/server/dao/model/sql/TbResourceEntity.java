@@ -36,8 +36,8 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -57,7 +57,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = RESOURCE_TABLE_NAME)
-public class TbResourceEntity extends BaseSqlEntity<TbResource> implements SearchTextEntity<TbResource> {
+public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseEntity<TbResource> {
 
     @Column(name = RESOURCE_TENANT_ID_COLUMN, columnDefinition = "uuid")
     private UUID tenantId;
@@ -113,8 +113,4 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements Searc
         return resource;
     }
 
-    @Override
-    public String getSearchTextSource() {
-        return this.searchText;
-    }
 }

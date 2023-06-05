@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 @SqlDao
 @RequiredArgsConstructor
 @Slf4j
-public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
+public class JpaBlobEntityDao extends JpaAbstractDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
 
     private final BlobEntityRepository blobEntityRepository;
     private final SqlPartitioningRepository partitioningRepository;

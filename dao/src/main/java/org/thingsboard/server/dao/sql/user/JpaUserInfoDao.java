@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 import org.thingsboard.server.dao.model.sql.UserInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.user.UserInfoDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -50,7 +50,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaUserInfoDao extends JpaAbstractSearchTextDao<UserInfoEntity, UserInfo> implements UserInfoDao {
+public class JpaUserInfoDao extends JpaAbstractDao<UserInfoEntity, UserInfo> implements UserInfoDao {
 
     @Autowired
     private UserInfoRepository userInfoRepository;

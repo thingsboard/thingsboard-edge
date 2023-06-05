@@ -36,10 +36,10 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasLabel;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @Setter
-public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
+public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         implements HasLabel, GroupEntity<EdgeId> {
 
     private static final long serialVersionUID = 4934987555236873728L;
@@ -162,11 +162,6 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     @ApiModelProperty(position = 8, value = "Label that may be used in widgets", example = "Silo Edge on far field")
     public String getLabel() {
         return this.label;
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @ApiModelProperty(position = 9, required = true, value = "Edge routing key ('username') to authorize on cloud")

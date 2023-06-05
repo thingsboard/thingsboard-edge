@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EventId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.getJson;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.setJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
 /**
  * @author Andrew Shvayka

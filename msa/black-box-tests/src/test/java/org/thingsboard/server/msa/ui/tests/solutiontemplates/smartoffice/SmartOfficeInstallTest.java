@@ -255,7 +255,7 @@ public class SmartOfficeInstallTest extends AbstractSolutionTemplateTest {
         sideBarMenuView.solutionTemplates().click();
         refreshPage();
         solutionTemplatesHomePage.smartOfficeInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP, SMART_OFFICE_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, SMART_OFFICE_DASHBOARDS_GROUP).getUuidId().toString();
 

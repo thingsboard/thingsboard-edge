@@ -34,7 +34,6 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
 import { entityGroupActionSources, entityGroupActionTypes, EntityGroupInfo } from '@shared/models/entity-group.models';
-import { WidgetActionsData } from '@home/components/widget/action/manage-widget-actions.component.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 import { exportableEntityTypes } from '@shared/models/vc.models';
@@ -48,9 +47,9 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 })
 export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInfo, PageLink, EntityGroupInfo, EntityGroupsTableConfig> {
 
-  actionsData: WidgetActionsData;
-
   entityGroupActionTypesList = entityGroupActionTypes;
+
+  entityGroupActionSourcesList = entityGroupActionSources;
 
   constructor(private userPermissionsService: UserPermissionsService,
               protected store: Store<AppState>) {
@@ -107,9 +106,5 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
 
   protected setEntity(entity: EntityGroupInfo) {
     super.setEntity(entity);
-    this.actionsData = {
-      actionsMap: (entity && entity.configuration ? entity.configuration.actions : {}) || {},
-      actionSources: entityGroupActionSources
-    };
   }
 }
