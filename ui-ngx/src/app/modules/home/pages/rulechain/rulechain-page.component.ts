@@ -106,10 +106,10 @@ import { MatMiniFabButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
 import { ComponentClusteringMode } from '@shared/models/component-descriptor.models';
+import { MatDrawer } from '@angular/material/sidenav';
 import Timeout = NodeJS.Timeout;
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { MatDrawer } from '@angular/material/sidenav';
 
 @Component({
   selector: 'tb-rulechain-page',
@@ -289,7 +289,7 @@ export class RuleChainPageComponent extends PageComponent
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
-              private changeDetector : ChangeDetectorRef,
+              private changeDetector: ChangeDetectorRef,
               public dialog: MatDialog,
               public dialogService: DialogService,
               public fb: UntypedFormBuilder) {
