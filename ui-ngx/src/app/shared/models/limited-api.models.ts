@@ -38,6 +38,9 @@ export enum LimitedApi {
   REST_REQUESTS_PER_CUSTOMER = 'REST_REQUESTS_PER_CUSTOMER',
   WS_UPDATES_PER_SESSION = 'WS_UPDATES_PER_SESSION',
   CASSANDRA_QUERIES = 'CASSANDRA_QUERIES',
+  INTEGRATION_MSGS_PER_TENANT = 'INTEGRATION_MSGS_PER_TENANT',
+  INTEGRATION_MSGS_PER_DEVICE = 'INTEGRATION_MSGS_PER_DEVICE',
+  REPORTS = 'REPORTS',
   TRANSPORT_MESSAGES_PER_TENANT = 'TRANSPORT_MESSAGES_PER_TENANT',
   TRANSPORT_MESSAGES_PER_DEVICE = 'TRANSPORT_MESSAGES_PER_DEVICE'
 }
@@ -52,6 +55,9 @@ export const LimitedApiTranslationMap = new Map<LimitedApi, string>(
     [LimitedApi.REST_REQUESTS_PER_CUSTOMER, 'api-limit.rest-api-requests-per-customer'],
     [LimitedApi.WS_UPDATES_PER_SESSION, 'api-limit.ws-updates-per-session'],
     [LimitedApi.CASSANDRA_QUERIES, 'api-limit.cassandra-queries'],
+    [LimitedApi.INTEGRATION_MSGS_PER_TENANT, 'api-limit.integration-messages'],
+    [LimitedApi.INTEGRATION_MSGS_PER_DEVICE, 'api-limit.integration-messages-per-device'],
+    [LimitedApi.REPORTS, 'api-limit.reports-generation'],
     [LimitedApi.TRANSPORT_MESSAGES_PER_TENANT, 'api-limit.transport-messages'],
     [LimitedApi.TRANSPORT_MESSAGES_PER_DEVICE, 'api-limit.transport-messages-per-device']
   ]
