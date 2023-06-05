@@ -87,7 +87,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Gson gson = new Gson();
     private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
-    private static final String TB_CLEAR_LAST_MSG_MAP_NODE_MSG = "TbClearLastMsgMapNodeMsg";
+    static final String TB_CLEAR_LAST_MSG_MAP_NODE_MSG = "TbClearLastMsgMapNodeMsg";
     private TbAggLatestTelemetryNodeV2Configuration config;
     private final Map<EntityId, AggDeduplicationData> lastMsgMap = new HashMap<>();
     private final Set<String> clientAttributeNames = new HashSet<>();
