@@ -29,11 +29,54 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { DataKey, JsonSettingsSchema } from '@shared/models/widget.models';
-import { Observable } from 'rxjs';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, UntypedFormBuilder } from '@angular/forms';
 
-export interface DataKeysCallbacks {
-  generateDataKey: (chip: any, type: DataKeyType, datakeySettingsSchema: JsonSettingsSchema) => DataKey;
-  fetchEntityKeys: (entityAliasId: string, types: Array<DataKeyType>) => Observable<Array<DataKey>>;
+@Component({
+  selector: 'tb-widget-units',
+  templateUrl: './widget-units.component.html',
+  styleUrls: ['./widget-config.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => WidgetUnitsComponent),
+      multi: true
+    }
+  ]
+})
+export class WidgetUnitsComponent implements ControlValueAccessor, OnInit {
+
+  @Input()
+  disabled: boolean;
+
+  unitsFormControl: FormControl;
+
+  private propagateChange = (_val: any) => {};
+
+  constructor(private fb: UntypedFormBuilder) {
+  }
+
+  ngOnInit() {
+    this.unitsFormControl = this.fb.control('', []);
+  }
+
+  writeValue(units?: string): void {
+    this.unitsFormControl.patchValue(units, {emitEvent: false});
+  }
+
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+    if (this.disabled) {
+      this.unitsFormControl.disable({emitEvent: false});
+    } else {
+      this.unitsFormControl.enable({emitEvent: false});
+    }
+  }
 }

@@ -29,9 +29,36 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { EntityAliasSelectCallbacks } from '../alias/entity-alias-select.component.models';
-import { DataKeysCallbacks } from './data-keys.component.models';
-import { WidgetActionCallbacks } from './action/manage-widget-actions.component.models';
-import { FilterSelectCallbacks } from '@home/components/filter/filter-select.component.models';
+import { NgModule, Type } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { IBasicWidgetConfigComponent } from '@home/components/widget/config/widget-config.component.models';
+import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
+import {
+  SimpleCardBasicConfigComponent
+} from '@home/components/widget/config/basic/cards/simple-card-basic-config.component';
+import {
+  WidgetActionsPanelComponent
+} from '@home/components/widget/config/basic/common/widget-actions-panel.component';
 
-export type WidgetConfigCallbacks = EntityAliasSelectCallbacks & FilterSelectCallbacks & DataKeysCallbacks & WidgetActionCallbacks;
+@NgModule({
+  declarations: [
+    WidgetActionsPanelComponent,
+    SimpleCardBasicConfigComponent
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    WidgetConfigComponentsModule
+  ],
+  exports: [
+    WidgetActionsPanelComponent,
+    SimpleCardBasicConfigComponent
+  ]
+})
+export class BasicWidgetConfigModule {
+}
+
+export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetConfigComponent>} = {
+  'tb-simple-card-basic-config': SimpleCardBasicConfigComponent
+};
