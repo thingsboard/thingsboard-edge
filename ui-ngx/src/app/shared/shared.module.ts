@@ -223,6 +223,7 @@ import {
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
+import { ToggleHeaderComponent } from '@shared/components/toggle-header.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -412,7 +413,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgLayoutGapDirective,
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
-    ColorPickerComponent
+    ColorPickerComponent,
+    ToggleHeaderComponent
   ],
   imports: [
     CommonModule,
@@ -656,7 +658,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgLayoutGapDirective,
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
-    ColorPickerComponent
+    ColorPickerComponent,
+    ToggleHeaderComponent
   ]
 })
 export class SharedModule { }
