@@ -130,8 +130,8 @@ public class ContainerTestSuite {
                     new File(targetDir + "docker-compose.mosquitto.yml"),
                     new File(targetDir + "docker-compose.opc-ua.yml"),
                     new File(targetDir + "advanced/docker-compose." + QUEUE_TYPE + ".yml"),
-                    new File(targetDir + "advanced/" + resolveComposeFile()),
-                    new File(targetDir + "advanced/" + resolveComposeVolumesFile()),
+                    new File(targetDir + "advanced/" + resolveRedisComposeFile()),
+                    new File(targetDir + "advanced/" + resolveRedisComposeVolumesFile()),
                     new File(targetDir + ("docker-selenium.yml"))
             ));
 
@@ -208,7 +208,7 @@ public class ContainerTestSuite {
         }
     }
 
-    private static String resolveComposeFile() {
+    private static String resolveRedisComposeFile() {
         if (IS_REDIS_CLUSTER) {
             return "docker-compose.redis-cluster.yml";
         }
@@ -218,7 +218,7 @@ public class ContainerTestSuite {
         return "docker-compose.redis.yml";
     }
 
-    private static String resolveComposeVolumesFile() {
+    private static String resolveRedisComposeVolumesFile() {
         if (IS_REDIS_CLUSTER) {
             return "docker-compose.redis-cluster.volumes.yml";
         }
