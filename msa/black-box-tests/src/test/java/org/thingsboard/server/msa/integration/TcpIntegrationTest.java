@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -153,8 +152,8 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
             "\n" +
             "return result;";
 
-    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = mapper
-            .createObjectNode().put("encoder", "var result = {\n" +
+    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil
+            .newObjectNode().put("encoder", "var result = {\n" +
                     "    contentType: \"JSON\",\n" +
                     "    data: JSON.stringify(msg),\n" +
                     "    metadata: {\n" +
@@ -182,7 +181,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithJsonConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
@@ -227,7 +226,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithTextConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
         integration = Integration.builder()
@@ -270,7 +269,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void telemetryUploadWithBinaryConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
 
         integration = Integration.builder()
@@ -317,7 +316,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        JsonNode uplinkConverterConfig = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode uplinkConverterConfig = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(uplinkConverterConfig));
         Converter downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
@@ -350,7 +349,7 @@ public class TcpIntegrationTest extends AbstractIntegrationTest {
             //check downlink uploaded after attribute updated
             RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
 
-            JsonNode attributes = mapper.readTree(createPayload().toString());
+            JsonNode attributes = JacksonUtil.toJsonNode(createPayload().toString());
             testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
             RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);

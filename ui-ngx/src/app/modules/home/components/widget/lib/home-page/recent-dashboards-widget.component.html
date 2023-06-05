@@ -70,7 +70,7 @@
                 {{ 'widgets.recent-dashboards.name' | translate }}
               </mat-header-cell>
               <mat-cell class="title" *matCellDef="let lastVisitedDashboard">
-                <a routerLink="/dashboards/{{lastVisitedDashboard.id}}">{{ lastVisitedDashboard.title }}</a>
+                <a routerLink="/dashboards/all/{{lastVisitedDashboard.id}}">{{ lastVisitedDashboard.title }}</a>
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="lastVisited">

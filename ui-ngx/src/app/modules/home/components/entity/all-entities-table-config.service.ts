@@ -44,6 +44,10 @@ import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Authority } from '@shared/models/authority.enum';
 
 @Injectable()
 export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
@@ -52,12 +56,14 @@ export class AllEntitiesTableConfigService<T extends BaseData<EntityId>> {
               private userPermissionsService: UserPermissionsService,
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private store: Store<AppState>) {
   }
 
   prepareConfiguration(config: EntityTableConfig<T>): EntityTableConfig<T> {
     defaultEntityTablePermissions(this.userPermissionsService, config);
-    if (this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, config.entityType)) {
+    if (this.userPermissionsService.hasGenericPermissionByEntityGroupType(Operation.CHANGE_OWNER, config.entityType) &&
+      getCurrentAuthUser(this.store).authority !== Authority.SYS_ADMIN) {
       config.groupActionDescriptors.push(
         {
           name: this.translate.instant('entity-group.change-owner'),

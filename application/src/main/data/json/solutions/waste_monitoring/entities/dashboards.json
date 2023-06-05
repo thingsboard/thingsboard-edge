@@ -1,8 +1,8 @@
 [
   {
-    "name": "Waste Monitoring Administration",
+    "name": "Waste Management Administration",
     "file": "waste_monitoring_administration.json",
-    "group": "Waste Monitoring",
+    "group": "Waste Management",
     "main": true
   }
 ]

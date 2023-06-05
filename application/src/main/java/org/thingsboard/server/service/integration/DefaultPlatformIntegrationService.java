@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -90,7 +90,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
@@ -104,6 +103,8 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.util.limits.LimitedApi;
+import org.thingsboard.server.dao.util.limits.RateLimitService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -138,7 +139,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -153,7 +153,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
-    private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private TbClusterService clusterService;
@@ -230,14 +229,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private DefaultTbAssetProfileCache assetProfileCache;
 
-    @Value("${integrations.rate_limits.enabled}")
-    private boolean rateLimitEnabled;
-
-    @Value("${integrations.rate_limits.tenant}")
-    private String perTenantLimitsConf;
-
-    @Value("${integrations.rate_limits.device}")
-    private String perDevicesLimitsConf;
+    @Autowired
+    private RateLimitService rateLimitService;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
@@ -259,8 +252,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private final Gson gson = new Gson();
     private volatile Set<TopicPartitionInfo> myPartitions = ConcurrentHashMap.newKeySet();
 
-    private ConcurrentMap<TenantId, TbRateLimits> perTenantLimits = new ConcurrentHashMap<>();
-    private ConcurrentMap<DeviceId, TbRateLimits> perDeviceLimits = new ConcurrentHashMap<>();
     private boolean initialized;
 
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
@@ -660,12 +651,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 queueName = deviceProfile.getDefaultQueueName();
             }
 
-            ObjectNode entityNode = mapper.valueToTree(device);
+            JsonNode entityNode = JacksonUtil.valueToTree(device);
             TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
-                    mapper.writeValueAsString(entityNode), ruleChainId, null);
+                    JacksonUtil.toString(entityNode), ruleChainId, null);
 
             process(device.getTenantId(), tbMsg, null);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
         }
     }
@@ -682,11 +673,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 ruleChainId = assetProfile.getDefaultRuleChainId();
                 queueName = assetProfile.getDefaultQueueName();
             }
-            ObjectNode entityNode = mapper.valueToTree(asset);
+            JsonNode entityNode = JacksonUtil.valueToTree(asset);
             TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset),
-                    mapper.writeValueAsString(entityNode), ruleChainId, null);
+                    JacksonUtil.toString(entityNode), ruleChainId, null);
             process(integration.getTenantId(), tbMsg, null);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
         }
     }
@@ -694,20 +685,20 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private void pushEntityGroupCreatedEventToRuleEngine(AbstractIntegration integration, EntityGroup entityGroup) {
         try {
-            ObjectNode entityNode = mapper.valueToTree(entityGroup);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
+            JsonNode entityNode = JacksonUtil.valueToTree(entityGroup);
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
             process(integration.getTenantId(), tbMsg, null);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), DataConstants.ENTITY_CREATED, e);
         }
     }
 
     private void pushCustomerCreatedEventToRuleEngine(AbstractIntegration integration, Customer customer) {
         try {
-            ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
+            JsonNode entityNode = JacksonUtil.valueToTree(customer);
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), JacksonUtil.toString(entityNode));
             process(customer.getTenantId(), tbMsg, null);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
         }
     }
@@ -839,12 +830,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
         }
-        if (!rateLimitEnabled) {
-            return true;
-        }
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
-        TbRateLimits rateLimits = perTenantLimits.computeIfAbsent(tenantId, id -> new TbRateLimits(perTenantLimitsConf));
-        if (!rateLimits.tryConsume()) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS, tenantId)) {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(EntityType.TENANT));
             }
@@ -854,8 +841,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             return false;
         }
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-        rateLimits = perDeviceLimits.computeIfAbsent(deviceId, id -> new TbRateLimits(perDevicesLimitsConf));
-        if (!rateLimits.tryConsume()) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS, tenantId, deviceId)) {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(EntityType.DEVICE));
             }

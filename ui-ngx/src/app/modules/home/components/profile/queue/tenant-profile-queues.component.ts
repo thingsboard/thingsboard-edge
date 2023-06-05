@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -68,7 +68,7 @@ import { takeUntil } from 'rxjs/operators';
     }
   ]
 })
-export class TenantProfileQueuesComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class TenantProfileQueuesComponent implements ControlValueAccessor, Validator, OnDestroy, OnInit {
 
   tenantProfileQueuesFormGroup: UntypedFormGroup;
   newQueue = false;
@@ -122,6 +122,7 @@ export class TenantProfileQueuesComponent implements ControlValueAccessor, Valid
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    this.newQueue = false;
     if (this.disabled) {
       this.tenantProfileQueuesFormGroup.disable({emitEvent: false});
     } else {
@@ -130,7 +131,7 @@ export class TenantProfileQueuesComponent implements ControlValueAccessor, Valid
   }
 
   writeValue(queues: Array<QueueInfo> | null): void {
-    if (queues.length === this.queuesFormArray.length) {
+    if (queues?.length === this.queuesFormArray.length) {
       this.queuesFormArray.patchValue(queues, {emitEvent: false});
     } else {
       const queuesControls: Array<AbstractControl> = [];

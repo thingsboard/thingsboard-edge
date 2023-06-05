@@ -52,7 +52,7 @@ import java.util.Set;
 @Entity
 @TypeDef(name = "OwnerIds", typeClass = OwnerIdsType.class)
 @Immutable
-@Table(name = ModelConstants.ENTITY_GROUP_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.ENTITY_GROUP_INFO_VIEW_TABLE_NAME)
 public class EntityGroupInfoEntity extends AbstractEntityGroupEntity<EntityGroupInfo> {
 
     @Type(type = "OwnerIds")

@@ -222,6 +222,7 @@ public class DefaultNotifications {
             .button("Go to device").link("/devices/${deviceId}")
             .rule(DefaultRule.builder()
                     .name("Device activity status change")
+                    .enabled(false)
                     .triggerConfig(DeviceActivityNotificationRuleTriggerConfig.builder()
                             .devices(null)
                             .deviceProfiles(null)
@@ -373,6 +374,7 @@ public class DefaultNotifications {
             DefaultRule defaultRule = this.rule;
             NotificationRule rule = new NotificationRule();
             rule.setName(defaultRule.getName());
+            rule.setEnabled(defaultRule.getEnabled() == null || defaultRule.getEnabled());
             rule.setTemplateId(templateId);
             rule.setTriggerType(defaultRule.getTriggerConfig().getTriggerType());
             rule.setTriggerConfig(defaultRule.getTriggerConfig());
@@ -399,6 +401,7 @@ public class DefaultNotifications {
     @Builder(toBuilder = true)
     public static class DefaultRule {
         private final String name;
+        private final Boolean enabled;
         private final NotificationRuleTriggerConfig triggerConfig;
         private final String description;
     }

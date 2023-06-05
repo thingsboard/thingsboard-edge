@@ -31,7 +31,6 @@
 package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.CoapClient;
@@ -42,6 +41,7 @@ import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
@@ -146,7 +146,7 @@ public class CoapIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void checkTelemetryUploadedWithJsonConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder",
                 JSON_CONVERTER_CONFIG.replaceAll("DEVICE_NAME", device.getName()));
         integration = createIntegration(
                 IntegrationType.COAP, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
@@ -167,7 +167,7 @@ public class CoapIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void checkTelemetryUploadedWithTextConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", TEXT_CONVERTER_CONFIG);
         integration = createIntegration(
                 IntegrationType.COAP, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
 
@@ -188,7 +188,7 @@ public class CoapIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void checkTelemetryUploadedWithBinaryConverter() throws Exception {
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
+        JsonNode configConverter = JacksonUtil.newObjectNode().put("decoder", BINARY_CONVERTER_CONFIG);
         integration = createIntegration(
                 IntegrationType.COAP, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
 

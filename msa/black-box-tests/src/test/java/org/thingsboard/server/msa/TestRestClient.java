@@ -162,6 +162,18 @@ public class TestRestClient {
                 .as(Device.class);
     }
 
+    public PageData<Device> getDevices(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return given().spec(requestSpec).queryParams(params)
+                .get("/api/tenant/devices")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<PageData<Device>>() {
+                });
+    }
+
     public DeviceCredentials getDeviceCredentialsByDeviceId(DeviceId deviceId) {
         return given().spec(requestSpec).get("/api/device/{deviceId}/credentials", deviceId.getId())
                 .then()
@@ -869,5 +881,12 @@ public class TestRestClient {
                 .extract()
                 .as(new TypeRef<PageData<DashboardInfo>>() {
                 }).getData();
+    }
+
+    public void setDevicePublic(DeviceId deviceId) {
+        given().spec(requestSpec)
+                .post("/api/customer/public/device/{deviceId}", deviceId.getId())
+                .then()
+                .statusCode(HTTP_OK);
     }
 }

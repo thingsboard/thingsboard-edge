@@ -24,7 +24,7 @@ water metering devices, users and alarms:
     * turn sms and email notifications on and off;
 
 
-You may always customize the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Water Metering Tenant Dashboard"</a> using dashboard development <a href="https://thingsboard.io/docs/user-guide/dashboards/" target="_blank">guide</a>.
+You may always customize the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Water Metering Tenant Dashboard"</a> using dashboard development <a href="https://thingsboard.io/docs/pe/user-guide/dashboards/" target="_blank">guide</a>.
 
 We have also created the "Water Metering User Dashboard" for the end users. This dashboard is assigned to the new customers automatically. The end user dashboard allows customers to:
 
@@ -53,14 +53,14 @@ To emulate the data upload on behalf of device "WM0000123", one should execute t
 curl -v -X POST -d "{\"pulseCounter\":  550, \"temperature\":  22.0, \"battery\":  97, \"leakage\":  false}" ${BASE_URL}/api/v1/${WM0000123ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The example above uses <a href="https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
+See <a href="https://thingsboard.io/docs/pe/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
 
 Most of the water meters are using LoRaWAN, Sigfox or NB IoT technology. Please check <a href="https://thingsboard.io/docs/user-guide/integrations/" target="_blank">ThingsBoard Integrations</a> for more info.
 
 ### Alarms
 
-Alarms are generated using three <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
+Alarms are generated using three <a href="https://thingsboard.io/docs/pe/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
 "Water Meter" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>. 
 Alarms notifications are sent via SMS or email to Tenant Administrators and Customer Users depending on the thresholds and settings defined in the dashboard.
 
@@ -104,7 +104,7 @@ Edge is going to process data in case there is no network connection to the cent
 Eventually, required data is going to be pushed to the cloud, once network connection is established. 
 Configuration of edge computing business logic is centralized in a single place - ThingsBoard server.
 
-In the scope of this solution, new edge entity <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">Remote Facility R1</a> was added to a customer "Water Metering Customer A".
+In the scope of this solution, new edge entity <a href="${Remote Facility W1EDGE_DETAILS_URL}" target="_blank">Remote Facility W1</a> was added to a customer "Water Metering Customer A".
 
 Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
 
@@ -113,13 +113,13 @@ Additionally, particular entity groups were already assigned to the edge entity 
 * **"Water Metering"** *DASHBOARD* group of your tenant.
 * **"Water Metering Shared"** *DASHBOARD* group of your tenant.
 
-To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
+To install ThingsBoard Edge and connect to the cloud, please navigate to <a href="${Remote Facility W1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button.
 
 Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant or users of customer "Water Metering Customer A" credentials.
 
 #### Push data to device on edge
 
-**"Water Meters"** *DEVICE* group of customer "Water Metering Customer A" was assigned to the edge entity "Remote Facility R1".
+**"Water Meters"** *DEVICE* group of customer "Water Metering Customer A" was assigned to the edge entity "Remote Facility W1".
 This means that all devices from this group will be automatically provisioned to the edge.
 
 You can see devices from this group once you log in into edge and navigate to the **Entities -> Devices** page.

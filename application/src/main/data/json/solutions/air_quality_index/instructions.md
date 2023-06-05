@@ -127,7 +127,7 @@ The device profile listed below uses pre-defined values for alarm thresholds. Ad
 The profile is configured to raise alarms if the value of "Low Battery Level" is lower than a threshold. The major alarm is raised when the value is lower than what was configured by the administrator.
 
 #### Alarms
-Alarms are generated using two <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
+Alarms are generated using two <a href="https://thingsboard.io/docs/pe/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
 "AIR Sensor" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>.
 User may turn alarms on and off as well as configure the alarm thresholds via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Air Quality Monitoring"</a> dashboard using "Edit Sensor" form.
 
@@ -149,8 +149,8 @@ We have already created five sensors and loaded some demo data for them. See dev
 curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"pm25\":  24.4, \"pm10\":  30, \"no2\":  13, \"co\":  2.8, \"so2\":  7, \"o3\":  0.164, \"batteryLevel\":  77 }" ${BASE_URL}/api/v1/${Air Quality Sensor 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The example above uses <a href="https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
+See <a href="https://thingsboard.io/docs/pe/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
 
 ### Solution entities
 

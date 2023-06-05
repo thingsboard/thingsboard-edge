@@ -40,6 +40,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -69,8 +70,8 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-123456";
     private static final String SECRET_KEY = "secret-key-123456";
 
-    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = mapper
-            .createObjectNode().put("decoder", "var data = decodeToJson(payload);\n" +
+    private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = JacksonUtil
+            .newObjectNode().put("decoder", "var data = decodeToJson(payload);\n" +
                     "var deviceName = data.deviceName;\n" +
                     "var deviceType = data.deviceType;\n" +
                     "var result = {\n" +
@@ -93,8 +94,8 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "   return data;\n" +
                     "}\n" +
                     "return result;");
-    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = mapper
-            .createObjectNode().put("encoder", "var data = {};\n" +
+    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = JacksonUtil
+            .newObjectNode().put("encoder", "var data = {};\n" +
                     "data.booleanKey = msg.booleanKey;\n" +
                     "data.stringKey = msg.stringKey;\n" +
                     "data.doubleKey = msg.doubleKey;\n" +
@@ -157,7 +158,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         if (!config.get("headersFilter").isEmpty()){
-            Map<String, Object> securityHeaders = mapper.readValue(config.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> securityHeaders = JacksonUtil.fromString(config.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
             testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE), securityHeaders);
         } else {
             testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE));
@@ -188,7 +189,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
-        Map<String, Object> securityHeaders = mapper.readValue(config.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> securityHeaders = JacksonUtil.fromString(config.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
         testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE), securityHeaders);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
@@ -201,7 +202,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         waitForIntegrationEvent(integration, "UPDATED", 1);
 
         String temperatureValue2 = "58";
-        Map<String, Object> securityHeaders2 = mapper.readValue(config2.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> securityHeaders2 = JacksonUtil.fromString(config2.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
         testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue2), securityHeaders2);
 
         Awaitility
@@ -244,7 +245,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
         wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
-        Map<String, Object> securityHeaders = mapper.readValue(config.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> securityHeaders = JacksonUtil.fromString(config.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
         remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE), securityHeaders);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
@@ -257,7 +258,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         waitForIntegrationEvent(integration, "UPDATED", 1);
 
         String temperatureValue2 = "58";
-        Map<String, Object> securityHeaders2 = mapper.readValue(config2.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> securityHeaders2 = JacksonUtil.fromString(config2.get("headersFilter").toString(), new TypeReference<Map<String, Object>>() {});
         remoteHttpClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, temperatureValue2), securityHeaders2);
 
         Awaitility
@@ -302,7 +303,7 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
         //create rule chain
         RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
 
-        JsonNode attributes = mapper.readTree(createPayload().toString());
+        JsonNode attributes = JacksonUtil.toJsonNode(createPayload().toString());
         testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
 
         RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);

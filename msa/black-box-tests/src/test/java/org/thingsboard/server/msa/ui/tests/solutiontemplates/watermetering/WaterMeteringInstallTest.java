@@ -297,7 +297,7 @@ public class WaterMeteringInstallTest extends AbstractSolutionTemplateTest {
         testRestClient.postWaterMetering();
         sideBarMenuView.solutionTemplates().click();
         solutionTemplatesHomePage.waterMeteringInstructionBtn().click();
-        solutionTemplatesInstalledView.goToMainDashboardPageBtn().click();
+        solutionTemplatesInstalledView.goToMainDashboard();
         String dashboardId = getDashboardByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP, WATER_METERING_TENANT_DASHBOARD).getUuidId().toString();
         String entityGroupId = getEntityGroupByName(EntityType.DASHBOARD, WATER_METERING_DASHBOARD_GROUP).getUuidId().toString();
 
