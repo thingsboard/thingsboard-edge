@@ -164,22 +164,22 @@ public class ThingsBoardDbInstaller {
 
     private static File resolveComposeVolumesFile() {
         if (IS_REDIS_CLUSTER) {
-            return new File("./../../docker/docker-compose.redis-cluster.volumes.yml");
+            return new File("./../../docker/advanced/docker-compose.redis-cluster.volumes.yml");
         }
         if (IS_REDIS_SENTINEL) {
-            return new File("./../../docker/docker-compose.redis-sentinel.volumes.yml");
+            return new File("./../../docker/advanced/docker-compose.redis-sentinel.volumes.yml");
         }
-        return new File("./../../docker/docker-compose.redis.volumes.yml");
+        return new File("./../../docker/advanced/docker-compose.redis.volumes.yml");
     }
 
     private static File resolveComposeFile() {
         if (IS_REDIS_CLUSTER) {
-            return new File("./../../docker/docker-compose.redis-cluster.yml");
+            return new File("./../../docker/advanced/docker-compose.redis-cluster.yml");
         }
         if (IS_REDIS_SENTINEL) {
-            return new File("./../../docker/docker-compose.redis-sentinel.yml");
+            return new File("./../../docker/advanced/docker-compose.redis-sentinel.yml");
         }
-        return new File("./../../docker/docker-compose.redis.yml");
+        return new File("./../../docker/advanced/docker-compose.redis.yml");
     }
 
     public Map<String, String> getEnv() {
