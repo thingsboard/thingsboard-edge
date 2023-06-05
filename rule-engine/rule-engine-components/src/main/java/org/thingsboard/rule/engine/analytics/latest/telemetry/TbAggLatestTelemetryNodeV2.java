@@ -86,8 +86,9 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Gson gson = new Gson();
     private static final String TB_AGG_LATEST_NODE_MSG = "TbAggLatestNodeMsg";
+    private static final String TB_CLEAR_LAST_MSG_MAP_NODE_MSG = "TbClearLastMsgMapNodeMsg";
     private TbAggLatestTelemetryNodeV2Configuration config;
-    private final Map<EntityId, AggDeduplicationData> lastMsgMap = new WeakHashMap<>();
+    private final Map<EntityId, AggDeduplicationData> lastMsgMap = new HashMap<>();
     private final Set<String> clientAttributeNames = new HashSet<>();
     private final Set<String> sharedAttributeNames = new HashSet<>();
     private final Set<String> serverAttributeNames = new HashSet<>();
@@ -122,6 +123,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                     break;
             }
         });
+        scheduleClearLastMsgMapMsg(ctx);
     }
 
     private void addAllSafe(Set<String> dest, Collection<String> source) {
@@ -134,6 +136,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         if (msg.getType().equals(TB_AGG_LATEST_NODE_MSG)) {
             processDelayedMsg(ctx, msg.getOriginator());
+        } else if (msg.getType().equals(TB_CLEAR_LAST_MSG_MAP_NODE_MSG)) {
+            processClearLastMsgMapMsg(ctx);
         } else {
             processRegularMsg(ctx, msg);
         }
@@ -166,6 +170,18 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         if (deduplicationData != null && deduplicationData.getMsg() != null) {
             doCalculate(ctx, deduplicationData.getMsg(), System.currentTimeMillis());
         }
+    }
+
+    private void processClearLastMsgMapMsg(TbContext ctx) {
+        var currentTs = System.currentTimeMillis();
+        lastMsgMap.entrySet().removeIf(entry -> entry.getValue() != null
+                && currentTs > entry.getValue().getTs() + config.getDeduplicationInSec() * 1000 * 10);
+        scheduleClearLastMsgMapMsg(ctx);
+    }
+
+    private void scheduleClearLastMsgMapMsg(TbContext ctx) {
+        ctx.tellSelf(ctx.newMsg(null, TB_CLEAR_LAST_MSG_MAP_NODE_MSG, ctx.getSelfId(), null, new TbMsgMetaData(), ""),
+                config.getDeduplicationInSec() * 1000 * 10);
     }
 
     private void doCalculate(TbContext ctx, TbMsg msg, long ts) {
