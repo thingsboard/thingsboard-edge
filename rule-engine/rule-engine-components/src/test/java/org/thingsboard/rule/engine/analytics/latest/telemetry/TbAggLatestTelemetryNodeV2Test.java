@@ -94,7 +94,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2.TB_CLEAR_LAST_MSG_MAP_NODE_MSG;
+import static org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2.TB_CLEAR_INACTIVE_ENTITIES_MSG;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -280,8 +280,8 @@ public class TbAggLatestTelemetryNodeV2Test {
         long deduplicationInSec = 60;
         TbAggLatestTelemetryNodeV2Configuration config = getConfigNode();
         config.setDeduplicationInSec(deduplicationInSec); //delay 60 sec
-        when(ctx.newMsg(any(), eq(TB_CLEAR_LAST_MSG_MAP_NODE_MSG), any(), any(), any(), any()))
-                .thenReturn(TbMsg.newMsg(TB_CLEAR_LAST_MSG_MAP_NODE_MSG, null, new TbMsgMetaData(), null));
+        when(ctx.newMsg(any(), eq(TB_CLEAR_INACTIVE_ENTITIES_MSG), any(), any(), any(), any()))
+                .thenReturn(TbMsg.newMsg(TB_CLEAR_INACTIVE_ENTITIES_MSG, null, new TbMsgMetaData(), null));
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         //Mock for tellSelf
