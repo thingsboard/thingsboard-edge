@@ -52,7 +52,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { deepTrim, guid } from '@core/utils';
+import { deepTrim, guid, isDefinedAndNotNull } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
@@ -217,7 +217,7 @@ export class IntegrationWizardDialogComponent extends
 
   public createConvertorName(type: ConverterType) {
     const name = this.integrationWizardForm.get('name').value;
-    return (type && name) ? this.translate.instant('integration.data-convertor-name', {
+    return isDefinedAndNotNull(name) ? this.translate.instant('integration.data-convertor-name', {
       convertorType: type.charAt(0) + type.slice(1).toLowerCase(),
       integrationName: name
     }) : '';
@@ -317,7 +317,6 @@ export class IntegrationWizardDialogComponent extends
     const integrationData = this.getIntegrationData(uplinkConverterId, downlinkConverterId);
     return this.integrationService.saveIntegration(integrationData);
   }
-
 
   cancel(): void {
     this.dialogRef.close(null);
