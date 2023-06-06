@@ -39,6 +39,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { deepTrim } from '@core/utils';
+import { Subject } from 'rxjs';
 
 // @dynamic
 @Directive()

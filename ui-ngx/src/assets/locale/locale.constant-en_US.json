@@ -3240,6 +3240,8 @@
         "management": "Integrations management",
         "add-integration-text": "Add new integration",
         "no-integrations-text": "No integrations found",
+        "data-convertor-name": "{{convertorType}} data convertor for {{integrationName}}",
+        "integration-name": "{{integrationType}} integration",
         "selected-integrations": "{ count, plural, =1 {1 integration} other {# integrations} } selected",
         "delete-integration-title": "Are you sure you want to delete the integration '{{integrationName}}'?",
         "delete-integration-text": "Be careful, after the confirmation the integration and all related data will become unrecoverable.",

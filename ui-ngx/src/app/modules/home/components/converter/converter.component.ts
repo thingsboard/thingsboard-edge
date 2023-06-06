@@ -73,7 +73,6 @@ import { Observable, Subject } from 'rxjs';
 export class ConverterComponent extends EntityComponent<Converter> implements OnDestroy {
 
   private _integrationType: IntegrationType;
-  private _integrationName: string;
 
   @Input()
   hideType = false;
@@ -81,7 +80,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   @Input()
   set integrationType(value: IntegrationType) {
     this._integrationType  = value;
-    this.setupDefaultScriptBody(this.form, this.form.get('type').value, value);
+    this.setupDefaultScriptBody(this.entityForm, this.entityForm.get('type').value, value);
   }
 
   get integrationType() {
@@ -89,17 +88,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   @Input()
-  set integrationName(value: string) {
-    this._integrationName  = value;
-    const type = this.form.get('type').value;
-    const name = (type && value) ? `${type.charAt(0) + type.slice(1).toLowerCase()} data convertor for ${value}` : '';
-    this.form.get('name').patchValue(name, {emitEvent: false});
+  set convertorName(value: string) {
+    this.entityForm.get('name').patchValue(value, {emitEvent: false});
   }
 
-  get integrationName() {
-    return  this._integrationName;
-  }
-
+  @Input() integrationName: string;
 
   converterType = ConverterType;
 
@@ -137,7 +130,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   buildForm(entity: Converter): FormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
     this.destroy$ = new Subject<void>();
-    this.form = this.fb.group(
+    const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [entity ? entity.type : null, [Validators.required]],
@@ -158,18 +151,18 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         )
       }
     );
-    this.form.get('type').valueChanges.pipe(
+    form.get('type').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.converterTypeChanged(this.form);
+      this.converterTypeChanged(form);
     });
-    this.form.get('configuration').get('scriptLang').valueChanges.pipe(
+    form.get('configuration').get('scriptLang').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.converterScriptLangChanged( this.form);
+      this.converterScriptLangChanged(form);
     });
-    this.checkIsNewConverter(entity,  this.form);
-    return this.form;
+    this.checkIsNewConverter(entity, form);
+    return form;
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
@@ -270,7 +263,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       request = this.converterService.getLatestConverterDebugInput(NULL_UUID, {
         integrationName: this.integrationName,
         integrationType: this.integrationType,
-        converterType: this.form.get('type').value
+        converterType: this.entityForm.get('type').value
       });
     };
     request.pipe(

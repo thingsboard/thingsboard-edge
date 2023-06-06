@@ -131,8 +131,9 @@ export class IntegrationWizardDialogComponent extends
     ).subscribe((value: IntegrationType) => {
       if (integrationTypeInfoMap.has(value)) {
         this.integrationType = this.translate.instant(integrationTypeInfoMap.get(value).name);
-        this.integrationWizardForm.get('name').patchValue(`${this.translate.instant(integrationTypeInfoMap.get(value).name)} integration`,
-          {emitEvent: false});
+        this.integrationWizardForm.get('name').patchValue( this.translate.instant('integration.integration-name', {
+          integrationType: this.translate.instant(integrationTypeInfoMap.get(value).name)
+        }), {emitEvent: false});
         this.checkConnectionAllow = integrationTypeInfoMap.get(value).checkConnection || false;
         this.showDownlinkStep = !integrationTypeInfoMap.get(value).hideDownlink;
         if (integrationTypeInfoMap.get(value).remote) {
@@ -212,6 +213,14 @@ export class IntegrationWizardDialogComponent extends
       this.downlinkConverterForm.setControl('newDownlinkConverter', this.downlinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
     }, 0);
+  }
+
+  public createConvertorName(type: ConverterType) {
+    const name = this.integrationWizardForm.get('name').value;
+    return (type && name) ? this.translate.instant('integration.data-convertor-name', {
+      convertorType: type.charAt(0) + type.slice(1).toLowerCase(),
+      integrationName: name
+    }) : '';
   }
 
   ngOnDestroy() {
@@ -308,6 +317,7 @@ export class IntegrationWizardDialogComponent extends
     const integrationData = this.getIntegrationData(uplinkConverterId, downlinkConverterId);
     return this.integrationService.saveIntegration(integrationData);
   }
+
 
   cancel(): void {
     this.dialogRef.close(null);
