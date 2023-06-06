@@ -1286,6 +1286,7 @@
     "datakey": {
         "settings": "Settings",
         "advanced": "Advanced",
+        "key": "Key",
         "label": "Label",
         "color": "Color",
         "units": "Special symbol to show next to value",
@@ -5476,6 +5477,7 @@
         "title-tooltip": "Title Tooltip",
         "general-settings": "General settings",
         "display-title": "Display widget title",
+        "card-title": "Card title",
         "drop-shadow": "Drop shadow",
         "enable-fullscreen": "Enable fullscreen",
         "enable-data-export": "Enable data export",
@@ -5531,6 +5533,7 @@
         "delete-action-text": "Are you sure you want delete widget action with name '{{actionName}}'?",
         "title-icon": "Title icon",
         "display-icon": "Display title icon",
+        "card-icon": "Card icon",
         "icon-color": "Icon color",
         "icon-size": "Icon size",
         "advanced-settings": "Advanced settings",
@@ -6655,7 +6658,11 @@
             "no-data-display-message": "\"No data to display\" alternative message",
             "force-default-blob-entity-type": "Force default blob entity type",
             "scheduler-events-table-title": "Scheduler events table title",
-            "force-default-event-type": "Force default event type"
+            "force-default-event-type": "Force default event type",
+            "columns": "Columns",
+            "remove-column": "Remove column",
+            "add-column": "Add column",
+            "no-columns": "No columns configured"
         },
         "scheduler": {
             "enabled-scheduler-event-views": "Enabled scheduler events views",

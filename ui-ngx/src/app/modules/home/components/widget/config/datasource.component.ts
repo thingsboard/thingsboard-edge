@@ -154,6 +154,10 @@ export class DatasourceComponent implements ControlValueAccessor, OnInit, Valida
     return this.datasourcesComponent?.hideDataKeyDecimals;
   }
 
+  public get hideDataKeys(): boolean {
+    return this.datasourcesComponent?.hideDataKeys;
+  }
+
   @Input()
   disabled: boolean;
 

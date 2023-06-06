@@ -36,31 +36,41 @@ import { AppState } from '@core/core.state';
 import { BasicWidgetConfigComponent } from '@home/components/widget/config/widget-config.component.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import {
+  DataKey,
   Datasource,
   datasourcesHasAggregation,
-  datasourcesHasOnlyComparisonAggregation,
+  datasourcesHasOnlyComparisonAggregation
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 
 @Component({
-  selector: 'tb-simple-card-basic-config',
-  templateUrl: './simple-card-basic-config.component.html',
+  selector: 'tb-entities-table-basic-config',
+  templateUrl: './entities-table-basic-config.component.html',
   styleUrls: ['../basic-config.scss']
 })
-export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
+export class EntitiesTableBasicConfigComponent extends BasicWidgetConfigComponent {
 
   public get displayTimewindowConfig(): boolean {
-    const datasources = this.simpleCardWidgetConfigForm.get('datasources').value;
+    const datasources = this.entitiesTableWidgetConfigForm.get('datasources').value;
     return datasourcesHasAggregation(datasources);
   }
 
   public onlyHistoryTimewindow(): boolean {
-    const datasources = this.simpleCardWidgetConfigForm.get('datasources').value;
+    const datasources = this.entitiesTableWidgetConfigForm.get('datasources').value;
     return datasourcesHasOnlyComparisonAggregation(datasources);
   }
 
-  simpleCardWidgetConfigForm: UntypedFormGroup;
+  public get datasource(): Datasource {
+    const datasources: Datasource[] = this.entitiesTableWidgetConfigForm.get('datasources').value;
+    if (datasources && datasources.length) {
+      return datasources[0];
+    } else {
+      return null;
+    }
+  }
+
+  entitiesTableWidgetConfigForm: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
               protected widgetConfigComponent: WidgetConfigComponent,
@@ -69,25 +79,27 @@ export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
   }
 
   protected configForm(): UntypedFormGroup {
-    return this.simpleCardWidgetConfigForm;
+    return this.entitiesTableWidgetConfigForm;
   }
 
   protected setupDefaults(configData: WidgetConfigComponentData) {
-    this.setupDefaultDatasource(configData, [{ name: 'temperature', label: 'Temperature', type: DataKeyType.timeseries }]);
+    this.setupDefaultDatasource(configData, [{ name: 'name', type: DataKeyType.entityField }]);
   }
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
-    this.simpleCardWidgetConfigForm = this.fb.group({
+    this.entitiesTableWidgetConfigForm = this.fb.group({
       timewindowConfig: [{
         useDashboardTimewindow: configData.config.useDashboardTimewindow,
         displayTimewindow: configData.config.useDashboardTimewindow,
         timewindow: configData.config.timewindow
       }, []],
       datasources: [configData.config.datasources, []],
-      label: [this.getDataKeyLabel(configData.config.datasources), []],
-      labelPosition: [configData.config.settings?.labelPosition, []],
-      units: [configData.config.units, []],
-      decimals: [configData.config.decimals, []],
+      columns: [this.getColumns(configData.config.datasources), []],
+      showTitle: [configData.config.showTitle, []],
+      title: [configData.config.settings?.entitiesTitle, []],
+      showTitleIcon: [configData.config.showTitleIcon, []],
+      titleIcon: [configData.config.titleIcon, []],
+      iconColor: [configData.config.iconColor, []],
       color: [configData.config.color, []],
       backgroundColor: [configData.config.backgroundColor, []],
       actions: [configData.config.actions || {}, []]
@@ -99,33 +111,58 @@ export class SimpleCardBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.displayTimewindow = config.timewindowConfig.displayTimewindow;
     this.widgetConfig.config.timewindow = config.timewindowConfig.timewindow;
     this.widgetConfig.config.datasources = config.datasources;
-    this.setDataKeyLabel(config.label, this.widgetConfig.config.datasources);
+    this.setColumns(config.columns, this.widgetConfig.config.datasources);
     this.widgetConfig.config.actions = config.actions;
-    this.widgetConfig.config.units = config.units;
-    this.widgetConfig.config.decimals = config.decimals;
+    this.widgetConfig.config.showTitle = config.showTitle;
+    this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
+    this.widgetConfig.config.settings.entitiesTitle = config.title;
+    this.widgetConfig.config.showTitleIcon = config.showTitleIcon;
+    this.widgetConfig.config.titleIcon = config.titleIcon;
+    this.widgetConfig.config.iconColor = config.iconColor;
     this.widgetConfig.config.color = config.color;
     this.widgetConfig.config.backgroundColor = config.backgroundColor;
-    this.widgetConfig.config.settings = this.widgetConfig.config.settings || {};
-    this.widgetConfig.config.settings.labelPosition = config.labelPosition;
     return this.widgetConfig;
   }
 
-  private getDataKeyLabel(datasources?: Datasource[]): string {
-    if (datasources && datasources.length) {
-      const dataKeys = datasources[0].dataKeys;
-      if (dataKeys && dataKeys.length) {
-        return dataKeys[0].label;
-      }
-    }
-    return '';
+  protected validatorTriggers(): string[] {
+    return ['showTitle', 'showTitleIcon'];
   }
 
-  private setDataKeyLabel(label: string, datasources?: Datasource[]) {
-    if (datasources && datasources.length) {
-      const dataKeys = datasources[0].dataKeys;
-      if (dataKeys && dataKeys.length) {
-        dataKeys[0].label = label;
+  protected updateValidators(emitEvent: boolean, trigger?: string) {
+    const showTitle: boolean = this.entitiesTableWidgetConfigForm.get('showTitle').value;
+    const showTitleIcon: boolean = this.entitiesTableWidgetConfigForm.get('showTitleIcon').value;
+    if (showTitle) {
+      this.entitiesTableWidgetConfigForm.get('title').enable();
+      this.entitiesTableWidgetConfigForm.get('showTitleIcon').enable({emitEvent: false});
+      if (showTitleIcon) {
+        this.entitiesTableWidgetConfigForm.get('titleIcon').enable();
+        this.entitiesTableWidgetConfigForm.get('iconColor').enable();
+      } else {
+        this.entitiesTableWidgetConfigForm.get('titleIcon').disable();
+        this.entitiesTableWidgetConfigForm.get('iconColor').disable();
       }
+    } else {
+      this.entitiesTableWidgetConfigForm.get('title').disable();
+      this.entitiesTableWidgetConfigForm.get('showTitleIcon').disable({emitEvent: false});
+      this.entitiesTableWidgetConfigForm.get('titleIcon').disable();
+      this.entitiesTableWidgetConfigForm.get('iconColor').disable();
+    }
+    this.entitiesTableWidgetConfigForm.get('title').updateValueAndValidity({emitEvent});
+    this.entitiesTableWidgetConfigForm.get('showTitleIcon').updateValueAndValidity({emitEvent: false});
+    this.entitiesTableWidgetConfigForm.get('titleIcon').updateValueAndValidity({emitEvent});
+    this.entitiesTableWidgetConfigForm.get('iconColor').updateValueAndValidity({emitEvent});
+  }
+
+  private getColumns(datasources?: Datasource[]): DataKey[] {
+    if (datasources && datasources.length) {
+      return datasources[0].dataKeys || [];
+    }
+    return [];
+  }
+
+  private setColumns(columns: DataKey[], datasources?: Datasource[]) {
+    if (datasources && datasources.length) {
+      datasources[0].dataKeys = columns;
     }
   }
 

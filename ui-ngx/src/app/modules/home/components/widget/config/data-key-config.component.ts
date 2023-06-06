@@ -170,6 +170,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
   private dataKeySettingsData: JsonFormComponentData;
 
   private alarmKeys: Array<DataKey>;
+  private functionTypeKeys: Array<DataKey>;
 
   filteredKeys: Observable<Array<string>>;
   private latestKeySearchResult: Array<string> = null;
@@ -196,6 +197,13 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
       this.alarmKeys.push({
         name,
         type: DataKeyType.alarm
+      });
+    }
+    this.functionTypeKeys = [];
+    for (const type of this.utils.getPredefinedFunctionsList()) {
+      this.functionTypeKeys.push({
+        name: type,
+        type: DataKeyType.function
       });
     }
     if (this.dataKeySettingsSchema && this.dataKeySettingsSchema.schema ||
@@ -411,6 +419,8 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
       let fetchObservable: Observable<Array<DataKey>>;
       if (this.modelValue.type === DataKeyType.alarm) {
         fetchObservable = of(this.alarmKeys);
+      } else if (this.modelValue.type === DataKeyType.function) {
+        fetchObservable = of(this.functionTypeKeys);
       } else {
         if (this.deviceId || this.entityAliasId) {
           const dataKeyTypes = [this.modelValue.type];
