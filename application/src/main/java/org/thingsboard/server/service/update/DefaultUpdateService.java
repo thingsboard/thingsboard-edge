@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.update;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +40,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.UpdateMessage;
 import org.thingsboard.server.common.msg.notification.trigger.NewPlatformVersionTrigger;
@@ -146,7 +146,7 @@ public class DefaultUpdateService implements UpdateService {
             log.trace("Executing check update method for instanceId [{}], platform [{}] and version [{}]", instanceId, platform, version);
             var headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            ObjectNode request = new ObjectMapper().createObjectNode();
+            ObjectNode request = JacksonUtil.newObjectNode();
             request.put(PLATFORM_PARAM, platform);
             request.put(VERSION_PARAM, version);
             request.put(INSTANCE_ID_PARAM, instanceId.toString());

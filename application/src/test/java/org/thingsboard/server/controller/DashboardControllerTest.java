@@ -44,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -392,7 +393,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
         groupRole.setTenantId(savedTenant.getId());
         groupRole.setName("Read Group Role");
         groupRole.setType(RoleType.GROUP);
-        ArrayNode readPermissions = mapper.createArrayNode();
+        ArrayNode readPermissions = JacksonUtil.newArrayNode();
         readPermissions.add("READ");
         groupRole.setPermissions(readPermissions);
 
@@ -422,7 +423,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
         genericRole.setTenantId(savedTenant.getId());
         genericRole.setName("Read Generic Role");
         genericRole.setType(RoleType.GENERIC);
-        ObjectNode genericPermissions = mapper.createObjectNode();
+        ObjectNode genericPermissions = JacksonUtil.newObjectNode();
         genericPermissions.set("ALL", readPermissions);
         genericRole.setPermissions(genericPermissions);
         genericRole = doPost("/api/role", genericRole, Role.class);

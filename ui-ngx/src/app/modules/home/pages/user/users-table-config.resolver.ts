@@ -244,13 +244,6 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
       user.authority = Authority.TENANT_ADMIN;
     } else {
       user.tenantId = new TenantId(authUser.tenantId);
-      if (authUser.authority === Authority.TENANT_ADMIN) {
-        user.customerId = config.customerId ? new CustomerId(config.customerId) : new CustomerId(NULL_UUID);
-        user.authority = config.customerId ? Authority.CUSTOMER_USER : Authority.TENANT_ADMIN;
-      } else {
-        user.customerId = config.customerId ? new CustomerId(config.customerId) : new CustomerId(authUser.customerId);
-        user.authority = Authority.CUSTOMER_USER;
-      }
     }
     return this.userService.saveUser(user).pipe(
       mergeMap((savedUser) => this.userService.getUserInfo(savedUser.id.id))

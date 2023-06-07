@@ -106,7 +106,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private readonly,
               pageMode = false) {
     super();
-    this.loadDataOnInit = false;
+    this.loadDataOnInit = pageMode;
     this.tableTitle = '';
     this.useTimePageLink = true;
     this.forAllTimeEnabled = true;
@@ -136,7 +136,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       new EntityTableColumn<AlarmInfo>('originatorName', 'alarm.originator', '25%',
         (entity) => entity.originatorName, entity => ({}), false));
     this.columns.push(
-      new EntityTableColumn<AlarmInfo>('type', 'alarm.type', '25%'));
+      new EntityTableColumn<AlarmInfo>('type', 'alarm.type', '25%',
+          entity => this.utilsService.customTranslation(entity.type, entity.type)));
     this.columns.push(
       new EntityTableColumn<AlarmInfo>('severity', 'alarm.severity', '25%',
         (entity) => this.translate.instant(alarmSeverityTranslations.get(entity.severity)),

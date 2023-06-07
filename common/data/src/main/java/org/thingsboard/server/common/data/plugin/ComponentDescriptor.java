@@ -36,7 +36,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.ComponentDescriptorId;
 import org.thingsboard.server.common.data.validation.Length;
 
@@ -45,7 +46,7 @@ import org.thingsboard.server.common.data.validation.Length;
  */
 @ApiModel
 @ToString
-public class ComponentDescriptor extends SearchTextBased<ComponentDescriptorId> {
+public class ComponentDescriptor extends BaseData<ComponentDescriptorId> {
 
     private static final long serialVersionUID = 1L;
 
@@ -97,11 +98,6 @@ public class ComponentDescriptor extends SearchTextBased<ComponentDescriptorId> 
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
-    }
-
-    @Override
-    public String getSearchText() {
-        return name;
     }
 
     @Override

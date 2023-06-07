@@ -44,7 +44,7 @@ import javax.persistence.Table;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-@Table(name = ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.USER_PG_HIBERNATE_TABLE_NAME)
 public final class UserEntity extends AbstractUserEntity<User> {
 
     public UserEntity() {

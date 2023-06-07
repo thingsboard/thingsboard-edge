@@ -31,8 +31,9 @@
 package org.thingsboard.rule.engine.report;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -66,8 +67,6 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 )
 
 public class TbGenerateReportNode implements TbNode {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final String ATTACHMENTS = "attachments";
 
     private TbGenerateReportNodeConfiguration config;
@@ -83,9 +82,9 @@ public class TbGenerateReportNode implements TbNode {
         try {
             if (this.config.isUseReportConfigFromMessage()) {
                 try {
-                    JsonNode msgJson = mapper.readTree(msg.getData());
+                    JsonNode msgJson = JacksonUtil.toJsonNode(msg.getData());
                     JsonNode reportConfigJson = msgJson.get("reportConfig");
-                    reportConfig = mapper.treeToValue(reportConfigJson, ReportConfig.class);
+                    reportConfig = JacksonUtil.treeToValue(reportConfigJson, ReportConfig.class);
                 } catch (Exception e) {
                     throw new RuntimeException("Incoming message doesn't contain valid reportConfig JSON configuration!", e);
                 }

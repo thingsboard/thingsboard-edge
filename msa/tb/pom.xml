@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.5.1PE-SNAPSHOT</version>
+        <version>3.5.2PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -52,7 +52,7 @@
         <pkg.name>thingsboard</pkg.name>
         <tb.docker.name>tb-${tb.docker.id}</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <pkg.upgradeVersion>3.5.0</pkg.upgradeVersion>
+        <pkg.upgradeVersion>3.5.2</pkg.upgradeVersion>
     </properties>
 
     <dependencies>

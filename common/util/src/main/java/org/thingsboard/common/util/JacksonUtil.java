@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,11 +43,14 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,6 +79,10 @@ public class JacksonUtil {
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
 
+    public static ObjectMapper getObjectMapperWithJavaTimeModule() {
+        return new ObjectMapper().registerModule(new JavaTimeModule());
+    }
+
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
         try {
             return fromValue != null ? OBJECT_MAPPER.convertValue(fromValue, toValueType) : null;
@@ -99,6 +107,15 @@ public class JacksonUtil {
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value: "
                     + string + " cannot be transformed to Json object", e);
+        }
+    }
+
+    public static <T> T fromString(String string, JavaType valueType) {
+        try {
+            return OBJECT_MAPPER.readValue(string, valueType);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value: "
+                    + string + " cannot be transformed to Json object");
         }
     }
 
@@ -202,11 +219,21 @@ public class JacksonUtil {
         }
     }
 
+
     public static JsonNode toJsonNode(Path file) {
         try {
             return OBJECT_MAPPER.readTree(Files.readAllBytes(file));
         } catch (IOException e) {
             throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static JsonNode toJsonNode(File value) {
+        try {
+            return value != null ? OBJECT_MAPPER.readTree(value) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given File object value: "
+                    + value + " cannot be transformed to a JsonNode", e);
         }
     }
 
@@ -303,6 +330,27 @@ public class JacksonUtil {
         HashMap<String, String> map = new HashMap<>();
         toFlatMap(node, "", map);
         return map;
+    }
+
+    public static <T> T fromReader(Reader reader, Class<T> clazz) {
+        try {
+            return reader != null ? OBJECT_MAPPER.readValue(reader, clazz) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid request payload", e);
+        }
+    }
+
+    public static <T> void writeValue(Writer writer, T value) {
+        try {
+            OBJECT_MAPPER.writeValue(writer, value);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given writer value: "
+                    + writer + "cannot be wrote", e);
+        }
+    }
+
+    public static JavaType constructCollectionType(Class collectionClass, Class<?> elementClass) {
+        return OBJECT_MAPPER.getTypeFactory().constructCollectionType(collectionClass, elementClass);
     }
 
     private static void toFlatMap(JsonNode node, String currentPath, Map<String, String> map) {

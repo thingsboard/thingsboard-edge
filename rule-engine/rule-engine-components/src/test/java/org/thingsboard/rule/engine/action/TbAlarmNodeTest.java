@@ -32,7 +32,6 @@ package org.thingsboard.rule.engine.action;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.commons.lang3.NotImplementedException;
@@ -43,6 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -181,7 +181,7 @@ public class TbAlarmNodeTest {
         assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_NEW_ALARM));
         assertNotSame(metaData, metadataCaptor.getValue());
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertEquals(expectedAlarm, actualAlarm);
     }
 
@@ -256,7 +256,7 @@ public class TbAlarmNodeTest {
         assertNotSame(metaData, metadataCaptor.getValue());
 
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertEquals(expectedAlarm, actualAlarm);
     }
 
@@ -306,7 +306,7 @@ public class TbAlarmNodeTest {
         assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_EXISTING_ALARM));
         assertNotSame(metaData, metadataCaptor.getValue());
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertTrue(activeAlarm.getEndTs() >= oldEndDate);
         assertEquals(expectedAlarm, actualAlarm);
     }
@@ -359,7 +359,7 @@ public class TbAlarmNodeTest {
         assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_CLEARED_ALARM));
         assertNotSame(metaData, metadataCaptor.getValue());
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertEquals(expectedAlarm, actualAlarm);
     }
 
@@ -414,7 +414,7 @@ public class TbAlarmNodeTest {
         assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_CLEARED_ALARM));
         assertNotSame(metaData, metadataCaptor.getValue());
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertEquals(expectedAlarm, actualAlarm);
     }
 
@@ -427,8 +427,7 @@ public class TbAlarmNodeTest {
         config.setScriptLang(ScriptLanguage.JS);
         config.setAlarmDetailsBuildJs("DETAILS");
         config.setDynamicSeverity(true);
-        ObjectMapper mapper = new ObjectMapper();
-        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
@@ -482,7 +481,7 @@ public class TbAlarmNodeTest {
         assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_NEW_ALARM));
         assertNotSame(metaData, metadataCaptor.getValue());
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertEquals(expectedAlarm, actualAlarm);
     }
 
@@ -495,8 +494,7 @@ public class TbAlarmNodeTest {
         config.setAlarmType("SomeType");
         config.setAlarmDetailsBuildJs("DETAILS");
         config.setDynamicSeverity(true);
-        ObjectMapper mapper = new ObjectMapper();
-        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
@@ -548,7 +546,7 @@ public class TbAlarmNodeTest {
         assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_NEW_ALARM));
         assertNotSame(metaData, metadataCaptor.getValue());
 
-        Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+        Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
         assertEquals(expectedAlarm, actualAlarm);
     }
 
@@ -562,8 +560,7 @@ public class TbAlarmNodeTest {
             config.setScriptLang(ScriptLanguage.JS);
             config.setAlarmDetailsBuildJs("DETAILS");
             config.setDynamicSeverity(true);
-            ObjectMapper mapper = new ObjectMapper();
-            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
             when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
@@ -615,7 +612,7 @@ public class TbAlarmNodeTest {
             assertEquals(Boolean.TRUE.toString(), metadataCaptor.getValue().getValue(IS_NEW_ALARM));
             assertNotSame(metaData, metadataCaptor.getValue());
 
-            Alarm actualAlarm = new ObjectMapper().readValue(dataCaptor.getValue().getBytes(), Alarm.class);
+            Alarm actualAlarm = JacksonUtil.fromBytes(dataCaptor.getValue().getBytes(), Alarm.class);
             assertEquals(expectedAlarm, actualAlarm);
         }
     }
@@ -628,8 +625,7 @@ public class TbAlarmNodeTest {
             config.setAlarmType("SomeType");
             config.setScriptLang(ScriptLanguage.JS);
             config.setAlarmDetailsBuildJs("DETAILS");
-            ObjectMapper mapper = new ObjectMapper();
-            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
             when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
@@ -650,8 +646,7 @@ public class TbAlarmNodeTest {
             config.setAlarmType("SomeType");
             config.setScriptLang(ScriptLanguage.JS);
             config.setAlarmDetailsBuildJs("DETAILS");
-            ObjectMapper mapper = new ObjectMapper();
-            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+            TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
             when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 

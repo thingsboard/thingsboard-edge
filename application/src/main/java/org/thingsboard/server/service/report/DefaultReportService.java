@@ -32,14 +32,13 @@ package org.thingsboard.server.service.report;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContextBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -49,6 +48,8 @@ import org.springframework.http.client.Netty4ClientHttpRequestFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRequestCallback;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -56,7 +57,6 @@ import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientResponseException;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -70,11 +70,10 @@ import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
+import org.thingsboard.server.dao.util.limits.LimitedApi;
+import org.thingsboard.server.dao.util.limits.RateLimitService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.AccessJwtToken;
@@ -92,8 +91,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -102,11 +99,10 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @SuppressWarnings("deprecation")
+@RequiredArgsConstructor
 public class DefaultReportService implements ReportService {
 
-    private static ObjectMapper mapper = new ObjectMapper();
     private static final Pattern reportNameDatePattern = Pattern.compile("%d\\{([^\\}]*)\\}");
-    private static final ConcurrentMap<TenantId, TbRateLimits> rateLimits = new ConcurrentHashMap<>();
 
     @Value("${reports.server.endpointUrl}")
     private String reportsServerEndpointUrl;
@@ -120,23 +116,11 @@ public class DefaultReportService implements ReportService {
     @Value("${reports.server.maxResponseSize:52428800}")
     private int maxResponseSize;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private EntityGroupService entityGroupService;
-
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private JwtTokenFactory jwtTokenFactory;
-
-    @Autowired
-    private UserPermissionsService userPermissionsService;
-
-    @Autowired
-    private ThingsboardErrorResponseHandler errorResponseHandler;
+    private final UserService userService;
+    private final CustomerService customerService;
+    private final JwtTokenFactory jwtTokenFactory;
+    private final UserPermissionsService userPermissionsService;
+    private final RateLimitService rateLimitService;
 
     private EventLoopGroup eventLoopGroup;
     private AsyncRestTemplate httpClient;
@@ -164,8 +148,7 @@ public class DefaultReportService implements ReportService {
 
     private void checkLimits(TenantId tenantId) {
         if (rateLimitsEnabled) {
-            TbRateLimits limits = rateLimits.computeIfAbsent(tenantId, t -> new TbRateLimits(rateLimitsConfiguration));
-            if (!limits.tryConsume()) {
+            if (!rateLimitService.checkRateLimit(LimitedApi.REPORTS, (Object) tenantId, rateLimitsConfiguration)) {
                 log.trace("[{}] Report generation limits exceeded!", tenantId);
                 throw new RuntimeException("Failed to generate report due to rate limits!");
             }
@@ -190,7 +173,7 @@ public class DefaultReportService implements ReportService {
         String token = accessToken.getToken();
         long expiration = accessToken.getClaims().getExpiration().getTime();
 
-        ObjectNode dashboardReportRequest = mapper.createObjectNode();
+        ObjectNode dashboardReportRequest = JacksonUtil.newObjectNode();
         dashboardReportRequest.put("baseUrl", baseUrl);
         dashboardReportRequest.put("dashboardId", dashboardId.toString());
         dashboardReportRequest.set("reportParams", reportParams);
@@ -232,7 +215,7 @@ public class DefaultReportService implements ReportService {
             @Override
             public void onFailure(Throwable t) {
                 if (t instanceof RestClientResponseException) {
-                    onFailure.accept(new ThingsboardException(((RestClientResponseException)t).getStatusText(), ThingsboardErrorCode.GENERAL));
+                    onFailure.accept(new ThingsboardException(((RestClientResponseException) t).getStatusText(), ThingsboardErrorCode.GENERAL));
                 } else {
                     onFailure.accept(t);
                 }
@@ -246,7 +229,7 @@ public class DefaultReportService implements ReportService {
         long expiration = accessToken.getClaims().getExpiration().getTime();
         TimeZone tz = TimeZone.getTimeZone(reportConfig.getTimezone());
         String reportName = prepareReportName(reportConfig.getNamePattern(), new Date(), tz);
-        ObjectNode dashboardReportRequest = mapper.createObjectNode();
+        ObjectNode dashboardReportRequest = JacksonUtil.newObjectNode();
         dashboardReportRequest.put("baseUrl", reportConfig.getBaseUrl());
         dashboardReportRequest.put("dashboardId", reportConfig.getDashboardId());
         dashboardReportRequest.put("token", token);
@@ -257,7 +240,7 @@ public class DefaultReportService implements ReportService {
     }
 
     private JsonNode createReportParams(ReportConfig reportConfig) {
-        ObjectNode reportParams = mapper.createObjectNode();
+        ObjectNode reportParams = JacksonUtil.newObjectNode();
         reportParams.put("type", reportConfig.getType());
         reportParams.put("state", reportConfig.getState());
         if (!reportConfig.isUseDashboardTimewindow()) {
@@ -351,7 +334,7 @@ public class DefaultReportService implements ReportService {
         }
 
         byte[] getRequestBytes() throws JsonProcessingException {
-            return mapper.writeValueAsBytes(body);
+            return JacksonUtil.writeValueAsBytes(body);
         }
 
     }

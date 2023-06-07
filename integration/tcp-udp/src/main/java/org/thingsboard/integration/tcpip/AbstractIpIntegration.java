@@ -46,6 +46,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -263,8 +264,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     public byte[] writeValueAsBytes(String msg) {
         try {
-            return mapper.writeValueAsBytes(msg);
-        } catch (JsonProcessingException e) {
+            return JacksonUtil.writeValueAsBytes(msg);
+        } catch (IllegalArgumentException e) {
             log.error("{}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -294,9 +295,9 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     public ObjectNode getJsonHexReport(byte[] hexBytes) {
         String hexString = Hex.encodeHexString(hexBytes);
-        ArrayNode reports = mapper.createArrayNode();
-        reports.add(mapper.createObjectNode().put("value", hexString));
-        ObjectNode payload = mapper.createObjectNode();
+        ArrayNode reports = JacksonUtil.newArrayNode();
+        reports.add(JacksonUtil.newObjectNode().put("value", hexString));
+        ObjectNode payload = JacksonUtil.newObjectNode();
         payload.set("reports", reports);
         return payload;
     }

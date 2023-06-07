@@ -882,4 +882,11 @@ public class TestRestClient {
                 .as(new TypeRef<PageData<DashboardInfo>>() {
                 }).getData();
     }
+
+    public void setEntityGroupPublic(EntityGroupId entityGroupId) {
+        given().spec(requestSpec)
+                .post("/api/entityGroup/{entityGroupId}/makePublic", entityGroupId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
 }

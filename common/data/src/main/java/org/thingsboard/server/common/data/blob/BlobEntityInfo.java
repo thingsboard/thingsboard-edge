@@ -35,11 +35,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -49,7 +49,7 @@ import org.thingsboard.server.common.data.validation.Length;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntityId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class BlobEntityInfo extends BaseDataWithAdditionalInfo<BlobEntityId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807223040519549363L;
 
@@ -95,11 +95,6 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
-    }
-
-    @Override
-    public String getSearchText() {
-        return getName();
     }
 
     @Override
