@@ -154,8 +154,9 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
                     }
 
                     E savedEntity = importedEntityInfo.getEntity();
-                    saveKvs(user, savedEntity, entityData.getKvs());
-
+                    if (request.getMapping().getUpdate() || !importedEntityInfo.isUpdated()) {
+                        saveKvs(user, savedEntity, entityData.getKvs());
+                    }
                     return importedEntityInfo;
                 },
                 importedEntityInfo -> {

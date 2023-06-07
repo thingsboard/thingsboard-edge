@@ -12,7 +12,7 @@ data from multiple devices. You may use the dashboard to:
 The dashboard has multiple states. The main state displays the list of the devices, their location on the office map as well as the list of their alarms.
 You may drill down to the device details state by clicking on the table row. The device details are specific to the device type.
 
-You may always customize the  <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Smart office"</a> dashboard using dashboard development <a href="https://thingsboard.io/docs/user-guide/dashboards/" target="_blank">guide</a>.
+You may always customize the  <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Smart office"</a> dashboard using dashboard development <a href="https://thingsboard.io/docs/pe/user-guide/dashboards/" target="_blank">guide</a>.
 
 ### Devices
 
@@ -22,8 +22,8 @@ ${device_list_and_credentials}
 
 Solution expects specific telemetry from each device based on its type. 
 You may find payload examples and commands to send the data on behalf of the devices below.
-The examples below use <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The examples below use <a href="https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
+See <a href="https://thingsboard.io/docs/pe/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
 
 
 **Energy meter**
@@ -87,11 +87,11 @@ curl -v -X POST -d "{\"airFlow\": 300, \"targetTemperature\": 21.5, \"enabled\":
 ``` 
 
 HVAC device also accepts commands from the dashboard to enable/disable air conditioning as well as set target temperature.
-The commands are sent using the platform <a href="https://thingsboard.io/docs/user-guide/rpc/" target="_blank">RPC API</a>.
+The commands are sent using the platform <a href="https://thingsboard.io/docs/pe/user-guide/rpc/" target="_blank">RPC API</a>.
 
 ### Alarms
 
-Alarms are generated using <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
+Alarms are generated using <a href="https://thingsboard.io/docs/pe/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
 "smart-sensor" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>.
 
 ### Solution entities

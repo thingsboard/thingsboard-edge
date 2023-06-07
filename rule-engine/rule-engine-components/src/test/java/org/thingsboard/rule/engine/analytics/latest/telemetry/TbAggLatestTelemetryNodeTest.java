@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
@@ -49,6 +48,7 @@ import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
@@ -253,8 +253,7 @@ public class TbAggLatestTelemetryNodeTest {
         config.setPeriodValue(0);
         config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
-        ObjectMapper mapper = new ObjectMapper();
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
+        nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         expectedAvgTempMap = new HashMap<>();
         expectedDeviceCountMap = new HashMap<>();
     }

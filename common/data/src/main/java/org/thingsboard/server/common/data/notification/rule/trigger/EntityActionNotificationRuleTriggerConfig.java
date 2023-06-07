@@ -30,13 +30,21 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.EntityType;
 
+import java.util.Set;
+
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class EntityActionNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private EntityType entityType; // maybe add name filter ?
+    private Set<EntityType> entityTypes; // maybe add name filter ?
     private boolean created;
     private boolean updated;
     private boolean deleted;

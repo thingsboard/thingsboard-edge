@@ -54,7 +54,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   selfRegistrationFormGroup: UntypedFormGroup;
   selfRegistrationParams: SelfRegistrationParams;
   registerLink: string;
-  deleteDisabled: boolean = true;
+  deleteDisabled = true;
 
   entityTypes = EntityType;
 
@@ -95,6 +95,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       domainName: [null, [Validators.required, Validators.pattern('((?![:/]).)*$')]],
       captchaSiteKey: [null, [Validators.required]],
       captchaSecretKey: [null, [Validators.required]],
+      captchaVersion: ['v2', []],
+      captchaAction: ['', []],
       notificationEmail: [null, [Validators.required, Validators.email]],
       signUpTextMessage: [null, [Validators.maxLength(200)]],
       permissions: [null],
@@ -207,6 +209,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     if (selfRegistrationFormValue.showTermsOfUse == null) {
       selfRegistrationFormValue.showTermsOfUse = false;
     }
+    selfRegistrationFormValue.captchaVersion = selfRegistrationFormValue.captchaVersion || 'v2';
     this.deleteDisabled = !this.selfRegistrationParams.adminSettingsId;
     (selfRegistrationFormValue as any).enableMobileSelfRegistration = isNotEmptyStr(selfRegistrationFormValue.pkgName);
     this.selfRegistrationFormGroup.reset(selfRegistrationFormValue);

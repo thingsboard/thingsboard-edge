@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entityview.EntityViewInfoDao;
 import org.thingsboard.server.dao.model.sql.EntityViewInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Objects;
@@ -49,7 +49,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaEntityViewInfoDao extends JpaAbstractSearchTextDao<EntityViewInfoEntity, EntityViewInfo> implements EntityViewInfoDao {
+public class JpaEntityViewInfoDao extends JpaAbstractDao<EntityViewInfoEntity, EntityViewInfo> implements EntityViewInfoDao {
 
     @Autowired
     private EntityViewInfoRepository entityViewInfoRepository;

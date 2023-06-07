@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.queue.TbRuleEngineConsumerStats;

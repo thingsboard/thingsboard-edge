@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -90,8 +91,8 @@ public abstract class AbstractRuleEngineControllerTest extends AbstractControlle
     protected JsonNode getMetadata(EventInfo outEvent) {
         String metaDataStr = outEvent.getBody().get("metadata").asText();
         try {
-            return mapper.readTree(metaDataStr);
-        } catch (IOException e) {
+            return JacksonUtil.toJsonNode(metaDataStr);
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
     }

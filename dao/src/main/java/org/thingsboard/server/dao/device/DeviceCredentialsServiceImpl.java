@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.device;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.core.util.SecurityUtil;
@@ -58,9 +57,9 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateString;

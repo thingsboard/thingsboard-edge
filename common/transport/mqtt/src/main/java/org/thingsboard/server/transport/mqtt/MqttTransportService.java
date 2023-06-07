@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.TbTransportService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**

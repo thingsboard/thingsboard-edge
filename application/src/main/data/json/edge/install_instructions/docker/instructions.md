@@ -43,6 +43,7 @@ services:
       - "5683-5688:5683-5688/udp"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tb-edge
+      EDGE_LICENSE_INSTANCE_DATA_FILE: /data/instance-edge-license.data
       CLOUD_ROUTING_KEY: ${CLOUD_ROUTING_KEY}
       CLOUD_ROUTING_SECRET: ${CLOUD_ROUTING_SECRET}
       CLOUD_RPC_HOST: ${BASE_URL}

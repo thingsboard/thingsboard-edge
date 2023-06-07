@@ -78,6 +78,7 @@ export interface WidgetActionDialogData {
   customFunctionArgs: string[];
   action?: WidgetActionDescriptorInfo;
   widgetType: widgetType;
+  isEntityGroup?: boolean;
 }
 
 const stateDisplayTypes = ['normal', 'separateDialog', 'popover'] as const;
@@ -117,6 +118,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
   widgetActionTypeTranslations = widgetActionTypeTranslationMap;
   widgetActionType = WidgetActionType;
   customFunctionArgs = this.data.customFunctionArgs;
+  isEntityGroup = this.data.isEntityGroup;
 
   filteredDashboardStates: Observable<Array<string>>;
   targetDashboardStateSearchText = '';
@@ -188,6 +190,9 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
 
   displayShowWidgetActionForm(): boolean {
     return !!this.data.actionsData.actionSources[this.widgetActionFormGroup.get('actionSourceId').value]?.hasShowCondition;
+  }
+  customFunctionHelpId(): string {
+      return this.isEntityGroup ? 'entity_group/action/custom_action_fn' : 'widget/action/custom_action_fn';
   }
 
   getWidgetActionFunctionHelpId(): string | undefined {

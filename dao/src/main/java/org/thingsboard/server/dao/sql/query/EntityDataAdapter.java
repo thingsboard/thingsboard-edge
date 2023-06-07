@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.TsValue;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,8 +105,8 @@ public class EntityDataAdapter {
                     return strVal;
                 }
                 try {
-                    long longVal = Long.parseLong(strVal);
-                    return Long.toString(longVal);
+                    BigInteger longVal = new BigInteger(strVal);
+                    return longVal.toString();
                 } catch (NumberFormatException ignored) {
                 }
                 try {

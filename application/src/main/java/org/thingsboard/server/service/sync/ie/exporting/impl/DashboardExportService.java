@@ -31,8 +31,6 @@
 package org.thingsboard.server.service.sync.ie.exporting.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -42,12 +40,9 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
-import org.thingsboard.common.util.RegexUtils;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @TbCoreComponent

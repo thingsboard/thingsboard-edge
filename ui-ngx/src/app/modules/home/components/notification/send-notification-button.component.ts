@@ -43,12 +43,17 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { AuthUser } from '@shared/models/user.model';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-send-notification-button',
   templateUrl: './send-notification-button.component.html',
 })
 export class SendNotificationButtonComponent {
+
+  private authUser: AuthUser = getCurrentAuthUser(this.store);
 
   constructor(private dialog: MatDialog,
               private store: Store<AppState>,
@@ -81,7 +86,11 @@ export class SendNotificationButtonComponent {
   }
 
   public show(): boolean {
-    return this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+    return !this.isCustomer() && this.userPermissionsService.hasGenericPermission(Resource.NOTIFICATION, Operation.WRITE);
+  }
+
+  private isCustomer(): boolean {
+    return this.authUser.authority === Authority.CUSTOMER_USER;
   }
 
 }

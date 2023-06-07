@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
@@ -45,7 +46,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.UserEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.user.UserDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -61,7 +62,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 @Component
 @Slf4j
 @SqlDao
-public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> implements UserDao {
+public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements UserDao {
 
     @Autowired
     private UserRepository userRepository;
@@ -160,6 +161,17 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     public PageData<User> findUsersByTenantIdAndRolesIds(TenantId tenantId, List<RoleId> rolesIds, PageLink pageLink) {
         return DaoUtil.toPageData(userRepository.findByTenantIdAndRolesIds(tenantId.getId(), DaoUtil.toUUIDs(rolesIds),
                 DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<User> findUsersByCustomerIds(UUID tenantId, List<CustomerId> customerIds, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                userRepository
+                        .findTenantAndCustomerUsers(
+                                tenantId,
+                                DaoUtil.toUUIDs(customerIds),
+                                Objects.toString(pageLink.getTextSearch(), ""),
+                                DaoUtil.toPageable(pageLink)));
     }
 
     @Override

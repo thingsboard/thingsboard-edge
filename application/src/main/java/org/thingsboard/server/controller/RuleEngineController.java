@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -47,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -89,8 +89,6 @@ public class RuleEngineController extends BaseController {
             " * **'serviceId'** to identify the platform server that received the request;\n" +
             " * **'requestUUID'** to identify the request and route possible response from the Rule Engine;\n\n" +
             "Use **'rest call reply'** rule node to push the reply from rule engine back as a REST API call response. ";
-    protected final ObjectMapper jsonMapper = new ObjectMapper();
-
     @Autowired
     private RuleEngineCallService ruleEngineCallService;
 
@@ -109,7 +107,7 @@ public class RuleEngineController extends BaseController {
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(
             @ApiParam(value = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest(null, null, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(null, null, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @ApiOperation(value = "Push entity message to the rule engine (handleRuleEngineRequest)",
@@ -128,7 +126,7 @@ public class RuleEngineController extends BaseController {
             @PathVariable("entityId") String entityIdStr,
             @ApiParam(value = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest(entityType, entityIdStr, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(entityType, entityIdStr, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @ApiOperation(value = "Push entity message with timeout to the rule engine (handleRuleEngineRequest)",
@@ -149,6 +147,30 @@ public class RuleEngineController extends BaseController {
             @PathVariable("timeout") int timeout,
             @ApiParam(value = "A JSON value representing the message.", required = true)
             @RequestBody String requestBody) throws ThingsboardException {
+        return handleRuleEngineRequest(entityType, entityIdStr, null, timeout, requestBody);
+    }
+
+    @ApiOperation(value = "Push entity message with timeout and specified queue to the rule engine (handleRuleEngineRequest)",
+            notes = MSG_DESCRIPTION_PREFIX +
+                    "Uses specified Entity Id as the Rule Engine message originator. " +
+                    MSG_DESCRIPTION +
+                    "If request sent for Device/Device Profile or Asset/Asset Profile entity, specified queue will be used instead of the queue selected in the device or asset profile. " +
+                    "The platform expects the timeout value in milliseconds."
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/{entityType}/{entityId}/{queueName}/{timeout}", method = RequestMethod.POST)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> handleRuleEngineRequest(
+            @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+            @PathVariable("entityType") String entityType,
+            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable("entityId") String entityIdStr,
+            @ApiParam(value = "Queue name to process the request in the rule engine", required = true)
+            @PathVariable("queueName") String queueName,
+            @ApiParam(value = "Timeout to process the request in milliseconds", required = true)
+            @PathVariable("timeout") int timeout,
+            @ApiParam(value = "A JSON value representing the message.", required = true)
+            @RequestBody String requestBody) throws ThingsboardException {
         try {
             SecurityUser currentUser = getCurrentUser();
             EntityId entityId;
@@ -158,7 +180,7 @@ public class RuleEngineController extends BaseController {
                 entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
             }
             //Check that this is a valid JSON
-            jsonMapper.readTree(requestBody);
+            JacksonUtil.toJsonNode(requestBody);
             final DeferredResult<ResponseEntity> response = new DeferredResult<>();
             accessValidator.validate(currentUser, Operation.WRITE, entityId, new HttpValidationCallback(response, new FutureCallback<DeferredResult<ResponseEntity>>() {
                 @Override
@@ -169,8 +191,8 @@ public class RuleEngineController extends BaseController {
                     metaData.put("serviceId", serviceInfoProvider.getServiceId());
                     metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
-                    TbMsg msg = TbMsg.newMsg(DataConstants.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
-                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg,
+                    TbMsg msg = TbMsg.newMsg(queueName, DataConstants.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
+                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
 
@@ -187,8 +209,8 @@ public class RuleEngineController extends BaseController {
                 }
             }));
             return response;
-        } catch (IOException ioe) {
-            throw new ThingsboardException("Invalid request body", ioe, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        } catch (IllegalArgumentException iae) {
+            throw new ThingsboardException("Invalid request body", iae, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
 
@@ -202,8 +224,8 @@ public class RuleEngineController extends BaseController {
             if (!StringUtils.isEmpty(responseData)) {
                 try {
                     logRuleEngineCall(rpcRequest, response, null);
-                    responseWriter.setResult(new ResponseEntity<>(jsonMapper.readTree(responseData), HttpStatus.OK));
-                } catch (IOException e) {
+                    responseWriter.setResult(new ResponseEntity<>(JacksonUtil.toJsonNode(responseData), HttpStatus.OK));
+                } catch (IllegalArgumentException e) {
                     log.debug("Failed to decode device response: {}", responseData, e);
                     logRuleEngineCall(rpcRequest, response, e);
                     responseWriter.setResult(new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE));

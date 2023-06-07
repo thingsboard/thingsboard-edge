@@ -339,7 +339,8 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               padding: '0 12px 0 0'
             })),
           new EntityTableColumn<Event>('entityId', 'event.entity-id', '85px',
-            (entity) => `${entity.body.entityId.substring(0, 6)}…`, () => ({
+            (entity) => `<span style="display: inline-block; width: 7ch">${entity.body.entityId.substring(0, 6)}…</span>`,
+            () => ({
               padding: '0 12px 0 0'
             }), false, () => ({
               padding: '0 12px 0 0'
@@ -357,7 +358,8 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               type: CellActionDescriptorType.COPY_BUTTON
             }),
           new EntityTableColumn<Event>('msgId', 'event.message-id', '85px',
-            (entity) => `${entity.body.msgId.substring(0, 6)}…`, () => ({
+            (entity) => `<span style="display: inline-block; width: 7ch">${entity.body.msgId.substring(0, 6)}…</span>`,
+            () => ({
               padding: '0 12px 0 0'
             }), false, () => ({
               padding: '0 12px 0 0'
@@ -393,7 +395,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.data,
                 'event.data', entity.body.dataType)
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('metadata', 'event.metadata',
             {
               name: this.translate.instant('action.view'),
@@ -402,7 +404,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.metadata,
                 'event.metadata', ContentType.JSON, true)
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('error', 'event.error',
             {
               name: this.translate.instant('action.view'),
@@ -411,7 +413,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.error,
                 'event.error')
             },
-            '40px')
+            '48px')
         );
         break;
       case DebugEventType.DEBUG_RULE_CHAIN:
@@ -425,7 +427,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.message,
                 'event.message')
             },
-            '40px'),
+            '48px'),
           new EntityActionTableColumn<Event>('error', 'event.error',
             {
               name: this.translate.instant('action.view'),
@@ -434,7 +436,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
               onAction: ($event, entity) => this.showContent($event, entity.body.error,
                 'event.error')
             },
-            '40px')
+            '48px')
         );
         break;
     }

@@ -34,8 +34,11 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { ActivatedRoute } from '@angular/router';
-import { RecaptchaComponent } from 'ng-recaptcha';
+import { ReCaptcha2Component, ReCaptchaV3Service } from 'ngx-captcha';
 import { MobileService } from '@core/services/mobile.service';
+import { SelfRegistrationService } from '@app/core/http/self-register.service';
+import { from } from 'rxjs';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
 
 @Component({
   selector: 'tb-recaptcha',
@@ -44,9 +47,9 @@ import { MobileService } from '@core/services/mobile.service';
 })
 export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDestroy {
 
-  @ViewChild('recaptcha') recaptchaComponent: RecaptchaComponent;
+  @ViewChild('recaptcha') recaptchaComponent: ReCaptcha2Component;
 
-  siteKey = this.activatedRoute.snapshot.queryParams.siteKey;
+  signupParams = this.selfRegistrationService.signUpParams;
 
   recaptchaResponse: string;
 
@@ -54,6 +57,8 @@ export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDes
 
   constructor(protected store: Store<AppState>,
               private activatedRoute: ActivatedRoute,
+              private selfRegistrationService: SelfRegistrationService,
+              private reCaptchaV3Service: ReCaptchaV3Service,
               private mobileService: MobileService) {
     super(store);
   }
@@ -62,12 +67,28 @@ export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDes
     if (this.isMobileApp) {
       this.mobileService.registerResetRecaptchaFunction(() => {
         setTimeout(() => {
-          this.recaptchaComponent.reset();
+          if (this.recaptchaComponent) {
+            this.recaptchaComponent.resetCaptcha();
+          }
         });
       });
       setTimeout(() => {
         this.mobileService.onRecaptchaLoaded();
       });
+    }
+    if (this.signupParams?.activate && this.signupParams?.captchaVersion === 'v3') {
+      from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captchaSiteKey,
+        this.signupParams?.captchaAction, {useGlobalDomain: true})).subscribe(
+        {
+          next: (token) => {
+            this.mobileService.handleReCaptchaResponse(token);
+          },
+          error: err => {
+            this.store.dispatch(new ActionNotificationShow({ message: 'ReCaptcha error: ' + err,
+              type: 'error' }));
+          }
+        }
+      );
     }
   }
 

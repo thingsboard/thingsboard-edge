@@ -72,7 +72,21 @@
                 </button>
               </div>
             </div>
-            <div fxLFayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
+            <div fxLayout="row" fxLayoutGap="8px">
+              <mat-form-field fxFlex class="mat-block">
+                <mat-label translate>self-registration.captcha-version</mat-label>
+                <mat-select formControlName="captchaVersion">
+                  <mat-option [value]="'v2'">v2 Checkbox</mat-option>
+                  <mat-option [value]="'v3'">v3</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <span fxFlex *ngIf="selfRegistrationFormGroup.get('captchaVersion').value === 'v2'"></span>
+              <mat-form-field *ngIf="selfRegistrationFormGroup.get('captchaVersion').value === 'v3'" fxFlex class="mat-block">
+                <mat-label translate>self-registration.captcha-action</mat-label>
+                <input matInput formControlName="captchaAction"/>
+              </mat-form-field>
+            </div>
+            <div fxLayout="column" fxLayoutGap="0px" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
               <mat-form-field fxFlex class="mat-block">
                 <mat-label translate>self-registration.captcha-site-key</mat-label>
                 <input matInput required formControlName="captchaSiteKey"/>

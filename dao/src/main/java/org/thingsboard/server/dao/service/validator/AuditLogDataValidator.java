@@ -33,8 +33,8 @@ package org.thingsboard.server.dao.service.validator;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 public class AuditLogDataValidator extends DataValidator<AuditLog> {

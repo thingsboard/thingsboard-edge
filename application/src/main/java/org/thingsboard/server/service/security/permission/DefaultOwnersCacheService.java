@@ -34,13 +34,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -246,7 +246,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
+    public <E extends BaseData<? extends UUIDBased>> PageData<E>
     getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
         Resource resource = Resource.resourceFromEntityType(entityType);

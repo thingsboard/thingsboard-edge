@@ -32,15 +32,12 @@ package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
-import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
-import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Data
 public class TbAggLatestTelemetryNodeV2Configuration implements NodeConfiguration {

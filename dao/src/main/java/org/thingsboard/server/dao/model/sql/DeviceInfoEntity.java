@@ -52,7 +52,7 @@ import java.util.List;
 @Entity
 @TypeDef(name = "Groups", typeClass = GroupsType.class)
 @Immutable
-@Table(name = ModelConstants.DEVICE_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.DEVICE_INFO_VIEW_TABLE_NAME)
 public class DeviceInfoEntity extends AbstractDeviceEntity<DeviceInfo> {
 
     @Column(name = ModelConstants.OWNER_NAME_COLUMN)
@@ -62,13 +62,16 @@ public class DeviceInfoEntity extends AbstractDeviceEntity<DeviceInfo> {
     @Column(name = ModelConstants.GROUPS_COLUMN)
     private List<EntityInfo> groups;
 
+    @Column(name = ModelConstants.DEVICE_ACTIVE_PROPERTY)
+    private boolean active;
+
     public DeviceInfoEntity() {
         super();
     }
 
     @Override
     public DeviceInfo toData() {
-        return new DeviceInfo(super.toDevice(), this.ownerName, this.groups);
+        return new DeviceInfo(super.toDevice(), this.ownerName, this.groups, this.active);
     }
 
 }

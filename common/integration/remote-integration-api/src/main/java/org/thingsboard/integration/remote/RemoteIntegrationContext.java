@@ -31,7 +31,6 @@
 package org.thingsboard.integration.remote;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
@@ -64,7 +63,6 @@ import java.util.concurrent.ScheduledExecutorService;
 @RequiredArgsConstructor
 public class RemoteIntegrationContext implements IntegrationContext {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final String REMOTE_INTEGRATION_CACHE = "remoteIntegration";
 
     protected final EventStorage eventStorage;
@@ -84,8 +82,8 @@ public class RemoteIntegrationContext implements IntegrationContext {
         this.configuration = configuration;
         this.clientId = clientId;
         this.port = port;
-        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, mapper, clientId, port);
-        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
+        this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, clientId, port);
+        this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, clientId, port);
         this.scheduledExecutorService = scheduledExecutorService;
         this.generalExecutorService = generalExecutorService;
         this.callBackExecutorService = callBackExecutorService;

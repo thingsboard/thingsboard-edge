@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -52,7 +53,10 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
 
     private String comment;
     private String action;
-    private String userName;
+
+    private String userEmail;
+    private String userFirstName;
+    private String userLastName;
 
     private String alarmType;
     private UUID alarmId;
@@ -67,7 +71,10 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
         return mapOf(
                 "comment", comment,
                 "action", action,
-                "userName", userName,
+                "userTitle", User.getTitle(userEmail, userFirstName, userLastName),
+                "userEmail", userEmail,
+                "userFirstName", userFirstName,
+                "userLastName", userLastName,
                 "alarmType", alarmType,
                 "alarmId", alarmId.toString(),
                 "alarmSeverity", alarmSeverity.name().toLowerCase(),
@@ -79,7 +86,7 @@ public class AlarmCommentNotificationInfo implements RuleOriginatedNotificationI
     }
 
     @Override
-    public CustomerId getOriginatorEntityCustomerId() {
+    public CustomerId getAffectedCustomerId() {
         return alarmCustomerId;
     }
 

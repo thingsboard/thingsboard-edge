@@ -109,7 +109,7 @@ public class ReportController extends BaseController {
                                 result.setErrorResult(throwable);
                             });
         } catch (Exception e) {
-            result.setErrorResult(handleException(e));
+            result.setErrorResult(e);
         }
         return result;
     }
@@ -146,7 +146,7 @@ public class ReportController extends BaseController {
                                 result.setErrorResult(throwable);
                             });
         } catch (Exception e) {
-            result.setErrorResult(handleException(e));
+            result.setErrorResult(e);
         }
         return result;
     }

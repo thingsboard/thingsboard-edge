@@ -36,19 +36,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
-import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -152,64 +146,37 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
     }
 
     private ListenableFuture<Optional<EntityGroup>> getEntityGroupAllListenableFuture(TbContext ctx, TbMsg msg) {
-        switch (msg.getOriginator().getEntityType()) {
+        ListenableFuture<? extends HasOwnerId> entityFuture;
+        switch (msg.getOriginator().getEntityType()) { // TODO: use EntityServiceRegistry
             case DEVICE:
-                ListenableFuture<Device> deviceListenableFuture = ctx.getDeviceService().findDeviceByIdAsync(ctx.getTenantId(), new DeviceId(msg.getOriginator().getId()));
-                return Futures.transformAsync(deviceListenableFuture, device -> {
-                    if (device != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), device.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
-                    } else {
-                        return Futures.immediateFuture(Optional.empty());
-                    }
-                }, ctx.getDbCallbackExecutor());
+                entityFuture = Futures.immediateFuture(ctx.getDeviceService().findDeviceById(ctx.getTenantId(), (DeviceId) msg.getOriginator()));
+                break;
             case ASSET:
-                ListenableFuture<Asset> assetListenableFuture = ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), new AssetId(msg.getOriginator().getId()));
-                return Futures.transformAsync(assetListenableFuture, asset -> {
-                    if (asset != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), asset.getOwnerId(), EntityType.ASSET, EntityGroup.GROUP_ALL_NAME);
-                    } else {
-                        return Futures.immediateFuture(Optional.empty());
-                    }
-                }, ctx.getDbCallbackExecutor());
+                entityFuture = ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), (AssetId) msg.getOriginator());
+                break;
             case CUSTOMER:
-                ListenableFuture<Customer> customerListenableFuture = ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), new CustomerId(msg.getOriginator().getId()));
-                return Futures.transformAsync(customerListenableFuture, customer -> {
-                    if (customer != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), customer.getOwnerId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
-                    } else {
-                        return Futures.immediateFuture(Optional.empty());
-                    }
-                }, ctx.getDbCallbackExecutor());
+                entityFuture = ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), (CustomerId) msg.getOriginator());
+                break;
             case ENTITY_VIEW:
-                ListenableFuture<EntityView> entityViewListenableFuture = ctx.getEntityViewService().findEntityViewByIdAsync(ctx.getTenantId(), new EntityViewId(msg.getOriginator().getId()));
-                return Futures.transformAsync(entityViewListenableFuture, entityView -> {
-                    if (entityView != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), entityView.getOwnerId(), EntityType.ENTITY_VIEW, EntityGroup.GROUP_ALL_NAME);
-                    } else {
-                        return Futures.immediateFuture(Optional.empty());
-                    }
-                }, ctx.getDbCallbackExecutor());
+                entityFuture = ctx.getEntityViewService().findEntityViewByIdAsync(ctx.getTenantId(), (EntityViewId) msg.getOriginator());
+                break;
             case EDGE:
-                ListenableFuture<Edge> edgeListenableFuture = ctx.getEdgeService().findEdgeByIdAsync(ctx.getTenantId(), new EdgeId(msg.getOriginator().getId()));
-                return Futures.transformAsync(edgeListenableFuture, edge -> {
-                    if (edge != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), edge.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
-                    } else {
-                        return Futures.immediateFuture(Optional.empty());
-                    }
-                }, ctx.getDbCallbackExecutor());
+                entityFuture = ctx.getEdgeService().findEdgeByIdAsync(ctx.getTenantId(), (EdgeId) msg.getOriginator());
+                break;
             case DASHBOARD:
-                ListenableFuture<Dashboard> dashboardListenableFuture = ctx.getDashboardService().findDashboardByIdAsync(ctx.getTenantId(), new DashboardId(msg.getOriginator().getId()));
-                return Futures.transformAsync(dashboardListenableFuture, dashboard -> {
-                    if (dashboard != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME);
-                    } else {
-                        return Futures.immediateFuture(Optional.empty());
-                    }
-                }, ctx.getDbCallbackExecutor());
+                entityFuture = ctx.getDashboardService().findDashboardByIdAsync(ctx.getTenantId(), (DashboardId) msg.getOriginator());
+                break;
             default:
                 throw new RuntimeException("Entity with EntityType: '" + msg.getOriginator().getEntityType() + "'  doesn't support grouping");
         }
+        return Futures.transformAsync(entityFuture, entity -> {
+            if (entity != null) {
+                return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(),
+                        entity.getOwnerId(), msg.getOriginator().getEntityType(), EntityGroup.GROUP_ALL_NAME);
+            } else {
+                return Futures.immediateFuture(Optional.empty());
+            }
+        }, ctx.getDbCallbackExecutor());
     }
 
     private void addEntityToGroup(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId) {

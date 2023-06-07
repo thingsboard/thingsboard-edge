@@ -31,7 +31,6 @@
 package org.thingsboard.integration.http.controller.tmobile;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -44,10 +43,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
-import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;

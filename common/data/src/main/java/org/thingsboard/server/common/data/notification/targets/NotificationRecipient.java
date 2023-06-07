@@ -34,4 +34,12 @@ public interface NotificationRecipient {
 
     Object getId();
 
+    String getTitle();
+
+    String getFirstName();
+
+    String getLastName();
+
+    String getEmail();
+
 }

@@ -63,9 +63,13 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private String transportDeviceTelemetryMsgRateLimit;
     private String transportDeviceTelemetryDataPointsRateLimit;
 
+    private String integrationMsgsPerTenantRateLimit;
+    private String integrationMsgsPerDeviceRateLimit;
+
     private String tenantEntityExportRateLimit;
     private String tenantEntityImportRateLimit;
     private String tenantNotificationRequestsRateLimit;
+    private String tenantNotificationRequestsPerRuleRateLimit;
 
     private long maxTransportMessages;
     private long maxTransportDataPoints;
@@ -74,6 +78,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private long maxDPStorageDays;
     private int maxRuleNodeExecutionsPerMessage;
     private long maxEmails;
+    private Boolean smsEnabled;
     private long maxSms;
     private long maxCreatedAlarms;
 
@@ -120,6 +125,16 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
                 return maxCreatedAlarms;
         }
         return 0L;
+    }
+
+    @Override
+    public boolean getProfileFeatureEnabled(ApiUsageRecordKey key) {
+        switch (key) {
+            case SMS_EXEC_COUNT:
+                return smsEnabled == null || Boolean.TRUE.equals(smsEnabled);
+            default:
+                return true;
+        }
     }
 
     @Override

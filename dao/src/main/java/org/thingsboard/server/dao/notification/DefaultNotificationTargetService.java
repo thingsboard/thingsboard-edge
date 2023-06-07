@@ -46,12 +46,13 @@ import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
-import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.TenantAdministratorsFilter;
+import org.thingsboard.server.common.data.notification.targets.platform.UserGroupListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UserRoleFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
@@ -86,7 +87,7 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
             return notificationTargetDao.saveAndFlush(tenantId, notificationTarget);
         } catch (Exception e) {
             checkConstraintViolation(e, Map.of(
-                    "uq_notification_target_name", "Notification target with such name already exists"
+                    "uq_notification_target_name", "Recipients group with such name already exists"
             ));
             throw e;
         }
@@ -117,26 +118,18 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
         NotificationTarget notificationTarget = findNotificationTargetById(tenantId, targetId);
         Objects.requireNonNull(notificationTarget, "Notification target [" + targetId + "] not found");
         NotificationTargetConfig configuration = notificationTarget.getConfiguration();
-        return findRecipientsForNotificationTargetConfig(tenantId, customerId, configuration, pageLink);
+        return findRecipientsForNotificationTargetConfig(tenantId, (PlatformUsersNotificationTargetConfig) configuration, pageLink);
     }
 
     @Override
-    public int countRecipientsForNotificationTargetConfig(TenantId tenantId, NotificationTargetConfig targetConfig) {
-        return (int) findRecipientsForNotificationTargetConfig(tenantId, null, targetConfig, new PageLink(1)).getTotalElements();
-    }
-
-    @Override
-    public PageData<User> findRecipientsForNotificationTargetConfig(TenantId tenantId, CustomerId customerId, NotificationTargetConfig targetConfig, PageLink pageLink) {
-        if (!(targetConfig instanceof PlatformUsersNotificationTargetConfig)) {
-            throw new IllegalArgumentException("Unsupported target type " + targetConfig.getType());
-        }
-        UsersFilter usersFilter = ((PlatformUsersNotificationTargetConfig) targetConfig).getUsersFilter();
+    public PageData<User> findRecipientsForNotificationTargetConfig(TenantId tenantId, PlatformUsersNotificationTargetConfig targetConfig, PageLink pageLink) {
+        UsersFilter usersFilter = targetConfig.getUsersFilter();
         switch (usersFilter.getType()) {
             case USER_LIST: {
                 List<User> users = ((UserListFilter) usersFilter).getUsersIds().stream()
                         .limit(pageLink.getPageSize())
                         .map(UserId::new).map(userId -> userService.findUserById(tenantId, userId))
-                        .collect(Collectors.toList());
+                        .filter(Objects::nonNull).collect(Collectors.toList());
                 return new PageData<>(users, 1, users.size(), false);
             }
             case USER_GROUP_LIST: {
@@ -170,8 +163,6 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
                     }
                 }
             }
-            case AFFECTED_TENANT_ADMINISTRATORS:
-                return userService.findTenantAdmins(tenantId, pageLink);
             case SYSTEM_ADMINISTRATORS:
                 return userService.findSysAdmins(pageLink);
             case ALL_USERS: {
@@ -181,13 +172,34 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
                     return userService.findAllUsers(pageLink);
                 }
             }
-            case ORIGINATOR_ENTITY_OWNER_USERS: {
+        }
+        return new PageData<>();
+    }
+
+    @Override
+    public PageData<User> findRecipientsForRuleNotificationTargetConfig(TenantId tenantId, PlatformUsersNotificationTargetConfig targetConfig, RuleOriginatedNotificationInfo info, PageLink pageLink) {
+        switch (targetConfig.getUsersFilter().getType()) {
+            case ORIGINATOR_ENTITY_OWNER_USERS:
+                CustomerId customerId = info.getAffectedCustomerId();
                 if (customerId != null && !customerId.isNullUid()) {
                     return userService.findCustomerUsers(tenantId, customerId, pageLink);
                 } else {
                     return userService.findTenantAdmins(tenantId, pageLink);
                 }
-            }
+            case AFFECTED_USER:
+                UserId userId = info.getAffectedUserId();
+                if (userId != null) {
+                    return new PageData<>(List.of(userService.findUserById(tenantId, userId)), 1, 1, false);
+                }
+            case AFFECTED_TENANT_ADMINISTRATORS:
+                TenantId affectedTenantId = info.getAffectedTenantId();
+                if (affectedTenantId == null) {
+                    affectedTenantId = tenantId;
+                }
+                if (!affectedTenantId.isNullUid()) {
+                    return userService.findTenantAdmins(affectedTenantId, pageLink);
+                }
+                break;
         }
         return new PageData<>();
     }
@@ -195,10 +207,10 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public void deleteNotificationTargetById(TenantId tenantId, NotificationTargetId id) {
         if (notificationRequestDao.existsByTenantIdAndStatusAndTargetId(tenantId, NotificationRequestStatus.SCHEDULED, id)) {
-            throw new IllegalArgumentException("Notification target is referenced by scheduled notification request");
+            throw new IllegalArgumentException("Recipients group is referenced by scheduled notification request");
         }
         if (notificationRuleDao.existsByTenantIdAndTargetId(tenantId, id)) {
-            throw new IllegalArgumentException("Notification target is being used in notification rule");
+            throw new IllegalArgumentException("Recipients group is being used in notification rule");
         }
         notificationTargetDao.removeById(tenantId, id.getId());
     }
@@ -209,8 +221,18 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     }
 
     @Override
+    public long countNotificationTargetsByTenantId(TenantId tenantId) {
+        return notificationTargetDao.countByTenantId(tenantId);
+    }
+
+    @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findNotificationTargetById(tenantId, new NotificationTargetId(entityId.getId())));
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id) {
+        deleteNotificationTargetById(tenantId, (NotificationTargetId) id);
     }
 
     @Override

@@ -31,10 +31,8 @@
 package org.thingsboard.server.common.data.alarm;
 
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.util.Collections;

@@ -70,7 +70,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
         profilesPage.warningPopUpYesBtn().click();
         profilesPage.refreshBtn();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 
     @Epic("Device profile smoke tests")
@@ -87,7 +87,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
         profilesPage.warningPopUpYesBtn().click();
         profilesPage.refreshBtn();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 
     @Epic("Device profile smoke tests")
@@ -104,7 +104,7 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
         profilesPage.warningPopUpYesBtn().click();
         profilesPage.refreshBtn();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 
     @Epic("Device profile smoke tests")
@@ -150,6 +150,6 @@ public class DeleteDeviceProfileTest extends AbstractDriverBaseTest {
         profilesPage.deleteBtn(name).click();
         profilesPage.warningPopUpYesBtn().click();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 }

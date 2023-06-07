@@ -96,7 +96,6 @@ import org.thingsboard.server.service.security.permission.UserPermissionsService
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -269,21 +268,25 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         Asset asset1 = createAsset(tenantId1, null, assetProfile.getId(), null, "Asset 1");
         Asset asset2 = createAsset(tenantId1, null, assetProfile.getId(), null, "Asset 2");
         Dashboard dashboard = createDashboard(tenantId1, null, null, "Dashboard 1");
+        DeviceProfile existingDeviceProfile = createDeviceProfile(tenantId2, null, null, "Existing");
 
+        String aliasId = "23c4185d-1497-9457-30b2-6d91e69a5b2c";
+        String unknownUuid = "ea0dc8b0-3d85-11ed-9200-77fc04fa14fa";
         String entityAliases = "{\n" +
-                "\t\"23c4185d-1497-9457-30b2-6d91e69a5b2c\": {\n" +
-                "\t\t\"alias\": \"assets\",\n" +
-                "\t\t\"filter\": {\n" +
-                "\t\t\t\"entityList\": [\n" +
-                "\t\t\t\t\"" + asset1.getId().toString() + "\",\n" +
-                "\t\t\t\t\"" + asset2.getId().toString() + "\"\n" +
-                "\t\t\t],\n" +
-                "\t\t\t\"entityType\": \"ASSET\",\n" +
-                "\t\t\t\"resolveMultiple\": true,\n" +
-                "\t\t\t\"type\": \"entityList\"\n" +
-                "\t\t},\n" +
-                "\t\t\"id\": \"23c4185d-1497-9457-30b2-6d91e69a5b2c\"\n" +
-                "\t}\n" +
+                "\"" + aliasId + "\": {\n" +
+                "\"alias\": \"assets\",\n" +
+                "\"filter\": {\n" +
+                "\"entityList\": [\n" +
+                "\"" + asset1.getId().toString() + "\",\n" +
+                "\"" + asset2.getId().toString() + "\",\n" +
+                "\"" + tenantId1.getId().toString() + "\",\n" +
+                "\"" + existingDeviceProfile.getId().toString() + "\",\n" +
+                "\"" + unknownUuid + "\"\n" +
+                "],\n" +
+                "\"resolveMultiple\": true\n" +
+                "},\n" +
+                "\"id\": \"" + aliasId + "\"\n" +
+                "}\n" +
                 "}";
         ObjectNode dashboardConfiguration = JacksonUtil.newObjectNode();
         dashboardConfiguration.set("entityAliases", JacksonUtil.toJsonNode(entityAliases));
@@ -302,11 +305,23 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         Asset importedAsset2 = importEntity(tenantAdmin2, asset2ExportData).getSavedEntity();
         Dashboard importedDashboard = importEntity(tenantAdmin2, dashboardExportData).getSavedEntity();
 
-        Set<String> entityAliasEntitiesIds = Streams.stream(importedDashboard.getConfiguration()
-                .get("entityAliases").elements().next().get("filter").get("entityList").elements())
-                .map(JsonNode::asText).collect(Collectors.toSet());
-        assertThat(entityAliasEntitiesIds).doesNotContain(asset1.getId().toString(), asset2.getId().toString());
-        assertThat(entityAliasEntitiesIds).contains(importedAsset1.getId().toString(), importedAsset2.getId().toString());
+        Map.Entry<String, JsonNode> entityAlias = importedDashboard.getConfiguration().get("entityAliases").fields().next();
+        assertThat(entityAlias.getKey()).isEqualTo(aliasId);
+        assertThat(entityAlias.getValue().get("id").asText()).isEqualTo(aliasId);
+
+        List<String> aliasEntitiesIds = Streams.stream(entityAlias.getValue().get("filter").get("entityList").elements())
+                .map(JsonNode::asText).collect(Collectors.toList());
+        assertThat(aliasEntitiesIds).size().isEqualTo(5);
+        assertThat(aliasEntitiesIds).element(0).as("external asset 1 was replaced with imported one")
+                .isEqualTo(importedAsset1.getId().toString());
+        assertThat(aliasEntitiesIds).element(1).as("external asset 2 was replaced with imported one")
+                .isEqualTo(importedAsset2.getId().toString());
+        assertThat(aliasEntitiesIds).element(2).as("external tenant id was replaced with new tenant id")
+                .isEqualTo(tenantId2.toString());
+        assertThat(aliasEntitiesIds).element(3).as("existing device profile id was left as is")
+                .isEqualTo(existingDeviceProfile.getId().toString());
+        assertThat(aliasEntitiesIds).element(4).as("unresolved uuid was replaced with tenant id")
+                .isEqualTo(tenantId2.toString());
     }
 
 

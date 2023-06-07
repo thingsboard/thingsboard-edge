@@ -35,7 +35,6 @@ import lombok.Data;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 
 import java.util.List;
-
 import java.util.Map;
 
 @Data

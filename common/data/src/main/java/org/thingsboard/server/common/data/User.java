@@ -45,9 +45,11 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
+public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -87,7 +89,7 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
     @ApiModelProperty(position = 1, value = "JSON object with the User Id. " +
             "Specify this field to update the device. " +
             "Referencing non-existing User Id will cause error. " +
-            "Omit this field to create new customer." )
+            "Omit this field to create new customer.")
     @Override
     public UserId getId() {
         return super.getId();
@@ -190,9 +192,26 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
         return super.getAdditionalInfo();
     }
 
-    @Override
-    public String getSearchText() {
-        return getEmail();
+    @JsonIgnore
+    public String getTitle() {
+        return getTitle(email, firstName, lastName);
+    }
+
+    public static String getTitle(String email, String firstName, String lastName) {
+        String title = "";
+        if (isNotEmpty(firstName)) {
+            title += firstName;
+        }
+        if (isNotEmpty(lastName)) {
+            if (!title.isEmpty()) {
+                title += " ";
+            }
+            title += lastName;
+        }
+        if (title.isEmpty()) {
+            title = email;
+        }
+        return title;
     }
 
     @Override

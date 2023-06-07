@@ -93,18 +93,19 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     static {
         Map<Resource, Set<Operation>> sysAdminGenericPermissions = new HashMap<>();
-        sysAdminGenericPermissions.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.DASHBOARD, new HashSet<>(Arrays.asList(Operation.READ)));
-        sysAdminGenericPermissions.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.READ)));
-        sysAdminGenericPermissions.put(Resource.TENANT, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.TENANT_PROFILE, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.RULE_CHAIN, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.USER, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.WIDGETS_BUNDLE, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.WIDGET_TYPE, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL)));
-        sysAdminGenericPermissions.put(Resource.TB_RESOURCE, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.PROFILE, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.ADMIN_SETTINGS, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.DASHBOARD, Set.of(Operation.READ));
+        sysAdminGenericPermissions.put(Resource.ALARM, Set.of(Operation.READ));
+        sysAdminGenericPermissions.put(Resource.TENANT, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.TENANT_PROFILE, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.RULE_CHAIN, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.USER, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.WIDGETS_BUNDLE, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.WIDGET_TYPE, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.WHITE_LABELING, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.TB_RESOURCE, Set.of(Operation.ALL));
+        sysAdminGenericPermissions.put(Resource.NOTIFICATION, Set.of(Operation.ALL));
         sysAdminPermissions = new MergedUserPermissions(sysAdminGenericPermissions, new HashMap<>());
     }
 

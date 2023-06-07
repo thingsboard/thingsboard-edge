@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Tank Emulator",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 720000,
+    "telemetryProfiles": [
+      {
+        "key": "fuelLevel",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 98,
+          "maxStartValue": 100,
+          "minLowValue": 0,
+          "maxLowValue": 0,
+          "minHighValue": 80,
+          "maxHighValue": 100,
+          "minIncrement": 90,
+          "maxIncrement": 100,
+          "minDecrement": 2.5,
+          "maxDecrement": 5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      },
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 99,
+          "maxStartValue": 99,
+          "minLowValue": 5,
+          "maxLowValue": 10,
+          "minHighValue": 20,
+          "maxHighValue": 100,
+          "minIncrement": 100.0,
+          "maxIncrement": 100.0,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.2,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      },
+      {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 21,
+          "maxStartValue": 21,
+          "minLowValue": 1,
+          "maxLowValue": 5,
+          "minHighValue": 55,
+          "maxHighValue": 75,
+          "minIncrement": 0.5,
+          "maxIncrement": 1,
+          "minDecrement": 0.5,
+          "maxDecrement": 1,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]

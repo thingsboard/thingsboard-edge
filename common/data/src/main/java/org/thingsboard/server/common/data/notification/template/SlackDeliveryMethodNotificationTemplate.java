@@ -35,6 +35,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 @NoArgsConstructor
@@ -44,6 +45,12 @@ public class SlackDeliveryMethodNotificationTemplate extends DeliveryMethodNotif
 
     public SlackDeliveryMethodNotificationTemplate(DeliveryMethodNotificationTemplate other) {
         super(other);
+    }
+
+    @NoXss(fieldName = "Slack message")
+    @Override
+    public String getBody() {
+        return super.getBody();
     }
 
     @Override

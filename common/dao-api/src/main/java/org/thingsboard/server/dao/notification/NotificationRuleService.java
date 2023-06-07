@@ -52,7 +52,7 @@ public interface NotificationRuleService {
 
     PageData<NotificationRule> findNotificationRulesByTenantId(TenantId tenantId, PageLink pageLink);
 
-    List<NotificationRule> findNotificationRulesByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType);
+    List<NotificationRule> findEnabledNotificationRulesByTenantIdAndTriggerType(TenantId tenantId, NotificationRuleTriggerType triggerType);
 
     void deleteNotificationRuleById(TenantId tenantId, NotificationRuleId id);
 

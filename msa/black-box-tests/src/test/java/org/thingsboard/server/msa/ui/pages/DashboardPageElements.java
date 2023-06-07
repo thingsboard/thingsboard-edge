@@ -46,6 +46,14 @@ public class DashboardPageElements extends OtherPageElementsHelper {
     private static final String MANAGE_ASSIGNED_ENTITY = "//mat-option//span[contains(text(),'%s')]";
     private static final String MANAGE_ASSIGNED_UPDATE_BTN = "//button[@type='submit']";
     private static final String OPEN_DASHBOARD_GROUP_BTN = "//mat-icon[contains(text(),'view_list')]";
+    private static final String ALL_GROUP_NAMES = "//mat-icon[contains(text(),'check')]/ancestor::mat-row/mat-cell[contains(@class,'name')]/span";
+    private static final String GROUPS_BTN = "//a[@href='/dashboards/groups']/span[@class='mdc-tab__content']";
+    private static final String EDIT_BTN = "//mat-icon[text() = 'edit']/parent::button[@mat-stroked-button]";
+    private static final String ADD_BTN = "//mat-fab-actions//mat-icon[text() = 'add']/parent::button";
+    private static final String ALARM_WIDGET_BUNDLE = "//mat-card-title[text() = 'Alarm widgets']/ancestor::mat-card";
+    private static final String ALARM_TABLE_WIDGET = "//img[@alt='Alarms table']/ancestor::mat-card";
+    private static final String WIDGET_SE_CORNER = "//div[contains(@class,'handle-se')]";
+    private static final String SAVE_BTN = "//mat-icon[text() = 'done']/parent::button[@fxhide.lt-lg]";
 
     public List<WebElement> entityTitles() {
         return waitUntilVisibilityOfElementsLocated(TITLES);
@@ -69,5 +77,38 @@ public class DashboardPageElements extends OtherPageElementsHelper {
 
     public List<WebElement> openDashboardCroupBtn() {
         return waitUntilElementsToBeClickable(OPEN_DASHBOARD_GROUP_BTN);
+    }
+
+    public List<WebElement> allGroupName() {
+        return waitUntilElementsToBeClickable(ALL_GROUP_NAMES);
+    }
+
+    public WebElement groupsBtn() {
+        return waitUntilElementToBeClickable(GROUPS_BTN);
+    }
+
+
+    public WebElement editBtn() {
+        return waitUntilElementToBeClickable(EDIT_BTN);
+    }
+
+    public WebElement addBtn() {
+        return waitUntilElementToBeClickable(ADD_BTN);
+    }
+
+    public WebElement alarmWidgetBundle() {
+        return waitUntilElementToBeClickable(ALARM_WIDGET_BUNDLE);
+    }
+
+    public WebElement alarmTableWidget() {
+        return waitUntilElementToBeClickable(ALARM_TABLE_WIDGET);
+    }
+
+    public WebElement widgetSECorner() {
+        return waitUntilElementToBeClickable(WIDGET_SE_CORNER);
+    }
+
+    public WebElement saveBtn() {
+        return waitUntilVisibilityOfElementLocated(SAVE_BTN);
     }
 }

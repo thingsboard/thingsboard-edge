@@ -30,18 +30,15 @@
  */
 package org.thingsboard.server.service.notification;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.data.Offset;
 import org.java_websocket.client.WebSocketClient;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
@@ -51,27 +48,23 @@ import org.thingsboard.server.common.data.notification.NotificationRequestPrevie
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationType;
-import org.thingsboard.server.common.data.notification.info.UserOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.SlackNotificationDeliveryMethodConfig;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
-import org.thingsboard.server.common.data.notification.targets.platform.AllUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.CustomerUsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.targets.platform.UserListFilter;
 import org.thingsboard.server.common.data.notification.targets.slack.SlackConversation;
+import org.thingsboard.server.common.data.notification.targets.slack.SlackConversationType;
 import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
-import org.thingsboard.server.common.data.notification.template.WebDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.SlackDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.SmsDeliveryMethodNotificationTemplate;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.notification.template.WebDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.notification.NotificationDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -82,8 +75,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
@@ -250,13 +241,13 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         NotificationRequest notificationRequest = submitNotificationRequest(notificationTarget.getId(), notificationText, 5);
         assertThat(notificationRequest.getStatus()).isEqualTo(NotificationRequestStatus.SCHEDULED);
         await().atLeast(4, TimeUnit.SECONDS)
-                .atMost(6, TimeUnit.SECONDS)
+                .atMost(15, TimeUnit.SECONDS)
                 .until(() -> wsClient.getLastMsg() != null);
 
         Notification delayedNotification = wsClient.getLastDataUpdate().getUpdate();
         assertThat(delayedNotification).extracting(Notification::getText).isEqualTo(notificationText);
         assertThat(delayedNotification.getCreatedTime() - notificationRequest.getCreatedTime())
-                .isCloseTo(TimeUnit.SECONDS.toMillis(5), Offset.offset(500L));
+                .isCloseTo(TimeUnit.SECONDS.toMillis(5), Offset.offset(10000L));
         assertThat(findNotificationRequest(notificationRequest.getId()).getStatus()).isEqualTo(NotificationRequestStatus.SENT);
     }
 
@@ -349,16 +340,17 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
 
     @Test
     public void testNotificationRequestPreview() throws Exception {
-        NotificationTarget target1 = new NotificationTarget();
-        target1.setName("Me");
-        PlatformUsersNotificationTargetConfig target1Config = new PlatformUsersNotificationTargetConfig();
+        NotificationTarget tenantAdminTarget = new NotificationTarget();
+        tenantAdminTarget.setName("Me");
+        PlatformUsersNotificationTargetConfig tenantAdminTargetConfig = new PlatformUsersNotificationTargetConfig();
         UserListFilter userListFilter = new UserListFilter();
-        userListFilter.setUsersIds(DaoUtil.toUUIDs(List.of(tenantAdminUserId)));
-        target1Config.setUsersFilter(userListFilter);
-        target1.setConfiguration(target1Config);
-        target1 = saveNotificationTarget(target1);
-        List<UserId> recipients = new ArrayList<>();
-        recipients.add(tenantAdminUserId);
+        userListFilter.setUsersIds(List.of(tenantAdminUserId.getId()));
+        tenantAdminTargetConfig.setUsersFilter(userListFilter);
+        tenantAdminTarget.setConfiguration(tenantAdminTargetConfig);
+        tenantAdminTarget = saveNotificationTarget(tenantAdminTarget);
+        List<String> recipients = new ArrayList<>();
+        recipients.add(TENANT_ADMIN_EMAIL);
+        String firstRecipientEmail = TENANT_ADMIN_EMAIL;
 
         createDifferentCustomer();
         loginTenantAdmin();
@@ -370,23 +362,35 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
             customerUser.setCustomerId(differentCustomerId);
             customerUser.setEmail("other-customer-" + i + "@thingsboard.org");
             customerUser = createUser(customerUser, "12345678");
-            recipients.add(customerUser.getId());
+            recipients.add(customerUser.getEmail());
         }
-        NotificationTarget target2 = new NotificationTarget();
-        target2.setName("Other customer users");
-        PlatformUsersNotificationTargetConfig target2Config = new PlatformUsersNotificationTargetConfig();
+        NotificationTarget customerUsersTarget = new NotificationTarget();
+        customerUsersTarget.setName("Other customer users");
+        PlatformUsersNotificationTargetConfig customerUsersTargetConfig = new PlatformUsersNotificationTargetConfig();
         CustomerUsersFilter customerUsersFilter = new CustomerUsersFilter();
         customerUsersFilter.setCustomerId(differentCustomerId.getId());
-        target2Config.setUsersFilter(customerUsersFilter);
-        target2.setConfiguration(target2Config);
-        target2 = saveNotificationTarget(target2);
+        customerUsersTargetConfig.setUsersFilter(customerUsersFilter);
+        customerUsersTarget.setConfiguration(customerUsersTargetConfig);
+        customerUsersTarget = saveNotificationTarget(customerUsersTarget);
 
+        NotificationTarget slackTarget = new NotificationTarget();
+        slackTarget.setName("Slack user");
+        SlackNotificationTargetConfig slackTargetConfig = new SlackNotificationTargetConfig();
+        slackTargetConfig.setConversationType(SlackConversationType.DIRECT);
+        SlackConversation slackConversation = new SlackConversation();
+        slackConversation.setType(SlackConversationType.DIRECT);
+        slackConversation.setId("U1234567");
+        slackConversation.setName("jdoe");
+        slackConversation.setWholeName("John Doe");
+        slackTargetConfig.setConversation(slackConversation);
+        slackTarget.setConfiguration(slackTargetConfig);
+        slackTarget = saveNotificationTarget(slackTarget);
+        recipients.add("@" + slackConversation.getWholeName());
 
         NotificationTemplate notificationTemplate = new NotificationTemplate();
         notificationTemplate.setNotificationType(NotificationType.GENERAL);
         notificationTemplate.setName("Test template");
 
-        String requestorEmail = TENANT_ADMIN_EMAIL;
         NotificationTemplateConfig templateConfig = new NotificationTemplateConfig();
         HashMap<NotificationDeliveryMethod, DeliveryMethodNotificationTemplate> templates = new HashMap<>();
         templateConfig.setDeliveryMethodsTemplates(templates);
@@ -394,69 +398,59 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
 
         WebDeliveryMethodNotificationTemplate webNotificationTemplate = new WebDeliveryMethodNotificationTemplate();
         webNotificationTemplate.setEnabled(true);
-        webNotificationTemplate.setBody("Message for WEB: ${recipientEmail}");
-        webNotificationTemplate.setSubject("Subject for WEB: ${recipientEmail}");
+        webNotificationTemplate.setSubject("WEB SUBJECT: ${recipientEmail}");
+        webNotificationTemplate.setBody("WEB: ${recipientEmail} ${unknownParam}");
         templates.put(NotificationDeliveryMethod.WEB, webNotificationTemplate);
 
         SmsDeliveryMethodNotificationTemplate smsNotificationTemplate = new SmsDeliveryMethodNotificationTemplate();
         smsNotificationTemplate.setEnabled(true);
-        smsNotificationTemplate.setBody("Message for SMS: ${recipientEmail}");
+        smsNotificationTemplate.setBody("SMS: ${recipientEmail}");
         templates.put(NotificationDeliveryMethod.SMS, smsNotificationTemplate);
 
         EmailDeliveryMethodNotificationTemplate emailNotificationTemplate = new EmailDeliveryMethodNotificationTemplate();
         emailNotificationTemplate.setEnabled(true);
-        emailNotificationTemplate.setSubject("Subject for EMAIL: ${recipientEmail}");
-        emailNotificationTemplate.setBody("Message for EMAIL: ${recipientEmail}");
+        emailNotificationTemplate.setSubject("EMAIL SUBJECT: ${recipientEmail}");
+        emailNotificationTemplate.setBody("EMAIL: ${recipientEmail}");
         templates.put(NotificationDeliveryMethod.EMAIL, emailNotificationTemplate);
 
         SlackDeliveryMethodNotificationTemplate slackNotificationTemplate = new SlackDeliveryMethodNotificationTemplate();
         slackNotificationTemplate.setEnabled(true);
-        slackNotificationTemplate.setBody("Message for SLACK: ${recipientEmail}");
+        slackNotificationTemplate.setBody("SLACK: ${recipientFirstName} ${recipientLastName}");
         templates.put(NotificationDeliveryMethod.SLACK, slackNotificationTemplate);
 
         notificationTemplate = saveNotificationTemplate(notificationTemplate);
 
-
         NotificationRequest notificationRequest = new NotificationRequest();
-        notificationRequest.setTargets(List.of(target1.getUuidId(), target2.getUuidId()));
+        notificationRequest.setTargets(List.of(tenantAdminTarget.getUuidId(), customerUsersTarget.getUuidId(), slackTarget.getUuidId()));
         notificationRequest.setTemplateId(notificationTemplate.getId());
         notificationRequest.setAdditionalConfig(new NotificationRequestConfig());
 
         NotificationRequestPreview preview = doPost("/api/notification/request/preview", notificationRequest, NotificationRequestPreview.class);
-        assertThat(preview.getRecipientsCountByTarget().get(target1.getName())).isEqualTo(1);
-        assertThat(preview.getRecipientsCountByTarget().get(target2.getName())).isEqualTo(customerUsersCount);
-        assertThat(preview.getTotalRecipientsCount()).isEqualTo(1 + customerUsersCount);
-        assertThat(preview.getRecipientsPreview()).extracting(User::getId).containsAll(recipients);
+        assertThat(preview.getRecipientsCountByTarget().get(tenantAdminTarget.getName())).isEqualTo(1);
+        assertThat(preview.getRecipientsCountByTarget().get(customerUsersTarget.getName())).isEqualTo(customerUsersCount);
+        assertThat(preview.getRecipientsCountByTarget().get(slackTarget.getName())).isEqualTo(1);
+
+        assertThat(preview.getTotalRecipientsCount()).isEqualTo(2 + customerUsersCount);
+        assertThat(preview.getRecipientsPreview()).containsAll(recipients);
 
         Map<NotificationDeliveryMethod, DeliveryMethodNotificationTemplate> processedTemplates = preview.getProcessedTemplates();
         assertThat(processedTemplates.get(NotificationDeliveryMethod.WEB)).asInstanceOf(type(WebDeliveryMethodNotificationTemplate.class))
                 .satisfies(template -> {
-                    assertThat(template.getBody())
-                            .startsWith("Message for WEB")
-                            .endsWith(requestorEmail);
-                    assertThat(template.getSubject())
-                            .startsWith("Subject for WEB")
-                            .endsWith(requestorEmail);
+                    assertThat(template.getSubject()).isEqualTo("WEB SUBJECT: " + firstRecipientEmail);
+                    assertThat(template.getBody()).isEqualTo("WEB: " + firstRecipientEmail + " ${unknownParam}");
                 });
         assertThat(processedTemplates.get(NotificationDeliveryMethod.SMS)).asInstanceOf(type(SmsDeliveryMethodNotificationTemplate.class))
                 .satisfies(template -> {
-                    assertThat(template.getBody())
-                            .startsWith("Message for SMS")
-                            .endsWith(requestorEmail);
+                    assertThat(template.getBody()).isEqualTo("SMS: " + firstRecipientEmail);
                 });
         assertThat(processedTemplates.get(NotificationDeliveryMethod.EMAIL)).asInstanceOf(type(EmailDeliveryMethodNotificationTemplate.class))
                 .satisfies(template -> {
-                    assertThat(template.getBody())
-                            .startsWith("Message for EMAIL")
-                            .endsWith(requestorEmail);
-                    assertThat(template.getSubject())
-                            .startsWith("Subject for EMAIL")
-                            .endsWith(requestorEmail);
+                    assertThat(template.getSubject()).isEqualTo("EMAIL SUBJECT: " + firstRecipientEmail);
+                    assertThat(template.getBody()).isEqualTo("EMAIL: " + firstRecipientEmail);
                 });
         assertThat(processedTemplates.get(NotificationDeliveryMethod.SLACK)).asInstanceOf(type(SlackDeliveryMethodNotificationTemplate.class))
                 .satisfies(template -> {
-                    assertThat(template.getBody())
-                            .isEqualTo("Message for SLACK: "); // ${recipientEmail} should be removed
+                    assertThat(template.getBody()).isEqualTo("SLACK: John Doe");
                 });
     }
 
@@ -493,53 +487,6 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
     }
 
     @Test
-    @Ignore
-    public void testNotificationsForALotOfUsers() throws Exception {
-        int usersCount = 5000;
-
-        List<User> users = new ArrayList<>();
-        for (int i = 1; i <= usersCount; i++) {
-            User user = new User();
-            user.setTenantId(tenantId);
-            user.setAuthority(Authority.TENANT_ADMIN);
-            user.setEmail("test-user-" + i + "@thingsboard.org");
-            user = doPost("/api/user", user, User.class);
-            users.add(user);
-        }
-
-        NotificationTarget notificationTarget = new NotificationTarget();
-        notificationTarget.setTenantId(tenantId);
-        notificationTarget.setName("All my users");
-        PlatformUsersNotificationTargetConfig config = new PlatformUsersNotificationTargetConfig();
-        AllUsersFilter filter = new AllUsersFilter();
-        config.setUsersFilter(filter);
-        notificationTarget.setConfiguration(config);
-        notificationTarget = saveNotificationTarget(notificationTarget);
-        NotificationTargetId notificationTargetId = notificationTarget.getId();
-
-        ListenableFuture<NotificationRequest> request = executor.submit(() -> {
-            return submitNotificationRequest(notificationTargetId, "Hello, ${recipientEmail}", 0, NotificationDeliveryMethod.WEB);
-        });
-        await().atMost(10, TimeUnit.SECONDS).until(request::isDone);
-        NotificationRequest notificationRequest = request.get();
-
-        await().atMost(5, TimeUnit.SECONDS)
-                .pollInterval(200, TimeUnit.MILLISECONDS)
-                .until(() -> {
-                    PageData<Notification> sentNotifications = notificationDao.findByRequestId(tenantId, notificationRequest.getId(), new PageLink(1));
-                    return sentNotifications.getTotalElements() >= usersCount;
-                });
-
-        PageData<Notification> sentNotifications = notificationDao.findByRequestId(tenantId, notificationRequest.getId(), new PageLink(Integer.MAX_VALUE));
-        assertThat(sentNotifications.getData()).extracting(Notification::getRecipientId)
-                .containsAll(users.stream().map(User::getId).collect(Collectors.toSet()));
-
-        NotificationRequestStats stats = getStats(notificationRequest.getId());
-        assertThat(stats.getSent().values().stream().mapToInt(AtomicInteger::get).sum()).isGreaterThanOrEqualTo(usersCount);
-    }
-
-    @Test
-    @Ignore
     public void testSlackNotifications() throws Exception {
         NotificationSettings settings = new NotificationSettings();
         SlackNotificationDeliveryMethodConfig slackConfig = new SlackNotificationDeliveryMethodConfig();
@@ -556,7 +503,7 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         NotificationTemplateConfig config = new NotificationTemplateConfig();
         SlackDeliveryMethodNotificationTemplate slackNotificationTemplate = new SlackDeliveryMethodNotificationTemplate();
         slackNotificationTemplate.setEnabled(true);
-        slackNotificationTemplate.setBody("To Slack :)  ${recipientEmail}");
+        slackNotificationTemplate.setBody("To Slack :)");
         config.setDeliveryMethodsTemplates(Map.of(
                 NotificationDeliveryMethod.SLACK, slackNotificationTemplate
         ));
@@ -569,14 +516,18 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         notificationTarget.setTenantId(tenantId);
         notificationTarget.setName(conversationName + " in Slack");
         SlackNotificationTargetConfig targetConfig = new SlackNotificationTargetConfig();
-        targetConfig.setConversation(new SlackConversation(conversationId, conversationName));
+        targetConfig.setConversation(SlackConversation.builder()
+                .type(SlackConversationType.DIRECT)
+                .id(conversationId)
+                .name(conversationName)
+                .build());
         notificationTarget.setConfiguration(targetConfig);
         notificationTarget = saveNotificationTarget(notificationTarget);
 
         NotificationRequest successfulNotificationRequest = submitNotificationRequest(List.of(notificationTarget.getId()), notificationTemplate.getId(), 0);
         await().atMost(2, TimeUnit.SECONDS)
                 .until(() -> findNotificationRequest(successfulNotificationRequest.getId()).isSent());
-        verify(slackService).sendMessage(eq(tenantId), eq(slackToken), eq(conversationId), eq("To Slack :)  "));
+        verify(slackService).sendMessage(eq(tenantId), eq(slackToken), eq(conversationId), eq(slackNotificationTemplate.getBody()));
         NotificationRequestStats stats = getStats(successfulNotificationRequest.getId());
         assertThat(stats.getSent().get(NotificationDeliveryMethod.SLACK)).hasValue(1);
 

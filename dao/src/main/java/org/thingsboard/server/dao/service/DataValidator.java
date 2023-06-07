@@ -39,8 +39,8 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.TenantEntityWithDataDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.HashSet;
 import java.util.Iterator;

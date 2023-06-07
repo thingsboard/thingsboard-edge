@@ -38,7 +38,6 @@ import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID> {

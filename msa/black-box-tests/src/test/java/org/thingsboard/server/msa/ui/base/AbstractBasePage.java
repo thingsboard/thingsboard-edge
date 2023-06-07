@@ -30,9 +30,14 @@
  */
 package org.thingsboard.server.msa.ui.base;
 
+import io.qameta.allure.Allure;
 import lombok.SneakyThrows;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -40,6 +45,7 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +88,15 @@ abstract public class AbstractBasePage {
             return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
             return fail("No presence element: " + locator);
+        }
+    }
+
+    protected List<WebElement> waitUntilPresenceOfElementsLocated(String locator) {
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+            return driver.findElements(By.xpath(locator));
+        } catch (WebDriverException e) {
+            return fail("No presence elements: " + locator);
         }
     }
 
@@ -131,7 +146,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator))));
         } catch (WebDriverException e) {
-            return fail("Element is present");
+            return fail("Element is present: " + locator);
         }
     }
 
@@ -143,7 +158,7 @@ abstract public class AbstractBasePage {
         }
     }
 
-    public void waitUntilElementNotVisibility(WebElement element){
+    public void waitUntilElementNotVisibility(WebElement element) {
         try {
             wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOf(element)));
         } catch (WebDriverException e) {
@@ -155,7 +170,7 @@ abstract public class AbstractBasePage {
         try {
             return wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(locator))));
         } catch (WebDriverException e) {
-            return fail("Elements is present");
+            return fail("Elements is present: " + locator);
         }
     }
 
@@ -187,7 +202,7 @@ abstract public class AbstractBasePage {
         try {
             wait.until(ExpectedConditions.attributeContains(element, attribute, value));
         } catch (WebDriverException e) {
-            fail("Miss locator, attribute or value");
+            fail("Failed to wait until attribute '" + attribute + "' of element '" + element + "' contains value '" + value + "'");
         }
     }
 
@@ -196,6 +211,14 @@ abstract public class AbstractBasePage {
             wait.until(ExpectedConditions.invisibilityOf(element));
         } catch (WebDriverException e) {
             fail("Element is visible");
+        }
+    }
+
+    protected WebElement waitUntilVisibilityOfElementLocated(WebElement element) {
+        try {
+            return wait.until(ExpectedConditions.visibilityOf(element));
+        } catch (WebDriverException e) {
+            return fail("No visibility element: " + element.getTagName());
         }
     }
 
@@ -225,5 +248,37 @@ abstract public class AbstractBasePage {
     public static char getRandomSymbol() {
         String s = "~`!@#$^&*()_+=-";
         return s.charAt(new Random().nextInt(s.length()));
+    }
+
+    public void captureScreen(WebDriver driver, String screenshotName) {
+        if (driver instanceof TakesScreenshot) {
+            Allure.addAttachment(screenshotName,
+                    new ByteArrayInputStream(((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES)));
+        }
+    }
+
+    public void pull(WebElement element, int xOffset, int yOffset) {
+        actions.clickAndHold(element).moveByOffset(xOffset, yOffset).release().perform();
+    }
+
+    public void waitUntilAttributeToBe(String locator, String attribute, String value) {
+        try {
+            wait.until(ExpectedConditions.attributeToBe(By.xpath(locator), attribute, value));
+        } catch (WebDriverException e) {
+            fail("Failed to wait until attribute '" + attribute + "' of element located by '" + locator + "' is '" + value + "'");
+        }
+    }
+
+    public void clearInputField(WebElement element) {
+        element.click();
+        element.sendKeys(Keys.CONTROL + "A" + Keys.BACK_SPACE);
+    }
+
+    public void waitUntilAttributeToBeNotEmpty(WebElement element, String attribute) {
+        try {
+            wait.until(ExpectedConditions.attributeToBeNotEmpty(element, attribute));
+        } catch (WebDriverException e) {
+            fail("Failed to wait until attribute '" + attribute + "' of element '" + element + "' is not empty");
+        }
     }
 }

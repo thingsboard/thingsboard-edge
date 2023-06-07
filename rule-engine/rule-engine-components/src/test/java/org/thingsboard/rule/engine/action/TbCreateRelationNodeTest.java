@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.action;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.Before;
@@ -40,6 +39,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -48,7 +48,9 @@ import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -60,9 +62,11 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
@@ -84,6 +88,8 @@ public class TbCreateRelationNodeTest {
     private TbPeContext peCtx;
     @Mock
     private AssetService assetService;
+    @Mock
+    private ConverterService converterService;
     @Mock
     private RelationService relationService;
 
@@ -134,6 +140,36 @@ public class TbCreateRelationNodeTest {
         when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
         when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
+                .thenReturn(Futures.immediateFuture(true));
+
+        node.onMsg(ctx, msg);
+        verify(ctx).tellNext(msg, TbRelationTypes.SUCCESS);
+    }
+
+    @Test
+    public void testCreateNewRelationWithConverter() throws TbNodeException {
+        TbCreateRelationNodeConfiguration configuration = createRelationNodeConfig();
+        configuration.setEntityType("CONVERTER");
+        init(configuration);
+
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
+
+
+        ConverterId converterId = new ConverterId(Uuids.timeBased());
+        Converter converter = new Converter();
+        converter.setId(converterId);
+
+        when(converterService.findConverterByName(any(), eq("ConvName"))).thenReturn(Optional.of(converter));
+        when(converterService.findConverterByIdAsync(any(), eq(converterId))).thenReturn(Futures.immediateFuture(converter));
+
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("name", "ConvName");
+        metaData.putValue("type", "ConvType");
+        msg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
+
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(converterId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+                .thenReturn(Futures.immediateFuture(false));
+        when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(converterId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));
 
         node.onMsg(ctx, msg);
@@ -206,13 +242,13 @@ public class TbCreateRelationNodeTest {
     }
 
     public void init(TbCreateRelationNodeConfiguration configuration) throws TbNodeException {
-        ObjectMapper mapper = new ObjectMapper();
-        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(configuration));
+        TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(configuration));
 
         when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
         when(ctx.getRelationService()).thenReturn(relationService);
         when(ctx.getAssetService()).thenReturn(assetService);
         when(ctx.getPeContext()).thenReturn(peCtx);
+        when(peCtx.getConverterService()).thenReturn(converterService);
 
         node = new TbCreateRelationNode();
         node.init(ctx, nodeConfiguration);

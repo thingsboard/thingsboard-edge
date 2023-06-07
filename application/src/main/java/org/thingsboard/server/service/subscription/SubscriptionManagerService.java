@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.subscription;
 
 import org.springframework.context.ApplicationListener;
-import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -39,7 +38,6 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.common.data.alarm.AlarmAssigneeUpdate;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;

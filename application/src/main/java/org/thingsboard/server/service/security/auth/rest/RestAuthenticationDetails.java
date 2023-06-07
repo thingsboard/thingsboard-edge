@@ -35,7 +35,6 @@ import ua_parser.Client;
 import ua_parser.Parser;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.io.Serializable;
 
 @Data
@@ -58,11 +57,7 @@ public class RestAuthenticationDetails implements Serializable {
     }
 
     private static Client getUserAgent(HttpServletRequest request) {
-        try {
-            Parser uaParser = new Parser();
-            return uaParser.parse(request.getHeader("User-Agent"));
-        } catch (IOException e) {
-            return new Client(null, null, null);
-        }
+        Parser uaParser = new Parser();
+        return uaParser.parse(request.getHeader("User-Agent"));
     }
 }

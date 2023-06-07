@@ -35,8 +35,6 @@ import oshi.SystemInfo;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.FileStore;
@@ -59,7 +57,7 @@ public class SystemUtil {
             long total = memory.getTotal();
             long available = memory.getAvailable();
             return Optional.of(toPercent(total - available, total));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.debug("Failed to get memory usage!!!", e);
         }
         return Optional.empty();
@@ -68,7 +66,7 @@ public class SystemUtil {
     public static Optional<Long> getTotalMemory() {
         try {
             return Optional.of(HARDWARE.getMemory().getTotal());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.debug("Failed to get total memory!!!", e);
         }
         return Optional.empty();
@@ -76,8 +74,8 @@ public class SystemUtil {
 
     public static Optional<Integer> getCpuUsage() {
         try {
-            return Optional.of((int) (HARDWARE.getProcessor().getSystemCpuLoad() * 100.0));
-        } catch (Exception e) {
+            return Optional.of((int) (HARDWARE.getProcessor().getSystemCpuLoad(1000) * 100.0));
+        } catch (Throwable e) {
             log.debug("Failed to get cpu usage!!!", e);
         }
         return Optional.empty();
@@ -86,7 +84,7 @@ public class SystemUtil {
     public static Optional<Integer> getCpuCount() {
         try {
             return Optional.of(HARDWARE.getProcessor().getLogicalProcessorCount());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.debug("Failed to get total cpu count!!!", e);
         }
         return Optional.empty();
@@ -98,7 +96,7 @@ public class SystemUtil {
             long total = store.getTotalSpace();
             long available = store.getUsableSpace();
             return Optional.of(toPercent(total - available, total));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.debug("Failed to get free disc space!!!", e);
         }
         return Optional.empty();
@@ -108,7 +106,7 @@ public class SystemUtil {
         try {
             FileStore store = Files.getFileStore(Paths.get("/"));
             return Optional.of(store.getTotalSpace());
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.debug("Failed to get total disc space!!!", e);
         }
         return Optional.empty();

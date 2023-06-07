@@ -31,8 +31,9 @@
 package org.thingsboard.server.transport.mqtt.util.sparkplug;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
 import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.gen.transport.mqtt.SparkplugBProto;
+
 import java.math.BigInteger;
 import java.util.Date;
 

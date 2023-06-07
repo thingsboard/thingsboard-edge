@@ -140,14 +140,18 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         contentType = debugIn.inContentType;
       }
       if (debugIn.inMetadata) {
-        metadata = JSON.parse(debugIn.inMetadata);
+        try {
+          metadata = JSON.parse(debugIn.inMetadata);
+        } catch (e) {}
       }
       if (!this.isDecoder) {
         if (debugIn.inMsgType) {
           msgType = debugIn.inMsgType;
         }
         if (debugIn.inIntegrationMetadata) {
-          integrationMetadata = JSON.parse(debugIn.inIntegrationMetadata);
+          try {
+            integrationMetadata = JSON.parse(debugIn.inIntegrationMetadata);
+          } catch (e) {}
         }
       }
     }

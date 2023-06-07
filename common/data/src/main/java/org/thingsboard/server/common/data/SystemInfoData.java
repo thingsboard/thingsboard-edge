@@ -32,9 +32,6 @@ package org.thingsboard.server.common.data;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.thingsboard.server.common.data.kv.LongDataEntry;
-
-import java.util.Map;
 
 @Data
 public class SystemInfoData {

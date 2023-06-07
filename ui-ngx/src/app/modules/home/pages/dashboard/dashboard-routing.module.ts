@@ -37,32 +37,42 @@ import { DashboardPageComponent } from '@home/components/dashboard-page/dashboar
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
-import {
-  EntityGroupResolver,
-  groupEntitiesLabelFunction
-} from '@home/pages/group/entity-group.shared';
+import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/group/entity-group.shared';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType } from '@shared/models/entity-type.models';
-import { Operation, Resource } from '@shared/models/security.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs';
+import { mergeMap, Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { entityGroupsTitle } from '@shared/models/entity-group.models';
+import { UserSettingsService } from '@core/http/user-settings.service';
+import { UserDashboardAction } from '@shared/models/user-settings.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 
 @Injectable()
 export class DashboardResolver implements Resolve<Dashboard> {
 
-  constructor(private dashboardService: DashboardService,
+  constructor(private store: Store<AppState>,
+              private dashboardService: DashboardService,
+              private userSettingService: UserSettingsService,
               private dashboardUtils: DashboardUtilsService) {
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<Dashboard> {
     const dashboardId = route.params.dashboardId;
     return this.dashboardService.getDashboard(dashboardId).pipe(
+      mergeMap((dashboard) =>
+        (getCurrentAuthUser(this.store).isPublic ? of(null) :
+          this.userSettingService.reportUserDashboardAction(dashboardId, UserDashboardAction.VISIT,
+            {ignoreLoading: true, ignoreErrors: true})).pipe(
+          catchError(() => of(dashboard)),
+          map(() => dashboard)
+        )),
       map((dashboard) => this.dashboardUtils.validateAndUpdateDashboard(dashboard))
     );
   }
@@ -85,8 +95,7 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false): Route =>
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
-        userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ),
+        userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
       hideTabs: true,
       widgetEditMode: false,

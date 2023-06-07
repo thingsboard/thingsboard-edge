@@ -39,15 +39,16 @@ import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
 import org.thingsboard.server.common.data.notification.info.AlarmCommentNotificationInfo;
-import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.rule.trigger.AlarmCommentNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.dao.notification.trigger.RuleEngineMsgTrigger;
+import org.thingsboard.server.common.msg.notification.trigger.RuleEngineMsgTrigger;
 
 import java.util.Set;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.thingsboard.server.common.data.util.CollectionsUtil.emptyOrContains;
 
 @Service
 public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRuleTriggerProcessor<AlarmCommentNotificationRuleTriggerConfig> {
@@ -68,20 +69,22 @@ public class AlarmCommentTriggerProcessor implements RuleEngineMsgNotificationRu
             }
         }
         Alarm alarm = JacksonUtil.fromString(msg.getData(), Alarm.class);
-        return (isEmpty(triggerConfig.getAlarmTypes()) || triggerConfig.getAlarmTypes().contains(alarm.getType())) &&
-                (isEmpty(triggerConfig.getAlarmSeverities()) || triggerConfig.getAlarmSeverities().contains(alarm.getSeverity())) &&
+        return emptyOrContains(triggerConfig.getAlarmTypes(), alarm.getType()) &&
+                emptyOrContains(triggerConfig.getAlarmSeverities(), alarm.getSeverity()) &&
                 (isEmpty(triggerConfig.getAlarmStatuses()) || AlarmStatusFilter.from(triggerConfig.getAlarmStatuses()).matches(alarm));
     }
 
     @Override
-    public NotificationInfo constructNotificationInfo(RuleEngineMsgTrigger trigger, AlarmCommentNotificationRuleTriggerConfig triggerConfig) {
+    public RuleOriginatedNotificationInfo constructNotificationInfo(RuleEngineMsgTrigger trigger) {
         TbMsg msg = trigger.getMsg();
         AlarmComment comment = JacksonUtil.fromString(msg.getMetaData().getValue("comment"), AlarmComment.class);
         AlarmInfo alarmInfo = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
         return AlarmCommentNotificationInfo.builder()
                 .comment(comment.getComment().get("text").asText())
                 .action(msg.getType().equals(DataConstants.COMMENT_CREATED) ? "added" : "updated")
-                .userName(msg.getMetaData().getValue("userName"))
+                .userEmail(msg.getMetaData().getValue("userEmail"))
+                .userFirstName(msg.getMetaData().getValue("userFirstName"))
+                .userLastName(msg.getMetaData().getValue("userLastName"))
                 .alarmId(alarmInfo.getUuidId())
                 .alarmType(alarmInfo.getType())
                 .alarmOriginator(alarmInfo.getOriginator())

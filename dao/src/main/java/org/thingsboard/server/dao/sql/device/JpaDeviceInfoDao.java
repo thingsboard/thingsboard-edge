@@ -35,12 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceInfoDao;
 import org.thingsboard.server.dao.model.sql.DeviceInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Objects;
@@ -49,7 +50,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaDeviceInfoDao extends JpaAbstractSearchTextDao<DeviceInfoEntity, DeviceInfo> implements DeviceInfoDao {
+public class JpaDeviceInfoDao extends JpaAbstractDao<DeviceInfoEntity, DeviceInfo> implements DeviceInfoDao {
 
     @Autowired
     private DeviceInfoRepository deviceInfoRepository;
@@ -65,82 +66,29 @@ public class JpaDeviceInfoDao extends JpaAbstractSearchTextDao<DeviceInfoEntity,
     }
 
     @Override
-    public PageData<DeviceInfo> findDevicesByTenantId(UUID tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findByTenantId(
-                        tenantId,
+    public PageData<DeviceInfo> findDeviceInfosByFilter(DeviceInfoFilter filter, PageLink pageLink) {
+        if (filter.getCustomerId() != null && filter.isIncludeCustomers()) {
+            return DaoUtil.toPageData(
+                deviceInfoRepository.findDeviceInfosByFilterIncludingSubCustomers(
+                        filter.getTenantId().getId(),
+                        filter.getCustomerId().getId(),
+                        DaoUtil.getStringId(filter.getDeviceProfileId()),
+                        filter.getActive() != null,
+                        Boolean.TRUE.equals(filter.getActive()),
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
+        } else {
+            return DaoUtil.toPageData(
+                    deviceInfoRepository.findDeviceInfosByFilter(
+                            filter.getTenantId().getId(),
+                            filter.isIncludeCustomers(),
+                            DaoUtil.getStringId(filter.getCustomerId()),
+                            DaoUtil.getStringId(filter.getDeviceProfileId()),
+                            filter.getActive() != null,
+                            Boolean.TRUE.equals(filter.getActive()),
+                            Objects.toString(pageLink.getTextSearch(), ""),
+                            DaoUtil.toPageable(pageLink)));
+        }
     }
 
-    @Override
-    public PageData<DeviceInfo> findDevicesByTenantIdAndDeviceProfileId(UUID tenantId, UUID deviceProfileId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findByTenantIdAndDeviceProfileId(
-                        tenantId,
-                        deviceProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<DeviceInfo> findTenantDevicesByTenantId(UUID tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findTenantDevicesByTenantId(
-                        tenantId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<DeviceInfo> findTenantDevicesByTenantIdAndDeviceProfileId(UUID tenantId, UUID deviceProfileId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findTenantDevicesByTenantIdAndDeviceProfileId(
-                        tenantId,
-                        deviceProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDevicesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findByTenantIdAndCustomerId(
-                        tenantId,
-                        customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDevicesByTenantIdAndCustomerIdAndDeviceProfileId(UUID tenantId, UUID customerId, UUID deviceProfileId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findByTenantIdAndCustomerIdAndDeviceProfileId(
-                        tenantId,
-                        customerId,
-                        deviceProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(UUID tenantId, UUID customerId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findByTenantIdAndCustomerIdIncludingSubCustomers(
-                        tenantId,
-                        customerId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
-    public PageData<DeviceInfo> findDevicesByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(UUID tenantId, UUID customerId, UUID deviceProfileId, PageLink pageLink) {
-        return DaoUtil.toPageData(deviceInfoRepository
-                .findByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(
-                        tenantId,
-                        customerId,
-                        deviceProfileId,
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
-    }
 }

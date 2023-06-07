@@ -40,7 +40,6 @@ import org.testng.annotations.Test;
 import org.thingsboard.server.msa.ui.base.AbstractDriverBaseTest;
 import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
-import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewHelper;
 import org.thingsboard.server.msa.ui.utils.DataProviderCredential;
 

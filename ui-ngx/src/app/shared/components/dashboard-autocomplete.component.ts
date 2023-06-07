@@ -45,7 +45,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { FloatLabelType } from '@angular/material/form-field';
+import { FloatLabelType, MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -88,6 +88,12 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
 
   @Input()
   floatLabel: FloatLabelType = 'auto';
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
+
+  @Input()
+  subscriptSizing: SubscriptSizing = 'fixed';
 
   private requiredValue: boolean;
   get required(): boolean {

@@ -38,7 +38,6 @@ import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
-import org.eclipse.leshan.core.request.ContentFormat;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -55,7 +54,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.eclipse.californium.elements.DtlsEndpointContext.KEY_SESSION_ID;
 

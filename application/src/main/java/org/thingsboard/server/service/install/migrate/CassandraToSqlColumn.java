@@ -36,7 +36,6 @@ import org.thingsboard.server.common.data.UUIDConverter;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.regex.Pattern;
 
 @Data

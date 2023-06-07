@@ -48,7 +48,6 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 

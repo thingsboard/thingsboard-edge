@@ -70,7 +70,7 @@ public class DeleteAssetProfileTest extends AbstractDriverBaseTest {
         profilesPage.warningPopUpYesBtn().click();
         profilesPage.refreshBtn();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 
     @Epic("Asset profiles smoke")
@@ -87,7 +87,7 @@ public class DeleteAssetProfileTest extends AbstractDriverBaseTest {
         profilesPage.warningPopUpYesBtn().click();
         profilesPage.refreshBtn();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 
     @Epic("Asset profiles smoke")
@@ -104,7 +104,7 @@ public class DeleteAssetProfileTest extends AbstractDriverBaseTest {
         profilesPage.warningPopUpYesBtn().click();
         profilesPage.refreshBtn();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 
     @Epic("Asset profiles smoke")
@@ -151,6 +151,6 @@ public class DeleteAssetProfileTest extends AbstractDriverBaseTest {
         profilesPage.deleteBtn(name).click();
         profilesPage.warningPopUpYesBtn().click();
 
-        Assert.assertTrue(profilesPage.entityIsNotPresent(name));
+        Assert.assertTrue(profilesPage.assertEntityIsNotPresent(name));
     }
 }

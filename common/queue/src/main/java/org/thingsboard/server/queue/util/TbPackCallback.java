@@ -32,7 +32,6 @@ package org.thingsboard.server.queue.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.queue.util.TbPackProcessingContext;
 
 import java.util.UUID;
 

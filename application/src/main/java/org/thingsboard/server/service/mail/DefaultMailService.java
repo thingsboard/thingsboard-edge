@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +42,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.ApiFeature;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
-import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
+import org.thingsboard.server.common.data.ApiUsageRecordState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
@@ -82,14 +82,9 @@ import java.util.concurrent.TimeoutException;
 @Service
 @Slf4j
 public class DefaultMailService implements MailService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     public static final String MAIL_PROP = "mail.";
     public static final String TARGET_EMAIL = "targetEmail";
     public static final String UTF_8 = "UTF-8";
-
-    public static final int _10K = 10000;
-    public static final int _1M = 1000000;
 
     private final AdminSettingsService adminSettingsService;
     private final AttributesService attributesService;
@@ -339,7 +334,7 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException {
+    public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageRecordState recordState) throws ThingsboardException {
         JsonNode mailTemplates = getConfig(null, "mailTemplates");
         String subject = null;
 
@@ -356,12 +351,12 @@ public class DefaultMailService implements MailService {
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_ENABLED);
                 break;
             case WARNING:
-                model.put("apiValueLabel", toDisabledValueLabel(apiFeature) + " " + toWarningValueLabel(msg.getKey(), msg.getValue(), msg.getThreshold()));
+                model.put("apiValueLabel", toDisabledValueLabel(apiFeature) + " " + toWarningValueLabel(recordState));
                 message = body(mailTemplates, MailTemplates.API_USAGE_STATE_WARNING, model);
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_WARNING);
                 break;
             case DISABLED:
-                model.put("apiLimitValueLabel", toDisabledValueLabel(apiFeature) + " " + toDisabledValueLabel(msg.getKey(), msg.getThreshold()));
+                model.put("apiLimitValueLabel", toDisabledValueLabel(apiFeature) + " " + toDisabledValueLabel(recordState));
                 message = body(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED, model);
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED);
                 break;
@@ -374,6 +369,18 @@ public class DefaultMailService implements MailService {
         JsonNode jsonConfig = getConfig(tenantId, "mail");
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
         mailSender.testConnection();
+    }
+
+    @Override
+    public boolean isConfigured(TenantId tenantId) {
+        try {
+            ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+            JsonNode jsonConfig = configEntry.jsonConfig;
+            createMailSender(jsonConfig);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void sendTemplateEmail(TenantId tenantId, String email, String template, Map<String, Object> templateModel) throws ThingsboardException {
@@ -423,10 +430,10 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private String toWarningValueLabel(ApiUsageRecordKey key, long value, long threshold) {
-        String valueInM = getValueAsString(value);
-        String thresholdInM = getValueAsString(threshold);
-        switch (key) {
+    private String toWarningValueLabel(ApiUsageRecordState recordState) {
+        String valueInM = recordState.getValueAsString();
+        String thresholdInM = recordState.getThresholdAsString();
+        switch (recordState.getKey()) {
             case STORAGE_DP_COUNT:
             case TRANSPORT_DP_COUNT:
                 return valueInM + " out of " + thresholdInM + " allowed data points";
@@ -445,33 +452,23 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    private String toDisabledValueLabel(ApiUsageRecordKey key, long value) {
-        switch (key) {
+    private String toDisabledValueLabel(ApiUsageRecordState recordState) {
+        switch (recordState.getKey()) {
             case STORAGE_DP_COUNT:
             case TRANSPORT_DP_COUNT:
-                return getValueAsString(value) + " data points";
+                return recordState.getValueAsString() + " data points";
             case TRANSPORT_MSG_COUNT:
-                return getValueAsString(value) + " messages";
+                return recordState.getValueAsString() + " messages";
             case JS_EXEC_COUNT:
-                return "JavaScript functions " + getValueAsString(value) + " times";
+                return "JavaScript functions " + recordState.getValueAsString() + " times";
             case RE_EXEC_COUNT:
-                return getValueAsString(value) + " Rule Engine messages";
+                return recordState.getValueAsString() + " Rule Engine messages";
             case EMAIL_EXEC_COUNT:
-                return getValueAsString(value) + " Email messages";
+                return recordState.getValueAsString() + " Email messages";
             case SMS_EXEC_COUNT:
-                return getValueAsString(value) + " SMS messages";
+                return recordState.getValueAsString() + " SMS messages";
             default:
                 throw new RuntimeException("Not implemented!");
-        }
-    }
-
-    private String getValueAsString(long value) {
-        if (value > _1M && value % _1M < _10K) {
-            return value / _1M + "M";
-        } else if (value > _10K) {
-            return String.format("%.2fM", ((double) value) / 1000000);
-        } else {
-            return value + "";
         }
     }
 
@@ -593,7 +590,7 @@ public class DefaultMailService implements MailService {
                 String jsonString = getEntityAttributeValue(tenantId, tenantId, key);
                 if (!StringUtils.isEmpty(jsonString)) {
                     try {
-                        jsonConfig = objectMapper.readTree(jsonString);
+                        jsonConfig = JacksonUtil.toJsonNode(jsonString);
                     } catch (Exception e) {
                     }
                 }

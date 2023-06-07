@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.template.SmsDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.service.notification.NotificationProcessingContext;
@@ -60,6 +61,13 @@ public class SmsNotificationChannel implements NotificationChannel<User, SmsDeli
             smsService.sendSms(recipient.getTenantId(), recipient.getCustomerId(), new String[]{phone}, processedTemplate.getBody());
             return null;
         });
+    }
+
+    @Override
+    public void check(TenantId tenantId) throws Exception {
+        if (!smsService.isConfigured(tenantId)) {
+            throw new RuntimeException("SMS provider is not configured");
+        }
     }
 
     @Override

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.widget;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

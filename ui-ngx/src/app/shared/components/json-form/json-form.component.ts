@@ -50,7 +50,7 @@ import { deepClone, isString } from '@app/core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import { JsonFormProps } from './react/json-form.models';
 import inspector from 'schema-inspector';
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { DialogService } from '@app/core/services/dialog.service';
 // import * as React from 'react';
 // import * as ReactDOM from 'react-dom';
@@ -63,8 +63,6 @@ import { Observable } from 'rxjs/internal/Observable';
 import { forkJoin, from } from 'rxjs';
 import { MouseEvent } from 'react';
 import { TbPopoverService } from '@shared/components/popover.service';
-
-const tinycolor = tinycolor_;
 
 @Component({
   selector: 'tb-json-form',

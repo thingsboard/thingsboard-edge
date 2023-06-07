@@ -31,37 +31,25 @@
 package org.thingsboard.server.service.solutions.data.emulator;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
-import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.util.Pair;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
-import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;

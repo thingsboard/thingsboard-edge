@@ -106,6 +106,7 @@ export class MqttDeviceProfileTransportConfigurationComponent implements Control
   ngOnInit() {
     this.mqttDeviceProfileTransportConfigurationFormGroup = this.fb.group({
         deviceAttributesTopic: [null, [Validators.required, this.validationMQTTTopic()]],
+        deviceAttributesSubscribeTopic: [null, [Validators.required, this.validationMQTTTopic()]],
         deviceTelemetryTopic: [null, [Validators.required, this.validationMQTTTopic()]],
         sparkplug: [false],
         sparkplugAttributesMetricNames: [null],

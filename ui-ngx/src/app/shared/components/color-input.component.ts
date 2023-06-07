@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -37,6 +37,7 @@ import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_AC
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DialogService } from '@core/services/dialog.service';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-color-input',
@@ -53,6 +54,10 @@ import { DialogService } from '@core/services/dialog.service';
 export class ColorInputComponent extends PageComponent implements OnInit, ControlValueAccessor {
 
   @Input()
+  @coerceBoolean()
+  asBoxInput = false;
+
+  @Input()
   icon: string;
 
   @Input()
@@ -60,6 +65,10 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   @Input()
   requiredText: string;
+
+  @Input()
+  @coerceBoolean()
+  useThemePalette = false;
 
   private colorClearButtonValue: boolean;
   get colorClearButton(): boolean {
@@ -110,7 +119,8 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   constructor(protected store: Store<AppState>,
               private dialogs: DialogService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -163,12 +173,13 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
   }
 
   showColorPicker() {
-    this.dialogs.colorPicker(this.colorFormGroup.get('color').value).subscribe(
+    this.dialogs.colorPicker(this.colorFormGroup.get('color').value, this.useThemePalette).subscribe(
       (color) => {
         if (color) {
           this.colorFormGroup.patchValue(
             {color}, {emitEvent: true}
           );
+          this.cd.markForCheck();
         }
       }
     );
@@ -176,5 +187,6 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
 
   clear() {
     this.colorFormGroup.get('color').patchValue(null, {emitEvent: true});
+    this.cd.markForCheck();
   }
 }

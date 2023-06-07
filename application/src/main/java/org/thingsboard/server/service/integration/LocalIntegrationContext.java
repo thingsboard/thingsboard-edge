@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
@@ -39,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -66,7 +64,6 @@ public class LocalIntegrationContext implements IntegrationContext {
     protected final Integration configuration;
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
-    protected final ObjectMapper mapper = new ObjectMapper();
     private final Gson gson = new Gson();
 
     public LocalIntegrationContext(IntegrationContextComponent ctx, Integration configuration) {

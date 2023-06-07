@@ -1,0 +1,342 @@
+{
+  "name": "Tank",
+  "description": null,
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "1ad4eae0-e12e-11ed-bb8d-e1e7ebe72dd2"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": [
+      {
+        "id": "c5d1112f-37c1-8d23-eba8-1e1f5ac714da",
+        "alarmType": "Low Battery Level",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "battery"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 30,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_TENANT",
+                        "sourceAttribute": "minBatteryThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": "${battery}%",
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "battery"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 0,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_TENANT",
+                      "sourceAttribute": "minBatteryThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "af17fa9a-9fd3-b391-759f-9202f36ed162",
+        "alarmType": "Low Temperature",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": -12,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_TENANT",
+                        "sourceAttribute": "minTemperatureThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": "${temperature}°C",
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "temperature"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 0,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_TENANT",
+                      "sourceAttribute": "minTemperatureThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "36fbbf7a-8bff-8362-dfe6-ed01b515bf55",
+        "alarmType": "Low Fuel Level",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "fuelLevel"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 0,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_TENANT",
+                        "sourceAttribute": "minFuelLevelThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": "${fuelLevel}%",
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "fuelLevel"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 0,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_TENANT",
+                      "sourceAttribute": "minFuelLevelThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      },
+      {
+        "id": "3ea65946-5e27-5222-db30-87afbfc40f88",
+        "alarmType": "High Temperature",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "temperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 0,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_TENANT",
+                        "sourceAttribute": "maxTemperatureThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": "${temperature}°C",
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "ATTRIBUTE",
+                  "key": "temperature"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "LESS",
+                  "value": {
+                    "defaultValue": 0,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_TENANT",
+                      "sourceAttribute": "maxTemperatureThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": null
+      }
+    ]
+  },
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "defaultEdgeRuleChainId": null,
+  "externalId": null,
+  "default": false
+}

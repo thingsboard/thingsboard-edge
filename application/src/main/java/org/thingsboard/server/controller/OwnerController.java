@@ -78,7 +78,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
@@ -224,7 +223,7 @@ public class OwnerController extends AutoCommitController {
             return previousOwnerId;
         } catch (ThingsboardException e) {
             notificationEntityService.logEntityAction(tenantId, entityId, ActionType.CHANGE_OWNER, getCurrentUser(), e);
-            throw handleException(e);
+            throw e;
         }
     }
 

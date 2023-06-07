@@ -40,12 +40,12 @@ import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
 import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 
 import java.util.UUID;

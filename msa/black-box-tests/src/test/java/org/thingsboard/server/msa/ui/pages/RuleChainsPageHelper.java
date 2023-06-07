@@ -132,7 +132,7 @@ public class RuleChainsPageHelper extends RuleChainsPageElements {
         return wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(getDeleteRuleChainFromViewBtn())));
     }
 
-    public boolean ruleChainsIsNotPresent(String ruleChainName) {
+    public boolean assertRuleChainsIsNotPresent(String ruleChainName) {
         return elementsIsNotPresent(getEntity(ruleChainName));
     }
 

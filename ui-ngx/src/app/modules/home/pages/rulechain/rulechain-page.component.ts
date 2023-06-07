@@ -30,7 +30,8 @@
 ///
 
 import {
-  AfterViewInit,
+  AfterViewChecked,
+  AfterViewInit, ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -104,6 +105,8 @@ import { DebugEventType, EventType } from '@shared/models/event.models';
 import { MatMiniFabButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
+import { ComponentClusteringMode } from '@shared/models/component-descriptor.models';
+import { MatDrawer } from '@angular/material/sidenav';
 import Timeout = NodeJS.Timeout;
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -115,7 +118,7 @@ import { Operation, Resource } from '@shared/models/security.models';
   encapsulation: ViewEncapsulation.None
 })
 export class RuleChainPageComponent extends PageComponent
-  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent {
+  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent, AfterViewChecked {
 
   get isDirty(): boolean {
     return this.isDirtyValue || this.isImport;
@@ -136,6 +139,8 @@ export class RuleChainPageComponent extends PageComponent
     {read: MatExpansionPanel}) expansionPanels: QueryList<MatExpansionPanel>;
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
+
+  @ViewChild('drawer') drawer: MatDrawer;
 
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE);
 
@@ -177,7 +182,6 @@ export class RuleChainPageComponent extends PageComponent
   hotKeys: Hotkey[] = [];
 
   enableHotKeys = true;
-  isLibraryOpen = true;
 
   ruleNodeSearch = '';
   ruleNodeTypeSearch = '';
@@ -285,6 +289,7 @@ export class RuleChainPageComponent extends PageComponent
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
+              private changeDetector: ChangeDetectorRef,
               public dialog: MatDialog,
               public dialogService: DialogService,
               public fb: UntypedFormBuilder) {
@@ -298,6 +303,10 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngOnInit() {
+  }
+
+  ngAfterViewChecked(){
+    this.changeDetector.detectChanges();
   }
 
   ngAfterViewInit() {
@@ -326,6 +335,14 @@ export class RuleChainPageComponent extends PageComponent
   ngOnDestroy() {
     super.ngOnDestroy();
     this.rxSubscription.unsubscribe();
+  }
+
+  currentRuleChainIdChanged(ruleChainId: string) {
+    if (this.ruleChainType === RuleChainType.CORE) {
+      this.router.navigateByUrl(`ruleChains/${ruleChainId}`);
+    } else {
+      this.router.navigateByUrl(`edgeManagement/ruleChains/${ruleChainId}`);
+    }
   }
 
   onSearchTextUpdated(searchText: string) {
@@ -499,6 +516,7 @@ export class RuleChainPageComponent extends PageComponent
         component: ruleNodeComponent,
         name: '',
         nodeClass: desc.nodeClass,
+        singletonMode: ruleNodeComponent.clusteringMode !== ComponentClusteringMode.ENABLED,
         icon,
         iconUrl,
         x: 30,
@@ -584,6 +602,7 @@ export class RuleChainPageComponent extends PageComponent
         additionalInfo: ruleNode.additionalInfo,
         configuration: ruleNode.configuration,
         debugMode: ruleNode.debugMode,
+        singletonMode: ruleNode.singletonMode,
         x: Math.round(ruleNode.additionalInfo.layoutX),
         y: Math.round(ruleNode.additionalInfo.layoutY),
         component,
@@ -943,7 +962,8 @@ export class RuleChainPageComponent extends PageComponent
             name: node.name,
             configuration: deepClone(node.configuration),
             additionalInfo: node.additionalInfo ? deepClone(node.additionalInfo) : {},
-            debugMode: node.debugMode
+            debugMode: node.debugMode,
+            singletonMode: node.singletonMode
           };
           if (minX === null) {
             minX = node.x;
@@ -1014,7 +1034,8 @@ export class RuleChainPageComponent extends PageComponent
             name: outputEdge.label,
             configuration: {},
             additionalInfo: {},
-            debugMode: false
+            debugMode: false,
+            singletonMode: false
           };
           outputNode.additionalInfo.layoutX = Math.round(destNode.x);
           outputNode.additionalInfo.layoutY = Math.round(destNode.y);
@@ -1060,6 +1081,7 @@ export class RuleChainPageComponent extends PageComponent
               ruleChainId: ruleChain.id.id
             },
             debugMode: false,
+            singletonMode: false,
             x: Math.round(ruleChainNodeX),
             y: Math.round(ruleChainNodeY),
             nodeClass: descriptor.nodeClass,
@@ -1453,7 +1475,8 @@ export class RuleChainPageComponent extends PageComponent
             name: node.name,
             configuration: node.configuration,
             additionalInfo: node.additionalInfo ? node.additionalInfo : {},
-            debugMode: node.debugMode
+            debugMode: node.debugMode,
+            singletonMode: node.singletonMode
           };
           ruleNode.additionalInfo.layoutX = Math.round(node.x);
           ruleNode.additionalInfo.layoutY = Math.round(node.y);

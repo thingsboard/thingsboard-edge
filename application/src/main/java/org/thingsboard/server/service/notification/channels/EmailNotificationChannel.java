@@ -34,7 +34,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.TbEmail;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.service.mail.MailExecutorService;
@@ -50,9 +52,21 @@ public class EmailNotificationChannel implements NotificationChannel<User, Email
     @Override
     public ListenableFuture<Void> sendNotification(User recipient, EmailDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) {
         return executor.submit(() -> {
-            mailService.sendEmail(recipient.getTenantId(), recipient.getEmail(), processedTemplate.getSubject(), processedTemplate.getBody());
+            mailService.send(recipient.getTenantId(), null, TbEmail.builder()
+                    .to(recipient.getEmail())
+                    .subject(processedTemplate.getSubject())
+                    .body(processedTemplate.getBody())
+                    .html(true)
+                    .build());
             return null;
         });
+    }
+
+    @Override
+    public void check(TenantId tenantId) throws Exception {
+        if (!mailService.isConfigured(tenantId)) {
+            throw new RuntimeException("Mail server is not configured");
+        }
     }
 
     @Override

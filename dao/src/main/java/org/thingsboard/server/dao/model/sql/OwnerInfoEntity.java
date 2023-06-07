@@ -41,7 +41,6 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
@@ -54,7 +53,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_PROPERTY
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Immutable
-@Table(name = ModelConstants.OWNER_INFO_VIEW_COLUMN_FAMILY_NAME)
+@Table(name = ModelConstants.OWNER_INFO_VIEW_TABLE_NAME)
 public class OwnerInfoEntity extends BaseSqlEntity<EntityInfo> {
 
     @Column(name = TENANT_ID_PROPERTY)

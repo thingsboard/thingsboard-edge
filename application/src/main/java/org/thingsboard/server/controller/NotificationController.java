@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,20 +52,23 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestInfo;
 import org.thingsboard.server.common.data.notification.NotificationRequestPreview;
-import org.thingsboard.server.common.data.notification.info.UserOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
+import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetType;
+import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
+import org.thingsboard.server.common.data.notification.targets.slack.SlackConversation;
+import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
@@ -77,8 +81,9 @@ import org.thingsboard.server.service.notification.NotificationProcessingContext
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.validation.Valid;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +92,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
+import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
+import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 
 @RestController
 @TbCoreComponent
@@ -103,7 +118,10 @@ public class NotificationController extends BaseController {
     private final NotificationSettingsService notificationSettingsService;
 
     @ApiOperation(value = "Get notifications (getNotifications)",
-            notes = "**WebSocket API**:\n\n" +
+            notes = "Returns the page of notifications for current user." + NEW_LINE +
+                    PAGE_DATA_PARAMETERS +
+                    AVAILABLE_FOR_ANY_AUTHORIZED_USER + NEW_LINE +
+                    "**WebSocket API**:\n\n" +
                     "There are 2 types of subscriptions: one for unread notifications count, another for unread notifications themselves.\n\n" +
                     "The URI for opening WS session for notifications: `/api/ws/plugins/notifications`.\n\n" +
                     "Subscription command for unread notifications count:\n" +
@@ -154,11 +172,17 @@ public class NotificationController extends BaseController {
                     "}\n```")
     @GetMapping("/notifications")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    public PageData<Notification> getNotifications(@RequestParam int pageSize,
+    public PageData<Notification> getNotifications(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+                                                   @RequestParam int pageSize,
+                                                   @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
                                                    @RequestParam int page,
+                                                   @ApiParam(value = "Case-insensitive 'substring' filter based on notification subject or text")
                                                    @RequestParam(required = false) String textSearch,
+                                                   @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
                                                    @RequestParam(required = false) String sortProperty,
+                                                   @ApiParam(value = SORT_ORDER_DESCRIPTION)
                                                    @RequestParam(required = false) String sortOrder,
+                                                   @ApiParam(value = "To search for unread notifications only")
                                                    @RequestParam(defaultValue = "false") boolean unreadOnly,
                                                    @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         // no permissions
@@ -166,6 +190,9 @@ public class NotificationController extends BaseController {
         return notificationService.findNotificationsByRecipientIdAndReadStatus(user.getTenantId(), user.getId(), unreadOnly, pageLink);
     }
 
+    @ApiOperation(value = "Mark notification as read (markNotificationAsRead)",
+            notes = "Marks notification as read by its id." +
+                    AVAILABLE_FOR_ANY_AUTHORIZED_USER)
     @PutMapping("/notification/{id}/read")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void markNotificationAsRead(@PathVariable UUID id,
@@ -175,6 +202,9 @@ public class NotificationController extends BaseController {
         notificationCenter.markNotificationAsRead(user.getTenantId(), user.getId(), notificationId);
     }
 
+    @ApiOperation(value = "Mark all notifications as read (markAllNotificationsAsRead)",
+            notes = "Marks all unread notifications as read." +
+                    AVAILABLE_FOR_ANY_AUTHORIZED_USER)
     @PutMapping("/notifications/read")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void markAllNotificationsAsRead(@AuthenticationPrincipal SecurityUser user) {
@@ -182,6 +212,9 @@ public class NotificationController extends BaseController {
         notificationCenter.markAllNotificationsAsRead(user.getTenantId(), user.getId());
     }
 
+    @ApiOperation(value = "Delete notification (deleteNotification)",
+            notes = "Deletes notification by its id." +
+                    AVAILABLE_FOR_ANY_AUTHORIZED_USER)
     @DeleteMapping("/notification/{id}")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public void deleteNotification(@PathVariable UUID id,
@@ -191,6 +224,35 @@ public class NotificationController extends BaseController {
         notificationCenter.deleteNotification(user.getTenantId(), user.getId(), notificationId);
     }
 
+    @ApiOperation(value = "Create notification request (createNotificationRequest)",
+            notes = "Processes notification request.\n" +
+                    "Mandatory request properties are `targets` (list of targets ids to send notification to), " +
+                    "and either `templateId` (existing notification template id) or `template` (to send notification without saving the template).\n" +
+                    "Optionally, you can set `sendingDelayInSec` inside the `additionalConfig` field to schedule the notification." + NEW_LINE +
+                    "For each enabled delivery method in the notification template, there must be a target in the `targets` list that supports this delivery method: " +
+                    "if you chose `WEB`, `EMAIL` or `SMS` - there must be at least one target in `targets` of `PLATFORM_USERS` type.\n" +
+                    "For `SLACK` delivery method - you need to chose at least one `SLACK` notification target." + NEW_LINE +
+                    "Notification request object with `PROCESSING` status will be returned immediately, " +
+                    "and the notification sending itself is done asynchronously. After all notifications are sent, " +
+                    "the `status` of the request becomes `SENT`. Use `getNotificationRequestById` to see " +
+                    "the notification request processing status and some sending stats. " + NEW_LINE +
+                    "Here is an example of notification request to one target using saved template:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"templateId\": {\n" +
+                    "    \"entityType\": \"NOTIFICATION_TEMPLATE\",\n" +
+                    "    \"id\": \"6dbc3670-e4dd-11ed-9401-dbcc5dff78be\"\n" +
+                    "  },\n" +
+                    "  \"targets\": [\n" +
+                    "    \"320e3ed0-d785-11ed-a06c-21dd57dd88ca\"\n" +
+                    "  ],\n" +
+                    "  \"additionalConfig\": {\n" +
+                    "    \"sendingDelayInSec\": 0\n" +
+                    "  }\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH
+    )
     @PostMapping("/notification/request")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationRequest createNotificationRequest(@RequestBody @Valid NotificationRequest notificationRequest,
@@ -202,24 +264,26 @@ public class NotificationController extends BaseController {
         checkEntity(notificationRequest.getId(), notificationRequest, NOTIFICATION);
 
         notificationRequest.setOriginatorEntityId(user.getId());
-        if (notificationRequest.getInfo() != null && !(notificationRequest.getInfo() instanceof UserOriginatedNotificationInfo)) {
-            throw new IllegalArgumentException("Unsupported notification info type");
-        }
+        notificationRequest.setInfo(null);
         notificationRequest.setRuleId(null);
         notificationRequest.setStatus(null);
         notificationRequest.setStats(null);
 
-        return doSaveAndLog(EntityType.NOTIFICATION_REQUEST, notificationRequest, notificationCenter::processNotificationRequest);
+        return doSaveAndLog(EntityType.NOTIFICATION_REQUEST, notificationRequest, (tenantId, request) -> notificationCenter.processNotificationRequest(tenantId, request, null));
     }
 
+    @ApiOperation(value = "Get notification request preview (getNotificationRequestPreview)",
+            notes = "Returns preview for notification request." + NEW_LINE +
+                    "`processedTemplates` shows how the notifications for each delivery method will look like " +
+                    "for the first recipient of the corresponding notification target." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/notification/request/preview")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationRequestPreview getNotificationRequestPreview(@RequestBody @Valid NotificationRequest request,
+                                                                    @ApiParam(value = "Amount of the recipients to show in preview")
                                                                     @RequestParam(defaultValue = "20") int recipientsPreviewSize,
                                                                     @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        NotificationRequestPreview preview = new NotificationRequestPreview();
-
-        request.setOriginatorEntityId(user.getId());
+        accessControlService.checkPermission(user, NOTIFICATION, Operation.WRITE);
         NotificationTemplate template;
         if (request.getTemplateId() != null) {
             template = checkEntityId(request.getTemplateId(), notificationTemplateService::findNotificationTemplateById, Operation.READ);
@@ -229,45 +293,47 @@ public class NotificationController extends BaseController {
         if (template == null) {
             throw new IllegalArgumentException("Template is missing");
         }
-        NotificationProcessingContext tmpProcessingCtx = NotificationProcessingContext.builder()
-                .tenantId(user.getTenantId())
-                .request(request)
-                .settings(null)
-                .template(template)
-                .build();
+        request.setOriginatorEntityId(user.getId());
+        List<NotificationTarget> targets = request.getTargets().stream()
+                .map(NotificationTargetId::new)
+                .map(targetId -> notificationTargetService.findNotificationTargetById(user.getTenantId(), targetId))
+                .sorted(Comparator.comparing(target -> target.getConfiguration().getType()))
+                .collect(Collectors.toList());
 
-        Map<NotificationDeliveryMethod, DeliveryMethodNotificationTemplate> processedTemplates = tmpProcessingCtx.getDeliveryMethods().stream()
-                .collect(Collectors.toMap(m -> m, deliveryMethod -> {
-                    Map<String, String> templateContext;
-                    if (NotificationTargetType.PLATFORM_USERS.getSupportedDeliveryMethods().contains(deliveryMethod)) {
-                        templateContext = tmpProcessingCtx.createTemplateContext(user);
-                    } else {
-                        templateContext = Collections.emptyMap();
-                    }
-                    return tmpProcessingCtx.getProcessedTemplate(deliveryMethod, templateContext);
-                }));
-        preview.setProcessedTemplates(processedTemplates);
+        NotificationRequestPreview preview = new NotificationRequestPreview();
 
-        accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
-        Set<User> recipientsPreview = new LinkedHashSet<>();
-        Map<String, Integer> recipientsCountByTarget = new HashMap<>();
-        List<NotificationTarget> targets = notificationTargetService.findNotificationTargetsByTenantIdAndIds(user.getTenantId(),
-                request.getTargets().stream().map(NotificationTargetId::new).collect(Collectors.toList()));
+        Set<String> recipientsPreview = new LinkedHashSet<>();
+        Map<String, Integer> recipientsCountByTarget = new LinkedHashMap<>();
+        Map<NotificationTargetType, NotificationRecipient> firstRecipient = new HashMap<>();
         for (NotificationTarget target : targets) {
             int recipientsCount;
-            if (target.getConfiguration().getType() == NotificationTargetType.PLATFORM_USERS) {
-                PageData<User> recipients = notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(), null,
-                        target.getConfiguration(), new PageLink(recipientsPreviewSize));
+            List<NotificationRecipient> recipientsPart;
+            NotificationTargetType targetType = target.getConfiguration().getType();
+            if (targetType == NotificationTargetType.PLATFORM_USERS) {
+                PageData<User> recipients = notificationTargetService.findRecipientsForNotificationTargetConfig(user.getTenantId(),
+                        (PlatformUsersNotificationTargetConfig) target.getConfiguration(), new PageLink(recipientsPreviewSize, 0, null,
+                                new SortOrder("createdTime", SortOrder.Direction.DESC)));
                 recipientsCount = (int) recipients.getTotalElements();
-                for (User recipient : recipients.getData()) {
-                    if (recipientsPreview.size() < recipientsPreviewSize) {
-                        recipientsPreview.add(recipient);
-                    } else {
-                        break;
-                    }
-                }
+                recipientsPart = recipients.getData().stream().map(r -> (NotificationRecipient) r).collect(Collectors.toList());
             } else {
                 recipientsCount = 1;
+                recipientsPart = List.of(((SlackNotificationTargetConfig) target.getConfiguration()).getConversation());
+            }
+            firstRecipient.putIfAbsent(targetType, !recipientsPart.isEmpty() ? recipientsPart.get(0) : null);
+            for (NotificationRecipient recipient : recipientsPart) {
+                if (recipientsPreview.size() < recipientsPreviewSize) {
+                    String title = recipient.getTitle();
+                    if (recipient instanceof SlackConversation) {
+                        title = ((SlackConversation) recipient).getPointer() + title;
+                    } else if (recipient instanceof User) {
+                        if (!title.equals(recipient.getEmail())) {
+                            title += " (" + recipient.getEmail() + ")";
+                        }
+                    }
+                    recipientsPreview.add(title);
+                } else {
+                    break;
+                }
             }
             recipientsCountByTarget.put(target.getName(), recipientsCount);
         }
@@ -275,9 +341,28 @@ public class NotificationController extends BaseController {
         preview.setRecipientsCountByTarget(recipientsCountByTarget);
         preview.setTotalRecipientsCount(recipientsCountByTarget.values().stream().mapToInt(Integer::intValue).sum());
 
+        Set<NotificationDeliveryMethod> deliveryMethods = template.getConfiguration().getDeliveryMethodsTemplates().entrySet()
+                .stream().filter(entry -> entry.getValue().isEnabled()).map(Map.Entry::getKey).collect(Collectors.toSet());
+        NotificationProcessingContext ctx = NotificationProcessingContext.builder()
+                .tenantId(user.getTenantId())
+                .request(request)
+                .deliveryMethods(deliveryMethods)
+                .template(template)
+                .settings(null)
+                .build();
+        Map<NotificationDeliveryMethod, DeliveryMethodNotificationTemplate> processedTemplates = ctx.getDeliveryMethods().stream()
+                .collect(Collectors.toMap(m -> m, deliveryMethod -> {
+                    NotificationTargetType targetType = NotificationTargetType.forDeliveryMethod(deliveryMethod);
+                    return ctx.getProcessedTemplate(deliveryMethod, firstRecipient.get(targetType));
+                }));
+        preview.setProcessedTemplates(processedTemplates);
+
         return preview;
     }
 
+    @ApiOperation(value = "Get notification request by id (getNotificationRequestById)",
+            notes = "Fetches notification request info by request id." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/notification/request/{id}")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationRequestInfo getNotificationRequestById(@PathVariable UUID id) throws ThingsboardException {
@@ -285,12 +370,21 @@ public class NotificationController extends BaseController {
         return checkEntityId(notificationRequestId, notificationRequestService::findNotificationRequestInfoById, Operation.READ);
     }
 
+    @ApiOperation(value = "Get notification requests (getNotificationRequests)",
+            notes = "Returns the page of notification requests submitted by users of this tenant or sysadmins." + NEW_LINE +
+                    PAGE_DATA_PARAMETERS +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/notification/requests")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public PageData<NotificationRequestInfo> getNotificationRequests(@RequestParam int pageSize,
+    public PageData<NotificationRequestInfo> getNotificationRequests(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+                                                                     @RequestParam int pageSize,
+                                                                     @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
                                                                      @RequestParam int page,
+                                                                     @ApiParam(value = "Case-insensitive 'substring' filed based on the used template name")
                                                                      @RequestParam(required = false) String textSearch,
+                                                                     @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
                                                                      @RequestParam(required = false) String sortProperty,
+                                                                     @ApiParam(value = SORT_ORDER_DESCRIPTION)
                                                                      @RequestParam(required = false) String sortOrder,
                                                                      @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
@@ -298,6 +392,11 @@ public class NotificationController extends BaseController {
         return notificationRequestService.findNotificationRequestsInfosByTenantIdAndOriginatorType(user.getTenantId(), EntityType.USER, pageLink);
     }
 
+    @ApiOperation(value = "Delete notification request (deleteNotificationRequest)",
+            notes = "Deletes notification request by its id." + NEW_LINE +
+                    "If the request has status `SENT` - all sent notifications for this request will be deleted. " +
+                    "If it is `SCHEDULED`, the request will be cancelled." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @DeleteMapping("/notification/request/{id}")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public void deleteNotificationRequest(@PathVariable UUID id) throws Exception {
@@ -307,24 +406,51 @@ public class NotificationController extends BaseController {
     }
 
 
+    @ApiOperation(value = "Save notification settings (saveNotificationSettings)",
+            notes = "Saves notification settings for this tenant or sysadmin.\n" +
+                    "`deliveryMethodsConfigs` of the settings must be specified." + NEW_LINE +
+                    "Here is an example of the notification settings with Slack configuration:\n" +
+                    MARKDOWN_CODE_BLOCK_START +
+                    "{\n" +
+                    "  \"deliveryMethodsConfigs\": {\n" +
+                    "    \"SLACK\": {\n" +
+                    "      \"method\": \"SLACK\",\n" +
+                    "      \"botToken\": \"xoxb-....\"\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}" +
+                    MARKDOWN_CODE_BLOCK_END +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PostMapping("/notification/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings saveNotificationSettings(@RequestBody @Valid NotificationSettings notificationSettings,
                                                          @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
-        TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
-        notificationSettingsService.saveNotificationSettings(tenantId, notificationSettings);
+        if (user.isSystemAdmin()) {
+            accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
+        } else {
+            accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.WRITE);
+        }
+        notificationSettingsService.saveNotificationSettings(user.getTenantId(), notificationSettings);
         return notificationSettings;
     }
 
+    @ApiOperation(value = "Get notification settings (getNotificationSettings)",
+            notes = "Retrieves notification settings for this tenant or sysadmin." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/notification/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public NotificationSettings getNotificationSettings(@AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
-        TenantId tenantId = user.isSystemAdmin() ? TenantId.SYS_TENANT_ID : user.getTenantId();
-        return notificationSettingsService.findNotificationSettings(tenantId);
+        if (user.isSystemAdmin()) {
+            accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.READ);
+        } else {
+            accessControlService.checkPermission(user, Resource.WHITE_LABELING, Operation.READ);
+        }
+        return notificationSettingsService.findNotificationSettings(user.getTenantId());
     }
 
+    @ApiOperation(value = "Get available delivery methods (getAvailableDeliveryMethods)",
+            notes = "Returns the list of delivery methods that are properly configured and are allowed to be used for sending notifications." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/notification/deliveryMethods")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public Set<NotificationDeliveryMethod> getAvailableDeliveryMethods(@AuthenticationPrincipal SecurityUser user) throws ThingsboardException {

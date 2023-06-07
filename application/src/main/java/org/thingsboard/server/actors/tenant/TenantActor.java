@@ -64,6 +64,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
 import org.thingsboard.server.common.msg.edge.EdgeSessionMsg;
+import org.thingsboard.server.common.msg.notification.trigger.RuleEngineMsgTrigger;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
@@ -110,6 +111,7 @@ public class TenantActor extends RuleChainManagerActor {
                             log.info("[{}] Skip init of the rule chains due to API limits", tenantId);
                         }
                     } catch (Exception e) {
+                        log.info("Failed to check ApiUsage \"ReExecEnabled\"!!!", e);
                         cantFindTenant = true;
                     }
                 }
@@ -226,7 +228,10 @@ public class TenantActor extends RuleChainManagerActor {
             log.trace("[{}] Ack message because Rule Engine is disabled", tenantId);
             tbMsg.getCallback().onSuccess();
         }
-        systemContext.getNotificationRuleProcessingService().process(tenantId, tbMsg);
+        systemContext.getNotificationRuleProcessor().process(RuleEngineMsgTrigger.builder()
+                .tenantId(tenantId)
+                .msg(tbMsg)
+                .build());
     }
 
     private void onRuleChainMsg(RuleChainAwareMsg msg) {

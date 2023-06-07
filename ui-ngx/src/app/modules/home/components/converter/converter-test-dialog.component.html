@@ -118,6 +118,7 @@
                                              converterTestFormGroup.get('payload').get('msgType').value,
                                              converterTestFormGroup.get('integrationMetadata').value]"
               [disableUndefinedCheck]="scriptLang === scriptLanguage.TBEL"
+              [scriptLanguage]="scriptLang"
               resultType="object"
               helpId="{{scriptLang === scriptLanguage.TBEL ? (isDecoder ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn') : (isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn')}}"
               [fillHeight]="true">

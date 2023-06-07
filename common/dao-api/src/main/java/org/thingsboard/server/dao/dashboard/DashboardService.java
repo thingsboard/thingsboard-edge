@@ -69,6 +69,8 @@ public interface DashboardService extends EntityDaoService {
 
     PageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, PageLink pageLink);
 
+    Long countDashboards();
+
     PageData<DashboardInfo> findTenantDashboardsByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<DashboardInfo> findMobileDashboardsByTenantId(TenantId tenantId, PageLink pageLink);

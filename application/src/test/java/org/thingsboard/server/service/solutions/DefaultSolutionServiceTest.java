@@ -32,7 +32,6 @@ package org.thingsboard.server.service.solutions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +51,7 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
-import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo.mapper;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.mapper;
 
 @RunWith(SpringRunner.class)
 public class DefaultSolutionServiceTest {
@@ -71,7 +70,6 @@ public class DefaultSolutionServiceTest {
         Assert.assertTrue(schedulerEvent.getOriginatorId() instanceof DeviceId);
     }
 
-    @NotNull
     private SolutionInstallContext mockSolutionInstallContext(SchedulerEventDefinition schedulerEventDefinition) {
         TenantId tenantId = new TenantId(UUID.randomUUID());
         String solutionId = "";
@@ -82,7 +80,6 @@ public class DefaultSolutionServiceTest {
         return ctx;
     }
 
-    @NotNull
     private SchedulerEventDefinition mockSchedulerEventDefinition() throws JsonProcessingException {
         EntityId originatorId = new DeviceId(UUID.randomUUID());
         String type = "START_IRRIGATION";

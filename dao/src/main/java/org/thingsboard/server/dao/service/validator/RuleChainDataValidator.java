@@ -45,13 +45,11 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.util.ReflectionUtils;
 import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -77,7 +75,7 @@ public class RuleChainDataValidator extends DataValidator<RuleChain> {
 
     @Override
     protected void validateCreate(TenantId tenantId, RuleChain data) {
-         validateNumberOfEntitiesPerTenant(tenantId, EntityType.RULE_CHAIN);
+        validateNumberOfEntitiesPerTenant(tenantId, EntityType.RULE_CHAIN);
     }
 
     @Override

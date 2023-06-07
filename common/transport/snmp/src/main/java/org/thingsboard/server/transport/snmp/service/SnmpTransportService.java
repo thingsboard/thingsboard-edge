@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.TbTransportService;
 import org.thingsboard.server.common.data.kv.DataType;
@@ -61,7 +62,6 @@ import org.thingsboard.server.common.data.transport.snmp.config.RepeatingQueryin
 import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbSnmpTransportComponent;
 import org.thingsboard.server.transport.snmp.session.DeviceSessionContext;

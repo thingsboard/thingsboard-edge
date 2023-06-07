@@ -31,12 +31,12 @@
 package org.thingsboard.integration.mqtt.aws;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.credentials.CertPemClientCredentials;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
+import org.thingsboard.server.common.data.StringUtils;
 
 @Slf4j
 public class AwsIotIntegration extends BasicMqttIntegration {

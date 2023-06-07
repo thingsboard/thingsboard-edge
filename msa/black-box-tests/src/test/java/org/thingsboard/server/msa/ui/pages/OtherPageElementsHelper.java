@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.pages;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class OtherPageElementsHelper extends OtherPageElements {
     public OtherPageElementsHelper(WebDriver driver) {
@@ -61,17 +63,26 @@ public class OtherPageElementsHelper extends OtherPageElements {
         return entityGroupName;
     }
 
-    public boolean entityIsNotPresent(String entityName) {
+    public boolean assertEntityIsNotPresent(String entityName) {
         return elementIsNotPresent(getEntity(entityName));
     }
 
+    private void clickHelpButton(WebElement helpBtn) {
+        helpBtn.click();
+        try {
+            wait.until(ExpectedConditions.numberOfWindowsToBe(2));
+        } catch (WebDriverException e) {
+            helpBtn.click();
+        }
+    }
+
     public void goToHelpPage() {
-        helpBtn().click();
+        clickHelpButton(helpBtn());
         goToNextTab(2);
     }
 
     public void goToHelpEntityGroupPage() {
-        helpBtnEntityGroup().click();
+        clickHelpButton(helpBtnEntityGroup());
         goToNextTab(2);
     }
 
@@ -126,10 +137,17 @@ public class OtherPageElementsHelper extends OtherPageElements {
         doubleClick(sortByNameBtn());
     }
 
-    public void changeOwner(String customerName){
+    public void changeOwner(String customerName) {
         changeOwnerViewField().click();
         entityFromDropDown(customerName).click();
         changeOwnerViewChangeOwnerBtn().click();
         warningPopUpYesBtn().click();
+    }
+
+    public void changeItemsCountPerPage(int itemCount) {
+        itemsPerPage().click();
+        WebElement element = itemsCount(itemCount);
+        element.click();
+        waitUntilInvisibilityOfElementLocated(element);
     }
 }

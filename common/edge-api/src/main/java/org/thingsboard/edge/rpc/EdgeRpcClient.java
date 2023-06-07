@@ -56,4 +56,6 @@ public interface EdgeRpcClient {
     void sendUplinkMsg(UplinkMsg uplinkMsg);
 
     void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg);
+
+    int getServerMaxInboundMessageSize();
 }

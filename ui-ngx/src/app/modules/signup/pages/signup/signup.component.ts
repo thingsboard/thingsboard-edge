@@ -41,7 +41,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import { SignupService } from '@core/http/signup.service';
 import { DialogService } from '@core/services/dialog.service';
-import { RecaptchaComponent } from 'ng-recaptcha';
+import { ReCaptcha2Component, ReCaptchaV3Service } from 'ngx-captcha';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -49,6 +49,7 @@ import {
   SignupDialogData,
   SignupDialogComponent
 } from '@modules/signup/pages/signup/signup-dialog.component';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'tb-signup',
@@ -57,7 +58,7 @@ import {
 })
 export class SignupComponent extends PageComponent implements OnInit {
 
-  @ViewChild('recaptcha') recaptchaComponent: RecaptchaComponent;
+  @ViewChild('recaptcha') recaptchaComponent: ReCaptcha2Component;
 
   signup = this.fb.group(SignupRequest.create());
   passwordCheck: string;
@@ -76,6 +77,7 @@ export class SignupComponent extends PageComponent implements OnInit {
               private selfRegistrationService: SelfRegistrationService,
               private dialogService: DialogService,
               private translate: TranslateService,
+              private reCaptchaV3Service: ReCaptchaV3Service,
               private dialog: MatDialog,
               public fb: UntypedFormBuilder) {
     super(store);
@@ -87,18 +89,24 @@ export class SignupComponent extends PageComponent implements OnInit {
   signUp(): void {
     if (this.signup.valid) {
       if (this.validateSignUpRequest()) {
-        this.signupService.signup(this.signup.value).subscribe(
-          (signupResult) => {
-            if (signupResult === SignUpResult.INACTIVE_USER_EXISTS) {
-              this.promptToResendEmailVerification();
-              this.recaptchaComponent.reset();
-            } else {
-              this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('email').value);
+        if (this.signupParams?.captchaVersion === 'v2') {
+          this.executeSignup(this.signup.value);
+        } else {
+          from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captchaSiteKey,
+            this.signupParams?.captchaAction, {useGlobalDomain: true})).subscribe(
+            {
+              next: (token) => {
+                const signupRequest: SignupRequest = this.signup.value;
+                signupRequest.recaptchaResponse = token;
+                this.executeSignup(signupRequest);
+              },
+              error: err => {
+                this.store.dispatch(new ActionNotificationShow({ message: 'ReCaptcha error: ' + err,
+                  type: 'error' }));
+              }
             }
-          }, () => {
-            this.recaptchaComponent.reset();
-          }
-        );
+          );
+        }
       }
     } else {
       Object.keys(this.signup.controls).forEach(field => {
@@ -106,6 +114,25 @@ export class SignupComponent extends PageComponent implements OnInit {
         control.markAsTouched({onlySelf: true});
       });
     }
+  }
+
+  private executeSignup(signupRequest: SignupRequest): void {
+    this.signupService.signup(signupRequest).subscribe(
+      (signupResult) => {
+        if (signupResult === SignUpResult.INACTIVE_USER_EXISTS) {
+          this.promptToResendEmailVerification();
+          if (this.recaptchaComponent) {
+            this.recaptchaComponent.resetCaptcha();
+          }
+        } else {
+          this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('email').value);
+        }
+      }, () => {
+        if (this.recaptchaComponent) {
+          this.recaptchaComponent.resetCaptcha();
+        }
+      }
+    );
   }
 
   promptToResendEmailVerification() {
@@ -136,7 +163,8 @@ export class SignupComponent extends PageComponent implements OnInit {
         type: 'error' }));
       return false;
     }
-    if (!this.signup.get('recaptchaResponse').value || this.signup.get('recaptchaResponse').value.length < 1) {
+    if (this.signupParams?.captchaVersion === 'v2' &&
+      (!this.signup.get('recaptchaResponse').value || this.signup.get('recaptchaResponse').value.length < 1)) {
       this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.no-captcha-message'),
         type: 'error' }));
       return false;

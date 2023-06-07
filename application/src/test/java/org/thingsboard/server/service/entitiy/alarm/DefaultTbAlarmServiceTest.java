@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.entitiy.alarm;
 
-import com.google.common.util.concurrent.Futures;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,11 +41,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
-import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -61,7 +59,6 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

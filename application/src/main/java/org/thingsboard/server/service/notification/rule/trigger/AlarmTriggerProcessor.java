@@ -32,19 +32,19 @@ package org.thingsboard.server.service.notification.rule.trigger;
 
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmStatusFilter;
 import org.thingsboard.server.common.data.notification.info.AlarmNotificationInfo;
-import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.rule.trigger.AlarmNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.AlarmNotificationRuleTriggerConfig.AlarmAction;
 import org.thingsboard.server.common.data.notification.rule.trigger.AlarmNotificationRuleTriggerConfig.ClearRule;
 import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
-import org.thingsboard.server.dao.alarm.AlarmApiCallResult;
-import org.thingsboard.server.dao.notification.trigger.AlarmTrigger;
+import org.thingsboard.server.common.msg.notification.trigger.AlarmTrigger;
 
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.thingsboard.server.common.data.util.CollectionsUtil.emptyOrContains;
 
 @Service
 public class AlarmTriggerProcessor implements NotificationRuleTriggerProcessor<AlarmTrigger, AlarmNotificationRuleTriggerConfig> {
@@ -100,15 +100,15 @@ public class AlarmTriggerProcessor implements NotificationRuleTriggerProcessor<A
     }
 
     private boolean severityMatches(Alarm alarm, AlarmNotificationRuleTriggerConfig triggerConfig) {
-        return isEmpty(triggerConfig.getAlarmSeverities()) || triggerConfig.getAlarmSeverities().contains(alarm.getSeverity());
+        return emptyOrContains(triggerConfig.getAlarmSeverities(), alarm.getSeverity());
     }
 
     private boolean typeMatches(Alarm alarm, AlarmNotificationRuleTriggerConfig triggerConfig) {
-        return isEmpty(triggerConfig.getAlarmTypes()) || triggerConfig.getAlarmTypes().contains(alarm.getType());
+        return emptyOrContains(triggerConfig.getAlarmTypes(), alarm.getType());
     }
 
     @Override
-    public NotificationInfo constructNotificationInfo(AlarmTrigger trigger, AlarmNotificationRuleTriggerConfig triggerConfig) {
+    public RuleOriginatedNotificationInfo constructNotificationInfo(AlarmTrigger trigger) {
         AlarmApiCallResult alarmUpdate = trigger.getAlarmUpdate();
         AlarmInfo alarmInfo = alarmUpdate.getAlarm();
         return AlarmNotificationInfo.builder()

@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
         name = "entity type switch",
         configClazz = EmptyNodeConfiguration.class,
         relationTypes = {"Device", "Asset", "Alarm", "Entity View", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
-                "Rule node", "Entity Group", "Data converter", "Integration", "Scheduler event", "Blob entity"},
+                "Rule node", "Entity Group", "Data converter", "Integration", "Scheduler event", "Blob entity", "Edge"},
         nodeDescription = "Route incoming messages by Message Originator Type",
         nodeDetails = "Routes messages to chain according to the entity type ('Device', 'Asset', etc.).",
         uiResources = {"static/rulenode/rulenode-core-config.js"},

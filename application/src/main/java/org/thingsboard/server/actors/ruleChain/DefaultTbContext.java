@@ -31,7 +31,6 @@
 package org.thingsboard.server.actors.ruleChain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -41,8 +40,8 @@ import org.bouncycastle.util.Arrays;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
-import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
+import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
 import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
@@ -73,8 +72,8 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -91,7 +90,6 @@ import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
-import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
@@ -156,8 +154,6 @@ import java.util.function.Consumer;
  */
 @Slf4j
 class DefaultTbContext implements TbContext, TbPeContext {
-
-    public final static ObjectMapper mapper = new ObjectMapper();
 
     private final ActorSystemContext mainCtx;
     private final String ruleChainName;
@@ -454,8 +450,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, K profile) {
         try {
-            return entityActionMsg(id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), action, profile);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
+            return entityActionMsg(id, getActionMetaData(ruleNodeId), JacksonUtil.toString(JacksonUtil.valueToTree(entity)), action, profile);
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
         }
     }

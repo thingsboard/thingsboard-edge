@@ -30,7 +30,7 @@
 ///
 
 import {
-  Component,
+  Component, HostBinding,
   Injector,
   Input,
   OnDestroy,
@@ -62,6 +62,9 @@ import { MatDialog } from '@angular/material/dialog';
   styleUrls: ['./filters-edit.component.scss']
 })
 export class FiltersEditComponent implements OnInit, OnDestroy {
+
+  @HostBinding('class')
+  filtersEditClass = 'tb-hide';
 
   aliasControllerValue: IAliasController;
 
@@ -189,11 +192,13 @@ export class FiltersEditComponent implements OnInit, OnDestroy {
     const allFilters = this.aliasController.getFilters();
     this.filtersInfo = {};
     this.hasEditableFilters = false;
+    this.filtersEditClass = 'tb-hide';
     for (const filterId of Object.keys(allFilters)) {
       const filterInfo = this.aliasController.getFilterInfo(filterId);
       if (filterInfo && isFilterEditable(filterInfo)) {
         this.filtersInfo[filterId] = deepClone(filterInfo);
         this.hasEditableFilters = true;
+        this.filtersEditClass = '';
       }
     }
   }

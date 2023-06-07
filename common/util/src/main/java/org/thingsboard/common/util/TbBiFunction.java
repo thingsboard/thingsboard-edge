@@ -30,9 +30,7 @@
  */
 package org.thingsboard.common.util;
 
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-
 @FunctionalInterface
 public interface TbBiFunction<T, U, R> {
-    R apply(T t, U u) throws ThingsboardException;
+    R apply(T t, U u) throws Exception;
 }

@@ -37,13 +37,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
-import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -55,13 +54,11 @@ import org.thingsboard.server.common.data.notification.NotificationRequestConfig
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
-import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.platform.PlatformUsersNotificationTargetConfig;
-import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
 import org.thingsboard.server.common.data.notification.targets.slack.SlackNotificationTargetConfig;
 import org.thingsboard.server.common.data.notification.template.DeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
@@ -82,8 +79,8 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.service.apiusage.limits.LimitedApi;
-import org.thingsboard.server.service.apiusage.limits.RateLimitService;
+import org.thingsboard.server.dao.util.limits.LimitedApi;
+import org.thingsboard.server.dao.util.limits.RateLimitService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.notification.channels.NotificationChannel;
@@ -99,6 +96,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -118,61 +116,74 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     private final NotificationsTopicService notificationsTopicService;
     private final TbQueueProducerProvider producerProvider;
     private final RateLimitService rateLimitService;
-    private final MailService mailService;
-    private final SmsService smsService;
 
     private Map<NotificationDeliveryMethod, NotificationChannel> channels;
 
-
     @Override
-    public NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest) {
-        if (!rateLimitService.checkRateLimit(tenantId, LimitedApi.NOTIFICATION_REQUEST)) {
-            throw new TbRateLimitsException(EntityType.TENANT);
+    public NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest request, Consumer<NotificationRequestStats> callback) {
+        if (request.getRuleId() == null) {
+            if (!rateLimitService.checkRateLimit(LimitedApi.NOTIFICATION_REQUESTS, tenantId)) {
+                throw new TbRateLimitsException(EntityType.TENANT);
+            }
         }
-        NotificationSettings settings = notificationSettingsService.findNotificationSettings(tenantId);
+
         NotificationTemplate notificationTemplate;
-        if (notificationRequest.getTemplateId() != null) {
-            notificationTemplate = notificationTemplateService.findNotificationTemplateById(tenantId, notificationRequest.getTemplateId());
+        if (request.getTemplateId() != null) {
+            notificationTemplate = notificationTemplateService.findNotificationTemplateById(tenantId, request.getTemplateId());
         } else {
-            notificationTemplate = notificationRequest.getTemplate();
+            notificationTemplate = request.getTemplate();
         }
         if (notificationTemplate == null) throw new IllegalArgumentException("Template is missing");
 
-        List<NotificationTarget> targets = notificationRequest.getTargets().stream().map(NotificationTargetId::new)
-                .map(id -> notificationTargetService.findNotificationTargetById(tenantId, id)).collect(Collectors.toList());
-        Set<NotificationDeliveryMethod> availableDeliveryMethods = getAvailableDeliveryMethods(tenantId);
+        Set<NotificationDeliveryMethod> deliveryMethods = new HashSet<>();
+        List<NotificationTarget> targets = request.getTargets().stream().map(NotificationTargetId::new)
+                .map(id -> notificationTargetService.findNotificationTargetById(tenantId, id))
+                .collect(Collectors.toList());
 
+        NotificationRuleId ruleId = request.getRuleId();
         notificationTemplate.getConfiguration().getDeliveryMethodsTemplates().forEach((deliveryMethod, template) -> {
             if (!template.isEnabled()) return;
-            if (!availableDeliveryMethods.contains(deliveryMethod)) {
-                throw new IllegalArgumentException("Settings for " + deliveryMethod.getName() + " are missing");
-            }
-            if (notificationRequest.getRuleId() == null) {
-                if (targets.stream().noneMatch(target -> target.getConfiguration().getType().getSupportedDeliveryMethods().contains(deliveryMethod))) {
-                    throw new IllegalArgumentException("Target for " + deliveryMethod.getName() + " delivery method is missing");
+            try {
+                channels.get(deliveryMethod).check(tenantId);
+            } catch (Exception e) {
+                if (ruleId == null) {
+                    throw new IllegalArgumentException(e.getMessage());
+                } else {
+                    return; // if originated by rule - just ignore delivery method
                 }
             }
-        });
-
-        if (notificationRequest.getAdditionalConfig() != null) {
-            NotificationRequestConfig config = notificationRequest.getAdditionalConfig();
-            if (config.getSendingDelayInSec() > 0 && notificationRequest.getId() == null) {
-                notificationRequest.setStatus(NotificationRequestStatus.SCHEDULED);
-                NotificationRequest savedNotificationRequest = notificationRequestService.saveNotificationRequest(tenantId, notificationRequest);
-                forwardToNotificationSchedulerService(tenantId, savedNotificationRequest.getId());
-                return savedNotificationRequest;
+            if (ruleId == null) {
+                if (targets.stream().noneMatch(target -> target.getConfiguration().getType().getSupportedDeliveryMethods().contains(deliveryMethod))) {
+                    throw new IllegalArgumentException("Recipients for " + deliveryMethod.getName() + " delivery method not chosen");
+                }
             }
+            deliveryMethods.add(deliveryMethod);
+        });
+        if (deliveryMethods.isEmpty()) {
+            throw new IllegalArgumentException("No delivery methods to send notification with");
         }
 
-        log.debug("Processing notification request (tenantId: {}, targets: {})", tenantId, notificationRequest.getTargets());
-        notificationRequest.setStatus(NotificationRequestStatus.PROCESSING);
-        NotificationRequest savedNotificationRequest = notificationRequestService.saveNotificationRequest(tenantId, notificationRequest);
+        if (request.getAdditionalConfig() != null) {
+            NotificationRequestConfig config = request.getAdditionalConfig();
+            if (config.getSendingDelayInSec() > 0 && request.getId() == null) {
+                request.setStatus(NotificationRequestStatus.SCHEDULED);
+                request = notificationRequestService.saveNotificationRequest(tenantId, request);
+                forwardToNotificationSchedulerService(tenantId, request.getId());
+                return request;
+            }
+        }
+        NotificationSettings settings = notificationSettingsService.findNotificationSettings(tenantId);
+
+        log.debug("Processing notification request (tenantId: {}, targets: {})", tenantId, request.getTargets());
+        request.setStatus(NotificationRequestStatus.PROCESSING);
+        request = notificationRequestService.saveNotificationRequest(tenantId, request);
 
         NotificationProcessingContext ctx = NotificationProcessingContext.builder()
                 .tenantId(tenantId)
-                .request(savedNotificationRequest)
-                .settings(settings)
+                .request(request)
+                .deliveryMethods(deliveryMethods)
                 .template(notificationTemplate)
+                .settings(settings)
                 .build();
 
         notificationExecutor.submit(() -> {
@@ -184,7 +195,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
             }
 
             Futures.whenAllComplete(results).run(() -> {
-                NotificationRequestId requestId = savedNotificationRequest.getId();
+                NotificationRequestId requestId = ctx.getRequest().getId();
                 log.debug("[{}] Notification request processing is finished", requestId);
                 NotificationRequestStats stats = ctx.getStats();
                 try {
@@ -192,36 +203,39 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 } catch (Exception e) {
                     log.error("[{}] Failed to update stats for notification request", requestId, e);
                 }
+
+                if (callback != null) {
+                    try {
+                        callback.accept(stats);
+                    } catch (Exception e) {
+                        log.error("Failed to process callback for notification request {}", requestId, e);
+                    }
+                }
             }, dbCallbackExecutorService);
         });
 
-        return savedNotificationRequest;
+        return request;
     }
 
     private List<ListenableFuture<Void>> processForTarget(NotificationTarget target, NotificationProcessingContext ctx) {
         Iterable<? extends NotificationRecipient> recipients;
         switch (target.getConfiguration().getType()) {
             case PLATFORM_USERS: {
-                PlatformUsersNotificationTargetConfig platformUsersTargetConfig = (PlatformUsersNotificationTargetConfig) target.getConfiguration();
-                if (platformUsersTargetConfig.getUsersFilter().getType() == UsersFilterType.AFFECTED_USER) {
-                    if (ctx.getRequest().getInfo() instanceof RuleOriginatedNotificationInfo) {
-                        UserId targetUserId = ((RuleOriginatedNotificationInfo) ctx.getRequest().getInfo()).getTargetUserId();
-                        if (targetUserId != null) {
-                            recipients = List.of(userService.findUserById(ctx.getTenantId(), targetUserId));
-                            break;
-                        }
-                    }
-                    recipients = Collections.emptyList();
+                PlatformUsersNotificationTargetConfig targetConfig = (PlatformUsersNotificationTargetConfig) target.getConfiguration();
+                if (targetConfig.getUsersFilter().getType().isForRules()) {
+                    recipients = new PageDataIterable<>(pageLink -> {
+                        return notificationTargetService.findRecipientsForRuleNotificationTargetConfig(ctx.getTenantId(), targetConfig, (RuleOriginatedNotificationInfo) ctx.getRequest().getInfo(), pageLink);
+                    }, 500);
                 } else {
                     recipients = new PageDataIterable<>(pageLink -> {
-                        return notificationTargetService.findRecipientsForNotificationTargetConfig(ctx.getTenantId(), ctx.getCustomerId(), platformUsersTargetConfig, pageLink);
+                        return notificationTargetService.findRecipientsForNotificationTargetConfig(ctx.getTenantId(), targetConfig, pageLink);
                     }, 500);
                 }
                 break;
             }
             case SLACK: {
-                SlackNotificationTargetConfig slackTargetConfig = (SlackNotificationTargetConfig) target.getConfiguration();
-                recipients = List.of(slackTargetConfig.getConversation());
+                SlackNotificationTargetConfig targetConfig = (SlackNotificationTargetConfig) target.getConfiguration();
+                recipients = List.of(targetConfig.getConversation());
                 break;
             }
             default: {
@@ -254,15 +268,10 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         if (ctx.getStats().contains(deliveryMethod, recipient.getId())) {
             return Futures.immediateFailedFuture(new AlreadySentException());
         }
-        Map<String, String> templateContext;
-        if (recipient instanceof User) {
-            templateContext = ctx.createTemplateContext(((User) recipient));
-        } else {
-            templateContext = Collections.emptyMap();
-        }
+
         DeliveryMethodNotificationTemplate processedTemplate;
         try {
-            processedTemplate = ctx.getProcessedTemplate(deliveryMethod, templateContext);
+            processedTemplate = ctx.getProcessedTemplate(deliveryMethod, recipient);
         } catch (Exception e) {
             return Futures.immediateFailedFuture(e);
         }
@@ -300,31 +309,13 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     }
 
     @Override
-    public void sendBasicNotification(TenantId tenantId, UserId recipientId, String subject, String text) {
-        Notification notification = Notification.builder()
-                .recipientId(recipientId)
-                .type(NotificationType.GENERAL)
-                .subject(subject)
-                .text(text)
-                .status(NotificationStatus.SENT)
-                .build();
-        notification = notificationService.saveNotification(TenantId.SYS_TENANT_ID, notification);
-
-        NotificationUpdate update = NotificationUpdate.builder()
-                .created(true)
-                .notification(notification)
-                .build();
-        onNotificationUpdate(tenantId, recipientId, update);
-    }
-
-    @Override
     public void markNotificationAsRead(TenantId tenantId, UserId recipientId, NotificationId notificationId) {
         boolean updated = notificationService.markNotificationAsRead(tenantId, recipientId, notificationId);
         if (updated) {
             log.trace("Marked notification {} as read (recipient id: {}, tenant id: {})", notificationId, recipientId, tenantId);
             NotificationUpdate update = NotificationUpdate.builder()
                     .updated(true)
-                    .notificationId(notificationId)
+                    .notificationId(notificationId.getId())
                     .newStatus(NotificationStatus.READ)
                     .build();
             onNotificationUpdate(tenantId, recipientId, update);
@@ -360,20 +351,21 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
 
     @Override
     public Set<NotificationDeliveryMethod> getAvailableDeliveryMethods(TenantId tenantId) {
-        Set<NotificationDeliveryMethod> deliveryMethods = new HashSet<>();
-        deliveryMethods.add(NotificationDeliveryMethod.WEB);
-        NotificationSettings notificationSettings = notificationSettingsService.findNotificationSettings(tenantId);
-        if (notificationSettings.getDeliveryMethodsConfigs().containsKey(NotificationDeliveryMethod.SLACK)) {
-            deliveryMethods.add(NotificationDeliveryMethod.SLACK);
-        }
-        try {
-            mailService.testConnection(tenantId);
-            deliveryMethods.add(NotificationDeliveryMethod.EMAIL);
-        } catch (Exception e) {}
-        if (smsService.isConfigured(tenantId)) {
-            deliveryMethods.add(NotificationDeliveryMethod.SMS);
-        }
-        return deliveryMethods;
+        return channels.values().stream()
+                .filter(channel -> {
+                    try {
+                        channel.check(tenantId);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                })
+                .map(NotificationChannel::getDeliveryMethod)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void check(TenantId tenantId) throws Exception {
     }
 
     @Override
@@ -389,6 +381,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                     .deleted(true)
                     .build());
         } else if (notificationRequest.isScheduled()) {
+            // TODO: just forward to scheduler service
             clusterService.broadcastEntityStateChangeEvent(tenantId, notificationRequestId, ComponentLifecycleEvent.DELETED);
         }
     }

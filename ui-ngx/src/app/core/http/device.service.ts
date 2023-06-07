@@ -39,7 +39,9 @@ import {
   ClaimRequest,
   ClaimResult,
   Device,
-  DeviceCredentials, DeviceInfo,
+  DeviceCredentials,
+  DeviceInfo,
+  DeviceInfoQuery,
   DeviceSearchQuery
 } from '@app/shared/models/device.models';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
@@ -58,6 +60,11 @@ export class DeviceService {
   constructor(
     private http: HttpClient
   ) { }
+
+  public getDeviceInfosByQuery(deviceInfoQuery: DeviceInfoQuery, config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    return this.http.get<PageData<DeviceInfo>>(`/api${deviceInfoQuery.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
 
 /*  public getTenantDeviceInfos(pageLink: PageLink, type: string = '',
                               config?: RequestConfig): Observable<PageData<DeviceInfo>> {

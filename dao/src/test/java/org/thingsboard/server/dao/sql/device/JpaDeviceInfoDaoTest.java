@@ -36,9 +36,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -101,10 +101,10 @@ public class JpaDeviceInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         PageLink pageLink = new PageLink(15, 0, "DEVICE");
-        PageData<DeviceInfo> deviceInfos1 = deviceInfoDao.findDevicesByTenantId(tenantId1, pageLink);
+        PageData<DeviceInfo> deviceInfos1 = deviceInfoDao.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(new TenantId(tenantId1)).build(), pageLink);
         Assert.assertEquals(15, deviceInfos1.getData().size());
 
-        PageData<DeviceInfo> devicesInfos2 = deviceInfoDao.findDevicesByTenantId(tenantId1, pageLink.nextPageLink());
+        PageData<DeviceInfo> devicesInfos2 = deviceInfoDao.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(new TenantId(tenantId1)).build(), pageLink.nextPageLink());
         Assert.assertEquals(5, devicesInfos2.getData().size());
     }
 
@@ -120,14 +120,14 @@ public class JpaDeviceInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         PageLink pageLink = new PageLink(30, 0, "DEVICE", new SortOrder("ownerName", SortOrder.Direction.ASC));
-        PageData<DeviceInfo> deviceInfos1 = deviceInfoDao.findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(tenantId1, customer1.getUuidId(), pageLink);
+        PageData<DeviceInfo> deviceInfos1 = deviceInfoDao.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(new TenantId(tenantId1)).includeCustomers(true).customerId(customer1.getId()).build(), pageLink);
         Assert.assertEquals(30, deviceInfos1.getData().size());
         deviceInfos1.getData().forEach(deviceInfo -> Assert.assertNotEquals("CUSTOMER_0", deviceInfo.getOwnerName()));
 
-        PageData<DeviceInfo> deviceInfos2 = deviceInfoDao.findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(tenantId1, customer1.getUuidId(), pageLink.nextPageLink());
+        PageData<DeviceInfo> deviceInfos2 = deviceInfoDao.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(new TenantId(tenantId1)).includeCustomers(true).customerId(customer1.getId()).build(), pageLink.nextPageLink());
         Assert.assertEquals(10, deviceInfos2.getData().size());
 
-        PageData<DeviceInfo> deviceInfos3 = deviceInfoDao.findDevicesByTenantIdAndCustomerIdIncludingSubCustomers(tenantId1, subCustomer2.getUuidId(), pageLink);
+        PageData<DeviceInfo> deviceInfos3 = deviceInfoDao.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(new TenantId(tenantId1)).includeCustomers(true).customerId(subCustomer2.getId()).build(), pageLink);
         Assert.assertEquals(20, deviceInfos3.getData().size());
     }
 

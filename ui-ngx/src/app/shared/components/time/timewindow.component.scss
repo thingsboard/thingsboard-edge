@@ -29,11 +29,15 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  min-width: 52px;
+  min-width: 48px;
   margin: 8px 0;
+  max-width: 100%;
+  .mdc-button {
+    max-width: 100%;
+  }
   section.tb-timewindow {
     min-height: 32px;
-    padding: 0 6px;
+    padding: 0 8px;
 
     span {
       overflow: hidden;
@@ -45,6 +49,18 @@
 
     .timezone-abbr {
       font-weight: 500;
+    }
+  }
+}
+
+:host ::ng-deep {
+  .mdc-button {
+    .mat-icon {
+      min-width: 24px;
+    }
+    .mdc-button__label {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }

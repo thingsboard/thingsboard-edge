@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceInfo;
+import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -80,6 +81,10 @@ public interface DeviceService extends EntityDaoService {
 
     PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
+    Long countDevices();
+
+    PageData<DeviceInfo> findDeviceInfosByFilter(DeviceInfoFilter filter, PageLink pageLink);
+
     PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
 
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds);
@@ -112,8 +117,6 @@ public interface DeviceService extends EntityDaoService {
 
     Device assignDeviceToTenant(TenantId tenantId, Device device);
 
-    long countByTenantId(TenantId tenantId);
-
     PageData<Device> findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(EntityGroupId groupId,
                                                                          DeviceProfileId deviceProfileId,
                                                                          OtaPackageType type,
@@ -128,19 +131,4 @@ public interface DeviceService extends EntityDaoService {
 
     Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type);
 
-    PageData<DeviceInfo> findDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink);
-
-    PageData<DeviceInfo> findTenantDeviceInfosByTenantId(TenantId tenantId, PageLink pageLink);
-
-    PageData<DeviceInfo> findTenantDeviceInfosByTenantIdAndDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileId(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-
-    PageData<DeviceInfo> findDeviceInfosByTenantIdAndCustomerIdAndDeviceProfileIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, PageLink pageLink);
 }

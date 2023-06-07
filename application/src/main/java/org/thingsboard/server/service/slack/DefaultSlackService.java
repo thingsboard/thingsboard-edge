@@ -43,7 +43,6 @@ import com.slack.api.methods.response.conversations.ConversationsListResponse;
 import com.slack.api.methods.response.users.UsersListResponse;
 import com.slack.api.model.ConversationType;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -94,8 +93,11 @@ public class DefaultSlackService implements SlackService {
                         .filter(user -> !user.isDeleted() && !user.isStranger() && !user.isBot())
                         .map(user -> {
                             SlackConversation conversation = new SlackConversation();
+                            conversation.setType(conversationType);
                             conversation.setId(user.getId());
-                            conversation.setName(String.format("@%s (%s)", user.getName(), user.getRealName()));
+                            conversation.setName(user.getName());
+                            conversation.setWholeName(user.getProfile() != null ? user.getProfile().getRealNameNormalized() : user.getRealName());
+                            conversation.setEmail(user.getProfile() != null ? user.getProfile().getEmail() : null);
                             return conversation;
                         })
                         .collect(Collectors.toList());
@@ -113,21 +115,15 @@ public class DefaultSlackService implements SlackService {
                         .filter(channel -> !channel.isArchived())
                         .map(channel -> {
                             SlackConversation conversation = new SlackConversation();
+                            conversation.setType(conversationType);
                             conversation.setId(channel.getId());
-                            conversation.setName("#" + channel.getName());
+                            conversation.setName(channel.getName());
+                            conversation.setWholeName(channel.getNameNormalized());
                             return conversation;
                         })
                         .collect(Collectors.toList());
             }
         });
-    }
-
-    @Override
-    public SlackConversation findConversation(TenantId tenantId, String token, SlackConversationType conversationType, String namePattern) {
-        List<SlackConversation> conversations = listConversations(tenantId, token, conversationType);
-        return conversations.stream()
-                .filter(conversation -> StringUtils.containsIgnoreCase(conversation.getName(), namePattern))
-                .findFirst().orElse(null);
     }
 
     @Override
@@ -159,7 +155,7 @@ public class DefaultSlackService implements SlackService {
                 String neededScope = response.getNeeded();
                 error = "bot token scope '" + neededScope + "' is needed";
             }
-            throw new RuntimeException("Failed to send message via Slack: " + error);
+            throw new RuntimeException("Slack API error: " + error);
         }
 
         return response;

@@ -260,8 +260,8 @@ To emulate the data upload on behalf of device "Freezer 1" located inside superm
 curl -v -X POST -d "{\"temperature\":  -5.4}" ${BASE_URL}/api/v1/${Freezer 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a> for simplicity of demonstration.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The example above uses <a href="https://thingsboard.io/docs/pe/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a> for simplicity of demonstration.
+See <a href="https://thingsboard.io/docs/pe/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
 
 Based on our experience, the devices inside supermarkets are usually connected using either some form of the IoT Gateway.
 If this is your case, you may explore <a href="https://thingsboard.io/docs/iot-gateway/what-is-iot-gateway/" target="_blank">ThingsBoard IoT Gateway</a> to use existing open-source project or

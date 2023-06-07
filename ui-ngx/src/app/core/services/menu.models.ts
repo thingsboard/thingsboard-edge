@@ -36,6 +36,7 @@ export declare type MenuSectionType = 'link' | 'toggle';
 
 export interface MenuSection extends HasUUID{
   name: string;
+  fullName?: string;
   type: MenuSectionType;
   path: string;
   queryParams?: {[k: string]: any};

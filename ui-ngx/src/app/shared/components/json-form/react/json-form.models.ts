@@ -29,12 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import * as tinycolor_ from 'tinycolor2';
+import tinycolor from 'tinycolor2';
 import { GroupInfo } from '@shared/models/widget.models';
 import { ColorPalette } from '@shared/models/material.models';
 import { MouseEvent } from 'react';
-
-const tinycolor = tinycolor_;
 
 export interface SchemaValidationResult {
   valid: boolean;

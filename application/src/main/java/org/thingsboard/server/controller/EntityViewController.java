@@ -71,6 +71,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
@@ -124,11 +125,7 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = ENTITY_VIEW_ID_PARAM_DESCRIPTION)
             @PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
         checkParameter(ENTITY_VIEW_ID, strEntityViewId);
-        try {
-            return checkEntityViewId(new EntityViewId(toUUID(strEntityViewId)), Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkEntityViewId(new EntityViewId(toUUID(strEntityViewId)), Operation.READ);
     }
 
     @ApiOperation(value = "Get entity view info (getEntityViewInfoById)",
@@ -142,11 +139,7 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = ENTITY_VIEW_ID_PARAM_DESCRIPTION)
             @PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
         checkParameter(ENTITY_VIEW_ID, strEntityViewId);
-        try {
-            return checkEntityViewInfoId(new EntityViewId(toUUID(strEntityViewId)), Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkEntityViewInfoId(new EntityViewId(toUUID(strEntityViewId)), Operation.READ);
     }
 
     @ApiOperation(value = "Save or update entity view (saveEntityView)",
@@ -196,13 +189,9 @@ public class EntityViewController extends BaseController {
     public EntityView getTenantEntityView(
             @ApiParam(value = "Entity View name")
             @RequestParam String entityViewName) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            return checkNotNull(entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        return checkNotNull(entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName));
     }
 
     @ApiOperation(value = "Get Customer Entity Views (getCustomerEntityViews)",
@@ -227,19 +216,15 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
-            } else {
-                return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
+        } else {
+            return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerId(tenantId, customerId, pageLink));
         }
     }
 
@@ -262,18 +247,14 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
 
-            if (type != null && type.trim().length() > 0) {
-                return checkNotNull(entityViewService.findEntityViewByTenantIdAndType(tenantId, pageLink, type));
-            } else {
-                return checkNotNull(entityViewService.findEntityViewByTenantId(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+        if (type != null && type.trim().length() > 0) {
+            return checkNotNull(entityViewService.findEntityViewByTenantIdAndType(tenantId, pageLink, type));
+        } else {
+            return checkNotNull(entityViewService.findEntityViewByTenantId(tenantId, pageLink));
         }
     }
 
@@ -296,15 +277,11 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            SecurityUser currentUser = getCurrentUser();
-            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
-            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ENTITY_VIEW,
-                    Operation.READ, type, pageLink);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        SecurityUser currentUser = getCurrentUser();
+        MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+        return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ENTITY_VIEW,
+                Operation.READ, type, pageLink);
     }
 
     @ApiOperation(value = "Get All Entity View Infos for current user (getAllEntityViewInfos)",
@@ -329,42 +306,38 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                if (includeCustomers != null && includeCustomers) {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndType(tenantId, type, pageLink));
-                    } else {
-                        return checkNotNull(entityViewService.findEntityViewInfosByTenantId(tenantId, pageLink));
-                    }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (includeCustomers != null && includeCustomers) {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndType(tenantId, type, pageLink));
                 } else {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(entityViewService.findTenantEntityViewInfosByTenantIdAndType(tenantId, type, pageLink));
-                    } else {
-                        return checkNotNull(entityViewService.findTenantEntityViewInfosByTenantId(tenantId, pageLink));
-                    }
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantId(tenantId, pageLink));
                 }
             } else {
-                CustomerId customerId = getCurrentUser().getCustomerId();
-                if (includeCustomers != null && includeCustomers) {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
-                    } else {
-                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                    }
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(entityViewService.findTenantEntityViewInfosByTenantIdAndType(tenantId, type, pageLink));
                 } else {
-                    if (type != null && type.length() > 0) {
-                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-                    } else {
-                        return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                    }
+                    return checkNotNull(entityViewService.findTenantEntityViewInfosByTenantId(tenantId, pageLink));
                 }
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            CustomerId customerId = getCurrentUser().getCustomerId();
+            if (includeCustomers != null && includeCustomers) {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
+                } else {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
+                }
+            } else {
+                if (type != null && type.length() > 0) {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+                } else {
+                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+                }
+            }
         }
     }
 
@@ -393,27 +366,23 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            checkCustomerId(customerId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (includeCustomers != null && includeCustomers) {
-                if (type != null && type.length() > 0) {
-                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
-                } else {
-                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
-                }
+        accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        checkCustomerId(customerId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (includeCustomers != null && includeCustomers) {
+            if (type != null && type.length() > 0) {
+                return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId, customerId, type, pageLink));
             } else {
-                if (type != null && type.length() > 0) {
-                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
-                } else {
-                    return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
-                }
+                return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdIncludingSubCustomers(tenantId, customerId, pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            if (type != null && type.length() > 0) {
+                return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
+            } else {
+                return checkNotNull(entityViewService.findEntityViewInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink));
+            }
         }
     }
 
@@ -424,20 +393,16 @@ public class EntityViewController extends BaseController {
     @ResponseBody
     public List<EntityView> getEntityViewsByIds(
             @ApiParam(value = "A list of entity view ids, separated by comma ','", required = true)
-            @RequestParam("entityViewIds") String[] strEntityViewIds) throws ThingsboardException {
+            @RequestParam("entityViewIds") String[] strEntityViewIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("entityViewIds", strEntityViewIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<EntityViewId> entityViewIds = new ArrayList<>();
-            for (String strEntityViewId : strEntityViewIds) {
-                entityViewIds.add(new EntityViewId(toUUID(strEntityViewId)));
-            }
-            List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByTenantIdAndIdsAsync(tenantId, entityViewIds).get());
-            return filterEntityViewsByReadPermission(entityViews);
-        } catch (Exception e) {
-            throw handleException(e);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<EntityViewId> entityViewIds = new ArrayList<>();
+        for (String strEntityViewId : strEntityViewIds) {
+            entityViewIds.add(new EntityViewId(toUUID(strEntityViewId)));
         }
+        List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByTenantIdAndIdsAsync(tenantId, entityViewIds).get());
+        return filterEntityViewsByReadPermission(entityViews);
     }
 
     @ApiOperation(value = "Find related entity views (findByQuery)",
@@ -449,17 +414,13 @@ public class EntityViewController extends BaseController {
     @ResponseBody
     public List<EntityView> findByQuery(
             @ApiParam(value = "The entity view search query JSON")
-            @RequestBody EntityViewSearchQuery query) throws ThingsboardException {
+            @RequestBody EntityViewSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
         checkNotNull(query);
         checkNotNull(query.getParameters());
         checkNotNull(query.getEntityViewTypes());
         checkEntityId(query.getParameters().getEntityId(), Operation.READ);
-        try {
-            List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByQuery(getTenantId(), query).get());
-            return filterEntityViewsByReadPermission(entityViews);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByQuery(getTenantId(), query).get());
+        return filterEntityViewsByReadPermission(entityViews);
     }
 
     @ApiOperation(value = "Get entity views by Entity Group Id (getEntityViewsByEntityGroupId)",
@@ -486,12 +447,8 @@ public class EntityViewController extends BaseController {
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
         EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
         checkEntityGroupType(EntityType.ENTITY_VIEW, entityGroup.getType());
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(entityViewService.findEntityViewsByEntityGroupId(entityGroupId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(entityViewService.findEntityViewsByEntityGroupId(entityGroupId, pageLink));
     }
 
     private List<EntityView> filterEntityViewsByReadPermission(List<EntityView> entityViews) {
@@ -510,14 +467,10 @@ public class EntityViewController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView/types", method = RequestMethod.GET)
     @ResponseBody
-    public List<EntitySubtype> getEntityViewTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> entityViewTypes = entityViewService.findEntityViewTypesByTenantId(tenantId);
-            return checkNotNull(entityViewTypes.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+    public List<EntitySubtype> getEntityViewTypes() throws ThingsboardException, ExecutionException, InterruptedException {
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        ListenableFuture<List<EntitySubtype>> entityViewTypes = entityViewService.findEntityViewTypesByTenantId(tenantId);
+        return checkNotNull(entityViewTypes.get());
     }
 }

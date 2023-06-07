@@ -49,6 +49,8 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 
+export type EntitiesTableAction = 'add';
+
 export interface IEntitiesTableComponent {
   entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
   translations: EntityTypeTranslation;

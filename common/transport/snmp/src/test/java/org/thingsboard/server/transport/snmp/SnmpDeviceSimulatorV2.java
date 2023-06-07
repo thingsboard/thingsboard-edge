@@ -68,7 +68,6 @@ import org.snmp4j.transport.TransportMappings;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 

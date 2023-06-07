@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -52,11 +53,15 @@ import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificationInfo {
 
     private String action;
+
+    private String assigneeEmail;
     private String assigneeFirstName;
     private String assigneeLastName;
-    private String assigneeEmail;
     private UserId assigneeId;
-    private String userName;
+
+    private String userEmail;
+    private String userFirstName;
+    private String userLastName;
 
     private String alarmType;
     private UUID alarmId;
@@ -70,11 +75,15 @@ public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificati
     public Map<String, String> getTemplateData() {
         return mapOf(
                 "action", action,
+                "assigneeTitle", User.getTitle(assigneeEmail, assigneeFirstName, assigneeLastName),
                 "assigneeFirstName", assigneeFirstName,
                 "assigneeLastName", assigneeLastName,
                 "assigneeEmail", assigneeEmail,
                 "assigneeId", assigneeId != null ? assigneeId.toString() : null,
-                "userName", userName,
+                "userTitle", User.getTitle(userEmail, userFirstName, userLastName),
+                "userEmail", userEmail,
+                "userFirstName", userFirstName,
+                "userLastName", userLastName,
                 "alarmType", alarmType,
                 "alarmId", alarmId.toString(),
                 "alarmSeverity", alarmSeverity.name().toLowerCase(),
@@ -86,12 +95,12 @@ public class AlarmAssignmentNotificationInfo implements RuleOriginatedNotificati
     }
 
     @Override
-    public CustomerId getOriginatorEntityCustomerId() {
+    public CustomerId getAffectedCustomerId() {
         return alarmCustomerId;
     }
 
     @Override
-    public UserId getTargetUserId() {
+    public UserId getAffectedUserId() {
         return assigneeId;
     }
 

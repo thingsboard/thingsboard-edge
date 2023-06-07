@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.mqtt.azure;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;

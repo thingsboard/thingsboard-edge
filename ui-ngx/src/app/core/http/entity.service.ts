@@ -96,7 +96,7 @@ import { Operation, resourceByEntityType, RoleType } from '@shared/models/securi
 import { CustomerId } from '@shared/models/id/customer-id';
 import {
   AlarmData,
-  AlarmDataQuery,
+  AlarmDataQuery, AlarmFilter, AlarmFilterConfig,
   createDefaultEntityDataPageLink,
   EntityData,
   EntityDataQuery,
@@ -122,6 +122,7 @@ import { AssetProfileService } from '@core/http/asset-profile.service';
 import { NotificationService } from '@core/http/notification.service';
 import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { NotificationType } from '@shared/models/notification.models';
+import { UserId } from '@shared/models/id/user-id';
 
 @Injectable({
   providedIn: 'root'
@@ -598,6 +599,14 @@ export class EntityService {
       case EntityType.NOTIFICATION_TARGET:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.notificationService.getNotificationTargets(pageLink, subType as NotificationType, config);
+        break;
+      case EntityType.NOTIFICATION_TEMPLATE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationTemplates(pageLink, subType as NotificationType, config);
+        break;
+      case EntityType.NOTIFICATION_RULE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.notificationService.getNotificationRules(pageLink, config);
         break;
     }
     return entitiesObservable;
@@ -1090,7 +1099,8 @@ export class EntityService {
       );
   }
 
-  public getEntityKeysByEntityFilter(filter: EntityFilter, types: DataKeyType[], config?: RequestConfig): Observable<Array<DataKey>> {
+  public getEntityKeysByEntityFilter(filter: EntityFilter, types: DataKeyType[],
+                                     entityTypes?: EntityType[], config?: RequestConfig): Observable<Array<DataKey>> {
     if (!types.length) {
       return of([]);
     }
@@ -1106,7 +1116,7 @@ export class EntityService {
       entitiesKeysByQuery$ = of({
         attribute: [],
         timeseries: [],
-        entityTypes: [],
+        entityTypes: entityTypes || [],
       });
     }
     return entitiesKeysByQuery$.pipe(
@@ -1350,6 +1360,24 @@ export class EntityService {
       }),
       catchError(() => of(false))
     );
+  }
+
+  public resolveAlarmFilter(alarmFilterConfig?: AlarmFilterConfig, searchPropagatedByDefault = true): AlarmFilter {
+    const alarmFilter: AlarmFilter = {};
+    if (alarmFilterConfig) {
+      alarmFilter.typeList = alarmFilterConfig.typeList;
+      alarmFilter.severityList = alarmFilterConfig.severityList;
+      alarmFilter.statusList = alarmFilterConfig.statusList;
+      alarmFilter.searchPropagatedAlarms = isDefined(alarmFilterConfig.searchPropagatedAlarms) ?
+        alarmFilterConfig.searchPropagatedAlarms : searchPropagatedByDefault;
+      if (alarmFilterConfig.assignedToCurrentUser) {
+        const authUser = getCurrentAuthUser(this.store);
+        alarmFilter.assigneeId = new UserId(authUser.userId);
+      } else {
+        alarmFilter.assigneeId = alarmFilterConfig.assigneeId;
+      }
+    }
+    return alarmFilter;
   }
 
   public saveEntityParameters(customerId: CustomerId, entityType: EntityType, entityGroupId: string,
@@ -1708,7 +1736,8 @@ export class EntityService {
         dataKeys: []
       };
       this.prepareEntityFilterFromSubscriptionInfo(datasource, subscriptionInfo);
-    } else if (subscriptionInfo.type === DatasourceType.function || subscriptionInfo.type === DatasourceType.entityCount) {
+    } else if (subscriptionInfo.type === DatasourceType.function || subscriptionInfo.type === DatasourceType.entityCount ||
+      subscriptionInfo.type === DatasourceType.alarmCount) {
       datasource = {
         type: subscriptionInfo.type,
         name: subscriptionInfo.name || subscriptionInfo.type,
@@ -1728,7 +1757,7 @@ export class EntityService {
       if (subscriptionInfo.alarmFields) {
         this.createDatasourceKeys(subscriptionInfo.alarmFields, DataKeyType.alarm, datasource);
       }
-      if (subscriptionInfo.type === DatasourceType.entityCount) {
+      if (subscriptionInfo.type === DatasourceType.entityCount || subscriptionInfo.type === DatasourceType.alarmCount) {
         const dataKey = this.utils.createKey({ name: 'count'}, DataKeyType.count);
         datasource.dataKeys.push(dataKey);
       }

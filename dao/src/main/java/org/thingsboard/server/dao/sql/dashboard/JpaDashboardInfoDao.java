@@ -43,14 +43,12 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
 import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
-import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -60,7 +58,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @SqlDao
-public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoEntity, DashboardInfo> implements DashboardInfoDao {
+public class JpaDashboardInfoDao extends JpaAbstractDao<DashboardInfoEntity, DashboardInfo> implements DashboardInfoDao {
 
     @Autowired
     private DashboardInfoRepository dashboardInfoRepository;

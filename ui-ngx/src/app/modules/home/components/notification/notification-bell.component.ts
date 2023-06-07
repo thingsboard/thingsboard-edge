@@ -40,7 +40,7 @@ import {
 } from '@angular/core';
 import { NotificationWebsocketService } from '@core/ws/notification-websocket.service';
 import { BehaviorSubject, ReplaySubject, Subscription } from 'rxjs';
-import { distinctUntilChanged, share, tap } from 'rxjs/operators';
+import { distinctUntilChanged, map, share, tap } from 'rxjs/operators';
 import { MatButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { ShowNotificationPopoverComponent } from '@home/components/notification/show-notification-popover.component';
@@ -62,6 +62,7 @@ export class NotificationBellComponent implements OnDestroy {
 
   count$ = this.countSubject.asObservable().pipe(
     distinctUntilChanged(),
+    map((value) => value >= 100 ? '99+' : value),
     tap(() => setTimeout(() => this.cd.markForCheck())),
     share({
       connector: () => new ReplaySubject(1)
@@ -107,7 +108,7 @@ export class NotificationBellComponent implements OnDestroy {
         },
         {maxHeight: '90vh', height: '100%', padding: '10px'},
         {width: '400px', minWidth: '100%', maxWidth: '100%'},
-        {height: '100%', flexDirection: 'column', boxSizing: 'border-box', display: 'flex'}, false);
+        {height: '100%', flexDirection: 'column', boxSizing: 'border-box', display: 'flex', margin: '0 -16px'}, false);
       showNotificationPopover.tbComponentRef.instance.popoverComponent = showNotificationPopover;
     }
   }

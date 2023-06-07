@@ -32,7 +32,6 @@ package org.thingsboard.rule.engine.report;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.report.ReportConfig;
 
 @Data

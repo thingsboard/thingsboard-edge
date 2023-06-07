@@ -33,6 +33,7 @@ package org.thingsboard.server.msa.ui.tests.customerSmoke;
 import io.qameta.allure.Description;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -68,11 +69,11 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
 
     @Epic("Customers smoke tests")
     @Feature("Search customer group")
-    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class,
+    @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class,
             dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
     @Description("Search customer group by first/second word in the name")
     public void searchFirstSecondWord(String namePath) {
-        customerGroupName = "Entity Group";
+        customerGroupName = "Entity Group " + RandomStringUtils.randomAlphanumeric(7);
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.goToCustomerGroups();
@@ -83,7 +84,7 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
 
     @Epic("Customers smoke tests")
     @Feature("Search customer group")
-    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
+    @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
     @Description("Search customer by symbol/number in the name")
     public void searchNumberAndSymbol(String name, String namePath) {
         customerGroupName = name;

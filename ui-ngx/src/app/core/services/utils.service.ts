@@ -232,6 +232,10 @@ export class UtilsService {
 
   public processWidgetException(exception: any): ExceptionData {
     const data = this.parseException(exception, -6);
+    if (data.message?.startsWith('NG0')) {
+       data.message = `${this.translate.instant('widget.widget-template-error')}<br/>
+                       <br/><i>${this.translate.instant('dialog.error-message-title')}</i><br/><br/>${data.message}`;
+    }
     if (this.widgetEditMode) {
       const message: WindowMessage = {
         type: 'widgetException',
@@ -589,6 +593,16 @@ export class UtilsService {
 
   public base64toObj(b64Encoded: string): any {
     return base64toObj(b64Encoded);
+  }
+
+  public plainColorFromVariable(variable: string): string {
+    if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
+      return variable;
+    }
+    if (variable.startsWith('var(')) {
+      variable = variable.substring(4, variable.length - 1);
+    }
+    return getComputedStyle(this.window.document.documentElement).getPropertyValue(variable);
   }
 
 }

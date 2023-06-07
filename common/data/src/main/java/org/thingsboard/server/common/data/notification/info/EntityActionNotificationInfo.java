@@ -52,14 +52,13 @@ public class EntityActionNotificationInfo implements RuleOriginatedNotificationI
     private EntityId entityId;
     private String entityName;
     private ActionType actionType;
-    private UUID originatorUserId;
-    private String originatorUserName;
-    private CustomerId entityCustomerId;
+    private CustomerId customerId;
 
-    @Override
-    public CustomerId getOriginatorEntityCustomerId() {
-        return entityCustomerId;
-    }
+    private UUID userId;
+    private String userTitle;
+    private String userEmail;
+    private String userFirstName;
+    private String userLastName;
 
     @Override
     public Map<String, String> getTemplateData() {
@@ -68,9 +67,17 @@ public class EntityActionNotificationInfo implements RuleOriginatedNotificationI
                 "entityId", entityId.toString(),
                 "entityName", entityName,
                 "actionType", actionType.name().toLowerCase(),
-                "originatorUserId", originatorUserId.toString(),
-                "originatorUserName", originatorUserName
+                "userId", userId.toString(),
+                "userTitle", userTitle,
+                "userEmail", userEmail,
+                "userFirstName", userFirstName,
+                "userLastName", userLastName
         );
+    }
+
+    @Override
+    public CustomerId getAffectedCustomerId() {
+        return customerId;
     }
 
     @Override

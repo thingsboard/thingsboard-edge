@@ -36,8 +36,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.thingsboard.server.common.data.util.CollectionsUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -46,14 +44,15 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.objects.AttributesEntityView;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.CollectionsUtil;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -142,7 +141,6 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
         }
     }
 
-    @NotNull
     private FutureCallback<Void> getFutureCallback(TbContext ctx, TbMsg msg, EntityView entityView) {
         return new FutureCallback<Void>() {
             @Override
