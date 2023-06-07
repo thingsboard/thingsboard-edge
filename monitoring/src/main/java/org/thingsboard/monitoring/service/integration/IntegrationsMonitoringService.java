@@ -28,14 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config;
+package org.thingsboard.monitoring.service.integration;
 
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.monitoring.config.integration.IntegrationMonitoringConfig;
+import org.thingsboard.monitoring.config.integration.IntegrationMonitoringTarget;
+import org.thingsboard.monitoring.service.BaseHealthChecker;
+import org.thingsboard.monitoring.service.BaseMonitoringService;
 
-@Data
-public class MonitoringTargetConfig {
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class IntegrationsMonitoringService extends BaseMonitoringService<IntegrationMonitoringConfig, IntegrationMonitoringTarget> {
 
-    private String baseUrl;
-    private DeviceConfig device;
+    @Override
+    protected BaseHealthChecker<?, ?> createHealthChecker(IntegrationMonitoringConfig config, IntegrationMonitoringTarget target) {
+        return applicationContext.getBean(config.getIntegrationType().getServiceClass(), config, target);
+    }
+
+    @Override
+    protected String getName() {
+        return "integrations check";
+    }
 
 }

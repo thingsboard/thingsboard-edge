@@ -28,16 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.transport;
 
-public class Latencies {
+import lombok.Data;
 
-    public static final String WS_UPDATE = "wsUpdate";
-    public static final String WS_CONNECT = "wsConnect";
-    public static final String LOG_IN = "logIn";
+@Data
+public class TransportInfo {
 
-    public static String request(String key) {
-        return String.format("%sRequest", key);
+    private final TransportType transportType;
+    private final String baseUrl;
+
+    @Override
+    public String toString() {
+        return String.format("%s transport (%s)", transportType, baseUrl);
     }
 
 }

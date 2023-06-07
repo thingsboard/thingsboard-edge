@@ -28,60 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.transport.impl;
+package org.thingsboard.monitoring.service.integration.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.thingsboard.monitoring.client.Lwm2mClient;
-import org.thingsboard.monitoring.config.MonitoringTargetConfig;
-import org.thingsboard.monitoring.config.TransportType;
-import org.thingsboard.monitoring.config.service.Lwm2mTransportMonitoringConfig;
-import org.thingsboard.monitoring.transport.TransportHealthChecker;
+import org.springframework.web.client.RestTemplate;
+import org.thingsboard.monitoring.config.integration.HttpIntegrationMonitoringConfig;
+import org.thingsboard.monitoring.config.integration.IntegrationMonitoringTarget;
+import org.thingsboard.monitoring.config.integration.IntegrationType;
+import org.thingsboard.monitoring.service.integration.IntegrationHealthChecker;
+
+import java.time.Duration;
 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class Lwm2mTransportHealthChecker extends TransportHealthChecker<Lwm2mTransportMonitoringConfig> {
+public class HttpIntegrationHealthChecker extends IntegrationHealthChecker<HttpIntegrationMonitoringConfig> {
 
-    private Lwm2mClient lwm2mClient;
+    private RestTemplate restTemplate;
 
-    protected Lwm2mTransportHealthChecker(Lwm2mTransportMonitoringConfig config, MonitoringTargetConfig target) {
+    public HttpIntegrationHealthChecker(HttpIntegrationMonitoringConfig config, IntegrationMonitoringTarget target) {
         super(config, target);
     }
 
     @Override
     protected void initClient() throws Exception {
-        if (lwm2mClient == null || lwm2mClient.getLeshanClient() == null || lwm2mClient.isDestroyed()) {
-            String endpoint = target.getDevice().getCredentials().getCredentialsId();
-            lwm2mClient = new Lwm2mClient(target.getBaseUrl(), endpoint);
-            lwm2mClient.initClient();
-            log.debug("Initialized LwM2M client for endpoint '{}'", endpoint);
+        if (restTemplate == null) {
+            restTemplate = new RestTemplateBuilder()
+                    .setConnectTimeout(Duration.ofMillis(config.getRequestTimeoutMs()))
+                    .setReadTimeout(Duration.ofMillis(config.getRequestTimeoutMs()))
+                    .build();
+            log.debug("Initialized HTTP client");
         }
     }
 
     @Override
     protected void sendTestPayload(String payload) throws Exception {
-        lwm2mClient.send(payload, 0);
+        String endpoint = target.getIntegration().getConfiguration().get("httpEndpoint").asText();
+        restTemplate.postForObject(endpoint, payload, String.class);
     }
 
     @Override
-    protected String createTestPayload(String testValue) {
-        return testValue;
-    }
+    protected void destroyClient() throws Exception {}
 
     @Override
-    protected void destroyClient() throws Exception {
-        if (lwm2mClient != null) {
-            lwm2mClient.destroy();
-            lwm2mClient = null;
-        }
-    }
-
-    @Override
-    protected TransportType getTransportType() {
-        return TransportType.LWM2M;
+    protected IntegrationType getIntegrationType() {
+        return IntegrationType.HTTP;
     }
 
 }

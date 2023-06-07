@@ -28,16 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.transport;
 
-public class Latencies {
+import lombok.Data;
+import org.thingsboard.monitoring.config.MonitoringConfig;
 
-    public static final String WS_UPDATE = "wsUpdate";
-    public static final String WS_CONNECT = "wsConnect";
-    public static final String LOG_IN = "logIn";
+import java.util.List;
 
-    public static String request(String key) {
-        return String.format("%sRequest", key);
-    }
+@Data
+public abstract class TransportMonitoringConfig implements MonitoringConfig<TransportMonitoringTarget> {
+
+    private int requestTimeoutMs;
+
+    private List<TransportMonitoringTarget> targets;
+
+    public abstract TransportType getTransportType();
 
 }

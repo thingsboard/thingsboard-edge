@@ -28,21 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.service.transport;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.TransportType;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.monitoring.config.transport.TransportMonitoringConfig;
+import org.thingsboard.monitoring.config.transport.TransportMonitoringTarget;
+import org.thingsboard.monitoring.service.BaseHealthChecker;
+import org.thingsboard.monitoring.service.BaseMonitoringService;
 
-@Component
-@ConditionalOnProperty(name = "monitoring.transports.http.enabled", havingValue = "true")
-@ConfigurationProperties(prefix = "monitoring.transports.http")
-public class HttpTransportMonitoringConfig extends TransportMonitoringConfig {
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public final class TransportsMonitoringService extends BaseMonitoringService<TransportMonitoringConfig, TransportMonitoringTarget> {
 
     @Override
-    public TransportType getTransportType() {
-        return TransportType.HTTP;
+    protected BaseHealthChecker<?, ?> createHealthChecker(TransportMonitoringConfig config, TransportMonitoringTarget target) {
+        return applicationContext.getBean(config.getTransportType().getServiceClass(), config, target);
+    }
+
+    @Override
+    protected String getName() {
+        return "transports check";
     }
 
 }

@@ -28,66 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.transport.impl;
+package org.thingsboard.monitoring.service.transport.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.MonitoringTargetConfig;
-import org.thingsboard.monitoring.config.TransportType;
-import org.thingsboard.monitoring.config.service.CoapTransportMonitoringConfig;
-import org.thingsboard.monitoring.transport.TransportHealthChecker;
+import org.springframework.web.client.RestTemplate;
+import org.thingsboard.monitoring.config.transport.HttpTransportMonitoringConfig;
+import org.thingsboard.monitoring.config.transport.TransportMonitoringTarget;
+import org.thingsboard.monitoring.config.transport.TransportType;
+import org.thingsboard.monitoring.service.transport.TransportHealthChecker;
 
-import java.io.IOException;
+import java.time.Duration;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Slf4j
-public class CoapTransportHealthChecker extends TransportHealthChecker<CoapTransportMonitoringConfig> {
+public class HttpTransportHealthChecker extends TransportHealthChecker<HttpTransportMonitoringConfig> {
 
-    private CoapClient coapClient;
+    private RestTemplate restTemplate;
 
-    protected CoapTransportHealthChecker(CoapTransportMonitoringConfig config, MonitoringTargetConfig target) {
+    protected HttpTransportHealthChecker(HttpTransportMonitoringConfig config, TransportMonitoringTarget target) {
         super(config, target);
     }
 
     @Override
     protected void initClient() throws Exception {
-        if (coapClient == null) {
-            String accessToken = target.getDevice().getCredentials().getCredentialsId();
-            String uri = target.getBaseUrl() + "/api/v1/" + accessToken + "/telemetry";
-            coapClient = new CoapClient(uri);
-            coapClient.setTimeout((long) config.getRequestTimeoutMs());
-            log.debug("Initialized CoAP client for URI {}", uri);
+        if (restTemplate == null) {
+            restTemplate = new RestTemplateBuilder()
+                    .setConnectTimeout(Duration.ofMillis(config.getRequestTimeoutMs()))
+                    .setReadTimeout(Duration.ofMillis(config.getRequestTimeoutMs()))
+                    .build();
+            log.debug("Initialized HTTP client");
         }
     }
 
     @Override
     protected void sendTestPayload(String payload) throws Exception {
-        CoapResponse response = coapClient.post(payload, MediaTypeRegistry.APPLICATION_JSON);
-        CoAP.ResponseCode code = response.getCode();
-        if (code.codeClass != CoAP.CodeClass.SUCCESS_RESPONSE.value) {
-            throw new IOException("COAP client didn't receive success response from transport");
-        }
+        String accessToken = target.getDevice().getCredentials().getCredentialsId();
+        restTemplate.postForObject(target.getBaseUrl() + "/api/v1/" + accessToken + "/telemetry", payload, String.class);
     }
 
     @Override
-    protected void destroyClient() throws Exception {
-        if (coapClient != null) {
-            coapClient.shutdown();
-            coapClient = null;
-            log.info("Disconnected CoAP client");
-        }
-    }
+    protected void destroyClient() throws Exception {}
 
     @Override
     protected TransportType getTransportType() {
-        return TransportType.COAP;
+        return TransportType.HTTP;
     }
 
 }

@@ -28,22 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config;
+package org.thingsboard.monitoring.data;
 
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
+public class ServiceFailureException extends RuntimeException {
 
-import java.util.UUID;
+    public ServiceFailureException(Throwable cause) {
+        super(cause.getMessage(), cause);
+    }
 
-@Data
-public class DeviceConfig {
-
-    private UUID id;
-    private DeviceCredentials credentials;
-
-    public void setId(String id) {
-        this.id = StringUtils.isNotEmpty(id) ? UUID.fromString(id) : null;
+    public ServiceFailureException(String message) {
+        super(message);
     }
 
 }

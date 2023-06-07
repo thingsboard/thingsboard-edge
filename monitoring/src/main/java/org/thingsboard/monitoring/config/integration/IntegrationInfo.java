@@ -28,21 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.config.integration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.TransportType;
+import lombok.Data;
 
-@Component
-@ConditionalOnProperty(name = "monitoring.transports.lwm2m.enabled", havingValue = "true")
-@ConfigurationProperties(prefix = "monitoring.transports.lwm2m")
-public class Lwm2mTransportMonitoringConfig extends TransportMonitoringConfig {
+@Data
+public class IntegrationInfo {
+
+    private final IntegrationType integrationType;
+    private final String baseUrl;
 
     @Override
-    public TransportType getTransportType() {
-        return TransportType.LWM2M;
+    public String toString() {
+        return String.format("%s integration (%s)", integrationType, baseUrl);
     }
 
 }

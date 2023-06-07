@@ -28,16 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.integration;
 
-public class Latencies {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.thingsboard.monitoring.service.integration.IntegrationHealthChecker;
+import org.thingsboard.monitoring.service.integration.impl.CoapIntegrationHealthChecker;
+import org.thingsboard.monitoring.service.integration.impl.HttpIntegrationHealthChecker;
 
-    public static final String WS_UPDATE = "wsUpdate";
-    public static final String WS_CONNECT = "wsConnect";
-    public static final String LOG_IN = "logIn";
+@AllArgsConstructor
+@Getter
+public enum IntegrationType {
 
-    public static String request(String key) {
-        return String.format("%sRequest", key);
-    }
+    HTTP(HttpIntegrationHealthChecker.class),
+    COAP(CoapIntegrationHealthChecker.class);
+
+    private final Class<? extends IntegrationHealthChecker<?>> serviceClass;
 
 }

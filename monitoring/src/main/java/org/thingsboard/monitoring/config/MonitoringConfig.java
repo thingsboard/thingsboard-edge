@@ -28,27 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.TransportType;
+import java.util.List;
 
-@Component
-@ConditionalOnProperty(name = "monitoring.transports.mqtt.enabled", havingValue = "true")
-@ConfigurationProperties(prefix = "monitoring.transports.mqtt")
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class MqttTransportMonitoringConfig extends TransportMonitoringConfig {
+public interface MonitoringConfig<T extends MonitoringTarget> {
 
-    private Integer qos;
-
-    @Override
-    public TransportType getTransportType() {
-        return TransportType.MQTT;
-    }
+    List<T> getTargets();
 
 }

@@ -28,16 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.transport;
 
-public class Latencies {
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-    public static final String WS_UPDATE = "wsUpdate";
-    public static final String WS_CONNECT = "wsConnect";
-    public static final String LOG_IN = "logIn";
+@Component
+@ConditionalOnProperty(name = "monitoring.transports.http.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.transports.http")
+public class HttpTransportMonitoringConfig extends TransportMonitoringConfig {
 
-    public static String request(String key) {
-        return String.format("%sRequest", key);
+    @Override
+    public TransportType getTransportType() {
+        return TransportType.HTTP;
     }
 
 }

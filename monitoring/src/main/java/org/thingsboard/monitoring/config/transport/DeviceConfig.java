@@ -28,16 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.transport;
 
-public class Latencies {
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 
-    public static final String WS_UPDATE = "wsUpdate";
-    public static final String WS_CONNECT = "wsConnect";
-    public static final String LOG_IN = "logIn";
+import java.util.UUID;
 
-    public static String request(String key) {
-        return String.format("%sRequest", key);
+@Data
+public class DeviceConfig {
+
+    private UUID id;
+    private String name;
+    private DeviceCredentials credentials;
+
+    public void setId(String id) {
+        this.id = StringUtils.isNotEmpty(id) ? UUID.fromString(id) : null;
     }
 
 }

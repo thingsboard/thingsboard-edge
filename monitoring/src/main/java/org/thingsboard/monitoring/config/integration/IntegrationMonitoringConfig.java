@@ -28,21 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.config.integration;
 
 import lombok.Data;
-import org.thingsboard.monitoring.config.MonitoringTargetConfig;
-import org.thingsboard.monitoring.config.TransportType;
+import org.thingsboard.monitoring.config.MonitoringConfig;
 
 import java.util.List;
 
 @Data
-public abstract class TransportMonitoringConfig {
+public abstract class IntegrationMonitoringConfig implements MonitoringConfig<IntegrationMonitoringTarget> {
 
     private int requestTimeoutMs;
+    private IntegrationMonitoringTarget target;
 
-    private List<MonitoringTargetConfig> targets;
+    @Override
+    public List<IntegrationMonitoringTarget> getTargets() {
+        return List.of(target);
+    }
 
-    public abstract TransportType getTransportType();
+    public abstract IntegrationType getIntegrationType();
 
 }

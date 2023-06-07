@@ -28,16 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.data;
+package org.thingsboard.monitoring.config.transport;
 
-public class TransportFailureException extends RuntimeException {
+import lombok.Data;
+import org.thingsboard.monitoring.config.MonitoringTarget;
 
-    public TransportFailureException(Throwable cause) {
-        super(cause.getMessage(), cause);
-    }
+import java.util.UUID;
 
-    public TransportFailureException(String message) {
-        super(message);
+@Data
+public class TransportMonitoringTarget implements MonitoringTarget {
+
+    private String baseUrl;
+    private DeviceConfig device; // set manually during initialization
+
+    @Override
+    public UUID getDeviceId() {
+        return device.getId();
     }
 
 }

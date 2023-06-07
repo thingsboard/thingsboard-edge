@@ -28,21 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.monitoring.config.service;
+package org.thingsboard.monitoring.config.transport;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.thingsboard.monitoring.config.TransportType;
 
 @Component
-@ConditionalOnProperty(name = "monitoring.transports.coap.enabled", havingValue = "true")
-@ConfigurationProperties(prefix = "monitoring.transports.coap")
-public class CoapTransportMonitoringConfig extends TransportMonitoringConfig {
+@ConditionalOnProperty(name = "monitoring.transports.mqtt.enabled", havingValue = "true")
+@ConfigurationProperties(prefix = "monitoring.transports.mqtt")
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class MqttTransportMonitoringConfig extends TransportMonitoringConfig {
+
+    private Integer qos;
 
     @Override
     public TransportType getTransportType() {
-        return TransportType.COAP;
+        return TransportType.MQTT;
     }
 
 }
