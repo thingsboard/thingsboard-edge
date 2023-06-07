@@ -85,8 +85,8 @@ export interface TestDownLinkInputParams {
 
 export interface LatestConverterParameters {
   converterType: ConverterType;
-  integrationType: IntegrationType;
-  integrationName: string;
+  integrationType?: IntegrationType;
+  integrationName?: string;
 }
 
 export type TestConverterInputParams = TestUpLinkInputParams & TestDownLinkInputParams;

@@ -41,7 +41,7 @@ import {
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
-  DecoderMap
+  DecoderMap, LatestConverterParameters
 } from '@shared/models/converter.models';
 
 import jsDecoderTemplate from '!raw-loader!src/assets/converters/js-decoder.raw';
@@ -260,11 +260,16 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     if (this.entity.id) {
       request = this.converterService.getLatestConverterDebugInput(this.entity.id.id);
     } else {
-      request = this.converterService.getLatestConverterDebugInput(NULL_UUID, {
-        integrationName: this.integrationName,
-        integrationType: this.integrationType,
+      const parameters: LatestConverterParameters = {
         converterType: this.entityForm.get('type').value
-      });
+      };
+
+      if (this.integrationName && this.integrationType) {
+        parameters.integrationName = this.integrationName;
+        parameters.integrationType = this.integrationType;
+      }
+
+      request = this.converterService.getLatestConverterDebugInput(NULL_UUID, parameters);
     };
     request.pipe(
       takeUntil(this.destroy$)
