@@ -29,13 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './dialog/color-picker-dialog.component';
-export * from './dialog/material-icons-dialog.component';
-export * from './page.component';
-export * from './dialog.component';
-export * from './js-func.component';
-export * from './script-lang.component';
-export * from './slack-conversation-autocomplete.component';
-export * from './notification/template-autocomplete.component';
-export * from './resource/resource-autocomplete.component';
-export * from './toggle-header.component';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
+import { Resource, ResourceInfo, ResourceType, ResourceTypeTranslationMap } from '@shared/models/resource.models';
+import { PageLink } from '@shared/models/page/page-link';
+
+@Component({
+  selector: 'tb-resources-table-header',
+  templateUrl: './resources-table-header.component.html',
+  styleUrls: []
+})
+export class ResourcesTableHeaderComponent extends EntityTableHeaderComponent<Resource, PageLink, ResourceInfo> {
+
+  readonly resourceTypes: ResourceType[] = Object.values(ResourceType);
+  readonly resourceTypesTranslationMap = ResourceTypeTranslationMap;
+
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
+
+  resourceTypeChanged(resourceType: ResourceType) {
+    this.entitiesTableConfig.componentsData.resourceType = resourceType;
+    this.entitiesTableConfig.getTable().resetSortAndFilter(true);
+  }
+}

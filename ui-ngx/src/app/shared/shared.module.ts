@@ -222,6 +222,7 @@ import {
 } from '@shared/layout/layout.directives';
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
+import { ResourceAutocompleteComponent } from '@shared/components/resource/resource-autocomplete.component';
 import { ShortNumberPipe } from '@shared/pipe/short-number.pipe';
 import { ToggleHeaderComponent } from '@shared/components/toggle-header.component';
 import { RuleChainSelectComponent } from '@shared/components/rule-chain/rule-chain-select.component';
@@ -415,6 +416,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
+    ResourceAutocompleteComponent,
     ToggleHeaderComponent,
     RuleChainSelectComponent
   ],
@@ -661,6 +663,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
+    ResourceAutocompleteComponent,
     ToggleHeaderComponent,
     RuleChainSelectComponent
   ]

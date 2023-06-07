@@ -46,6 +46,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_DATA_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_FILE_NAME_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_HASH_CODE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_KEY_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RESOURCE_TENANT_ID_COLUMN;
@@ -80,6 +81,9 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
     @Column(name = RESOURCE_DATA_COLUMN)
     private String data;
 
+    @Column(name = RESOURCE_HASH_CODE_COLUMN)
+    private String hashCode;
+
     public TbResourceEntity() {
     }
 
@@ -97,6 +101,7 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
         this.searchText = resource.getSearchText();
         this.fileName = resource.getFileName();
         this.data = resource.getData();
+        this.hashCode = resource.getHashCode();
     }
 
     @Override
@@ -110,6 +115,7 @@ public class TbResourceEntity extends BaseSqlEntity<TbResource> implements BaseE
         resource.setSearchText(searchText);
         resource.setFileName(fileName);
         resource.setData(data);
+        resource.setHashCode(hashCode);
         return resource;
     }
 

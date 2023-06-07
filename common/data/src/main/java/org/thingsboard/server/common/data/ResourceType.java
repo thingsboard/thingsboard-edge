@@ -31,5 +31,18 @@
 package org.thingsboard.server.common.data;
 
 public enum ResourceType {
-    LWM2M_MODEL, JKS, PKCS_12, JS_MODULE
+    LWM2M_MODEL("application/xml"),
+    JKS("application/x-java-keystore"),
+    PKCS_12("application/x-pkcs12"),
+    JS_MODULE("application/javascript");
+
+    private final String mediaType;
+
+    ResourceType(String mediaType) {
+        this.mediaType = mediaType;
+    }
+
+    public String getMediaType() {
+        return mediaType;
+    }
 }
