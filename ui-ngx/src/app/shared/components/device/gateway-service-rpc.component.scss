@@ -14,28 +14,35 @@
  * limitations under the License.
  */
 :host {
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 
-  mat-button-toggle-group, .protocol-title {
-    margin-bottom: 20px;
-  }
-
-  span {
-    margin-bottom: 10px;
-  }
-
-  .protocol-toggle {
-    width: fit-content;
-  }
-
-  .help-title {
-    padding-bottom: 5px;
-  }
-
-  .protocol-send-command {
+  .command-form {
     width: 100%;
+    flex-wrap: nowrap;
+    padding: 0 15px;
+    margin-bottom: 5px;
+
+    &>button {
+      margin-top: 10px;
+    }
+
+    ::ng-deep.mat-mdc-form-field-icon-suffix {
+      z-index: 100;
+    }
   }
 
-  .pre-wrap {
-    white-space: pre-wrap;
+  .result-block {
+    padding: 0 15px;
+
+    &>span {
+      font-weight: 600;
+    }
   }
+
 }
+

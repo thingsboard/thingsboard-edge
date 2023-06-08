@@ -73,6 +73,9 @@ export class FileInputComponent extends PageComponent implements AfterViewInit, 
   accept = '*/*';
 
   @Input()
+  hint: string;
+
+  @Input()
   noFileText = 'import.no-file';
 
   @Input()

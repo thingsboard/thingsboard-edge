@@ -14,28 +14,42 @@
  * limitations under the License.
  */
 :host {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow-x: auto;
+  padding: 0;
 
-  mat-button-toggle-group, .protocol-title {
-    margin-bottom: 20px;
+
+  .status {
+    border-radius: 20px;
+    font-weight: 500;
+    padding: 5px 15px;
   }
 
-  span {
-    margin-bottom: 10px;
+  .status-debug {
+    color: green;
+    background: rgba(0, 128, 0, 0.1);
   }
 
-  .protocol-toggle {
-    width: fit-content;
+  .status-warning {
+    color: orange;
+    background: rgba(255, 165, 0, 0.1);
   }
 
-  .help-title {
-    padding-bottom: 5px;
+  .status-error {
+    color: red;
+    background: rgba(255, 0, 0, 0.1);
   }
 
-  .protocol-send-command {
-    width: 100%;
+  .status-info {
+    color: black;
+    background: rgba(0, 0, 0, 0.1);
   }
 
-  .pre-wrap {
-    white-space: pre-wrap;
+  .msg-status-exception {
+    color: red;
   }
+
 }
+
