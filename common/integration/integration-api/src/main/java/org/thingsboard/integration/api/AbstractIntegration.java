@@ -53,15 +53,18 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -75,6 +78,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
+
+    protected Map<String, List<String>> entityConstants;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -94,6 +99,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (integrationStatistics == null) {
             this.integrationStatistics = new IntegrationStatistics(context);
         }
+        this.entityConstants = new HashMap<>();
     }
 
     public void setConfiguration(Integration configuration) {
@@ -177,8 +183,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
+        String entityName = data.getDeviceName();
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
-                .setDeviceName(data.getDeviceName())
+                .setDeviceName(entityName)
                 .setDeviceType(data.getDeviceType());
         if (StringUtils.isNotEmpty(data.getDeviceLabel())) {
             builder.setDeviceLabel(data.getDeviceLabel());
@@ -192,15 +199,24 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }
+        TransportProtos.PostAttributeMsg.Builder postAttributesMsg = TransportProtos.PostAttributeMsg.newBuilder();
         if (data.getAttributesUpdate() != null) {
-            builder.setPostAttributesMsg(data.getAttributesUpdate());
+            postAttributesMsg.addAllKv(data.getAttributesUpdate().getKvList());
+        }
+        if (data.getConstants() != null) {
+            TransportProtos.PostAttributeMsg constantsAttributesMsg = processConstantsForEntity(entityName, data.getConstants());
+            postAttributesMsg.addAllKv(constantsAttributesMsg.getKvList());
+        }
+        if (postAttributesMsg.getKvCount() > 0) {
+            builder.setPostAttributesMsg(postAttributesMsg);
         }
         context.processUplinkData(builder.build(), null);
     }
 
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
+        String entityName = data.getAssetName();
         AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
-                .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
+                .setAssetName(entityName).setAssetType(data.getAssetType());
         if (StringUtils.isNotEmpty(data.getAssetLabel())) {
             builder.setAssetLabel(data.getAssetLabel());
         }
@@ -213,10 +229,35 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
         }
+        TransportProtos.PostAttributeMsg.Builder postAttributesMsg = TransportProtos.PostAttributeMsg.newBuilder();
         if (data.getAttributesUpdate() != null) {
+            postAttributesMsg.addAllKv(data.getAttributesUpdate().getKvList());
+        }
+        if (data.getConstants() != null) {
+            TransportProtos.PostAttributeMsg constantsAttributesMsg = processConstantsForEntity(entityName, data.getConstants());
+            postAttributesMsg.addAllKv(constantsAttributesMsg.getKvList());
+        }
+        if (postAttributesMsg.getKvCount() > 0) {
             builder.setPostAttributesMsg(data.getAttributesUpdate());
         }
         context.processUplinkData(builder.build(), null);
+    }
+
+    private TransportProtos.PostAttributeMsg processConstantsForEntity(String entityName, TransportProtos.PostAttributeMsg constants) {
+        List<TransportProtos.KeyValueProto> constantsKvList = constants.getKvList();
+        List<String> constantKeys = this.entityConstants.computeIfAbsent(entityName, k -> new ArrayList<>());
+        TransportProtos.PostAttributeMsg.Builder constantsAttributeMsg = TransportProtos.PostAttributeMsg.newBuilder();
+
+        for (TransportProtos.KeyValueProto constantKv : constantsKvList) {
+            String constantKvKey = constantKv.getKey();
+            if (!constantKeys.contains(constantKvKey)) {
+                constantsAttributeMsg.addKv(constantKv);
+                constantKeys.add(constantKvKey);
+            }
+        }
+
+        this.entityConstants.put(entityName, constantKeys);
+        return constantsAttributeMsg.build();
     }
 
     protected void createEntityView(IntegrationContext context, UplinkData data, String viewName, String viewType, List<String> telemetryKeys) {

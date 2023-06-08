@@ -36,6 +36,7 @@ import io.restassured.path.json.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -50,10 +51,12 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.HTTP;
@@ -82,6 +85,9 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
                     "       serialNumber: data.param2,\n" +
                     "   },\n" +
                     "   telemetry: {\n" +
+                    "       temperature: data.temperature\n" +
+                    "   },\n" +
+                    "   constants: {\n" +
                     "       temperature: data.temperature\n" +
                     "   }\n" +
                     "};\n" +
@@ -166,6 +172,51 @@ public class HttpIntegrationTest extends AbstractIntegrationTest {
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         assertThat(actualLatestTelemetry.getDataValuesByKey(TELEMETRY_KEY).get(1)).isEqualTo(TELEMETRY_VALUE);
+    }
+
+    @Test
+    public void checkConstantsUploadedAndNotUpdatedWithLocalIntegration() throws Exception {
+        JsonNode config = defaultConfig(HTTPS_URL);
+        integration = Integration.builder()
+                .type(HTTP)
+                .name("http" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(config)
+                .defaultConverterId(uplinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+
+        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, TELEMETRY_VALUE));
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, TELEMETRY_KEY);
+                    Assert.assertFalse(attributes.isEmpty());
+                    Assert.assertEquals(attributes.get(0).get("key").asText(), TELEMETRY_KEY);
+                    Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
+                    return true;
+                });
+
+        testRestClient.postUplinkPayloadForHttpIntegration(integration.getRoutingKey(), createPayloadForUplink(device, "35"));
+
+        Awaitility
+                .await()
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<JsonNode> attributes = testRestClient.getEntityAttributeByScopeAndKey(device.getId(), CLIENT_SCOPE, TELEMETRY_KEY);
+                    Assert.assertFalse(attributes.isEmpty());
+                    Assert.assertEquals(attributes.get(0).get("key").asText(), TELEMETRY_KEY);
+                    Assert.assertEquals(attributes.get(0).get("value").asText(), TELEMETRY_VALUE);
+                    return true;
+                });
     }
 
     @Test

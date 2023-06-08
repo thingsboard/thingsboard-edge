@@ -146,6 +146,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         if (src.has("attributes")) {
             builder.attributesUpdate(parseAttributesUpdate(src.get("attributes")));
         }
+        if (src.has("constants")) {
+            builder.constants(parseAttributesUpdate(src.get("constants")));
+        }
 
         //TODO: add support of attribute requests and client-side RPC.
         return builder.build();
