@@ -28,32 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
-@Getter
-public enum NotificationRuleTriggerType {
+@Data
+@Builder
+public class DeviceActivityTrigger implements NotificationRuleTrigger {
 
-    ENTITY_ACTION,
-    ALARM,
-    ALARM_COMMENT,
-    ALARM_ASSIGNMENT,
-    DEVICE_ACTIVITY,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    INTEGRATION_LIFECYCLE_EVENT,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false),
-    API_USAGE_LIMIT(false);
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final DeviceId deviceId;
+    private final boolean active;
 
-    private final boolean tenantLevel;
+    private final String deviceName;
+    private final String deviceType;
+    private final String deviceLabel;
 
-    NotificationRuleTriggerType() {
-        this(true);
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return deviceId;
     }
 
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.DEVICE_ACTIVITY;
     }
 
 }

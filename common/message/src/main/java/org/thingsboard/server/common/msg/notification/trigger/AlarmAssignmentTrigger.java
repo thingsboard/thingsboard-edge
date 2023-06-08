@@ -28,12 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.notification;
+package org.thingsboard.server.common.msg.notification.trigger;
 
-import org.thingsboard.server.common.msg.notification.trigger.NotificationRuleTrigger;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
-public interface NotificationRuleProcessor {
+@Data
+@Builder
+public class AlarmAssignmentTrigger implements NotificationRuleTrigger {
 
-    void process(NotificationRuleTrigger trigger);
+    private final TenantId tenantId;
+    private final AlarmInfo alarmInfo;
+    private final ActionType actionType;
+    private final User user;
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return alarmInfo.getOriginator();
+    }
+
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.ALARM_ASSIGNMENT;
+    }
 
 }

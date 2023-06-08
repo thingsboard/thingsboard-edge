@@ -28,32 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.msg.notification.trigger;
 
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
 
-@Getter
-public enum NotificationRuleTriggerType {
+@Data
+@Builder
+public class AlarmCommentTrigger implements NotificationRuleTrigger {
 
-    ENTITY_ACTION,
-    ALARM,
-    ALARM_COMMENT,
-    ALARM_ASSIGNMENT,
-    DEVICE_ACTIVITY,
-    RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT,
-    INTEGRATION_LIFECYCLE_EVENT,
-    NEW_PLATFORM_VERSION(false),
-    ENTITIES_LIMIT(false),
-    API_USAGE_LIMIT(false);
+    private final TenantId tenantId;
+    private final AlarmComment comment;
+    private final Alarm alarm;
+    private final ActionType actionType;
+    private final User user;
 
-    private final boolean tenantLevel;
-
-    NotificationRuleTriggerType() {
-        this(true);
+    @Override
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.ALARM_COMMENT;
     }
 
-    NotificationRuleTriggerType(boolean tenantLevel) {
-        this.tenantLevel = tenantLevel;
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return alarm.getId();
     }
 
 }
