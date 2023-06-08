@@ -52,11 +52,6 @@ public class ApiUsageLimitTrigger implements NotificationRuleTrigger {
     }
 
     @Override
-    public TenantId getTenantId() {
-        return tenantId;
-    }
-
-    @Override
     public EntityId getOriginatorEntityId() {
         return tenantId;
     }
