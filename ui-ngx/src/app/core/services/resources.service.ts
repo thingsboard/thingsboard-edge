@@ -45,6 +45,10 @@ import { IModulesMap } from '@modules/common/modules-map.models';
 import { TbResourceId } from '@shared/models/id/tb-resource-id';
 import { isObject } from '@core/utils';
 import { AuthService } from '@core/auth/auth.service';
+import { select, Store } from '@ngrx/store';
+import { selectIsAuthenticated } from '@core/auth/auth.selectors';
+import { AppState } from '@core/core.state';
+import { tap } from 'rxjs/operators';
 
 declare const System;
 
@@ -65,9 +69,12 @@ export class ResourcesService {
   private anchor = this.document.getElementsByTagName('head')[0] || this.document.getElementsByTagName('body')[0];
 
   constructor(@Inject(DOCUMENT) private readonly document: any,
+              protected store: Store<AppState>,
               private compiler: Compiler,
               private http: HttpClient,
-              private injector: Injector) {}
+              private injector: Injector) {
+    this.store.pipe(select(selectIsAuthenticated)).subscribe(() => this.clearModulesCache());
+  }
 
   public loadResource(url: string): Observable<any> {
     if (this.loadedResources[url]) {
@@ -80,9 +87,9 @@ export class ResourcesService {
       fileType = match[1];
     }
     if (!fileType) {
-      return throwError(new Error(`Unable to detect file type from url: ${url}`));
+      return throwError(() => new Error(`Unable to detect file type from url: ${url}`));
     } else if (fileType !== 'css' && fileType !== 'js') {
-      return throwError(new Error(`Unsupported file type: ${fileType}`));
+      return throwError(() => new Error(`Unsupported file type: ${fileType}`));
     }
     return this.loadResourceByType(fileType, url);
   }
@@ -106,7 +113,8 @@ export class ResourcesService {
               for (const m of modules) {
                 tasks.push(this.compiler.compileModuleAndAllComponentsAsync(m));
               }
-              forkJoin(tasks).subscribe((compiled) => {
+              forkJoin(tasks).subscribe({
+                next: (compiled) => {
                   try {
                     const componentFactories: ComponentFactory<any>[] = [];
                     for (const c of compiled) {
@@ -121,26 +129,32 @@ export class ResourcesService {
                     this.loadedModulesAndFactories[url].complete();
                   } catch (e) {
                     this.loadedModulesAndFactories[url].error(new Error(`Unable to init module from url: ${url}`));
-                    delete this.loadedModulesAndFactories[url];
                   }
                 },
-                (e) => {
+                error: (e) => {
                   this.loadedModulesAndFactories[url].error(new Error(`Unable to compile module from url: ${url}`));
-                  delete this.loadedModulesAndFactories[url];
-                });
+                }
+              });
             } else {
               this.loadedModulesAndFactories[url].error(new Error(`Module '${url}' doesn't have default export!`));
-              delete this.loadedModulesAndFactories[url];
             }
           },
           (e) => {
             this.loadedModulesAndFactories[url].error(new Error(`Unable to load module from url: ${url}`));
-            delete this.loadedModulesAndFactories[url];
           }
         );
       }
     );
-    return subject.asObservable();
+    return subject.asObservable().pipe(
+      tap({
+        next: () => System.delete(url),
+        error: () => {
+          delete this.loadedModulesAndFactories[url];
+          System.delete(url);
+        },
+        complete: () => System.delete(url)
+      })
+    );
   }
 
   public loadModules(resourceId: string | TbResourceId, modulesMap: IModulesMap): Observable<Type<any>[]> {
@@ -177,31 +191,35 @@ export class ResourcesService {
                       this.loadedModules[url].complete();
                     } catch (e) {
                       this.loadedModules[url].error(new Error(`Unable to init module from url: ${url}`));
-                      delete this.loadedModules[url];
                     }
                   },
                   (e) => {
                     this.loadedModules[url].error(new Error(`Unable to compile module from url: ${url}`));
-                    delete this.loadedModules[url];
                   });
               } else {
                 this.loadedModules[url].error(new Error(`Module '${url}' doesn't have default export or not NgModule!`));
-                delete this.loadedModules[url];
               }
             } catch (e) {
               this.loadedModules[url].error(new Error(`Unable to load module from url: ${url}`));
-              delete this.loadedModules[url];
             }
           },
           (e) => {
             this.loadedModules[url].error(new Error(`Unable to load module from url: ${url}`));
-            delete this.loadedModules[url];
             console.error(`Unable to load module from url: ${url}`, e);
           }
         );
       }
     );
-    return subject.asObservable();
+    return subject.asObservable().pipe(
+      tap({
+        next: () => System.delete(url),
+        error: () => {
+          delete this.loadedModulesAndFactories[url];
+          System.delete(url);
+        },
+        complete: () => System.delete(url)
+      })
+    );
   }
 
   private extractNgModules(module: any, modules: Type<any>[] = []): Type<any>[] {
@@ -284,5 +302,10 @@ export class ResourcesService {
         }
       };
     }
+  }
+
+  private clearModulesCache() {
+    this.loadedModules = {};
+    this.loadedModulesAndFactories = {};
   }
 }
