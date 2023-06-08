@@ -28,33 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 @Data
 @Builder
-public class EntitiesLimitTrigger implements NotificationRuleTrigger {
+public class AlarmTrigger implements NotificationRuleTrigger {
 
     private final TenantId tenantId;
-    private final EntityType entityType;
-
-    private long limit;
-    private long currentCount;
+    private final AlarmApiCallResult alarmUpdate;
 
     @Override
     public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.ENTITIES_LIMIT;
+        return NotificationRuleTriggerType.ALARM;
     }
 
     @Override
     public EntityId getOriginatorEntityId() {
-        return tenantId;
+        return alarmUpdate.getAlarm().getId();
     }
 
 }

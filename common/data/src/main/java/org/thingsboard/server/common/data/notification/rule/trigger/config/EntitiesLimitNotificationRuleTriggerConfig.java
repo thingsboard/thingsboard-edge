@@ -28,30 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.EntityType;
+
+import javax.validation.constraints.Max;
+import java.util.Set;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class AlarmTrigger implements NotificationRuleTrigger {
+public class EntitiesLimitNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final TenantId tenantId;
-    private final AlarmApiCallResult alarmUpdate;
-
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.ALARM;
-    }
+    private Set<EntityType> entityTypes;
+    @Max(1)
+    private float threshold; // in percents,
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return alarmUpdate.getAlarm().getId();
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.ENTITIES_LIMIT;
     }
 
 }

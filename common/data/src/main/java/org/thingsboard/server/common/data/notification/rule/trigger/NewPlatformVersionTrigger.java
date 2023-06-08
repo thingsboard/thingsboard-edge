@@ -30,27 +30,49 @@
  */
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.ApiFeature;
-import org.thingsboard.server.common.data.ApiUsageStateValue;
-
-import java.util.Set;
+import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class ApiUsageLimitNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+public class NewPlatformVersionTrigger implements NotificationRuleTrigger {
 
-    private Set<ApiFeature> apiFeatures;
-    private Set<ApiUsageStateValue> notifyOn;
+    private final UpdateMessage updateInfo;
 
     @Override
-    public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.API_USAGE_LIMIT;
+    public NotificationRuleTriggerType getType() {
+        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
+    }
+
+    @Override
+    public TenantId getTenantId() {
+        return TenantId.SYS_TENANT_ID;
+    }
+
+    @Override
+    public EntityId getOriginatorEntityId() {
+        return TenantId.SYS_TENANT_ID;
+    }
+
+
+    @Override
+    public boolean deduplicate() {
+        return true;
+    }
+
+    @Override
+    public String getDeduplicationKey() {
+        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(),
+                updateInfo.getCurrentVersion(), updateInfo.getLatestVersion());
+    }
+
+    @Override
+    public long getDefaultDeduplicationDuration() {
+        return 0;
     }
 
 }

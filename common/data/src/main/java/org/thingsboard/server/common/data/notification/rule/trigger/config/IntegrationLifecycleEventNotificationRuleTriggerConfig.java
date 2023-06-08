@@ -28,30 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification.rule.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EntityActionNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+public class IntegrationLifecycleEventNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private Set<EntityType> entityTypes; // maybe add name filter ?
-    private boolean created;
-    private boolean updated;
-    private boolean deleted;
+    private Set<IntegrationType> integrationTypes;
+    private Set<UUID> integrations; // set either integrationTypes or integrations or none
+    private Set<ComponentLifecycleEvent> notifyOn; // STARTED, UPDATED or STOPPED
+    private boolean onlyOnError;
 
     @Override
     public NotificationRuleTriggerType getTriggerType() {
-        return NotificationRuleTriggerType.ENTITY_ACTION;
+        return NotificationRuleTriggerType.INTEGRATION_LIFECYCLE_EVENT;
     }
 
 }

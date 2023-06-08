@@ -28,36 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
+import java.util.Set;
+import java.util.UUID;
+
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class IntegrationLifecycleEventTrigger implements NotificationRuleTrigger {
+public class RuleEngineComponentLifecycleEventNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final TenantId tenantId;
-    private final IntegrationId integrationId;
-    private final IntegrationType integrationType;
-    private final String integrationName;
-    private final ComponentLifecycleEvent event;
-    private final Throwable error;
+    private Set<UUID> ruleChains; // if empty - all rule chains
 
-    @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.INTEGRATION_LIFECYCLE_EVENT;
-    }
+    private Set<ComponentLifecycleEvent> ruleChainEvents; // available options: STARTED, UPDATED, STOPPED. if empty - all events
+    private boolean onlyRuleChainLifecycleFailures;
+
+    private boolean trackRuleNodeEvents;
+    private Set<ComponentLifecycleEvent> ruleNodeEvents; // available options: STARTED, UPDATED, STOPPED. if empty - all events
+    private boolean onlyRuleNodeLifecycleFailures;
 
     @Override
-    public EntityId getOriginatorEntityId() {
-        return integrationId;
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.RULE_ENGINE_COMPONENT_LIFECYCLE_EVENT;
     }
 
 }

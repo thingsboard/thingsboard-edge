@@ -28,51 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.notification.trigger;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.common.data.UpdateMessage;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTriggerType;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+
+import javax.validation.constraints.NotEmpty;
+import java.util.Set;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class NewPlatformVersionTrigger implements NotificationRuleTrigger {
+public class AlarmAssignmentNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-    private final UpdateMessage updateInfo;
+    private Set<String> alarmTypes;
+    private Set<AlarmSeverity> alarmSeverities;
+    private Set<AlarmSearchStatus> alarmStatuses;
+    @NotEmpty
+    private Set<Action> notifyOn;
 
     @Override
-    public NotificationRuleTriggerType getType() {
-        return NotificationRuleTriggerType.NEW_PLATFORM_VERSION;
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.ALARM_ASSIGNMENT;
     }
 
-    @Override
-    public TenantId getTenantId() {
-        return TenantId.SYS_TENANT_ID;
-    }
-
-    @Override
-    public EntityId getOriginatorEntityId() {
-        return TenantId.SYS_TENANT_ID;
-    }
-
-
-    @Override
-    public boolean deduplicate() {
-        return true;
-    }
-
-    @Override
-    public String getDeduplicationKey() {
-        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(),
-                updateInfo.getCurrentVersion(), updateInfo.getLatestVersion());
-    }
-
-    @Override
-    public long getDefaultDeduplicationDuration() {
-        return 0;
+    public enum Action {
+        ASSIGNED, UNASSIGNED
     }
 
 }
