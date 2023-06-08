@@ -43,6 +43,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -541,7 +543,6 @@ public class TbResourceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotModified());
     }
 
-    @Ignore
     @Test
     public void testDownloadTbResourceIfChangedAsPublicCustomer() throws Exception {
         loginTenantAdmin();
@@ -555,15 +556,12 @@ public class TbResourceControllerTest extends AbstractControllerTest {
 
         TbResource savedResource = save(resource);
 
-        //download as public customer
-        Device device = new Device();
-        device.setName("Test Public Device");
-        device.setLabel("Label");
-        device.setCustomerId(customerId);
-        device = doPost("/api/device", device, Device.class);
-        device = doPost("/api/customer/public/device/" + device.getUuidId(), Device.class);
-
-        String publicId = device.getCustomerId().toString();
+        EntityGroupInfo deviceGroup = createSharedPublicEntityGroup(
+                "Device Test Entity Group",
+                EntityType.DEVICE,
+                customerId
+        );
+        String publicId = deviceGroup.getAdditionalInfo().get("publicCustomerId").asText();
 
         Mockito.reset(tbClusterService, auditLogService);
         resetTokens();
@@ -584,6 +582,25 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         headers.setIfNoneMatch(eTag);
         doGet("/api/resource/js/" + savedResource.getId().getId().toString() + "/download", headers)
                 .andExpect(status().isNotModified());
+    }
+
+    @Test
+    public void testDownloadTbResourceIfChangedAsCustomerOfDifferentTenant() throws Exception {
+        loginTenantAdmin();
+        Mockito.reset(tbClusterService, auditLogService);
+
+        TbResource resource = new TbResource();
+        resource.setResourceType(ResourceType.JS_MODULE);
+        resource.setTitle("Js resource");
+        resource.setFileName(JS_TEST_FILE_NAME);
+        resource.setData(TEST_DATA);
+
+        TbResource savedResource = save(resource);
+
+        loginDifferentTenant();
+        loginDifferentTenantCustomer();
+        doGet("/api/resource/js/" + savedResource.getId().getId().toString() + "/download")
+                .andExpect(status().isForbidden());
     }
 
     private TbResource save(TbResource tbResource) throws Exception {
