@@ -55,9 +55,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TE
 @RequestMapping("/api/mail/config/template")
 @Slf4j
 public class MailConfigTemplateController extends BaseController {
-    private static final String MAIL_CONFIG_TEMPLATE_ID = "mailConfigTemplateId";
     private static final String MAIL_CONFIG_TEMPLATE_DEFINITION = "Mail configuration template is set of default smtp settings for mail server that specific provider supports";
-
     private final TbMailConfigTemplateService mailConfigTemplateService;
 
     @ApiOperation(value = "Get the list of all OAuth2 client registration templates (getClientRegistrationTemplates)" + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH,
